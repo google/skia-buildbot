@@ -145,6 +145,18 @@ func MockPostDialogue(requestType string, requestBody, responseBody []byte) Mock
 	}
 }
 
+func MockPostError(requestType string, requestBody []byte, responseStatus string, responseCode int) MockDialogue {
+	return MockDialogue{
+		requestMethod:  "POST",
+		requestType:    requestType,
+		requestPayload: requestBody,
+
+		responseStatus:  responseStatus,
+		responseCode:    responseCode,
+		responsePayload: []byte{},
+	}
+}
+
 func MockPutDialogue(requestType string, requestBody, responseBody []byte) MockDialogue {
 	return MockDialogue{
 		requestMethod:  "PUT",
