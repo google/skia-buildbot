@@ -132,7 +132,7 @@ func (task *ChromiumAnalysisTask) Execute() error {
 			"--browser_extra_args=" + task.BrowserArgs,
 			"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 			"--target_platform=" + task.Platform,
-			"--run_on_gce=" + strconv.FormatBool(task.RunOnGCE),
+			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,
@@ -181,6 +181,7 @@ func (task *ChromiumPerfTask) Execute() error {
 			"--repeat_benchmark=" + strconv.FormatInt(task.RepeatRuns, 10),
 			"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 			"--target_platform=" + task.Platform,
+			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,
@@ -220,6 +221,7 @@ func (task *PixelDiffTask) Execute() error {
 			"--benchmark_extra_args=" + task.BenchmarkArgs,
 			"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
 			"--browser_extra_args_withpatch=" + task.BrowserArgsWithPatch,
+			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,
@@ -245,6 +247,7 @@ func (task *CaptureSkpsTask) Execute() error {
 			"--pageset_type=" + task.PageSets,
 			"--chromium_build=" + chromiumBuildDir,
 			"--target_platform=Linux",
+			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,
@@ -286,6 +289,7 @@ func (task *LuaScriptTask) Execute() error {
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--chromium_build=" + chromiumBuildDir,
+			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,
@@ -301,6 +305,8 @@ type ChromiumBuildTask struct {
 
 func (task *ChromiumBuildTask) Execute() error {
 	runId := runId(task)
+	// We do not pass --run_on_gce to the below because build tasks always run
+	// on GCE builders not GCE workers or bare-metal machines.
 	return exec.Run(&exec.Command{
 		Name: "build_chromium",
 		Args: []string{
@@ -329,6 +335,7 @@ func (task *RecreatePageSetsTask) Execute() error {
 		Args: []string{
 			"--emails=" + task.Username,
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
 			"--logtostderr",
@@ -350,6 +357,7 @@ func (task *RecreateWebpageArchivesTask) Execute() error {
 		Args: []string{
 			"--emails=" + task.Username,
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
 			"--logtostderr",

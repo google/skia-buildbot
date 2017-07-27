@@ -39,6 +39,7 @@ var (
 	repeatBenchmark           = flag.Int("repeat_benchmark", 1, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
 	runInParallel             = flag.Bool("run_in_parallel", false, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
+	runOnGCE                  = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	varianceThreshold         = flag.Float64("variance_threshold", 0.0, "The variance threshold to use when comparing the resultant CSV files.")
 	discardOutliers           = flag.Float64("discard_outliers", 0.0, "The percentage of outliers to discard when comparing the result CSV files.")
@@ -233,7 +234,7 @@ func main() {
 	// Determine hard timeout according to the number of times benchmark should be repeated.
 	// Cap it off at the max allowable hours.
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
-	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, util.GOLO_WORKER_DIMENSIONS, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
+	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
