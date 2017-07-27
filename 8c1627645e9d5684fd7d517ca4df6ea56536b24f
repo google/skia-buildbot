@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "525f341b_6bca68ed",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 8
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T17:07:57Z",
+      "side": 1,
+      "message": "I guess that might work, right now ct/go/ctfe/... things are DBTasks used mainly only by CTFE (and the poller). Would be nicely self contained if everything related to a task was in one place or under one directory. I will have to think more about this.",
+      "parentUuid": "d81f204b_121d2201",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 189
+      },
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73dc12c4_b6ad534a",
         "filename": "ct/go/poller/main.go",
         "patchSetId": 8
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "0c0c469e_97d157ab",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T17:07:57Z",
+      "side": 1,
+      "message": "Removed. Done.",
+      "parentUuid": "73dc12c4_b6ad534a",
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ed3898f9_894cebb8",
         "filename": "ct/go/poller/main.go",
         "patchSetId": 8
@@ -53,6 +95,30 @@
       "writtenOn": "2017-07-27T14:37:13Z",
       "side": 1,
       "message": "tangential: Is this now a potential problem, since tasks could start in parallel?",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 24
+      },
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff1caf36_9e8f5e19",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T17:07:57Z",
+      "side": 1,
+      "message": "I guess. We have never seen this happen though so I am not concerned. Someone would have to have 2 open tabs and submit jobs within the same second. I do not think you can do this with a single tab within a second.",
+      "parentUuid": "ed3898f9_894cebb8",
       "range": {
         "startLine": 96,
         "startChar": 4,
