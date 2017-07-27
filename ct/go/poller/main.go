@@ -87,6 +87,8 @@ type Task interface {
 	// Returns the corresponding UpdateTaskVars instance of this Task. The
 	// returned instance is not populated.
 	GetUpdateTaskVars() task_common.UpdateTaskVars
+	// Returns whether the task runs on CT GCE swarming bots (ct-gce-*).
+	RunsOnGCEWorkers() bool
 }
 
 // Generates a hopefully-unique ID for this execution of this task.
