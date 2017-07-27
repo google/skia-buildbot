@@ -85,6 +85,10 @@ func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
+func (task DBTask) RunsOnGCEWorkers() bool {
+	return true
+}
+
 func (task DBTask) TableName() string {
 	return db.TABLE_LUA_SCRIPT_TASKS
 }
