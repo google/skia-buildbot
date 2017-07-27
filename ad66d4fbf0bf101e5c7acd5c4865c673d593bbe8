@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a110a34c_d4292500",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T18:40:52Z",
+      "side": 1,
+      "message": "That is true and also when this is first deployed instances will stay up till a GCE job is picked up and completed.\nThis is also a similar problem to how already running jobs enter a weird state whenever the poller is restarted: they show up as running in the UI but all backend tasks are lost so I normally have to manually mark them as failed in the DB.\n\nThe easy solution here would be that everytime the poller first comes up it should bring down all GCE instances since there are no running jobs at the time anyway (and should eventually also tell ctfe to mark running jobs as failed). Maybe that can be done in NewCTAutoscaler?",
+      "parentUuid": "8d5e6d89_fbf7b06f",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6a4cc6cd_63be94eb",
         "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-07-27T18:09:48Z",
       "side": 1,
       "message": "nit: Is this the same as the --run_id arg or the --gae_task_id arg? If the former, consider renaming.",
+      "range": {
+        "startLine": 41,
+        "startChar": 39,
+        "endLine": 41,
+        "endChar": 45
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "436c0046_5ec98880",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T18:40:52Z",
+      "side": 1,
+      "message": "That\u0027s a good question. I had intended for this to be the runId but I do not think I have that information at the point where I want to call this, so I\u0027m going to go with GAE task ID for now (will rename if needed in the CL that makes the poller use this stuff).",
+      "parentUuid": "6a4cc6cd_63be94eb",
       "range": {
         "startLine": 41,
         "startChar": 39,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "20532d6e_2aa38074",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T18:40:52Z",
+      "side": 1,
+      "message": "Yes I went excessive with the logging because I want to make sure it works as expected when first deployed. Changed to Debug.",
+      "parentUuid": "92f3001b_070114b5",
+      "range": {
+        "startLine": 45,
+        "startChar": 7,
+        "endLine": 45,
+        "endChar": 12
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aba44430_6bfc1d01",
         "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
         "patchSetId": 4
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "79999db0_274e8680",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T18:40:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aba44430_6bfc1d01",
+      "range": {
+        "startLine": 69,
+        "startChar": 14,
+        "endLine": 69,
+        "endChar": 25
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e87fce3_cee96e45",
         "filename": "ct/go/poller/main.go",
         "patchSetId": 4
@@ -105,6 +201,24 @@
       "writtenOn": "2017-07-27T18:09:48Z",
       "side": 1,
       "message": "Not used in this CL.",
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "911846b6_7979f394",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T18:40:52Z",
+      "side": 1,
+      "message": "Got removed when I rebased.",
+      "parentUuid": "9e87fce3_cee96e45",
       "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
