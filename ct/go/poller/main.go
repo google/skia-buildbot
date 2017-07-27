@@ -20,6 +20,7 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 
+	"go.skia.org/infra/ct/go/ct_autoscaler"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
@@ -410,7 +411,7 @@ func updateWebappTaskSetFailed(task Task) error {
 // go routine. The function returns without waiting for the task to finish and the
 // WaitGroup of the goroutine is returned to the caller. The caller can then call
 // wg.Wait() if they would like to wait for the task to finish.
-func pollAndExecOnce() *sync.WaitGroup {
+func pollAndExecOnce(autoscaler *ct_autoscaler.CTAutoscaler) *sync.WaitGroup {
 	pending, err := frontend.GetOldestPendingTaskV2()
 	var wg sync.WaitGroup
 	if err != nil {
@@ -431,6 +432,7 @@ func pollAndExecOnce() *sync.WaitGroup {
 	}
 	tasksMtx.Lock()
 	pickedUpTasks[fmt.Sprintf("%s.%d", taskName, id)] = "1"
+	autoscaler.RegisterGCETask(fmt.Sprintf("%s.%d", taskName, id))
 	tasksMtx.Unlock()
 
 	sklog.Infof("Preparing to execute task %s %d", taskName, id)
@@ -456,6 +458,7 @@ func pollAndExecOnce() *sync.WaitGroup {
 		}
 		tasksMtx.Lock()
 		delete(pickedUpTasks, fmt.Sprintf("%s.%d", taskName, id))
+		autoscaler.UnregisterGCETask(fmt.Sprintf("%s.%d", taskName, id))
 		tasksMtx.Unlock()
 	}()
 	// Return the WaitGroup to allow some callers to call wg.Wait()
@@ -473,13 +476,17 @@ func main() {
 		})
 	}
 
+	autoscaler, err := ct_autoscaler.NewCTAutoscaler()
+	if err != nil {
+		sklog.Fatalf("Could not instantiate the CT autoscaler: %s", err)
+	}
 	healthyGauge := metrics2.GetInt64Metric("healthy")
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
-	pollAndExecOnce()
+	pollAndExecOnce(autoscaler)
 	for range time.Tick(*pollInterval) {
 		healthyGauge.Update(1)
-		pollAndExecOnce()
+		pollAndExecOnce(autoscaler)
 
 	}
 }
