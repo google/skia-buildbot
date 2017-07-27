@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "02695c7d_554279ad",
+        "filename": "res/imp/spinner-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-27T18:29:50Z",
+      "side": 1,
+      "message": "Because of how this evolved _hide should go away, since it\u0027s always the same as !busy. \nThis is a simple example that could benefit of a demo page.",
+      "revId": "1185224f2688ad214499b00e1dd9beac3998aaec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
