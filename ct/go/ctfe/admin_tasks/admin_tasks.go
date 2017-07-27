@@ -69,6 +69,10 @@ func (task RecreatePageSetsDBTask) GetUpdateTaskVars() task_common.UpdateTaskVar
 	return &RecreatePageSetsUpdateVars{}
 }
 
+func (task RecreatePageSetsDBTask) RunsOnGCEWorkers() bool {
+	return true
+}
+
 func (task RecreatePageSetsDBTask) TableName() string {
 	return db.TABLE_RECREATE_PAGE_SETS_TASKS
 }
@@ -113,6 +117,10 @@ func (dbTask RecreateWebpageArchivesDBTask) GetPopulatedAddTaskVars() task_commo
 
 func (task RecreateWebpageArchivesDBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &RecreateWebpageArchivesUpdateVars{}
+}
+
+func (task RecreateWebpageArchivesDBTask) RunsOnGCEWorkers() bool {
+	return true
 }
 
 func (task RecreateWebpageArchivesDBTask) TableName() string {

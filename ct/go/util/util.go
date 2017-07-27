@@ -375,7 +375,7 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs, dimensions map[string]string, repeatValue int) (int, error) {
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int) (int, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -434,6 +434,12 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 
 	if len(genJSONs) != len(tasksToHashes) {
 		return numTasks, fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
+	}
+	var dimensions map[string]string
+	if runOnGCE {
+		dimensions = GCE_WORKER_DIMENSIONS
+	} else {
+		dimensions = GOLO_WORKER_DIMENSIONS
 	}
 	// Trigger swarming using the isolate hashes.
 	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))

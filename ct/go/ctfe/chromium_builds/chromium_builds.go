@@ -95,6 +95,12 @@ func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
+func (task DBTask) RunsOnGCEWorkers() bool {
+	// Unused for chromium_builds because it always runs on the GCE builders not
+	// the workers or bare-metal machines.
+	return false
+}
+
 func (task DBTask) TableName() string {
 	return db.TABLE_CHROMIUM_BUILD_TASKS
 }

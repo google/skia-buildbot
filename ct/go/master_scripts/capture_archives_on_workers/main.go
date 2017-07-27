@@ -22,6 +22,7 @@ var (
 	emails      = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
 	gaeTaskID   = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
+	runOnGCE    = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
 	runID       = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully = new(bool)
@@ -94,7 +95,7 @@ func main() {
 	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
 
 	// Archive, trigger and collect swarming tasks.
-	if _, err := util.TriggerSwarmingTask(*pagesetType, "capture_archives", util.CAPTURE_ARCHIVES_ISOLATE, *runID, 4*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, util.GCE_WORKER_DIMENSIONS, 1); err != nil {
+	if _, err := util.TriggerSwarmingTask(*pagesetType, "capture_archives", util.CAPTURE_ARCHIVES_ISOLATE, *runID, 4*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, 1); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

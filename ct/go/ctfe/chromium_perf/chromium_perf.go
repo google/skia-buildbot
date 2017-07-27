@@ -101,6 +101,11 @@ func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
+func (task DBTask) RunsOnGCEWorkers() bool {
+	// Perf tasks should always run on bare-metal machines.
+	return false
+}
+
 func (task DBTask) TableName() string {
 	return db.TABLE_CHROMIUM_PERF_TASKS
 }
