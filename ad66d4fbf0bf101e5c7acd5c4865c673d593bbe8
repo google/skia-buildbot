@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f06e6451_e1d28426",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T18:49:53Z",
+      "side": 1,
+      "message": "sgtm",
+      "parentUuid": "a110a34c_d4292500",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6a4cc6cd_63be94eb",
         "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
         "patchSetId": 4
