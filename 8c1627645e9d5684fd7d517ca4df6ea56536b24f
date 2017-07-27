@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d81f204b_121d2201",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 8
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T14:37:13Z",
+      "side": 1,
+      "message": "We might consider going one step further and refactoring to move the task packages (e.g. ct/go/ctfe/admin_tasks, ct/go/ctfe/capture_skps, etc.) up one level and moving master and worker logic into those packages.",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 189
+      },
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "73dc12c4_b6ad534a",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T14:37:13Z",
+      "side": 1,
+      "message": "nit: If it compiles without adding this method, I very slightly prefer not adding it.\n\n(ISTM that you would only need this method if you were to extract the common args into a different function, e.g.\n\nfunc commonArgs(task Task, runId string) []string {\n  cols :\u003d task.GetCommonCols()\n  return []string{\n    \"--emails\u003d\" + cols.Username,\n    \"--gae_task_id\u003d\" + strconv.FormatInt(cols.Id, 10),\n    \"--run_on_gce\u003d\" + strconv.FormatBool(task.RunsOnGCEWorkers()),\n    \"--run_id\u003d\" + runId,\n    \"--logtostderr\",\n    \"--log_id\u003d\" + runId,\n    fmt.Sprintf(\"--local\u003d%t\", *master_common.Local),\n  }\n}\n\n)",
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed3898f9_894cebb8",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T14:37:13Z",
+      "side": 1,
+      "message": "tangential: Is this now a potential problem, since tasks could start in parallel?",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 24
+      },
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
