@@ -47,7 +47,7 @@ const (
 	// SPARSE_BLOCK_SEARCH_MULT When searching for commits that have data in a
 	// sparse data set, we'll request data in chunks of this many commits per
 	// point we are looking for.
-	SPARSE_BLOCK_SEARCH_MULT = 30
+	SPARSE_BLOCK_SEARCH_MULT = 100
 )
 
 var (
@@ -348,7 +348,7 @@ func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWi
 			return nil, err
 		}
 		if len(withData) < request.Radius {
-			return nil, fmt.Errorf("Not enough sparse data.")
+			return nil, fmt.Errorf("Not enough sparse data after the target commit.")
 		}
 		cids = append(cids, withData[:request.Radius]...)
 
@@ -359,7 +359,7 @@ func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWi
 			return nil, err
 		}
 		if len(withData) < request.Radius {
-			return nil, fmt.Errorf("Not enough sparse data.")
+			return nil, fmt.Errorf("Not enough sparse data before the target commit.")
 		}
 		withData = withData[len(withData)-request.Radius:]
 		cids = append(withData, cids...)
