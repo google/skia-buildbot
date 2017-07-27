@@ -478,6 +478,9 @@ func main() {
 	for range time.Tick(*pollInterval) {
 		healthyGauge.Update(1)
 		pollAndExecOnce()
-
+		// Sleeping for a second to avoid the small probability of ending up
+		// with 2 tasks with the same runID. For context see
+		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
+		time.Sleep(time.Second)
 	}
 }
