@@ -3,13 +3,11 @@ package ctdiffingestion
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diff"
@@ -116,14 +114,6 @@ func TestPixelDiffProcessor(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedRecOne, recOne)
 
-	// Check that both screenshots, as well as the diff image, were downloaded.
-	localImgPath, _ := mapper.ImagePaths(TEST_NOPATCH_ONE)
-	assert.True(t, fileutil.FileExists(filepath.Join(baseDir, "images", localImgPath)))
-	localImgPath, _ = mapper.ImagePaths(TEST_WITHPATCH_ONE)
-	assert.True(t, fileutil.FileExists(filepath.Join(baseDir, "images", localImgPath)))
-	localDiffPath := mapper.DiffPath(TEST_NOPATCH_ONE, TEST_WITHPATCH_ONE)
-	assert.True(t, fileutil.FileExists(filepath.Join(baseDir, "diffs", localDiffPath)))
-
 	// Verify that the second entry in the ResultStore is correct. There should
 	// be no data for NoPatchImg and DiffMetrics.
 	expectedRecTwo := &resultstore.ResultRec{
@@ -135,9 +125,4 @@ func TestPixelDiffProcessor(t *testing.T) {
 	recTwo, err := resultStore.Get(TEST_RUN_ID, TEST_URL_TWO)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedRecTwo, recTwo)
-
-	// No images should have been downloaded as that only happens when the diff
-	// metrics are calculated.
-	localImgPath, _ = mapper.ImagePaths(TEST_WITHPATCH_TWO)
-	assert.False(t, fileutil.FileExists(filepath.Join(baseDir, "images", localImgPath)))
 }
