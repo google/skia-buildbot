@@ -194,6 +194,30 @@
       "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f9b691a6_bfb8339a",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T18:18:13Z",
+      "side": 1,
+      "message": "Hmm. It\u0027s possible, but very unlikely, for pollAndExecOnce() to take \u003e30 seconds for the first task and take \u003c1 second for the second task. We could fix it by just adding time.Sleep(time.Second) on line 483.",
+      "parentUuid": "e02b9d9e_0a3ffb57",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 24
+      },
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
