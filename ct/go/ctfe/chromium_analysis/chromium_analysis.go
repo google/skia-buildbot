@@ -96,6 +96,10 @@ func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
+func (task DBTask) RunsOnGCEWorkers() bool {
+	return task.RunOnGCE && task.Platform != ctutil.PLATFORM_ANDROID
+}
+
 func (task DBTask) TableName() string {
 	return db.TABLE_CHROMIUM_ANALYSIS_TASKS
 }
