@@ -195,6 +195,10 @@
       _key_order: {
         type: Array,
         value: [],
+      },
+      _ignoreNextValueChange: {
+        type: Boolean,
+        value: false,
       }
     },
 
@@ -208,10 +212,10 @@
     },
 
     setParamset: function(paramset) {
-      // Keep a backup, for when we do filtering.
       this._originalParamset = paramset;
       this._paramset = paramset;
       this._recalcKeys();
+      this._ignoreNextValueChange = true;
     },
 
     setKeyOrder: function(key_order) {
@@ -231,12 +235,18 @@
         }
       }.bind(this));
       keys = pre.concat(keys);
+
+      var key = this.$.keys.selected;
+
       this.set("_keys", keys);
       this.$.keys.selectedIndex = -1;
+      this.$.keys.selected = key;
+      /*
       this.set("_values", []);
       this.$.invert.disabled = true;
       this.$.regex.disabled = true;
       this.$.regexValue.disabled = true;
+      */
     },
 
     _fastFilter: function() {
@@ -311,6 +321,7 @@
 
     _keyChange: function() {
       var key = this.$.keys.selected;
+      this._ignoreNextValueChange = true;
       this.set("_values", this._paramset[key]);
       this.set("_selectedKey", key);
       this.set("_selectedValue", this._query[key] || []);
@@ -326,6 +337,10 @@
     },
 
     _valueChange: function(e) {
+      if (this._ignoreNextValueChange) {
+        this._ignoreNextValueChange = false;
+        return
+      }
       if (this.$.regex.checked) {
         this._query[this._selectedKey] = ["~" + this.$.regexValue.value];
       } else {
