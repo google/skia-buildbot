@@ -170,6 +170,30 @@
       "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e02b9d9e_0a3ffb57",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T17:44:17Z",
+      "side": 1,
+      "message": "But doesn\u0027t the poller call pollAndExecOnce every 30 seconds? how would it pick up 2 tasks at the same time?",
+      "parentUuid": "93851f2a_74c174b2",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 24
+      },
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
