@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "0467c8d4_6baeb60b",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T17:35:10Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0c0c469e_97d157ab",
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed3898f9_894cebb8",
         "filename": "ct/go/poller/main.go",
         "patchSetId": 8
@@ -128,6 +146,30 @@
       "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93851f2a_74c174b2",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T17:35:10Z",
+      "side": 1,
+      "message": "ctutil.GetCurrentTs() uses the server time. ISTM that if someone submits 2 tasks on the frontend while the poller is being restarted, when the poller comes back up, they could have the same run ID.",
+      "parentUuid": "ff1caf36_9e8f5e19",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 24
+      },
+      "revId": "8c1627645e9d5684fd7d517ca4df6ea56536b24f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
