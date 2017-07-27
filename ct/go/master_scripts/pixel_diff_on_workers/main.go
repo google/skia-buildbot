@@ -33,6 +33,7 @@ var (
 	benchmarkExtraArgs        = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgsNoPatch   = flag.String("browser_extra_args_nopatch", "", "The extra arguments that are passed to the browser while running the benchmark for the nopatch case.")
 	browserExtraArgsWithPatch = flag.String("browser_extra_args_withpatch", "", "The extra arguments that are passed to the browser while running the benchmark for the withpatch case.")
+	runOnGCE                  = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully = false
@@ -215,7 +216,7 @@ func main() {
 		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
 		return
 	}
-	if _, err := util.TriggerSwarmingTask(*pagesetType, "pixel_diff", util.PIXEL_DIFF_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, util.GCE_WORKER_DIMENSIONS, 1); err != nil {
+	if _, err := util.TriggerSwarmingTask(*pagesetType, "pixel_diff", util.PIXEL_DIFF_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, 1); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
