@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b904bcf_f74216b0",
+        "filename": "autoroll/go/autorollerv2/roll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T17:39:19Z",
+      "side": 1,
+      "message": "Updating the local copy of the issue fails if it is already closed? where does it do that?",
+      "range": {
+        "startLine": 85,
+        "startChar": 15,
+        "endLine": 85,
+        "endChar": 21
+      },
+      "revId": "9a219dc7c52787330058383fe99282c67b2e29c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c87965e_d0266b0b",
+        "filename": "autoroll/go/autorollerv2/roll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T17:39:19Z",
+      "side": 1,
+      "message": "Since this block is used in a bunch of places we should be able to extract it out into something like checkIfAlreadyClosed.\nLooks like the only thing that is changing is the text in the error which can be a parameter called action or attemptedAction like \"switch the CL out of dry run\" or \"switch the CL to dry run\" or \"close the CL\".",
+      "revId": "9a219dc7c52787330058383fe99282c67b2e29c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
