@@ -19,6 +19,81 @@
     },
     {
       "key": {
+        "uuid": "999fc5bc_d704e955",
+        "filename": "ct_pixel_diff/frontend/res/imp/activity-sk.html",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-27T14:57:54Z",
+      "side": 1,
+      "message": "That\u0027s be fine. For historical reasons it was named activity - it should really have \u0027spinner\u0027 in the name, since that\u0027s all it is. So please add a copy in common and give it a better name. \nI will then change Cold to use it.",
+      "parentUuid": "cc79bec3_89db524c",
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67ec3b53_0a43076e",
+        "filename": "ct_pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 10
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-27T14:57:54Z",
+      "side": 1,
+      "message": "This should also list attributes, events and methods of this element. \nIf there are none, still have something like this:\n\n   Attributes:\n     None\n\n    Events:\n      None\n\n    Methods:\n      None",
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c17df9a2_06f3e57a",
+        "filename": "ct_pixel_diff/frontend/res/imp/results-page-sk.html",
+        "patchSetId": 10
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-27T14:57:54Z",
+      "side": 1,
+      "message": "Same about attributes, etc.",
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06c71b72_9ec2bb34",
+        "filename": "ct_pixel_diff/frontend/res/imp/run-details-sk.html",
+        "patchSetId": 10
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-27T14:57:54Z",
+      "side": 1,
+      "message": "Indentation.",
+      "range": {
+        "startLine": 37,
+        "startChar": 2,
+        "endLine": 37,
+        "endChar": 3
+      },
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aebedd55_a5d26792",
         "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
         "patchSetId": 10
@@ -36,6 +111,24 @@
     },
     {
       "key": {
+        "uuid": "133d6cb6_471d39cd",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-27T14:57:54Z",
+      "side": 1,
+      "message": "I don\u0027t think we have a lot of tests for handlers. We should probably change that. \nAny problems in the handlers show up very quickly and most often they are in one of the lower level packages. Which usually results in revising the tests there. \nIMO it\u0027s ok to keep the test on handlers light until there is an issue that suggests more automated tests, but I defer to Walter if he has a different opinion. \n\nHere is an example I found https://elithrar.github.io/article/testing-http-handlers-go/\nthat looks like a good approach.",
+      "parentUuid": "aebedd55_a5d26792",
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "890606f4_9ed464c8",
         "filename": "ct_pixel_diff/go/ct_pixel_diff/helpers.go",
         "patchSetId": 10
@@ -47,6 +140,24 @@
       "writtenOn": "2017-07-27T00:28:25Z",
       "side": 1,
       "message": "Do you think this function, along with sendJsonResponse and makeResourceHandler in handlers should be shared between Gold and ct_pixel_diff? Or is it fine if the new server duplicates these functions because they\u0027re so small?",
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8d26efe_3d55be9f",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/helpers.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-27T14:57:54Z",
+      "side": 1,
+      "message": "It\u0027s ok to have duplicates. I have found that I touch this very little, but I do, it should be easy to find. so keeping it here is fine.",
+      "parentUuid": "890606f4_9ed464c8",
       "revId": "684b5519a38043b430365d909d61692765e6b833",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
