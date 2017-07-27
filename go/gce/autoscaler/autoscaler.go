@@ -9,6 +9,13 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+// Interface useful for mocking.
+type IAutoscaler interface {
+	GetRunningInstances() ([]string, error)
+	StopAllInstances() error
+	StartAllInstances() error
+}
+
 // Autoscaler is a struct used for autoscaling instances in GCE.
 type Autoscaler struct {
 	g         *gce.GCloud
