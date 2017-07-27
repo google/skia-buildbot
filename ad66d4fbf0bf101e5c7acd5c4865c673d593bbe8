@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8d5e6d89_fbf7b06f",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T18:09:48Z",
+      "side": 1,
+      "message": "Keeping this state here does not seem fault-tolerant. How will instances be stopped if there is a panic or crash?",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a4cc6cd_63be94eb",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T18:09:48Z",
+      "side": 1,
+      "message": "nit: Is this the same as the --run_id arg or the --gae_task_id arg? If the former, consider renaming.",
+      "range": {
+        "startLine": 41,
+        "startChar": 39,
+        "endLine": 41,
+        "endChar": 45
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92f3001b_070114b5",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T18:09:48Z",
+      "side": 1,
+      "message": "nit: Maybe change some of these to Debugf? Seems like it will be noisy.",
+      "range": {
+        "startLine": 45,
+        "startChar": 7,
+        "endLine": 45,
+        "endChar": 12
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aba44430_6bfc1d01",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T18:09:48Z",
+      "side": 1,
+      "message": "typo \"Unregistering\"",
+      "range": {
+        "startLine": 69,
+        "startChar": 14,
+        "endLine": 69,
+        "endChar": 25
+      },
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e87fce3_cee96e45",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T18:09:48Z",
+      "side": 1,
+      "message": "Not used in this CL.",
+      "revId": "ad66d4fbf0bf101e5c7acd5c4865c673d593bbe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
