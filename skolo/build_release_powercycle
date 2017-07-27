@@ -1,17 +1,46 @@
 #!/bin/bash
-# Builds and uploads a debian package for powercycle.
-APPNAME=powercycle
-DESCRIPTION="Package powercycle cli and config file."
+
+# Builds and uploads a debian package for the rack jumphosts to
+# powercycle their devices.
+
+# Make sure we have a rack id.
+ALL_IDS="rpi-01 linux-01"
+print_usage() {
+    echo "Usage: $0 MESSAGE INSTANCE_ID"
+    echo "     MESSAGE     is the message to be included in the release package."
+    echo "     INSTANCE_ID is the id of the instance targeted by this package."
+    echo "                 This should be one of: '$ALL_IDS' or 'all'."
+    exit 1
+}
+if [ "$#" -ne 2 ]; then
+    print_usage
+fi
 
 set -x -e
+TARGET_INSTANCE_IDS=$2
 
-# Copy files into the right locations in ${ROOT}.
-copy_release_files()
-{
-INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=755 -T ${GOPATH}/bin/powercycle-cli  ${ROOT}/usr/local/bin/powercycle
-${INSTALL} --mode=644 -T ./sys/powercycle.yaml     ${ROOT}/etc/powercycle.yaml
-}
+# Strip the second argument to keep this compatible with the shared build script.
+set -- "$1"
 
-source ../bash/release.sh
+# Determine the instance ids we want to build
+if [ "$TARGET_INSTANCE_IDS" = "all" ]; then
+  TARGET_INSTANCE_IDS=$ALL_IDS
+fi
+
+for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
+  APPNAME="powercycle-${INSTANCE_ID}"
+  DESCRIPTION="Package to powercycle the devices on jumphost-${INSTANCE_ID} in the skolo."
+
+  # Copy files into the right locations in ${ROOT}.
+  copy_release_files()
+  {
+  INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+  INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
+
+  # Install the powercycle binary and config files.
+  ${INSTALL} --mode=755 -T ${GOPATH}/bin/powercycle-cli          ${ROOT}/usr/local/bin/powercycle
+  ${INSTALL} --mode=644 -T ./sys/powercycle-${INSTANCE_ID}.yaml   ${ROOT}/etc/powercycle.yaml
+  }
+
+  source ../bash/release.sh
+done
