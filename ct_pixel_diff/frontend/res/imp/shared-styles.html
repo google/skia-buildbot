@@ -1,0 +1,47 @@
+<!-- The shared-styles style module.
+  Shared style information that can be imported into any element.
+
+  To use
+	   <style include="shared-styles"></style>
+
+  inside the template tag of a custom element.
+
+  Attributes:
+  	None
+
+  Methods:
+  	None
+
+  Events:
+  	None
+
+  Mailboxes:
+  	None
+-->
+
+
+<dom-module id="shared-styles">
+  <template>
+    <style>
+      * {
+        font-family: Roboto, Arial, sans-serif;
+        font-size: 15px;
+      }
+
+      a {
+        color: #0072ff;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      iron-icon {
+        color: #5098c9;
+      }
+
+      a.buttonLink {
+        text-decoration: none;
+        font-weight: normal;
+      }
+    </style>
+  </template>
+</dom-module>
