@@ -380,12 +380,18 @@ func (i *Ingester) syncFileWrite() {
 // we are interested in. This method assumes that UpdateCommitInfo
 // has been called and therefore reading the tile should not fail.
 func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
+	// If there is no vcs, use the minDuration field of the ingester to calculate
+	// the start time.
+	if i.vcs == nil {
+		return time.Now().Add(-i.minDuration).Unix(), time.Now().Unix(), nil
+	}
+
 	// Make sure the VCS is up to date.
 	if err := i.vcs.Update(true, false); err != nil {
 		return 0, 0, err
 	}
 
-	// Get the desired numbr of commits in the desired time frame.
+	// Get the desired number of commits in the desired time frame.
 	delta := -i.minDuration
 	hashes := i.vcs.From(time.Now().Add(delta))
 	if len(hashes) == 0 {

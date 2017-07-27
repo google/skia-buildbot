@@ -211,3 +211,21 @@ func TestRflQueue(t *testing.T) {
 	queue.clear()
 	assert.Equal(t, 0, len(queue))
 }
+
+func TestIngesterNilVcs(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// Instantiate ingester config.
+	conf := &sharedconfig.IngesterConfig{
+		MinDays: 3,
+	}
+
+	// Instantiate ingester and call getCommitRangeOfInterest.
+	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil)
+	start, end, err := ingester.getCommitRangeOfInterest()
+	assert.NoError(t, err)
+
+	// Verify that start = end - MinDays.
+	delta := -time.Duration(conf.MinDays) * time.Hour * 24
+	assert.Equal(t, time.Unix(end, 0).Add(delta).Unix(), start)
+}
