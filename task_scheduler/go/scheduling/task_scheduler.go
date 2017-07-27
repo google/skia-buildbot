@@ -209,6 +209,43 @@ func (s *TaskScheduler) Status() *TaskSchedulerStatus {
 	}
 }
 
+// SearchQueue returns all task candidates in the queue which match the given
+// TaskKey. Any blank fields are considered to be wildcards.
+func (s *TaskScheduler) SearchQueue(k db.TaskKey) []*taskCandidate {
+	s.queueMtx.RLock()
+	defer s.queueMtx.RUnlock()
+	rv := []*taskCandidate{}
+	for _, c := range s.queue {
+		// TODO(borenet): I wish there was a better way to do this.
+		if k.ForcedJobId != "" && c.ForcedJobId != k.ForcedJobId {
+			continue
+		}
+		if k.Name != "" && c.Name != k.Name {
+			continue
+		}
+		if k.Repo != "" && c.Repo != k.Repo {
+			continue
+		}
+		if k.Revision != "" && c.Revision != k.Revision {
+			continue
+		}
+		if k.Issue != "" && c.Issue != k.Issue {
+			continue
+		}
+		if k.PatchRepo != "" && c.PatchRepo != k.PatchRepo {
+			continue
+		}
+		if k.Patchset != "" && c.Patchset != k.Patchset {
+			continue
+		}
+		if k.Server != "" && c.Server != k.Server {
+			continue
+		}
+		rv = append(rv, c.Copy())
+	}
+	return rv
+}
+
 // RecentSpecsAndCommits returns the lists of recent JobSpec names, TaskSpec
 // names and commit hashes.
 func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
@@ -400,15 +437,17 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 	for _, c := range preFilterCandidates {
 		// Reject blacklisted tasks.
 		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
-			//sklog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
+			sklog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
 			continue
 		}
 
-		// Reject tasks for too-old commits.
-		if in, err := s.window.TestCommitHash(c.Repo, c.Revision); err != nil {
-			return nil, err
-		} else if !in {
-			continue
+		// Reject tasks for too-old commits, as long as they aren't try jobs.
+		if !c.IsTryJob() {
+			if in, err := s.window.TestCommitHash(c.Repo, c.Revision); err != nil {
+				return nil, err
+			} else if !in {
+				continue
+			}
 		}
 		// We shouldn't duplicate pending, in-progress,
 		// or successfully completed tasks.
