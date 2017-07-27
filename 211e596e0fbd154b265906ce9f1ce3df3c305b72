@@ -22,6 +22,30 @@
       "revId": "211e596e0fbd154b265906ce9f1ce3df3c305b72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ea730dd_602381b2",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-27T19:58:47Z",
+      "side": 1,
+      "message": "Stopping all instances does not throw an error if they already have been stopped before. I think it\u0027s better for it to throw an error here so that we find out immediately during instantiation of CTAutoscaler which will be done right when the poller comes up.\nFor the below methods the poller probably should not stop if there is an error and just log them.",
+      "parentUuid": "a877eef3_838aae4f",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 2
+      },
+      "revId": "211e596e0fbd154b265906ce9f1ce3df3c305b72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
