@@ -38,11 +38,12 @@ rpi_backup_push: backup service_account
 router_backup_release: backup service_account
 	./build_release_router_backup "`git log -n1 --format=%s`"
 
-.PHONY: router_backup_push
-router_backup_push: backup service_account
+.PHONY: router_backup_push_all
+router_backup_push_all: backup service_account
 	go install -v ../push/go/pushcli
 	./build_release_router_backup "`git log -n1 --format=%s`"
-	pushcli router-backup jumphost-rpi-01
+	pushcli "router-backup" "jumphost-rpi-01"
+	pushcli "router-backup" "jumphost-linux-01"
 
 
 .PHONY: cloudlogger
@@ -60,23 +61,15 @@ powercycle:
 
 .PHONY: powercycle_release
 powercycle_release: powercycle service_account
-	./build_release_powercycle "`git log -n1 --format=%s`"
+	@echo "  Be sure to supply a TARGET, such as all or rpi-01"
+	./build_release_powercycle "`git log -n1 --format=%s`" "$(TARGET)"
 
-.PHONY: powercycle_push
-powercycle_push: powercycle service_account
+.PHONY: powercycle_push_all
+powercycle_push_all: powercycle service_account
 	go install -v ../push/go/pushcli
-	./build_release_powercycle "`git log -n1 --format=%s`"
-	pushcli powercycle skia-jumphost
-
-.PHONY: jumphost_release
-jumphost_release: service_account powercycle
-	./build_release_jumphost "`git log -n1 --format=%s`" "$(TARGET)"
-
-.PHONY: jumphost_push_all
-jumphost_push: powercycle service_account
-	go install -v ../push/go/pushcli
-	./build_release_jumphost "`git log -n1 --format=%s`" "$(TARGET)"
-	pushcli  "jumphost-$(TARGET)" "jumphost-$(TARGET)"
+	./build_release_powercycle "`git log -n1 --format=%s`" "all"
+	pushcli  "powercycle-rpi-01" "jumphost-rpi-01"
+	pushcli  "powercycle-linux-01" "jumphost-linux-01"
 
 .PHONY: android_watchdog
 android_watchdog:
