@@ -417,6 +417,22 @@ func jsonJobSearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// jsonTaskCandidateSearchHandler allows for searching task candidates based on
+// their TaskKey.
+func jsonTaskCandidateSearchHandler(w http.ResponseWriter, r *http.Request) {
+	var params db.TaskKey
+	if err := httputils.ParseFormValues(r, &params); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse request parameters.")
+		return
+	}
+	candidates := ts.SearchQueue(params)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(candidates); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		return
+	}
+}
+
 func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte("google-site-verification: google2c59f97e1ced9fdc.html")); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write response: %s", err))
@@ -436,6 +452,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/jobs/search", jsonJobSearchHandler)
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
+	r.HandleFunc("/json/taskCandidates/search", jsonTaskCandidateSearchHandler)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
