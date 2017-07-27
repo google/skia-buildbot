@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "687d1381_3a66a8cf",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-27T18:51:46Z",
+      "side": 1,
+      "message": "nit: remove",
+      "revId": "a35476d990385ea35b169c031376ca15e2ee756d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
