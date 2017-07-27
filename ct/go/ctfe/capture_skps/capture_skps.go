@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -70,6 +71,10 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 
 func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
+}
+
+func (task DBTask) RunsOnGCEWorkers() bool {
+	return strings.Contains(strings.ToUpper(task.PageSets), "PDF")
 }
 
 func (task DBTask) TableName() string {

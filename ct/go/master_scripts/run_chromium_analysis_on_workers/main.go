@@ -191,10 +191,6 @@ func main() {
 		"RUN_IN_PARALLEL":    strconv.FormatBool(*runInParallel),
 		"TARGET_PLATFORM":    *targetPlatform,
 	}
-	workerDimensions := util.GOLO_WORKER_DIMENSIONS
-	if *runOnGCE && *targetPlatform != util.PLATFORM_ANDROID {
-		workerDimensions = util.GCE_WORKER_DIMENSIONS
-	}
 
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
 	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
@@ -202,7 +198,7 @@ func main() {
 		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
 		return
 	}
-	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, workerDimensions, util.GetRepeatValue(*benchmarkExtraArgs, 1))
+	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, 1))
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
