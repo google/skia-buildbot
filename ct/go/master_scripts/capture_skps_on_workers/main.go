@@ -32,6 +32,7 @@ var (
 	pagesetType    = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild  = flag.String("chromium_build", "", "The chromium build to use for this capture SKPs run.")
 	targetPlatform = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
+	runOnGCE       = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully = false
@@ -103,14 +104,12 @@ func main() {
 
 	isolateFile := util.CAPTURE_SKPS_ISOLATE
 	maxPages := MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS
-	workerDimensions := util.GOLO_WORKER_DIMENSIONS
 	hardTimeout := 3 * time.Hour
 	ioTimeout := 1 * time.Hour
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
 		// For PDF pagesets use the capture_skps_from_pdfs worker script.
 		isolateFile = util.CAPTURE_SKPS_FROM_PDFS_ISOLATE
 		maxPages = MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS
-		workerDimensions = util.GCE_WORKER_DIMENSIONS
 		hardTimeout = 12 * time.Hour
 		ioTimeout = hardTimeout // PDFs do not output any logs thus the ioTimeout must be the same as the hardTimeout.
 
@@ -164,7 +163,7 @@ func main() {
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if _, err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, workerDimensions, 1); err != nil {
+	if _, err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

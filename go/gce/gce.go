@@ -226,6 +226,23 @@ func (g *GCloud) DeleteDisk(name string, ignoreNotExists bool) error {
 	return nil
 }
 
+// ListRunningInstanceNames returns a slice of running instance names with the specified prefix.
+func (g *GCloud) ListRunningInstanceNames(namePrefix string) ([]string, error) {
+	names := []string{}
+	call := g.s.Instances.List(g.project, g.zone)
+	if err := call.Pages(context.Background(), func(list *compute.InstanceList) error {
+		for _, instance := range list.Items {
+			if instance.Status == instanceStatusRunning && strings.HasPrefix(instance.Name, namePrefix) {
+				names = append(names, instance.Name)
+			}
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return names, nil
+}
+
 // ListDisks returns a list of Disks in the project.
 func (g *GCloud) ListDisks() ([]*Disk, error) {
 	disks := []*Disk{}
