@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cc79bec3_89db524c",
+        "filename": "ct_pixel_diff/frontend/res/imp/activity-sk.html",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-27T00:28:25Z",
+      "side": 1,
+      "message": "Stephan, I copied this file from Gold, so I was wondering if I could move it into common/res/imp. If so, should I do it in a separate CL?",
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aebedd55_a5d26792",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-27T00:28:25Z",
+      "side": 1,
+      "message": "Per Walter\u0027s suggestion above, how should we go about unit testing each of these handler functions? Is there a way to set up a mock server/are there any examples of testing JSON handler functions in the skia infra repo that I can follow?",
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "890606f4_9ed464c8",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/helpers.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-27T00:28:25Z",
+      "side": 1,
+      "message": "Do you think this function, along with sendJsonResponse and makeResourceHandler in handlers should be shared between Gold and ct_pixel_diff? Or is it fine if the new server duplicates these functions because they\u0027re so small?",
+      "revId": "684b5519a38043b430365d909d61692765e6b833",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
