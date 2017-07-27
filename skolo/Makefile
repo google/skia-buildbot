@@ -59,7 +59,7 @@ powercycle:
 	go install -v ./go/powercycle-cli
 
 .PHONY: powercycle_release
-powercycle_release: service_account
+powercycle_release: powercycle service_account
 	./build_release_powercycle "`git log -n1 --format=%s`"
 
 .PHONY: powercycle_push

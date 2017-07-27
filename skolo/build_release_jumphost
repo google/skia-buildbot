@@ -33,8 +33,8 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   # Copy files into the right locations in ${ROOT}.
   copy_release_files()
   {
-  INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-  INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+  INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+  INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
 
   # Install the powercycle binary and config files.
   ${INSTALL} --mode=755 -T ${GOPATH}/bin/powercycle-cli          ${ROOT}/usr/local/bin/powercycle
