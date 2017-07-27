@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -138,7 +139,7 @@ func TestPixelDiffExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "pixel_diff_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 11)
+	expect.Equal(t, len(cmd.Args), 12)
 	expect.Contains(t, cmd.Args, "--gae_task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
@@ -148,6 +149,7 @@ func TestPixelDiffExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
 	expect.Contains(t, cmd.Args, "--logtostderr")
 	expect.Contains(t, cmd.Args, "--local=false")
+	expect.Contains(t, cmd.Args, "--run_on_gce="+strconv.FormatBool(task.RunsOnGCEWorkers()))
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.Contains(t, cmd.Args, "--log_id="+runId)
