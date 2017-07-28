@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "5735c939_a94972e6",
+        "filename": "autoroll/go/autorollerv2/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-28T13:40:50Z",
+      "side": 1,
+      "message": "Thanks much better. I was mainly looking for something that was descriptive when looking at the comment while debugging.",
+      "parentUuid": "a486caac_8ebd2915",
+      "range": {
+        "startLine": 78,
+        "startChar": 67,
+        "endLine": 78,
+        "endChar": 77
+      },
+      "revId": "10543868cb0b05acda36689a6d7434118e46708d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e81d30ab_84b51f4e",
         "filename": "autoroll/go/autorollerv2/roll.go",
         "patchSetId": 3
