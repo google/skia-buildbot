@@ -88,6 +88,8 @@ type Task interface {
 	// Returns the corresponding UpdateTaskVars instance of this Task. The
 	// returned instance is not populated.
 	GetUpdateTaskVars() task_common.UpdateTaskVars
+	// Whether the task needs to run on GCE workers.
+	RunsOnGCEWorkers() bool
 }
 
 // Generates a hopefully-unique ID for this execution of this task.
@@ -427,16 +429,21 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 	tasksMtx.Lock()
 	pickedUpTasks[taskId] = "1"
 	tasksMtx.Unlock()
-	if err := autoscaler.RegisterGCETask(taskId); err != nil {
-		sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
-		return &wg
+
+	if task.RunsOnGCEWorkers() {
+		if err := autoscaler.RegisterGCETask(taskId); err != nil {
+			sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
+			return &wg
+		}
 	}
 
 	sklog.Infof("Preparing to execute task %s", taskId)
 	if err = updateAndBuild(); err != nil {
 		sklog.Error(err)
-		if err := autoscaler.UnregisterGCETask(taskId); err != nil {
-			sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
+		if task.RunsOnGCEWorkers() {
+			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
+				sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
+			}
 		}
 		return &wg
 	}
@@ -459,8 +466,11 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 		tasksMtx.Lock()
 		delete(pickedUpTasks, taskId)
 		tasksMtx.Unlock()
-		if err := autoscaler.UnregisterGCETask(taskId); err != nil {
-			sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
+
+		if task.RunsOnGCEWorkers() {
+			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
+				sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
+			}
 		}
 	}()
 	// Return the WaitGroup to allow some callers to call wg.Wait()

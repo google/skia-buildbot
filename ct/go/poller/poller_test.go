@@ -486,8 +486,8 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 
 	// Expect two pending task requests.
 	expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 2, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 2, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
 	// make all; run_chromium_perf_on_workers ...
 	commands := mockExec.Commands()
