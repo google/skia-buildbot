@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "17932d37_af3429c5",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-28T15:04:06Z",
+      "side": 1,
+      "message": "I don\u0027t think autoscaler needs to have tasksMtx locked, so we should move these four lines (and the Unregister call below) below tasksMtx.Unlock().\n\nIf I\u0027m wrong, then:\n - Need to call tasksMtx.Unlock() here\n - Need to lock/unlock tasksMtx around lines 438-440.",
+      "revId": "7ac56d76f6273b8496027a3d9a01c700d10ca3ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32561ab9_24dc5f0f",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-28T15:04:06Z",
+      "side": 1,
+      "message": "nit: %s",
+      "range": {
+        "startLine": 452,
+        "startChar": 33,
+        "endLine": 452,
+        "endChar": 35
+      },
+      "revId": "7ac56d76f6273b8496027a3d9a01c700d10ca3ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
