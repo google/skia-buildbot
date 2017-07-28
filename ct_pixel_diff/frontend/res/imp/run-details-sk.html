@@ -1,0 +1,64 @@
+<!--
+  The <run-details-sk> custom element declaration.
+
+  Displays the runID of a CT Pixel Diff run
+
+  Attributes:
+    run - The runID of the CT Pixel Diff run.
+
+  Methods:
+    None
+
+  Events:
+    None
+-->
+
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="run-details-sk">
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles"></style>
+    <style>
+      .run {
+        display: inline-block;
+        background: white;
+        margin-bottom: 1em;
+        margin-left: 2em;
+        margin-right: 2em;
+        margin-top: 1em;
+        border: solid 1px gray;
+        padding: 1em;
+        box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
+      }
+
+      .header {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      a {
+        font-size: 18px;
+      }
+    </style>
+    <div class="run">
+      <div class="horizontal layout wrap">
+        <div class="header">Run ID: &nbsp</div>
+        <a target="_blank" href$="/load?runID=[[run]]">[[run]]</a>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'run-details-sk',
+
+      properties: {
+        run: {
+          type: String,
+          value: ""
+        }
+      }
+    })
+  </script>
+</dom-module>
