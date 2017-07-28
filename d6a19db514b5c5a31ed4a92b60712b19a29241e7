@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03f47191_a1c0efed",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-28T02:59:17Z",
+      "side": 1,
+      "message": "Worth describing format of the returned data? Similar for other methods below. Reader can basically figure out by reading the return value but that\u0027s also more work and if we add an early-out or complexify logic later, could become harder to do.",
+      "range": {
+        "startLine": 13,
+        "startChar": 31,
+        "endLine": 13,
+        "endChar": 43
+      },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8111be9_d2646a04",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-28T02:59:17Z",
+      "side": 1,
+      "message": "Which cache? Is resultsMap a go-json-lib/http-request-lib thing? Is it a global? Should we be passing it in? When should/does it get fully cleared out?",
+      "range": {
+        "startLine": 22,
+        "startChar": 25,
+        "endLine": 22,
+        "endChar": 34
+      },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbba9855_52f09214",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-28T02:59:17Z",
+      "side": 1,
+      "message": "I see the start index, and \u0027job\u0027 (though it\u0027s called a run id, so \u0027run\u0027 seems more accurate), but I don\u0027t see the end index?",
+      "range": {
+        "startLine": 35,
+        "startChar": 30,
+        "endLine": 35,
+        "endChar": 76
+      },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "977b5396_1b4e1a37",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-28T02:59:17Z",
+      "side": 1,
+      "message": "Does this method presume precondition(s), like, resultsMap has been fully populated through some set of prior calls? Worth stating here.",
+      "range": {
+        "startLine": 56,
+        "startChar": 18,
+        "endLine": 56,
+        "endChar": 80
+      },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b98baf66_049cb195",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-28T02:59:17Z",
+      "side": 1,
+      "message": "This and blocks below all look so similar, with just the a/b value fields differing. Seems like we could create a separate helper method that we use for all of these to make this switch more readable/maintainable, but I have not stared intensely closely at each one.",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 66
+      },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d8deeb1_04849b99",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-28T02:59:17Z",
+      "side": 1,
+      "message": "OK, I see this here now. Is this the thing re: how to do this in Go? Module level variables seem like basically only slightly more controlled/manageable versions of globals. Do we really not want to pass a cache around explicitly to those methods that mutate it?",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 11
+      },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
