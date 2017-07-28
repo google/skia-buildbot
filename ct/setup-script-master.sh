@@ -31,3 +31,6 @@ rm $GO_VERSION.tar.gz
 # Checkout the Skia infra repo.
 cd /b/skia-repo
 GOPATH=/b/skia-repo/go/ go get -u -t go.skia.org/infra/...
+
+# Create an ssh key for the autoscaler.
+ssh-keygen -f ~/.ssh/google_compute_engine -t rsa -N ''
