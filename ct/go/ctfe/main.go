@@ -93,6 +93,40 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+//func deleteAllRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
+//	w.Header().Set("Content-Type", "application/json")
+
+//	var result int64 = 0
+//	params := task_common.QueryParams{
+//		Running: true,
+//	}
+//	for _, task := range task_types.Prototypes() {
+//		query, args := task_common.DBTaskQuery(task, params)
+//		if err := db.DB.Get(task, query); err == sql.ErrNoRows {
+//			continue
+//		} else if err != nil {
+//			http.Error(w, "Failed to query DB.", http.StatusUnauthorized)
+//			return
+//		}
+//		updateVars := task.GetUpdateTaskVars()
+//		updateVars.GetUpdateTaskCommonVars().Id = task.GetCommonCols().Id
+//		updateVars.GetUpdateTaskCommonVars().SetCompleted(false)
+//		frontend.UpdateWebappTaskV2(&updateVars)
+//		//if oldestTask == nil {
+//		//	oldestTask = task
+//		//} else if oldestTask.GetCommonCols().TsAdded.Int64 > task.GetCommonCols().TsAdded.Int64 {
+//		//	oldestTask = task
+//		//}
+
+//	}
+//	return
+
+//	//vars := admin_tasks.RecreateWebpageArchivesUpdateVars{}
+//	//vars.Id = *gaeTaskID
+//	//vars.SetCompleted(*taskCompletedSuccessfully)
+//	//skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+//}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
@@ -248,7 +282,8 @@ func main() {
 		}
 	}
 
-	common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	common.InitWithMust("ctfe")
+	// common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)

@@ -168,6 +168,8 @@ type QueryParams struct {
 	SuccessfulOnly bool
 	// Include only tasks that are not yet completed.
 	PendingOnly bool
+	// Include only tasks that are currently running.
+	Running bool
 	// Include only completed tasks that are scheduled to repeat.
 	FutureRunsOnly bool
 	// Exclude tasks where page_sets is PAGESET_TYPE_DUMMY_1k.
@@ -199,6 +201,9 @@ func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
 	}
 	if params.PendingOnly {
 		clauses = append(clauses, "ts_completed IS NULL")
+	}
+	if params.Running {
+		clauses = append(clauses, "ts_started IS NOT NULL AND ts_completed IS NULL")
 	}
 	if params.FutureRunsOnly {
 		clauses = append(clauses, "(repeat_after_days != 0 AND ts_completed IS NOT NULL)")
@@ -755,6 +760,21 @@ func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+/*
+func Prototypes() []task_common.Task {
+	return []task_common.Task{
+		&chromium_analysis.DBTask{},
+		&chromium_perf.DBTask{},
+		&pixel_diff.DBTask{},
+		&capture_skps.DBTask{},
+		&lua_scripts.DBTask{},
+		&chromium_builds.DBTask{},
+		&admin_tasks.RecreatePageSetsDBTask{},
+		&admin_tasks.RecreateWebpageArchivesDBTask{},
+	}
+}
+*/
 
 func AddHandlers(r *mux.Router) {
 	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, "POST", pageSetsHandler)
