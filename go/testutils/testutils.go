@@ -243,6 +243,16 @@ func RemoveAll(t assert.TestingT, fp string) {
 	assert.NoError(t, os.RemoveAll(fp))
 }
 
+// TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
+// function to defer.
+func TempDir(t assert.TestingT) (string, func()) {
+	d, err := ioutil.TempDir("", "testutils")
+	assert.NoError(t, err)
+	return d, func() {
+		RemoveAll(t, d)
+	}
+}
+
 // MarshalJSON encodes the given interface to a JSON string.
 func MarshalJSON(t *testing.T, i interface{}) string {
 	b, err := json.Marshal(i)
