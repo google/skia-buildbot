@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "a486caac_8ebd2915",
+        "filename": "autoroll/go/autorollerv2/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-28T13:29:01Z",
+      "side": 1,
+      "message": "My rationale for \"concurrent\" was that we generally update the CL, see that it is still open, and then decide to take one of these actions, eg. close the CL.  So in a sense, it is a concurrent update since it happened since we last checked, which should be a small time frame.  Anyway, I changed the comment to something which should be clearer.",
+      "parentUuid": "85f829de_da5d1383",
+      "range": {
+        "startLine": 78,
+        "startChar": 67,
+        "endLine": 78,
+        "endChar": 77
+      },
+      "revId": "10543868cb0b05acda36689a6d7434118e46708d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e81d30ab_84b51f4e",
         "filename": "autoroll/go/autorollerv2/roll.go",
         "patchSetId": 3
