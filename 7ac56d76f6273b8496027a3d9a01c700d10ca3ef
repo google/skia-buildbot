@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ca90c2d_b6225c21",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-28T15:11:46Z",
+      "side": 1,
+      "message": "Yea I did not have a good reason to use tasksMtx here just figured it would not hurt. But if I really need a mutex here then it should be a different one. I don\u0027t think we need one because CTAutoscaler uses a mutex.",
+      "parentUuid": "17932d37_af3429c5",
+      "revId": "7ac56d76f6273b8496027a3d9a01c700d10ca3ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "32561ab9_24dc5f0f",
         "filename": "ct/go/poller/main.go",
         "patchSetId": 9
@@ -39,6 +57,30 @@
       "revId": "7ac56d76f6273b8496027a3d9a01c700d10ca3ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83078b64_f75cc257",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-07-28T15:11:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32561ab9_24dc5f0f",
+      "range": {
+        "startLine": 452,
+        "startChar": 33,
+        "endLine": 452,
+        "endChar": 35
+      },
+      "revId": "7ac56d76f6273b8496027a3d9a01c700d10ca3ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
