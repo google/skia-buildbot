@@ -1,0 +1,58 @@
+{
+  /*
+    This config file tests various features of JSON5.
+
+    This is a long comment block using block comment notation.
+  */
+
+  // Test of config.Duration values.
+  Delay: "17m",
+
+  // Specify an integer value.
+  Count: 2400,
+
+  // Specify a floating point value.
+  Percent: 0.25,
+
+  // Specify a boolean value.
+  Allow: true, // Trailing comments allowed also.
+
+  // Specify array value.
+  Sources: [
+    "internet",
+    "local",
+    // Trailing comma allowed.
+    "random",
+  ],
+
+  // Structured data.
+  Primary: {
+    // Specify a string value.
+    Name: "run-tests",
+    // Trailing comma allowed.
+    Frequency: "10m",
+  },
+
+  // More complicated data.
+  Items: [
+    {
+      Name: "cleanup",
+      Frequency: "24h",
+    },
+    // Test null values.
+    null,
+    // Test empty values.
+    {},
+    {
+      // Test regular JSON keys.
+      "Name": "refresh",
+      "Frequency": "100ms",
+    },
+  ],
+
+  // Specify map value.
+  Params: {
+    "os": "Linux",
+    arch: "amd64",
+  },
+}

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
@@ -62,7 +63,7 @@ func testIngester(t *testing.T, statusDir string) {
 
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
-		RunEvery:   sharedconfig.ConfDuration{Duration: 1 * time.Second},
+		RunEvery:   config.Duration{Duration: 1 * time.Second},
 		NCommits:   totalCommits / 2,
 		MinDays:    3,
 		StatusDir:  statusDir,
