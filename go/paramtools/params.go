@@ -2,6 +2,7 @@
 package paramtools
 
 import (
+	"sort"
 	"strings"
 
 	"go.skia.org/infra/go/util"
@@ -150,4 +151,21 @@ func (p ParamSet) Copy() ParamSet {
 	}
 
 	return ret
+}
+
+func (p ParamSet) Equal(ps ParamSet) bool {
+	for k, arr := range ps {
+		sort.Strings(arr)
+		if arr2, ok := p[k]; !ok {
+			return false
+		} else {
+			sort.Strings(arr2)
+			for i, s := range arr {
+				if s != arr2[i] {
+					return false
+				}
+			}
+		}
+	}
+	return true
 }
