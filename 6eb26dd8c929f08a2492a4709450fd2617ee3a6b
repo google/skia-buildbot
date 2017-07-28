@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "a3298e1d_550afa4e",
+        "filename": "ct_pixel_diff/frontend/res/imp/runs-page-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T13:34:49Z",
+      "side": 1,
+      "message": "We have tried recently (not 100% consistently everywhere yet) to use square brackets  when it\u0027s a one-way binding and braces when it\u0027s two way binding. So these should be brackets IMO.",
+      "range": {
+        "startLine": 32,
+        "startChar": 22,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "6eb26dd8c929f08a2492a4709450fd2617ee3a6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcf29ec1_84c2ffed",
+        "filename": "ct_pixel_diff/frontend/res/imp/runs-page-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T13:34:49Z",
+      "side": 1,
+      "message": "The correct way to do this is \n\nvalue: function() { return []; }\n\nor multiple elements can end up sharing the empty array. Same for object. \nSee: https://www.polymer-project.org/1.0/docs/devguide/properties#configure-values",
+      "revId": "6eb26dd8c929f08a2492a4709450fd2617ee3a6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "385cf1a3_527ff4a8",
         "filename": "ct_pixel_diff/frontend/res/imp/testdata.js",
         "patchSetId": 2
@@ -13,6 +53,30 @@
       "writtenOn": "2017-07-28T00:48:14Z",
       "side": 1,
       "message": "Is there an easy way/value to also have a way for the demo to show how things go with no runs, and many runs?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 13
+      },
+      "revId": "6eb26dd8c929f08a2492a4709450fd2617ee3a6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81406b5c_7f243504",
+        "filename": "ct_pixel_diff/frontend/res/imp/testdata.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T13:34:49Z",
+      "side": 1,
+      "message": "The only way I can see, would be to essentially have a switch in the demo page that allows to select what data is served by fakeServer. IMO this is fine for now. The demo page provides a skeleton for further tests when needed. But when making changes to an element, we always make sure the demo page still works.",
+      "parentUuid": "385cf1a3_527ff4a8",
       "range": {
         "startLine": 9,
         "startChar": 0,
