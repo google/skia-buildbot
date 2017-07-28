@@ -30,6 +30,7 @@ func CtMaster() *gce.Instance {
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
 	vm.Scopes = append(vm.Scopes, auth.SCOPE_GERRIT)
+	vm.ServiceAccount = gce.SERVICE_ACCOUNT_COMPUTE
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)

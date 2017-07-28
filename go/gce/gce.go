@@ -60,6 +60,7 @@ const (
 	PROJECT_ID = "google.com:skia-buildbots"
 
 	SERVICE_ACCOUNT_DEFAULT         = "31977622648@project.gserviceaccount.com"
+	SERVICE_ACCOUNT_COMPUTE         = "31977622648-compute@developer.gserviceaccount.com"
 	SERVICE_ACCOUNT_CHROME_SWARMING = "chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com"
 	SERVICE_ACCOUNT_CHROMIUM_SWARM  = "chromium-swarm-bots@skia-buildbots.google.com.iam.gserviceaccount.com"
 
