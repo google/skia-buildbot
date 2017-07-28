@@ -88,7 +88,7 @@ var (
 	gitRepoURL            = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	interesting           = flag.Float64("interesting", 50.0, "The threshhold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
 	internalOnly          = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
-	keyOrder              = flag.String("key_order", "build_flavor,test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
+	keyOrder              = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	numContinuous         = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
 	numShift              = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
@@ -539,15 +539,32 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Invalid query.")
 		return
 	}
+	// We should also return the paramset of the matches, but
+	// only if the number of matches is < 1000 to avoid
+	// performance issues.
+	ps := paramtools.NewParamSet()
 	count := 0
-	for key := range freshDataFrame.Get().TraceSet {
+	df := freshDataFrame.Get()
+	for key := range df.TraceSet {
 		if q.Matches(key) {
 			count += 1
+			ps.AddParamsFromKey(key)
 		}
 	}
+	// Repopulate ps so that any key that appears in ps
+	// has *all* the values of the global paramset.
+	//
+	// Also fix the reapply in query2-sk of the paramset.
+	for key, _ := range r.Form {
+		ps[key] = df.ParamSet[key]
+	}
 	if err := json.NewEncoder(w).Encode(struct {
-		Count int `json:"count"`
-	}{Count: count}); err != nil {
+		Count    int                 `json:"count"`
+		Paramset paramtools.ParamSet `json:"paramset"`
+	}{
+		Count:    count,
+		Paramset: ps,
+	}); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
