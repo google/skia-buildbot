@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a21d7a8_d20c0fa4",
+        "filename": "autoroll/go/autorollerv2/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-28T13:15:03Z",
+      "side": 1,
+      "message": "I was thinking that manual closure fell under concurrent update.",
+      "parentUuid": "8d46aca8_cf4e4838",
+      "range": {
+        "startLine": 78,
+        "startChar": 67,
+        "endLine": 78,
+        "endChar": 77
+      },
+      "revId": "10543868cb0b05acda36689a6d7434118e46708d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e81d30ab_84b51f4e",
         "filename": "autoroll/go/autorollerv2/roll.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-07-28T12:23:59Z",
       "side": 1,
       "message": "nit: can you explain why it\u0027s called withModify? I thought it would be something like withChecksForModify (or something better than I cannot think of)",
+      "range": {
+        "startLine": 80,
+        "startChar": 21,
+        "endLine": 80,
+        "endChar": 31
+      },
+      "revId": "10543868cb0b05acda36689a6d7434118e46708d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0f6d8b1_9037d7bf",
+        "filename": "autoroll/go/autorollerv2/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-28T13:15:03Z",
+      "side": 1,
+      "message": "I\u0027m borrowing \"with\" from the python context manager convention, as it runs the passed-in function within the context of the \"try to modify the CL but don\u0027t error out if it was closed\".  \"Modify\" because the passed-in function modifies the CL.  Happy to rename if you can think of something better.  Could be as simple as \"modify\" I guess.",
+      "parentUuid": "e81d30ab_84b51f4e",
       "range": {
         "startLine": 80,
         "startChar": 21,
@@ -68,6 +116,30 @@
       "revId": "10543868cb0b05acda36689a6d7434118e46708d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71fbc6d4_306c5603",
+        "filename": "autoroll/go/autorollerv2/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-28T13:15:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f0266ac5_b22756a3",
+      "range": {
+        "startLine": 86,
+        "startChar": 56,
+        "endLine": 86,
+        "endChar": 57
+      },
+      "revId": "10543868cb0b05acda36689a6d7434118e46708d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
