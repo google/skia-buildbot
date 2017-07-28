@@ -71,6 +71,23 @@
     },
     {
       "key": {
+        "uuid": "e6ac4fbb_2c64baae",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T14:19:59Z",
+      "side": 1,
+      "message": "This should do something like \n\n  httputils.ReportError(w, r, err, \"End user error message\")\n  return\n\nThis will return an error to the caller and not go any further. \nI think that\u0027s desirable here, because this being wrong means there is most \nlikely a bug in the front-end code.",
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "977b5396_1b4e1a37",
         "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
         "patchSetId": 1
@@ -88,6 +105,23 @@
         "endLine": 56,
         "endChar": 80
       },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea4cb84c_cabe278d",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T14:19:59Z",
+      "side": 1,
+      "message": "RunID is not validated at all. If something were to be sent that\u0027s not in the resultsMap this would return nil. There needs to be a check whether the given runID is exists. If not an error needs to be returned.",
       "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -117,6 +151,30 @@
     },
     {
       "key": {
+        "uuid": "0b8d27e5_f2cee23c",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T14:19:59Z",
+      "side": 1,
+      "message": "+1 \nThis should be a call to a function on the resultStore (or another intermediate type) similar to this: \n\nresults, err :\u003d resultStore.Query(runID, sortField, sortOrder)\n...\n\nwhere runID, sortField and sortOrder are extracted from the request and validated as much as possible. I would make sortField and sortOrder strings.",
+      "parentUuid": "b98baf66_049cb195",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 66
+      },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1d8deeb1_04849b99",
         "filename": "ct_pixel_diff/go/ct_pixel_diff/helpers.go",
         "patchSetId": 1
@@ -128,6 +186,30 @@
       "writtenOn": "2017-07-28T02:59:17Z",
       "side": 1,
       "message": "OK, I see this here now. Is this the thing re: how to do this in Go? Module level variables seem like basically only slightly more controlled/manageable versions of globals. Do we really not want to pass a cache around explicitly to those methods that mutate it?",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 11
+      },
+      "revId": "d6a19db514b5c5a31ed4a92b60712b19a29241e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05206146_e5674787",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T14:19:59Z",
+      "side": 1,
+      "message": "These global variables are ok. The alternative is to wrap them in a type and have the handlers be methods of that type. It has made me uneasy in the beginning too, but the trade-off of simple handlers is worth it IMO. BUT they should be kept to the absolute minimum, e.g. \nI don\u0027t think diffStore is used in the handlers, if that\u0027s true, it should not be here, but a local variable in main. \n\nThe globals should also be moved into main, since they are initialized there. \n\nI agree that using the cache this way is not a good approach. The fact that we are caching things should be hidden in the resultStore instance or an intermediate type. \nIt\u0027s not always possible (and done in the Gold code) but the handlers should \n- validate the input \n- call code in resultStore (or another type that contains the \u0027business\u0027 logic)\n- return either an error or the serialized results.",
+      "parentUuid": "1d8deeb1_04849b99",
       "range": {
         "startLine": 34,
         "startChar": 1,
