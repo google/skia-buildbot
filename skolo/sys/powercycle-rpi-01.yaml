@@ -46,3 +46,12 @@ arduino:
       skia-rpi-060-device: 4
       skia-rpi-061-device: 5
       skia-rpi-062-device: 6
+
+seeeduino:
+  seeeduino.01:
+    address: "http://192.168.1.45"
+    base_url: "/arduino/reboot/"
+    ports:
+      skia-rpi-063-device: 0
+      skia-rpi-064-device: 1
+      seeeduino-test: 16
