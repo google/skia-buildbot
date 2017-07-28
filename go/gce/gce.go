@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/user"
 	"path"
@@ -106,14 +107,19 @@ type GCloud struct {
 	zone    string
 }
 
-// NewGCloud returns a GCloud instance.
+// NewGCloud returns a GCloud instance with a default http client. The
+// default client expects a local gcloud_token.data and client_secret.json.
 func NewGCloud(zone, workdir string) (*GCloud, error) {
 	oauthCacheFile := path.Join(workdir, "gcloud_token.data")
 	httpClient, err := auth.NewClient(true, oauthCacheFile, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
 	if err != nil {
 		return nil, err
 	}
+	return NewGCloudWithClient(zone, workdir, httpClient)
+}
 
+// NewGCloudWithClient returns a GCloud instance with the specified http client.
+func NewGCloudWithClient(zone, workdir string, httpClient *http.Client) (*GCloud, error) {
 	s, err := compute.New(httpClient)
 	if err != nil {
 		return nil, err
