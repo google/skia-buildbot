@@ -166,7 +166,7 @@ func (c *Continuous) Run() {
 						K:           cfg.K,
 						Sparse:      cfg.Sparse,
 					}
-					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
+					sklog.Infof("Continuous: Clustering at %s for %v", details[0].Message, *req)
 					resp, err := clustering2.Run(req, c.git, c.cidl)
 					if err != nil {
 						sklog.Errorf("Failed while clustering %v %s", *req, err)
