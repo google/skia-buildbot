@@ -2,6 +2,63 @@
   "comments": [
     {
       "key": {
+        "uuid": "97dffb47_880d7ce1",
+        "filename": "ct_pixel_diff/frontend/res/imp/diff-details-sk-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T13:53:05Z",
+      "side": 1,
+      "message": "The properties you pass here should be documented in the header of the element and also listed as properties in the element with default values.",
+      "revId": "9d63127bcf68e028b8619fb9cf872230f0a1a3fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9310af7d_627349fc",
+        "filename": "ct_pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T13:53:05Z",
+      "side": 1,
+      "message": "\u0027[[\u0027 see comment in other CL about one-way binding.",
+      "range": {
+        "startLine": 77,
+        "startChar": 51,
+        "endLine": 77,
+        "endChar": 53
+      },
+      "revId": "9d63127bcf68e028b8619fb9cf872230f0a1a3fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ceae3b64_dac1d4e3",
+        "filename": "ct_pixel_diff/frontend/res/imp/results-page-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T13:53:05Z",
+      "side": 1,
+      "message": "Does not have to be changed right now, but this should probably be split up into two selects:\n- the field to sort by (which then becomes the value of the select) \n- sort direction (asc/desc)\nworking with numbers makes this harder to maintain IMO, because one always has to look up what each number means.",
+      "revId": "9d63127bcf68e028b8619fb9cf872230f0a1a3fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "95e23a02_a306c466",
         "filename": "ct_pixel_diff/frontend/res/imp/testdata.js",
         "patchSetId": 2
@@ -13,6 +70,30 @@
       "writtenOn": "2017-07-28T00:50:49Z",
       "side": 1,
       "message": "Same comment I made on other patch -- is there an easy/reasonable way to have demo also allow testing having no runs, or many runs?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 16
+      },
+      "revId": "9d63127bcf68e028b8619fb9cf872230f0a1a3fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "610e886a_fe185fd0",
+        "filename": "ct_pixel_diff/frontend/res/imp/testdata.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-28T13:53:05Z",
+      "side": 1,
+      "message": "Despite what I said in the other CL there would actually be value in adding such a data switch in the demo pages, because we have this issue in other places.",
+      "parentUuid": "95e23a02_a306c466",
       "range": {
         "startLine": 9,
         "startChar": 0,
