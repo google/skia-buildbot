@@ -17,6 +17,12 @@ const (
 	MAX_CT_INSTANCE_NUM = 200
 )
 
+// Interface useful for mocking.
+type ICTAutoscaler interface {
+	RegisterGCETask(taskId string) error
+	UnregisterGCETask(taskId string) error
+}
+
 // The CTAutoscaler is a CT friendly wrapper around autoscaler.Autoscaller
 // It does the following:
 // * Automatically brings up all CT GCE instances when a GCE task is registered

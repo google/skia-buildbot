@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.skia.org/infra/ct/go/ct_autoscaler"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
@@ -439,16 +440,19 @@ func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
 func TestPollAndExecOnce(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingRecreateWebpageArchivesTask()
+	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	mockExec := exec.CommandCollector{}
 	exec.SetRunForTesting(mockExec.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
-	wg := pollAndExecOnce()
+	wg := pollAndExecOnce(mockCTAutoscaler)
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
+	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
 	commands := mockExec.Commands()
 	assert.Len(t, commands, 3)
@@ -463,6 +467,7 @@ func TestPollAndExecOnce(t *testing.T) {
 func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	testutils.SmallTest(t)
 	task1 := pendingRecreateWebpageArchivesTask()
+	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task1.RecreateWebpageArchivesDBTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -470,17 +475,19 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	exec.SetRunForTesting(mockExec.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 	// Poll frontend and execute the first task.
-	wg1 := pollAndExecOnce()
+	wg1 := pollAndExecOnce(mockCTAutoscaler)
 	wg1.Wait() // Wait for task to return to make asserting commands deterministic.
 	// Update current task.
 	task2 := pendingChromiumPerfTask()
 	mockServer.SetCurrentTask(&task2.DBTask)
 	// Poll frontend and execute the second task.
-	wg2 := pollAndExecOnce()
+	wg2 := pollAndExecOnce(mockCTAutoscaler)
 	wg2.Wait() // Wait for task to return to make asserting commands deterministic.
 
 	// Expect two pending task requests.
 	expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
+	expect.Equal(t, 2, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 2, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
 	// make all; run_chromium_perf_on_workers ...
 	commands := mockExec.Commands()
@@ -498,6 +505,7 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 func TestPollAndExecOnceError(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingRecreateWebpageArchivesTask()
+	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -507,10 +515,12 @@ func TestPollAndExecOnceError(t *testing.T) {
 	exec.SetRunForTesting(commandCollector.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 	mockRun.AddRule("capture_archives_on_workers", fmt.Errorf("workers too lazy"))
-	wg := pollAndExecOnce()
+	wg := pollAndExecOnce(mockCTAutoscaler)
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
+	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
 	commands := commandCollector.Commands()
 	assert.Len(t, commands, 3)
@@ -532,6 +542,7 @@ func TestPollAndExecOnceError(t *testing.T) {
 
 func TestPollAndExecOnceNoTasks(t *testing.T) {
 	testutils.SmallTest(t)
+	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(nil)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -539,14 +550,16 @@ func TestPollAndExecOnceNoTasks(t *testing.T) {
 	exec.SetRunForTesting(mockExec.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 	// Poll frontend, no tasks.
-	wg1 := pollAndExecOnce()
-	wg2 := pollAndExecOnce()
-	wg3 := pollAndExecOnce()
+	wg1 := pollAndExecOnce(mockCTAutoscaler)
+	wg2 := pollAndExecOnce(mockCTAutoscaler)
+	wg3 := pollAndExecOnce(mockCTAutoscaler)
 	// Expect three polls.
 	wg1.Wait()
 	wg2.Wait()
 	wg3.Wait()
 	expect.Equal(t, 3, mockServer.OldestPendingTaskReqCount())
+	expect.Equal(t, 0, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 0, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect no commands.
 	expect.Empty(t, mockExec.Commands())
 	// No updates expected.
