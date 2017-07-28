@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "385cf1a3_527ff4a8",
+        "filename": "ct_pixel_diff/frontend/res/imp/testdata.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-28T00:48:14Z",
+      "side": 1,
+      "message": "Is there an easy way/value to also have a way for the demo to show how things go with no runs, and many runs?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 13
+      },
+      "revId": "6eb26dd8c929f08a2492a4709450fd2617ee3a6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
