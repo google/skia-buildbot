@@ -58,6 +58,9 @@ type Config struct {
 
 	// Arduino aggregates all Arduino configurations.
 	Arduino map[string]*ArduinoConfig `yaml:"arduino"`
+
+	// Seeeduino aggregates all Seeeduino configurations.
+	Seeeduino map[string]*SeeeduinoConfig `yaml:"seeeduino"`
 }
 
 // aggregatedDevGroup implements the DeviceGroup interface and allows
@@ -163,6 +166,17 @@ func DeviceGroupFromYamlFile(path string, connect bool) (DeviceGroup, error) {
 	// Add the Arduino boards.
 	for _, c := range conf.Arduino {
 		ar, err := NewArduinoClient(c, connect)
+		if err != nil {
+			return nil, err
+		}
+		if err := ret.add(ar); err != nil {
+			return nil, err
+		}
+	}
+
+	// Add the Seeeduino boards.
+	for _, c := range conf.Seeeduino {
+		ar, err := NewSeeeduinoClient(c, connect)
 		if err != nil {
 			return nil, err
 		}
