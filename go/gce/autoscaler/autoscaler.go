@@ -5,6 +5,9 @@ import (
 	"sort"
 	"sync"
 
+	"google.golang.org/api/compute/v0.alpha"
+
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/util"
 )
@@ -32,7 +35,11 @@ func NewAutoscaler(zone, workdir string, minInstanceNum, maxInstanceNum int, get
 	}
 
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(zone, wdAbs)
+	httpClient, err := auth.NewClient(false, "", compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
+	if err != nil {
+		return nil, err
+	}
+	g, err := gce.NewGCloudWithClient(zone, wdAbs, httpClient)
 	if err != nil {
 		return nil, err
 	}
