@@ -62,6 +62,10 @@ const (
 	PRESUBMIT_READY_LABEL             = "Presubmit-Ready"
 	PRESUBMIT_VERIFIED_LABEL          = "Presubmit-Verified"
 	PRESUBMIT_VERIFIED_LABEL_REJECTED = -1
+	PRESUBMIT_VERIFIED_LABEL_RUNNING  = 0
+	PRESUBMIT_VERIFIED_LABEL_ACCEPTED = 1
+
+	URL_TMPL_CHANGE = "/changes/%d/detail?o=ALL_REVISIONS"
 )
 
 // ChangeInfo contains information about a Gerrit issue.
@@ -272,7 +276,7 @@ func (g *Gerrit) ExtractIssue(issueURL string) (string, bool) {
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to
 // the partial data returned by Gerrit's search endpoint.
 func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
-	url := fmt.Sprintf("/changes/%d/detail?o=ALL_REVISIONS", issue)
+	url := fmt.Sprintf(URL_TMPL_CHANGE, issue)
 	fullIssue := &ChangeInfo{}
 	if err := g.get(url, fullIssue); err != nil {
 		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
