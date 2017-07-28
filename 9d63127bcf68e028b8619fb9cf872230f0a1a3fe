@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95e23a02_a306c466",
+        "filename": "ct_pixel_diff/frontend/res/imp/testdata.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-07-28T00:50:49Z",
+      "side": 1,
+      "message": "Same comment I made on other patch -- is there an easy/reasonable way to have demo also allow testing having no runs, or many runs?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 16
+      },
+      "revId": "9d63127bcf68e028b8619fb9cf872230f0a1a3fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
