@@ -36,14 +36,14 @@ const (
 // Tests the IsReadyForDiff func and returns a ResultRec with test data.
 func createResultRec(t *testing.T) *ResultRec {
 	rec := &ResultRec{}
-	assert.False(t, rec.IsReadyForDiff())
+	assert.False(t, rec.HasBothImages())
 
 	rec.RunID = TEST_RUN_ID
 	rec.URL = TEST_URL
 	rec.Rank = 1
 	rec.NoPatchImg = "lchoi20170719123456/nopatch/1/http___www_google_com"
 	rec.WithPatchImg = "lchoi20170719123456/withpatch/1/http___www_google_com"
-	assert.True(t, rec.IsReadyForDiff())
+	assert.True(t, rec.HasBothImages())
 
 	return rec
 }
@@ -207,4 +207,78 @@ func TestRemoveRun(t *testing.T) {
 	assert.NoError(t, err)
 	err = resultStore.RemoveRun(TEST_RUN_ID)
 	assert.Error(t, err)
+}
+
+func TestFillCache(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// Initialize the ResultStore.
+	resultStore := createBoltResultStore(t)
+
+	// Add the ResultRec.
+	rec := createResultRec(t)
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, rec)
+	assert.NoError(t, err)
+
+	// Clear the cache and fill it.
+	boltStore := resultStore.(*BoltResultStore)
+	boltStore.cache = map[string][]*ResultRec{}
+	err = boltStore.fillCache()
+	assert.NoError(t, err)
+	assert.Equal(t, rec, boltStore.cache[TEST_RUN_ID][0])
+}
+
+func TestGetCached(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// Initialize the ResultStore.
+	resultStore := createBoltResultStore(t)
+
+	// Create two ResultRecs and modify the URL of the second one.
+	recOne := createResultRec(t)
+	recTwo := createResultRec(t)
+	recTwo.URL = TEST_URL_TWO
+
+	// Put them under different URLs so there are multiple entries associated
+	// with a run.
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
+	assert.NoError(t, err)
+
+	// Verify the cache contains the right data.
+	results, err := resultStore.GetCached(TEST_RUN_ID, 0, 2)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(results))
+	assert.Equal(t, recOne, results[0])
+	assert.Equal(t, recTwo, results[1])
+}
+
+func TestSortCache(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// Initialize the ResultStore.
+	resultStore := createBoltResultStore(t)
+
+	// Create two ResultRecs and modify the second one.
+	recOne := createResultRec(t)
+	recTwo := createResultRec(t)
+	recTwo.URL = TEST_URL_TWO
+	recTwo.Rank = 2
+
+	// Put them under different URLs so there are multiple entries associated
+	// with a run.
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
+	assert.NoError(t, err)
+
+	// Sort the cache and verify.
+	err = resultStore.SortCache(TEST_RUN_ID, "rank", "ascending")
+	assert.NoError(t, err)
+
+	results, err := resultStore.GetCached(TEST_RUN_ID, 0, 2)
+	assert.NoError(t, err)
+	assert.Equal(t, recTwo, results[0])
+	assert.Equal(t, recOne, results[1])
 }
