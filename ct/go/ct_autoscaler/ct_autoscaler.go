@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/autoscaler"
 	"go.skia.org/infra/go/gce/ct/instance_types"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/ct/go/util"
@@ -33,6 +34,7 @@ type CTAutoscaler struct {
 	a              autoscaler.IAutoscaler
 	activeGCETasks int
 	mtx            sync.Mutex
+	upGauge        metrics2.Int64Metric
 }
 
 // NewCTAutoscaler returns a CT Autoscaler instance.
@@ -42,13 +44,17 @@ func NewCTAutoscaler() (*CTAutoscaler, error) {
 		return nil, fmt.Errorf("Could not instantiate Autoscaler: %s", err)
 	}
 
+	// The following metric will be set to 1 when prometheus should alert on
+	// missing CT GCE bots and 0 otherwise.
+	upGauge := metrics2.GetInt64Metric("ct-gce-bots-up")
+
 	// Start from a clean slate by bringing down all CT instances since
 	// activeGCETasks is initially 0.
 	if err := a.StopAllInstances(); err != nil {
 		return nil, err
 	}
 
-	return &CTAutoscaler{a: a}, nil
+	return &CTAutoscaler{a: a, upGauge: upGauge}, nil
 }
 
 func (c *CTAutoscaler) RegisterGCETask(taskId string) error {
@@ -66,6 +72,9 @@ func (c *CTAutoscaler) RegisterGCETask(taskId string) error {
 		sklog.Debugf("Starting all CT GCE instances...")
 		if err := c.a.StartAllInstances(); err != nil {
 			return err
+		}
+		if c.upGauge != nil {
+			c.upGauge.Update(1)
 		}
 		if err := c.logRunningGCEInstances(); err != nil {
 			return err
@@ -89,6 +98,9 @@ func (c *CTAutoscaler) UnregisterGCETask(taskId string) error {
 		sklog.Info("Stopping all CT GCE instances...")
 		if err := c.a.StopAllInstances(); err != nil {
 			return err
+		}
+		if c.upGauge != nil {
+			c.upGauge.Update(0)
 		}
 		if err := c.logRunningGCEInstances(); err != nil {
 			return err
