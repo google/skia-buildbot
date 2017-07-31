@@ -1,24 +1,24 @@
-package autorollerv2
+package roller
 
 import (
 	"sync"
 
-	"go.skia.org/infra/autoroll/go/autoroll_modes"
+	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/go/autoroll"
 )
 
 // AutoRollStatus is a struct which provides roll-up status information about
 // the AutoRoll Bot.
 type AutoRollStatus struct {
-	CurrentRoll *autoroll.AutoRollIssue    `json:"currentRoll"`
-	Error       string                     `json:"error"`
-	GerritUrl   string                     `json:"gerritUrl"`
-	LastRoll    *autoroll.AutoRollIssue    `json:"lastRoll"`
-	LastRollRev string                     `json:"lastRollRev"`
-	Mode        *autoroll_modes.ModeChange `json:"mode"`
-	Recent      []*autoroll.AutoRollIssue  `json:"recent"`
-	Status      string                     `json:"status"`
-	ValidModes  []string                   `json:"validModes"`
+	CurrentRoll *autoroll.AutoRollIssue   `json:"currentRoll"`
+	Error       string                    `json:"error"`
+	GerritUrl   string                    `json:"gerritUrl"`
+	LastRoll    *autoroll.AutoRollIssue   `json:"lastRoll"`
+	LastRollRev string                    `json:"lastRollRev"`
+	Mode        *modes.ModeChange         `json:"mode"`
+	Recent      []*autoroll.AutoRollIssue `json:"recent"`
+	Status      string                    `json:"status"`
+	ValidModes  []string                  `json:"validModes"`
 }
 
 // AutoRollStatusCache is a struct used for caching roll-up status
@@ -29,7 +29,7 @@ type AutoRollStatusCache struct {
 	lastError   string
 	lastRoll    *autoroll.AutoRollIssue
 	lastRollRev string
-	mode        *autoroll_modes.ModeChange
+	mode        *modes.ModeChange
 	mtx         sync.RWMutex
 	recent      []*autoroll.AutoRollIssue
 	status      string
@@ -43,8 +43,8 @@ func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 	for _, r := range c.recent {
 		recent = append(recent, r.Copy())
 	}
-	validModes := make([]string, len(autoroll_modes.VALID_MODES))
-	copy(validModes, autoroll_modes.VALID_MODES)
+	validModes := make([]string, len(modes.VALID_MODES))
+	copy(validModes, modes.VALID_MODES)
 	s := &AutoRollStatus{
 		GerritUrl:   c.gerritUrl,
 		LastRollRev: c.lastRollRev,

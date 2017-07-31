@@ -1,4 +1,4 @@
-package autoroll_modes
+package modes
 
 import (
 	"fmt"

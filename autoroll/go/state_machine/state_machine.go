@@ -5,7 +5,7 @@ import (
 	"path"
 	"time"
 
-	"go.skia.org/infra/autoroll/go/autoroll_modes"
+	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/state_machine"
@@ -260,22 +260,22 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 	switch state := s.s.Current(); state {
 	case S_STOPPED:
 		switch desiredMode {
-		case autoroll_modes.MODE_RUNNING:
+		case modes.MODE_RUNNING:
 			return S_NORMAL_IDLE, nil
-		case autoroll_modes.MODE_DRY_RUN:
+		case modes.MODE_DRY_RUN:
 			return S_DRY_RUN_IDLE, nil
-		case autoroll_modes.MODE_STOPPED:
+		case modes.MODE_STOPPED:
 			return S_STOPPED, nil
 		default:
 			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
 		}
 	case S_NORMAL_IDLE:
 		switch desiredMode {
-		case autoroll_modes.MODE_RUNNING:
+		case modes.MODE_RUNNING:
 			break
-		case autoroll_modes.MODE_DRY_RUN:
+		case modes.MODE_DRY_RUN:
 			return S_DRY_RUN_IDLE, nil
-		case autoroll_modes.MODE_STOPPED:
+		case modes.MODE_STOPPED:
 			return S_STOPPED, nil
 		default:
 			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
@@ -299,11 +299,11 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 			}
 		} else {
 			desiredMode := s.a.GetMode()
-			if desiredMode == autoroll_modes.MODE_DRY_RUN {
+			if desiredMode == modes.MODE_DRY_RUN {
 				return S_DRY_RUN_ACTIVE, nil
-			} else if desiredMode == autoroll_modes.MODE_STOPPED {
+			} else if desiredMode == modes.MODE_STOPPED {
 				return S_STOPPED, nil
-			} else if desiredMode == autoroll_modes.MODE_RUNNING {
+			} else if desiredMode == modes.MODE_RUNNING {
 				return S_NORMAL_ACTIVE, nil
 			} else {
 				return "", fmt.Errorf("Invalid mode %q", desiredMode)
@@ -320,11 +320,11 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 			return S_NORMAL_THROTTLED, nil
 		}
 	case S_DRY_RUN_IDLE:
-		if desiredMode == autoroll_modes.MODE_RUNNING {
+		if desiredMode == modes.MODE_RUNNING {
 			return S_NORMAL_IDLE, nil
-		} else if desiredMode == autoroll_modes.MODE_STOPPED {
+		} else if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
-		} else if desiredMode != autoroll_modes.MODE_DRY_RUN {
+		} else if desiredMode != modes.MODE_DRY_RUN {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
 		current := s.a.GetCurrentRev()
@@ -346,11 +346,11 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 			}
 		} else {
 			desiredMode := s.a.GetMode()
-			if desiredMode == autoroll_modes.MODE_RUNNING {
+			if desiredMode == modes.MODE_RUNNING {
 				return S_NORMAL_ACTIVE, nil
-			} else if desiredMode == autoroll_modes.MODE_STOPPED {
+			} else if desiredMode == modes.MODE_STOPPED {
 				return S_STOPPED, nil
-			} else if desiredMode == autoroll_modes.MODE_DRY_RUN {
+			} else if desiredMode == modes.MODE_DRY_RUN {
 				return S_DRY_RUN_ACTIVE, nil
 			} else {
 				return "", fmt.Errorf("Invalid mode %q", desiredMode)
@@ -364,11 +364,11 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_SUCCESS_LEAVING_OPEN:
-		if desiredMode == autoroll_modes.MODE_RUNNING {
+		if desiredMode == modes.MODE_RUNNING {
 			return S_NORMAL_ACTIVE, nil
-		} else if desiredMode == autoroll_modes.MODE_STOPPED {
+		} else if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
-		} else if desiredMode != autoroll_modes.MODE_DRY_RUN {
+		} else if desiredMode != modes.MODE_DRY_RUN {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
 
