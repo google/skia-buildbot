@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c96a315_37eddafb",
+        "filename": "ct/go/ct_autoscaler/ct_autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T17:25:55Z",
+      "side": 1,
+      "message": "Sorry, I should have asked about that. I tried to determine what the initial value would be and decided it must be 0 due to being uninitialized.",
+      "range": {
+        "startLine": 56,
+        "startChar": 1,
+        "endLine": 56,
+        "endChar": 18
+      },
+      "revId": "8b09a566c049c218beb06577fc20603f42c9c749",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
