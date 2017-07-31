@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08e7c711_2c92ce0d",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T22:47:14Z",
+      "side": 1,
+      "message": "If you want to keep individual bot alerts, you could do \"swarming_bots_last_seen{bot\u003d~\"ct-gce-.*\"}/1024/1024/1024/60 * on() group_left ct_gce_bots_up\" (I think).",
+      "range": {
+        "startLine": 259,
+        "startChar": 5,
+        "endLine": 259,
+        "endChar": 91
+      },
+      "revId": "fa465c4dfccd066fbc2554e149b68226c66c6a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a86b50bd_112ecd0a",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T22:47:14Z",
+      "side": 1,
+      "message": "nit: remove",
+      "range": {
+        "startLine": 262,
+        "startChar": 141,
+        "endLine": 262,
+        "endChar": 146
+      },
+      "revId": "fa465c4dfccd066fbc2554e149b68226c66c6a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c570a9d6_2d0d120e",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 540,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T22:47:14Z",
+      "side": 1,
+      "message": "Are there other ct-poller jobs that shouldn\u0027t have metrics?",
+      "revId": "fa465c4dfccd066fbc2554e149b68226c66c6a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
