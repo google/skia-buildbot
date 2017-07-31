@@ -716,7 +716,7 @@ func (g *GCloud) Stop(vm *Instance) error {
 	return g.waitForInstance(vm.Name, instanceStatusStopped, maxWaitTime)
 }
 
-// Start starts the instance and returns when the operation completes.
+// Start starts the instance and returns when the instance is in RUNNING state.
 func (g *GCloud) Start(vm *Instance) error {
 	op, err := g.s.Instances.Start(g.project, g.zone, vm.Name).Do()
 	if err != nil {
@@ -735,16 +735,19 @@ func (g *GCloud) Start(vm *Instance) error {
 	}
 	vm.ExternalIpAddress = ip
 
-	return g.WaitForInstanceReady(vm, maxWaitTime)
+	return nil
 }
 
-// Reboot stops and starts the instance.
+// Reboot stops and starts the instance. Returns when the instance is ready to use.
 func (g *GCloud) Reboot(vm *Instance) error {
 	sklog.Infof("Rebooting instance %q", vm.Name)
 	if err := g.Stop(vm); err != nil {
 		return err
 	}
-	return g.Start(vm)
+	if err := g.Start(vm); err != nil {
+		return err
+	}
+	return g.WaitForInstanceReady(vm, maxWaitTime)
 }
 
 // IsInstanceReady returns true iff the instance is ready.
