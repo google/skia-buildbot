@@ -195,7 +195,7 @@
       _key_order: {
         type: Array,
         value: [],
-      }
+      },
     },
 
     setCurrentQuery: function(s) {
@@ -208,7 +208,6 @@
     },
 
     setParamset: function(paramset) {
-      // Keep a backup, for when we do filtering.
       this._originalParamset = paramset;
       this._paramset = paramset;
       this._recalcKeys();
@@ -231,12 +230,13 @@
         }
       }.bind(this));
       keys = pre.concat(keys);
+
+      var key = this.$.keys.selected;
+
       this.set("_keys", keys);
       this.$.keys.selectedIndex = -1;
-      this.set("_values", []);
-      this.$.invert.disabled = true;
-      this.$.regex.disabled = true;
-      this.$.regexValue.disabled = true;
+      this.$.keys.selected = key;
+      this._keyChange();
     },
 
     _fastFilter: function() {
@@ -335,8 +335,11 @@
     },
 
     _queryChanged: function() {
+      var prev_query = this.current_query;
       this.current_query = sk.query.fromParamSet(this._query);
-      this.fire('query-change', {q: this.current_query});
+      if (prev_query !== this.current_query) {
+        this.fire('query-change', {q: this.current_query});
+      }
     },
 
     _clear: function() {

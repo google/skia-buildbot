@@ -16,9 +16,11 @@
   <p>
     <b>Query String:</b>
     <query-summary-sk id=q selection=""></query-summary-sk>
+    <button id=swap>Swap Paramset</button>
   </p>
 
   <script type="text/javascript" charset="utf-8">
+    var n = 0;
     var paramset = {
         "config": ["565", "8888"],
         "type": ["CPU", "GPU"],
@@ -39,7 +41,15 @@
           "GLInstancedArraysBench_two_8",
           "GLVec4ScalarBench_scalar_1_stage",
           "GLVec4ScalarBench_scalar_2_stage",
-                                    ],
+        ],
+      };
+    var paramset2 = {
+        "config": ["565"],
+        "type": ["CPU", "GPU"],
+        "test": [
+          "DeferredSurfaceCopy_discardable",
+          "DeferredSurfaceCopy_nonDiscardable",
+        ],
       };
     $$$('#basic').setParamset(paramset);
     setTimeout(function() {
@@ -49,6 +59,12 @@
 
     $$$('#basic').addEventListener('query-change', function(e){
       $$$('#q').selection = e.detail.q;
+      console.log('query-change');
+    });
+
+    $$$('#swap').addEventListener('click', function(e){
+      n = (n + 1) % 2;
+      $$$('#basic').setParamset([paramset, paramset2][n]);
     });
 
   </script>
