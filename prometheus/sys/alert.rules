@@ -522,7 +522,7 @@ ALERT RpiMaster
 # General.
 # TODO(borenet): Specific alerts for Swarming.
 ALERT HighExternalQPS
-  IF sum(rate(http_request_metrics[30m])) by (host) > 8
+  IF sum(rate(http_request_metrics[30m])) by (host) > 10
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "QPS to {{ $labels.host }} is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
