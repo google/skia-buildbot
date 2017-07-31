@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb3ff50f_09fecea6",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T20:44:28Z",
+      "side": 1,
+      "message": "This does not match reality. These machines are on Ubuntu-14.04. I\u0027m leaving it alone unless you think they should be recreated as Debian-9.1.",
+      "range": {
+        "startLine": 110,
+        "startChar": 23,
+        "endLine": 110,
+        "endChar": 39
+      },
+      "revId": "b970ad2bb71ba9f6f3265112bb7013512c4728cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
