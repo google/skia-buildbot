@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/autoroll/go/autoroll_modes"
+	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -151,7 +151,7 @@ type TestAutoRollerImpl struct {
 func NewTestAutoRollerImpl(t *testing.T) *TestAutoRollerImpl {
 	return &TestAutoRollerImpl{
 		t:             t,
-		getModeResult: autoroll_modes.MODE_RUNNING,
+		getModeResult: modes.MODE_RUNNING,
 		rolledPast:    map[string]bool{},
 	}
 }
@@ -324,7 +324,7 @@ func TestDryRun(t *testing.T) {
 
 	// Switch to dry run.
 	checkState(t, sm, S_NORMAL_IDLE)
-	r.SetMode(autoroll_modes.MODE_DRY_RUN)
+	r.SetMode(modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 
 	// Create a new roll.
@@ -369,10 +369,10 @@ func TestNormalToDryRun(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll := r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
-	r.SetMode(autoroll_modes.MODE_DRY_RUN)
+	r.SetMode(modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll.AssertDryRun()
-	r.SetMode(autoroll_modes.MODE_RUNNING)
+	r.SetMode(modes.MODE_RUNNING)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll.AssertNotDryRun()
 }
@@ -383,27 +383,27 @@ func TestStopped(t *testing.T) {
 
 	// Switch in and out of stopped mode.
 	checkState(t, sm, S_NORMAL_IDLE)
-	r.SetMode(autoroll_modes.MODE_STOPPED)
+	r.SetMode(modes.MODE_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
-	r.SetMode(autoroll_modes.MODE_DRY_RUN)
+	r.SetMode(modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
-	r.SetMode(autoroll_modes.MODE_STOPPED)
+	r.SetMode(modes.MODE_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
 
 	r.SetNextRollRev("HEAD+1")
-	r.SetMode(autoroll_modes.MODE_RUNNING)
+	r.SetMode(modes.MODE_RUNNING)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll := r.GetActiveRoll().(*TestRollCLImpl)
-	r.SetMode(autoroll_modes.MODE_STOPPED)
+	r.SetMode(modes.MODE_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
-	r.SetMode(autoroll_modes.MODE_DRY_RUN)
+	r.SetMode(modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
-	r.SetMode(autoroll_modes.MODE_STOPPED)
+	r.SetMode(modes.MODE_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 }
@@ -425,14 +425,14 @@ func testThrottle(t *testing.T, mode string) {
 	for i := 0; i < ROLL_ATTEMPT_THROTTLE_NUM; i++ {
 		assert.NoError(t, sm.NextTransition())
 		roll := r.GetActiveRoll().(*TestRollCLImpl)
-		if mode == autoroll_modes.MODE_DRY_RUN {
+		if mode == modes.MODE_DRY_RUN {
 			roll.SetDryRunFailed()
 		} else {
 			roll.SetFailed()
 		}
 		assert.NoError(t, sm.NextTransition())
 		assert.NoError(t, sm.NextTransition())
-		if mode == autoroll_modes.MODE_DRY_RUN {
+		if mode == modes.MODE_DRY_RUN {
 			roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
 		} else {
 			roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
@@ -440,7 +440,7 @@ func testThrottle(t *testing.T, mode string) {
 	}
 	// Now we should be throttled.
 	throttled := S_NORMAL_THROTTLED
-	if mode == autoroll_modes.MODE_DRY_RUN {
+	if mode == modes.MODE_DRY_RUN {
 		throttled = S_DRY_RUN_THROTTLED
 	}
 	checkNextState(t, sm, throttled)
@@ -461,18 +461,18 @@ func testThrottle(t *testing.T, mode string) {
 	assert.NoError(t, err)
 	assert.Equal(t, throttled, sm2.Current())
 	idle := S_NORMAL_IDLE
-	if mode == autoroll_modes.MODE_DRY_RUN {
+	if mode == modes.MODE_DRY_RUN {
 		idle = S_DRY_RUN_IDLE
 	}
 	checkNextState(t, sm2, idle)
 }
 
 func TestThrottle(t *testing.T) {
-	testThrottle(t, autoroll_modes.MODE_RUNNING)
+	testThrottle(t, modes.MODE_RUNNING)
 }
 
 func TestThrottleDryRun(t *testing.T) {
-	testThrottle(t, autoroll_modes.MODE_DRY_RUN)
+	testThrottle(t, modes.MODE_DRY_RUN)
 }
 
 func TestPersistence(t *testing.T) {

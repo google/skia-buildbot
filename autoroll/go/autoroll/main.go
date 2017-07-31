@@ -24,8 +24,8 @@ import (
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 
-	"go.skia.org/infra/autoroll/go/autorollerv2"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
@@ -36,7 +36,7 @@ import (
 )
 
 var (
-	arb *autorollerv2.AutoRoller = nil
+	arb *roller.AutoRoller = nil
 
 	mainTemplate *template.Template = nil
 )
@@ -275,11 +275,11 @@ func main() {
 		sklog.Fatal(err)
 	}
 	if *rollIntoAndroid {
-		arb, err = autorollerv2.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps)
+		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps)
 	} else if *useManifest {
-		arb, err = autorollerv2.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
+		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
 	} else {
-		arb, err = autorollerv2.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
+		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
 	}
 	if err != nil {
 		sklog.Fatal(err)
