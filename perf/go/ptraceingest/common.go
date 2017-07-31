@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vec32"
 
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/util"
@@ -50,26 +49,7 @@ func getValueMap(b *ingestcommon.BenchData) map[string]float32 {
 			}
 
 			for k, vi := range result {
-				if k == "options" {
-					continue
-				}
-				if k == "samples" {
-					if slice, ok := vi.([]interface{}); ok {
-						samples := []float32{}
-						for _, vi := range slice {
-							if floatVal, ok := vi.(float64); ok {
-								samples = append(samples, float32(floatVal))
-							}
-						}
-						mean, stddev, err := vec32.MeanAndStdDev(samples)
-						cov := vec32.MISSING_DATA_SENTINEL
-						if err == nil {
-							cov = stddev / mean
-						}
-						if err := addValueAtKey(ret, "cov", key, cov); err != nil {
-							sklog.Warningf("Failed to add 'cov': %s", err)
-						}
-					}
+				if k == "options" || k == "samples" {
 					continue
 				}
 				key["sub_result"] = k
