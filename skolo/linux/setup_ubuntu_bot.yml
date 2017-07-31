@@ -85,16 +85,26 @@
           [SeatDefaults]
           autologin-user=chrome-bot
 
-      # This takes the pre-existing /etc/network/interfaces template
-      # (which is a jinja2 template, as per ansible spec) and fills in
-      # the interface name.
-    #- name: disable ethernet flow control
-    #  template:
-    #    src: "{{interface_templ}}"
-    #    dest: "{{expanded_interface}}"
-    #    owner: root
-    #    group: root
-    #    mode: 0644
-    #    force: yes
-    #    backup: yes
+    - name: "Checking MAC pause support"
+      command: "/sbin/ethtool -A {{interface}}"
+      register: mac_pause
+      ignore_errors: True
 
+    # This takes the pre-existing /etc/network/interfaces template
+    # (which is a jinja2 template, as per ansible spec) and fills in
+    # the interface name.
+    - name: disable ethernet flow control
+      # mac_pause.rc means the return code from the previous command (mac_pause)
+      # The magic number 78 is returned when configuring MAC PAUSE is supported
+      # but no params were passed in (which we did intentionally above.)
+      # If MAC_PAUSE is not supported, something else will be returned
+      # (e.g. 77 "Operation not supported" )
+      when: mac_pause.rc == 78
+      template:
+        src: "{{interface_templ}}"
+        dest: "{{expanded_interface}}"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        backup: yes
