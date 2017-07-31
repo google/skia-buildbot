@@ -69,7 +69,6 @@ func TestBenchData(t *testing.T) {
 		",arch=x86,config=8888,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=ops,system=UNIX,test=DeferredSurfaceCopy_nonDiscardable_640_480,":            3333,
 		",arch=x86,config=memory,gpu=GTX660,model=ShuttleA,os=Ubuntu12,path=src_pipe,sub_result=bytes,symbol=global_weak_symbol,system=UNIX,test=src_pipe_global_weak_symbol,": 158,
 		",arch=x86,config=meta,gpu=GTX660,model=ShuttleA,os=Ubuntu12,sub_result=max_rss_mb,system=UNIX,test=memory_usage_0_0,":                                                 858,
-		",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=cov,system=UNIX,test=ChunkAlloc_PushPop_640_480,":                    0.007271785,
 	}
 
 	assert.Equal(t, expected, traceSet)
