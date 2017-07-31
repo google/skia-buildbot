@@ -46,39 +46,11 @@ var (
 )
 
 // Base configs for Swarming GCE instances.
-func Swarming20170523(name, ipAddress string) *gce.Instance {
+func Swarming20170731(name, serviceAccount string) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
-			SourceImage: "skia-swarming-v3",
-			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
-		},
-		DataDisk: &gce.Disk{
-			Name:   fmt.Sprintf("%s-data", name),
-			SizeGb: 300,
-			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
-		},
-		ExternalIpAddress: ipAddress,
-		Gpu:               *gpu,
-		GSDownloads:       map[string]string{},
-		MachineType:       gce.MACHINE_TYPE_STANDARD_16,
-		Metadata:          map[string]string{},
-		MetadataDownloads: map[string]string{},
-		Name:              name,
-		Os:                gce.OS_LINUX,
-		Scopes: []string{
-			auth.SCOPE_FULL_CONTROL,
-		},
-		Tags: []string{"http-server", "https-server"},
-		User: gce.USER_CHROME_BOT,
-	}
-}
-
-func Swarming20170615(name, serviceAccount string) *gce.Instance {
-	return &gce.Instance{
-		BootDisk: &gce.Disk{
-			Name:        name,
-			SourceImage: "skia-swarming-v3",
+			SourceImage: "skia-swarming-base-v2017-07-31-000",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		DataDisk: &gce.Disk{
@@ -105,7 +77,7 @@ func Swarming20170615(name, serviceAccount string) *gce.Instance {
 }
 
 func Swarming20170620(name, serviceAccount string) *gce.Instance {
-	vm := Swarming20170615(name, serviceAccount)
+	vm := Swarming20170731(name, serviceAccount)
 	vm.BootDisk.SourceImage = "skia-swarming-base-v2017-06-20-001"
 	return vm
 }
@@ -123,12 +95,12 @@ func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 
 // Linux GCE instances.
 func LinuxSwarmingBot(num int) *gce.Instance {
-	return AddLinuxConfigs(Swarming20170620(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM))
+	return AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM))
 }
 
 // Internal Linux GCE instances.
 func InternalLinuxSwarmingBot(num int) *gce.Instance {
-	vm := AddLinuxConfigs(Swarming20170620(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING))
+	vm := AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING))
 	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC_INTERNAL
 	return vm
 }
@@ -160,13 +132,13 @@ func AddWinConfigs(vm *gce.Instance, pw, setupScriptPath, startupScriptPath, chr
 
 // Windows GCE instances.
 func WinSwarmingBot(num int, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	vm := Swarming20170620(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM)
+	vm := Swarming20170731(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM)
 	return AddWinConfigs(vm, pw, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // Internal Windows GCE instances.
 func InternalWinSwarmingBot(num int, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	vm := Swarming20170620(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING)
+	vm := Swarming20170731(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING)
 	return AddWinConfigs(vm, pw, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
