@@ -97,13 +97,15 @@ func (a *Autoscaler) StopAllInstances() error {
 }
 
 // StartAllInstances starts all instances.
+// Note: This method returns when all instances are in RUNNING state. Does not
+// check to see if they are ready (ssh-able).
 func (a *Autoscaler) StartAllInstances() error {
 	// Perform the requested operation.
 	group := util.NewNamedErrGroup()
 	for _, instance := range a.instances {
 		instance := instance // https://golang.org/doc/faq#closures_and_goroutines
 		group.Go(instance.Name, func() error {
-			return a.g.Start(instance)
+			return a.g.StartWithoutReadyCheck(instance)
 		})
 	}
 	if err := group.Wait(); err != nil {
