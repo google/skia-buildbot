@@ -34,6 +34,24 @@
       "revId": "3223cb61a7835ab59876df304118bd90fbf52b88",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc5ece71_6614fb28",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T16:35:26Z",
+      "side": 1,
+      "message": "Another alternative is to put this logic in the recipes and just have the recipe exit successfully without doing anything if it\u0027s not running on master.",
+      "parentUuid": "dd33fd4a_91d7fcc1",
+      "revId": "3223cb61a7835ab59876df304118bd90fbf52b88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
