@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cade83d1_ba8d3a9c",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-31T17:12:33Z",
+      "side": 1,
+      "message": "Nit: IMO this should just be GetRunIDs or GetResults that it\u0027s cached is an implementation detail.",
+      "revId": "c61afbe5a92a0fcd3e3c61f7033648de94dc93af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f452c5b_4869ca67",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-07-31T17:12:33Z",
+      "side": 1,
+      "message": "Nig: Same as above, \"Cache\" does not need to be in the name.",
+      "revId": "c61afbe5a92a0fcd3e3c61f7033648de94dc93af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
