@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b40ae0cf_5339b7ae",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-31T18:30:56Z",
+      "side": 1,
+      "message": "Wasn\u0027t due to a bug -- realized that after making a separate function to retrieve ResultRecs for rendering (GetCached), GetAll would only be used to populate the cache in fillCache. So to avoid more error checking and handling further down the pipeline I decided to make the invariant that the cache only has entries with both images. This type of check is necessary somewhere as Ravi explained that CT is not 100% reliable and may fail to capture both nopatch and withpatch for a particular page due to a variety of reasons.",
+      "parentUuid": "fea3249f_4f305f12",
+      "range": {
+        "startLine": 206,
+        "startChar": 3,
+        "endLine": 206,
+        "endChar": 26
+      },
+      "revId": "c61afbe5a92a0fcd3e3c61f7033648de94dc93af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cade83d1_ba8d3a9c",
         "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
         "patchSetId": 2
@@ -70,6 +94,30 @@
       "writtenOn": "2017-07-31T17:51:33Z",
       "side": 1,
       "message": "Can we move the redundant Slice code blocks to a helper method similar to my comment and stephan\u0027s reply on approach in your other change?",
+      "range": {
+        "startLine": 362,
+        "startChar": 5,
+        "endLine": 362,
+        "endChar": 15
+      },
+      "revId": "c61afbe5a92a0fcd3e3c61f7033648de94dc93af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77de6769_3797f9b4",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-07-31T18:30:56Z",
+      "side": 1,
+      "message": "I incorporated Stephan\u0027s suggestion with this function, but I wasn\u0027t sure how to make a helper method to make this more readable. Because a different field of the DiffMetrics struct is accessed by each case, it seems like I would still need a giant switch block in the helper method to identify what diff metrics value is being used as the sort field. Unless you wanted me to make 12 different helper methods? Or 6 with a switch in each to detect ascending or descending?",
+      "parentUuid": "4791944e_65ef9384",
       "range": {
         "startLine": 362,
         "startChar": 5,
