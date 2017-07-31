@@ -51,7 +51,7 @@ func testNoBotsCycle(t *testing.T, mi, me *skswarming.MockApiClient, ma *promale
 	me.On("ListDownBots", mock.AnythingOfType("string")).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PUBLIC))
 
 	// There is a bit of whitebox testing here.  We can't mock out a call to GetAlerts if it won't be called.
-	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	g := NewPollingGatherer(me, mi, ma, md, nil, 0).(*gatherer)
 	g.update()
 
 	bots := g.DownBots()
@@ -67,7 +67,7 @@ func testNoAlertingBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *prom
 
 	ma.On("GetAlerts", mock.AnythingOfType("func(promalertsclient.Alert) bool")).Return([]promalertsclient.Alert{}, nil).Once()
 
-	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	g := NewPollingGatherer(me, mi, ma, md, nil, 0).(*gatherer)
 	g.update()
 
 	bots := g.DownBots()
@@ -90,12 +90,17 @@ func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *proma
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
-	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	hostMap := map[string]string{
+		"skia-rpi-046": "jumphost-rpi-01",
+	}
+
+	g := NewPollingGatherer(me, mi, ma, md, hostMap, 0).(*gatherer)
 	g.update()
 
 	bots := g.DownBots()
 	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
 	assert.Equal(t, "skia-rpi-046", bots[0].BotID, "That bot should be skia-rpi-046")
+	assert.Equal(t, "jumphost-rpi-01", bots[0].HostID)
 	assert.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
 	assert.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
 	assert.False(t, bots[0].Silenced, "Bot should be silenced")
@@ -119,12 +124,17 @@ func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *prom
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
-	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	hostMap := map[string]string{
+		"skia-rpi-046": "jumphost-rpi-01",
+	}
+
+	g := NewPollingGatherer(me, mi, ma, md, hostMap, 0).(*gatherer)
 	g.update()
 
 	bots := g.DownBots()
 	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
 	assert.Equal(t, "skia-rpi-046", bots[0].BotID, "That bot should be skia-rpi-046")
+	assert.Equal(t, "jumphost-rpi-01", bots[0].HostID)
 	assert.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
 	assert.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
 	assert.True(t, bots[0].Silenced, "Bot should be silenced")
@@ -157,14 +167,24 @@ func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma 
 	})).Return(false)
 	md.On("ShouldPowercycleDevice", mock.Anything).Return(true)
 
-	g := NewPollingGatherer(me, mi, ma, md, 0).(*gatherer)
+	hostMap := map[string]string{
+		"skia-rpi-001-device": "jumphost-rpi-01",
+		"skia-rpi-002-device": "jumphost-rpi-01",
+		"skia-rpi-003-device": "jumphost-rpi-02",
+		"skia-rpi-121":        "NOT_USED",
+	}
+
+	g := NewPollingGatherer(me, mi, ma, md, hostMap, 0).(*gatherer)
 	g.update()
 
 	bots := g.DownBots()
 	assert.Len(t, bots, 3, "There should be 3 devices to reboot.")
 	assert.Equal(t, "skia-rpi-001", bots[0].BotID, "These should be sorted alphabetically")
+	assert.Equal(t, "jumphost-rpi-01", bots[0].HostID)
 	assert.Equal(t, "skia-rpi-002", bots[1].BotID, "These should be sorted alphabetically")
+	assert.Equal(t, "jumphost-rpi-01", bots[1].HostID)
 	assert.Equal(t, "skia-rpi-003", bots[2].BotID, "These should be sorted alphabetically")
+	assert.Equal(t, "jumphost-rpi-02", bots[2].HostID)
 	assert.Equal(t, STATUS_DEVICE_MISSING, bots[0].Status)
 	assert.Equal(t, STATUS_DEVICE_MISSING, bots[1].Status)
 	assert.Equal(t, STATUS_DEVICE_MISSING, bots[2].Status)
