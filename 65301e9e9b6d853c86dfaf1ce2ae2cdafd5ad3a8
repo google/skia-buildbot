@@ -16,6 +16,24 @@
       "revId": "65301e9e9b6d853c86dfaf1ce2ae2cdafd5ad3a8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bbc100aa_a77a8ebc",
+        "filename": "res/imp/query2-sk-demo.html",
+        "patchSetId": 10
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-07-31T17:25:42Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "f238c061_e2e2dc7a",
+      "revId": "65301e9e9b6d853c86dfaf1ce2ae2cdafd5ad3a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
