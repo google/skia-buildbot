@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4725d5e7_947f8e85",
+        "filename": "scripts/run_on_swarming_bots/apt-get-upgrade.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-31T18:02:29Z",
+      "side": 1,
+      "message": "Is this intended to be run non-interactively?  If so, I strongly suggest using the extra options to suppress prompts, eg. https://skia.googlesource.com/buildbot/+/master/go/gce/swarming/base-image/setup-script.sh#14",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 52
+      },
+      "revId": "fdb5543d02feb98b1cf1db186a60b049ebef5cad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
