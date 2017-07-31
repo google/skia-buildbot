@@ -1,4 +1,4 @@
-package autorollerv2
+package roller
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/autoroll/go/autoroll_modes"
+	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
@@ -26,7 +26,7 @@ type AutoRoller struct {
 	gerrit          *gerrit.Gerrit
 	lastError       error
 	liveness        metrics2.Liveness
-	modeHistory     *autoroll_modes.ModeHistory
+	modeHistory     *modes.ModeHistory
 	recent          *recent_rolls.RecentRolls
 	retrieveRoll    func(*AutoRoller, int64) (RollImpl, error)
 	rm              repo_manager.RepoManager
@@ -43,7 +43,7 @@ func newAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, g
 		return nil, err
 	}
 
-	mh, err := autoroll_modes.NewModeHistory(path.Join(workdir, "autoroll_modes.db"))
+	mh, err := modes.NewModeHistory(path.Join(workdir, "autoroll_modes.db"))
 	if err != nil {
 		return nil, err
 	}
