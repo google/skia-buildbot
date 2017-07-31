@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25d32ce8_0b07e58f",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 6
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-31T15:08:17Z",
+      "side": 1,
+      "message": "This will, unfortunately, get complicated if/when we have more servers with expected high outgoing QPS.",
+      "range": {
+        "startLine": 525,
+        "startChar": 35,
+        "endLine": 525,
+        "endChar": 51
+      },
+      "revId": "5fc837f12da332a4a251826c16a7be4eb9dd9ddc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
