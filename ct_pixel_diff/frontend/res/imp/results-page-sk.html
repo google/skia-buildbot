@@ -25,16 +25,16 @@
     None
 -->
 
-<link rel="import" href="bower_components/polymer/polymer.html">
-<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
-<link rel="import" href="bower_components/paper-item/paper-item.html">
-<link rel="import" href="bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+<link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="/res/imp/bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="/res/imp/bower_components/paper-item/paper-item.html">
+<link rel="import" href="/res/imp/bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+<link rel="import" href="/res/common/imp/spinner-sk.html">
 
-<link rel="import" href="activity-sk.html">
-<link rel="import" href="diff-details-sk.html">
-<link rel="import" href="shared-styles.html">
+<link rel="import" href="/res/imp/diff-details-sk.html">
+<link rel="import" href="/res/imp/shared-styles.html">
 
 <dom-module id="results-page-sk">
   <template>
@@ -74,7 +74,7 @@
         color: white;
       }
     </style>
-    <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
+    <spinner-sk id="spinner" busy="{{_hideAll}}"></spinner-sk>
     <div hidden$="{{_hideAll}}">
       <paper-dropdown-menu id="sortmenu" label="Sort By">
         <paper-listbox class="dropdown-content" selected="5">
@@ -102,7 +102,6 @@
             diffmetrics="[[item.DiffMetrics]]">
           </diff-details-sk>
         </template>
-        <div class="loader">Fetching more items...</div>
       </iron-scroll-threshold>
     </div>
   </template>
@@ -141,16 +140,15 @@
         var endIdx = 'endIdx=' + (this.renderIdx + this.chunkSize);
         var query = runID + '&' + startIdx + '&' + endIdx;
         sk.get("/json/render" + query).then(JSON.parse).then(function (json) {
-          console.log("render request)")
           for (var i = 0; i < json.results.length; i++) {
             this.data.push(json.results[i]);
           }
           this.notifyPath('data', this.data.slice());
           this.renderIdx = json.index
-          this.$.activityBar.stopSpinner();
+          this.$.spinner.stopSpinner();
           this.$.scroller.clearTriggers();
         }.bind(this)).catch(function(e) {
-          this.$.activityBar.stopSpinner();
+          this.$.spinner.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
       },
@@ -165,7 +163,7 @@
           this.renderIdx = 0;
           this._renderMoreData()
         }.bind(this)).catch(function(e) {
-          this.$.activityBar.stopSpinner();
+          this.$.spinner.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
       },
