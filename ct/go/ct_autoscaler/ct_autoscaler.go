@@ -46,12 +46,15 @@ func NewCTAutoscaler() (*CTAutoscaler, error) {
 
 	// The following metric will be set to 1 when prometheus should alert on
 	// missing CT GCE bots and 0 otherwise.
-	upGauge := metrics2.GetInt64Metric("ct-gce-bots-up")
+	upGauge := metrics2.GetInt64Metric("ct_gce_bots_up")
 
 	// Start from a clean slate by bringing down all CT instances since
 	// activeGCETasks is initially 0.
 	if err := a.StopAllInstances(); err != nil {
 		return nil, err
+	}
+	if upGauge != nil {
+		upGauge.Update(0)
 	}
 
 	return &CTAutoscaler{a: a, upGauge: upGauge}, nil
