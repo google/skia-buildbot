@@ -261,6 +261,23 @@ func TestGatherNewJobs(t *testing.T) {
 	makeDummyCommits(gb, 5)
 	assert.NoError(t, s.updateRepos())
 	testGatherNewJobs(71) // 10 commits x 3 jobs/commit = 30, plus 41
+
+	// Add one more commit on the non-master branch which marks all but one
+	// job to only run on master. Ensure that we don't pick them up.
+	gb.CheckoutBranch(branchName)
+	cfg, err := specs.ReadTasksCfg(gb.Dir())
+	assert.NoError(t, err)
+	for name, jobSpec := range cfg.Jobs {
+		if name != specs_testutils.BuildTask {
+			jobSpec.Trigger = specs.TRIGGER_MASTER_ONLY
+		}
+	}
+	cfgBytes, err := specs.EncodeTasksCfg(cfg)
+	assert.NoError(t, err)
+	gb.Add("infra/bots/tasks.json", string(cfgBytes))
+	gb.CommitMsgAt("abcd", time.Now())
+	assert.NoError(t, s.updateRepos())
+	testGatherNewJobs(72)
 }
 
 func TestFindTaskCandidatesForJobs(t *testing.T) {

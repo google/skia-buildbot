@@ -28,6 +28,11 @@ const (
 
 	TASKS_CFG_FILE = "infra/bots/tasks.json"
 
+	TRIGGER_ANY_BRANCH  = ""
+	TRIGGER_MASTER_ONLY = "master"
+	TRIGGER_NIGHTLY     = "nightly"
+	TRIGGER_WEEKLY      = "weekly"
+
 	VARIABLE_SYNTAX = "<(%s)"
 
 	VARIABLE_CODEREVIEW_SERVER = "CODEREVIEW_SERVER"
@@ -52,6 +57,8 @@ var (
 	PLACEHOLDER_REVISION          = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_REVISION)
 	PLACEHOLDER_TASK_NAME         = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_TASK_NAME)
 	PLACEHOLDER_ISOLATED_OUTDIR   = "${ISOLATED_OUTDIR}"
+
+	PERIODIC_TRIGGERS = []string{TRIGGER_NIGHTLY, TRIGGER_WEEKLY}
 )
 
 // ParseTasksCfg parses the given task cfg file contents and returns the config.

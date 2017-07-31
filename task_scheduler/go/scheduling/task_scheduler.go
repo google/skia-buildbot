@@ -1111,7 +1111,20 @@ func (s *TaskScheduler) gatherNewJobs() error {
 			return false, err
 		}
 		for name, spec := range cfg.Jobs {
-			if spec.Trigger == "" {
+			shouldRun := false
+			if !util.In(spec.Trigger, specs.PERIODIC_TRIGGERS) {
+				if spec.Trigger == specs.TRIGGER_ANY_BRANCH {
+					shouldRun = true
+				} else if spec.Trigger == specs.TRIGGER_MASTER_ONLY {
+					isAncestor, err := r.Repo().IsAncestor(c.Hash, "master")
+					if err != nil {
+						return false, err
+					} else if isAncestor {
+						shouldRun = true
+					}
+				}
+			}
+			if shouldRun {
 				j, err := s.taskCfgCache.MakeJob(rs, name)
 				if err != nil {
 					return false, err
