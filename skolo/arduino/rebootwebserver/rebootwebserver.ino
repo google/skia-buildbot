@@ -95,16 +95,16 @@ void rebootCommand(BridgeClient client) {
     servo = 15;
   }
 
+  client.print("Rebooted port ");
+  client.print(servo);
+
   pwm.setPWM(servo, 0, DOWN);
 
   delay(12000);
 
   pwm.setPWM(servo, 0, UP);
 
-  // We could use client.print to write out a response,
-  // however, for reasons unknown, responses are cut short
-  // if they take longer than about 5 seconds.  So, since we
-  // are taking at least 12 seconds, don't bother printing
-  // anything.
+  // For reasons unknown, responses are cut short
+  // if they take longer than about 5 seconds.
 }
 
