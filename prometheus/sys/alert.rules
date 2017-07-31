@@ -522,11 +522,20 @@ ALERT RpiMaster
 # General.
 # TODO(borenet): Specific alerts for Swarming.
 ALERT HighExternalQPS
-  IF sum(rate(http_request_metrics[30m])) by (host) > 8
+  IF sum(rate(http_request_metrics{job!="ct-poller"}[30m])) by (host) > 8
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "QPS to {{ $labels.host }} is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
   }
+
+# CTPoller has a higher threshold than the above alert due to the autoscaler.
+ALERT HighExternalQPSCTPoller
+  IF sum(rate(http_request_metrics{job="ct-poller"}[30m])) by (host) > 10
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "QPS to {{ $labels.host }} from the ct-poller is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
+  }
+
 
 # Gerrit
 ALERT HighQPSGerritSkiaShortTerm
