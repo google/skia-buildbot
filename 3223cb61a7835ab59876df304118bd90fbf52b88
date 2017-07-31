@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c1ed9b4_e76e516c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T15:59:36Z",
+      "side": 1,
+      "message": "Would you be happier creating a \"branchify\" tool that hcm can run after creating the branch?",
+      "revId": "3223cb61a7835ab59876df304118bd90fbf52b88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
