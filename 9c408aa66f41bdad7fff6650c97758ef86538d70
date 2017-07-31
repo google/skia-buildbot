@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4580deb7_97779d6b",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T20:08:44Z",
+      "side": 1,
+      "message": "Are you assuming this doesn\u0027t need a deep copy because comments are supposed to be immutable?",
+      "range": {
+        "startLine": 114,
+        "startChar": 2,
+        "endLine": 114,
+        "endChar": 31
+      },
+      "revId": "9c408aa66f41bdad7fff6650c97758ef86538d70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1959b4a_e61fce23",
+        "filename": "go/comment/comment.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-07-31T20:08:44Z",
+      "side": 1,
+      "message": "nit: Unless I misunderstand Go\u0027s embedding, embedding a private struct means the fields are not accessible in Go code.",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 8
+      },
+      "revId": "9c408aa66f41bdad7fff6650c97758ef86538d70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
