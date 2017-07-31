@@ -180,12 +180,12 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		if resp != nil {
 			if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
 				// We can't close the resp.Body on success, so we must do it in each of the failure cases.
-				return fmt.Errorf("Got server error statuscode %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, readAndClose(resp.Body))
+				return fmt.Errorf("Got server error statuscode %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
 			} else if resp.StatusCode < 200 || resp.StatusCode > 299 {
 				// We can't close the resp.Body on success, so we must do it in each of the failure cases.
 				// Stop backing off if there are non server errors.
 				backOffClient.MaxElapsedTime = backoff.Stop
-				return fmt.Errorf("Got non server error statuscode %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, readAndClose(resp.Body))
+				return fmt.Errorf("Got non server error statuscode %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
 			}
 		}
 		return nil
@@ -200,10 +200,10 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	return resp, nil
 }
 
-// readAndClose reads the content of a ReadCloser (e.g. http Response), and returns it as a string.
+// ReadAndClose reads the content of a ReadCloser (e.g. http Response), and returns it as a string.
 // If the response was nil or there was a problem, it will return empty string.  The reader,
 //if non-null, will be closed by this function.
-func readAndClose(r io.ReadCloser) string {
+func ReadAndClose(r io.ReadCloser) string {
 	if r != nil {
 		defer util.Close(r)
 		if b, err := ioutil.ReadAll(io.LimitReader(r, MAX_BYTES_IN_RESPONSE_BODY)); err != nil {
