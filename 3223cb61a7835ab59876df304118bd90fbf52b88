@@ -16,6 +16,24 @@
       "revId": "3223cb61a7835ab59876df304118bd90fbf52b88",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd33fd4a_91d7fcc1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-07-31T16:14:19Z",
+      "side": 1,
+      "message": "Maybe. My concern is that, even if it became part of hcm\u0027s branching process, others could still create branches manually which do include the jobs we don\u0027t want.  I guess there aren\u0027t (currently) any jobs which would cause harm if they ran on a non-master branch though.",
+      "parentUuid": "1c1ed9b4_e76e516c",
+      "revId": "3223cb61a7835ab59876df304118bd90fbf52b88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
