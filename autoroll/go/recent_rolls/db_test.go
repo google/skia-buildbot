@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -96,6 +97,7 @@ func TestRolls(t *testing.T) {
 	now = time.Now().UTC().Add(time.Minute)
 	roll2 := &autoroll.AutoRollIssue{
 		Closed:      false,
+		Comments:    []*comment.Comment{},
 		Committed:   false,
 		CommitQueue: true,
 		Created:     now,
@@ -109,6 +111,7 @@ func TestRolls(t *testing.T) {
 	now = time.Now().UTC().Add(30 * time.Minute)
 	roll3 := &autoroll.AutoRollIssue{
 		Closed:      false,
+		Comments:    nil,
 		Committed:   false,
 		CommitQueue: true,
 		Created:     now,
@@ -121,7 +124,10 @@ func TestRolls(t *testing.T) {
 	}
 	now = time.Now().UTC().Add(10 * time.Minute)
 	roll4 := &autoroll.AutoRollIssue{
-		Closed:      false,
+		Closed: false,
+		Comments: []*comment.Comment{
+			comment.New("0", "me@google.com", "message"),
+		},
 		Committed:   false,
 		CommitQueue: true,
 		Created:     now,
