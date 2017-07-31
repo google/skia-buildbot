@@ -2,6 +2,7 @@
 package paramtools
 
 import (
+	"sort"
 	"strings"
 
 	"go.skia.org/infra/go/util"
@@ -150,4 +151,11 @@ func (p ParamSet) Copy() ParamSet {
 	}
 
 	return ret
+}
+
+// Normalize all the values by sorting them.
+func (p ParamSet) Normalize() {
+	for _, arr := range p {
+		sort.Strings(arr)
+	}
 }
