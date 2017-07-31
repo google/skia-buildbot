@@ -14,17 +14,15 @@ import (
 // MockRepoManager is a struct used for mocking out the AutoRoller's
 // interactions with a RepoManager.
 type MockRepoManager struct {
-	updateCount              int
-	mockIssueNumber          int64
-	mockFullChildHashes      map[string]string
-	lastRollRev              string
-	rolledPast               map[string]bool
-	rollIntoAndroid          bool
-	skiaHead                 string
-	sendToGerritDryRunCalled bool
-	sendToGerritCQCalled     bool
-	mtx                      sync.RWMutex
-	t                        *testing.T
+	updateCount         int
+	mockIssueNumber     int64
+	mockFullChildHashes map[string]string
+	lastRollRev         string
+	rolledPast          map[string]bool
+	rollIntoAndroid     bool
+	skiaHead            string
+	mtx                 sync.RWMutex
+	t                   *testing.T
 }
 
 // NewRepoManager returns a MockRepoManager instance.
@@ -261,15 +259,5 @@ func (r *MockRepoManager) User() string {
 }
 
 func (r *MockRepoManager) PreUploadSteps() []repo_manager.PreUploadStep {
-	return nil
-}
-
-func (r *MockRepoManager) SendToGerritCQ(*gerrit.ChangeInfo, string) error {
-	r.sendToGerritCQCalled = true
-	return nil
-}
-
-func (r *MockRepoManager) SendToGerritDryRun(*gerrit.ChangeInfo, string) error {
-	r.sendToGerritDryRunCalled = true
 	return nil
 }

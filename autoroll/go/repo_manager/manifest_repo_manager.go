@@ -297,11 +297,3 @@ func (mr *manifestRepoManager) updateManifestFile(prevHash, newHash string) erro
 	}
 	return nil
 }
-
-func (mr *manifestRepoManager) SendToGerritCQ(change *gerrit.ChangeInfo, comment string) error {
-	return mr.g.SendToCQ(change, "")
-}
-
-func (mr *manifestRepoManager) SendToGerritDryRun(change *gerrit.ChangeInfo, comment string) error {
-	return mr.g.SendToDryRun(change, "")
-}
