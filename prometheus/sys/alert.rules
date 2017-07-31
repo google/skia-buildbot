@@ -248,11 +248,18 @@ ALERT DatahopperErrorRate
 # Swarming
 
 ALERT BotMissing
-  IF swarming_bots_last_seen/1024/1024/1024/60 > 15
+  IF swarming_bots_last_seen{bot!~"ct-gce-.*"}/1024/1024/1024/60 > 15
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
     description = "Swarming bot {{ $labels.bot }} is missing. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+  }
+
+ALERT CtGceBotMissing
+  IF max(swarming_bots_last_seen{bot=~"ct-gce-.*"})/1024/1024/1024/60 * max(ct_gce_bots_up) > 15
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "1 or more CT GCE bots are down: https://chrome-swarming.appspot.com/botlist?f=status%3Adead&f=gpu%3Anone&f=pool%3ACT&l=100&q=ct"
   }
 
 ALERT BotQuarantined
@@ -530,7 +537,7 @@ ALERT HighExternalQPS
 
 # CTPoller has a higher threshold than the above alert due to the autoscaler.
 ALERT HighExternalQPSCTPoller
-  IF sum(rate(http_request_metrics{job="ct-poller"}[30m])) by (host) > 10
+  IF sum(rate(http_request_metrics{instance="skia-ct-master:20000",job="ct-poller"}[30m])) by (host) > 10
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "QPS to {{ $labels.host }} from the ct-poller is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
