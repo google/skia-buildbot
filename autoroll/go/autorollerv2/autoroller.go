@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/autoroll_modes"
-	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
@@ -33,7 +32,7 @@ type AutoRoller struct {
 	rm              repo_manager.RepoManager
 	runningMtx      sync.Mutex
 	sm              *state_machine.AutoRollStateMachine
-	status          *autoroller.AutoRollStatusCache
+	status          *AutoRollStatusCache
 	rollIntoAndroid bool
 }
 
@@ -58,7 +57,7 @@ func newAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, g
 		recent:         recent,
 		retrieveRoll:   retrieveRoll,
 		rm:             rm,
-		status:         &autoroller.AutoRollStatusCache{},
+		status:         &AutoRollStatusCache{},
 	}
 	sm, err := state_machine.New(arb, workdir)
 	if err != nil {
@@ -174,7 +173,7 @@ func (r *AutoRoller) SetMode(m, user, message string) error {
 }
 
 // Return the roll-up status of the bot.
-func (r *AutoRoller) GetStatus(includeError bool) *autoroller.AutoRollStatus {
+func (r *AutoRoller) GetStatus(includeError bool) *AutoRollStatus {
 	return r.status.Get(includeError)
 }
 
@@ -234,7 +233,7 @@ func (r *AutoRoller) Tick() error {
 	if lastErr != nil {
 		lastErrorStr = lastErr.Error()
 	}
-	if err := r.status.Set(&autoroller.AutoRollStatus{
+	if err := r.status.Set(&AutoRollStatus{
 		CurrentRoll: r.recent.CurrentRoll(),
 		Error:       lastErrorStr,
 		GerritUrl:   r.gerrit.Url(0),

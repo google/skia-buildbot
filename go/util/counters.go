@@ -46,34 +46,6 @@ func (c *AtomicCounter) Get() int {
 	return c.val
 }
 
-// AutoDecrementCounter is an AtomicCounter in which every increment has a
-// corresponding decrement which takes place after a specified time.
-type AutoDecrementCounter struct {
-	c AtomicCounter
-	t time.Duration
-}
-
-// NewAutoDecrementCounter returns an AutoDecrementCounter with the given timeout.
-func NewAutoDecrementCounter(t time.Duration) *AutoDecrementCounter {
-	return &AutoDecrementCounter{
-		t: t,
-	}
-}
-
-// Inc increments the AutoDecrementCounter and schedules a decrement.
-func (c *AutoDecrementCounter) Inc() {
-	c.c.Inc()
-	go func() {
-		time.Sleep(c.t)
-		c.c.Dec()
-	}()
-}
-
-// Get returns the current value of the AutoDecrementCounter.
-func (c *AutoDecrementCounter) Get() int {
-	return c.c.Get()
-}
-
 // PersistentAutoDecrementCounter is an AutoDecrementCounter which uses a file
 // to persist its value between program restarts.
 type PersistentAutoDecrementCounter struct {

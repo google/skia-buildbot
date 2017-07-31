@@ -33,8 +33,6 @@ type RepoManager interface {
 	PreUploadSteps() []PreUploadStep
 	CreateNewRoll(string, string, []string, string, bool) (int64, error)
 	User() string
-	SendToGerritCQ(*gerrit.ChangeInfo, string) error
-	SendToGerritDryRun(*gerrit.ChangeInfo, string) error
 }
 
 // commonRepoManager is a struct used by the AutoRoller implementations for
