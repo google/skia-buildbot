@@ -26,7 +26,9 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/paramreducer"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 
@@ -37,7 +39,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
@@ -88,7 +89,7 @@ var (
 	gitRepoURL            = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	interesting           = flag.Float64("interesting", 50.0, "The threshhold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
 	internalOnly          = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
-	keyOrder              = flag.String("key_order", "build_flavor,test,sub_result", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
+	keyOrder              = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	numContinuous         = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
 	numShift              = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
@@ -533,21 +534,32 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Invalid URL query.")
 		return
 	}
-	var err error
-	var q *query.Query
-	if q, err = query.New(r.Form); err != nil {
+	q, err := query.New(r.Form)
+	if err != nil {
 		httputils.ReportError(w, r, err, "Invalid query.")
 		return
 	}
+	df := freshDataFrame.Get()
+	reducer, err := paramreducer.New(r.Form, df.ParamSet)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to calculate new paramset.")
+		return
+	}
+
 	count := 0
-	for key := range freshDataFrame.Get().TraceSet {
+	for key := range df.TraceSet {
 		if q.Matches(key) {
 			count += 1
 		}
+		reducer.Add(key)
 	}
 	if err := json.NewEncoder(w).Encode(struct {
-		Count int `json:"count"`
-	}{Count: count}); err != nil {
+		Count    int                 `json:"count"`
+		Paramset paramtools.ParamSet `json:"paramset"`
+	}{
+		Count:    count,
+		Paramset: reducer.Reduce(),
+	}); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
