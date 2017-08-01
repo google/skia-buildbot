@@ -39,6 +39,7 @@ type Gatherer interface {
 // as the alert that is related to it.
 type DownBot struct {
 	BotID      string                                 `json:"bot_id"`
+	HostID     string                                 `json:"host_id"`
 	Dimensions []*swarming.SwarmingRpcsStringListPair `json:"dimensions"`
 	Status     string                                 `json:"status"`
 	// Since represents how long the alert been firing
@@ -55,16 +56,18 @@ type gatherer struct {
 	eSwarming skswarming.ApiClient
 	alerts    promalertsclient.APIClient
 	decider   decider.Decider
+	hostMap   map[string]string // maps bot id -> jumphost name
 }
 
 // NewPollingGatherer returns a Gatherer created with the given utilities. all the passed in
 // clients should be properly authenticated.
-func NewPollingGatherer(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider, period time.Duration) Gatherer {
+func NewPollingGatherer(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider, hostMap map[string]string, period time.Duration) Gatherer {
 	g := &gatherer{
 		iSwarming: internal,
 		eSwarming: external,
 		alerts:    alerts,
 		decider:   decider,
+		hostMap:   hostMap,
 	}
 	if period > 0 {
 		go func() {
@@ -166,6 +169,7 @@ func (g *gatherer) update() {
 			if g.decider.ShouldPowercycleBot(b) {
 				downBots = append(downBots, DownBot{
 					BotID:      b.BotId,
+					HostID:     g.hostMap[b.BotId],
 					Dimensions: b.Dimensions,
 					Status:     STATUS_HOST_MISSING,
 					Since:      alert.StartsAt,
@@ -174,6 +178,7 @@ func (g *gatherer) update() {
 			} else if g.decider.ShouldPowercycleDevice(b) {
 				downBots = append(downBots, DownBot{
 					BotID:      b.BotId,
+					HostID:     g.hostMap[b.BotId+"-device"],
 					Dimensions: b.Dimensions,
 					Status:     STATUS_DEVICE_MISSING,
 					Since:      alert.StartsAt,

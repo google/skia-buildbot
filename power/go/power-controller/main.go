@@ -43,8 +43,8 @@ var (
 	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	redirectURL   = flag.String("redirect_url", "https://power.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 
-	powercycleConfig = flag.String("powercycle_config", "/etc/powercycle.yaml", "YAML file with powercycle bot/device configuration. Same as used for powercycle.")
-	updatePeriod     = flag.Duration("update_period", time.Minute, "How often to update the list of down bots.")
+	powercycleConfigs = common.NewMultiStringFlag("powercycle_config", nil, "YAML file with powercycle bot/device configuration. Same as used for powercycle.")
+	updatePeriod      = flag.Duration("update_period", time.Minute, "How often to update the list of down bots.")
 )
 
 func main() {
@@ -149,12 +149,12 @@ func setupGatherer() error {
 		return fmt.Errorf("Could not get ApiClient for chrome-swarming: %s", err)
 	}
 	ac := promalertsclient.New(&http.Client{}, *alertsEndpoint)
-	d, err := decider.New(*powercycleConfig)
+	d, hostMap, err := decider.New(*powercycleConfigs)
 	if err != nil {
 		return fmt.Errorf("Could not initialize down bot decider: %s", err)
 	}
 
-	downBots = gatherer.NewPollingGatherer(es, is, ac, d, *updatePeriod)
+	downBots = gatherer.NewPollingGatherer(es, is, ac, d, hostMap, *updatePeriod)
 
 	return nil
 }

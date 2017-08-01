@@ -9,18 +9,20 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service      ${ROOT}/etc/systemd/system/${APPNAME}.service
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service               ${ROOT}/etc/systemd/system/${APPNAME}.service
 
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}      ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}               ${ROOT}/usr/local/bin/${APPNAME}
 
-${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL}     --mode=644    ./templates/*                 ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL}     --mode=644 -T ./res/img/favicon.ico         ${ROOT}/usr/local/share/${APPNAME}/res/img/favicon.ico
-${INSTALL}     --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
-${INSTALL}     --mode=644 -T ./res/vul/elements.html       ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle.yaml  ${ROOT}/etc/powercycle.yaml
+${INSTALL_DIR} --mode=755                                           ${ROOT}/usr/local/share/${APPNAME}/templates
+${INSTALL}     --mode=644    ./templates/*                          ${ROOT}/usr/local/share/${APPNAME}/templates
+${INSTALL}     --mode=644 -T ./res/img/favicon.ico                  ${ROOT}/usr/local/share/${APPNAME}/res/img/favicon.ico
+${INSTALL}     --mode=644 -T ./res/js/core.js                       ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
+${INSTALL}     --mode=644 -T ./res/vul/elements.html                ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
+${INSTALL_DIR} --mode=755                                           ${ROOT}/etc/powercycle/
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rpi-01.yaml    ${ROOT}/etc/powercycle/powercycle-rpi-01.yaml
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-linux-01.yaml  ${ROOT}/etc/powercycle/powercycle-linux-01.yaml
 }
 
 source ../bash/release.sh

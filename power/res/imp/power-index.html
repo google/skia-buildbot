@@ -125,8 +125,12 @@
         </tbody>
       </table>
 
-      <h2>Powercycle Command</h2>
-      <div class="code">[[_command(_bots_to_show.*)]]</div>
+      <h2>Powercycle Commands</h2>
+      <template is="dom-repeat" items="{{_hosts_to_show}}" as="host">
+        <h3>On {{ host }}</h3>
+        <div class="code">[[_command(host,_bots_to_show.*)]]</div>
+      </template>
+
 
     </app-sk>
 
@@ -139,10 +143,13 @@
 
       properties: {
         _bots_to_show: {
-          type: Array,
+          type: Array, // Array of all bots
         },
         _down_bots: {
           type: Array,
+        },
+        _hosts_to_show: {
+          type: Array, // Array of strings
         },
         _show_silenced: {
           type: Boolean,
@@ -162,11 +169,11 @@
         return url_template.replace(/\${id}/g, bot.bot_id);
       },
 
-      _command: function() {
+      _command: function(host) {
         var hasBots = false;
         var cmd = "powercycle --logtostderr ";
         this._bots_to_show.forEach(function(b){
-          if (b.selected){
+          if (b.host_id === host && b.selected){
             hasBots = true;
             cmd += b.bot_id;
             if (b.status.startsWith("Device")) {
@@ -176,7 +183,7 @@
           }
         });
         if (!hasBots) {
-          return "Select some bots to generate a command."
+          return "No bots down :)  (Or select some bots to generate a command)"
         }
         return cmd;
       },
@@ -206,13 +213,18 @@
       _reload: function(){
         sk.get("/down_bots").then(JSON.parse).then(function(json){
           json.list = json.list || [];
+          var byHost = {};
           json.list.forEach(function(b){
             b.selected = !b.silenced;
+            var host_arr = byHost[b.host_id] || [];
+            host_arr.push(b.bot_id);
+            byHost[b.host_id] = host_arr;
           });
           json.list.sort(function(a,b){
             return a.bot_id.localeCompare(b.bot_id);
           });
           this.set("_down_bots", json.list);
+          this.set("_hosts_to_show", Object.keys(byHost));
         }.bind(this)).catch(function(e){
           sk.errorMessage(e);
         })
