@@ -225,6 +225,8 @@ server {
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
 
+    client_max_body_size 100M;
+
     location /_/hashes {
       proxy_pass https://storage.googleapis.com/skia-infra-gm/hash_files/gold-prod-hashes.txt;
     }
@@ -260,6 +262,8 @@ server {
     add_header X-XSS-Protection "1; mode=block";
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
+
+    client_max_body_size 100M;
 
     location /_/hashes {
       proxy_pass https://storage.googleapis.com/skia-infra-gm/hash_files/gold-pdfium-hashes.txt;
