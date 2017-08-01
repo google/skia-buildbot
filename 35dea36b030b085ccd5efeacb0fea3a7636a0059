@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "2a00a256_1d8b6b4f",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-01T18:26:14Z",
+      "side": 1,
+      "message": "In this case one options is to implement the sort.Interface, like this\n\ntype resultRecLessFn func(r *resultRecSlice, i, j int) bool\ntype resultRecSlice struct {\n\tlessFn resultRecLessFn\n\tdata   []*ResultRec\n}\n\nfunc newResultRecSlice(data []*ResultRec, lessFn resultRecLessFn) *resultRecSlice {\n\treturn \u0026resultRecSlice{lessFn: lessFn, data: data}\n}\n\nfunc (r *resultRecSlice) Len() int           { return len(r.data) }\nfunc (r *resultRecSlice) Less(i, j int) bool { return r.lessFn(c, i, j) }\nfunc (r *resultRecSlice) Swap(i, j int)      { r.data[i], r.data[j] \u003d r.data[j], r.data[i] }\n\nThis has the advantage that you can then wrap around the slice you want to sort and use sort.Reverse to deal with the asc/desc issue. i.e. \n\nsortSlice :\u003d sort.Interface(newResultRecSlice(results, func(r  *resultRecSlice, i, j int) bool {\n                 ...\n             }))\n\nif sortOrder \u003d\u003d DESC {\n    sortSlice \u003d sort.Reverse(sortSlice)\n}\nsort.Sort(sortSlice)\n\n\nThe switch statemtent can then be reduced to finding the right version of he resultRecLessFn.\nJust a suggestion.",
+      "parentUuid": "a7d7bb1a_9a4ff62e",
+      "range": {
+        "startLine": 383,
+        "startChar": 2,
+        "endLine": 390,
+        "endChar": 3
+      },
+      "revId": "35dea36b030b085ccd5efeacb0fea3a7636a0059",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4a6bb634_d3f7b9e5",
         "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
         "patchSetId": 4
