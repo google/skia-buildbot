@@ -19,7 +19,8 @@ if [[ "$host" = skia-i-* ]]; then
 fi
 
 if [ ! -d "/b/s" ]; then
-  cd /b
+  mkdir /b/s
+  cd /b/s
   echo "Bootstrapping $swarming, expect a reboot"
   python -c "import urllib; exec urllib.urlopen('$swarming/bootstrap').read()"
 else
