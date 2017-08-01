@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4d854ab4_ee2ebff8",
+        "filename": "go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-01T14:43:37Z",
+      "side": 1,
+      "message": "nit: ISTM either this should be time.Now().UTC() or MarshalJSON() and GobEncode() should not modify this field. (Or both.)",
+      "range": {
+        "startLine": 27,
+        "startChar": 13,
+        "endLine": 27,
+        "endChar": 23
+      },
+      "revId": "347455080b8cb5c16916626b6c0770850cb119a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
