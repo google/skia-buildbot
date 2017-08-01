@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "15c51d21_9fb5432b",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-01T02:20:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "76f4eff5_0dd88c7b",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 49
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "929ddb41_57b1c16f",
         "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e93baba7_b8403f84",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-01T02:20:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "929ddb41_57b1c16f",
+      "range": {
+        "startLine": 34,
+        "startChar": 2,
+        "endLine": 34,
+        "endChar": 73
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9bc6c556_3d459662",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-01T02:20:31Z",
+      "side": 1,
+      "message": "Ah, sorry - it looks fine in the file but shows up weird on Gerrit. \nFormula is: f(n) \u003d [(b-a)(n-x)/(y-x)]+a",
+      "parentUuid": "364d8bc0_97e456e1",
+      "range": {
+        "startLine": 68,
+        "startChar": 2,
+        "endLine": 68,
+        "endChar": 7
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "122ffa61_f586fffd",
         "filename": "golden/go/diff/diff.go",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2017-08-01T02:09:46Z",
       "side": 1,
       "message": "Maybe this was named lowercase because it\u0027s only called from within this file, in PixelDiff? Looks like caps may only be used for methods intended to be called externally.",
+      "range": {
+        "startLine": 185,
+        "startChar": 5,
+        "endLine": 185,
+        "endChar": 24
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2583a641_bc32d0f9",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-01T02:20:31Z",
+      "side": 1,
+      "message": "Yup, that\u0027s correct. I exported the function so I could avoid rewriting it within the dynamicdiff module, as explained in the CL description.",
+      "parentUuid": "122ffa61_f586fffd",
       "range": {
         "startLine": 185,
         "startChar": 5,
