@@ -59,7 +59,7 @@ func createBoltResultStore(t *testing.T) ResultStore {
 }
 
 func TestGetAndPut(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -144,7 +144,7 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestGetRunIDs(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
@@ -187,7 +187,7 @@ func TestGetRunIDs(t *testing.T) {
 }
 
 func TestRemoveRun(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
