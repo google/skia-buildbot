@@ -22,6 +22,30 @@
       "revId": "347455080b8cb5c16916626b6c0770850cb119a8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bf671ae_f71c7a62",
+        "filename": "go/comment/comment.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-01T15:21:33Z",
+      "side": 1,
+      "message": "Added .UTC() in https://skia-review.googlesource.com/c/29341/\nI\u0027m being paranoid, so I left .UTC() every time we write in case someone sets or modifies Timestamp.",
+      "parentUuid": "4d854ab4_ee2ebff8",
+      "range": {
+        "startLine": 27,
+        "startChar": 13,
+        "endLine": 27,
+        "endChar": 23
+      },
+      "revId": "347455080b8cb5c16916626b6c0770850cb119a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
