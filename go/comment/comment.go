@@ -24,7 +24,7 @@ func New(id, msg, user string) *Comment {
 	return &Comment{
 		Id:        id,
 		Message:   msg,
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 		User:      user,
 	}
 }
