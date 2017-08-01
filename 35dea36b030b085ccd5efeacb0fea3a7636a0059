@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a7d7bb1a_9a4ff62e",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-01T03:29:17Z",
+      "side": 1,
+      "message": "Unfortunately I don\u0027t think Go has support for ternary operations. Should I refactor to a simple if sortOrder \u003d\u003d ASC / else block instead?",
+      "parentUuid": "49bcb692_5ba81ec2",
+      "range": {
+        "startLine": 383,
+        "startChar": 2,
+        "endLine": 390,
+        "endChar": 3
+      },
+      "revId": "35dea36b030b085ccd5efeacb0fea3a7636a0059",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4a6bb634_d3f7b9e5",
         "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
         "patchSetId": 4
