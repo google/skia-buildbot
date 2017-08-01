@@ -141,6 +141,30 @@
       "revId": "b970ad2bb71ba9f6f3265112bb7013512c4728cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "424d218c_e056481f",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-01T18:16:46Z",
+      "side": 1,
+      "message": "I\u0027ll update it as part of dealing with https://bugs.chromium.org/p/skia/issues/detail?id\u003d6818.\nIf there\u0027s any fallout, I will probably need help from you two.",
+      "parentUuid": "8433eb3d_b892c357",
+      "range": {
+        "startLine": 110,
+        "startChar": 23,
+        "endLine": 110,
+        "endChar": 39
+      },
+      "revId": "b970ad2bb71ba9f6f3265112bb7013512c4728cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
