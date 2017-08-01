@@ -521,3 +521,38 @@ func (TraceCovFunc) Describe() string {
 }
 
 var traceCovFunc = TraceCovFunc{}
+
+type TraceStepFunc struct{}
+
+// TraceStepFunc implements Func and Computes the step function, i.e the ratio of the ave of the first half of the trace divided
+// by the ave of the second half of the trace.
+//
+// vec32.MISSING_DATA_SENTINEL values are not taken into account for the ave. If the entire vector is vec32.MISSING_DATA_SENTINEL then
+// the result is also all vec32.MISSING_DATA_SENTINEL.
+func (TraceStepFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("trace_step() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("trace_step() takes a function argument.")
+	}
+	rows, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("trace_step() failed evaluating argument: %s", err)
+	}
+
+	ret := Rows{}
+	for key, r := range rows {
+		row := vec32.Dup(r)
+		vec32.FillStep(row)
+		ret["trace_step("+key+")"] = row
+	}
+
+	return ret, nil
+}
+
+func (TraceStepFunc) Describe() string {
+	return `Computes the step function, i.e the ratio of the ave of the first half of the trace divided by the ave of the second half of the trace.`
+}
+
+var traceStepFunc = TraceStepFunc{}
