@@ -40,6 +40,32 @@ func (FilterFunc) Describe() string {
 
 var filterFunc = FilterFunc{}
 
+type ShortcutFunc struct{}
+
+// shortcutFunc is a Func that returns a set of Rows in the Context.
+//
+// It expects a single argument that is a shortcut id.
+func (ShortcutFunc) Eval(ctx *Context, node *Node) (Rows, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("shortcut() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeString {
+		return nil, fmt.Errorf("shortcut() takes a string argument.")
+	}
+	if ctx.RowsFromShortcut == nil {
+		return nil, fmt.Errorf("shortcut() is not available.")
+	}
+	return ctx.RowsFromShortcut(node.Args[0].Val)
+}
+
+func (ShortcutFunc) Describe() string {
+	return `shortcut() returns a set of Rows that match the given shortcut id.
+
+  It expects a single argument that is the id of a shortcut set of traces. `
+}
+
+var shortcutFunc = ShortcutFunc{}
+
 type NormFunc struct{}
 
 // normFunc implements Func and normalizes the traces to a mean of 0 and a
