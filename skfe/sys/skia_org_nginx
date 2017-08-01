@@ -11,9 +11,6 @@ proxy_send_timeout          5m;
 proxy_read_timeout          5m;
 send_timeout                5m;
 
-# Prevent nginx version from being leaked.
-server_tokens off;
-
 # Include the proxied host into the combined log format.
 log_format combined_proxy '$remote_addr - $remote_user [$time_local] '
                           '"$request" $status $body_bytes_sent '
