@@ -21,9 +21,12 @@ var (
 	}
 )
 
-func newTestContext(rows Rows) *Context {
+func newTestContext(rows, shortcutRows Rows) *Context {
 	if rows == nil {
 		rows = testRows
+	}
+	if shortcutRows == nil {
+		shortcutRows = testRows
 	}
 
 	from := func(s string) (Rows, error) {
@@ -41,12 +44,16 @@ func newTestContext(rows Rows) *Context {
 		return ret, nil
 	}
 
-	return NewContext(from)
+	fromShortcut := func(s string) (Rows, error) {
+		return shortcutRows, nil
+	}
+
+	return NewContext(from, fromShortcut)
 }
 
 func TestFilter(t *testing.T) {
 	testutils.SmallTest(t)
-	ctx := newTestContext(nil)
+	ctx := newTestContext(nil, nil)
 
 	testCases := []struct {
 		input  string
@@ -69,9 +76,34 @@ func TestFilter(t *testing.T) {
 	}
 }
 
+func TestShortcut(t *testing.T) {
+	testutils.SmallTest(t)
+	ctx := newTestContext(nil, Rows{
+		",name=t1,": []float32{1.0, -1.0, 2.0, e},
+		",name=t2,": []float32{e, 2.0, 8.0, -2.0},
+		",name=t3,": []float32{e, 1.0, 8.0, -3.0},
+	})
+
+	testCases := []struct {
+		input  string
+		length int
+	}{
+		{`shortcut("12")`, 3},
+	}
+	for _, tc := range testCases {
+		rows, err := ctx.Eval(tc.input)
+		if err != nil {
+			t.Fatalf("Failed to run filter %q: %s", tc.input, err)
+		}
+		if got, want := len(rows), tc.length; got != want {
+			t.Errorf("Wrong rows length %q: Got %v Want %v", tc.input, got, want)
+		}
+	}
+}
+
 func TestEvalNoModifyTile(t *testing.T) {
 	testutils.SmallTest(t)
-	ctx := newTestContext(nil)
+	ctx := newTestContext(nil, nil)
 
 	rows, err := ctx.Eval(`fill(filter("config=8888"))`)
 	if err != nil {
@@ -89,7 +121,7 @@ func TestEvalNoModifyTile(t *testing.T) {
 
 func TestEvalErrors(t *testing.T) {
 	testutils.SmallTest(t)
-	ctx := newTestContext(nil)
+	ctx := newTestContext(nil, nil)
 
 	testCases := []string{
 		// Invalid forms.
@@ -127,7 +159,7 @@ func TestNorm(t *testing.T) {
 	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{2.0, -2.0, e},
-	})
+	}, nil)
 	rows, err := ctx.Eval(`norm(filter(""))`)
 	if err != nil {
 		t.Fatalf("Failed to eval norm() test: %s", err)
@@ -143,7 +175,7 @@ func TestAve(t *testing.T) {
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
-	})
+	}, nil)
 	formula := `ave(filter(""))`
 	rows, err := ctx.Eval(formula)
 	if err != nil {
@@ -165,7 +197,7 @@ func TestAvg(t *testing.T) {
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
-	})
+	}, nil)
 	formula := `avg(filter(""))`
 	rows, err := ctx.Eval(formula)
 	if err != nil {
@@ -187,7 +219,7 @@ func TestCount(t *testing.T) {
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
-	})
+	}, nil)
 	formula := `count(filter(""))`
 	rows, err := ctx.Eval(formula)
 	if err != nil {
@@ -209,7 +241,7 @@ func TestRatio(t *testing.T) {
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{10, 4, 100, 50, 9999, 0},
 		",name=t2,": []float32{5, 2, 4, 5, 0, 1000},
-	})
+	}, nil)
 
 	formula := `ratio(ave(fill(filter("name=t1"))),ave(fill(filter("name=t2"))))`
 	rows, err := ctx.Eval(formula)
@@ -230,7 +262,7 @@ func TestFill(t *testing.T) {
 	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{e, e, 2, 3, e, 5},
-	})
+	}, nil)
 	formula := `fill(filter("name=t1"))`
 	rows, err := ctx.Eval(formula)
 	if err != nil {
@@ -252,7 +284,7 @@ func TestSum(t *testing.T) {
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, e, e},
 		",name=t2,": []float32{e, 2.0, -2.0, e},
-	})
+	}, nil)
 	formula := `sum(filter(""))`
 	rows, err := ctx.Eval(formula)
 	if err != nil {
@@ -274,7 +306,7 @@ func TestGeo(t *testing.T) {
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1.0, -1.0, 2.0, e},
 		",name=t2,": []float32{e, 2.0, 8.0, -2.0},
-	})
+	}, nil)
 	formula := `geo(filter(""))`
 	rows, err := ctx.Eval(formula)
 	if err != nil {
@@ -295,7 +327,7 @@ func TestLog(t *testing.T) {
 	testutils.SmallTest(t)
 	ctx := newTestContext(Rows{
 		",name=t1,": []float32{1, 10, 100, -1, 0, e},
-	})
+	}, nil)
 	formula := `log(filter(""))`
 	rows, err := ctx.Eval(formula)
 	if err != nil {

@@ -325,7 +325,7 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
-		ctx := calc.NewContext(nil)
+		ctx := calc.NewContext(nil, nil)
 		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
 			sklog.Errorln("Failed to expand template:", err)
 		}

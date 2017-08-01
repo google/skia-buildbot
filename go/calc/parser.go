@@ -14,8 +14,9 @@ const (
 )
 
 type (
-	NodeType      int
-	RowsFromQuery func(q string) (Rows, error)
+	NodeType         int
+	RowsFromQuery    func(q string) (Rows, error)
+	RowsFromShortcut func(id string) (Rows, error)
 )
 
 type Rows map[string][]float32
@@ -77,17 +78,20 @@ type Func interface {
 //
 // A Context is not safe to call from multiple go routines.
 type Context struct {
-	RowsFromQuery RowsFromQuery
-	Funcs         map[string]Func
-	formula       string // The current formula being evaluated.
+	RowsFromQuery    RowsFromQuery
+	RowsFromShortcut RowsFromShortcut
+	Funcs            map[string]Func
+	formula          string // The current formula being evaluated.
 }
 
 // NewContext create a new parsing context that includes the basic functions.
-func NewContext(rowsFromQuery RowsFromQuery) *Context {
+func NewContext(rowsFromQuery RowsFromQuery, rowsFromShortcut RowsFromShortcut) *Context {
 	return &Context{
-		RowsFromQuery: rowsFromQuery,
+		RowsFromQuery:    rowsFromQuery,
+		RowsFromShortcut: rowsFromShortcut,
 		Funcs: map[string]Func{
 			"filter":       filterFunc,
+			"shortcut":     shortcutFunc,
 			"norm":         normFunc,
 			"fill":         fillFunc,
 			"ave":          aveFunc,
