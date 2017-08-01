@@ -75,6 +75,13 @@ func (r *RecentRolls) Update(roll *autoroll.AutoRollIssue) error {
 	return r.refreshRecentRolls()
 }
 
+// Get returns the given roll.
+func (r *RecentRolls) Get(issue int64) (*autoroll.AutoRollIssue, error) {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.db.GetRoll(issue)
+}
+
 // GetRecentRolls returns a copy of the recent rolls list.
 func (r *RecentRolls) GetRecentRolls() []*autoroll.AutoRollIssue {
 	r.mtx.RLock()

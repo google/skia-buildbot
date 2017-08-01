@@ -2,6 +2,7 @@ package roller
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"sync"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
+	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -247,4 +249,15 @@ func (r *AutoRoller) Tick() error {
 	}
 	sklog.Infof("Autoroller state %s", r.sm.Current())
 	return lastErr
+}
+
+// Add a comment to the given roll CL.
+func (r *AutoRoller) AddComment(issueNum int64, message, user string, timestamp time.Time) error {
+	roll, err := r.recent.Get(issueNum)
+	if err != nil {
+		return fmt.Errorf("No such issue %d", issueNum)
+	}
+	id := fmt.Sprintf("%d_%d", issueNum, len(roll.Comments))
+	roll.Comments = append(roll.Comments, comment.New(id, message, user))
+	return r.recent.Update(roll)
 }
