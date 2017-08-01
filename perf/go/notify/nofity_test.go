@@ -30,11 +30,11 @@ func TestExampleSend(t *testing.T) {
 	e := &emailMock{}
 	n := New(e, "perf")
 	alert := &alerts.Config{
-		Alert: "someone@example.org",
+		Alert: "someone@example.org, someother@example.com ",
 	}
 	err := n.ExampleSend(alert)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{alert.Alert}, e.to)
+	assert.Equal(t, []string{"someone@example.org", "someother@example.com"}, e.to)
 	assert.Equal(t, FROM_ADDRESS, e.from)
 	assert.Equal(t, "Regression found for \"Re-enable opList dependency tracking\"", e.subject)
 	assert.Equal(t, "<b>Alert</b><br><br>\n<p>\n\tA Perf Regression has been found at:\n</p>\n<p style=\"padding: 1em;\">\n\t<a href=\"https://perf.skia.org/g/t/d261e1075a93677442fdf7fe72aba7e583863664\">https://perf.skia.org/g/t/d261e1075a93677442fdf7fe72aba7e583863664</a>\n</p>\n<p>\n  For:\n</p>\n<p style=\"padding: 1em;\">\n  <a href=\"https://skia.googlesource.com/skia/&#43;/d261e1075a93677442fdf7fe72aba7e583863664\">https://skia.googlesource.com/skia/&#43;/d261e1075a93677442fdf7fe72aba7e583863664</a>\n</p>\n<p>\n\tWith 10 matching traces.\n</p>", e.body)
