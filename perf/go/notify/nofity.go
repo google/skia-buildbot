@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"regexp"
 
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
@@ -33,6 +34,8 @@ const (
 
 var (
 	emailTemplate = template.Must(template.New("email").Parse(EMAIL))
+
+	emailAddressSplitter = regexp.MustCompile("[, ]+")
 )
 
 // Email sending interface. Note that email.GMail implements this interface.
@@ -76,6 +79,16 @@ func (n *Notifier) formatEmail(c *cid.CommitDetail, alert *alerts.Config, cl *cl
 	return b.String(), nil
 }
 
+func splitEmails(s string) []string {
+	ret := []string{}
+	for _, e := range emailAddressSplitter.Split(s, -1) {
+		if e != "" {
+			ret = append(ret, e)
+		}
+	}
+	return ret
+}
+
 // Send a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
 func (n *Notifier) Send(c *cid.CommitDetail, alert *alerts.Config, cl *clustering2.ClusterSummary) error {
 	if alert.Alert == "" {
@@ -86,7 +99,7 @@ func (n *Notifier) Send(c *cid.CommitDetail, alert *alerts.Config, cl *clusterin
 		return err
 	}
 	subject := fmt.Sprintf("Regression found for %q", c.Message)
-	if err := n.email.Send(FROM_ADDRESS, []string{alert.Alert}, subject, body); err != nil {
+	if err := n.email.Send(FROM_ADDRESS, splitEmails(alert.Alert), subject, body); err != nil {
 		return fmt.Errorf("Failed to send email: %s", err)
 	}
 

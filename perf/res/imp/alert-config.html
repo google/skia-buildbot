@@ -121,7 +121,7 @@
     <h4>Sparse</h4>
     <paper-checkbox checked="{{config.sparse}}">Data is sparse, so only include commits that have data.</paper-checkbox>
     <h3>Where are alerts sent</h3>
-    <paper-input value="{{config.alert}}"                                  label="Alert Destination: Email address."></paper-input>
+    <paper-input value="{{config.alert}}"                                  label="Alert Destination: Comma separated list of email addresses."></paper-input>
     <button on-tap=_testAlert>Test</button>
     <paper-spinner id=alertSpinner></paper-spinner>
     <h3>Where are bugs filed</h3>
