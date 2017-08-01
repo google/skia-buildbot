@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "53f53913_ca77a08c",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-01T18:15:50Z",
+      "side": 1,
+      "message": "Good point, I shouldn\u0027t have assumed that. But I hacked the file on skia-gce-001 and it seems to work as desired.",
+      "parentUuid": "eb3189cd_3a6220fd",
+      "range": {
+        "startLine": 88,
+        "startChar": 8,
+        "endLine": 88,
+        "endChar": 18
+      },
+      "revId": "b970ad2bb71ba9f6f3265112bb7013512c4728cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cb3ff50f_09fecea6",
         "filename": "go/gce/swarming/swarming_vm.go",
         "patchSetId": 1
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Were they not recreated to Debian with the other bots due to https://bugs.chromium.org/p/skia/issues/detail?id\u003d6818 ?\n\nThey should eventually be recreated as Debian-9.1, I cannot think of a reason why they should not be.",
       "parentUuid": "08780f27_e20c3638",
+      "range": {
+        "startLine": 110,
+        "startChar": 23,
+        "endLine": 110,
+        "endChar": 39
+      },
+      "revId": "b970ad2bb71ba9f6f3265112bb7013512c4728cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8433eb3d_b892c357",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-01T18:15:50Z",
+      "side": 1,
+      "message": "Ok, I will update to Debian-9.1, but if there\u0027s any fallout, I will probably need help from you two.",
+      "parentUuid": "677df0f3_17a95c28",
       "range": {
         "startLine": 110,
         "startChar": 23,
