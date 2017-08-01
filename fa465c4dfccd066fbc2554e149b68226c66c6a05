@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7fb8cb00_bd97cf9f",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-01T12:31:07Z",
+      "side": 1,
+      "message": "That is cool! I\u0027m leaving the original query because I understand it better and grouping bot alerts may be a good thing here.",
+      "parentUuid": "08e7c711_2c92ce0d",
+      "range": {
+        "startLine": 259,
+        "startChar": 5,
+        "endLine": 259,
+        "endChar": 91
+      },
+      "revId": "fa465c4dfccd066fbc2554e149b68226c66c6a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a86b50bd_112ecd0a",
         "filename": "prometheus/sys/alert.rules",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "85b4f0a3_bf396c40",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-01T12:31:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a86b50bd_112ecd0a",
+      "range": {
+        "startLine": 262,
+        "startChar": 141,
+        "endLine": 262,
+        "endChar": 146
+      },
+      "revId": "fa465c4dfccd066fbc2554e149b68226c66c6a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c570a9d6_2d0d120e",
         "filename": "prometheus/sys/alert.rules",
         "patchSetId": 1
@@ -59,6 +107,24 @@
       "writtenOn": "2017-07-31T22:47:14Z",
       "side": 1,
       "message": "Are there other ct-poller jobs that shouldn\u0027t have metrics?",
+      "revId": "fa465c4dfccd066fbc2554e149b68226c66c6a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ed8e10c_5ff885fc",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 540,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-01T12:31:07Z",
+      "side": 1,
+      "message": "No, removing this.",
+      "parentUuid": "c570a9d6_2d0d120e",
       "revId": "fa465c4dfccd066fbc2554e149b68226c66c6a05",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
