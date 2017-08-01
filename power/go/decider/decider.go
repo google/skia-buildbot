@@ -3,8 +3,10 @@ package decider
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/skolo/go/powercycle"
 )
@@ -23,16 +25,40 @@ type Decider interface {
 // decider implments the Decider interface
 type decider struct {
 	enabledBots util.StringSet
+	hostMap     map[string]string // maps id -> host
 }
 
-// New creates a new Decider based off the powercycle config. It will assume that
+var yamlFileMatcher = regexp.MustCompile(".+powercycle-(.+).yaml")
+
+// New creates a new Decider based off the powercycle configs. It will assume that
 // only the bots listed in that config file are powercycleable.
-func New(powercycleConfigFile string) (Decider, error) {
-	dg, err := powercycle.DeviceGroupFromYamlFile(powercycleConfigFile, false)
-	if err != nil {
-		return nil, err
+// Additionally, it returns a map of deviceID -> jumphost it is on, which is
+// derrived from which config file declares the given device.
+func New(powercycleConfigFiles []string) (Decider, map[string]string, error) {
+	hm := map[string]string{}
+	ids := util.StringSet{}
+	for _, file := range powercycleConfigFiles {
+		dg, err := powercycle.DeviceGroupFromYamlFile(file, false)
+		if err != nil {
+			return nil, nil, err
+		}
+		ids = ids.AddLists(dg.DeviceIDs())
+		// Extract the jumphost name from the file name of the powercycle config file that
+		// was passed in.
+		if matches := yamlFileMatcher.FindStringSubmatch(file); matches == nil {
+			sklog.Warningf("The powercycle config files are expected to start with a powercycle- prefix and end in .yaml.  %s does not", file)
+		} else {
+			hostname := "jumphost-" + matches[1]
+			for _, d := range dg.DeviceIDs() {
+				hm[d] = hostname
+			}
+		}
+
 	}
-	return &decider{enabledBots: util.NewStringSet(dg.DeviceIDs())}, nil
+
+	sklog.Infof("Derived hostmap: %#v", hm)
+
+	return &decider{enabledBots: ids}, hm, nil
 }
 
 // See the Decider interface for information on ShouldPowercycleBot
