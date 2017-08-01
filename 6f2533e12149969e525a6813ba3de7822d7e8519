@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53bf3957_49066656",
+        "filename": "perf/res/imp/alert-config.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-01T15:25:39Z",
+      "side": 1,
+      "message": "optional: Comma/space",
+      "range": {
+        "startLine": 124,
+        "startChar": 101,
+        "endLine": 124,
+        "endChar": 106
+      },
+      "revId": "6f2533e12149969e525a6813ba3de7822d7e8519",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
