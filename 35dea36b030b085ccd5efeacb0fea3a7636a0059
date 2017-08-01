@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49bcb692_5ba81ec2",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-01T02:21:04Z",
+      "side": 1,
+      "message": "Can we shorten this and similar below to:\n\nreturn (sortOrder \u003d\u003d ASC) ?\n  (results[i].DiffMetrics.NumDiffPixels \u003c results[j].DiffMetrics.NumDiffPixels) :\n  (results[i].DiffMetrics.NumDiffPixels \u003e results[j].DiffMetrics.NumDiffPixel);",
+      "range": {
+        "startLine": 383,
+        "startChar": 2,
+        "endLine": 390,
+        "endChar": 3
+      },
+      "revId": "35dea36b030b085ccd5efeacb0fea3a7636a0059",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a6bb634_d3f7b9e5",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-01T02:21:04Z",
+      "side": 1,
+      "message": "Could join Red/Green/Blue methods into one and pass another param as the index 0, 1, 2?",
+      "range": {
+        "startLine": 410,
+        "startChar": 5,
+        "endLine": 410,
+        "endChar": 18
+      },
+      "revId": "35dea36b030b085ccd5efeacb0fea3a7636a0059",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56019272_4020d8d8",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-01T02:21:04Z",
+      "side": 1,
+      "message": "The 0s here look like a bug/typo but the comment above would fix differently.",
+      "range": {
+        "startLine": 428,
+        "startChar": 41,
+        "endLine": 428,
+        "endChar": 83
+      },
+      "revId": "35dea36b030b085ccd5efeacb0fea3a7636a0059",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
