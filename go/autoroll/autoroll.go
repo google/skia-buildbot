@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -72,19 +73,20 @@ var (
 // AutoRollIssue is a struct containing the information we care about for
 // AutoRoll CLs.
 type AutoRollIssue struct {
-	Closed            bool         `json:"closed"`
-	Committed         bool         `json:"committed"`
-	CommitQueue       bool         `json:"commitQueue"`
-	CommitQueueDryRun bool         `json:"cqDryRun"`
-	Created           time.Time    `json:"created"`
-	Issue             int64        `json:"issue"`
-	Modified          time.Time    `json:"modified"`
-	Patchsets         []int64      `json:"patchSets"`
-	Result            string       `json:"result"`
-	RollingFrom       string       `json:"rollingFrom"`
-	RollingTo         string       `json:"rollingTo"`
-	Subject           string       `json:"subject"`
-	TryResults        []*TryResult `json:"tryResults"`
+	Closed            bool               `json:"closed"`
+	Comments          []*comment.Comment `json:"comments"`
+	Committed         bool               `json:"committed"`
+	CommitQueue       bool               `json:"commitQueue"`
+	CommitQueueDryRun bool               `json:"cqDryRun"`
+	Created           time.Time          `json:"created"`
+	Issue             int64              `json:"issue"`
+	Modified          time.Time          `json:"modified"`
+	Patchsets         []int64            `json:"patchSets"`
+	Result            string             `json:"result"`
+	RollingFrom       string             `json:"rollingFrom"`
+	RollingTo         string             `json:"rollingTo"`
+	Subject           string             `json:"subject"`
+	TryResults        []*TryResult       `json:"tryResults"`
 }
 
 // Validate returns an error iff there is some problem with the issue.
@@ -106,6 +108,13 @@ func (i *AutoRollIssue) Validate() error {
 
 // Copy returns a copy of the AutoRollIssue.
 func (i *AutoRollIssue) Copy() *AutoRollIssue {
+	var commentsCpy []*comment.Comment
+	if i.Comments != nil {
+		commentsCpy = make([]*comment.Comment, 0, len(i.Comments))
+		for _, c := range i.Comments {
+			commentsCpy = append(commentsCpy, c.Copy())
+		}
+	}
 	var patchsetsCpy []int64
 	if i.Patchsets != nil {
 		patchsetsCpy = make([]int64, len(i.Patchsets))
@@ -120,6 +129,7 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 	}
 	return &AutoRollIssue{
 		Closed:            i.Closed,
+		Comments:          commentsCpy,
 		Committed:         i.Committed,
 		CommitQueue:       i.CommitQueue,
 		CommitQueueDryRun: i.CommitQueueDryRun,
