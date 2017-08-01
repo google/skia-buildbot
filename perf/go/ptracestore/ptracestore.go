@@ -13,6 +13,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/golang/groupcache/lru"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -98,6 +99,10 @@ type BoltTraceStore struct {
 	// Details calls.
 	queryCache *lru.Cache
 
+	// metrics
+	cacheLen      metrics2.Int64Metric
+	queryCacheLen metrics2.Int64Metric
+
 	// dir is the directory where tiles are stored.
 	dir string
 }
@@ -131,6 +136,7 @@ func closer(key lru.Key, value interface{}) {
 		entry.wg.Wait()
 		sklog.Infof("Closing: %v", key)
 		util.Close(entry.db)
+		sklog.Infof("Closed: %v", key)
 	} else {
 		sklog.Errorf("Found a non-bolt.DB in the cache at key %q", key)
 	}
@@ -148,11 +154,24 @@ func New(dir string) (*BoltTraceStore, error) {
 		return nil, fmt.Errorf("Failed to create %q for ptracestore: %s", dir, err)
 	}
 
-	return &BoltTraceStore{
-		dir:        dir,
-		cache:      cache,
-		queryCache: queryCache,
-	}, nil
+	bs := &BoltTraceStore{
+		dir:           dir,
+		cache:         cache,
+		queryCache:    queryCache,
+		cacheLen:      metrics2.GetInt64Metric("perf.ptracestore.cache.len", nil),
+		queryCacheLen: metrics2.GetInt64Metric("perf.ptracestore.querycache.len", nil),
+	}
+	go bs.metrics()
+	return bs, nil
+}
+
+func (b *BoltTraceStore) metrics() {
+	for _ = range time.Tick(time.Minute) {
+		b.mutex.Lock()
+		b.cacheLen.Update(int64(b.cache.Len()))
+		b.queryCacheLen.Update(int64(b.queryCache.Len()))
+		b.mutex.Unlock()
+	}
 }
 
 // traceValue is used to encode/decode trace values.
