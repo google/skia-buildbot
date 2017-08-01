@@ -105,6 +105,7 @@ func NewContext(rowsFromQuery RowsFromQuery, rowsFromShortcut RowsFromShortcut) 
 			"trace_avg":    traceAveFunc,
 			"trace_stddev": traceStdDevFunc,
 			"trace_cov":    traceCovFunc,
+			"step":         traceStepFunc,
 		},
 	}
 }

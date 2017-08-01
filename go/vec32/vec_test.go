@@ -320,3 +320,63 @@ func TestFillCov(t *testing.T) {
 		}
 	}
 }
+
+func TestFillStep(t *testing.T) {
+	testutils.SmallTest(t)
+	testCases := []struct {
+		Slice []float32
+		Step  []float32
+	}{
+		{
+			Slice: []float32{1, 1, 2, 2, 2},
+			Step:  []float32{0.5, 0.5, 0.5, 0.5, 0.5},
+		},
+		{
+			Slice: []float32{1, 1, 0, 0, 0},
+			Step:  []float32{e, e, e, e, e},
+		},
+		{
+			Slice: []float32{3, 5, 2, 2, 2},
+			Step:  []float32{2, 2, 2, 2, 2},
+		},
+		{
+			Slice: []float32{3, 5, e, 2, 2},
+			Step:  []float32{2, 2, 2, 2, 2},
+		},
+		{
+			Slice: []float32{3, 5, e, e, 2},
+			Step:  []float32{2, 2, 2, 2, 2},
+		},
+		{
+			Slice: []float32{4, e, e, e, 2},
+			Step:  []float32{2, 2, 2, 2, 2},
+		},
+		{
+			Slice: []float32{3, 5, e, e, e},
+			Step:  []float32{e, e, e, e, e},
+		},
+		{
+			Slice: []float32{e, e, e, e},
+			Step:  []float32{e, e, e, e},
+		},
+		{
+			Slice: []float32{e},
+			Step:  []float32{e},
+		},
+		{
+			Slice: []float32{},
+			Step:  []float32{},
+		},
+		{
+			Slice: []float32{1.0},
+			Step:  []float32{e},
+		},
+	}
+	for _, tc := range testCases {
+		v := Dup(tc.Slice)
+		FillStep(v)
+		if got, want := v, tc.Step; !vecNear(got, want) {
+			t.Errorf("Mean(%v) Got %v Want %v", tc.Slice, got, want)
+		}
+	}
+}

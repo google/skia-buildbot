@@ -193,7 +193,7 @@ func FillCov(a []float32) {
 	if err == nil {
 		cov = stddev / mean
 	}
-	if math.IsNaN(float64(cov)) {
+	if math.IsNaN(float64(cov)) || math.IsInf(float64(cov), 0) {
 		cov = MISSING_DATA_SENTINEL
 	}
 	// Now fill.
@@ -213,4 +213,28 @@ func SSE(xs []float32, base float32) float32 {
 		}
 	}
 	return total
+}
+
+// FillStep fills the slice with the step function value, i.e.  the ratio of
+// the ave of the first half of the trace values divided by the ave of the
+// second half of the trace values.
+//
+// If the second mean is 0 or the slice is filled with only MISSING_DATA_SENTINEL then
+// the slice will be filled with MISSING_DATA_SENTINEL.
+func FillStep(a []float32) {
+	mid := len(a) / 2
+
+	step := MISSING_DATA_SENTINEL
+	meanFirst := MeanMissing(a[:mid])
+	meanLast := MeanMissing(a[mid:])
+	if meanLast != MISSING_DATA_SENTINEL && meanFirst != MISSING_DATA_SENTINEL {
+		step = meanFirst / meanLast
+	}
+	if math.IsNaN(float64(step)) || math.IsInf(float64(step), 0) {
+		step = MISSING_DATA_SENTINEL
+	}
+	// Now fill.
+	for i := range a {
+		a[i] = step
+	}
 }
