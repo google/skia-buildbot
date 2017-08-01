@@ -1,0 +1,24 @@
+[Unit]
+Description=Web server for viewing CT Pixel Diff run results
+Wants=network-online.target
+After=etwork-online.target
+
+[Service]
+Environment=DATA_DIR=/mnt/pd0/ct_pixel_diff  \
+
+ExecStart=/usr/local/bin/ct_pixel_diff  \
+    -cache_size=20  \
+    -gs_buckets=cluster-telemetry  \
+    -gs_basedirs=tasks/pixel_diff_runs  \
+    -image_dir=${DATA_DIR}/images  \
+    -port=:8001  \
+    -resources_dir=/usr/local/share/ct_pixel_diff/frontend  \
+    -status_dir=${DATA_DIR}/status
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

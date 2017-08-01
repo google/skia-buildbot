@@ -34,6 +34,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-proxy:20000']
 
+  - job_name: 'ct-pixel-diff'
+    static_configs:
+      - targets: ['skia-ct-pixel-diff:20000']
+
   - job_name: 'ct-poller'
     static_configs:
       - targets: ['skia-ct-master:20000']
@@ -160,6 +164,7 @@ scrape_configs:
       - targets: ['skia-android-perf:11000']
       - targets: ['skia-android-master-perf:11000']
       - targets: ['skia-autoroll:11000']
+      - targets: ['skia-ct-pixel-diff:11000']
       - targets: ['skia-cq-watcher:11000']
       - targets: ['skia-datahopper2:11000']
       - targets: ['skia-debugger:11000']
