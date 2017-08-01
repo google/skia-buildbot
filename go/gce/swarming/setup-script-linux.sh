@@ -85,7 +85,7 @@ After=network.target
 [Service]
 Type=simple
 User=chrome-bot
-Restart=always
+Restart=on-failure
 RestartSec=10
 ExecStart=/usr/bin/env python /b/s/swarming_bot.zip start_bot
 

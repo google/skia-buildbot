@@ -22,10 +22,6 @@ do
   sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoremove
 done
 
-# libc6 comes as version 2.24-11+deb9u1 which is incompatible with many other
-# required packages. Downgrade to 2.24-11.
-sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install libc6=2.24-11 --allow-downgrades
-
 # Now install the apps that we guarantee to appear.
 sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install git collectd unattended-upgrades subversion make python-dev libfreetype6-dev xvfb python-twisted-core libpng-dev zlib1g-dev fontconfig libfontconfig-dev libglu-dev poppler-utils netpbm vim gyp g++ gdb unzip libgif-dev python-imaging libosmesa-dev systemd
 sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install gcc python-dev python-setuptools
