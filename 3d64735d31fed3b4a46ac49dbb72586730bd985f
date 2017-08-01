@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "76f4eff5_0dd88c7b",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-01T02:09:46Z",
+      "side": 1,
+      "message": "Worth mentioning we ignore alpha here as well.",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 49
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "929ddb41_57b1c16f",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-01T02:09:46Z",
+      "side": 1,
+      "message": "Suggest creating trivial helper method for this check called IsDynamicContentPixel(r, g, b, R, G, B) so that it\u0027s easier to see where we\u0027d change in future if we move to a mask. And that way we can only mention cyan in the comment in that method.",
+      "range": {
+        "startLine": 34,
+        "startChar": 2,
+        "endLine": 34,
+        "endChar": 73
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "364d8bc0_97e456e1",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-01T02:09:46Z",
+      "side": 1,
+      "message": "comment whitespace format looks hosed by gofmt, alas",
+      "range": {
+        "startLine": 68,
+        "startChar": 2,
+        "endLine": 68,
+        "endChar": 7
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "122ffa61_f586fffd",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-01T02:09:46Z",
+      "side": 1,
+      "message": "Maybe this was named lowercase because it\u0027s only called from within this file, in PixelDiff? Looks like caps may only be used for methods intended to be called externally.",
+      "range": {
+        "startLine": 185,
+        "startChar": 5,
+        "endLine": 185,
+        "endChar": 24
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
