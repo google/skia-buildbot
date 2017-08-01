@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05fb7f2a_efb16690",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-01T19:58:14Z",
+      "side": 1,
+      "message": "I incorporated Stephan\u0027s latest suggestion and implemented sort.Interface. This approach has the benefit that we don\u0027t have to do any checks for ASC/DSC within the comparators. However, this approach prevents us from combining the comparators for RGB diffs, as per Walter\u0027s suggestion, which was implemented in patch set 5. The two approaches are functionally the same, so I guess it boils down to a style preference; perhaps implementing sort.Interface is the more idiomatic way to do sorting in Go? Would appreciate input on which one you guys prefer.",
+      "revId": "4586b295bdeb04d89fba3f1dbf22327dd26be120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
