@@ -187,6 +187,30 @@
       "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdef6b5c_8e781620",
+        "filename": "golden/go/diff/diff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-01T02:22:20Z",
+      "side": 1,
+      "message": "Ah, sorry, I did read that, and then forgot!",
+      "parentUuid": "2583a641_bc32d0f9",
+      "range": {
+        "startLine": 185,
+        "startChar": 5,
+        "endLine": 185,
+        "endChar": 24
+      },
+      "revId": "3d64735d31fed3b4a46ac49dbb72586730bd985f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
