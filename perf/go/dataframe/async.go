@@ -280,7 +280,7 @@ func (p *FrameRequestProcess) Run() {
 		return
 	}
 	p.mutex.Lock()
-	p.mutex.Unlock()
+	defer p.mutex.Unlock()
 	p.state = PROCESS_SUCCESS
 	p.response = resp
 }
