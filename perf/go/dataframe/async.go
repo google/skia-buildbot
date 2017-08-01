@@ -454,7 +454,24 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		return rows, nil
 	}
 
-	ctx := calc.NewContext(rowsFromQuery)
+	rowsFromShortcut := func(s string) (calc.Rows, error) {
+		keys, err := shortcut2.Get(s)
+		if err != nil {
+			return nil, err
+		}
+		df, err = NewFromKeysAndRange(p.git, keys.Keys, ptracestore.Default, begin, end, p.progress)
+		if err != nil {
+			return nil, err
+		}
+		// DataFrames are float32, but calc does its work in float64.
+		rows := calc.Rows{}
+		for k, v := range df.TraceSet {
+			rows[k] = vec32.Dup(v)
+		}
+		return rows, nil
+	}
+
+	ctx := calc.NewContext(rowsFromQuery, rowsFromShortcut)
 	rows, err := ctx.Eval(formula)
 	if err != nil {
 		return nil, fmt.Errorf("Calculation failed: %s", err)
