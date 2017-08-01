@@ -148,6 +148,12 @@ func pixelDiff() error {
 		return fmt.Errorf("Could not figure out the base remote dir: %s", err)
 	}
 
+	// Download telemetry binaries to get the numpy image impl which is faster than the pure python
+	// png decoder.
+	if err := downloadTelemetryDependencies(); err != nil {
+		return fmt.Errorf("Could not download telemetry dependencies: %s", err)
+	}
+
 	// Establish nopatch output paths.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	localOutputDirNoPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch)
@@ -265,6 +271,23 @@ func pixelDiff() error {
 		return fmt.Errorf("Could not upload images from %s to %s: %s", localOutputDirWithPatch, remoteDirWithPatch, err)
 	}
 
+	return nil
+}
+
+func downloadTelemetryDependencies() error {
+	if err := os.Chdir(util.ChromiumSrcDir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", util.ChromiumSrcDir, err)
+	}
+	hookCmd := []string{
+		"runhook",
+		"fetch_telemetry_binary_dependencies",
+	}
+	env := []string{
+		"GYP_DEFINES=fetch_telemetry_dependencies=1",
+	}
+	if err := util.ExecuteCmd(util.BINARY_GCLIENT, hookCmd, env, util.GCLIENT_SYNC_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error running gclient runhook: %s", err)
+	}
 	return nil
 }
 
