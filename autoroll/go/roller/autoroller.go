@@ -179,6 +179,11 @@ func (r *AutoRoller) GetStatus(includeError bool) *AutoRollStatus {
 	return r.status.Get(includeError)
 }
 
+// Return minimal status information for the bot.
+func (r *AutoRoller) GetMiniStatus() *AutoRollMiniStatus {
+	return r.status.GetMini()
+}
+
 // Return the AutoRoll user.
 func (r *AutoRoller) GetUser() string {
 	return r.rm.User()
@@ -235,7 +240,18 @@ func (r *AutoRoller) Tick() error {
 	if lastErr != nil {
 		lastErrorStr = lastErr.Error()
 	}
+	recent := r.recent.GetRecentRolls()
+	lastSuccess := -1
+	for idx, roll := range recent {
+		if roll.Succeeded() {
+			lastSuccess = idx
+		}
+	}
 	if err := r.status.Set(&AutoRollStatus{
+		AutoRollMiniStatus: AutoRollMiniStatus{
+			NumFailedRolls:      lastSuccess,
+			NumNotRolledCommits: r.rm.CommitsNotRolled(),
+		},
 		CurrentRoll: r.recent.CurrentRoll(),
 		Error:       lastErrorStr,
 		GerritUrl:   r.gerrit.Url(0),

@@ -145,11 +145,25 @@ func (r *androidRepoManager) Update() error {
 		return err
 	}
 
+	// Find the number of not-rolled child repo commits.
+	head, err := r.childRepo.FullHash(fmt.Sprintf("origin/%s", r.childBranch))
+	if err != nil {
+		return err
+	}
+	notRolled := 0
+	if head != lastRollRev {
+		commits, err := r.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, head))
+		if err != nil {
+			return err
+		}
+		notRolled = len(commits)
+	}
+
 	r.infoMtx.Lock()
 	defer r.infoMtx.Unlock()
 	r.lastRollRev = lastRollRev
 	r.nextRollRev = nextRollRev
-
+	r.commitsNotRolled = notRolled
 	return nil
 }
 
