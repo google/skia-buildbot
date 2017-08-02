@@ -72,6 +72,12 @@ Running unit tests
 
 Install [Cloud SDK](https://cloud.google.com/sdk/).
 
+The installed python-django version must be >= 1.7. Run the following to update:
+
+```
+$ sudo pip install Django --upgrade
+```
+
 Use this command to run the presubmit tests:
 
 ```
