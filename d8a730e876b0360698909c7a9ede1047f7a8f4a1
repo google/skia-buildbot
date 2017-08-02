@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7e95a9fa_71a3cd95",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-02T14:43:19Z",
+      "side": 1,
+      "message": "If that\u0027s the case the signature should be \n\ntype DiffFn func(*image.NRGBA, *image.NRGBA) (interface{}, *image.NRGBA)\n\nsee \n\nhttps://github.com/google/skia-buildbot/blob/master/golden/go/diff/diff.go#L133\n\nThe Gold infrastructure will always give an NGBA image. In this case alpha will just be set to opaque all the time.",
+      "revId": "d8a730e876b0360698909c7a9ede1047f7a8f4a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45568b62_7f578e48",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-02T14:43:19Z",
+      "side": 1,
+      "message": "if you use the above signature this is not necessary.",
+      "revId": "d8a730e876b0360698909c7a9ede1047f7a8f4a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
