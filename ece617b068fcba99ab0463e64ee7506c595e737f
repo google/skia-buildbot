@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "2772cc75_d57d4ac3",
+        "filename": "ct_pixel_diff/build_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-02T14:52:59Z",
+      "side": 1,
+      "message": "nit: it will not necessarily be top 10k. It could also be 1k or less if you specify a list of custom web pages",
+      "range": {
+        "startLine": 4,
+        "startChar": 43,
+        "endLine": 4,
+        "endChar": 50
+      },
+      "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fc6240c_1aefb991",
+        "filename": "ct_pixel_diff/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-02T14:52:59Z",
+      "side": 1,
+      "message": "considering that CT is only accessible to google.com I wonder if this should be restricted to only google.com accounts",
+      "range": {
+        "startLine": 19,
+        "startChar": 46,
+        "endLine": 19,
+        "endChar": 67
+      },
+      "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9b4ecb4_fe75e1f1",
+        "filename": "ct_pixel_diff/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-02T14:52:59Z",
+      "side": 1,
+      "message": "Should this be stephana?",
+      "range": {
+        "startLine": 21,
+        "startChar": 35,
+        "endLine": 21,
+        "endChar": 45
+      },
+      "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6f1cbb72_3fcd7c74",
         "filename": "ct_pixel_diff/vm.go",
         "patchSetId": 1
@@ -13,6 +82,24 @@
       "writtenOn": "2017-08-02T00:05:02Z",
       "side": 1,
       "message": "What am I supposed to write for the IP addresses?",
+      "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5a39f07_dc0a3ead",
+        "filename": "ct_pixel_diff/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-02T14:52:59Z",
+      "side": 1,
+      "message": "Do not specify ExternalIpAddress, it will then use an ephemeral IP. We are gradually moving all our servers away from static IPs.",
+      "parentUuid": "6f1cbb72_3fcd7c74",
       "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
