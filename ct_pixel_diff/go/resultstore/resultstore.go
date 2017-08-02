@@ -2,7 +2,9 @@ package resultstore
 
 import (
 	"encoding/json"
+	"fmt"
 	"path"
+	"sort"
 	"strings"
 	"time"
 
@@ -11,6 +13,18 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/golden/go/diff"
+)
+
+const (
+	// Sort parameter constants.
+	NUM_DIFF     = "numDiff"
+	PERCENT_DIFF = "percentDiff"
+	RED_DIFF     = "redDiff"
+	GREEN_DIFF   = "greenDiff"
+	BLUE_DIFF    = "blueDiff"
+	RANK         = "rank"
+
+	DSC = "descending"
 )
 
 var (
@@ -41,9 +55,9 @@ type ResultRec struct {
 	DiffMetrics *diff.DiffMetrics
 }
 
-// IsReadyForDiff checks if both the NoPatchImg and WithPatchImg for the
+// HasBothImages checks if both the NoPatchImg and WithPatchImg for the
 // ResultRec have been processed.
-func (r *ResultRec) IsReadyForDiff() bool {
+func (r *ResultRec) HasBothImages() bool {
 	return r.NoPatchImg != "" && r.WithPatchImg != ""
 }
 
@@ -66,11 +80,22 @@ type ResultStore interface {
 	// RemoveRun removes all the data associated with the runID from the
 	// ResultStore.
 	RemoveRun(runID string) error
+
+	// GetRange returns cached results in the given range for the given runID.
+	GetRange(runID string, startIdx, endIdx int) ([]*ResultRec, error)
+
+	// SortRun sorts the cached results for the given runID using the sort
+	// parameters.
+	SortRun(runID, sortField, sortOrder string) error
 }
 
 // BoltResultStore implements the ResultStore interface with a boltDB instance.
 type BoltResultStore struct {
 	db *bolt.DB
+
+	// Map of runIDs to list of ResultRecs, used to cache and sort entries that
+	// contain both nopatch and withpatch images.
+	cache map[string][]*ResultRec
 }
 
 // NewBoltResultStore returns a new instance of BoltResultStore, using the given
@@ -88,9 +113,40 @@ func NewBoltResultStore(boltDir, boltName string) (ResultStore, error) {
 		return nil, err
 	}
 
-	return &BoltResultStore{
-		db: db,
-	}, nil
+	// Instantiate the cache.
+	cache := map[string][]*ResultRec{}
+
+	b := &BoltResultStore{
+		db:    db,
+		cache: cache,
+	}
+
+	// Fill the cache.
+	if err = b.fillCache(); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+// Fills the cache with the data in the boltDB instance. This is to ensure that
+// the data in the boltDB and cache are consistent with each other even after
+// a server crash or reboot, as the cache will be erased while the data in the
+// boltDB will not.
+func (b *BoltResultStore) fillCache() error {
+	runIDs, err := b.GetRunIDs(BeginningOfTime, time.Now())
+	if err != nil {
+		return err
+	}
+
+	for _, runID := range runIDs {
+		results, err := b.GetAll(runID)
+		if err != nil {
+			return err
+		}
+		b.cache[runID] = results
+	}
+
+	return nil
 }
 
 // Get uses the given runID to specify the storage bucket within the boltDB.
@@ -141,13 +197,15 @@ func (b *BoltResultStore) GetAll(runID string) ([]*ResultRec, error) {
 		}
 
 		// Iterate through all the entries in the bucket, deserialize the values,
-		// and append them to the list.
+		// and append them to the list if they are complete.
 		err := b.ForEach(func(k, v []byte) error {
 			rec := &ResultRec{}
 			if err := json.Unmarshal(v, &rec); err != nil {
 				return err
 			}
-			recs = append(recs, rec)
+			if rec.HasBothImages() {
+				recs = append(recs, rec)
+			}
 			return nil
 		})
 		if err != nil {
@@ -207,7 +265,8 @@ func (b *BoltResultStore) GetRunIDs(start, end time.Time) ([]string, error) {
 // Put uses the given runID to specify the storage bucket within the boltDB.
 // Then, the ResultRec is encoded and put into the database with the url of
 // the screenshots as the key. If a record already exists for the given runID
-// and url, it is overwritten.
+// and url, it is overwritten. If the update succeeds and the ResultRec has
+// both images processed, it is also added to the cache.
 func (b *BoltResultStore) Put(runID, url string, rec *ResultRec) error {
 	updateFn := func(tx *bolt.Tx) error {
 		// Create or retrieve bucket using the runID.
@@ -230,10 +289,26 @@ func (b *BoltResultStore) Put(runID, url string, rec *ResultRec) error {
 		return nil
 	}
 
-	return b.db.Update(updateFn)
+	err := b.db.Update(updateFn)
+	if err != nil {
+		return err
+	}
+
+	// Add the ResultRec to the cache.
+	if rec.HasBothImages() {
+		if results, ok := b.cache[runID]; ok {
+			results = append(results, rec)
+			b.cache[runID] = results
+		} else {
+			results = []*ResultRec{rec}
+			b.cache[runID] = results
+		}
+	}
+	return nil
 }
 
 // RemoveRun deletes the bucket specified by the runID from the boltDB instance.
+// If the remove succeeds, the runID is also removed from the cache.
 func (b *BoltResultStore) RemoveRun(runID string) error {
 	updateFn := func(tx *bolt.Tx) error {
 		if err := tx.DeleteBucket([]byte(runID)); err != nil {
@@ -242,5 +317,144 @@ func (b *BoltResultStore) RemoveRun(runID string) error {
 		return nil
 	}
 
-	return b.db.Update(updateFn)
+	err := b.db.Update(updateFn)
+	if err != nil {
+		return err
+	}
+
+	// Remove the runID from the cache after verifying it's there.
+	if _, ok := b.cache[runID]; ok {
+		delete(b.cache, runID)
+	}
+	return nil
+}
+
+// GetRange returns all the ResultRecs in the specified range [startIdx,endIdx)
+// for the given runID from the cache. Returns an empty slice if the indices are
+// out of bounds and returns an error if there is no data cached for the runID.
+func (b *BoltResultStore) GetRange(runID string, startIdx, endIdx int) ([]*ResultRec, error) {
+	if results, ok := b.cache[runID]; ok {
+		if startIdx > len(results) {
+			startIdx = len(results)
+		}
+
+		if endIdx > len(results) {
+			endIdx = len(results)
+		}
+
+		return results[startIdx:endIdx], nil
+	} else {
+		return nil, fmt.Errorf("No cached results for run %s", runID)
+	}
+}
+
+// SortRun sorts the cached ResultRecs for the given runID using the given sort
+// parameter and sort order (ascending/descending). Returns an error if there
+// is no data cached for the runID.
+func (b *BoltResultStore) SortRun(runID, sortField, sortOrder string) error {
+	if results, ok := b.cache[runID]; ok {
+		var lessFn resultRecLessFn
+		switch sortField {
+		// The ResultRecs are sorted by URL if they have equal values for the sort
+		// parameter.
+		case NUM_DIFF:
+			lessFn = sortByNumDiffPixels
+		case PERCENT_DIFF:
+			lessFn = sortByPercentDiffPixels
+		case RED_DIFF:
+			lessFn = sortByMaxRedDiff
+		case GREEN_DIFF:
+			lessFn = sortByMaxGreenDiff
+		case BLUE_DIFF:
+			lessFn = sortByMaxBlueDiff
+		case RANK:
+			lessFn = sortByRank
+		}
+		sortSlice := sort.Interface(newResultRecSlice(results, lessFn))
+		if sortOrder == DSC {
+			sortSlice = sort.Reverse(sortSlice)
+		}
+		sort.Sort(sortSlice)
+		return nil
+	} else {
+		return fmt.Errorf("No cached results for run %s", runID)
+	}
+}
+
+// Function signature for a ResultRec comparator.
+type resultRecLessFn func(r *resultRecSlice, i, j int) bool
+
+// resultRecSlice wraps around a list of ResultRec instances and implements
+// sort.Interface.
+type resultRecSlice struct {
+	lessFn resultRecLessFn
+	data   []*ResultRec
+}
+
+// Constructor takes in a slice of ResultRec instances and a custom less
+// function that is called during sorting.
+func newResultRecSlice(data []*ResultRec, lessFn resultRecLessFn) *resultRecSlice {
+	return &resultRecSlice{lessFn: lessFn, data: data}
+}
+
+// Implementation of sort.Interface.
+func (r *resultRecSlice) Len() int           { return len(r.data) }
+func (r *resultRecSlice) Less(i, j int) bool { return r.lessFn(r, i, j) }
+func (r *resultRecSlice) Swap(i, j int)      { r.data[i], r.data[j] = r.data[j], r.data[i] }
+
+// Sorts the slice using the number of different pixels.
+func sortByNumDiffPixels(r *resultRecSlice, i, j int) bool {
+	left := r.data[i].DiffMetrics.NumDiffPixels
+	right := r.data[j].DiffMetrics.NumDiffPixels
+	if left == right {
+		return r.data[i].URL < r.data[j].URL
+	}
+	return left < right
+}
+
+// Sorts the slice using the percentage of different pixels.
+func sortByPercentDiffPixels(r *resultRecSlice, i, j int) bool {
+	left := r.data[i].DiffMetrics.PixelDiffPercent
+	right := r.data[j].DiffMetrics.PixelDiffPercent
+	if left == right {
+		return r.data[i].URL < r.data[j].URL
+	}
+	return left < right
+}
+
+// Sorts the slice using the maximum red difference.
+func sortByMaxRedDiff(r *resultRecSlice, i, j int) bool {
+	left := r.data[i].DiffMetrics.MaxRGBADiffs[0]
+	right := r.data[j].DiffMetrics.MaxRGBADiffs[0]
+	if left == right {
+		return r.data[i].URL < r.data[j].URL
+	}
+	return left < right
+}
+
+// Sorts the slice using the maximum green difference.
+func sortByMaxGreenDiff(r *resultRecSlice, i, j int) bool {
+	left := r.data[i].DiffMetrics.MaxRGBADiffs[1]
+	right := r.data[j].DiffMetrics.MaxRGBADiffs[1]
+	if left == right {
+		return r.data[i].URL < r.data[j].URL
+	}
+	return left < right
+}
+
+// Sorts the slice using the maximum blue difference.
+func sortByMaxBlueDiff(r *resultRecSlice, i, j int) bool {
+	left := r.data[i].DiffMetrics.MaxRGBADiffs[2]
+	right := r.data[j].DiffMetrics.MaxRGBADiffs[2]
+	if left == right {
+		return r.data[i].URL < r.data[j].URL
+	}
+	return left < right
+}
+
+// Sorts the slice using the site popularity rank. Two ResultRec instances
+// within the same slice will never have the same rank, so there is no need for
+// an equality check.
+func sortByRank(r *resultRecSlice, i, j int) bool {
+	return r.data[i].Rank > r.data[j].Rank
 }
