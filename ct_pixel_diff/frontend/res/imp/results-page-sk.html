@@ -144,7 +144,7 @@
             this.data.push(json.results[i]);
           }
           this.notifyPath('data', this.data.slice());
-          this.renderIdx = json.index
+          this.renderIdx += this.chunkSize;
           this.$.spinner.stopSpinner();
           this.$.scroller.clearTriggers();
         }.bind(this)).catch(function(e) {
