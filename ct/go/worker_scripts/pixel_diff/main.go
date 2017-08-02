@@ -108,12 +108,12 @@ func pixelDiff() error {
 		chromiumBuilds = append(chromiumBuilds, *chromiumBuildWithPatch)
 	}
 	// Download the specified chromium builds.
-	for _, chromiumBuild := range chromiumBuilds {
-		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
-			return fmt.Errorf("Could not download chromium build %s: %s", chromiumBuild, err)
-		}
-		//Delete the chromium build to save space when we are done.
-		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
+	for _, _:= range chromiumBuilds {
+	 if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
+		return fmt.Errorf("Could not download chromium build %s: %s", chromiumBuild, err)
+	}
+	Delete the chromium build to save space when we are done.
+	 defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
 	}
 
 	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, util.BINARY_CHROME)
@@ -315,6 +315,11 @@ func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPages
 		fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir, util.CatapultSrcDir),
 		"DISPLAY=:0",
 	}
+	// Append the original environment as well.
+	for _, e := range os.Environ() {
+		env = append(env, e)
+	}
+
 	// Execute run_benchmark and log if there are any errors.
 	err := util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 	if err != nil {
