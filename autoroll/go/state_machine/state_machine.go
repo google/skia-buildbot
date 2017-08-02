@@ -41,14 +41,12 @@ const (
 	F_UPLOAD_ROLL            = "upload roll"
 	F_UPLOAD_DRY_RUN         = "upload dry run"
 	F_UPDATE_ROLL            = "update roll"
-	F_STOPPED_WAIT           = "waiting (stopped)"
 	F_SWITCH_TO_DRY_RUN      = "switch roll to dry run"
 	F_SWITCH_TO_NORMAL       = "switch roll to normal"
 	F_CLOSE_FAILED           = "close roll (failed)"
 	F_CLOSE_STOPPED          = "close roll (stopped)"
 	F_CLOSE_DRY_RUN_FAILED   = "close roll (dry run failed)"
 	F_CLOSE_DRY_RUN_OUTDATED = "close roll (dry run outdated)"
-	F_THROTTLE_WAIT          = "waiting (throttled)"
 	F_WAIT_FOR_LAND          = "wait for roll to land"
 
 	// Maximum number of no-op transitions to perform at once. This is an
@@ -157,7 +155,10 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 		return s.a.UploadNewRoll(s.a.GetCurrentRev(), s.a.GetNextRollRev(), true)
 	})
 	b.F(F_UPDATE_ROLL, func() error {
-		return s.a.GetActiveRoll().Update()
+		if err := s.a.GetActiveRoll().Update(); err != nil {
+			return err
+		}
+		return s.a.UpdateRepos()
 	})
 	b.F(F_CLOSE_FAILED, func() error {
 		return s.a.GetActiveRoll().Close(autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll."))
@@ -172,14 +173,12 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 		currentRoll := s.a.GetActiveRoll()
 		return currentRoll.Close(autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, fmt.Sprintf("Repo has passed %s; will open a new dry run.", currentRoll.RollingTo()))
 	})
-	b.F(F_STOPPED_WAIT, nil)
 	b.F(F_SWITCH_TO_DRY_RUN, func() error {
 		return s.a.GetActiveRoll().SwitchToDryRun()
 	})
 	b.F(F_SWITCH_TO_NORMAL, func() error {
 		return s.a.GetActiveRoll().SwitchToNormal()
 	})
-	b.F(F_THROTTLE_WAIT, nil)
 	b.F(F_WAIT_FOR_LAND, func() error {
 		sklog.Infof("Roll succeeded; syncing the repo until it lands.")
 		currentRoll := s.a.GetActiveRoll()
@@ -203,7 +202,7 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 	// States and transitions.
 
 	// Stopped state.
-	b.T(S_STOPPED, S_STOPPED, F_STOPPED_WAIT)
+	b.T(S_STOPPED, S_STOPPED, F_UPDATE_REPOS)
 	b.T(S_STOPPED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_STOPPED, S_DRY_RUN_IDLE, F_NOOP)
 
@@ -221,7 +220,7 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_IDLE, F_WAIT_FOR_LAND)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_IDLE, F_CLOSE_FAILED)
 	b.T(S_NORMAL_THROTTLED, S_NORMAL_IDLE, F_NOOP)
-	b.T(S_NORMAL_THROTTLED, S_NORMAL_THROTTLED, F_THROTTLE_WAIT)
+	b.T(S_NORMAL_THROTTLED, S_NORMAL_THROTTLED, F_UPDATE_REPOS)
 
 	// Dry run states.
 	b.T(S_DRY_RUN_IDLE, S_STOPPED, F_NOOP)
@@ -242,7 +241,7 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
 	b.T(S_DRY_RUN_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
-	b.T(S_DRY_RUN_THROTTLED, S_DRY_RUN_THROTTLED, F_THROTTLE_WAIT)
+	b.T(S_DRY_RUN_THROTTLED, S_DRY_RUN_THROTTLED, F_UPDATE_REPOS)
 
 	// Build the state machine.
 	b.SetInitial(S_NORMAL_IDLE)

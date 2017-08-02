@@ -145,11 +145,26 @@ func (r *androidRepoManager) Update() error {
 		return err
 	}
 
+	// Find the number of not-rolled child repo commits.
+	output, err := r.childRepo.Git("ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
+	if err != nil {
+		return err
+	}
+	head := strings.Split(output, "\t")[0]
+	notRolled := 0
+	if head != lastRollRev {
+		commits, err := r.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, head))
+		if err != nil {
+			return err
+		}
+		notRolled = len(commits)
+	}
+
 	r.infoMtx.Lock()
 	defer r.infoMtx.Unlock()
 	r.lastRollRev = lastRollRev
 	r.nextRollRev = nextRollRev
-
+	r.commitsNotRolled = notRolled
 	return nil
 }
 
