@@ -122,6 +122,7 @@ func captureArchives() error {
 					"--browser=reference",
 					"--user-agent=" + decodedPageset.UserAgent,
 					"--urls-list=" + decodedPageset.UrlsList,
+					"--use-wpr-go",
 					"--archive-data-file=" + archiveDataFile,
 					"--device=desktop",
 				}
