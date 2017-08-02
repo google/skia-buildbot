@@ -120,10 +120,26 @@ func (dr *depsRepoManager) Update() error {
 	if err != nil {
 		return err
 	}
+
+	// Find the number of not-rolled child repo commits.
+	head, err := dr.childRepo.FullHash(fmt.Sprintf("origin/%s", dr.childBranch))
+	if err != nil {
+		return err
+	}
+	notRolled := 0
+	if head != lastRollRev {
+		commits, err := dr.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, head))
+		if err != nil {
+			return err
+		}
+		notRolled = len(commits)
+	}
+
 	dr.infoMtx.Lock()
 	defer dr.infoMtx.Unlock()
 	dr.lastRollRev = lastRollRev
 	dr.nextRollRev = nextRollRev
+	dr.commitsNotRolled = notRolled
 	return nil
 }
 

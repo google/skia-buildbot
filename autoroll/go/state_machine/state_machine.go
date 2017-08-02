@@ -157,7 +157,10 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 		return s.a.UploadNewRoll(s.a.GetCurrentRev(), s.a.GetNextRollRev(), true)
 	})
 	b.F(F_UPDATE_ROLL, func() error {
-		return s.a.GetActiveRoll().Update()
+		if err := s.a.GetActiveRoll().Update(); err != nil {
+			return err
+		}
+		return s.a.UpdateRepos()
 	})
 	b.F(F_CLOSE_FAILED, func() error {
 		return s.a.GetActiveRoll().Close(autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll."))

@@ -108,10 +108,25 @@ func (mr *manifestRepoManager) Update() error {
 		return err
 	}
 
+	// Find the number of not-rolled child repo commits.
+	head, err := mr.childRepo.FullHash(fmt.Sprintf("origin/%s", mr.childBranch))
+	if err != nil {
+		return err
+	}
+	notRolled := 0
+	if head != lastRollRev {
+		commits, err := mr.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, head))
+		if err != nil {
+			return err
+		}
+		notRolled = len(commits)
+	}
+
 	mr.infoMtx.Lock()
 	defer mr.infoMtx.Unlock()
 	mr.lastRollRev = lastRollRev
 	mr.nextRollRev = nextRollRev
+	mr.commitsNotRolled = notRolled
 	return nil
 }
 

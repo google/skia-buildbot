@@ -170,23 +170,18 @@ func (d *db) GetRoll(issue int64) (*autoroll.AutoRollIssue, error) {
 	return a, nil
 }
 
-// GetRecentRolls retrieves the most recent N issues from the database.
+// GetRecentRolls retrieves the most recent rolls from the database, with a
+// minimum of N and enough rolls to include the most recent success.
 func (d *db) GetRecentRolls(N int) ([]*autoroll.AutoRollIssue, error) {
-	var rv []*autoroll.AutoRollIssue
+	rv := make([]*autoroll.AutoRollIssue, 0, N)
 	if err := d.db.View(func(tx *bolt.Tx) error {
 		// Retrieve the issue keys from the by-date bucket.
 		byDate := tx.Bucket(BUCKET_ROLLS_BY_DATE)
-		c := byDate.Cursor()
-		keys := make([][]byte, 0, N)
-		for k, v := c.Last(); k != nil && len(keys) < N; k, v = c.Prev() {
-			keys = append(keys, v)
-		}
-
-		// Retrieve the issues themselves.
 		b := tx.Bucket(BUCKET_ROLLS)
-		rv = make([]*autoroll.AutoRollIssue, 0, len(keys))
-		for _, k := range keys {
-			serialized := b.Get(k)
+		c := byDate.Cursor()
+		foundSuccess := false
+		for k, v := c.Last(); k != nil && (len(rv) < N || !foundSuccess); k, v = c.Prev() {
+			serialized := b.Get(v)
 			if serialized == nil {
 				return fmt.Errorf("DB consistency error: bucket %s contains data not present in bucket %s!", BUCKET_ROLLS_BY_DATE, BUCKET_ROLLS)
 			}
@@ -197,6 +192,9 @@ func (d *db) GetRecentRolls(N int) ([]*autoroll.AutoRollIssue, error) {
 			a.Created = a.Created.UTC()
 			a.Modified = a.Modified.UTC()
 			rv = append(rv, &a)
+			if a.Succeeded() {
+				foundSuccess = true
+			}
 		}
 		return nil
 	}); err != nil {
