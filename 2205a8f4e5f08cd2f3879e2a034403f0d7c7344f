@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04e8ce6c_1286d3e4",
+        "filename": "autoroll/go/recent_rolls/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-02T16:52:11Z",
+      "side": 1,
+      "message": "Could you document what this line is doing?",
+      "revId": "2205a8f4e5f08cd2f3879e2a034403f0d7c7344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bd977c3_ea61e9df",
+        "filename": "autoroll/go/recent_rolls/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-02T16:52:11Z",
+      "side": 1,
+      "message": "nit: foundSuccess \u003d a.Succeeded()\n\nalso, can you break here if succeeded?",
+      "revId": "2205a8f4e5f08cd2f3879e2a034403f0d7c7344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14bcdfc1_9a45ae23",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-02T16:52:11Z",
+      "side": 1,
+      "message": "Does it make sense to put this block in a function as part of NextRollStrategy? since deps_repo_manager and manifest_repo_manager implementations appear identical",
+      "revId": "2205a8f4e5f08cd2f3879e2a034403f0d7c7344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4da300ae_a9cdadfb",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-02T16:52:11Z",
+      "side": 1,
+      "message": "Could you explain what this change is?",
+      "revId": "2205a8f4e5f08cd2f3879e2a034403f0d7c7344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
