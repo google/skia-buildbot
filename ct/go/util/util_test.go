@@ -48,7 +48,7 @@ func TestGetBasePixelDiffRemoteDir(t *testing.T) {
 	// Test valid runID.
 	remoteDir, err := GetBasePixelDiffRemoteDir("rmistry-20170510163703")
 	assert.NoError(t, err)
-	assert.Equal(t, fmt.Sprintf("%s/2017/05/10/rmistry-20170510163703", PixelDiffRunsDir), remoteDir)
+	assert.Equal(t, fmt.Sprintf("%s/2017/05/10/16/rmistry-20170510163703", PixelDiffRunsDir), remoteDir)
 	// Test invalid runID.
 	remoteDir, err = GetBasePixelDiffRemoteDir("blahblahblah")
 	assert.Error(t, err)
