@@ -1246,3 +1246,29 @@ server {
     server_name power.skia.org;
     return 301 https://power.skia.org$request_uri;
 }
+
+#####   ctpixeldiff.skia.org   ###########################
+server {
+    listen      443;
+    server_name ctpixeldiff.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/ctpixeldiff.access.log;
+    error_log /var/log/nginx/ctpixeldiff.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://skia-ct-pixel-diff:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name ctpixeldiff.skia.org;
+    return 301 https://ctpixeldiff.skia.org$request_uri;
+}
