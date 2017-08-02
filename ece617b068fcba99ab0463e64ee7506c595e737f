@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f1cbb72_3fcd7c74",
+        "filename": "ct_pixel_diff/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-02T00:05:02Z",
+      "side": 1,
+      "message": "What am I supposed to write for the IP addresses?",
+      "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef4bf696_00d27e41",
+        "filename": "ct_pixel_diff/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-02T00:05:02Z",
+      "side": 1,
+      "message": "Stephan, I was unsure of how to incorporate skia_diff_server in the new server. I do have flags in main.go (diff_server_grpc and diff_server_http) that when specified, are used to create a NetDiffStore, but I wasn\u0027t sure if I needed to include this DiffServer func as there\u0027s already a skia_diff_server in production. Will the new server share the same skia_diff_server instance as Gold, and if not, should I write separate build_release_diffserver and diffserver.service scripts for ct_pixel_diff? Now that I think about it, it seems like this would be necessary as the diff server in production probably has GS buckets and directories configured specifically for Gold, but wanted to confirm/get input before starting on these. Even if ct_pixel_diff has to have its own diff server, is there a way to avoid duplicating the code with Gold?",
+      "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
