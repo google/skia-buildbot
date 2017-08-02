@@ -144,7 +144,7 @@ func (p *pixelDiffProcessor) Process(resultsFile ingestion.ResultFileLocation) e
 
 		// Calculate diff metrics if the entry contains both nopatch and withpatch
 		// images.
-		if rec.IsReadyForDiff() {
+		if rec.HasBothImages() {
 			diffResult, err := p.diffStore.Get(diff.PRIORITY_NOW, rec.NoPatchImg, []string{rec.WithPatchImg})
 			if err != nil {
 				return err
