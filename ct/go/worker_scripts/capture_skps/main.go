@@ -178,6 +178,10 @@ func captureSkps() error {
 					fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir, util.CatapultSrcDir),
 					"DISPLAY=:0",
 				}
+				// Append the original environment as well.
+				for _, e := range os.Environ() {
+					env = append(env, e)
+				}
 
 				mutex.RLock()
 				// Retry run_benchmark binary 3 times if there are any errors.
