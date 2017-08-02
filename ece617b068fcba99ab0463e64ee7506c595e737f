@@ -33,6 +33,24 @@
       "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f2617d2_c12bf8c9",
+        "filename": "ct_pixel_diff/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-02T14:47:30Z",
+      "side": 1,
+      "message": "The skia_diff_server is only used to separate out the diff load to a different machine. \nFor your problem that\u0027s premature optimization just use a MemDiffStore instance and have everything live on one machine.",
+      "parentUuid": "ef4bf696_00d27e41",
+      "revId": "ece617b068fcba99ab0463e64ee7506c595e737f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
