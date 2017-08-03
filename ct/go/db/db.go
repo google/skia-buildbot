@@ -363,6 +363,16 @@ var v19_down = []string{
 	`DROP TABLE IF EXISTS PixelDiffTasks`,
 }
 
+var v20_up = []string{
+	`ALTER TABLE ChromiumPerfTasks ADD v8_patch longtext NOT NULL DEFAULT ""`,
+	`ALTER TABLE ChromiumAnalysisTasks ADD v8_patch longtext NOT NULL DEFAULT ""`,
+}
+
+var v20_down = []string{
+	`ALTER TABLE ChromiumPerfTasks DROP v8_patch`,
+	`ALTER TABLE ChromiumAnalysisTasks DROP v8_patch`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -461,6 +471,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v19_up,
 		MySQLDown: v19_down,
+	},
+	// version 20: Add v8_patch column to ChromiumPerfTasks and ChromiumAnalysisTasks.
+	{
+		MySQLUp:   v20_up,
+		MySQLDown: v20_down,
 	},
 }
 

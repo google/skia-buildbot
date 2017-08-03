@@ -283,6 +283,10 @@
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="skiaPatch">Skia</a>
               <br/>
             </template>
+            <template is="dom-if" if="{{chromiumPerfTask.V8Patch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="v8Patch">V8</a>
+              <br/>
+            </template>
             <template is="dom-if" if="{{chromiumPerfTask.CatapultPatch}}">
               <a href="javascript:void(0);" data-index$="{{index}}"   data-type="catapultPatch">Catapult</a>
               <br/>
@@ -378,6 +382,8 @@
              that.toggleDialog(that.getBlinkPatchId(id));
            } else if (anchor.dataset.type == "skiaPatch") {
              that.toggleDialog(that.getSkiaPatchId(id));
+           } else if (anchor.dataset.type == "v8Patch") {
+             that.toggleDialog(that.getV8PatchId(id));
            } else if (anchor.dataset.type == "catapultPatch") {
              that.toggleDialog(that.getCatapultPatchId(id));
            } else if (anchor.dataset.type == "benchmarkPatch") {
@@ -459,6 +465,10 @@
 
      getSkiaPatchId: function(index) {
        return "skia_patch" + index;
+     },
+
+     getV8PatchId: function(index) {
+       return "v8_patch" + index;
      },
 
      getCatapultPatchId: function(index) {
