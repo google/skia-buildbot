@@ -131,14 +131,16 @@
       this.$.regex.disabled = false;
       this.$.regexValue.disabled = false;
       // Use !! to force a boolean value, to work around: https://github.com/PolymerElements/paper-checkbox/issues/140
-      this.$.regex.checked = !!(selected && selected.length == 1 && selected[0][0] === "~");
-      this.$.invert.checked = !!(selected && selected.length >= 1 && selected[0][0] === "!");
+      var inverted = !!(selected && selected.length >= 1 && selected[0][0] === "!");
+      this.$.invert.checked = inverted
+      var regexOffset = inverted ? 1 : 0; // Inverted regex patterns begin with "!~".
+      this.$.regex.checked = !!(selected && selected.length == 1 && selected[0][regexOffset] === "~");
       this.set('_options', options);
       this._work_around_iron_selector = true;
       Polymer.dom.flush();
       this.$.values.selectedValues = this._removeAllInverts(selected || []);
       this._work_around_iron_selector = false;
-      this.$.regexValue.value = this._regexDisplayValue(selected || []);
+      this.$.regexValue.value = this._regexDisplayValue(selected || [], regexOffset);
       this._toggleRegexDisplay();
     },
 
@@ -186,9 +188,9 @@
       return ret;
     },
 
-    _regexDisplayValue: function(arr) {
+    _regexDisplayValue: function(arr, offset) {
       if (arr && arr.length > 0) {
-        return arr[0].slice(1);
+        return arr[0].slice(offset+1);
       }
       return "";
     },
