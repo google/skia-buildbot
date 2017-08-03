@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d1c6a0a4_b4840baa",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-03T17:00:42Z",
+      "side": 1,
+      "message": "I think style usually would still have this be yearMonthDayHour. Dropping chars mid word is usually avoided. I would personally probably name it something shorter like \u0027datePath\u0027, and add a comment above to describe what the parts are. Either of these two would be ok with me.",
+      "range": {
+        "startLine": 273,
+        "startChar": 1,
+        "endLine": 273,
+        "endChar": 11
+      },
+      "revId": "c673e3a3921baad1026fa9f2b38a5cb09870dba5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1e23d72_e1dd068d",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-03T17:00:42Z",
+      "side": 1,
+      "message": "Double slash? Perhaps also worth a comment here noting the date format.",
+      "range": {
+        "startLine": 31,
+        "startChar": 40,
+        "endLine": 31,
+        "endChar": 42
+      },
+      "revId": "c673e3a3921baad1026fa9f2b38a5cb09870dba5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07df8c10_650862ac",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-03T17:00:42Z",
+      "side": 1,
+      "message": "Same comment as previous re: var name.",
+      "range": {
+        "startLine": 161,
+        "startChar": 1,
+        "endLine": 161,
+        "endChar": 11
+      },
+      "revId": "c673e3a3921baad1026fa9f2b38a5cb09870dba5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
