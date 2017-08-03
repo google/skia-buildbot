@@ -22,6 +22,30 @@
       "revId": "2dc451ab6185792450bd3d8c44923cd8edee1c00",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96019749_3fe017b5",
+        "filename": "autoroll/go/recent_rolls/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-03T16:43:51Z",
+      "side": 1,
+      "message": "No, because \"a\" may have failed but we still have N rolls in total, including the most recent successful roll.  Just using a.Succeeded() here would cause us to continue loading rolls until we get to the *next* success.  For example:\n\nN\u003d3\n0: Failure\n1. Success\n2. Failure\n3. Failure\n4. Failure\n5. Failure\n6. Failure\n7. Success\n\nWe\u0027d expect to get 0-2 back.  But using a.Succeeded() at line 204 would cause us to return 0-8, since when len(rv) \u003e\u003d 3 (at index 2), the roll result was a failure.",
+      "parentUuid": "7664f7b7_d10f4186",
+      "range": {
+        "startLine": 204,
+        "startChar": 22,
+        "endLine": 204,
+        "endChar": 34
+      },
+      "revId": "2dc451ab6185792450bd3d8c44923cd8edee1c00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

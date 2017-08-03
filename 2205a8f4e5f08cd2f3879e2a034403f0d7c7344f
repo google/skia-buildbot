@@ -125,6 +125,24 @@
     },
     {
       "key": {
+        "uuid": "9d45431c_434143d6",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-03T16:43:51Z",
+      "side": 1,
+      "message": "Okay, added getCommitsNotRolled(lastRollRev) to RepoManager interface.  Added implementation for depotToolsRepoManager and AndroidRepoManager.",
+      "parentUuid": "f85ea937_b4427b50",
+      "revId": "2205a8f4e5f08cd2f3879e2a034403f0d7c7344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4da300ae_a9cdadfb",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 2
