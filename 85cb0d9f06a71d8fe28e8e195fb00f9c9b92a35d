@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "309a4691_8f4ad3a7",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-03T14:34:52Z",
+      "side": 1,
+      "message": "Reminder: Looks like this file does not exist yet.\nI was going to suggest using .netrc-ct here like .boto-ct below but it really does not matter.",
+      "range": {
+        "startLine": 14,
+        "startChar": 56,
+        "endLine": 14,
+        "endChar": 65
+      },
+      "revId": "85cb0d9f06a71d8fe28e8e195fb00f9c9b92a35d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
