@@ -107,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "f85ea937_b4427b50",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-03T12:39:44Z",
+      "side": 1,
+      "message": "SGTM. It would be nice to extract out the same lines from deps_repo_manager and manifest_repo_manager somewhere so that they can bothh call it. I am not sure where the best place to put it is though, maybe in deps_repo_manager? manifest_repo_manager should be able to also call it since it has:\n\ntype manifestRepoManager struct {\n\t*depotToolsRepoManager\n}",
+      "parentUuid": "7f1bd6c6_c2773e90",
+      "revId": "2205a8f4e5f08cd2f3879e2a034403f0d7c7344f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4da300ae_a9cdadfb",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 2

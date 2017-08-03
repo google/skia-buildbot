@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7664f7b7_d10f4186",
+        "filename": "autoroll/go/recent_rolls/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-03T12:39:44Z",
+      "side": 1,
+      "message": "Can you completely remove the foundSuccess variable and use a.Succeeded() here instead?",
+      "range": {
+        "startLine": 204,
+        "startChar": 22,
+        "endLine": 204,
+        "endChar": 34
+      },
+      "revId": "2dc451ab6185792450bd3d8c44923cd8edee1c00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
