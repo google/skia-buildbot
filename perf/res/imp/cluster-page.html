@@ -110,7 +110,7 @@
 
     <h2>Query</h2>
     <div class="layout horizontal">
-      <query2-sk id=query on-query-change="_queryChange"></query2-sk>
+      <query2-sk id=query on-query-change="_queryChange" on-query-change-delayed="_queryChangeDelayed"></query2-sk>
       <div class="layout vertical" id=selections>
         <h3>Selections</h3>
         <query-summary-sk id=summary></query-summary-sk>
@@ -353,6 +353,9 @@
     _queryChange: function(e) {
       this.state.query = e.detail.q;
       this.$.summary.selection = e.detail.q;
+    },
+
+    _queryChangeDelayed: function(e) {
       this._updateCount();
     },
 

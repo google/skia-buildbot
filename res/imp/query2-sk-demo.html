@@ -16,6 +16,7 @@
   <p>
     <b>Query String:</b>
     <query-summary-sk id=q selection=""></query-summary-sk>
+    <query-summary-sk id=q-delayed selection=""></query-summary-sk>
     <button id=swap>Swap Paramset</button>
   </p>
 
@@ -60,6 +61,11 @@
     $$$('#basic').addEventListener('query-change', function(e){
       $$$('#q').selection = e.detail.q;
       console.log('query-change');
+    });
+
+    $$$('#basic').addEventListener('query-change-delayed', function(e){
+      $$$('#q-delayed').selection = e.detail.q;
+      console.log('query-change-delayed');
     });
 
     $$$('#swap').addEventListener('click', function(e){
