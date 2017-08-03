@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b2670b2b_8d547600",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-03T17:40:46Z",
+      "side": 1,
+      "message": "Would it maybe be better to run DeleteDisk in CreateAndSetup if instance creation fails?",
+      "range": {
+        "startLine": 974,
+        "startChar": 0,
+        "endLine": 974,
+        "endChar": 73
+      },
+      "revId": "a0a0e56029fa45d701d9abf3ac8bbd3b8bd2a4d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
