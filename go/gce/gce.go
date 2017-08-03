@@ -964,13 +964,21 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 // Delete removes the instance and (maybe) its disks.
 func (g *GCloud) Delete(vm *Instance, ignoreNotExists, deleteDataDisk bool) error {
 	// Delete the instance. The boot disk will be auto-deleted.
-	if err := g.DeleteInstance(vm.Name, true); err != nil {
+	if err := g.DeleteInstance(vm.Name, ignoreNotExists); err != nil {
 		return err
+	}
+	if ignoreNotExists && vm.BootDisk != nil {
+		// In case creating the boot disk succeeded but creating the instance
+		// failed, with ignoreNotExists, DeleteInstance could succeed without
+		// cleaning up the orphaned boot disk. Do that here.
+		if err := g.DeleteDisk(vm.BootDisk.Name, ignoreNotExists); err != nil {
+			return fmt.Errorf("Failed to delete boot disk %q: %s", vm.BootDisk.Name, err)
+		}
 	}
 	// Only delete the data disk(s) if explicitly told to do so.
 	// Local SSDs are auto-deleted with the instance.
 	if deleteDataDisk && vm.DataDisk != nil && vm.DataDisk.Type != DISK_TYPE_LOCAL_SSD {
-		if err := g.DeleteDisk(vm.DataDisk.Name, true); err != nil {
+		if err := g.DeleteDisk(vm.DataDisk.Name, ignoreNotExists); err != nil {
 			return err
 		}
 	}
