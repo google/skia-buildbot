@@ -270,8 +270,9 @@ func TestPixelDiffIDPathMapper(t *testing.T) {
 	expectedLocalPath := TEST_PIXEL_DIFF_LEFT + DOT_EXT
 	runID := strings.Split(dirs[0], "-")
 	timeStamp := runID[1]
-	yearMonthDay := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8])
-	expectedGSPath := filepath.Join(yearMonthDay, expectedLocalPath)
+	// YYYY/MM/DD/HH directories
+	datePath := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8], timeStamp[8:10])
+	expectedGSPath := filepath.Join(datePath, expectedLocalPath)
 	localPath, gsPath := mapper.ImagePaths(TEST_PIXEL_DIFF_LEFT)
 	assert.Equal(t, expectedLocalPath, localPath)
 	assert.Equal(t, expectedGSPath, gsPath)
