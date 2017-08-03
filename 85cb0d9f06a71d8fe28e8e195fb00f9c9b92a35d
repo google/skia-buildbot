@@ -22,6 +22,30 @@
       "revId": "85cb0d9f06a71d8fe28e8e195fb00f9c9b92a35d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29e1f466_b71771a2",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-03T14:53:00Z",
+      "side": 1,
+      "message": "Planning to rename after commit.\n\nFor better or worse, all the other .netrc and .gitcookies files use underscores. \".boto-ct\" is the outlier.",
+      "parentUuid": "309a4691_8f4ad3a7",
+      "range": {
+        "startLine": 14,
+        "startChar": 56,
+        "endLine": 14,
+        "endChar": 65
+      },
+      "revId": "85cb0d9f06a71d8fe28e8e195fb00f9c9b92a35d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
