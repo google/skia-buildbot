@@ -11,7 +11,7 @@ import (
 
 const (
 	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig"
-	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc"
+	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc_ct"
 	GS_URL_BOTO      = "gs://skia-buildbots/artifacts/bots/.boto-ct"
 
 	CT_WORKER_PREFIX = "ct-gce-"
