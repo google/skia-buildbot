@@ -12,6 +12,10 @@
       parameters chosen have changed. The event contains the current
       selections formatted as a URL query, found in e.detail.q.
 
+    'query-change-delayed'
+      The same exact event as query-change, but with a 500ms delay after
+      the query stops changing.
+
   Methods:
     setCurrentQuery(s) - Sets the query selections of the control, where 's'
       is a URL formatted query string, as returned from current_query.
@@ -140,6 +144,10 @@
         type: Array,
         value: [],
       },
+      _delayedTimeout: {
+        type: Number,
+        value: null,
+      },
     },
 
     setCurrentQuery: function(s) {
@@ -243,7 +251,17 @@
       var prev_query = this.current_query;
       this.current_query = sk.query.fromParamSet(this._query);
       if (prev_query !== this.current_query) {
-        this.fire('query-change', {q: this.current_query});
+        this.dispatchEvent(new CustomEvent('query-change', {
+          detail: {q: this.current_query},
+          bubbles: true,
+        }));
+        clearTimeout(this._delayedTimeout);
+        this._delayedTimeout = setTimeout(function() {
+          this.dispatchEvent(new CustomEvent('query-change-delayed', {
+            detail: {q: this.current_query},
+            bubbles: true,
+          }));
+        }.bind(this), 500);
       }
     },
 
