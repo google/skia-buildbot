@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "98a00abb_e103e8da",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-03T00:56:25Z",
+      "side": 1,
+      "message": "Stephan,\n\nI tried to incorporate the dynamic diff function and this new struct into the new server, and this necessitated removing the remaining references to *diff.DiffMetrics in mem_diffstore \n(https://github.com/google/skia-buildbot/blob/master/golden/go/diffstore/mem_diffstore.go#L314\nhttps://github.com/google/skia-buildbot/blob/master/golden/go/diffstore/mem_diffstore.go#L459\nhttps://github.com/google/skia-buildbot/blob/master/golden/go/diffstore/mem_diffstore.go#L465)\nIn order for saveDiffInfoAsync to work properly, I also then changed the method signatures in metrics_store to the following: \ntype metricsRec struct {\n   ID string\n   DiffMetrics interface{}\n}\nloadDiffMetric(id string)(interface{}, error) and \nsaveDiffMetric(id string, dr interface{}) error.\n\nHowever, this caused the diffstore tests to break as when the diff metrics are loaded from the metrics_store after being saved, they have type map[string]interface{}, where the keys are strings that represent the fields in the DiffMetrics struct and the values are the values for those fields. I am unable to do a simple type assertion to bring them back to their original type, and I\u0027m not sure how to proceed. I tried using reflect.TypeOf in metricStore.saveDiffMetric() before saving it into the boltDB, but even after the diff metric is saved as a specific type, calling loadDiffMetric() returns an object whose type is map[string]interface{}. So I\u0027m unable to do any type of reflection in loadDiffMetric either to get the metrics\u0027 true type, as TypeOf() just returns map[string]interface{}. I think because I changed the type of DiffMetrics in the metricsRec struct to an interface{}, any object will be turned into a map of its fields when it is stored. Is there any way to recover the true type, or transform a map[string]interface{} into a custom type in an efficient manner that works for any struct?\n\nIt seems as though just using the existing DiffMetrics struct and placing the extra fields that the DynamicDiffMetrics struct contains, namely NumStaticPixels and NumDynamicPixels, in the diffs field is the most straightforward solution to this issue, but it seems like kind of a hack. Any advice would be much appreciated.",
+      "revId": "c65cca548ef833b2e0f88ee34c287fd4afa7d442",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
