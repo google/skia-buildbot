@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8eb13411_549899a1",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-03T19:51:04Z",
+      "side": 1,
+      "message": "Nit: Move this block above \"Get access token from metadata\". Would be good to have that right before we do the bootstrapping.",
+      "revId": "684eceacf9c1504a2db1774065dbef0a5c91a438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
