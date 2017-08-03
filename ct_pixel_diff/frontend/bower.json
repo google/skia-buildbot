@@ -14,6 +14,20 @@
   "dependencies": {
     "sinonjs": "^1.17.1",
     "iron-elements": "^1.0.8",
-    "paper-elements": "^1.0.7"
+    "paper-elements": "^1.0.7",
+    "paper-autocomplete": "^3.0.0",
+    "polymer": "^1.7.0"
+  },
+  "resolutions": {
+    "paper-ripple": "^1.0.0",
+    "paper-material": "^1.0.0",
+    "paper-icon-button": "^1.0.0",
+    "iron-flex-layout": "^1.0.0",
+    "iron-icon": "^1.0.0",
+    "iron-icons": "^1.0.0",
+    "iron-iconset": "^1.0.0",
+    "iron-iconset-svg": "^1.0.0",
+    "paper-input": "^1.0.0",
+    "paper-item": "^1.0.0"
   }
 }
