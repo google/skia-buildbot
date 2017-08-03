@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "464edf5e_b6c46e30",
+        "filename": "ct_pixel_diff/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-03T17:05:53Z",
+      "side": 1,
+      "message": "How will this work when your internship is over? should we add me as another secondary/tertiary? I assume this ends up actually leading to auth checkpoint.",
+      "range": {
+        "startLine": 19,
+        "startChar": 12,
+        "endLine": 19,
+        "endChar": 39
+      },
+      "revId": "42b109e0b8377a6f4d3bb780a5ad2b5a5b784af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55af0d3e_4d45b782",
+        "filename": "prober/probers.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-03T17:05:53Z",
+      "side": 1,
+      "message": "extra space",
+      "range": {
+        "startLine": 246,
+        "startChar": 5,
+        "endLine": 246,
+        "endChar": 6
+      },
+      "revId": "42b109e0b8377a6f4d3bb780a5ad2b5a5b784af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38ec9cc2_0d6b3b95",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-03T17:05:53Z",
+      "side": 1,
+      "message": "Is this the port? What drives the choice? 20000 vs 20001 vs 20002 vs 11000, as I see here looking briefly, for example. Is it just based on what\u0027s running on each VM and defined by manual conflict resolution with knowledge of what will be running where?",
+      "range": {
+        "startLine": 39,
+        "startChar": 38,
+        "endLine": 39,
+        "endChar": 43
+      },
+      "revId": "42b109e0b8377a6f4d3bb780a5ad2b5a5b784af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
