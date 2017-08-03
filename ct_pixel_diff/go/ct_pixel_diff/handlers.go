@@ -63,6 +63,29 @@ func jsonSortHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// jsonURLsHandler returns all the urls in the ResultStore's cache for the
+// specified runID.
+func jsonURLsHandler(w http.ResponseWriter, r *http.Request) {
+	runID := r.FormValue("runID")
+	urls, err := resultStore.GetURLs(runID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve data for run")
+	}
+	sendJsonResponse(w, map[string][]map[string]string{"urls": urls})
+}
+
+// jsonSearchHandler parses a runID and url from the query and uses them to
+// return the correct ResultRec from the ResultStore.
+func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
+	runID := r.FormValue("runID")
+	url := r.FormValue("url")
+	result, err := resultStore.Get(runID, url)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve search result")
+	}
+	sendJsonResponse(w, map[string]*resultstore.ResultRec{"result": result})
+}
+
 // makeResourceHandler creates a static file handler that sets a caching policy.
 func makeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(resourceDir))
