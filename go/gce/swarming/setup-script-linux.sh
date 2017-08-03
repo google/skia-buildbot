@@ -64,6 +64,13 @@ if [ ! -d depot_tools/.git ]; then
   git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 fi
 
+# Fix file ownership (necessary for disks created from snapshot due to
+# mismatched numerical user IDs and group IDs; harmless in other cases).
+pushd /mnt/pd0/
+ls | grep --invert-match 'lost+found' | \
+  xargs --no-run-if-empty sudo chown --recursive chrome-bot:chrome-bot
+popd
+
 # Get access token from metadata.
 TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
 # Bootstrap Swarming.
