@@ -29,7 +29,7 @@ const (
 	TMP_ISOLATE_FILE_CONTENTS = `{
   'variables': {
     'command': [
-      'python', '%s',
+      'python', '-u', '%s',
     ],
     'files': [
       '%s',
