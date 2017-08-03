@@ -16,6 +16,24 @@
       "revId": "684eceacf9c1504a2db1774065dbef0a5c91a438",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b6ac5e0_a0a3731d",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-03T20:40:51Z",
+      "side": 1,
+      "message": "Done, thanks for noticing!",
+      "parentUuid": "8eb13411_549899a1",
+      "revId": "684eceacf9c1504a2db1774065dbef0a5c91a438",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
