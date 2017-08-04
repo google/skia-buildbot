@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6fd52b67_d7ccff63",
+        "filename": "ct_pixel_diff/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-04T17:46:35Z",
+      "side": 1,
+      "message": "You can add me as the primary owner and rmistry as the secondary.",
+      "parentUuid": "464edf5e_b6c46e30",
+      "range": {
+        "startLine": 19,
+        "startChar": 12,
+        "endLine": 19,
+        "endChar": 39
+      },
+      "revId": "42b109e0b8377a6f4d3bb780a5ad2b5a5b784af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "55af0d3e_4d45b782",
         "filename": "prober/probers.json",
         "patchSetId": 2
@@ -59,6 +83,30 @@
       "writtenOn": "2017-08-03T17:05:53Z",
       "side": 1,
       "message": "Is this the port? What drives the choice? 20000 vs 20001 vs 20002 vs 11000, as I see here looking briefly, for example. Is it just based on what\u0027s running on each VM and defined by manual conflict resolution with knowledge of what will be running where?",
+      "range": {
+        "startLine": 39,
+        "startChar": 38,
+        "endLine": 39,
+        "endChar": 43
+      },
+      "revId": "42b109e0b8377a6f4d3bb780a5ad2b5a5b784af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ffaced0_188eed87",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-04T17:46:35Z",
+      "side": 1,
+      "message": "This has to match the prometheus port that the server opens. The default in the ct_pixel_diff/main.go is 20000, that\u0027s why you don\u0027t see it set in \n/ct-pixel-diff.service above. We do this in many places, so it\u0027s fine.\n\nPersonally I\u0027d prefer to explicitly add \n\n-prom_port\u003d:20000 \n\nwhich would make this CL easier to understand. But that\u0027s up to you.",
+      "parentUuid": "38ec9cc2_0d6b3b95",
       "range": {
         "startLine": 39,
         "startChar": 38,
