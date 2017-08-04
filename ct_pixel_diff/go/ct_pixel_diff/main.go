@@ -48,6 +48,7 @@ var (
 var (
 	templates   *template.Template
 	resultStore resultstore.ResultStore
+	client      *http.Client
 )
 
 const (
@@ -88,7 +89,7 @@ func main() {
 	}
 
 	// Get the client to be used to access GCS.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	client, err = auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
@@ -145,7 +146,6 @@ func main() {
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler(*resourcesDir))
 
 	router.HandleFunc("/", templateHandler("runs.html"))
-	router.HandleFunc("/runs", templateHandler("runs.html"))
 	router.HandleFunc("/load", templateHandler("results.html"))
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
@@ -154,6 +154,7 @@ func main() {
 	router.HandleFunc("/json/runs", jsonRunsHandler).Methods("GET")
 	router.HandleFunc("/json/render", jsonRenderHandler).Methods("GET")
 	router.HandleFunc("/json/sort", jsonSortHandler).Methods("GET")
+	router.HandleFunc("/json/delete", jsonDeleteHandler).Methods("GET")
 
 	rootHandler := httputils.LoggingGzipRequestResponse(router)
 	http.Handle("/", rootHandler)
