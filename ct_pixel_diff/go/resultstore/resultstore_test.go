@@ -43,6 +43,7 @@ func createResultRec(t *testing.T) *ResultRec {
 	rec.Rank = 1
 	rec.NoPatchImg = "lchoi20170719123456/nopatch/1/http___www_google_com"
 	rec.WithPatchImg = "lchoi20170719123456/withpatch/1/http___www_google_com"
+	rec.DiffMetrics = &diff.DiffMetrics{}
 	assert.True(t, rec.HasBothImages())
 
 	return rec
@@ -347,11 +348,11 @@ func TestGetURLs(t *testing.T) {
 	assert.NoError(t, err)
 	expectedOne := map[string]string{
 		"text":  "google.com",
-		"value": "www.",
+		"value": "http://www.",
 	}
 	expectedTwo := map[string]string{
 		"text":  "youtube.com",
-		"value": "www.",
+		"value": "http://www.",
 	}
 	assert.Equal(t, expectedOne, urls[0])
 	assert.Equal(t, expectedTwo, urls[1])

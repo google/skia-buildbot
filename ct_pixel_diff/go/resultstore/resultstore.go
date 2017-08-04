@@ -1,6 +1,7 @@
 package resultstore
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"path"
@@ -27,6 +28,7 @@ const (
 
 	// URL search constants.
 	HTTP  = "http://"
+	HTTPS = "https://"
 	WWW   = "www."
 	TEXT  = "text"
 	VALUE = "value"
@@ -101,8 +103,8 @@ type ResultStore interface {
 type BoltResultStore struct {
 	db *bolt.DB
 
-	// Map of runIDs to list of ResultRecs, used to cache and sort entries that
-	// contain both nopatch and withpatch images.
+	// Map of runIDs to list of ResultRecs. The cache only contains entries that
+	// have computed diff metrics.
 	cache map[string][]*ResultRec
 }
 
@@ -192,8 +194,8 @@ func (b *BoltResultStore) Get(runID, url string) (*ResultRec, error) {
 	return rec, nil
 }
 
-// GetAll returns all the ResultRecs stored in the bucket associated with the
-// given runID.
+// GetAll returns all the ResultRecs containing diff metrics that are stored in
+// the bucket associated with the given runID.
 func (b *BoltResultStore) GetAll(runID string) ([]*ResultRec, error) {
 	recs := []*ResultRec{}
 	viewFn := func(tx *bolt.Tx) error {
@@ -205,13 +207,13 @@ func (b *BoltResultStore) GetAll(runID string) ([]*ResultRec, error) {
 		}
 
 		// Iterate through all the entries in the bucket, deserialize the values,
-		// and append them to the list if they are complete.
+		// and append them to the list if they contain diff metrics.
 		err := b.ForEach(func(k, v []byte) error {
 			rec := &ResultRec{}
 			if err := json.Unmarshal(v, &rec); err != nil {
 				return err
 			}
-			if rec.HasBothImages() {
+			if rec.DiffMetrics != nil {
 				recs = append(recs, rec)
 			}
 			return nil
@@ -274,7 +276,7 @@ func (b *BoltResultStore) GetRunIDs(start, end time.Time) ([]string, error) {
 // Then, the ResultRec is encoded and put into the database with the url of
 // the screenshots as the key. If a record already exists for the given runID
 // and url, it is overwritten. If the update succeeds and the ResultRec has
-// both images processed, it is also added to the cache.
+// diff metrics, it is also added to the cache.
 func (b *BoltResultStore) Put(runID, url string, rec *ResultRec) error {
 	updateFn := func(tx *bolt.Tx) error {
 		// Create or retrieve bucket using the runID.
@@ -302,8 +304,8 @@ func (b *BoltResultStore) Put(runID, url string, rec *ResultRec) error {
 		return err
 	}
 
-	// Add the ResultRec to the cache.
-	if rec.HasBothImages() {
+	// Add the ResultRec to the cache if it has diff metrics.
+	if rec.DiffMetrics != nil {
 		if results, ok := b.cache[runID]; ok {
 			results = append(results, rec)
 			b.cache[runID] = results
@@ -467,11 +469,9 @@ func sortByRank(r *resultRecSlice, i, j int) bool {
 	return r.data[i].Rank > r.data[j].Rank
 }
 
-// GetURLs returns the urls of the cached results for the given runID. The
-// "http://" and "www." prefixes are stripped to enable more intuitive
-// searching. Urls are returned as map[string]string objects, where the entries
-// are as follows: "text":URL stripped of prefixes, "value":"www." if the url
-// contained that prefix and empty otherwise. These text and value fields are
+// GetURLs returns the urls of the cached results for the given runID. Urls are
+// returned as map[string]string objects, where the entries are as follows:
+// "text":URL stripped of prefixes, "value":stripped prefixes. These fields are
 // required by the frontend element responsible for making url suggestions.
 // Returns an error if there is no data cached for the runID.
 func (b *BoltResultStore) GetURLs(runID string) ([]map[string]string, error) {
@@ -479,14 +479,26 @@ func (b *BoltResultStore) GetURLs(runID string) ([]map[string]string, error) {
 		urls := []map[string]string{}
 		for _, result := range results {
 			url := map[string]string{}
-			stripPrefix := strings.Replace(result.URL, HTTP, "", 1)
-			if strings.Index(stripPrefix, WWW) != -1 {
-				url[VALUE] = WWW
-				stripPrefix = strings.Replace(stripPrefix, WWW, "", 1)
-			} else {
-				url[VALUE] = ""
+			var prefix bytes.Buffer
+			formattedURL := result.URL
+
+			// Strips either "http://" or "https://"
+			if strings.HasPrefix(formattedURL, HTTP) {
+				prefix.WriteString(HTTP)
+				formattedURL = strings.TrimPrefix(formattedURL, HTTP)
+			} else if strings.HasPrefix(formattedURL, HTTPS) {
+				prefix.WriteString(HTTPS)
+				formattedURL = strings.TrimPrefix(formattedURL, HTTPS)
 			}
-			url[TEXT] = stripPrefix
+
+			// Strips "www." prefix
+			if strings.HasPrefix(formattedURL, WWW) {
+				prefix.WriteString(WWW)
+				formattedURL = strings.TrimPrefix(formattedURL, WWW)
+			}
+
+			url[TEXT] = formattedURL
+			url[VALUE] = prefix.String()
 			urls = append(urls, url)
 		}
 		return urls, nil
