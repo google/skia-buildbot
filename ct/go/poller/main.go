@@ -106,6 +106,7 @@ func (task *ChromiumAnalysisTask) Execute() error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":      task.ChromiumPatch,
+		".v8.patch":            task.V8Patch,
 		".catapult.patch":      task.CatapultPatch,
 		".benchmark.patch":     task.BenchmarkPatch,
 		".custom_webpages.csv": task.CustomWebpages,
@@ -153,6 +154,7 @@ func (task *ChromiumPerfTask) Execute() error {
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":      task.ChromiumPatch,
 		".skia.patch":          task.SkiaPatch,
+		".v8.patch":            task.V8Patch,
 		".catapult.patch":      task.CatapultPatch,
 		".benchmark.patch":     task.BenchmarkPatch,
 		".custom_webpages.csv": task.CustomWebpages,

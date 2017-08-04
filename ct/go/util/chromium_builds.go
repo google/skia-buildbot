@@ -44,7 +44,7 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 // Chromium's Tot hash is used.
 // skiaHash is the hash the checkout should be synced to. If not specified then
 // Skia's LKGR hash is used (the hash in Chromium's DEPS file).
-// applyPatches if true looks for Chromium/Skia patches in the temp dir and
+// applyPatches if true looks for Chromium/Skia/V8 patches in the temp dir and
 // runs once with the patch applied and once without the patch applied.
 // uploadSingleBuild if true does not upload a 2nd build of Chromium.
 func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash, pathToPyFiles string, applyPatches, uploadSingleBuild bool) (string, string, error) {
@@ -248,6 +248,11 @@ func ResetChromiumCheckout(chromiumSrcDir string) error {
 	if err := ResetCheckout(skiaDir); err != nil {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
+	// Reset V8.
+	v8Dir := filepath.Join(chromiumSrcDir, "v8")
+	if err := ResetCheckout(v8Dir); err != nil {
+		return fmt.Errorf("Could not reset V8's checkout in %s: %s", v8Dir, err)
+	}
 	// Reset Catapult.
 	catapultDir := filepath.Join(chromiumSrcDir, RelativeCatapultSrcDir)
 	if err := ResetCheckout(catapultDir); err != nil {
@@ -270,6 +275,18 @@ func applyRepoPatches(chromiumSrcDir, runID string) error {
 		if skiaPatchFileInfo.Size() > 10 {
 			if err := ApplyPatch(skiaPatch, skiaDir); err != nil {
 				return fmt.Errorf("Could not apply Skia's patch in %s: %s", skiaDir, err)
+			}
+		}
+	}
+	// Apply V8 patch if it exists.
+	v8Dir := filepath.Join(chromiumSrcDir, "v8")
+	v8Patch := filepath.Join(os.TempDir(), runID+".v8.patch")
+	if _, err := os.Stat(v8Patch); err == nil {
+		v8PatchFile, _ := os.Open(v8Patch)
+		v8PatchFileInfo, _ := v8PatchFile.Stat()
+		if v8PatchFileInfo.Size() > 10 {
+			if err := ApplyPatch(v8Patch, v8Dir); err != nil {
+				return fmt.Errorf("Could not apply V8's patch in %s: %s", v8Dir, err)
 			}
 		}
 	}

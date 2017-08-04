@@ -651,16 +651,19 @@ func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 	}
 	clData["chromium_patch"] = ""
 	clData["skia_patch"] = ""
+	clData["v8_patch"] = ""
 	clData["catapult_patch"] = ""
 	switch detail.Project {
 	case "chromium", "chromium/src":
 		clData["chromium_patch"] = patch
 	case "skia":
 		clData["skia_patch"] = patch
+	case "v8":
+		clData["v8_patch"] = patch
 	case "catapult":
 		clData["catapult_patch"] = patch
 	default:
-		sklog.Errorf("CL project is %s; only chromium, skia, catapult are supported.", detail.Project)
+		sklog.Errorf("CL project is %s; only chromium, skia, v8, catapult are supported.", detail.Project)
 	}
 	return clData, nil
 }

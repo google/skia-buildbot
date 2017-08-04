@@ -176,6 +176,19 @@
 
       <tr>
         <td>
+          V8 Git patch (optional)<br/>
+          Applied to V8 Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
+        </td>
+        <td>
+          <patch-sk id="v8_patch"
+                    patch-type="v8"
+                    cl-description="{{v8ClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
           Catapult Git patch (optional)<br/>
           Applied to Catapult Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
         </td>
@@ -244,12 +257,13 @@
        },
        chromiumClDescription: String,
        skiaClDescription: String,
+       v8ClDescription: String,
        catapultClDescription: String,
        selectedBenchmarkName: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, skiaClDescription, catapultClDescription)"
+       "clDescriptionChanged(chromiumClDescription, skiaClDescription, v8ClDescription, catapultClDescription)"
      ],
 
      ready: function() {
@@ -323,13 +337,14 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDesc, skiaClDesc, catapultClDesc) {
-       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, catapultClDesc)
+     clDescriptionChanged: function(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc)
      },
 
      validateTask: function() {
        if (!this.$.chromium_patch.validate() ||
            !this.$.skia_patch.validate() ||
+           !this.$.v8_patch.validate() ||
            !this.$.catapult_patch.validate()) {
          return;
        }
@@ -380,6 +395,7 @@
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
        params["skia_patch"] = this.$.skia_patch.patch;
+       params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
        if (this.$.benchmark_patch.checked) {
          params["benchmark_patch"] = this.$.chromium_patch.patch;
