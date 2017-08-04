@@ -15,8 +15,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --db_name=android_master_skia \
     --dataframe_size=256 \
     --subdomain=android-perf \
-    --internal_only \
-    --cluster_queries=
+    --internal_only
 
 Restart=always
 User=default

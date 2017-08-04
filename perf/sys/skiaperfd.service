@@ -10,8 +10,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --git_repo_dir=/mnt/pd0/skiaperf/repo  \
     --config_filename=/etc/skiaperf/ingest.toml \
     --logtostderr \
-    --ptrace_store_dir=/mnt/pd0/skiaperf/store \
-    --cluster_queries=
+    --ptrace_store_dir=/mnt/pd0/skiaperf/store
 
 Restart=always
 User=default
