@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "11293eef_53a11dcc",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-04T02:21:12Z",
+      "side": 1,
+      "message": "Not sure how to go about testing this handler. Tried to look at the gcs tests for an example but found there was no tests for DeleteAllFilesInDir. I did confirm that the handler works on the new server and deletes everything as expected.",
+      "revId": "5d766b308582ac6a9d13699642a5b59553e6a6d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
