@@ -1,10 +1,12 @@
 <!--
   The <run-details-sk> custom element declaration.
 
-  Displays the runID of a CT Pixel Diff run
+  Displays the run ID of a CT Pixel Diff Run, along with buttons for viewing
+  diff results and deleting the run data.
 
   Attributes:
     run - The runID of the CT Pixel Diff run.
+    hide - Boolean that hides the element.
 
   Methods:
     None
@@ -14,6 +16,12 @@
 -->
 
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/image-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/res/imp/bower_components/neon-animation/neon-animations.html">
+<link rel="import" href="/res/common/imp/spinner-sk.html">
 
 <link rel="import" href="/res/imp/shared-styles.html">
 
@@ -23,30 +31,55 @@
     <style include="shared-styles"></style>
     <style>
       .run {
-        display: inline-block;
+        width: 25%;
         background: white;
         margin-bottom: 1em;
         margin-left: 2em;
-        margin-right: 2em;
         margin-top: 1em;
         border: solid 1px gray;
+        border-radius: 25px;
         padding: 1em;
-        box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
+        box-shadow: 5px 5px 10px 1px rgba(0, 0, 0, 0.52);
       }
 
       .header {
+        text-align:center;
         font-size: 18px;
         font-weight: bold;
+      }
+
+      .link {
+        display: inline-block;
+        padding-top:1.5em;
       }
 
       a {
         font-size: 18px;
       }
     </style>
-    <div class="run">
+    <div hidden$="{{hide}}">
       <div class="horizontal layout wrap">
-        <div class="header">Run ID: &nbsp</div>
-        <a target="_blank" href$="/load?runID=[[run]]">[[run]]</a>
+        <div class="run">
+            <div class="header">Run ID: [[run]]</div>
+        </div>
+        <div class="link">
+          <a href$="/load?runID=[[run]]">
+            <paper-button toggle raised><iron-icon icon="image:filter"></iron-icon>View Diffs</paper-button>
+          </a>
+        </div>
+        <div class="link">
+          <paper-button toggle raised on-tap="_openAlert"><iron-icon icon="delete-forever"></iron-icon>Delete Run Data</paper-button>
+          <paper-dialog modal id="alert" entry-animation="scale-up-animation">
+            <h2>Are you sure you want to delete data for run [[run]]?</h2>
+            <p>This will delete all screenshots, diff images, and diff results from the CT Pixel Diff server.
+               (The screenshots in Google Storage will not be deleted.)</p>
+            <div class="buttons">
+              <paper-button toggle raised on-tap="_deleteRun"><iron-icon icon="check"></iron-icon>YES</paper-button>
+              <paper-button toggle raised on-tap="_closeAlert"><iron-icon icon="close"></iron-icon>NO</paper-button>
+            </div>
+          </paper-dialog>
+        </div>
+      </div>
     </div>
   </template>
   <script>
@@ -57,7 +90,31 @@
         run: {
           type: String,
           value: ""
-        }
+        },
+
+        hide: {
+          type: Boolean,
+          value: false
+        },
+      },
+
+      _openAlert: function() {
+        this.$.alert.open()
+      },
+
+      _closeAlert: function() {
+        this.$.alert.close();
+      },
+
+      _deleteRun: function(e) {
+        var query = '?runID=' + this.run;
+        sk.get('/json/delete' + query).then(function () {
+          this.set('hide', true);
+          this.$.alert.close();
+        }.bind(this)).catch(function(e) {
+          this.$.alert.close();
+          sk.errorMessage(e);
+        }.bind(this));
       }
     })
   </script>

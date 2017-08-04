@@ -161,3 +161,53 @@ func TestJsonSortHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
+
+func TestJsonDeleteHandler(t *testing.T) {
+	testutils.MediumTest(t)
+
+	// Create a ResultStore and assign it to the module level variable so that
+	// the handler can interact with it.
+	rs := createResultStore(t)
+	resultStore = rs
+	recOne := &resultstore.ResultRec{
+		RunID:        TEST_RUN_ID,
+		URL:          TEST_URL,
+		Rank:         1,
+		NoPatchImg:   "lchoi-20170726123456/nopatch/1/http___www_google_com",
+		WithPatchImg: "lchoi-20170726123456/withpatch/1/http___www_google_com",
+		DiffMetrics:  &diff.DiffMetrics{},
+	}
+	recTwo := &resultstore.ResultRec{
+		RunID:        TEST_RUN_ID,
+		URL:          TEST_URL_TWO,
+		Rank:         2,
+		NoPatchImg:   "lchoi-20170726123456/nopatch/2/http___www_google_com",
+		WithPatchImg: "lchoi-20170726123456/withpatch/2/http___www_google_com",
+		DiffMetrics:  &diff.DiffMetrics{},
+	}
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
+	assert.NoError(t, err)
+
+	// Create a request with the appropriate query parameters to the json delete
+	// endpoint to run the jsonDeleteHandler.
+	req, err := http.NewRequest("GET", "/json/delete", nil)
+	assert.NoError(t, err)
+
+	q := req.URL.Query()
+	q.Add("runID", TEST_RUN_ID)
+	req.URL.RawQuery = q.Encode()
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(jsonDeleteHandler)
+	handler.ServeHTTP(rr, req)
+
+	expectedOne, err := resultStore.Get(TEST_RUN_ID, TEST_URL)
+	assert.NoError(t, err)
+	assert.Nil(t, expectedOne)
+
+	expectedTwo, err := resultStore.Get(TEST_RUN_ID, TEST_URL_TWO)
+	assert.NoError(t, err)
+	assert.Nil(t, expectedTwo)
+}
