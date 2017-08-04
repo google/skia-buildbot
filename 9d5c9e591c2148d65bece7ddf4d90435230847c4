@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f83027c_e416ace0",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-04T23:12:30Z",
+      "side": 1,
+      "message": "Is it ok that these are all zero now? Seems like we would want to load some non zero/empty data.",
+      "range": {
+        "startLine": 102,
+        "startChar": 20,
+        "endLine": 102,
+        "endChar": 23
+      },
+      "revId": "9d5c9e591c2148d65bece7ddf4d90435230847c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
