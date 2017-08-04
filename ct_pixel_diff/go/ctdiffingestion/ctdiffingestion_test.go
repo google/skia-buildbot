@@ -29,12 +29,12 @@ const (
 	TEST_DIFF_DB  = "diffs.db"
 
 	// Test data for processing CT results and querying/updating the ResultStore.
-	TEST_RUN_ID        = "rmistry-20170717202555"
+	TEST_RUN_ID        = "rmistry-20170718140446"
 	TEST_URL_ONE       = "http://www.google.com"
 	TEST_URL_TWO       = "http://www.youtube.com"
-	TEST_NOPATCH_ONE   = "rmistry-20170717202555/nopatch/1/http___www_google_com"
-	TEST_WITHPATCH_ONE = "rmistry-20170717202555/withpatch/1/http___www_google_com"
-	TEST_WITHPATCH_TWO = "rmistry-20170717202555/withpatch/2/http___www_youtube_com"
+	TEST_NOPATCH_ONE   = "rmistry-20170718140446/nopatch/1/http___www_google_com"
+	TEST_WITHPATCH_ONE = "rmistry-20170718140446/withpatch/1/http___www_google_com"
+	TEST_WITHPATCH_TWO = "rmistry-20170718140446/withpatch/2/http___www_youtube_com"
 )
 
 // Tests parsing and processing of a single CT output JSON file.
@@ -64,10 +64,7 @@ func TestCTResults(t *testing.T) {
 	assert.Equal(t, expected, results)
 }
 
-// TODO(lchoi): The test data seemed to have gone away. Once the test data
-// are back this test should be re-enabled.
-
-func testPixelDiffProcessor(t *testing.T) {
+func TestPixelDiffProcessor(t *testing.T) {
 	testutils.MediumTest(t)
 
 	// Set up the DiffStore.
@@ -123,7 +120,7 @@ func testPixelDiffProcessor(t *testing.T) {
 		RunID:        TEST_RUN_ID,
 		URL:          TEST_URL_TWO,
 		Rank:         2,
-		WithPatchImg: "rmistry-20170717202555/withpatch/2/http___www_youtube_com",
+		WithPatchImg: TEST_WITHPATCH_TWO,
 	}
 	recTwo, err := resultStore.Get(TEST_RUN_ID, TEST_URL_TWO)
 	assert.NoError(t, err)

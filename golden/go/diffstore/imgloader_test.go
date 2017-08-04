@@ -28,7 +28,7 @@ const (
 	TEST_GS_BASE_DIR = "tasks/pixel_diff_runs"
 
 	// Image to test loading images through a GS path.
-	TEST_IMG_PATH = "rmistry-20170717202555/nopatch/1/http___www_google_com"
+	TEST_IMG_PATH = "rmistry-20170718140446/nopatch/1/http___www_google_com"
 )
 
 func TestImageLoader(t *testing.T) {
@@ -92,11 +92,8 @@ func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *Im
 	return baseDir, workingDir, tile, imgLoader
 }
 
-// TODO(lchoi): The test data seemed to have gone away. Once the test data
-// are back this test should be re-enabled.
-
 // Tests loading GS images that are specified through a path.
-func testImageLoaderGetGSPath(t *testing.T) {
+func TestImageLoaderGetGSPath(t *testing.T) {
 	testutils.MediumTest(t)
 	testutils.SkipIfShort(t)
 
