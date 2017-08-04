@@ -254,11 +254,11 @@ func TestJsonURLsHandler(t *testing.T) {
 
 	expectedOne := map[string]string{
 		"text":  "google.com",
-		"value": "www.",
+		"value": "http://www.",
 	}
 	expectedTwo := map[string]string{
 		"text":  "youtube.com",
-		"value": "www.",
+		"value": "http://www.",
 	}
 	results, err := resultStore.GetURLs(TEST_RUN_ID)
 	assert.NoError(t, err)
