@@ -22,6 +22,30 @@
       "revId": "696774e0ddfa0101ad1c40acf7b1eb89c86979e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c7f73ab_8c94c56e",
+        "filename": "autoroll/go/roller/status.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-04T18:04:52Z",
+      "side": 1,
+      "message": "Add a TODO to help remember?",
+      "parentUuid": "d6ad0a0c_22c5ab10",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 32
+      },
+      "revId": "696774e0ddfa0101ad1c40acf7b1eb89c86979e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
