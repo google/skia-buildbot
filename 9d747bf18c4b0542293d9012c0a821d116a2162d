@@ -22,6 +22,30 @@
       "revId": "9d747bf18c4b0542293d9012c0a821d116a2162d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d6dc68e_1be6cc4b",
+        "filename": "perf/res/imp/scaffold.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-04T15:11:08Z",
+      "side": 1,
+      "message": "That\u0027s OK for now, longer term this documentation may move, but I haven\u0027t decided to where, but that\u0027s part of revamping docserver, maybe skiabot has its own \u0027site\u0027 subdirectory with markdown files for documentation.",
+      "parentUuid": "c074233f_6740d1e6",
+      "range": {
+        "startLine": 92,
+        "startChar": 33,
+        "endLine": 92,
+        "endChar": 56
+      },
+      "revId": "9d747bf18c4b0542293d9012c0a821d116a2162d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
