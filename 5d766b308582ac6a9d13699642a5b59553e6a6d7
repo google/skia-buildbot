@@ -16,6 +16,29 @@
       "revId": "5d766b308582ac6a9d13699642a5b59553e6a6d7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3936f065_3eb477bb",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-04T16:56:32Z",
+      "side": 1,
+      "message": "Given that any one of these four separate remove/delete steps could fail and we then bail out from attempting the subsequent ones, I thought worth explicitly considering how the FE/BE will deal with absence of this data.\n\nOf the four data pieces: (1) resultstore data, (2) GS data, (3) screenshot images in diffstore, (4) diff images in diffstore, it does seem like (1) is probably the first/canonical one we\u0027d want to delete and if it fails then we wouldn\u0027t bother with the others. \n\nWorst case we end up with (1) deleted but dangling data for that run in (2 - 4). And FE/BE probably deal gracefully with that scenario since loading/iterating from (1) is typically the first step.\n\nWe could create a cleanup job that runs periodically to clean out dangling data. Maybe Skia already has something to do this?",
+      "range": {
+        "startLine": 96,
+        "startChar": 36,
+        "endLine": 96,
+        "endChar": 64
+      },
+      "revId": "5d766b308582ac6a9d13699642a5b59553e6a6d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
