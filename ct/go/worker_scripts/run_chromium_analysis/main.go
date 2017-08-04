@@ -101,6 +101,12 @@ func runChromiumAnalysis() error {
 	tmpDir, err := ioutil.TempDir("", "patches")
 	remotePatchesDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
 
+	// Download the v8 patch for this run from Google storage.
+	v8PatchName := *runID + ".v8.patch"
+	if err := util.DownloadAndApplyPatch(v8PatchName, tmpDir, remotePatchesDir, util.V8SrcDir, gs); err != nil {
+		return fmt.Errorf("Could not apply %s: %s", v8PatchName, err)
+	}
+
 	// Download the catapult patch for this run from Google storage.
 	catapultPatchName := *runID + ".catapult.patch"
 	if err := util.DownloadAndApplyPatch(catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
