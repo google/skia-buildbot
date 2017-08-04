@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "42881f53_1054f951",
+        "filename": "perf/res/imp/scaffold.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-04T14:55:04Z",
+      "side": 0,
+      "message": "Should the help handler be removed or is it used somewhere else as well?",
+      "range": {
+        "startLine": 92,
+        "startChar": 32,
+        "endLine": 92,
+        "endChar": 39
+      },
+      "revId": "52219fb7ce8a71acb7584e015b9cbf6d3822a3be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

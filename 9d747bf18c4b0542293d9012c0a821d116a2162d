@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c074233f_6740d1e6",
+        "filename": "perf/res/imp/scaffold.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-04T14:55:04Z",
+      "side": 1,
+      "message": "This will be inaccessible to everyone not signed in as a Googler. Is that ok?",
+      "range": {
+        "startLine": 92,
+        "startChar": 33,
+        "endLine": 92,
+        "endChar": 56
+      },
+      "revId": "9d747bf18c4b0542293d9012c0a821d116a2162d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
