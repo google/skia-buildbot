@@ -79,17 +79,14 @@
   <template>
     <div class="vertical layout">
       <paper-checkbox
-        disabled
         id=invert
-        on-change="_selectionChange"
+        on-change="_invertTap"
         title="Match items that aren't selected below.">Invert</paper-checkbox>
       <paper-checkbox
-        disabled
         id=regex
         on-tap="_regexTap"
         title="Match items via regular expression.">Regex</paper-checkbox>
       <input
-      disabled
       type="text"
       id="regexValue"
       class=hidden
@@ -127,20 +124,19 @@
     },
 
     setOptions: function(options, selected) {
-      this.$.invert.disabled = false;
-      this.$.regex.disabled = false;
-      this.$.regexValue.disabled = false;
+      selected = selected || [];
       // Use !! to force a boolean value, to work around: https://github.com/PolymerElements/paper-checkbox/issues/140
-      var inverted = !!(selected && selected.length >= 1 && selected[0][0] === "!");
-      this.$.invert.checked = inverted
-      var regexOffset = inverted ? 1 : 0; // Inverted regex patterns begin with "!~".
-      this.$.regex.checked = !!(selected && selected.length == 1 && selected[0][regexOffset] === "~");
+      this.$.invert.checked = !!(selected.length >= 1 && selected[0][0] === "!");
+      this.$.regex.checked = !!(selected.length == 1 && selected[0][0] === "~");
       this.set('_options', options);
       this._work_around_iron_selector = true;
       Polymer.dom.flush();
-      this.$.values.selectedValues = this._removeAllInverts(selected || []);
+      if (this.$.regex.checked) {
+        this.$.regexValue.value = this._regexDisplayValue(selected);
+      } else {
+        this.$.values.selectedValues = this._removeAllInverts(selected);
+      }
       this._work_around_iron_selector = false;
-      this.$.regexValue.value = this._regexDisplayValue(selected || [], regexOffset);
       this._toggleRegexDisplay();
     },
 
@@ -151,15 +147,20 @@
       if (this.$.regex.checked) {
         this.$.regexValue.classList.remove("hidden");
         this.$.values.classList.add("hidden");
-        this.$.invert.disabled = true;
-      } else {
+      } else  {
         this.$.regexValue.classList.add("hidden");
         this.$.values.classList.remove("hidden");
-        this.$.invert.disabled = false;
       }
     },
 
+    _invertTap: function() {
+      this.$.regex.checked = false;
+      this._toggleRegexDisplay();
+      this._selectionChange();
+    },
+
     _regexTap: function() {
+      this.$.invert.checked = false;
       this._toggleRegexDisplay();
       this._selectionChange();
     },
@@ -188,9 +189,9 @@
       return ret;
     },
 
-    _regexDisplayValue: function(arr, offset) {
+    _regexDisplayValue: function(arr) {
       if (arr && arr.length > 0) {
-        return arr[0].slice(offset+1);
+        return arr[0].slice(1);
       }
       return "";
     },
@@ -200,10 +201,10 @@
         return
       }
       var selected = this.$.values.selectedValues || [];
+      // Regex and Invert are mutually exclusive.
       if (this.$.regex.checked) {
         selected = ["~" + this.$.regexValue.value];
-      }
-      if (this.$.invert.checked) {
+      } else if (this.$.invert.checked) {
         selected = this._invertValues(selected);
       }
       this.dispatchEvent(new CustomEvent('query2-values-changed', {
