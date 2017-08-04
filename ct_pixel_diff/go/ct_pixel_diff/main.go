@@ -146,14 +146,17 @@ func main() {
 
 	router.HandleFunc("/", templateHandler("runs.html"))
 	router.HandleFunc("/load", templateHandler("results.html"))
+	router.HandleFunc("/search", templateHandler("search.html"))
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 
 	router.HandleFunc("/json/version", skiaversion.JsonHandler)
 	router.HandleFunc("/json/runs", jsonRunsHandler).Methods("GET")
+	router.HandleFunc("/json/delete", jsonDeleteHandler).Methods("GET")
 	router.HandleFunc("/json/render", jsonRenderHandler).Methods("GET")
 	router.HandleFunc("/json/sort", jsonSortHandler).Methods("GET")
-	router.HandleFunc("/json/delete", jsonDeleteHandler).Methods("GET")
+	router.HandleFunc("/json/urls", jsonURLsHandler).Methods("GET")
+	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
 
 	rootHandler := httputils.LoggingGzipRequestResponse(router)
 	http.Handle("/", rootHandler)
@@ -168,6 +171,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/runs.html"),
 		filepath.Join(*resourcesDir, "templates/results.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/search.html"),
 	))
 }
 

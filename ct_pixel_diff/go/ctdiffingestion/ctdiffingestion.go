@@ -149,7 +149,9 @@ func (p *pixelDiffProcessor) Process(resultsFile ingestion.ResultFileLocation) e
 			if err != nil {
 				return err
 			}
-			rec.DiffMetrics = diffResult[rec.WithPatchImg].(*diff.DiffMetrics)
+			if diffResult[rec.WithPatchImg] != nil {
+				rec.DiffMetrics = diffResult[rec.WithPatchImg].(*diff.DiffMetrics)
+			}
 		}
 
 		// Put the updated entry back into the ResultStore.
