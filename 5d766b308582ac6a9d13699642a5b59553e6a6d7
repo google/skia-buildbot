@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a605dba4_06f42718",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-04T18:01:12Z",
+      "side": 1,
+      "message": "I would all code that is HTTP related to a separate package or resultstore and test it there. \nIf handlers are fairly small and mostly deal with validating input and serializing outpu, I\u0027m ok with not having too many tests. In that case handler code is easily tested by hand.",
+      "parentUuid": "11293eef_53a11dcc",
+      "revId": "5d766b308582ac6a9d13699642a5b59553e6a6d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3936f065_3eb477bb",
         "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2017-08-04T16:56:32Z",
       "side": 1,
       "message": "Given that any one of these four separate remove/delete steps could fail and we then bail out from attempting the subsequent ones, I thought worth explicitly considering how the FE/BE will deal with absence of this data.\n\nOf the four data pieces: (1) resultstore data, (2) GS data, (3) screenshot images in diffstore, (4) diff images in diffstore, it does seem like (1) is probably the first/canonical one we\u0027d want to delete and if it fails then we wouldn\u0027t bother with the others. \n\nWorst case we end up with (1) deleted but dangling data for that run in (2 - 4). And FE/BE probably deal gracefully with that scenario since loading/iterating from (1) is typically the first step.\n\nWe could create a cleanup job that runs periodically to clean out dangling data. Maybe Skia already has something to do this?",
+      "range": {
+        "startLine": 96,
+        "startChar": 36,
+        "endLine": 96,
+        "endChar": 64
+      },
+      "revId": "5d766b308582ac6a9d13699642a5b59553e6a6d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edf4a3b4_f4ac51e2",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-04T18:01:12Z",
+      "side": 1,
+      "message": "Agreed. I would not delete from GS at all, but instead remove runs we are not interested in \nfrom the result store. The GS data essentially fall by the wayside by not being re-ingested. \nWe have had really good success by essentially treating GS as immutable data and only deleting files there in exceptional situations. Everything else can be re-calculated from the GS data if necessary. \n\nThe pattern for background cleanup processes has been to create a go-routine that does periodic cleanup and has a Liveness metric to make sure it doesn\u0027t die.",
+      "parentUuid": "3936f065_3eb477bb",
       "range": {
         "startLine": 96,
         "startChar": 36,
