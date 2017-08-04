@@ -145,7 +145,6 @@ func main() {
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler(*resourcesDir))
 
 	router.HandleFunc("/", templateHandler("runs.html"))
-	router.HandleFunc("/runs", templateHandler("runs.html"))
 	router.HandleFunc("/load", templateHandler("results.html"))
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
@@ -154,6 +153,7 @@ func main() {
 	router.HandleFunc("/json/runs", jsonRunsHandler).Methods("GET")
 	router.HandleFunc("/json/render", jsonRenderHandler).Methods("GET")
 	router.HandleFunc("/json/sort", jsonSortHandler).Methods("GET")
+	router.HandleFunc("/json/delete", jsonDeleteHandler).Methods("GET")
 
 	rootHandler := httputils.LoggingGzipRequestResponse(router)
 	http.Handle("/", rootHandler)

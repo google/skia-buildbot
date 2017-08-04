@@ -33,7 +33,6 @@
           <run-details-sk
             run="[[item]]">
           </run-details-sk>
-          <br>
         </template>
       </div>
     </div>
@@ -50,10 +49,6 @@
       },
 
       ready: function() {
-        this._load();
-      },
-
-      _load: function() {
         this.$.spinner.startSpinner();
         sk.get("/json/runs").then(JSON.parse).then(function (json) {
           this.set('data', json.runs);
