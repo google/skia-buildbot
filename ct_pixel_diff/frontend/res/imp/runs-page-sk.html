@@ -3,7 +3,7 @@
 
   Shows the results of a runs request, or a list of CT Pixel Diff runs.
   Sends the query string as a JSON request to the runs endpoint ('/json/runs')
-  and renders the result.
+  and renders the result. Runs can be filtered by typing into the input bar.
 
   Attributes:
     data - A list of CT Pixel Diff runID strings.
@@ -17,6 +17,7 @@
 
 <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/common/imp/spinner-sk.html">
 
 <link rel="import" href="/res/imp/run-details-sk.html">
@@ -25,11 +26,17 @@
 <dom-module id="runs-page-sk">
   <template>
     <style include="iron-flex iron-flex-alignment"></style>
-    <style include="shared-styles"></style>
+    <style include="shared-styles">
+      paper-input {
+        width: 15%;
+        padding-left: 2em;
+      }
+    </style>
     <spinner-sk id="spinner" busy="{{_hideAll}}"></spinner-sk>
     <div hidden$="{{_hideAll}}">
+      <paper-input label="Filter runs" value="{{filterVal::input}}"></paper-input>
       <div hidden$="[[_emptyResult(data)]]">
-        <template is="dom-repeat" items="[[data]]" initial-count="20">
+        <template is="dom-repeat" items="[[data]]" filter="[[_filter(filterVal)]]" initial-count="20">
           <run-details-sk
             run="[[item]]">
           </run-details-sk>
@@ -57,6 +64,14 @@
           this.$.spinner.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
+      },
+
+      _filter: function(input) {
+        return function(runID) {
+          if (!input) return true;
+          if (!runID) return false;
+          return (runID && ~runID.indexOf(input))
+        }
       },
 
       _emptyResult: function(data) {
