@@ -24,34 +24,37 @@ const (
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
-	Update() error
-	FullChildHash(string) (string, error)
 	ChildRevList(...string) ([]string, error)
+	CommitsNotRolled() int
+	CreateNewRoll(string, string, []string, string, bool) (int64, error)
+	FullChildHash(string) (string, error)
+	GetCommitsNotRolled(string) (int, error)
 	LastRollRev() string
 	NextRollRev() string
-	RolledPast(string) (bool, error)
 	PreUploadSteps() []PreUploadStep
-	CreateNewRoll(string, string, []string, string, bool) (int64, error)
+	RolledPast(string) (bool, error)
+	Update() error
 	User() string
 }
 
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
-	infoMtx        sync.RWMutex
-	lastRollRev    string
-	nextRollRev    string
-	repoMtx        sync.RWMutex
-	parentBranch   string
-	childDir       string
-	childPath      string
-	childRepo      *git.Checkout
-	childBranch    string
-	preUploadSteps []PreUploadStep
-	strategy       NextRollStrategy
-	user           string
-	workdir        string
-	g              gerrit.GerritInterface
+	infoMtx          sync.RWMutex
+	lastRollRev      string
+	nextRollRev      string
+	repoMtx          sync.RWMutex
+	parentBranch     string
+	childDir         string
+	childPath        string
+	childRepo        *git.Checkout
+	childBranch      string
+	commitsNotRolled int
+	preUploadSteps   []PreUploadStep
+	strategy         NextRollStrategy
+	user             string
+	workdir          string
+	g                gerrit.GerritInterface
 }
 
 // ChildRevList returns a slice of commit hashes from the child repo.
@@ -117,6 +120,12 @@ func (r *commonRepoManager) User() string {
 func (r *commonRepoManager) IsRollSubject(line string) (bool, error) {
 	rollSubjectRegex := fmt.Sprintf("^Roll %s [a-zA-Z0-9]+..[a-zA-Z0-9]+ \\([0-9]+ commits\\)$", r.childPath)
 	return regexp.MatchString(rollSubjectRegex, line)
+}
+
+// CommitsNotRolled returns the number of commits in the child repo which have
+// not been rolled into the parent repo.
+func (r *commonRepoManager) CommitsNotRolled() int {
+	return r.commitsNotRolled
 }
 
 // depotToolsRepoManager is a struct used by AutoRoller implementations that use
@@ -197,4 +206,20 @@ func (r *depotToolsRepoManager) createAndSyncParent() error {
 		return err
 	}
 	return nil
+}
+
+func (r *depotToolsRepoManager) GetCommitsNotRolled(lastRollRev string) (int, error) {
+	head, err := r.childRepo.FullHash(fmt.Sprintf("origin/%s", r.childBranch))
+	if err != nil {
+		return -1, err
+	}
+	notRolled := 0
+	if head != lastRollRev {
+		commits, err := r.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, head))
+		if err != nil {
+			return -1, err
+		}
+		notRolled = len(commits)
+	}
+	return notRolled, nil
 }
