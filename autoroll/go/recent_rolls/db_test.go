@@ -148,7 +148,23 @@ func TestRolls(t *testing.T) {
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, recent, expect)
 
+	// Ensure that we extend the set of recent rolls to ensure that we
+	// include the last successful roll.
+	roll1.Result = autoroll.ROLL_RESULT_SUCCESS
+	assert.NoError(t, d.db.UpdateRoll(roll1))
+	for _, roll := range []*autoroll.AutoRollIssue{roll2, roll3, roll4} {
+		roll.Result = autoroll.ROLL_RESULT_FAILURE
+		assert.NoError(t, d.db.UpdateRoll(roll))
+	}
+	recent, err = d.db.GetRecentRolls(2)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, recent, expect)
+
 	// Ensure that we get a maximum of the number of rolls we requested.
+	for _, roll := range []*autoroll.AutoRollIssue{roll2, roll3, roll4} {
+		roll.Result = autoroll.ROLL_RESULT_SUCCESS
+		assert.NoError(t, d.db.UpdateRoll(roll))
+	}
 	recent, err = d.db.GetRecentRolls(3)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, recent, expect[:3])

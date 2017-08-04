@@ -157,7 +157,17 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	// is a logged-in Googler.
 	status := arb.GetStatus(login.IsGoogler(r))
 	if err := json.NewEncoder(w).Encode(&status); err != nil {
-		sklog.Error(err)
+		httputils.ReportError(w, r, err, "Failed to obtain status.")
+		return
+	}
+}
+
+func miniStatusJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	status := arb.GetMiniStatus()
+	if err := json.NewEncoder(w).Encode(&status); err != nil {
+		httputils.ReportError(w, r, err, "Failed to obtain status.")
+		return
 	}
 }
 
@@ -185,6 +195,7 @@ func runServer() {
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/json/mode", modeJsonHandler).Methods("POST")
+	r.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	r.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
