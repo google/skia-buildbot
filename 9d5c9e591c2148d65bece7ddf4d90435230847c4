@@ -22,6 +22,30 @@
       "revId": "9d5c9e591c2148d65bece7ddf4d90435230847c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5c1690c_2dd5034e",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-04T23:22:54Z",
+      "side": 1,
+      "message": "It\u0027s just that when I ran a new Pixel Diff run to get directories with the new HH structure, I didn\u0027t specify a patch, so there are no differences between the nopatch and withpatch screenshots. The fact that the diff metrics are not nil indicates that a diff was calculated, but I can start another run with a patch to get more meaningful diff metrics here.",
+      "parentUuid": "2f83027c_e416ace0",
+      "range": {
+        "startLine": 102,
+        "startChar": 20,
+        "endLine": 102,
+        "endChar": 23
+      },
+      "revId": "9d5c9e591c2148d65bece7ddf4d90435230847c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
