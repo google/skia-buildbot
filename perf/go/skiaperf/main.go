@@ -80,7 +80,6 @@ var (
 // flags
 var (
 	algo                  = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
-	clusterQueries        = flag.String("cluster_queries", "source_type=skp&sub_result=min_ms source_type=svg&sub_result=min_ms source_type=image&sub_result=min_ms", "A space separated list of queries we want to cluster over.")
 	configFilename        = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
@@ -187,25 +186,7 @@ func newParamsetProvider(freshDataFrame *dataframe.Refresher) regression.Paramse
 // will be switched over to use the configs stored in the alerts.Store.
 func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.ConfigProvider {
 	return func() ([]*alerts.Config, error) {
-		if *clusterQueries == "" {
-			return alertStore.List(false)
-		} else {
-			ret := []*alerts.Config{}
-			uritemplate := DEFAULT_BUG_URI_TEMPLATE
-			queries := strings.Split(*clusterQueries, " ")
-			sort.Sort(sort.StringSlice(queries))
-			for _, q := range queries {
-				cfg := alerts.NewConfig()
-				cfg.Query = q
-				cfg.Interesting = float32(*interesting)
-				cfg.Algo = clusterAlgo
-				cfg.State = alerts.ACTIVE
-				cfg.StepUpOnly = *stepUpOnly
-				cfg.BugURITemplate = uritemplate
-				ret = append(ret, cfg)
-			}
-			return ret, nil
-		}
+		return alertStore.List(false)
 	}
 }
 
@@ -278,7 +259,7 @@ func Init() {
 	paramsProvider := newParamsetProvider(freshDataFrame)
 
 	// Start running continuous clustering looking for regressions.
-	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, *clusterQueries == "", paramsProvider)
+	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider)
 	go continuous.Run()
 }
 
@@ -781,10 +762,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := tr.Alert.Query
-	if *clusterQueries == "" {
-		key = tr.Alert.IdAsString()
-	}
+	key := tr.Alert.IdAsString()
 	if tr.ClusterType == "low" {
 		err = regStore.TriageLow(detail[0], key, tr.Triage)
 	} else {
@@ -815,16 +793,9 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		uritemplate := DEFAULT_BUG_URI_TEMPLATE
 		for _, c := range cfgs {
-			if *clusterQueries == "" {
-				if c.ID == tr.Alert.ID {
-					uritemplate = c.BugURITemplate
-					break
-				}
-			} else {
-				if c.Query == tr.Alert.Query {
-					uritemplate = c.BugURITemplate
-					break
-				}
+			if c.ID == tr.Alert.ID {
+				uritemplate = c.BugURITemplate
+				break
 			}
 		}
 		resp.Bug = bug.Expand(uritemplate, link, detail[0], tr.Triage.Message)
@@ -950,10 +921,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r, ok := regMap[cid.ID()]; ok {
 			for i, h := range headers {
-				key := h.Query
-				if *clusterQueries == "" {
-					key = h.IdAsString()
-				}
+				key := h.IdAsString()
 				if reg, ok := r.ByAlertID[key]; ok {
 					row.Columns[i] = reg
 				}

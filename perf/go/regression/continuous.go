@@ -38,7 +38,6 @@ type Continuous struct {
 	radius         int
 	provider       ConfigProvider
 	notifier       *notify.Notifier
-	useID          bool
 	paramsProvider ParamsetProvider
 
 	mutex   sync.Mutex // Protects current.
@@ -50,7 +49,7 @@ type Continuous struct {
 //   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, useID bool, paramsProvider ParamsetProvider) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, paramsProvider ParamsetProvider) *Continuous {
 	return &Continuous{
 		git:            git,
 		cidl:           cidl,
@@ -59,7 +58,6 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider Conf
 		radius:         radius,
 		provider:       provider,
 		notifier:       notifier,
-		useID:          useID,
 		current:        &Current{},
 		paramsProvider: paramsProvider,
 	}
@@ -173,10 +171,7 @@ func (c *Continuous) Run() {
 						continue
 					}
 
-					key := cfg.Query
-					if c.useID {
-						key = cfg.IdAsString()
-					}
+					key := cfg.IdAsString()
 					// Update database if regression at the midpoint is found.
 					for _, cl := range resp.Summary.Clusters {
 						if cl.StepPoint.Offset == int64(commit.Index) {

@@ -21,8 +21,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --internal_only \
     --algo=stepfit \
     --subdomain=android-master-perf \
-    --step_up_only \
-    --cluster_queries=
+    --step_up_only
 
 Restart=always
 User=default
