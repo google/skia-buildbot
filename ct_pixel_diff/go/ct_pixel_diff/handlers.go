@@ -24,48 +24,6 @@ func jsonRunsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, map[string][]string{"runs": runIDs})
 }
 
-// jsonRenderHandler parses a start index, end index, and runID from the query
-// and uses them to return results in the specified range for the specified run
-// from the ResultStore cache.
-func jsonRenderHandler(w http.ResponseWriter, r *http.Request) {
-	runID := r.FormValue("runID")
-
-	startIdx, err := strconv.Atoi(r.FormValue("startIdx"))
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse start index")
-		return
-	}
-
-	endIdx, err := strconv.Atoi(r.FormValue("endIdx"))
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse end index")
-		return
-	}
-
-	// If the runID does not exist in the cache, this will return an error.
-	results, err := resultStore.GetRange(runID, startIdx, endIdx)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get cached results")
-		return
-	}
-	sendJsonResponse(w, map[string][]*resultstore.ResultRec{"results": results})
-}
-
-// jsonSortHandler sorts the ResultStore's cached list of diff results using the
-// specified sort field, sort order, and runID.
-func jsonSortHandler(w http.ResponseWriter, r *http.Request) {
-	runID := r.FormValue("runID")
-	sortField := r.FormValue("sortField")
-	sortOrder := r.FormValue("sortOrder")
-
-	// If the runID does not exist in the cache, this will return an error.
-	err := resultStore.SortRun(runID, sortField, sortOrder)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to sort cached results")
-		return
-	}
-}
-
 // jsonDeleteHandler deletes the data for the specified runID from the server.
 func jsonDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	runID := r.FormValue("runID")
@@ -90,6 +48,71 @@ func jsonDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to remove diff images for run %s from DiffStore", runID))
 		return
 	}
+}
+
+// jsonRenderHandler parses a start index, end index, and runID from the query
+// and uses them to return results in the specified range for the specified run
+// from the ResultStore cache.
+func jsonRenderHandler(w http.ResponseWriter, r *http.Request) {
+	runID := r.FormValue("runID")
+
+	startIdx, err := strconv.Atoi(r.FormValue("startIdx"))
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse start index")
+		return
+	}
+
+	endIdx, err := strconv.Atoi(r.FormValue("endIdx"))
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse end index")
+		return
+	}
+
+	// If the runID does not exist in the cache, this will return an error.
+	results, err := resultStore.GetRange(runID, startIdx, endIdx)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get cached results for run %s", runID))
+		return
+	}
+	sendJsonResponse(w, map[string][]*resultstore.ResultRec{"results": results})
+}
+
+// jsonSortHandler sorts the ResultStore's cached list of diff results using the
+// specified sort field, sort order, and runID.
+func jsonSortHandler(w http.ResponseWriter, r *http.Request) {
+	runID := r.FormValue("runID")
+	sortField := r.FormValue("sortField")
+	sortOrder := r.FormValue("sortOrder")
+
+	// If the runID does not exist in the cache, this will return an error.
+	err := resultStore.SortRun(runID, sortField, sortOrder)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to sort cached results for run %s", runID))
+		return
+	}
+}
+
+// jsonURLsHandler returns all the urls in the ResultStore's cache for the
+// specified runID.
+func jsonURLsHandler(w http.ResponseWriter, r *http.Request) {
+	runID := r.FormValue("runID")
+	urls, err := resultStore.GetURLs(runID)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to retrieve URLs for run %s", runID))
+	}
+	sendJsonResponse(w, map[string][]map[string]string{"urls": urls})
+}
+
+// jsonSearchHandler parses a runID and url from the query and uses them to
+// return the correct ResultRec from the ResultStore.
+func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
+	runID := r.FormValue("runID")
+	url := r.FormValue("url")
+	result, err := resultStore.Get(runID, url)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to retrieve search result for run %s, url %s", runID, url))
+	}
+	sendJsonResponse(w, map[string]*resultstore.ResultRec{"result": result})
 }
 
 // makeResourceHandler creates a static file handler that sets a caching policy.

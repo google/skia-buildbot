@@ -323,3 +323,36 @@ func TestSortRun(t *testing.T) {
 	assert.Equal(t, recTwo, results[0])
 	assert.Equal(t, recOne, results[1])
 }
+
+func TestGetURLs(t *testing.T) {
+	testutils.MediumTest(t)
+
+	// Initialize the ResultStore.
+	resultStore := createBoltResultStore(t)
+
+	// Create two ResultRecs and modify the URL of the second one.
+	recOne := createResultRec(t)
+	recTwo := createResultRec(t)
+	recTwo.URL = TEST_URL_TWO
+
+	// Put them under different URLs so there are multiple entries associated
+	// with a run.
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
+	assert.NoError(t, err)
+
+	// Verify the correct URLs are returned.
+	urls, err := resultStore.GetURLs(TEST_RUN_ID)
+	assert.NoError(t, err)
+	expectedOne := map[string]string{
+		"text":  "google.com",
+		"value": "www.",
+	}
+	expectedTwo := map[string]string{
+		"text":  "youtube.com",
+		"value": "www.",
+	}
+	assert.Equal(t, expectedOne, urls[0])
+	assert.Equal(t, expectedTwo, urls[1])
+}

@@ -14,6 +14,8 @@
   "dependencies": {
     "sinonjs": "^1.17.1",
     "iron-elements": "^1.0.8",
-    "paper-elements": "^1.0.7"
+    "paper-elements": "^1.0.7",
+    "paper-autocomplete": "^3.0.0",
+    "polymer": "^1.7.0"
   }
 }

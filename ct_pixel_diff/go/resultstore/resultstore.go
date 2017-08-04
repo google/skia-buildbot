@@ -23,8 +23,13 @@ const (
 	GREEN_DIFF   = "greenDiff"
 	BLUE_DIFF    = "blueDiff"
 	RANK         = "rank"
+	DSC          = "descending"
 
-	DSC = "descending"
+	// URL search constants.
+	HTTP  = "http://"
+	WWW   = "www."
+	TEXT  = "text"
+	VALUE = "value"
 )
 
 var (
@@ -87,6 +92,9 @@ type ResultStore interface {
 	// SortRun sorts the cached results for the given runID using the sort
 	// parameters.
 	SortRun(runID, sortField, sortOrder string) error
+
+	// GetURLs returns the URLs of all cached results for the given runID.
+	GetURLs(runID string) ([]map[string]string, error)
 }
 
 // BoltResultStore implements the ResultStore interface with a boltDB instance.
@@ -457,4 +465,32 @@ func sortByMaxBlueDiff(r *resultRecSlice, i, j int) bool {
 // an equality check.
 func sortByRank(r *resultRecSlice, i, j int) bool {
 	return r.data[i].Rank > r.data[j].Rank
+}
+
+// GetURLs returns the urls of the cached results for the given runID. The
+// "http://" and "www." prefixes are stripped to enable more intuitive
+// searching. Urls are returned as map[string]string objects, where the entries
+// are as follows: "text":URL stripped of prefixes, "value":"www." if the url
+// contained that prefix and empty otherwise. These text and value fields are
+// required by the frontend element responsible for making url suggestions.
+// Returns an error if there is no data cached for the runID.
+func (b *BoltResultStore) GetURLs(runID string) ([]map[string]string, error) {
+	if results, ok := b.cache[runID]; ok {
+		urls := []map[string]string{}
+		for _, result := range results {
+			url := map[string]string{}
+			stripPrefix := strings.Replace(result.URL, HTTP, "", 1)
+			if strings.Index(stripPrefix, WWW) != -1 {
+				url[VALUE] = WWW
+				stripPrefix = strings.Replace(stripPrefix, WWW, "", 1)
+			} else {
+				url[VALUE] = ""
+			}
+			url[TEXT] = stripPrefix
+			urls = append(urls, url)
+		}
+		return urls, nil
+	} else {
+		return nil, fmt.Errorf("No cached results for run %s", runID)
+	}
 }
