@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "676e4f3a_54453f01",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/ctdiffingestion_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-04T17:33:57Z",
+      "side": 0,
+      "message": "Do we know what happened, and is there a bug to link this to? OK if not but wanted to hear more.",
+      "range": {
+        "startLine": 67,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 0
+      },
+      "revId": "91c78a7dd8f086cffa144b2323d9519e3762b521",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
