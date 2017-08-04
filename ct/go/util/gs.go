@@ -64,7 +64,6 @@ func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 // finished with it.
 func getRespBody(res *storage.Object, client *http.Client) (io.ReadCloser, error) {
 	for i := 0; i < MAX_URI_GET_TRIES; i++ {
-		sklog.Infof("Fetching: %s", res.Name)
 		request, err := gcs.RequestForStorageURL(res.MediaLink)
 		if err != nil {
 			sklog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
@@ -197,7 +196,6 @@ func downloadStorageObj(obj filePathToStorageObject, c *http.Client, localDir st
 	if _, err = io.Copy(out, respBody); err != nil {
 		return err
 	}
-	sklog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GCSBucketName, result.Name, outputFile, goroutineNum)
 	return nil
 }
 
@@ -263,7 +261,6 @@ func (gs *GcsUtil) DeleteRemoteDir(gsDir string) error {
 					sklog.Errorf("Goroutine#%d could not delete %s: %s", goroutineNum, filePath, err)
 					return
 				}
-				sklog.Infof("Deleted gs://%s/%s with goroutine#%d", GCSBucketName, filePath, goroutineNum)
 				// Sleep for a second after deleting file to avoid bombarding Cloud
 				// storage.
 				time.Sleep(time.Second)
@@ -420,7 +417,6 @@ func (gs *GcsUtil) downloadFromSwarmingDir(remoteDir, gsDir, localDir string, ru
 			if _, err = io.Copy(out, respBody); err != nil {
 				return err
 			}
-			sklog.Infof("Downloaded gs://%s/%s to %s with id#%d", GCSBucketName, result.Name, outputFile, runID)
 			// Sleep for a second after downloading file to avoid bombarding Cloud
 			// storage.
 			time.Sleep(time.Second)
@@ -481,7 +477,6 @@ func (gs *GcsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 		go func(goroutineNum int) {
 			defer wg.Done()
 			for filePath := range chFilePaths {
-				sklog.Infof("Uploading %s to %s with goroutine#%d", filePath, gsDir, goroutineNum)
 				if err := gs.UploadFile(filePath, localDir, gsDir); err != nil {
 					sklog.Errorf("Goroutine#%d could not upload %s to %s: %s", goroutineNum, filePath, localDir, err)
 				}
