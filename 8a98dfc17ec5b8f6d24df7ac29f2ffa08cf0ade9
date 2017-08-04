@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2ed0eb42_6e73a54d",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-04T17:06:53Z",
+      "side": 1,
+      "message": "data -\u003e URLs",
+      "range": {
+        "startLine": 72,
+        "startChar": 55,
+        "endLine": 72,
+        "endChar": 59
+      },
+      "revId": "8a98dfc17ec5b8f6d24df7ac29f2ffa08cf0ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ad3a5b3_6325f384",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-04T17:06:53Z",
+      "side": 1,
+      "message": "Maybe include the run id and url in the error message? And the run id in the error message above.",
+      "range": {
+        "startLine": 84,
+        "startChar": 62,
+        "endLine": 84,
+        "endChar": 68
+      },
+      "revId": "8a98dfc17ec5b8f6d24df7ac29f2ffa08cf0ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f67bcc4d_1fd335e3",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-04T17:06:53Z",
+      "side": 1,
+      "message": "Is https going to be in there sometimes? There could be a more general purpose url normalization library/routine that Skia is already using somewhere. OK to land as is initially with a TODO.",
+      "range": {
+        "startLine": 482,
+        "startChar": 46,
+        "endLine": 482,
+        "endChar": 50
+      },
+      "revId": "8a98dfc17ec5b8f6d24df7ac29f2ffa08cf0ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
