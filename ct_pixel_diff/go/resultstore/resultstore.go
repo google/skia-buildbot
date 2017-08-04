@@ -1,6 +1,7 @@
 package resultstore
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"path"
@@ -27,6 +28,7 @@ const (
 
 	// URL search constants.
 	HTTP  = "http://"
+	HTTPS = "https://"
 	WWW   = "www."
 	TEXT  = "text"
 	VALUE = "value"
@@ -467,11 +469,9 @@ func sortByRank(r *resultRecSlice, i, j int) bool {
 	return r.data[i].Rank > r.data[j].Rank
 }
 
-// GetURLs returns the urls of the cached results for the given runID. The
-// "http://" and "www." prefixes are stripped to enable more intuitive
-// searching. Urls are returned as map[string]string objects, where the entries
-// are as follows: "text":URL stripped of prefixes, "value":"www." if the url
-// contained that prefix and empty otherwise. These text and value fields are
+// GetURLs returns the urls of the cached results for the given runID. Urls are
+// returned as map[string]string objects, where the entries are as follows:
+// "text":URL stripped of prefixes, "value":stripped prefixes. These fields are
 // required by the frontend element responsible for making url suggestions.
 // Returns an error if there is no data cached for the runID.
 func (b *BoltResultStore) GetURLs(runID string) ([]map[string]string, error) {
@@ -479,14 +479,26 @@ func (b *BoltResultStore) GetURLs(runID string) ([]map[string]string, error) {
 		urls := []map[string]string{}
 		for _, result := range results {
 			url := map[string]string{}
-			stripPrefix := strings.Replace(result.URL, HTTP, "", 1)
-			if strings.Index(stripPrefix, WWW) != -1 {
-				url[VALUE] = WWW
-				stripPrefix = strings.Replace(stripPrefix, WWW, "", 1)
-			} else {
-				url[VALUE] = ""
+			var prefix bytes.Buffer
+			formattedURL := result.URL
+
+			// Strips either "http://" or "https://"
+			if strings.HasPrefix(formattedURL, HTTP) {
+				prefix.WriteString(HTTP)
+				formattedURL = strings.TrimPrefix(formattedURL, HTTP)
+			} else if strings.HasPrefix(formattedURL, HTTPS) {
+				prefix.WriteString(HTTPS)
+				formattedURL = strings.TrimPrefix(formattedURL, HTTPS)
 			}
-			url[TEXT] = stripPrefix
+
+			// Strips "www." prefix
+			if strings.HasPrefix(formattedURL, WWW) {
+				prefix.WriteString(WWW)
+				formattedURL = strings.TrimPrefix(formattedURL, WWW)
+			}
+
+			url[TEXT] = formattedURL
+			url[VALUE] = prefix.String()
 			urls = append(urls, url)
 		}
 		return urls, nil

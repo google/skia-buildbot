@@ -233,7 +233,7 @@
 
       _searchSelect: function(e) {
         var runID = window.location.search;
-        var url = 'url=http://' + e.detail.option.value + e.detail.option.text;
+        var url = 'url=' + e.detail.option.value + e.detail.option.text;
         var query = runID + '&' + url;
         window.open('/search' + query, '_blank')
         this.$.search.value = '';

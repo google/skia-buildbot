@@ -347,11 +347,11 @@ func TestGetURLs(t *testing.T) {
 	assert.NoError(t, err)
 	expectedOne := map[string]string{
 		"text":  "google.com",
-		"value": "www.",
+		"value": "http://www.",
 	}
 	expectedTwo := map[string]string{
 		"text":  "youtube.com",
-		"value": "www.",
+		"value": "http://www.",
 	}
 	assert.Equal(t, expectedOne, urls[0])
 	assert.Equal(t, expectedTwo, urls[1])
