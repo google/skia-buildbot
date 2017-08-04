@@ -241,5 +241,12 @@
      "body": "",
      "mimetype": "",
      "responsetest": ""
+   },
+   "ct_pixel_diff": {
+     "urls": ["https://ctpixeldiff.skia.org"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
    }
 }
