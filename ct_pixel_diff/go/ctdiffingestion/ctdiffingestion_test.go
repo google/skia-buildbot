@@ -29,12 +29,12 @@ const (
 	TEST_DIFF_DB  = "diffs.db"
 
 	// Test data for processing CT results and querying/updating the ResultStore.
-	TEST_RUN_ID        = "rmistry-20170718140446"
+	TEST_RUN_ID        = "rmistry-20170802211123"
 	TEST_URL_ONE       = "http://www.google.com"
 	TEST_URL_TWO       = "http://www.youtube.com"
-	TEST_NOPATCH_ONE   = "rmistry-20170718140446/nopatch/1/http___www_google_com"
-	TEST_WITHPATCH_ONE = "rmistry-20170718140446/withpatch/1/http___www_google_com"
-	TEST_WITHPATCH_TWO = "rmistry-20170718140446/withpatch/2/http___www_youtube_com"
+	TEST_NOPATCH_ONE   = "rmistry-20170802211123/nopatch/1/http___www_google_com"
+	TEST_WITHPATCH_ONE = "rmistry-20170802211123/withpatch/1/http___www_google_com"
+	TEST_WITHPATCH_TWO = "rmistry-20170802211123/withpatch/2/http___www_youtube_com"
 )
 
 // Tests parsing and processing of a single CT output JSON file.
@@ -99,14 +99,14 @@ func TestPixelDiffProcessor(t *testing.T) {
 		NoPatchImg:   TEST_NOPATCH_ONE,
 		WithPatchImg: TEST_WITHPATCH_ONE,
 		DiffMetrics: &diff.DiffMetrics{
-			NumDiffPixels:    456184,
-			PixelDiffPercent: 38.853203,
-			MaxRGBADiffs:     []int{18, 52, 86, 0},
+			NumDiffPixels:    101483,
+			PixelDiffPercent: 8.64331,
+			MaxRGBADiffs:     []int{255, 136, 136, 0},
 			DimDiffer:        false,
 			Diffs: map[string]float32{
-				"combined": 2.7889256,
-				"percent":  38.853203,
-				"pixel":    456184,
+				"combined": 2.3266072,
+				"percent":  8.64331,
+				"pixel":    101483,
 			},
 		},
 	}

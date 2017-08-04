@@ -151,15 +151,15 @@ func (p PixelDiffIDPathMapper) DiffPath(leftImgID, rightImgID string) string {
 }
 
 // Appends the image extension to create the local image file path, and
-// recreates the YYYY/MM/DD directories using the timestamp in the runID to
+// recreates the YYYY/MM/DD/HH directories using the timestamp in the runID to
 // make the relative GS path.
 func (p PixelDiffIDPathMapper) ImagePaths(imageID string) (string, string) {
 	localPath := fmt.Sprintf("%s.%s", imageID, IMG_EXTENSION)
 	path := strings.Split(imageID, "/")
 	runID := strings.Split(path[0], "-")
 	timeStamp := runID[1]
-	yearMonthDay := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8])
-	gsPath := filepath.Join(yearMonthDay, localPath)
+	datePath := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8], timeStamp[8:10])
+	gsPath := filepath.Join(datePath, localPath)
 	return localPath, gsPath
 }
 
