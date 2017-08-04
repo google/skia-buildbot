@@ -12,6 +12,11 @@ const (
 	INVALID_ID = -1
 )
 
+var (
+	// The default value for Config.Sparse.
+	DefaultSparse = false
+)
+
 // Config represents the configuration for one alert.
 type Config struct {
 	ID             int                     `json:"id"`
@@ -58,8 +63,9 @@ func (c *Config) Validate() error {
 // NewConfig creates a new Config properly initialized.
 func NewConfig() *Config {
 	return &Config{
-		ID:    INVALID_ID,
-		Algo:  clustering2.KMEANS_ALGO,
-		State: ACTIVE,
+		ID:     INVALID_ID,
+		Algo:   clustering2.KMEANS_ALGO,
+		State:  ACTIVE,
+		Sparse: DefaultSparse,
 	}
 }

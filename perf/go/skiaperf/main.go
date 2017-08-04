@@ -82,6 +82,7 @@ var (
 	algo                  = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
 	configFilename        = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
+	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	gitRepoDir            = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
@@ -218,6 +219,8 @@ func Init() {
 	initIngestion()
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	cidl = cid.New(git, rietveldAPI, *gitRepoURL)
+
+	alerts.DefaultSparse = *defaultSparse
 
 	alertStore = alerts.NewStore()
 
