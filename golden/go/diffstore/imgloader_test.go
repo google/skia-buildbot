@@ -28,7 +28,7 @@ const (
 	TEST_GS_BASE_DIR = "tasks/pixel_diff_runs"
 
 	// Image to test loading images through a GS path.
-	TEST_IMG_PATH = "rmistry-20170718140446/nopatch/1/http___www_google_com"
+	TEST_IMG_PATH = "lchoi-20170804012953/nopatch/1/http___www_google_com"
 )
 
 func TestImageLoader(t *testing.T) {
