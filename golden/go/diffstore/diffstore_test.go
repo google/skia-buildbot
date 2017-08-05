@@ -46,7 +46,7 @@ func TestMemDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := NewMemDiffStore(client, nil, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil)
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil, nil, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
@@ -67,7 +67,7 @@ func TestDiffFn(t *testing.T) {
 	defer testutils.RemoveAll(t, baseDir)
 
 	// Instantiate a new MemDiffStore with the DummyDiffFn.
-	diffStore, err := NewMemDiffStore(client, DummyDiffFn, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil)
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, DummyDiffFn, nil, nil)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 	img1 := image.NewNRGBA(image.Rect(1, 2, 3, 4))
@@ -87,7 +87,7 @@ func TestNetDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	memDiffStore, err := NewMemDiffStore(client, nil, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil)
+	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil, nil, nil)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
