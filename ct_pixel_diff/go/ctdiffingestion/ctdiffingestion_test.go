@@ -7,10 +7,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/mocks"
 )
@@ -71,7 +72,8 @@ func TestPixelDiffProcessor(t *testing.T) {
 	client := mocks.GetHTTPClient(t)
 	baseDir, err := ioutil.TempDir("", TEST_BASE_DIR)
 	assert.NoError(t, err)
-	diffStore, err := diffstore.NewMemDiffStore(client, baseDir, []string{TEST_GS_BUCKET}, TEST_GS_IMAGE_DIR, 10, nil, nil, diffstore.PixelDiffIDPathMapper{})
+	diffStore, err := diffstore.NewMemDiffStore(client, baseDir, []string{TEST_GS_BUCKET}, TEST_GS_IMAGE_DIR, 10,
+		dynamicdiff.DynamicContentDiff, util.JSONCodec(&dynamicdiff.DynamicDiffMetrics{}), diffstore.PixelDiffIDPathMapper{})
 	assert.NoError(t, err)
 
 	// Set up the ResultStore.
@@ -97,16 +99,12 @@ func TestPixelDiffProcessor(t *testing.T) {
 		Rank:         1,
 		NoPatchImg:   TEST_NOPATCH_ONE,
 		WithPatchImg: TEST_WITHPATCH_ONE,
-		DiffMetrics: &diff.DiffMetrics{
+		DiffMetrics: &dynamicdiff.DynamicDiffMetrics{
 			NumDiffPixels:    456184,
 			PixelDiffPercent: 38.853203,
-			MaxRGBADiffs:     []int{18, 52, 86, 0},
-			DimDiffer:        false,
-			Diffs: map[string]float32{
-				"combined": 2.7889256,
-				"percent":  38.853203,
-				"pixel":    456184,
-			},
+			MaxRGBDiffs:      []int{18, 52, 86},
+			NumStaticPixels:  1174122,
+			NumDynamicPixels: 0,
 		},
 	}
 	recOne, err := resultStore.Get(TEST_RUN_ID, TEST_URL_ONE)
