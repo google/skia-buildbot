@@ -16,6 +16,24 @@
       "revId": "c65cca548ef833b2e0f88ee34c287fd4afa7d442",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "096b458e_d8fff762",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-05T00:47:27Z",
+      "side": 1,
+      "message": "You are right, some of the features in MemDiffStore were not abstracted out. \nIt slipped through in the the previous CL. \nThe solution IMO is to add a codec to the MemDiffDiffStore similar to what you did \nin the NetDiffStore. You just have to the replace the Codec value that is currently hard coded into the metricStore type. \n\nYou could then pass it to newMetricStore(...) it would be something like this:\n  codec :\u003d util.JSONCodec(\u0026DynamicDiffMetrics{}). \n\nHope this makes sense. In the end there should be no more reference in the MemDiffStore(..) type at all.",
+      "parentUuid": "98a00abb_e103e8da",
+      "revId": "c65cca548ef833b2e0f88ee34c287fd4afa7d442",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
