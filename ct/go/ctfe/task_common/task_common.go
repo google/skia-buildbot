@@ -658,7 +658,7 @@ func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 		clData["chromium_patch"] = patch
 	case "skia":
 		clData["skia_patch"] = patch
-	case "v8":
+	case "v8/v8":
 		clData["v8_patch"] = patch
 	case "catapult":
 		clData["catapult_patch"] = patch
