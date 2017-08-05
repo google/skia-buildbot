@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b61b6d3d_65ce2118",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-05T21:49:51Z",
+      "side": 1,
+      "message": "Add unit tests that make sure the new functionality with a non-nil codec does what we expect.",
+      "range": {
+        "startLine": 214,
+        "startChar": 135,
+        "endLine": 214,
+        "endChar": 155
+      },
+      "revId": "c0bbebd4d150f63e482a837423daeb0659d20937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18ffe45c_c6746933",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-05T21:49:51Z",
+      "side": 1,
+      "message": "1. prefer \u0027diffMetrics\u0027 over \u0027dm\u0027 as the latter feels too abbreviated.\n\n2. It still feels weird to have just a totally generic interface{}, like a void* where saveDiffMetric does who know what with it. Thoughts, or can explore alternate way once we have stephana feedback though.",
+      "range": {
+        "startLine": 467,
+        "startChar": 84,
+        "endLine": 467,
+        "endChar": 95
+      },
+      "revId": "c0bbebd4d150f63e482a837423daeb0659d20937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fd3eeda_ab1ea5f0",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-05T21:49:51Z",
+      "side": 1,
+      "message": "Separate from this change -- maybe the method names should be plural to match the object and param name? Similar for methods below.",
+      "range": {
+        "startLine": 79,
+        "startChar": 23,
+        "endLine": 79,
+        "endChar": 37
+      },
+      "revId": "c0bbebd4d150f63e482a837423daeb0659d20937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
