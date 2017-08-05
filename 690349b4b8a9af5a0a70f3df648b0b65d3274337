@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94b4df8b_ffdb20f0",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-05T02:01:47Z",
+      "side": 0,
+      "message": "Doesn\u0027t seem like this is being called anywhere and it also contains a reference to diff.DiffMetrics, so I took it out.",
+      "revId": "690349b4b8a9af5a0a70f3df648b0b65d3274337",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
