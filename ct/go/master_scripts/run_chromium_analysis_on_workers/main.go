@@ -173,7 +173,7 @@ func main() {
 	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
 	// Create the required chromium build.
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return
