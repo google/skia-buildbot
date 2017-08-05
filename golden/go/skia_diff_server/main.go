@@ -70,7 +70,7 @@ func main() {
 	}
 
 	// Get the DiffStore that does the work loading and diffing images. .
-	memDiffStore, err := diffstore.NewMemDiffStore(client, nil, *imageDir, strings.Split(*gsBucketNames, ","), *gsBaseDir, *cacheSize, nil)
+	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), *gsBaseDir, *cacheSize, nil, nil, nil)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
