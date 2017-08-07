@@ -136,8 +136,16 @@ func (c *AutoRollStatusCache) Set(s *AutoRollStatus) error {
 func (c *AutoRollStatusCache) GetMini() *AutoRollMiniStatus {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
-	return &AutoRollMiniStatus{
+	rv := &AutoRollMiniStatus{
+		LastRollRev:         c.lastRollRev,
 		NumFailedRolls:      c.numFailed,
 		NumNotRolledCommits: c.numNotRolled,
 	}
+	if c.currentRoll != nil {
+		rv.CurrentRollRev = c.currentRoll.RollingTo
+	}
+	if c.mode != nil {
+		rv.Mode = c.mode.Mode
+	}
+	return rv
 }
