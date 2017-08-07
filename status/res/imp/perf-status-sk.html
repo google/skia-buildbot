@@ -17,32 +17,27 @@
 -->
 
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
-
+<link rel="import" href="/res/common/imp/styles-sk.html">
 <link rel="import" href="/res/common/imp/timer-sk.html">
-
 <dom-module id="perf-status-sk">
   <template>
-    <style>
+    <style include="styles-sk">
       a {
-        color: var(--status-sk-text-color);
+        color: var(--status-sk-main-text-color);
         text-decoration: none;
+        text-transform: none;
       }
       a:hover {
         text-decoration: underline;
       }
-      .label {
-        padding: 5px;
-        text-transform: none;
+      .table {
+        width: 100%;
       }
       .value {
         background-color: var(--status-sk-icon-color);
         border-radius: 3px;
         padding: 5px;
-      }
-      iron-icon {
-        color: var(--status-sk-icon-color);
+        margin: 5px;
       }
     </style>
 
@@ -53,16 +48,14 @@
       timeout="30000"
       last-response="{{_perfAlerts}}">
     </iron-ajax>
+    <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
 
-    <timer-sk period="[[reload]]" on-trigger="_reload">
-
-    <a href="https://perf.skia.org/t/" target="_blank">
-      <paper-button>
-        <iron-icon icon="icons:trending-up"></iron-icon>
-        <span class="label">perf alerts</span>
-        <span class="value">{{_perfAlerts.alerts}}</span>
-      </paper-button>
-    </a>
+    <div class="table">
+      <a href="https://perf.skia.org/t/" target="_blank" class="tr">
+        <div class="td">regressions</div>
+        <div class="td number"><span class="value">{{_perfAlerts.alerts}}</span></div>
+      </a>
+    </div>
 
   </template>
   <script>
