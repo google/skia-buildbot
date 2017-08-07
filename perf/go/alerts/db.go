@@ -108,6 +108,10 @@ func (s *Store) List(includeDeleted bool) ([]*Config, error) {
 		}
 		cfg.ID = id
 		cfg.State = ConfigState(state)
+		if err := cfg.Validate(); err != nil {
+			sklog.Errorf("Found an invalid alert %v: %s", *cfg, err)
+		}
+		sklog.Warningf("Got: %v", *cfg)
 		ret = append(ret, cfg)
 	}
 

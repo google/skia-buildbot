@@ -182,9 +182,6 @@ func newParamsetProvider(freshDataFrame *dataframe.Refresher) regression.Paramse
 
 // newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
 // of alerts.Config to run continuous clustering against.
-//
-// Note that this builds a fixed set of alerts.Config's. In the future this
-// will be switched over to use the configs stored in the alerts.Store.
 func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.ConfigProvider {
 	return func() ([]*alerts.Config, error) {
 		return alertStore.List(false)
@@ -859,6 +856,13 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve clusters.")
 		return
+	}
+
+	for k, v := range regMap {
+		sklog.Warningf("Regression: %s: %#v", k, *v)
+		for id, reg := range v.ByAlertID {
+			sklog.Warningf("  Regression by id: %s: %#v", id, *reg)
+		}
 	}
 
 	headers, err := configProvider()
