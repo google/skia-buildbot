@@ -35,7 +35,7 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-9.0",
+        "os:Debian-9.1",
         "gpu:none",
         "cpu:x86-64-avx2"
       ],
@@ -68,7 +68,7 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-9.0",
+        "os:Debian-9.1",
         "gpu:none",
         "cpu:x86-64-avx2"
       ],
@@ -101,7 +101,7 @@
       ],
       "dimensions": [
         "pool:Skia",
-        "os:Debian-9.0",
+        "os:Debian-9.1",
         "gpu:none",
         "cpu:x86-64-avx2"
       ],
