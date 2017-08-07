@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "97678dde_0e61ec00",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-07T18:22:09Z",
+      "side": 1,
+      "message": "As far as I know, passing in a generic interface{} seems like the only way to create completely custom diff metrics structs as well as leverage the diff.DiffFn signature that we created. In other words, it seems as if the point of implementing the diff function abstraction was so that we could pass in a generic interface{} in places like this and not have any reference to a specific metrics struct anywhere in the diffstore code. saveDiffMetric will know what to do with it using the codec defined in this patch.",
+      "parentUuid": "18ffe45c_c6746933",
+      "range": {
+        "startLine": 467,
+        "startChar": 84,
+        "endLine": 467,
+        "endChar": 95
+      },
+      "revId": "c0bbebd4d150f63e482a837423daeb0659d20937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3fd3eeda_ab1ea5f0",
         "filename": "golden/go/diffstore/metrics_store.go",
         "patchSetId": 3
@@ -59,6 +83,30 @@
       "writtenOn": "2017-08-05T21:49:51Z",
       "side": 1,
       "message": "Separate from this change -- maybe the method names should be plural to match the object and param name? Similar for methods below.",
+      "range": {
+        "startLine": 79,
+        "startChar": 23,
+        "endLine": 79,
+        "endChar": 37
+      },
+      "revId": "c0bbebd4d150f63e482a837423daeb0659d20937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c29a5947_34e0c282",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-07T18:22:09Z",
+      "side": 1,
+      "message": "Sgtm, but Stephan created these functions initially so will wait for his feedback.",
+      "parentUuid": "3fd3eeda_ab1ea5f0",
       "range": {
         "startLine": 79,
         "startChar": 23,
