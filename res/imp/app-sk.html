@@ -50,7 +50,6 @@ Events:
 <link rel="import" href="/res/imp/bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
-<link rel="import" href="app-menu-sk.html">
 <link rel="import" href="error-toast-sk.html">
 <link rel="import" href="login.html">
 <link rel="import" href="version-sk.html">
@@ -76,6 +75,7 @@ Events:
       @apply(--app-sk-main);
     };
     --paper-drawer-panel-left-drawer-container: {
+      z-index: 10;
       @apply(--app-sk-drawer);
     };
   }
@@ -87,7 +87,6 @@ Events:
         <content select="[header], header, [toolbar], toolbar"></content>
         <div class="flex"></div>
         <content select="[rtoolbar], rtoolbar"></content>
-        <app-menu-sk></app-menu-sk>
         <login-sk id="login" email="{{logged_in_email}}"></login-sk>
       </paper-toolbar>
       <template is="dom-if" if="{{no_drawer}}">

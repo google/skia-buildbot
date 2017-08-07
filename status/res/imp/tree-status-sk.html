@@ -71,7 +71,7 @@
       handle-as="json"
       last-response="{{_trooperStatus}}">
     </iron-ajax>
-    <timer-sk period="[[reload]]" on-trigger="_reload">
+    <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
     <div>
       <a href="https://skia-tree-status.appspot.com" target="_blank">{{_message}}</a>
       [{{_author}}

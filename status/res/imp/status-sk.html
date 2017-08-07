@@ -35,6 +35,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/res/common/imp/app-sk.html">
+<link rel="import" href="/res/common/imp/styles-sk.html">
 <link rel="import" href="/res/common/imp/url-params-sk.html">
 
 <link rel="import" href="autoroll-widget-sk.html">
@@ -48,45 +49,55 @@
 
 <dom-module id="status-sk">
   <template>
-    <style include="iron-flex iron-flex-alignment iron-positioning">
+    <style include="iron-flex iron-flex-alignment iron-positioning styles-sk">
       :host{
         --app-sk-main: {
           background-color: transparent;
           font-family: sans-serif;
         };
-        --status-sk-header-color: #66A61E;
-        --status-sk-icon-color: #E6AB02;
-        --status-sk-text-color: white;
+        --app-sk-drawer: {
+          overflow: auto;
+        };
+        --menu-item-sk-icon-color: var(--color-lightorange);
+        --paper-item: {
+          font-size: 12px;
+          padding: 0px;
+        };
+        --paper-item-min-height: 30px;
+        --status-sk-icon-color: var(--color-lightorange);
+        --status-sk-main-text-color: black;
+        --status-sk-header-background-color: var(--color-lightgreen);
+        --status-sk-header-text-color: white;
       }
       app-sk {
         --app-sk-toolbar: {
-          color: var(--status-sk-text-color);
+          color: var(--status-sk-header-text-color);
           font-size: 15px;
           font-family: sans-serif;
           text-align: center;
 
-          background-color: var(--status-sk-header-color);
+          background-color: var(--status-sk-header-background-color);
         };
         login-sk{
-          --login-sk-color: var(--status-sk-text-color);
+          --login-sk-color: var(--status-sk-header-text-color);
         };
       }
 
-      #infobar {
-        margin-left:5%;
-        margin-right:5%;
+      autoroll-widget-sk, gold-status-sk, perf-status-sk {
+        font-size: 12px;
       }
 
-      paper-button.roles {
-        color:var(--status-sk-text-color);
+      .container h2 {
+        font-size: 16px;
+      }
+
+      paper-item {
+        color: #000000;
         text-transform: none;
       }
-      paper-button.roles>iron-icon {
-        color:#E6AB02;
-      }
-
-      autoroll-widget-sk {
-        margin-right: 25px;
+      paper-item > iron-icon {
+        color: var(--status-sk-icon-color);
+        margin-right: 5px;
       }
 
       #mainContent {
@@ -111,16 +122,11 @@
       }
 
       a {
-        color:var(--status-sk-text-color);
         text-decoration: none;
       }
 
       a:hover {
         text-decoration: underline;
-      }
-
-      #infobar iron-icon {
-        color: var(--status-sk-icon-color);
       }
 
       h1 {
@@ -172,86 +178,95 @@
     <url-param-sk name="commit" value="{{highlighted_commit_hashes}}" multi></url-param-sk>
 
     <app-sk id="app" class="fit"
+        drawer_width="233px"
         mode="waterfall"
-        tall_class="tall"
+        tall_class="standard"
         responsive_width="800px"
-        header_height="120px"
-        header_responsive_height="56px"
+        header_height="64px"
+        header_responsive_height="64px"
         logged_in_email="{{email}}"
         narrow="{{narrow}}">
-      <status-menu-section-sk repos="[[repos]]" navigation></status-menu-section-sk>
+
+      <div class="container" navigation>
+        <h2>Navigation</h2>
+        <status-menu-section-sk repos="[[repos]]"></status-menu-section-sk>
+      </div>
+
+      <div class="container" navigation>
+        <h2>AutoRollers</h2>
+        <autoroll-widget-sk class="shrinkable" navigation
+          reload="[[reload]]"
+          rollers="{{roll_statuses}}"
+          on-update="_handleAutoRollUpdate"
+          >
+        </autoroll-widget-sk>
+      </div>
+
+      <div class="container" navigation>
+        <h2>Perf</h2>
+        <perf-status-sk title="Active Perf alerts" reload="[[reload]]"></perf-status-sk>
+      </div>
+
+      <div class="container" navigation>
+        <h2>Gold</h2>
+        <gold-status-sk title="Skia Gold: Untriaged image count" reload="[[reload]]"></gold-status-sk>
+      </div>
+
+      <div class="container" navigation>
+        <h2>Rotations</h2>
+        <div>
+          <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" rel="noopener noreferrer">
+            <paper-item id="sheriff-button" title="The current Skia sheriff">
+              <iron-icon icon="icons:star"></iron-icon>
+              Sheriff: [[sheriff]]
+            </paper-item>
+          </a>
+        </div>
+        <div>
+          <a href="http://skia-tree-status.appspot.com/gpu-sheriff" target="_blank" rel="noopener noreferrer">
+            <paper-item id="wrangler-button" title="The current GPU wranger">
+              <iron-icon icon="icons:gesture"></iron-icon>
+              Wrangler: [[wrangler]]
+            </paper-item>
+          </a>
+        </div>
+        <div>
+          <a href="http://skia-tree-status.appspot.com/robocop" target="_blank" rel="noopener noreferrer">
+            <paper-item id="robocop-button" title="The current Android robocop">
+              <iron-icon icon="icons:android"></iron-icon>
+              Robocop: [[robocop]]
+            </paper-item>
+          </a>
+        </div>
+        <div>
+          <a href="http://skia-tree-status.appspot.com/trooper" target="_blank" rel="noopener noreferrer">
+            <paper-item id="trooper-button" title="The current Infra trooper">
+              <iron-icon icon="hardware:sim-card"></iron-icon>
+              Trooper: [[trooper]]
+            </paper-item>
+          </a>
+        </div>
+      </div>
 
       <h1 class="shrinkable" toolbar>Status: [[repo]]</h1>
 
-      <autoroll-widget-sk title="Fuchsia roll status" class="shrinkable" rtoolbar
-        reload="[[reload]]"
-        name="Fuchsia"
-        url="https://fuchsia-roll.skia.org"
-
-        status="{{fuchsia_roll_status}}">
-      </autoroll-widget-sk>
-
-      <autoroll-widget-sk title="Android roll status" class="shrinkable" rtoolbar
-        reload="[[reload]]"
-        name="Android"
-        url="https://android-master-roll.skia.org"
-
-        status="{{android_roll_status}}">
-      </autoroll-widget-sk>
-
-      <autoroll-widget-sk title="Skia DEPS roll status" class="shrinkable" rtoolbar
-        reload="[[reload]]"
-        name="Cr"
-        url="https://autoroll.skia.org"
-
-        status="{{cr_roll_status}}">
-      </autoroll-widget-sk>
-
-      <tree-status-sk class="shrinkable" rtoolbar
-        reload="[[reload]]"
-
-        open="{{open}}"
-        sheriff="{{sheriff}}"
-        wrangler="{{wrangler}}"
-        robocop="{{robocop}}"
-        trooper="{{trooper}}">
-      </tree-status-sk>
-
-      <div id="infobar" class="bottom horizontal layout flex shrinkable" toolbar>
-        <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" rel="noopener noreferrer">
-        <paper-button id="sheriff-button" class="roles" title="The current Skia sheriff"><iron-icon icon="icons:star"></iron-icon>
-            Sheriff: [[sheriff]]
-          </paper-button>
-        </a>
-        <a href="http://skia-tree-status.appspot.com/gpu-sheriff" target="_blank" rel="noopener noreferrer">
-        <paper-button id="wrangler-button" class="roles" title="The current GPU wranger"><iron-icon icon="icons:gesture"></iron-icon>
-            Wrangler: [[wrangler]]
-          </paper-button>
-        </a>
-        <a href="http://skia-tree-status.appspot.com/robocop" target="_blank" rel="noopener noreferrer">
-        <paper-button id="robocop-button" class="roles" title="The current Android robocop"><iron-icon icon="icons:android"></iron-icon>
-            Robocop: [[robocop]]
-          </paper-button>
-        </a>
-        <a href="http://skia-tree-status.appspot.com/trooper" target="_blank" rel="noopener noreferrer">
-        <paper-button id="trooper-button" class="roles" title="The current Infra trooper"><iron-icon icon="hardware:sim-card"></iron-icon>
-            Trooper: [[trooper]]
-          </paper-button>
-        </a>
-        <div class="flex"></div>
-        <perf-status-sk title="Active Perf alerts" reload="[[reload]]"></perf-status-sk>
-        <gold-status-sk title="Skia Gold: Untriaged image count" reload="[[reload]]"></gold-status-sk>
+      <div rtoolbar class="horizontal layout center flex">
+        <tree-status-sk
+          reload="[[reload]]"
+          open="{{open}}"
+          sheriff="{{sheriff}}"
+          wrangler="{{wrangler}}"
+          robocop="{{robocop}}"
+          trooper="{{trooper}}">
+        </tree-status-sk>
       </div>
 
       <div id="mainContent">
         <commits-canvas-sk id="can" class="shrinkable"
-          cr_roll="[[cr_roll_status]]"
-          android_roll="[[android_roll_status]]"
-          fuchsia_roll="[[fuchsia_roll_status]]"
+          roll_statuses="[[roll_statuses]]"
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
           repo_base="[[repo_base]]"
-
           commits_to_load="{{commits_to_load}}"
           reload="{{reload}}">
         </commits-canvas-sk>
@@ -274,7 +289,6 @@
             reverted_map="[[reverted_map]]"
             task_scheduler_url="[[task_scheduler_url]]"
             time_points="[[time_points]]"
-
             commit_label="{{label}}"
             drawing="{{drawing}}"
             filter="{{filter}}"
@@ -282,18 +296,12 @@
         </commits-table-sk>
 
         <commits-data-sk id="data"
-            cr_roll_current="[[cr_roll_status.currentRollRev]]"
-            cr_roll_last="[[cr_roll_status.lastRollRev]]"
-            android_roll_current="[[android_roll_status.currentRollRev]]"
-            android_roll_last="[[android_roll_status.lastRollRev]]"
-            fuchsia_roll_current="[[fuchsia_roll_status.currentRollRev]]"
-            fuchsia_roll_last="[[fuchsia_roll_status.lastRollRev]]"
+            roll_statuses="[[roll_statuses]]"
             commits_to_load="[[commits_to_load]]"
             filter="[[filter]]"
             reload="[[reload]]"
             repo="[[repo]]"
             search="[[search]]"
-
             branch_heads="{{branch_heads}}"
             build_details="{{build_details}}"
             builders="{{builders}}"
@@ -333,6 +341,9 @@
       },
       repos: {
         type: Array,
+        value: function() {
+          return ["Skia", "Skia Infra"];
+        },
       },
 
       // private
@@ -395,18 +406,16 @@
     _treeOpen: function(open) {
       // updateStyles must be called after setting these to make sure they
       // propagate through all the children.
+      var s = window.getComputedStyle(document.body);
       if (open === "open") {
-        this.customStyle["--status-sk-icon-color"] = "#E6AB02";
-        this.customStyle["--status-sk-text-color"] = "white";
-        this.customStyle["--status-sk-header-color"] = "#66A61E";
+        this.customStyle["--status-sk-header-text-color"] = "white";
+        this.customStyle["--status-sk-header-background-color"] = s.getPropertyValue("--color-lightgreen");
       } else if (open === "caution") {
-        this.customStyle["--status-sk-icon-color"] = "#9b9b9b";
-        this.customStyle["--status-sk-text-color"] = "black";
-        this.customStyle["--status-sk-header-color"] = "#eeb000";
+        this.customStyle["--status-sk-header-text-color"] = "black";
+        this.customStyle["--status-sk-header-background-color"] = s.getPropertyValue("--color-lightorange");
       } else {
-        this.customStyle["--status-sk-icon-color"] = "#E6AB02";
-        this.customStyle["--status-sk-text-color"] = "white";
-        this.customStyle["--status-sk-header-color"] = "#D95F02";
+        this.customStyle["--status-sk-header-text-color"] = "white";
+        this.customStyle["--status-sk-header-background-color"] = s.getPropertyValue("--color-redorange");
       }
       Polymer.updateStyles();
 
@@ -428,6 +437,10 @@
         head.removeChild(oldIcon);
       }
       head.appendChild(link);
+    },
+
+    _handleAutoRollUpdate: function() {
+      this.$.data.forceUpdate();
     },
   });
   </script>

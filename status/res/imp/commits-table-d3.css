@@ -61,22 +61,6 @@ commits-table-d3-sk iron-icon.tiny {
   height: 12px;
 }
 
-commits-table-d3-sk iron-icon.revert {
-  color: #D95F02;
-}
-
-commits-table-d3-sk div.revert {
-  background-color: #D95F02;
-}
-
-commits-table-d3-sk iron-icon.reland {
-  color: #66a61e;
-}
-
-commits-table-d3-sk div.reland {
-  background-color: #66a61e;
-}
-
 commits-table-d3-sk .category {
   border-top: 1px solid black;
   display:flex;

@@ -25,13 +25,14 @@
 -->
 
 <link rel="import" href="/res/common/imp/human-date-sk.html">
+<link rel="import" href="/res/common/imp/styles-sk.html">
 <link rel="import" href="/res/common/imp/timer-sk.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 
 <dom-module id="job-sk">
   <template>
-    <style include="iron-flex iron-flex-alignment">
+    <style include="iron-flex iron-flex-alignment styles-sk">
     <style>
     :host {
       font-family: sans-serif;
@@ -41,41 +42,6 @@
       color: #fff;
       font-family: 'Roboto', 'Noto', sans-serif;
       font-size: 1.0em;
-    }
-    .container {
-      margin: 5px;
-      padding: 10px;
-      border: 1px solid #eeeeee;
-    }
-    .container h2 {
-      font-size: 18px;
-    }
-    .table {
-      border-collapse: collapse;
-      display: table;
-    }
-    .tr {
-      border-bottom: 1px solid #EEEEEE;
-      display: table-row;
-    }
-    .tr:hover {
-      background-color: #F5F5F5;
-    }
-    .tr:hover .tr:hover {
-      background-color: #FFFFFF;
-    }
-    .td,.th {
-      display: table-cell;
-      padding: 10px;
-    }
-    .td {
-      color: #212121;
-      font-size: 0.813em;
-      vertical-align: middle;
-    }
-    .th {
-      color: #767676;
-      font-size: 0.75em;
     }
     </style>
     <timer-sk id="timer" period="[[_reload]]" on-trigger="_loadJob">

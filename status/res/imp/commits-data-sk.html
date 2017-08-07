@@ -21,12 +21,7 @@
 
   Properties:
     // inputs
-    cr_roll_current: String, the commit hash of the current cr_roll.
-    cr_roll_last: String the commit hash of the previous cr_roll.
-    android_roll_current: String, the commit hash of the current android_roll.
-    android_roll_last: String the commit hash of the previous android_roll.
-    fuchsia_roll_current: String, the commit hash of the current fuchsia_roll.
-    fuchsia_roll_last: String the commit hash of the previous fuchsia_roll.
+    roll_statuses: Array, Status information about the autorollers, as defined in autoroll-widget-sk.html.
     commits_to_load: Number, the number of commits to load from the backend
     filter: String, the builder filter to be used.
     reload: How often (in seconds) to reload the data.
@@ -47,7 +42,8 @@
     reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it
 
   Methods:
-    None.
+    forceUpdate: Force the commits-data-sk to re-evaluate its data. Useful for
+        when Polymer does not automatically trigger updates, eg. for complex objects.
 
   Events:
     None.
@@ -68,16 +64,11 @@
       last-response="{{_data}}">
     </iron-ajax>
 
-    <timer-sk period="[[reload]]" on-trigger="_reload">
+    <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
   </template>
 
   <script>
     (function() {
-    var COLOR_BUILD_PENDING = "rgba(230, 171, 2, 0.0)";
-    var COLOR_BUILD_SUCCESS = "rgba(102, 166, 30, 0.3)";
-    var COLOR_BUILD_FAILED = "#D95F02";
-    var COLOR_BUILD_EXCEPTION = "#7570B3";
-
     var VALID_BUILDER_CATEGORIES = ["Build", "Housekeeper", "Infra", "Perf", "Test", "Upload"];
 
     var BUILDBOT_RESULT_SUCCESS = 0;
@@ -211,21 +202,22 @@
       return '';
     }
 
-    function getBuildColor(build) {
+    function getBuildColorClass(build) {
+      // These styles are from the styles-sk module.
       if (!build.finished) {
-        return COLOR_BUILD_PENDING;
+        return "bg-inprogress";
       } else if (build.results == BUILDBOT_RESULT_SUCCESS ||
                  build.results == BUILDBOT_RESULT_WARNINGS ||
                  build.results == BUILDBOT_RESULT_SKIPPED) {
-        return COLOR_BUILD_SUCCESS;
+        return "bg-success";
       } else if (build.results == BUILDBOT_RESULT_FAILURE) {
-        return COLOR_BUILD_FAILED;
+        return "bg-failure";
       } else if (build.results == BUILDBOT_RESULT_EXCEPTION ||
                  build.results == BUILDBOT_RESULT_CANCELLED) {
-        return COLOR_BUILD_EXCEPTION;
+        return "bg-exception";
       }
       console.log("Unknown color for build "+build);
-      return COLOR_BUILD_PENDING;
+      return "bg-inprogress";
     }
 
     function maybeSetBuildUrls(build) {
@@ -252,29 +244,11 @@
       is: "commits-data-sk",
       properties: {
         // input only
-        cr_roll_current:{
-          type: String,
-          value: "",
-        },
-        cr_roll_last: {
-          type: String,
-          value: "",
-        },
-        android_roll_current:{
-          type: String,
-          value: "",
-        },
-        android_roll_last: {
-          type: String,
-          value: "",
-        },
-        fuchsia_roll_current:{
-          type: String,
-          value: "",
-        },
-        fuchsia_roll_last: {
-          type: String,
-          value: "",
+        roll_statuses: {
+          type: Array,
+          value: function() {
+            return [];
+          },
         },
         commits_to_load: {
           type: Number,
@@ -409,7 +383,7 @@
       },
 
       observers: [
-        "_parseData(_data, cr_roll_current, cr_roll_last, android_roll_current, android_roll_last, fuchsia_roll_current, fuchsia_roll_last)",
+        "_parseData(_data, roll_statuses.*)",
       ],
 
       _computeURL: function(repo) {
@@ -440,9 +414,7 @@
         this.$.data.generateRequest();
       },
 
-      _parseData: function(
-          data, cr_roll_current, cr_roll_last, android_roll_current, android_roll_last,
-          fuchsia_roll_current, fuchsia_roll_last) {
+      _parseData: function(data) {
         if (!data || !data.commits) {
           console.log("Nothing to parse");
           return;
@@ -491,7 +463,7 @@
           commit.displayClass = {};
           for (var builder in build_details[commit.hash]) {
             var build = build_details[commit.hash][builder];
-            build.color = getBuildColor(build);
+            build.colorClass = getBuildColorClass(build);
             maybeSetBuildUrls(build);
 
             if (!builds[builder]) {
@@ -503,7 +475,7 @@
                   "master": build.master,
                   // We're traveling backward in time, so the first build we
                   // find for a given builder is its most recent.
-                  "color": build.color,
+                  "colorClass": build.colorClass,
                   "flaky": false,
                   "ignoreFailure": false,
               };
@@ -588,42 +560,20 @@
           var b = data.branch_heads[i];
           filteredBranchHeads.push(b);
         }
-        if (cr_roll_last) {
-          filteredBranchHeads.push({
-              name: "Chrome rolled",
-              head: cr_roll_last,
-          });
-        }
-        if (android_roll_last) {
-          filteredBranchHeads.push({
-              name: "Android rolled",
-              head: android_roll_last,
-          });
-        }
-        if (fuchsia_roll_last) {
-          filteredBranchHeads.push({
-              name: "Fuchsia rolled",
-              head: fuchsia_roll_last,
-          });
-        }
-
-        if (cr_roll_current) {
-          filteredBranchHeads.push({
-            name: "Chrome rolling",
-            head: cr_roll_current,
-          });
-        }
-        if (android_roll_current) {
-          filteredBranchHeads.push({
-            name: "Android rolling",
-            head: android_roll_current,
-          });
-        }
-        if (fuchsia_roll_current) {
-          filteredBranchHeads.push({
-            name: "Fuchsia rolling",
-            head: fuchsia_roll_current,
-          });
+        for (var i = 0; i < this.roll_statuses.length; i++) {
+          var roll = this.roll_statuses[i];
+          if (roll.lastRollRev) {
+            filteredBranchHeads.push({
+                name: roll.name + " rolled",
+                head: roll.lastRollRev,
+            });
+          }
+          if (roll.currentRollRev) {
+            filteredBranchHeads.push({
+              name: roll.name + " rolling",
+              head: roll.currentRollRev,
+            });
+          }
         }
 
         this.set("branch_heads", filteredBranchHeads);
@@ -831,7 +781,11 @@
             this._filterBuilders();
           }
         }.bind(this), 400);
-      }
+      },
+
+      forceUpdate: function() {
+        this._parseData(this._data, this.roller_statuses);
+      },
     });
     })();
   </script>
