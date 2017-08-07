@@ -188,9 +188,6 @@ type MemDiffStore struct {
 	// diffMetricsCache caches and calculates diff metrics and images.
 	diffMetricsCache rtcache.ReadThroughCache
 
-	// diffFn is called on two images to output diff metrics and the diff image
-	diffFn diff.DiffFn
-
 	// imgLoader fetches and caches images.
 	imgLoader *ImageLoader
 
@@ -200,6 +197,9 @@ type MemDiffStore struct {
 	// wg is used to synchronize background operations like saving files. Used for testing.
 	wg sync.WaitGroup
 
+	// diffFn is called on two images to output diff metrics and the diff image
+	diffFn diff.DiffFn
+
 	// mapper contains various functions for creating image IDs and paths.
 	mapper IDPathMapper
 }
@@ -208,9 +208,10 @@ type MemDiffStore struct {
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-// If diffFn is nil, the diff.DefaultDiffFn will be used.
+// If diffFn is not specified, the diff.DefaultDiffFn will be used. If codec is
+// not specified, a JSON codec for the diff.DiffMetrics struct will be used.
 // If mapper is not specified, GoldIDPathMapper will be used.
-func NewMemDiffStore(client *http.Client, diffFn diff.DiffFn, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int, mapper IDPathMapper) (diff.DiffStore, error) {
+func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int, diffFn diff.DiffFn, codec util.LRUCodec, mapper IDPathMapper) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
@@ -220,13 +221,16 @@ func NewMemDiffStore(client *http.Client, diffFn diff.DiffFn, baseDir string, gs
 	if mapper == nil {
 		mapper = GoldIDPathMapper{}
 	}
-
 	imgLoader, err := newImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount, mapper)
 	if err != err {
 		return nil, err
 	}
 
-	mStore, err := newMetricStore(baseDir, mapper.SplitDiffID)
+	// Default to util.JSONCodec(&diff.DiffMetrics{}) if codec not specified
+	if codec == nil {
+		codec = util.JSONCodec(&diff.DiffMetrics{})
+	}
+	mStore, err := newMetricsStore(baseDir, mapper.SplitDiffID, codec)
 	if err != nil {
 		return nil, err
 	}
@@ -235,13 +239,12 @@ func NewMemDiffStore(client *http.Client, diffFn diff.DiffFn, baseDir string, gs
 	if diffFn == nil {
 		diffFn = diff.DefaultDiffFn
 	}
-
 	ret := &MemDiffStore{
 		baseDir:      baseDir,
 		localDiffDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
-		diffFn:       diffFn,
 		imgLoader:    imgLoader,
 		metricsStore: mStore,
+		diffFn:       diffFn,
 		mapper:       mapper,
 	}
 
@@ -311,7 +314,7 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 				}
 				mutex.Lock()
 				defer mutex.Unlock()
-				diffMap[right] = ret.(*diff.DiffMetrics)
+				diffMap[right] = ret
 			}(right)
 		}
 	}
@@ -349,7 +352,7 @@ func (m *MemDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
 	}
 	m.diffMetricsCache.Remove(removeKeys)
 
-	if err := m.metricsStore.purgeMetrics(digests); err != nil {
+	if err := m.metricsStore.purgeDiffMetrics(digests); err != nil {
 		return err
 	}
 
@@ -433,7 +436,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	leftDigest, rightDigest := d.mapper.SplitDiffID(id)
 
 	// Load it from disk cache if necessary.
-	if dm, err := d.metricsStore.loadDiffMetric(id); err != nil {
+	if dm, err := d.metricsStore.loadDiffMetrics(id); err != nil {
 		sklog.Errorf("Error trying to load diff metric: %s", err)
 	} else if dm != nil {
 		return dm, nil
@@ -446,27 +449,26 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// We are guaranteed to have two images at this point.
-	diffRec, diffImg := d.diffFn(imgs[0], imgs[1])
+	diffMetrics, diffImg := d.diffFn(imgs[0], imgs[1])
 
-	// encode the result image and save it to disk. If encoding causes an error
+	// Encode the result image and save it to disk. If encoding causes an error
 	// we return an error.
 	var buf bytes.Buffer
 	if err = encodeImg(&buf, diffImg); err != nil {
 		return nil, err
 	}
 
-	// save the diff.DiffMetrics and the diffImage.
-	diffMetrics := diffRec.(*diff.DiffMetrics)
+	// Save the diffMetrics and the diffImage.
 	d.saveDiffInfoAsync(id, leftDigest, rightDigest, diffMetrics, buf.Bytes())
 	return diffMetrics, nil
 }
 
 // saveDiffInfoAsync saves the given diff information to disk asynchronously.
-func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string, dr *diff.DiffMetrics, imgBytes []byte) {
+func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string, diffMetrics interface{}, imgBytes []byte) {
 	d.wg.Add(2)
 	go func() {
 		defer d.wg.Done()
-		if err := d.metricsStore.saveDiffMetric(diffID, dr); err != nil {
+		if err := d.metricsStore.saveDiffMetrics(diffID, diffMetrics); err != nil {
 			sklog.Errorf("Error saving diff metric: %s", err)
 		}
 	}()
@@ -493,17 +495,6 @@ func (d *MemDiffStore) getDiffIds(leftDigests, rightDigests []string) []string {
 		}
 	}
 	return diffIDsSet.Keys()
-}
-
-// makeDiffMap creates a map[string]map[string]*DiffRecord map that is big
-// enough to store the difference between all digests in leftKeys and
-// 'rightLen' items.
-func makeDiffMap(leftKeys []string, rightLen int) map[string]map[string]*diff.DiffMetrics {
-	ret := make(map[string]map[string]*diff.DiffMetrics, len(leftKeys))
-	for _, k := range leftKeys {
-		ret[k] = make(map[string]*diff.DiffMetrics, rightLen)
-	}
-	return ret
 }
 
 // getCacheCounts returns the number of images and diff metrics to cache

@@ -71,8 +71,7 @@ func TestPixelDiffProcessor(t *testing.T) {
 	client := mocks.GetHTTPClient(t)
 	baseDir, err := ioutil.TempDir("", TEST_BASE_DIR)
 	assert.NoError(t, err)
-	mapper := diffstore.PixelDiffIDPathMapper{}
-	diffStore, err := diffstore.NewMemDiffStore(client, nil, baseDir, []string{TEST_GS_BUCKET}, TEST_GS_IMAGE_DIR, 10, mapper)
+	diffStore, err := diffstore.NewMemDiffStore(client, baseDir, []string{TEST_GS_BUCKET}, TEST_GS_IMAGE_DIR, 10, nil, nil, diffstore.PixelDiffIDPathMapper{})
 	assert.NoError(t, err)
 
 	// Set up the ResultStore.

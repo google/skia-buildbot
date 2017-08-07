@@ -4,7 +4,6 @@ import (
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/boltutil"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/diff"
 )
 
 const (
@@ -27,12 +26,15 @@ var (
 type metricsStore struct {
 	// store stores the diff metrics in a boltdb database.
 	store *boltutil.IndexedBucket
+
+	// codec is used to encode/decode the DiffMetrics field of a metricsRec struct
+	codec util.LRUCodec
 }
 
 // metricsRec implements the boltutil.Record interface.
 type metricsRec struct {
-	ID string `json:"id"`
-	*diff.DiffMetrics
+	ID          string `json:"id"`
+	DiffMetrics []byte
 }
 
 // Key see the boltutil.Record interface.
@@ -46,8 +48,8 @@ func (m *metricsRec) IndexValues() map[string][]string {
 	return map[string][]string{METRICS_DIGEST_INDEX: {d1, d2}}
 }
 
-// newMetricStore returns a new instance of metricsStore.
-func newMetricStore(baseDir string, splitFn func(string) (string, string)) (*metricsStore, error) {
+// newMetricsStore returns a new instance of metricsStore.
+func newMetricsStore(baseDir string, splitFn func(string) (string, string), codec util.LRUCodec) (*metricsStore, error) {
 	metricsRecSplitFn = splitFn
 
 	db, err := openBoltDB(baseDir, METRICSDB_NAME+".db")
@@ -69,11 +71,12 @@ func newMetricStore(baseDir string, splitFn func(string) (string, string)) (*met
 
 	return &metricsStore{
 		store: store,
+		codec: codec,
 	}, nil
 }
 
-// loadDiffMetric loads a diffMetric from disk.
-func (m *metricsStore) loadDiffMetric(id string) (*diff.DiffMetrics, error) {
+// loadDiffMetrics loads diff metrics from disk.
+func (m *metricsStore) loadDiffMetrics(id string) (interface{}, error) {
 	recs, err := m.store.Read([]string{id})
 	if err != nil {
 		return nil, err
@@ -82,17 +85,29 @@ func (m *metricsStore) loadDiffMetric(id string) (*diff.DiffMetrics, error) {
 	if recs[0] == nil {
 		return nil, nil
 	}
-	return recs[0].(*metricsRec).DiffMetrics, nil
+
+	// Deserialize the byte array representing the DiffMetrics.
+	diffMetrics, err := m.codec.Decode(recs[0].(*metricsRec).DiffMetrics)
+	if err != nil {
+		return nil, err
+	}
+	return diffMetrics, nil
 }
 
-// saveDiffMetric stores a diffmetric to disk.
-func (m *metricsStore) saveDiffMetric(id string, dr *diff.DiffMetrics) error {
-	rec := &metricsRec{ID: id, DiffMetrics: dr}
+// saveDiffMetrics stores diff metrics to disk.
+func (m *metricsStore) saveDiffMetrics(id string, diffMetrics interface{}) error {
+	// Serialize the diffMetrics.
+	bytes, err := m.codec.Encode(diffMetrics)
+	if err != nil {
+		return err
+	}
+
+	rec := &metricsRec{ID: id, DiffMetrics: bytes}
 	return m.store.Insert([]boltutil.Record{rec})
 }
 
-// purgeMetrics removes all metrics that based on a specific digest.
-func (m *metricsStore) purgeMetrics(digests []string) error {
+// purgeDiffMetrics removes all diff metrics based on specific digests.
+func (m *metricsStore) purgeDiffMetrics(digests []string) error {
 	updateFn := func(tx *bolt.Tx) error {
 		metricIDMap, err := m.store.ReadIndexTx(tx, METRICS_DIGEST_INDEX, digests)
 		if err != nil {
