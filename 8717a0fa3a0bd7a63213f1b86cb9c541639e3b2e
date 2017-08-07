@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cdfcffd9_53b568cd",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-07T17:07:31Z",
+      "side": 0,
+      "message": "GCE team fixed their repo so yes this is not replied.",
+      "parentUuid": "8773e9f4_519ca5d2",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 32
+      },
+      "revId": "8717a0fa3a0bd7a63213f1b86cb9c541639e3b2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f66d4e4_a57f4e1f",
         "filename": "go/gce/swarming/setup-script-linux.sh",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-07T15:13:59Z",
       "side": 0,
       "message": "Added lsb-release to package list above.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 27
+      },
+      "revId": "8717a0fa3a0bd7a63213f1b86cb9c541639e3b2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76bd9272_1a8815e8",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-07T17:07:31Z",
+      "side": 0,
+      "message": "Does that create /etc/lsb-release? I do not remember seeing the file when I installed it (and I was confused why it did not).",
+      "parentUuid": "2f66d4e4_a57f4e1f",
       "range": {
         "startLine": 13,
         "startChar": 0,
