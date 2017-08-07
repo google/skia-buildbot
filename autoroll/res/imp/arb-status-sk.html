@@ -25,6 +25,7 @@
     None
 -->
 <link rel="import" href="/res/common/imp/human-date-sk.html">
+<link rel="import" href="/res/common/imp/styles-sk.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
@@ -32,7 +33,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="stylesheet" href="/res/common/css/md.css">
 <dom-module id="arb-status-sk">
-  <style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning">
+  <style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning styles-sk">
     :host {
       font-family: sans-serif;
     }
@@ -42,38 +43,6 @@
     }
     a,a.visited {
       color: #1f78b4;
-    }
-    .table {
-      border-collapse: collapse;
-      display: table;
-    }
-    .tr {
-      border-bottom: 1px solid #EEEEEE;
-      display: table-row;
-    }
-    .tr:hover {
-      background-color: #F5F5F5;
-    }
-    .td,.th {
-      display: table-cell;
-      padding: 10px;
-    }
-    .td {
-      color: #212121;
-      font-size: 0.813em;
-    }
-    .th {
-      color: #767676;
-      font-size: 0.75em;
-    }
-    .success {
-      color: #66A61E;
-    }
-    .failure {
-      color: #D95F02;
-    }
-    .unknown {
-      color: #666666;
     }
     .big {
       font-size: 1.3em;
@@ -417,13 +386,13 @@
           return "unknown";
         }
         return {
-          "succeeded": "success",
-          "failed": "failure",
-          "in progress": "unknown",
-          "dry run succeeded": "success",
-          "dry run failed": "failure",
-          "dry run in progress": "unknown",
-        }[roll.result] || "unknown";
+          "succeeded": "fg-success",
+          "failed": "fg-failure",
+          "in progress": "fg-unknown",
+          "dry run succeeded": "fg-success",
+          "dry run failed": "fg-failure",
+          "dry run in progress": "fg-unknown",
+        }[roll.result] || "fg-unknown";
       },
 
       _rollResult: function(roll) {
@@ -435,32 +404,32 @@
 
       _statusClass: function(status) {
         return {
-          "idle":                          "unknown",
-          "active":                        "unknown",
-          "success":                       "success",
-          "failure":                       "failure",
-          "throttled":                     "failure",
-          "dry run idle":                  "unknown",
-          "dry run active":                "unknown",
-          "dry run success":               "success",
-          "dry run success; leaving open": "success",
-          "dry run failure":               "failure",
-          "dry run throttled":             "failure",
-          "stopped":                       "failure",
+          "idle":                          "fg-unknown",
+          "active":                        "fg-unknown",
+          "success":                       "fg-success",
+          "failure":                       "fg-failure",
+          "throttled":                     "fg-failure",
+          "dry run idle":                  "fg-unknown",
+          "dry run active":                "fg-unknown",
+          "dry run success":               "fg-success",
+          "dry run success; leaving open": "fg-success",
+          "dry run failure":               "fg-failure",
+          "dry run throttled":             "fg-failure",
+          "stopped":                       "fg-failure",
         }[status] || "";
       },
 
       _trybotClass: function(trybot) {
         if (trybot.status == "STARTED") {
-          return "unknown";
+          return "fg-unknown";
         } else if (trybot.status == "COMPLETED") {
           return {
-            "CANCELED": "failure",
-            "FAILURE": "failure",
-            "SUCCESS": "success",
+            "CANCELED": "fg-failure",
+            "FAILURE": "fg-failure",
+            "SUCCESS": "fg-success",
           }[trybot.result] || "";
         } else {
-          return "unknown";
+          return "fg-unknown";
         }
       },
 
