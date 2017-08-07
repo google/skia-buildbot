@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43c6a34f_70cc2ad7",
+        "filename": "autoroll/res/imp/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-07T16:55:04Z",
+      "side": 1,
+      "message": "Just curious, are there situations where 127.0.0.1 doesn\u0027t work?",
+      "range": {
+        "startLine": 14,
+        "startChar": 48,
+        "endLine": 14,
+        "endChar": 65
+      },
+      "revId": "293cf8f8285e569768db3e07981f47ef45e30096",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29884d56_a9d15fe2",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-07T16:55:04Z",
+      "side": 1,
+      "message": "And \u003cautoroll-row-sk\u003e",
+      "revId": "293cf8f8285e569768db3e07981f47ef45e30096",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93b3ad35_573f9788",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-07T16:55:04Z",
+      "side": 1,
+      "message": "I always like to use \u003d\u003d\u003d for comparing to undefined, otherwise use !s.numFailed to make it clear that you are looking for any falsey value.",
+      "range": {
+        "startLine": 80,
+        "startChar": 30,
+        "endLine": 80,
+        "endChar": 32
+      },
+      "revId": "293cf8f8285e569768db3e07981f47ef45e30096",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0d7cdfc_c74d7870",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-07T16:55:04Z",
+      "side": 1,
+      "message": "uber-nit, trailing whitespace",
+      "range": {
+        "startLine": 159,
+        "startChar": 33,
+        "endLine": 159,
+        "endChar": 34
+      },
+      "revId": "293cf8f8285e569768db3e07981f47ef45e30096",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a774931_8bc7d054",
+        "filename": "status/res/imp/commits-canvas-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-07T16:55:04Z",
+      "side": 1,
+      "message": "nit: Each Object contains at least...",
+      "range": {
+        "startLine": 28,
+        "startChar": 80,
+        "endLine": 28,
+        "endChar": 81
+      },
+      "revId": "293cf8f8285e569768db3e07981f47ef45e30096",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98786ce9_9d58e330",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-07T16:55:04Z",
+      "side": 1,
+      "message": "Can you outline what each of the objects has, or refer to the previous definition of them?",
+      "range": {
+        "startLine": 24,
+        "startChar": 62,
+        "endLine": 24,
+        "endChar": 66
+      },
+      "revId": "293cf8f8285e569768db3e07981f47ef45e30096",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27ad5027_1fecef7f",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 785,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-07T16:55:04Z",
+      "side": 1,
+      "message": "Can you add forceUpdate to the docs above, under functions?",
+      "range": {
+        "startLine": 785,
+        "startChar": 6,
+        "endLine": 785,
+        "endChar": 17
+      },
+      "revId": "293cf8f8285e569768db3e07981f47ef45e30096",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
