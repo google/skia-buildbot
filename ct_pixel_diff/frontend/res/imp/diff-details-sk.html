@@ -9,8 +9,8 @@
     rank - The site popularity rank of the web page.
     left - The nopatch screenshot of the page.
     right - The withpatch screenshot of the page.
-    diffmetrics - The serialized DiffMetrics object that contains the values of
-                  the diff results between the two screenshots.
+    diffmetrics - The serialized DynamicDiffMetrics object that contains the
+                  values of the diff results between the two screenshots.
 
   Methods:
     None
@@ -107,9 +107,11 @@
         <tr><th>Diff Metric</th><th>Value</th></tr>
         <tr><td>Number of Different Pixels</td><td>[[diffmetrics.numDiffPixels]]</td></tr>
         <tr><td>Percentage of Different Pixels</td><td>[[diffmetrics.pixelDiffPercent]]</td></tr>
-        <tr><td>Max Red Difference</td><td>[[diffmetrics.maxRGBADiffs.0]]</td></tr>
-        <tr><td>Max Green Difference</td><td>[[diffmetrics.maxRGBADiffs.1]]</td></tr>
-        <tr><td>Max Blue Difference</td><td>[[diffmetrics.maxRGBADiffs.2]]</td></tr>
+        <tr><td>Max Red Difference</td><td>[[diffmetrics.maxRGBDiffs.0]]</td></tr>
+        <tr><td>Max Green Difference</td><td>[[diffmetrics.maxRGBDiffs.1]]</td></tr>
+        <tr><td>Max Blue Difference</td><td>[[diffmetrics.maxRGBDiffs.2]]</td></tr>
+        <tr><td>Number of Static Pixels</td><td>[[diffmetrics.numStaticPixels]]</td></tr>
+        <tr><td>Number of Dynamic Pixels</td><td>[[diffmetrics.numDynamicPixels]]</td></tr>
       </table>
     </div>
   </template>

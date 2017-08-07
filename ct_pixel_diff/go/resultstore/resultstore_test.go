@@ -7,8 +7,8 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/golden/go/diff"
 )
 
 const (
@@ -43,7 +43,7 @@ func createResultRec(t *testing.T) *ResultRec {
 	rec.Rank = 1
 	rec.NoPatchImg = "lchoi20170719123456/nopatch/1/http___www_google_com"
 	rec.WithPatchImg = "lchoi20170719123456/withpatch/1/http___www_google_com"
-	rec.DiffMetrics = &diff.DiffMetrics{}
+	rec.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{}
 	assert.True(t, rec.HasBothImages())
 
 	return rec
@@ -93,16 +93,12 @@ func TestGetAndPut(t *testing.T) {
 	// Getting a ResultRec, updating it, and putting it back should overwrite the
 	// current record.
 	updateRec := rec
-	updateRec.DiffMetrics = &diff.DiffMetrics{
+	updateRec.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{
 		NumDiffPixels:    1158328,
 		PixelDiffPercent: 98.65482,
-		MaxRGBADiffs:     []int{19, 52, 87, 0},
-		DimDiffer:        false,
-		Diffs: map[string]float32{
-			"percent":  98.65482,
-			"pixel":    1.158328e+06,
-			"combined": 4.4663033,
-		},
+		MaxRGBDiffs:      []int{19, 52, 87, 0},
+		NumStaticPixels:  100,
+		NumDynamicPixels: 200,
 	}
 	err = resultStore.Put(TEST_RUN_ID, TEST_URL, updateRec)
 	assert.NoError(t, err)
@@ -261,20 +257,20 @@ func TestSortRun(t *testing.T) {
 	// Initialize the ResultStore.
 	resultStore := createBoltResultStore(t)
 
-	// Create two ResultRecs and modify the second one.
+	// Create two ResultRecs.
 	recOne := createResultRec(t)
-	recOne.DiffMetrics = &diff.DiffMetrics{
+	recOne.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{
 		NumDiffPixels:    2,
 		PixelDiffPercent: 25,
-		MaxRGBADiffs:     []int{0, 128, 255},
+		MaxRGBDiffs:      []int{0, 128, 255},
 	}
 	recTwo := createResultRec(t)
 	recTwo.URL = TEST_URL_TWO
 	recTwo.Rank = 2
-	recTwo.DiffMetrics = &diff.DiffMetrics{
+	recTwo.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{
 		NumDiffPixels:    1,
 		PixelDiffPercent: 50,
-		MaxRGBADiffs:     []int{7, 128, 248},
+		MaxRGBDiffs:      []int{7, 128, 248},
 	}
 
 	// Put them under different URLs so there are multiple entries associated

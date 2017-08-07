@@ -182,7 +182,7 @@ func OpenImage(filePath string) (image.Image, error) {
 
 // Returns the percentage of pixels that differ, as a float between 0 and 100
 // (inclusive).
-func getPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
+func GetPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
 	return (float32(numDiffPixels) * 100) / float32(totalPixels)
 }
 
@@ -350,7 +350,7 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 
 	return &DiffMetrics{
 		NumDiffPixels:    numDiffPixels,
-		PixelDiffPercent: getPixelDiffPercent(numDiffPixels, totalPixels),
+		PixelDiffPercent: GetPixelDiffPercent(numDiffPixels, totalPixels),
 		MaxRGBADiffs:     maxRGBADiffs,
 		DimDiffer:        (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, resultImg
 }

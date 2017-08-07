@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/util"
@@ -150,7 +151,7 @@ func (p *pixelDiffProcessor) Process(resultsFile ingestion.ResultFileLocation) e
 				return err
 			}
 			if diffResult[rec.WithPatchImg] != nil {
-				rec.DiffMetrics = diffResult[rec.WithPatchImg].(*diff.DiffMetrics)
+				rec.DiffMetrics = diffResult[rec.WithPatchImg].(*dynamicdiff.DynamicDiffMetrics)
 			}
 		}
 

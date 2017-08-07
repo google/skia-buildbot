@@ -12,8 +12,8 @@ import (
 	"github.com/boltdb/bolt"
 
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/golden/go/diff"
 )
 
 const (
@@ -59,7 +59,7 @@ type ResultRec struct {
 	WithPatchImg string
 
 	// DiffMetrics are the results of diffing NoPatchImg and WithPatchImg.
-	DiffMetrics *diff.DiffMetrics
+	DiffMetrics *dynamicdiff.DynamicDiffMetrics
 }
 
 // HasBothImages checks if both the NoPatchImg and WithPatchImg for the
@@ -434,8 +434,8 @@ func sortByPercentDiffPixels(r *resultRecSlice, i, j int) bool {
 
 // Sorts the slice using the maximum red difference.
 func sortByMaxRedDiff(r *resultRecSlice, i, j int) bool {
-	left := r.data[i].DiffMetrics.MaxRGBADiffs[0]
-	right := r.data[j].DiffMetrics.MaxRGBADiffs[0]
+	left := r.data[i].DiffMetrics.MaxRGBDiffs[0]
+	right := r.data[j].DiffMetrics.MaxRGBDiffs[0]
 	if left == right {
 		return r.data[i].URL < r.data[j].URL
 	}
@@ -444,8 +444,8 @@ func sortByMaxRedDiff(r *resultRecSlice, i, j int) bool {
 
 // Sorts the slice using the maximum green difference.
 func sortByMaxGreenDiff(r *resultRecSlice, i, j int) bool {
-	left := r.data[i].DiffMetrics.MaxRGBADiffs[1]
-	right := r.data[j].DiffMetrics.MaxRGBADiffs[1]
+	left := r.data[i].DiffMetrics.MaxRGBDiffs[1]
+	right := r.data[j].DiffMetrics.MaxRGBDiffs[1]
 	if left == right {
 		return r.data[i].URL < r.data[j].URL
 	}
@@ -454,8 +454,8 @@ func sortByMaxGreenDiff(r *resultRecSlice, i, j int) bool {
 
 // Sorts the slice using the maximum blue difference.
 func sortByMaxBlueDiff(r *resultRecSlice, i, j int) bool {
-	left := r.data[i].DiffMetrics.MaxRGBADiffs[2]
-	right := r.data[j].DiffMetrics.MaxRGBADiffs[2]
+	left := r.data[i].DiffMetrics.MaxRGBDiffs[2]
+	right := r.data[j].DiffMetrics.MaxRGBDiffs[2]
 	if left == right {
 		return r.data[i].URL < r.data[j].URL
 	}
