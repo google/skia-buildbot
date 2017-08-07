@@ -22,6 +22,30 @@
       "revId": "2c0389117a8ff0275f18b9eff19ee38ea276cf87",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "53eae620_54b2622d",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-07T16:18:19Z",
+      "side": 1,
+      "message": "I see where you\u0027re coming from, but 99% of the time when I type the same commands I use the short option, and it\u0027s a little confusing at a glance to see, eg. \"mkdir --parents\".",
+      "parentUuid": "437a27d2_7e083706",
+      "range": {
+        "startLine": 7,
+        "startChar": 13,
+        "endLine": 7,
+        "endChar": 25
+      },
+      "revId": "2c0389117a8ff0275f18b9eff19ee38ea276cf87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
