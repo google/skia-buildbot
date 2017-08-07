@@ -117,6 +117,30 @@
       "revId": "8717a0fa3a0bd7a63213f1b86cb9c541639e3b2e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8666b75f_4d2d5918",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-07T17:37:37Z",
+      "side": 0,
+      "message": "Sorry, I was careless. The package provides /usr/bin/lsb_release, not /etc/lsb-release. https://packages.debian.org/stretch/all/lsb-release/filelist\n\nReverted this edit.",
+      "parentUuid": "76bd9272_1a8815e8",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 27
+      },
+      "revId": "8717a0fa3a0bd7a63213f1b86cb9c541639e3b2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
