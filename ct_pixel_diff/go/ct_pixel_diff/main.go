@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/ct_pixel_diff/go/ctdiffingestion"
+	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -21,6 +22,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diffstore"
 	gstorage "google.golang.org/api/storage/v1"
 )
@@ -94,7 +96,8 @@ func main() {
 	}
 
 	// Set up the DiffStore.
-	diffStore, err := diffstore.NewMemDiffStore(client, *imageDir, []string{*gsBucket}, *gsBaseDirs, *cacheSize, nil, nil, diffstore.PixelDiffIDPathMapper{})
+	diffStore, err := diffstore.NewMemDiffStore(client, *imageDir, []string{*gsBucket}, *gsBaseDirs, *cacheSize,
+		dynamicdiff.DynamicContentDiff, util.JSONCodec(&dynamicdiff.DynamicDiffMetrics{}), diffstore.PixelDiffIDPathMapper{})
 	if err != nil {
 		sklog.Fatalf("Allocating local DiffStore failed: %s", err)
 	}

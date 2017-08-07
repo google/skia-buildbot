@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/golden/go/diff"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -75,7 +75,7 @@ func TestJsonDeleteHandler(t *testing.T) {
 		Rank:         1,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/1/http___www_google_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/1/http___www_google_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	recTwo := &resultstore.ResultRec{
 		RunID:        TEST_RUN_ID,
@@ -83,7 +83,7 @@ func TestJsonDeleteHandler(t *testing.T) {
 		Rank:         2,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/2/http___www_google_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/2/http___www_google_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
 	assert.NoError(t, err)
@@ -125,7 +125,7 @@ func TestJsonRenderHandler(t *testing.T) {
 		Rank:         1,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/1/http___www_google_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/1/http___www_google_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	recTwo := &resultstore.ResultRec{
 		RunID:        TEST_RUN_ID,
@@ -133,7 +133,7 @@ func TestJsonRenderHandler(t *testing.T) {
 		Rank:         2,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/2/http___www_google_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/2/http___www_google_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
 	assert.NoError(t, err)
@@ -176,7 +176,7 @@ func TestJsonSortHandler(t *testing.T) {
 		Rank:         1,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/1/http___www_google_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/1/http___www_google_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	recTwo := &resultstore.ResultRec{
 		RunID:        TEST_RUN_ID,
@@ -184,7 +184,7 @@ func TestJsonSortHandler(t *testing.T) {
 		Rank:         2,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/2/http___www_youtube_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/2/http___www_youtube_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
 	assert.NoError(t, err)
@@ -224,7 +224,7 @@ func TestJsonURLsHandler(t *testing.T) {
 		URL:          TEST_URL,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/1/http___www_google_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/1/http___www_google_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	recTwo := &resultstore.ResultRec{
 		RunID:        TEST_RUN_ID,
@@ -232,7 +232,7 @@ func TestJsonURLsHandler(t *testing.T) {
 		Rank:         2,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/2/http___www_youtube_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/2/http___www_youtube_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
 	assert.NoError(t, err)
@@ -278,7 +278,7 @@ func TestJsonSearchHandler(t *testing.T) {
 		URL:          TEST_URL,
 		NoPatchImg:   "lchoi-20170726123456/nopatch/1/http___www_google_com",
 		WithPatchImg: "lchoi-20170726123456/withpatch/1/http___www_google_com",
-		DiffMetrics:  &diff.DiffMetrics{},
+		DiffMetrics:  &dynamicdiff.DynamicDiffMetrics{},
 	}
 	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
 	assert.NoError(t, err)
