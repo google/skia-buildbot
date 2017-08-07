@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "16e9271a_34e423f9",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-07T18:47:23Z",
+      "side": 1,
+      "message": "Not for now, but the arguments are getting a bit out of hand. \nMaybe we should have a type like this:\n\ntype StoreOpt struct {\n   Client *http.Client \n   ...\n   ...\n   Mapper IDPathMapper\n}\n\nand a constructor like this: \n\nfunc NewMemDiffStore(opt *StoreOpt) (diff.DiffStore, error) { ... }",
+      "revId": "c0bbebd4d150f63e482a837423daeb0659d20937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "18ffe45c_c6746933",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 3
@@ -72,6 +89,30 @@
     },
     {
       "key": {
+        "uuid": "c9b6a8d8_2e9bc13d",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-07T18:47:23Z",
+      "side": 1,
+      "message": "Yep that\u0027s true. That part of Go is a bit ugly, particularly because it\u0027s not type checked at compile time. \nUsually we have to compensate with more documentation and good naming. \n+1 for calling it \u0027diffMetric\u0027",
+      "parentUuid": "97678dde_0e61ec00",
+      "range": {
+        "startLine": 467,
+        "startChar": 84,
+        "endLine": 467,
+        "endChar": 95
+      },
+      "revId": "c0bbebd4d150f63e482a837423daeb0659d20937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3fd3eeda_ab1ea5f0",
         "filename": "golden/go/diffstore/metrics_store.go",
         "patchSetId": 3
@@ -107,6 +148,30 @@
       "side": 1,
       "message": "Sgtm, but Stephan created these functions initially so will wait for his feedback.",
       "parentUuid": "3fd3eeda_ab1ea5f0",
+      "range": {
+        "startLine": 79,
+        "startChar": 23,
+        "endLine": 79,
+        "endChar": 37
+      },
+      "revId": "c0bbebd4d150f63e482a837423daeb0659d20937",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d7b8423_9c9427f4",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-07T18:47:23Z",
+      "side": 1,
+      "message": "sgtm. \u0027load\u0027 and \u0027save\u0027 would also be ok IMO.",
+      "parentUuid": "c29a5947_34e0c282",
       "range": {
         "startLine": 79,
         "startChar": 23,
