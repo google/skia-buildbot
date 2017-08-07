@@ -25,14 +25,9 @@
         hash: String, the commit's revision
         parent: Array<String>, the hashes of any parents.
         timestamp: String, the commit's timestamp, formatted like: "2016-02-22T06:34:47-08:00"
-    cr_roll: Object, which is used to link to the recent Chromium rolls. contains at least:
+    roll_statuses: Array of Objects, which is used to link to the recent rolls. Each object contains at least:
         currentRollRev: String, git hash of current roll
         lastRollRev: String, git hash of previous roll
-        lastRollIssue: Number, issue number tied with previous roll
-    android_roll: Object, which is used to link to the recent Android rolls. contains at least:
-        currentRollRev: String, git hash of current roll
-        lastRollRev: String, git hash of previous roll
-        lastRollIssue: Number, issue number tied with previous roll
 
     //output
     commits_to_load: Number, the number of commits to load.
@@ -121,6 +116,7 @@
     var columnWidth = commitY;     // Pixel width of per-branch colums.
     // Colors used for the branches. Obtained from
     // http://blog.mollietaylor.com/2012/10/color-blindness-and-palette-choice.html
+    // TODO(borenet): We should share this with the styles-sk element.
     var palette = [
       "#1B9E77", // Blue/green
       "#D95F02", // Red/orange
@@ -472,12 +468,12 @@
         _linkMap: {
           // Number: String, number is index of commit in display, String is URL to link to.
           type: Object,
-          computed: "_computeLinkMap(commits.*,cr_roll.*,android_roll.*,branch_heads.*)",
+          computed: "_computeLinkMap(commits.*,roll_statuses.*,branch_heads.*)",
         },
         _titleMap: {
           // Number: String, number is index of commit in display, String is the title of the label.
           type: Object,
-          computed: "_computeTitleMap(commits.*,cr_roll.*,android_roll.*,branch_heads.*)",
+          computed: "_computeTitleMap(commits.*,roll_statuses.*,branch_heads.*)",
         },
         _lastLoaded: {
           type: String,
@@ -564,19 +560,14 @@
           linkMap[idx] = this.repo_base + name;
         }.bind(this));
 
-        // Link to Android roll.
-        var idx = this._indexOfRevision(this.android_roll.currentRollRev);
-        linkMap[idx] = "https://android-master-roll.skia.org"
-        idx = this._indexOfRevision(this.android_roll.lastRollRev);
-        linkMap[idx] = "https://googleplex-android-review.googlesource.com/c/" +
-                       this.android_roll.lastRollIssue
-
-        // Link to Chromium roll.
-        idx = this._indexOfRevision(this.cr_roll.currentRollRev);
-        linkMap[idx] = "https://autoroll.skia.org",
-        idx = this._indexOfRevision(this.cr_roll.lastRollRev);
-        linkMap[idx] = "https://chromium-review.googlesource.com/c/" + this.cr_roll.lastRollIssue
-
+        // Link to rolls.
+        for (var i = 0; i < this.roll_statuses.length; i++) {
+          var roller = this.roll_statuses[i];
+          var idx = this._indexOfRevision(roller.currentRollRev);
+          linkMap[idx] = roller.url;
+          idx = this._indexOfRevision(roller.lastRollRev);
+          linkMap[idx] = roller.url;
+        }
         return linkMap;
       },
 
