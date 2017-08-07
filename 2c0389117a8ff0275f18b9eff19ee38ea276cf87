@@ -46,6 +46,30 @@
       "revId": "2c0389117a8ff0275f18b9eff19ee38ea276cf87",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "78572151_fde41934",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-07T16:57:53Z",
+      "side": 1,
+      "message": "Yeah, \"mkdir --parents\" I definitely debated on. I left \"rm -rf\" as-is, since ~everyone knows what that does, but it\u0027s hard to know which options fall into that category.\n\nThere\u0027s also the problem that some long options aren\u0027t really more illuminating than the short options. How do you feel about:\n\nuse short options:\napt-get -y\nnpm install -g\nmkdir -p\ndpkg -i\nrm -rf\nln -s -f\n\nuse long options:\ntee --append\ncurl --silent\napt-get --fix-broken\ncurl --header --output\nln --no-dereference\n\nuse comment:\ncurl -L",
+      "parentUuid": "53eae620_54b2622d",
+      "range": {
+        "startLine": 7,
+        "startChar": 13,
+        "endLine": 7,
+        "endChar": 25
+      },
+      "revId": "2c0389117a8ff0275f18b9eff19ee38ea276cf87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
