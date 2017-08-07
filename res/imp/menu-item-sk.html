@@ -35,8 +35,13 @@
   a.item {
     color: #000000;
     text-decoration: none;
+    @apply(--menu-item-sk);
+  }
+  a.item:hover {
+    text-decoration: underline;
   }
   iron-icon {
+    color: var(--menu-item-sk-icon-color, #000000);
     margin-right: 10px;
   }
   span {

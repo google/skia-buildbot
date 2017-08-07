@@ -12,8 +12,6 @@
   <script src="/res/imp/sinon-1.17.2.js"></script>
   <!-- Makes a var called data-->
   <script type="text/javascript" src="commits-table-35-demo.json"></script>
-  <!-- Makes a var called autoroll-->
-  <script type="text/javascript" src="autoroll-widget-demo.json"></script>
   <!-- Makes a var called alerts-->
   <script type="text/javascript" src="alert-widget-demo.json"></script>
   <script type="text/javascript" charset="utf-8">
@@ -31,7 +29,7 @@
       time: "2016-03-22T14:59:20.226445862Z",
       user: "bob@example.com",
     }
-   data.builds["3849b64cbbdb7db6d5d4af44479b2d7c5bf5e6c7"]["Perf-Android-Clang-PixelC-GPU-TegraX1-arm64-Release-Android_Skpbench"].comments=[mockComment];
+    data.builds["2ee084e73056b0ad76b721017f576168b7306da3"]["Perf-Android-Clang-NexusPlayer-CPU-Moorefield-x86-Release-Android_NoBuildbot"].comments=[mockComment];
 
 
     var dataCalls = 0;
@@ -60,13 +58,33 @@
     ]};
     server.respondWith("GET","https://gold.skia.org/json/trstatus", JSON.stringify(gold));
     var perf = {"alerts":1};
-    server.respondWith("GET","/json/perfAlerts", JSON.stringify(perf));
+    server.respondWith("GET","https://perf.skia.org/_/alerts/", JSON.stringify(perf));
 
     server.respondWith("POST", "https://task-scheduler.skia.org/json/trigger", JSON.stringify(["id1", "id2"]));
 
 
     // Mocked external requests
-     server.respondWith("GET","https://autoroll.skia.org/json/status", JSON.stringify(autoroll));
+    server.respondWith("GET","https://autoroll.skia.org/json/ministatus", JSON.stringify({
+      currentRollRev: "932efed7c89c69616e283fdfef65e86b9d9da381",
+      lastRollRev: "7c36e5afd2ce43d22182249ffd0f046716c7ef55",
+      mode: "running",
+      numFailed: 1,
+      numBehind: 3,
+    }));
+    server.respondWith("GET","https://android-master-roll.skia.org/json/ministatus", JSON.stringify({
+      currentRollRev: "",
+      lastRollRev: "932efed7c89c69616e283fdfef65e86b9d9da381",
+      mode: "running",
+      numFailed: 0,
+      numBehind: 0,
+    }));
+    server.respondWith("GET","https://fuchsia-roll.skia.org/json/ministatus", JSON.stringify({
+      currentRollRev: "ee1c73fc1b8a616ac79572759b02435698171fbf",
+      lastRollRev: "138ea97c1acaed4b968540220724dd5bf671e8db",
+      mode: "running",
+      numFailed: 3,
+      numBehind: 25,
+    }));
 
     var alertsCalls = 0;
     // Send one alert, then after one request, no alerts.
