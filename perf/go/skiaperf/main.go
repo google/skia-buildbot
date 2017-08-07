@@ -182,9 +182,6 @@ func newParamsetProvider(freshDataFrame *dataframe.Refresher) regression.Paramse
 
 // newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
 // of alerts.Config to run continuous clustering against.
-//
-// Note that this builds a fixed set of alerts.Config's. In the future this
-// will be switched over to use the configs stored in the alerts.Store.
 func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.ConfigProvider {
 	return func() ([]*alerts.Config, error) {
 		return alertStore.List(false)
