@@ -70,6 +70,30 @@
       "revId": "2c0389117a8ff0275f18b9eff19ee38ea276cf87",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "705d243e_8035b6f9",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-07T17:11:06Z",
+      "side": 1,
+      "message": "I don\u0027t care too much, just wanted to point out that if most people use the short options most of the time, the long ones might actually be less intuitively-readable.  I do agree that in general, since we\u0027re not having to type these out every time, we can afford to be more verbose in scripts if it helps readability.\n\nSo... LGTM?",
+      "parentUuid": "78572151_fde41934",
+      "range": {
+        "startLine": 7,
+        "startChar": 13,
+        "endLine": 7,
+        "endChar": 25
+      },
+      "revId": "2c0389117a8ff0275f18b9eff19ee38ea276cf87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
