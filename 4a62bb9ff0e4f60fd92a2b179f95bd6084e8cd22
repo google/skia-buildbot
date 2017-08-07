@@ -16,6 +16,24 @@
       "revId": "4a62bb9ff0e4f60fd92a2b179f95bd6084e8cd22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "000722d8_3d3701b4",
+        "filename": "status/res/imp/build-table-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-07T17:26:44Z",
+      "side": 0,
+      "message": "Apparently. build-table-sk was not referenced anywhere else.",
+      "parentUuid": "fa1e91b8_f90a9413",
+      "revId": "4a62bb9ff0e4f60fd92a2b179f95bd6084e8cd22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
