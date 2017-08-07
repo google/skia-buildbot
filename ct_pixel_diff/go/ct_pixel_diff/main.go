@@ -94,7 +94,7 @@ func main() {
 	}
 
 	// Set up the DiffStore.
-	diffStore, err := diffstore.NewMemDiffStore(client, nil, *imageDir, []string{*gsBucket}, *gsBaseDirs, *cacheSize, diffstore.PixelDiffIDPathMapper{})
+	diffStore, err := diffstore.NewMemDiffStore(client, *imageDir, []string{*gsBucket}, *gsBaseDirs, *cacheSize, nil, nil, diffstore.PixelDiffIDPathMapper{})
 	if err != nil {
 		sklog.Fatalf("Allocating local DiffStore failed: %s", err)
 	}
