@@ -175,7 +175,7 @@ func (c *Continuous) Run() {
 					// Update database if regression at the midpoint is found.
 					for _, cl := range resp.Summary.Clusters {
 						if cl.StepPoint.Offset == int64(commit.Index) {
-							if cl.StepFit.Status == stepfit.LOW && !cfg.StepUpOnly {
+							if cl.StepFit.Status == stepfit.LOW && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
 								sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
 								isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
 								if err != nil {
@@ -188,7 +188,7 @@ func (c *Continuous) Run() {
 									}
 								}
 							}
-							if cl.StepFit.Status == stepfit.HIGH {
+							if cl.StepFit.Status == stepfit.HIGH && (cfg.Direction == alerts.UP || cfg.Direction == alerts.BOTH) {
 								sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
 								isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
 								if err != nil {
