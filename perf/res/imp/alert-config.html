@@ -55,7 +55,7 @@
     }
 
     iron-selector div {
-      width: 10em;
+      width: 20em;
       margin: 0.3em 1em;
     }
 
@@ -115,7 +115,11 @@
     <h4>Radius</h4>
     <paper-input type=number min=0 value="{{config.radius}}" label="Number of commits on either side to consider. 0 = use a server chosen value."></paper-input>
     <h4>Step Direction</h4>
-    <paper-checkbox checked="{{config.step_up_only}}">Only step ups should trigger an alert.</paper-checkbox>
+    <iron-selector attr-for-selected="value" selected="{{config.direction}}" fallback-selection=BOTH>
+      <div value=BOTH>Either step up or step down trigger an alert.</div>
+      <div value=UP>Step up triggers an alert.</div>
+      <div value=DOWN>Step down triggers an alert.</div>
+    </iron-selector>
     <h4>Threshhold</h4>
     <paper-input type=number min=1 max=500  value="{{config.interesting}}" label="Interesting Threshhold for clusters to be interesting."></paper-input>
     <h4>Sparse</h4>

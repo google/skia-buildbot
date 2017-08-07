@@ -28,7 +28,8 @@ type Config struct {
 	Algo           clustering2.ClusterAlgo `json:"algo"`             // Which clustering algorithm to use.
 	State          ConfigState             `json:"state"`            // The state of the config.
 	Owner          string                  `json:"owner"`            // Email address of the person that owns this alert.
-	StepUpOnly     bool                    `json:"step_up_only"`     // If true then only steps up will trigger an alert.
+	StepUpOnly     bool                    `json:"step_up_only"`     // If true then only steps up will trigger an alert. [Deprecated, use Direction.]
+	Direction      Direction               `json:"direction"`        // Which direction will trigger an alert.
 	Radius         int                     `json:"radius"`           // How many commits to each side of a commit to consider when looking for a step. 0 means use the server default.
 	K              int                     `json:"k"`                // The K in k-means clustering. 0 means use an algorithmically chosen value based on the data.
 	GroupBy        string                  `json:"group_by"`         // A key in the paramset that all Clustering should be broken up across. Key must not appear in Query.
@@ -56,6 +57,10 @@ func (c *Config) Validate() error {
 		if _, ok := parsed[c.GroupBy]; ok {
 			return fmt.Errorf("Invalid Config: GroupBy must not appear in Query: %q %q ", c.GroupBy, c.Query)
 		}
+	}
+	if c.StepUpOnly {
+		c.StepUpOnly = false
+		c.Direction = UP
 	}
 	return nil
 }

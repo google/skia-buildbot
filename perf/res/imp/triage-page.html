@@ -140,13 +140,19 @@
         <tr>
           <th></th>
           <template is="dom-repeat" items="[[_reg.header]]">
-            <template is="dom-if" if="[[_not(item.step_up_only)]]">
+
+            <template is="dom-if" if="[[_stepDownAt(index)]]">
               <th>Low</th>
             </template>
-            <template is="dom-if" if="[[item.step_up_only]]">
+
+            <template is="dom-if" if="[[_stepUpAt(index)]]">
+              <th>High</th>
+            </template>
+
+            <template is="dom-if" if="[[_notBoth(index)]]">
               <th></th>
             </template>
-            <th>High</th>
+
           </template>
         </tr>
       <template is="dom-repeat" items="[[_reg.table]]" index-as="tableIndex">
@@ -155,7 +161,8 @@
             <commit-detail-sk cid="[[item.cid]]"></commit-detail-sk>
           </td>
           <template is="dom-repeat" items="[[item.columns]]">
-            <template is="dom-if" if="[[_notStepUpAt(index)]]">
+
+            <template is="dom-if" if="[[_stepDownAt(index)]]">
               <td class=cluster>
                 <template is="dom-if" if="[[item.low]]">
                   <triage-status-sk alert="[[_alertAt(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
@@ -165,17 +172,22 @@
                 </template>
               </td>
             </template>
+
             <template is="dom-if" if="[[_stepUpAt(index)]]">
+              <td class=cluster>
+                <template is="dom-if" if="[[item.high]]">
+                  <triage-status-sk alert="[[_alertAt(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
+                </template>
+                <template is="dom-if" if="[[_not(item.high)]]">
+                  <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
+                </template>
+              </td>
+            </template>
+
+            <template is="dom-if" if="[[_notBoth(index)]]">
               <td></td><!-- Dummy column for colspan. -->
             </template>
-            <td class=cluster>
-              <template is="dom-if" if="[[item.high]]">
-                <triage-status-sk alert="[[_alertAt(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
-              </template>
-              <template is="dom-if" if="[[_not(item.high)]]">
-                <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
-              </template>
-            </td>
+
           </template>
         </tr>
       </template>
@@ -316,11 +328,17 @@
       },
 
       _stepUpAt: function(index) {
-        return this._reg.header[index].step_up_only;
+        var dir = this._reg.header[index].direction;
+        return  dir == "UP" || dir == "BOTH";
       },
 
-      _notStepUpAt: function(index) {
-        return !this._stepUpAt(index);
+      _stepDownAt: function(index) {
+        var dir = this._reg.header[index].direction;
+        return  dir == "DOWN" || dir == "BOTH";
+      },
+
+      _notBoth: function(index) {
+        return this._reg.header[index].direction != "BOTH";
       },
 
       _not: function(x) {
