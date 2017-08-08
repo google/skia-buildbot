@@ -82,12 +82,15 @@ func main() {
 	}
 	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
-	// Set the resource directory if it's empty
+	// Set the resource directory if it's empty.
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 		*resourcesDir += "/frontend"
 	}
+
+	// Load the frontend templates.
+	loadTemplates()
 
 	// Get the client to be used to access GCS.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
