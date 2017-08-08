@@ -2,14 +2,17 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
+	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct_pixel_diff/go/ctdiffingestion"
 	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
@@ -39,8 +42,9 @@ var (
 	ingestDays         = flag.Int("ingest_days", 30, "The number of days in the past that the ingester will consider. (e.g. specifying 30 will make the ingester pull data from 30 days ago to now)")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	port               = flag.String("port", ":9999", "HTTP service address")
+	port               = flag.String("port", ":8000", "HTTP service address")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	redirectURL        = flag.String("redirect_url", "https://skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 	statusDir          = flag.String("status_dir", "statusdir", "Directory that stores the status for the ingester")
@@ -82,12 +86,24 @@ func main() {
 	}
 	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
-	// Set the resource directory if it's empty
+	// Set the resource directory if it's empty.
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 		*resourcesDir += "/frontend"
 	}
+
+	// Set up logging in.
+	useRedirectURL := *redirectURL
+	if *local {
+		useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	}
+	if err := login.Init(useRedirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " ")); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
+
+	// Load the frontend templates.
+	loadTemplates()
 
 	// Get the client to be used to access GCS.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
@@ -150,6 +166,7 @@ func main() {
 	router.HandleFunc("/", templateHandler("runs.html"))
 	router.HandleFunc("/load", templateHandler("results.html"))
 	router.HandleFunc("/search", templateHandler("search.html"))
+	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 

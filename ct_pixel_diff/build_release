@@ -25,10 +25,10 @@ ${INSTALL_DIR} --mode=755                                        ${ROOT}/usr/loc
 ${INSTALL}     --mode=644 ./frontend/res/vul/elements.html       ${ROOT}/usr/local/share/ct_pixel_diff/frontend/res/vul/elements.html
 
 ${INSTALL_DIR} --mode=755                                        ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates
-${INSTALL}     --mode=644 ./frontend/templates/header.html       ${ROOT}/usr/local/share/ct_pixel_diff/templates/header.html
-${INSTALL}     --mode=644 ./frontend/templates/results.html      ${ROOT}/usr/local/share/ct_pixel_diff/templates/results.html
-${INSTALL}     --mode=644 ./frontend/templates/runs.html         ${ROOT}/usr/local/share/ct_pixel_diff/templates/runs.html
-${INSTALL}     --mode=644 ./frontend/templates/search.html       ${ROOT}/usr/local/share/ct_pixel_diff/templates/search.html
+${INSTALL}     --mode=644 ./frontend/templates/header.html       ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates/header.html
+${INSTALL}     --mode=644 ./frontend/templates/results.html      ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates/results.html
+${INSTALL}     --mode=644 ./frontend/templates/runs.html         ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates/runs.html
+${INSTALL}     --mode=644 ./frontend/templates/search.html       ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates/search.html
 }
 
 source ../bash/release.sh
