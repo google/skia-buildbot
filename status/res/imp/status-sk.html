@@ -407,16 +407,15 @@
     _treeOpen: function(open) {
       // updateStyles must be called after setting these to make sure they
       // propagate through all the children.
-      var s = window.getComputedStyle(document.body);
       if (open === "open") {
         this.customStyle["--status-sk-header-text-color"] = "white";
-        this.customStyle["--status-sk-header-background-color"] = s.getPropertyValue("--color-lightgreen");
+        this.customStyle["--status-sk-header-background-color"] = this.getComputedStyleValue("--color-lightgreen");
       } else if (open === "caution") {
         this.customStyle["--status-sk-header-text-color"] = "black";
-        this.customStyle["--status-sk-header-background-color"] = s.getPropertyValue("--color-lightorange");
+        this.customStyle["--status-sk-header-background-color"] = this.getComputedStyleValue("--color-lightorange");
       } else {
         this.customStyle["--status-sk-header-text-color"] = "white";
-        this.customStyle["--status-sk-header-background-color"] = s.getPropertyValue("--color-redorange");
+        this.customStyle["--status-sk-header-background-color"] = this.getComputedStyleValue("--color-redorange");
       }
       Polymer.updateStyles();
 
