@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6409481b_cc266de3",
+        "filename": "prober/go/prober/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-08T17:10:09Z",
+      "side": 1,
+      "message": "[optional]\nOther option to minimize your diffs is to do-\njson \"github.com/flynn/json5\"",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 1
+      },
+      "revId": "d7668d4374fcfcd559073ff03bf3623b3599d654",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
