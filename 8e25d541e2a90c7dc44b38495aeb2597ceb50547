@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7bc9d011_b442ced2",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-08T18:54:55Z",
+      "side": 1,
+      "message": "uber nit of trailing space",
+      "range": {
+        "startLine": 124,
+        "startChar": 11,
+        "endLine": 124,
+        "endChar": 12
+      },
+      "revId": "8e25d541e2a90c7dc44b38495aeb2597ceb50547",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
