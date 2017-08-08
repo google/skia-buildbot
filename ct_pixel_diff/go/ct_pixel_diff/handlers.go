@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/golden/go/diffstore"
 )
 
@@ -26,6 +27,11 @@ func jsonRunsHandler(w http.ResponseWriter, r *http.Request) {
 
 // jsonDeleteHandler deletes the data for the specified runID from the server.
 func jsonDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	if !login.IsAdmin(r) {
+		httputils.ReportError(w, r, nil, "You must be logged on as an admin delete runs.")
+		return
+	}
+
 	runID := r.FormValue("runID")
 
 	// Remove ResultStore data.
