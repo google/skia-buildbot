@@ -46,6 +46,30 @@
       "revId": "a0a0e56029fa45d701d9abf3ac8bbd3b8bd2a4d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b15303c7_dba04ea1",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-08T17:47:25Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "7c833652_d3c62c79",
+      "range": {
+        "startLine": 974,
+        "startChar": 0,
+        "endLine": 974,
+        "endChar": 73
+      },
+      "revId": "a0a0e56029fa45d701d9abf3ac8bbd3b8bd2a4d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
