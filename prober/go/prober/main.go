@@ -5,7 +5,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -14,6 +13,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/flynn/json5"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -26,7 +27,7 @@ import (
 
 // flags
 var (
-	config   = flag.String("config", "probers.json", "Comma separated names of prober config files.")
+	config   = flag.String("config", "probers.json5", "Comma separated names of prober config files.")
 	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
@@ -89,7 +90,7 @@ func readConfigFiles(filenames string) (Probes, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Failed to open config file: %s", err)
 		}
-		d := json.NewDecoder(file)
+		d := json5.NewDecoder(file)
 		p := &Probes{}
 		if err := d.Decode(p); err != nil {
 			return nil, fmt.Errorf("Failed to decode JSON in config file: %s", err)
@@ -125,7 +126,7 @@ func nonZeroContenLength(r io.Reader, headers http.Header) bool {
 // validJSON tests whether the response contains valid JSON.
 func validJSON(r io.Reader, headers http.Header) bool {
 	var i interface{}
-	return json.NewDecoder(r).Decode(&i) == nil
+	return json5.NewDecoder(r).Decode(&i) == nil
 }
 
 type skfiddleResp struct {
@@ -134,7 +135,7 @@ type skfiddleResp struct {
 
 // skfiddleJSONGood tests that the compile completed w/o error.
 func skfiddleJSONGood(r io.Reader, headers http.Header) bool {
-	dec := json.NewDecoder(r)
+	dec := json5.NewDecoder(r)
 	s := skfiddleResp{
 		CompileErrors: []interface{}{},
 	}
@@ -148,7 +149,7 @@ func skfiddleJSONGood(r io.Reader, headers http.Header) bool {
 
 // skfiddleJSONBad tests that the compile completed w/error.
 func skfiddleJSONBad(r io.Reader, headers http.Header) bool {
-	dec := json.NewDecoder(r)
+	dec := json5.NewDecoder(r)
 	s := skfiddleResp{
 		CompileErrors: []interface{}{},
 	}
@@ -164,7 +165,7 @@ func skfiddleJSONBad(r io.Reader, headers http.Header) bool {
 // JSON is invalid or can't be decoded to a map[string]interface{}.
 func decodeJSONObject(r io.Reader) map[string]interface{} {
 	var obj map[string]interface{}
-	if json.NewDecoder(r).Decode(&obj) != nil {
+	if json5.NewDecoder(r).Decode(&obj) != nil {
 		return nil
 	}
 	return obj
@@ -220,7 +221,7 @@ func monitorIssueTracker(c *http.Client) {
 				continue
 			}
 			jsonResp := map[string]int64{}
-			dec := json.NewDecoder(resp.Body)
+			dec := json5.NewDecoder(resp.Body)
 			if err := dec.Decode(&jsonResp); err != nil {
 				sklog.Warningf("Failed to decode JSON response: %s", err)
 				util.Close(resp.Body)
