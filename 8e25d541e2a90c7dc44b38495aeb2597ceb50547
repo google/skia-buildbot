@@ -22,6 +22,30 @@
       "revId": "8e25d541e2a90c7dc44b38495aeb2597ceb50547",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "762b242b_c41b5ae3",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-08T19:01:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7bc9d011_b442ced2",
+      "range": {
+        "startLine": 124,
+        "startChar": 11,
+        "endLine": 124,
+        "endChar": 12
+      },
+      "revId": "8e25d541e2a90c7dc44b38495aeb2597ceb50547",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
