@@ -25,7 +25,7 @@ import (
 
 // Command line flags.
 var (
-	configFilename     = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
+	configFilename     = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
@@ -58,7 +58,7 @@ func main() {
 	}
 
 	// Start the ingesters.
-	config, err := sharedconfig.ConfigFromTomlFile(*configFilename)
+	config, err := sharedconfig.ConfigFromJson5File(*configFilename)
 	if err != nil {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}

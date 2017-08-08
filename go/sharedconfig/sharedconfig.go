@@ -1,9 +1,6 @@
 package sharedconfig
 
-import (
-	"github.com/BurntSushi/toml"
-	"go.skia.org/infra/go/config"
-)
+import "go.skia.org/infra/go/config"
 
 // DataSource is a single ingestion source. Currently we use the convention
 // that if 'bucket' is empty, we assume a source on the local file system.
@@ -28,15 +25,6 @@ type Config struct {
 	GitRepoDir string // Directory location for the repo.
 	GitRepoURL string // Git URL of the repo.
 	Ingesters  map[string]*IngesterConfig
-}
-
-// ConfigFromTomlFile parses a TOML file into a Config struct.
-func ConfigFromTomlFile(path string) (*Config, error) {
-	ret := &Config{}
-	if _, err := toml.DecodeFile(path, ret); err != nil {
-		return nil, err
-	}
-	return ret, nil
 }
 
 // ConfigFromJson5File parses a JSON5 file into a Config struct.
