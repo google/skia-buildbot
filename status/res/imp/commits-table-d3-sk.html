@@ -195,7 +195,7 @@
         this._drawBuilderColumns(this.categories, this.builders, this.commits.length);
 
         this._drawBuilds(this.commits, this.build_details);
-        this.scopeSubtree(this.$.table, true);
+        this.scopeSubtree(this.$.container, false);
         console.timeEnd("d3 rendering");
         this.set("drawing", false);
       },
@@ -304,10 +304,10 @@
         });
         reverts.on("mouseover", function(commit){
           var reverterIssue = reverted_map[commit.issue].issue;
-          d3.select("#"+commit.patchStorage+reverterIssue).classed("revert", true);
+          d3.select("#"+commit.patchStorage+reverterIssue).classed("bg-failure", true);
         })
         reverts.on("mouseleave", function(commit){
-          d3.selectAll(".commit.revert").classed("revert", false);
+          d3.selectAll(".commit.bg-failure").classed("bg-failure", false);
         })
         var relands = this._addIronIcon(newCommits, "icons:redo","tiny fg-success", function(commit){
           var relanderCommit = relanded_map[commit.issue];
@@ -315,12 +315,11 @@
         });
         relands.on("mouseover", function(commit){
           var relanderIssue = relanded_map[commit.issue].issue;
-          d3.select("#"+commit.patchStorage+relanderIssue).classed("reland", true);
+          d3.select("#"+commit.patchStorage+relanderIssue).classed("bg-success", true);
         });
         relands.on("mouseleave", function(commit){
-          d3.selectAll(".commit.reland").classed("reland", false);
+          d3.selectAll(".commit.bg-success").classed("bg-success", false);
         });
-        this.scopeSubtree(this.$.container, true);
       },
 
       // Adds iron icons to everything in the selection if shouldAddIcon returns truthy.  It
@@ -518,15 +517,17 @@
             // Clear any icons already drawn in the child.
             build.innerHTML = "";
             var details = build_details[d.commit.hash] && build_details[d.commit.hash][d.builder];
-            build.className = d.displayClass.join(" ");
+            for (var i = 0; i < d.displayClass.length; i++) {
+              build.classList.add(d.displayClass[i]);
+            }
 
             if (details) {
-              build.className += " " + build_details[d.commit.hash][d.builder].colorClass;
+              build.classList.add(build_details[d.commit.hash][d.builder].colorClass);
               build.title = d.builder + ", #"+details.number;
               addIronIcon(d3.select(build), "communication:chat", "tiny", function(){
                 return details.comments.length > 0 &&
-                    (build.className.indexOf(CLASS_BUILD_SINGLE) >= 0
-                  || build.className.indexOf(CLASS_BUILD_TOP) >= 0);
+                    (build.classList.contains(CLASS_BUILD_SINGLE)
+                  || build.className.contains(CLASS_BUILD_TOP));
               });
             } else {
               build.style["background-color"] = "";
