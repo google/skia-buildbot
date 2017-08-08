@@ -316,10 +316,11 @@
         relands.on("mouseover", function(commit){
           var relanderIssue = relanded_map[commit.issue].issue;
           d3.select("#"+commit.patchStorage+relanderIssue).classed("reland", true);
-        })
+        });
         relands.on("mouseleave", function(commit){
           d3.selectAll(".commit.reland").classed("reland", false);
-        })
+        });
+        this.scopeSubtree(this.$.container, true);
       },
 
       // Adds iron icons to everything in the selection if shouldAddIcon returns truthy.  It
