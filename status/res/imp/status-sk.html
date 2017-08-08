@@ -65,6 +65,7 @@
           padding: 0px;
         };
         --paper-item-min-height: 30px;
+        --paper-toolbar-height: 50px;
         --status-sk-icon-color: var(--color-lightorange);
         --status-sk-main-text-color: black;
         --status-sk-header-background-color: var(--color-lightgreen);
@@ -88,8 +89,17 @@
         font-size: 12px;
       }
 
+      .container {
+        margin-bottom: 0px;
+        margin-top: 4px;
+        padding-bottom: 4px;
+        padding-top: 4px;
+      }
+
       .container h2 {
         font-size: 16px;
+        margin-bottom: 0px;
+        margin-top: 0px;
       }
 
       paper-item {
@@ -179,12 +189,12 @@
     <url-param-sk name="commit" value="{{highlighted_commit_hashes}}" multi></url-param-sk>
 
     <app-sk id="app" class="fit"
-        drawer_width="233px"
+        drawer_width="220px"
         mode="waterfall"
         tall_class="standard"
         responsive_width="800px"
-        header_height="64px"
-        header_responsive_height="64px"
+        header_height="50px"
+        header_responsive_height="50px"
         logged_in_email="{{email}}"
         narrow="{{narrow}}">
 
