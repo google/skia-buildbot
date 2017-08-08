@@ -22,6 +22,30 @@
       "revId": "a0a0e56029fa45d701d9abf3ac8bbd3b8bd2a4d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c833652_d3c62c79",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-08T17:40:06Z",
+      "side": 1,
+      "message": "Yes, maybe...\n\nI started making that change, and realized the various cleanup steps got complicated, e.g. if there\u0027s a failure after the instance is created, do we delete the instance and assume the boot disk will be autodeleted? We would probably also want a flag that controls whether to keep the disk and instance after failure so that we can log in to manually fix or diagnose problems -- but should that flag default to true or false? If true, I\u0027m likely to forget to specify it and will need to clean things up manually anyway, but if false, I\u0027m likely to get annoyed that it deleted things before I could debug.\n\nSince it\u0027s clearer what should happen with --delete --ignore-exists, I\u0027ve already implemented it, and you\u0027ve already +1\u0027d it, I think I\u0027ll just submit this and move on.",
+      "parentUuid": "b2670b2b_8d547600",
+      "range": {
+        "startLine": 974,
+        "startChar": 0,
+        "endLine": 974,
+        "endChar": 73
+      },
+      "revId": "a0a0e56029fa45d701d9abf3ac8bbd3b8bd2a4d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
