@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
@@ -27,12 +28,15 @@ func jsonRunsHandler(w http.ResponseWriter, r *http.Request) {
 
 // jsonDeleteHandler deletes the data for the specified runID from the server.
 func jsonDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	if !login.IsAdmin(r) {
-		httputils.ReportError(w, r, nil, "You must be logged on as an admin delete runs.")
+	runID := r.FormValue("runID")
+
+	// Extract the username from the runID and the cookie to make sure they match.
+	runUser := strings.Split(runID, "-")[0]
+	loggedInUser := strings.Split(login.LoggedInAs(r), "@")[0]
+	if !login.IsAdmin(r) && runUser != loggedInUser {
+		httputils.ReportError(w, r, nil, "You must be logged on as an admin to delete other users' runs.")
 		return
 	}
-
-	runID := r.FormValue("runID")
 
 	// Remove ResultStore data.
 	err := resultStore.RemoveRun(runID)
@@ -40,6 +44,10 @@ func jsonDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to remove run %s from server", runID))
 		return
 	}
+
+	// TODO(lchoi): Create a storage container class that has an aggregate remove
+	// function and call that here to simplify the handler logic. PurgeDigests in
+	// MemDiffStore must first be refactored to also remove diff images.
 
 	// Remove screenshots and diff images from the DiffStore.
 	imagePath := filepath.Join(*imageDir, diffstore.DEFAULT_IMG_DIR_NAME, runID)
