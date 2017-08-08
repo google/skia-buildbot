@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7be7d09d_cd82a30a",
+        "filename": "status/res/imp/commits-table-d3-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-08T13:05:58Z",
+      "side": 1,
+      "message": "build.classList.add() instead of +\u003d",
+      "revId": "8bf02b96a6f86a5d0a7cca2a4e8fe90bd32b8ab1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
