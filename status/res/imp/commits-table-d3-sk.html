@@ -171,6 +171,7 @@
       ready: function() {
         // We redraw, so as to try to better fit the screen size.
         d3.select(window).on('resize', this.redraw.bind(this));
+        this.scopeSubtree(this.$.container, true);
       },
 
       redraw:function() {
@@ -195,7 +196,6 @@
         this._drawBuilderColumns(this.categories, this.builders, this.commits.length);
 
         this._drawBuilds(this.commits, this.build_details);
-        this.scopeSubtree(this.$.container, false);
         console.timeEnd("d3 rendering");
         this.set("drawing", false);
       },
