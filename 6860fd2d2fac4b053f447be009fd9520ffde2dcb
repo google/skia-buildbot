@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1dfeb093_b6b33274",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-09T14:23:31Z",
+      "side": 1,
+      "message": "Login should be the default, so this should true by default or the flag should be negated to something like \u0027login_optional\u0027",
+      "revId": "6860fd2d2fac4b053f447be009fd9520ffde2dcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b796ad2_e761b6b6",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-09T14:23:31Z",
+      "side": 1,
+      "message": "login.Init should still be called when running locally.",
+      "revId": "6860fd2d2fac4b053f447be009fd9520ffde2dcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
