@@ -39,7 +39,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
 
   # Install the powercycle binary and config files.
   ${INSTALL} --mode=755 -T ${GOPATH}/bin/powercycle-cli          ${ROOT}/usr/local/bin/powercycle
-  ${INSTALL} --mode=644 -T ./sys/powercycle-${INSTANCE_ID}.yaml   ${ROOT}/etc/powercycle.yaml
+  ${INSTALL} --mode=644 -T ./sys/powercycle-${INSTANCE_ID}.json5   ${ROOT}/etc/powercycle.json5
   }
 
   source ../bash/release.sh

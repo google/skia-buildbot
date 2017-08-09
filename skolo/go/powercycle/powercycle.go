@@ -7,9 +7,10 @@ import (
 	"sort"
 	"time"
 
-	yaml "gopkg.in/yaml.v2"
+	"github.com/flynn/json5"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 // DeviceGroup describes a set of devices that can all be
@@ -51,16 +52,16 @@ type PowerStat struct {
 // for different device types.
 type Config struct {
 	// MPower aggregates all mPower configurations.
-	MPower map[string]*MPowerConfig `yaml:"mpower"`
+	MPower map[string]*MPowerConfig `json:"mpower"`
 
 	// EdgeSwitch aggregates all EdgeSwitch configurations.
-	EdgeSwitch map[string]*EdgeSwitchConfig `yaml:"edgeswitch"`
+	EdgeSwitch map[string]*EdgeSwitchConfig `json:"edgeswitch"`
 
 	// Arduino aggregates all Arduino configurations.
-	Arduino map[string]*ArduinoConfig `yaml:"arduino"`
+	Arduino map[string]*ArduinoConfig `json:"arduino"`
 
 	// Seeeduino aggregates all Seeeduino configurations.
-	Seeeduino map[string]*SeeeduinoConfig `yaml:"seeeduino"`
+	Seeeduino map[string]*SeeeduinoConfig `json:"seeeduino"`
 }
 
 // aggregatedDevGroup implements the DeviceGroup interface and allows
@@ -117,21 +118,11 @@ func (a *aggregatedDevGroup) PowerUsage() (*GroupPowerUsage, error) {
 	return ret, nil
 }
 
-// DeviceGroupFromYamlFile parses a TOML file and instantiates the
+// DeviceGroupFromJson5File parses a Json5 file and instantiates the
 // defined devices.
-func DeviceGroupFromYamlFile(path string, connect bool) (DeviceGroup, error) {
-	f, err := os.Open(path)
+func DeviceGroupFromJson5File(path string, connect bool) (DeviceGroup, error) {
+	conf, err := readConfig(path)
 	if err != nil {
-		return nil, err
-	}
-
-	yamlBytes, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-
-	conf := &Config{}
-	if err := yaml.Unmarshal(yamlBytes, conf); err != nil {
 		return nil, err
 	}
 
@@ -186,4 +177,24 @@ func DeviceGroupFromYamlFile(path string, connect bool) (DeviceGroup, error) {
 	}
 
 	return ret, nil
+}
+
+func readConfig(path string) (*Config, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(f)
+
+	jsonBytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	conf := &Config{}
+	if err := json5.Unmarshal(jsonBytes, conf); err != nil {
+		return nil, err
+	}
+
+	return conf, nil
 }
