@@ -11,15 +11,15 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
 
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/skiaperf                ${ROOT}/usr/local/bin/skiaperf
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/ptracequery             ${ROOT}/usr/local/bin/ptracequery
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb          ${ROOT}/usr/local/bin/perf_migratedb
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_update_regressions ${ROOT}/usr/local/bin/perf_update_regressions
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service              ${ROOT}/etc/systemd/system/${APPNAME}.service
-${INSTALL} --mode=644 -T ./sys/android-master-perf.toml        ${ROOT}/etc/skiaperf/ingest.toml
+${INSTALL} --mode=644 -T ./sys/android-master-perf.json5        ${ROOT}/etc/skiaperf/ingest.json5
 
 ${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiaperf/templates
 ${INSTALL} --mode=644 ./templates/*                            ${ROOT}/usr/local/share/skiaperf/templates

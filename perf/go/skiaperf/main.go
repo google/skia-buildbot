@@ -80,7 +80,7 @@ var (
 // flags
 var (
 	algo                  = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
-	configFilename        = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
+	configFilename        = flag.String("config_filename", "default.json5", "Configuration file in TOML format.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
@@ -1204,7 +1204,7 @@ func initIngestion() {
 	}
 
 	// Start the ingesters.
-	config, err := sharedconfig.ConfigFromTomlFile(*configFilename)
+	config, err := sharedconfig.ConfigFromJson5File(*configFilename)
 	if err != nil {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
