@@ -1,0 +1,18 @@
+{
+   "prom": {
+     "urls": ["https://prom.skia.org/metrics"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "",
+     "responsetest": ""
+   },
+   "promstatus": {
+     "urls": ["https://promalerts.skia.org/metrics"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "",
+     "responsetest": ""
+   },
+}

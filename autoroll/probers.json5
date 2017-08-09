@@ -1,0 +1,35 @@
+{
+   "autoroll": {
+     "urls": [
+       "http://android-master-autoroll:8000",
+       "http://android-o-autoroll:8000",
+       "https://angle-roll.skia.org",
+       "https://autoroll.skia.org",
+       "https://catapult-roll.skia.org",
+       "https://nacl-roll.skia.org",
+       "https://pdfium-roll.skia.org",
+       "https://fuchsia-roll.skia.org"
+     ],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "autoroll_json": {
+     "urls": [
+       "https://android-master-roll.skia.org/json/status",
+       "https://android-o-roll.skia.org/json/status",
+       "https://angle-roll.skia.org/json/status",
+       "https://autoroll.skia.org/json/status",
+       "https://catapult-roll.skia.org/json/status",
+       "https://nacl-roll.skia.org/json/status",
+       "https://pdfium-roll.skia.org/json/status",
+       "https://fuchsia-roll.skia.org/json/status"
+     ],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "responsetest": "validJSON"
+   },
+}
