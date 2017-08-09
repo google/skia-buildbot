@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "6a7019a1_a3fc5a2f",
+        "filename": "ct_pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-09T18:47:17Z",
+      "side": 1,
+      "message": "Your plan sounds sufficient.",
+      "parentUuid": "fc5176c6_56f25649",
+      "range": {
+        "startLine": 76,
+        "startChar": 41,
+        "endLine": 76,
+        "endChar": 46
+      },
+      "revId": "f348ff0d7674d65d0ff247d2fd561e86a2ee8fec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8e97d26d_5140e5c9",
         "filename": "ct_pixel_diff/frontend/res/imp/results-page-sk.html",
         "patchSetId": 2
