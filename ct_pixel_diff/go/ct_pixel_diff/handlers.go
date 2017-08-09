@@ -76,19 +76,34 @@ func jsonRenderHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	endIdx, err := strconv.Atoi(r.FormValue("endIdx"))
+	minPercent, err := strconv.ParseFloat(r.FormValue("minPercent"), 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse end index")
+		httputils.ReportError(w, r, err, "Failed to parse minimum percent")
+		return
+	}
+
+	maxPercent, err := strconv.ParseFloat(r.FormValue("maxPercent"), 64)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse maximum percent")
+		return
+	}
+
+	if minPercent > maxPercent || minPercent < 0 || maxPercent > 100 {
+		httputils.ReportError(w, r, err, "Invalid bounds")
 		return
 	}
 
 	// If the runID does not exist in the cache, this will return an error.
-	results, err := resultStore.GetRange(runID, startIdx, endIdx)
+	results, nextIdx, err := resultStore.GetFiltered(runID, startIdx, float32(minPercent), float32(maxPercent))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get cached results for run %s", runID))
 		return
 	}
-	sendJsonResponse(w, map[string][]*resultstore.ResultRec{"results": results})
+	if len(results) == 0 {
+		httputils.ReportError(w, r, err, fmt.Sprintf("No more results for run %s", runID))
+		return
+	}
+	sendJsonResponse(w, map[string]interface{}{"results": results, "nextIdx": nextIdx})
 }
 
 // jsonSortHandler sorts the ResultStore's cached list of diff results using the
