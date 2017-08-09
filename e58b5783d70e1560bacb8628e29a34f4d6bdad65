@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1433103_068519c0",
+        "filename": "perf/default.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-09T17:23:27Z",
+      "side": 1,
+      "message": "json5 comments start with //, not #.",
+      "revId": "e58b5783d70e1560bacb8628e29a34f4d6bdad65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
