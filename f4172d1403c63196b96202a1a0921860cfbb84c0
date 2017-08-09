@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c2bb251a_17899fae",
+        "filename": "task_scheduler/probers.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-09T19:03:30Z",
+      "side": 1,
+      "message": "Is this correct? If so, maybe fix the typo in a followup CL.",
+      "range": {
+        "startLine": 8,
+        "startChar": 22,
+        "endLine": 8,
+        "endChar": 41
+      },
+      "revId": "f4172d1403c63196b96202a1a0921860cfbb84c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
