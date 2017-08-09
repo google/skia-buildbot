@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3bd8ab36_c329278a",
+        "filename": "go/sharedconfig/sharedconfig.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-09T17:19:42Z",
+      "side": 0,
+      "message": "This is referenced at:\n\nhttps://github.com/google/skia-buildbot/blob/master/perf/go/skiaperf/main.go#L1207",
+      "revId": "c9dcc67e9228836d0e106b8e9ff82b965880583d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
