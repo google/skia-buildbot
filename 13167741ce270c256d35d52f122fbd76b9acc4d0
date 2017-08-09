@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7311de00_2c1781f7",
+        "filename": "status/res/imp/commits-table-d3-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-09T17:02:44Z",
+      "side": 1,
+      "message": "nit: when comparing to 0, always use \u003d\u003d\u003d or ! if you are ok with falsey",
+      "range": {
+        "startLine": 529,
+        "startChar": 37,
+        "endLine": 529,
+        "endChar": 41
+      },
+      "revId": "13167741ce270c256d35d52f122fbd76b9acc4d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
