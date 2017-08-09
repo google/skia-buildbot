@@ -225,7 +225,7 @@ func TestFillCache(t *testing.T) {
 	assert.Equal(t, rec, boltStore.cache[TEST_RUN_ID][0])
 }
 
-func TestGetRange(t *testing.T) {
+func TestGetFiltered(t *testing.T) {
 	testutils.MediumTest(t)
 
 	// Initialize the ResultStore.
@@ -233,7 +233,13 @@ func TestGetRange(t *testing.T) {
 
 	// Create two ResultRecs and modify the URL of the second one.
 	recOne := createResultRec(t)
+	recOne.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{
+		PixelDiffPercent: 50,
+	}
 	recTwo := createResultRec(t)
+	recTwo.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{
+		PixelDiffPercent: 100,
+	}
 	recTwo.URL = TEST_URL_TWO
 
 	// Put them under different URLs so there are multiple entries associated
@@ -244,11 +250,21 @@ func TestGetRange(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify the cache contains the right data.
-	results, err := resultStore.GetRange(TEST_RUN_ID, 0, 2)
+	results, _, err := resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 100)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(results))
 	assert.Equal(t, recOne, results[0])
 	assert.Equal(t, recTwo, results[1])
+
+	results, _, err = resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 50)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(results))
+	assert.Equal(t, recOne, results[0])
+
+	results, _, err = resultStore.GetFiltered(TEST_RUN_ID, 0, 51, 100)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(results))
+	assert.Equal(t, recTwo, results[0])
 }
 
 func TestSortRun(t *testing.T) {
@@ -283,40 +299,40 @@ func TestSortRun(t *testing.T) {
 	// Sort the cache and verify.
 	err = resultStore.SortRun(TEST_RUN_ID, "rank", "ascending")
 	assert.NoError(t, err)
-	results, err := resultStore.GetRange(TEST_RUN_ID, 0, 2)
+	results, _, err := resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 100)
 	assert.NoError(t, err)
 	assert.Equal(t, recTwo, results[0])
 	assert.Equal(t, recOne, results[1])
 
 	err = resultStore.SortRun(TEST_RUN_ID, "numDiff", "ascending")
 	assert.NoError(t, err)
-	results, err = resultStore.GetRange(TEST_RUN_ID, 0, 2)
+	results, _, err = resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 100)
 	assert.NoError(t, err)
 	assert.Equal(t, recTwo, results[0])
 	assert.Equal(t, recOne, results[1])
 
 	err = resultStore.SortRun(TEST_RUN_ID, "percentDiff", "descending")
 	assert.NoError(t, err)
-	results, err = resultStore.GetRange(TEST_RUN_ID, 0, 2)
+	results, _, err = resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 100)
 	assert.Equal(t, recTwo, results[0])
 	assert.Equal(t, recOne, results[1])
 
 	err = resultStore.SortRun(TEST_RUN_ID, "redDiff", "descending")
 	assert.NoError(t, err)
-	results, err = resultStore.GetRange(TEST_RUN_ID, 0, 2)
+	results, _, err = resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 100)
 	assert.Equal(t, recTwo, results[0])
 	assert.Equal(t, recOne, results[1])
 
 	// Ties should be broken by URL.
 	err = resultStore.SortRun(TEST_RUN_ID, "greenDiff", "ascending")
 	assert.NoError(t, err)
-	results, err = resultStore.GetRange(TEST_RUN_ID, 0, 2)
+	results, _, err = resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 100)
 	assert.Equal(t, recOne, results[0])
 	assert.Equal(t, recTwo, results[1])
 
 	err = resultStore.SortRun(TEST_RUN_ID, "blueDiff", "ascending")
 	assert.NoError(t, err)
-	results, err = resultStore.GetRange(TEST_RUN_ID, 0, 2)
+	results, _, err = resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 100)
 	assert.Equal(t, recTwo, results[0])
 	assert.Equal(t, recOne, results[1])
 }

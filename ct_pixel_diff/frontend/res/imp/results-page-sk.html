@@ -16,8 +16,6 @@
   and open a new tab that displays the diff results for the selection.
 
   Attributes:
-    chunkSize - The number of results that a render request retrieves and
-                displays.
     data - A list of serialized ResultRec instances, used as the container for
            render requests. Reset on sort requests.
     renderIdx - An index to keep track which range in the server cache the page
@@ -43,7 +41,9 @@
 <link rel="import" href="/res/imp/bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="/res/imp/bower_components/paper-item/paper-item.html">
 <link rel="import" href="/res/imp/bower_components/paper-autocomplete/paper-autocomplete.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="/res/imp/bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
 <link rel="import" href="/res/common/imp/spinner-sk.html">
 
@@ -63,6 +63,20 @@
       .autocomplete-wrapper {
         padding-left: 1em;
         width: 660px;
+      }
+
+      .filter {
+        padding-top: 0.5em;
+        padding-left: 1em;
+      }
+
+      .filter-input {
+        width: 275px;
+        padding-right: 0.5em;
+      }
+
+      .filter-button {
+        height: 50px;
       }
 
       diff-details-sk {
@@ -113,9 +127,15 @@
         <paper-input id="search" label="Search for a URL"></paper-input>
         <paper-autocomplete-suggestions for="search" source="[[urlSources]]"></paper-autocomplete-suggestions>
       </div>
+      <div class="filter horizontal layout">
+        <paper-input class="filter-input" id="minPercent" label="Minimum pixel diff percentage to display" type="number" value="0" required></paper-input>
+        <paper-input class="filter-input" id="maxPercent" label="Maximum pixel diff percentage to display" type="number" value="100" required></paper-input>
+        <paper-button class="filter-button" toggle raised on-tap="_filterResults"><iron-icon icon="filter-list"></iron-icon>Filter</paper-button>
+      </div>
       <iron-scroll-threshold id="scroller" on-lower-threshold="_renderMoreData" scroll-target="document">
         <template is="dom-repeat" items="[[data]]">
           <diff-details-sk
+            index="[[index]]"
             url="[[item.URL]]"
             rank="[[item.Rank]]"
             left="[[item.NoPatchImg]]"
@@ -131,11 +151,6 @@
       is: "results-page-sk",
 
       properties: {
-        chunkSize: {
-          type: Number,
-          value: 20,
-        },
-
         data: {
           type: Array,
           value: function() { return []; }
@@ -185,14 +200,15 @@
         }
         var runID = window.location.search;
         var startIdx = 'startIdx=' + this.renderIdx;
-        var endIdx = 'endIdx=' + (this.renderIdx + this.chunkSize);
-        var query = runID + '&' + startIdx + '&' + endIdx;
+        var minPercent = 'minPercent=' + this.$.minPercent.value;
+        var maxPercent = 'maxPercent=' + this.$.maxPercent.value;
+        var query = runID + '&' + startIdx + '&' + minPercent + '&' + maxPercent;
         sk.get("/json/render" + query).then(JSON.parse).then(function (json) {
           for (var i = 0; i < json.results.length; i++) {
             this.data.push(json.results[i]);
           }
           this.notifyPath('data', this.data.slice());
-          this.renderIdx += this.chunkSize;
+          this.set('renderIdx', json.nextIdx)
           this.$.spinner.stopSpinner();
           this.$.scroller.clearTriggers();
         }.bind(this)).catch(function(e) {
@@ -224,7 +240,7 @@
         sk.get("/json/sort" + query).then(function () {
           this.set('data', []);
           this.set('renderIdx', 0);
-          this._renderMoreData()
+          this._renderMoreData();
         }.bind(this)).catch(function(e) {
           this.$.spinner.stopSpinner();
           sk.errorMessage(e);
@@ -237,6 +253,12 @@
         var query = runID + '&' + url;
         window.open('/search' + query, '_blank')
         this.$.search.value = '';
+      },
+
+      _filterResults: function() {
+        this.set('data', []);
+        this.set('renderIdx', 0);
+        this._renderMoreData();
       }
     });
   </script>

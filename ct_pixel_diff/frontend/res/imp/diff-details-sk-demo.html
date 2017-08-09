@@ -19,7 +19,8 @@
                          rank="[[rank]]"
                          left="[[noPatchImg]]"
                          right="[[withPatchImg]]"
-                         diffmetrics="[[diffMetrics]]">
+                         diffmetrics="[[diffMetrics]]"
+                         index="[[index]]">
         </diff-details-sk>
       </div>
     </template>
@@ -40,6 +41,7 @@
             this.set('noPatchImg', noPatchImg)
             this.set('withPatchImg', withPatchImg)
             this.set('diffMetrics', diffMetrics)
+            this.set('index', 0)
           }
         })
       })

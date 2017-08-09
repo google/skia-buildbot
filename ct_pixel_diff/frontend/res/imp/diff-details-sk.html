@@ -11,6 +11,7 @@
     right - The withpatch screenshot of the page.
     diffmetrics - The serialized DynamicDiffMetrics object that contains the
                   values of the diff results between the two screenshots.
+    index - The index of the diff details on the results page.
 
   Methods:
     None
@@ -69,13 +70,22 @@
         width: 200px;
         padding: 5px;
       }
+
+      h1 {
+        padding-left: 0.5em;
+      }
     </style>
     <div class="horizontal layout wrap">
-      <table>
-        <tr><th>Website Information</th><th></th></tr>
-        <tr><td>URL</td><td><a target="_blank" href$="[[url]]">[[url]]</a></td></tr>
-        <tr><td>Popularity Rank</td><td>[[rank]]</td></tr>
-      </table>
+      <div class="vertical layout wrap">
+        <div hidden$="{{_noIndex(index)}}">
+          <h1>Result Number: [[_addOne(index)]]</h1>
+        </div>
+        <table>
+          <tr><th>Website Information</th><th></th></tr>
+          <tr><td>URL</td><td><a target="_blank" href$="[[url]]">[[url]]</a></td></tr>
+          <tr><td>Popularity Rank</td><td>[[rank]]</td></tr>
+        </table>
+      </div>
       <div class="vertical layout wrap">
         <div class="horizontal layout wrap">
           <div class="imgtext">Without Patch Image</div>
@@ -105,8 +115,8 @@
       </div>
       <table>
         <tr><th>Diff Metric</th><th>Value</th></tr>
-        <tr><td>Number of Different Pixels</td><td>[[diffmetrics.numDiffPixels]]</td></tr>
         <tr><td>Percentage of Different Pixels</td><td>[[diffmetrics.pixelDiffPercent]]</td></tr>
+        <tr><td>Number of Different Pixels</td><td>[[diffmetrics.numDiffPixels]]</td></tr>
         <tr><td>Max Red Difference</td><td>[[diffmetrics.maxRGBDiffs.0]]</td></tr>
         <tr><td>Max Green Difference</td><td>[[diffmetrics.maxRGBDiffs.1]]</td></tr>
         <tr><td>Max Blue Difference</td><td>[[diffmetrics.maxRGBDiffs.2]]</td></tr>
@@ -143,6 +153,11 @@
         diffmetrics: {
           type: Object,
           value: null
+        },
+
+        index: {
+          type: Number,
+          value: -1
         }
       },
 
@@ -166,6 +181,14 @@
         if (leftPath[0] == rightPath[0] && leftPath[3] == rightPath[3]) {
           return '/img/diffs/' + leftPath[0] + '/' + leftPath[3] + '.png'
         }
+      },
+
+      _addOne: function(index) {
+        return index + 1;
+      },
+
+      _noIndex: function(index) {
+        return index < 0;
       }
     })
   </script>
