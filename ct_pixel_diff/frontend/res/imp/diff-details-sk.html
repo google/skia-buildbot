@@ -71,11 +71,16 @@
       }
     </style>
     <div class="horizontal layout wrap">
-      <table>
-        <tr><th>Website Information</th><th></th></tr>
-        <tr><td>URL</td><td><a target="_blank" href$="[[url]]">[[url]]</a></td></tr>
-        <tr><td>Popularity Rank</td><td>[[rank]]</td></tr>
-      </table>
+      <div class="vertical layout wrap">
+        <table>
+          <tr><th>Result index</th><th>[[index]]</th></tr>
+        </table>
+        <table>
+          <tr><th>Website Information</th><th></th></tr>
+          <tr><td>URL</td><td><a target="_blank" href$="[[url]]">[[url]]</a></td></tr>
+          <tr><td>Popularity Rank</td><td>[[rank]]</td></tr>
+        </table>
+      </div>
       <div class="vertical layout wrap">
         <div class="horizontal layout wrap">
           <div class="imgtext">Without Patch Image</div>
