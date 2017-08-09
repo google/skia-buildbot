@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e22a3e3b_e98556bb",
+        "filename": "ct_pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-09T03:04:00Z",
+      "side": 1,
+      "message": "Not necessarily to address in this change, but mentioning as I looked at screenshot:\n- it isn\u0027t immediately apparent whether it\u0027s 0, 1, 2, ... out of the total number of filtered results, or out of the total results in the run, period.\n- presuming it\u0027s probably filtered, there\u0027s no way to see how many total filtered results there are currently\n\nSo when you\u0027re looking at it, you see like index #3 but you don\u0027t know if it\u0027s out of 8,000 or 300 that meet the filtering criteria, and that is material info.\n\nVarious ways to address such as putting / \u003ctotal\u003e alongside each result index (but that\u0027s sort of verbose), or having a total in one place at top of page, or having the total on a separate details page.",
+      "range": {
+        "startLine": 76,
+        "startChar": 41,
+        "endLine": 76,
+        "endChar": 46
+      },
+      "revId": "f348ff0d7674d65d0ff247d2fd561e86a2ee8fec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c90c5ea_ae351b13",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-09T03:04:00Z",
+      "side": 1,
+      "message": "Add a few new test cases that test actually filtering results?",
+      "range": {
+        "startLine": 228,
+        "startChar": 5,
+        "endLine": 228,
+        "endChar": 20
+      },
+      "revId": "f348ff0d7674d65d0ff247d2fd561e86a2ee8fec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cff99774_3732f2b7",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 7585
+      },
+      "writtenOn": "2017-08-09T03:04:00Z",
+      "side": 0,
+      "message": "Is this change intentional?",
+      "range": {
+        "startLine": 97,
+        "startChar": 1,
+        "endLine": 100,
+        "endChar": 2
+      },
+      "revId": "e2dc640b9ba9ab18e328317964fb3400c53d412d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
