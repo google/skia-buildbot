@@ -1,3 +1,6 @@
+// This is the global probers file. Application specific probers should be
+// placed in the applications top level directory in a file called
+// 'probers.json5'.
 {
    "skfiddle": {
      "urls": ["https://fiddle.skia.org"],

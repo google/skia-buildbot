@@ -78,3 +78,5 @@ fiddle/res/css
 prometheus/tmp
 # Jupyter
 .ipynb_checkpoints
+# Prober
+prober/allprobers.json5
