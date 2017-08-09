@@ -5,8 +5,10 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -219,6 +221,54 @@ func main() {
 		return
 	}
 
+	// Create metadata file at the top level that lists the total number of webpages processed in both nopatch and withpatch directories.
+	if err := createAndUploadMetadataFile(gs); err != nil {
+		sklog.Errorf("Could not create and upload metadata file: %s", err)
+		return
+	}
+
 	pixelDiffResultsLink = fmt.Sprintf(PIXEL_DIFF_RESULTS_LINK_TEMPLATE, *runID)
 	taskCompletedSuccessfully = true
+}
+
+type Metadata struct {
+	RunID                string `json:"run_id"`
+	NoPatchImagesCount   int    `json:"nopatch_images_count"`
+	WithPatchImagesCount int    `json:"withpatch_images_count"`
+}
+
+func createAndUploadMetadataFile(gs *util.GcsUtil) error {
+	baseRemoteDir, err := util.GetBasePixelDiffRemoteDir(*runID)
+	if err != nil {
+		return fmt.Errorf("Error encountered when calculating remote base dir: %s", err)
+	}
+	noPatchRemoteDir := filepath.Join(baseRemoteDir, "nopatch")
+	totalNoPatchWebpages, err := gs.GetRemoteDirCount(noPatchRemoteDir)
+	if err != nil {
+		return fmt.Errorf("Could not find any content in %s: %s", noPatchRemoteDir, err)
+	}
+	withPatchRemoteDir := filepath.Join(baseRemoteDir, "withpatch")
+	totalWithPatchWebpages, err := gs.GetRemoteDirCount(withPatchRemoteDir)
+	if err != nil {
+		return fmt.Errorf("Could not find any content in %s: %s", withPatchRemoteDir, err)
+	}
+	metadata := Metadata{
+		RunID:                *runID,
+		NoPatchImagesCount:   totalNoPatchWebpages,
+		WithPatchImagesCount: totalWithPatchWebpages,
+	}
+	m, err := json.Marshal(&metadata)
+	if err != nil {
+		return fmt.Errorf("Could not marshall %s to json: %s", m, err)
+	}
+	localMetadataFileName := *runID + ".metadata.json"
+	localMetadataFilePath := filepath.Join(os.TempDir(), localMetadataFileName)
+	if err := ioutil.WriteFile(localMetadataFilePath, m, os.ModePerm); err != nil {
+		return fmt.Errorf("Could not write to %s: %s", localMetadataFilePath, err)
+	}
+	defer skutil.Remove(localMetadataFilePath)
+	if err := gs.UploadFile(localMetadataFileName, os.TempDir(), baseRemoteDir); err != nil {
+		return fmt.Errorf("Could not upload %s to %s: %s", localMetadataFileName, baseRemoteDir, err)
+	}
+	return nil
 }
