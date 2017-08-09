@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb0cfea3_e7e3065d",
+        "filename": "prober/go/build_probers_json5/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-09T11:51:51Z",
+      "side": 1,
+      "message": "nit: and names to allProbeSources.",
+      "range": {
+        "startLine": 71,
+        "startChar": 44,
+        "endLine": 71,
+        "endChar": 45
+      },
+      "revId": "d888cc52f54d1e3e5369312a88ac05f3ae514ef2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4cfbdcf_75069c4a",
+        "filename": "prober/go/build_probers_json5/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-09T11:51:51Z",
+      "side": 1,
+      "message": "allProbeSources is not used outside of this function? maybe it should be instantiated and used here then.",
+      "revId": "d888cc52f54d1e3e5369312a88ac05f3ae514ef2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
