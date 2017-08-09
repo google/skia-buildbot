@@ -2,17 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
-	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct_pixel_diff/go/ctdiffingestion"
 	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
@@ -36,6 +33,7 @@ var (
 	boltDir            = flag.String("bolt_dir", "diffs", "Directory that ResultStore uses to store its boltDB instance")
 	boltName           = flag.String("bolt_name", "diffs.db", "Name of the boltDB instance of ResultStore")
 	cacheSize          = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
+	forceLogin         = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
 	gsBucket           = flag.String("gs_bucket", "cluster-telemetry", "Google storage bucket that holds screenshots from CT.")
 	gsBaseDirs         = flag.String("gs_basedirs", "tasks/pixel_diff_runs", "Path of subdirectories after the GS bucket that lead to YYYY/MM/DD directories.")
 	imageDir           = flag.String("image_dir", "imagedir", "Directory that DiffStore uses to store screenshots and diff images.")
@@ -59,6 +57,7 @@ var (
 const (
 	IMAGE_URL_PREFIX = "/img/"
 	INGESTER_ID      = "ct-pixel-diff"
+	OAUTH2_CALLBACK  = "/oauth2callback/"
 )
 
 func main() {
@@ -94,13 +93,7 @@ func main() {
 	}
 
 	// Set up logging in.
-	useRedirectURL := *redirectURL
-	if *local {
-		useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	}
-	if err := login.Init(useRedirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " ")); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	login.SimpleInitMust(*port, *local)
 
 	// Load the frontend templates.
 	loadTemplates()
@@ -166,7 +159,7 @@ func main() {
 	router.HandleFunc("/", templateHandler("runs.html"))
 	router.HandleFunc("/load", templateHandler("results.html"))
 	router.HandleFunc("/search", templateHandler("search.html"))
-	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	router.HandleFunc(OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 
@@ -179,6 +172,9 @@ func main() {
 	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
 
 	rootHandler := httputils.LoggingGzipRequestResponse(router)
+	if *forceLogin {
+		rootHandler = login.ForceAuth(rootHandler, OAUTH2_CALLBACK)
+	}
 	http.Handle("/", rootHandler)
 
 	// Start the HTTP server.
