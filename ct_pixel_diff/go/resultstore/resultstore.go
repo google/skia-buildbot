@@ -32,6 +32,9 @@ const (
 	WWW   = "www."
 	TEXT  = "text"
 	VALUE = "value"
+
+	// Number of ResultRec instances to render in one render request.
+	CHUNK_SIZE = 20
 )
 
 var (
@@ -88,8 +91,8 @@ type ResultStore interface {
 	// ResultStore.
 	RemoveRun(runID string) error
 
-	// GetRange returns cached results in the given range for the given runID.
-	GetRange(runID string, startIdx, endIdx int) ([]*ResultRec, error)
+	// GetFiltered returns cached results within the given bounds for the given runID.
+	GetFiltered(runID string, startIdx int, min float32, max float32) ([]*ResultRec, int, error)
 
 	// SortRun sorts the cached results for the given runID using the sort
 	// parameters.
@@ -339,22 +342,30 @@ func (b *BoltResultStore) RemoveRun(runID string) error {
 	return nil
 }
 
-// GetRange returns all the ResultRecs in the specified range [startIdx,endIdx)
-// for the given runID from the cache. Returns an empty slice if the indices are
-// out of bounds and returns an error if there is no data cached for the runID.
-func (b *BoltResultStore) GetRange(runID string, startIdx, endIdx int) ([]*ResultRec, error) {
+// GetFiltered returns at most CHUNK_SIZE ResultRecs whose PixelDiffPercent is
+// greater than or equal to the given min and less than or equal to the given
+// max. The filtering starts at the given start index for the runID's cached
+// results. Also returns the next index so that the frontend knows where to
+// start its next filter query in the cache. Returns an error if there is no
+// data cached for the runID.
+func (b *BoltResultStore) GetFiltered(runID string, startIdx int, min float32, max float32) ([]*ResultRec, int, error) {
 	if results, ok := b.cache[runID]; ok {
-		if startIdx > len(results) {
-			startIdx = len(results)
+		ret := []*ResultRec{}
+		i := 0
+		for i < CHUNK_SIZE {
+			if startIdx >= len(results) {
+				return ret, len(results), nil
+			}
+			percent := results[startIdx].DiffMetrics.PixelDiffPercent
+			if min <= percent && percent <= max {
+				ret = append(ret, results[startIdx])
+				i++
+			}
+			startIdx++
 		}
-
-		if endIdx > len(results) {
-			endIdx = len(results)
-		}
-
-		return results[startIdx:endIdx], nil
+		return ret, startIdx, nil
 	} else {
-		return nil, fmt.Errorf("No cached results for run %s", runID)
+		return nil, -1, fmt.Errorf("No cached results for run %s", runID)
 	}
 }
 

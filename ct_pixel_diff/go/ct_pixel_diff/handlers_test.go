@@ -97,20 +97,19 @@ func TestJsonRenderHandler(t *testing.T) {
 	q := req.URL.Query()
 	q.Add("runID", TEST_RUN_ID)
 	q.Add("startIdx", "0")
-	q.Add("endIdx", "2")
+	q.Add("minPercent", "0")
+	q.Add("maxPercent", "100")
 	req.URL.RawQuery = q.Encode()
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(jsonRenderHandler)
 	handler.ServeHTTP(rr, req)
 
-	expected := map[string][]*resultstore.ResultRec{
-		"results": []*resultstore.ResultRec{recOne, recTwo},
-	}
-	results := map[string][]*resultstore.ResultRec{}
+	results := map[string]interface{}{}
 	err = json.NewDecoder(rr.Body).Decode(&results)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, results)
+	assert.Equal(t, 2, len(results["results"].([]interface{})))
+	assert.Equal(t, 2, int(results["nextIdx"].(float64)))
 }
 
 func TestJsonSortHandler(t *testing.T) {
@@ -157,7 +156,7 @@ func TestJsonSortHandler(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	expected := []*resultstore.ResultRec{recTwo, recOne}
-	actual, err := resultStore.GetRange(TEST_RUN_ID, 0, 2)
+	actual, _, err := resultStore.GetFiltered(TEST_RUN_ID, 0, 0, 100)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
