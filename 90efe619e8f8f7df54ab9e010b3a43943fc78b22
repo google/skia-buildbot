@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef78c29e_c607ac75",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 472,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-09T17:10:52Z",
+      "side": 1,
+      "message": "nit: It might be simpler to just do this in the main thread. No need for any WaitGroups.",
+      "range": {
+        "startLine": 468,
+        "startChar": 0,
+        "endLine": 472,
+        "endChar": 25
+      },
+      "revId": "90efe619e8f8f7df54ab9e010b3a43943fc78b22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1609260a_78de813c",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-09T17:10:52Z",
+      "side": 1,
+      "message": "nit: The function documentation says it returns the number of tasks triggered. The previous code would return an error when failing to trigger tasks; now, it will return numTasks with no error, which will not match the actual number of tasks triggered.\n\nHowever, we expect this number to match the number computed in MergeUploadCSVFiles, so if we change it here, we need to change it in both places.\n\nMaybe it would be better to pass in numPagesPerBot instead of passing in repeatValue and maxPagesPerBot, and rely on the caller compute numPagesPerBot and numTasks if needed?\n\nJust a nit since mostly it\u0027s the documentation that\u0027s confusing/wrong.",
+      "range": {
+        "startLine": 514,
+        "startChar": 8,
+        "endLine": 514,
+        "endChar": 16
+      },
+      "revId": "90efe619e8f8f7df54ab9e010b3a43943fc78b22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
