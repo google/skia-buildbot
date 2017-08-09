@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fc5176c6_56f25649",
+        "filename": "ct_pixel_diff/frontend/res/imp/diff-details-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-09T18:38:10Z",
+      "side": 1,
+      "message": "Due to the incremental loading of the page, there\u0027s no way to know how many results meet the filtering criteria without iterating through the entirety of the cached results on every filter query, which seems undesirable and counter to why we\u0027re rendering data incrementally in the first place. I did plan on putting a total number of results on the statistics/histogram page, which in conjunction with the histogram, may give the user a better idea of results that fit into certain thresholds. Do you think this is sufficient or would you still like to see a concrete number for how many results match the criteria every time the filter button is pressed?",
+      "parentUuid": "e22a3e3b_e98556bb",
+      "range": {
+        "startLine": 76,
+        "startChar": 41,
+        "endLine": 76,
+        "endChar": 46
+      },
+      "revId": "f348ff0d7674d65d0ff247d2fd561e86a2ee8fec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8e97d26d_5140e5c9",
         "filename": "ct_pixel_diff/frontend/res/imp/results-page-sk.html",
         "patchSetId": 2
