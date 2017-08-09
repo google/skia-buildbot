@@ -25,6 +25,40 @@
     },
     {
       "key": {
+        "uuid": "8e97d26d_5140e5c9",
+        "filename": "ct_pixel_diff/frontend/res/imp/results-page-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-09T15:07:45Z",
+      "side": 1,
+      "message": "Not in this change, but it might be very useful to define a min and a max value instead of a threshold. That way you can explore different parts of the distribution. Especially if you add a histogram.",
+      "revId": "f348ff0d7674d65d0ff247d2fd561e86a2ee8fec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce98f1c9_c9b93052",
+        "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-09T15:07:45Z",
+      "side": 1,
+      "message": "super nit: do the cast when passing parseThreshold to GetFiltered.",
+      "revId": "f348ff0d7674d65d0ff247d2fd561e86a2ee8fec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7c90c5ea_ae351b13",
         "filename": "ct_pixel_diff/go/resultstore/resultstore_test.go",
         "patchSetId": 2
