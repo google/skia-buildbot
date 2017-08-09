@@ -9,6 +9,7 @@ Environment=DATA_DIR=/mnt/pd0/ct_pixel_diff  \
 ExecStart=/usr/local/bin/ct_pixel_diff  \
     -bolt_dir=${DATA_DIR}/diffs  \
     -cache_size=20  \
+    -force_login=true  \
     -gs_bucket=cluster-telemetry  \
     -gs_basedirs=tasks/pixel_diff_runs  \
     -image_dir=${DATA_DIR}/imagedir  \
