@@ -68,19 +68,29 @@ func jsonRenderHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	endIdx, err := strconv.Atoi(r.FormValue("endIdx"))
+	parseThreshold, err := strconv.ParseFloat(r.FormValue("threshold"), 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse end index")
+		httputils.ReportError(w, r, err, "Failed to parse threshold")
 		return
 	}
+	threshold := float32(parseThreshold)
+	// endIdx, err := strconv.Atoi(r.FormValue("endIdx"))
+	// if err != nil {
+	// 	httputils.ReportError(w, r, err, "Failed to parse end index")
+	// 	return
+	// }
 
 	// If the runID does not exist in the cache, this will return an error.
-	results, err := resultStore.GetRange(runID, startIdx, endIdx)
+	results, nextIdx, err := resultStore.GetFiltered(runID, startIdx, threshold)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get cached results for run %s", runID))
 		return
 	}
-	sendJsonResponse(w, map[string][]*resultstore.ResultRec{"results": results})
+	if len(results) == 0 {
+		httputils.ReportError(w, r, err, fmt.Sprintf("No more results for run %s", runID))
+		return
+	}
+	sendJsonResponse(w, map[string]interface{}{"results": results, "nextIdx": nextIdx})
 }
 
 // jsonSortHandler sorts the ResultStore's cached list of diff results using the

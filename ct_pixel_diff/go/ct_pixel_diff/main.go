@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"html/template"
 	"net/http"
 	"os"
@@ -94,12 +93,10 @@ func main() {
 	}
 
 	// Set up logging in.
-	useRedirectURL := *redirectURL
-	if *local {
-		useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	}
-	if err := login.Init(useRedirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " ")); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	if !*local {
+		if err := login.Init(*redirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " ")); err != nil {
+			sklog.Fatalf("Failed to initialize the login system: %s", err)
+		}
 	}
 
 	// Load the frontend templates.
