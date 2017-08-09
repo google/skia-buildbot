@@ -10,7 +10,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --git_repo_dir=/mnt/pd0/skiaperf/repo  \
     --git_repo_url=https://skia.googlesource.com/git-master-skia  \
     --logtostderr \
-    --config_filename=/etc/skiaperf/ingest.toml \
+    --config_filename=/etc/skiaperf/ingest.json5 \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store \
     --db_name=android_master_skia \
     --dataframe_size=256 \
