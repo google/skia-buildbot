@@ -22,6 +22,30 @@
       "revId": "8d641bc706ccb3ad2a510c2360e9791c3123d0de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3462f765_85cdbc98",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-09T19:48:12Z",
+      "side": 1,
+      "message": "Oh, thats right. Now using the same pattern I do for the patches: prefixing the runID.",
+      "parentUuid": "1c584de1_a6897e3e",
+      "range": {
+        "startLine": 264,
+        "startChar": 0,
+        "endLine": 265,
+        "endChar": 76
+      },
+      "revId": "8d641bc706ccb3ad2a510c2360e9791c3123d0de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
