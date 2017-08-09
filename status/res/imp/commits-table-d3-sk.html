@@ -522,12 +522,25 @@
             }
 
             if (details) {
+              // Remove any previously-set classes.
+              var removeClasses = [];
+              for (var i = 0; i < build.classList.length; i++) {
+                var c = build.classList.item(i);
+                if (c.indexOf("bg-") === 0) {
+                  removeClasses.push(c);
+                }
+              }
+              removeClasses.forEach(function(c) {
+                build.classList.remove(c);
+              });
+
+              // Add the new class.
               build.classList.add(build_details[d.commit.hash][d.builder].colorClass);
               build.title = d.builder + ", #"+details.number;
               addIronIcon(d3.select(build), "communication:chat", "tiny", function(){
                 return details.comments.length > 0 &&
                     (build.classList.contains(CLASS_BUILD_SINGLE)
-                  || build.className.contains(CLASS_BUILD_TOP));
+                  || build.classList.contains(CLASS_BUILD_TOP));
               });
             } else {
               build.style["background-color"] = "";
