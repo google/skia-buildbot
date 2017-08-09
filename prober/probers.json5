@@ -39,13 +39,6 @@
      "body": "",
      "mimetype": ""
    },
-   "skiaperf": {
-     "urls": ["https://perf.skia.org/e/"],
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
    "skiagold": {
      "urls": ["https://gold.skia.org"],
      "method": "GET",

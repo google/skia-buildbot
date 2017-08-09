@@ -1,0 +1,9 @@
+{
+   "skiaperf": {
+     "urls": ["https://perf.skia.org/e/"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+}
