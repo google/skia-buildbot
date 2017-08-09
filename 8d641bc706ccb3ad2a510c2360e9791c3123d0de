@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c584de1_a6897e3e",
+        "filename": "ct/go/master_scripts/pixel_diff_on_workers/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-09T18:58:36Z",
+      "side": 1,
+      "message": "minor: There could be parallel runs that concurrently write this file.\n\nUsing ioutil.TempDir(\"\", \"metadata\") would be better. Also, GCS has a way to upload the bytes directly, although util.GcsUtil might not expose that.",
+      "range": {
+        "startLine": 264,
+        "startChar": 0,
+        "endLine": 265,
+        "endChar": 76
+      },
+      "revId": "8d641bc706ccb3ad2a510c2360e9791c3123d0de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
