@@ -23,6 +23,8 @@ import (
 
 const (
 	MAX_PAGES_PER_SWARMING_BOT = 50
+
+	PIXEL_DIFF_RESULTS_LINK_TEMPLATE = "https://ctpixeldiff.skia.org/load?runID=%s"
 )
 
 var (
@@ -38,11 +40,10 @@ var (
 
 	taskCompletedSuccessfully = false
 
-	skiaPatchLink       = ""
-	chromiumPatchLink   = ""
-	customWebpagesLink  = ""
-	nopatchImagesLink   = "N/A"
-	withpatchImagesLink = "N/A"
+	pixelDiffResultsLink = ""
+	skiaPatchLink        = ""
+	chromiumPatchLink    = ""
+	customWebpagesLink   = ""
 )
 
 func sendEmail(recipients []string) {
@@ -70,9 +71,8 @@ func sendEmail(recipients []string) {
 	Run description: %s<br/>
 	%s
 	<br/>
-	The screenshots output are stored in these google storage locations:<br/>
-	* %s<br/>
-	* %s<br/>
+	The results of the run are available <a href='%s'>here</a>.<br/>
+	Note: Results will take some time to be processed and thus might not be immediately available.<br/>
 	<br/>
 	The patch(es) you specified are here:
 	<a href='%s'>chromium</a>/<a href='%s'>skia</a>
@@ -83,7 +83,7 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, nopatchImagesLink, withpatchImagesLink, chromiumPatchLink, skiaPatchLink, customWebpagesLink, frontend.PixelDiffTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, pixelDiffResultsLink, chromiumPatchLink, skiaPatchLink, customWebpagesLink, frontend.PixelDiffTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -95,9 +95,7 @@ func updateWebappTask() {
 	vars.Id = *gaeTaskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	swarmingLogsLink := fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID)
-	// TODO(rmistry): After skbug.com/6779 is implemented and we have a URL for diffs, replace the
-	//                below placeholder link.
-	vars.Results = sql.NullString{String: swarmingLogsLink, Valid: true}
+	vars.Results = sql.NullString{String: pixelDiffResultsLink, Valid: true}
 	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
@@ -220,13 +218,7 @@ func main() {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
-	baseRemoteDir, err := util.GetBasePixelDiffRemoteDir(*runID)
-	if err != nil {
-		sklog.Errorf("Error encountered when calculating remote base dir: %s", err)
-		return
-	}
-	nopatchImagesLink = "gs://" + filepath.Join(util.GCSBucketName, baseRemoteDir, "nopatch")
-	withpatchImagesLink = "gs://" + filepath.Join(util.GCSBucketName, baseRemoteDir, "withpatch")
 
+	pixelDiffResultsLink = fmt.Sprintf(PIXEL_DIFF_RESULTS_LINK_TEMPLATE, *runID)
 	taskCompletedSuccessfully = true
 }
