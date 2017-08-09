@@ -1,0 +1,10 @@
+{
+   "task_scheduler": {
+     "urls": ["https://task-scheduler.skia.org"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "",
+     "responsetest": "nonZeroContenLength"
+   },
+}

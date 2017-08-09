@@ -1,0 +1,16 @@
+{
+   "skfe-1": {
+     "urls": ["http://skia-skfe-1"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skfe-2": {
+     "urls": ["http://skia-skfe-2"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+}

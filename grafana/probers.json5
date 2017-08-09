@@ -1,0 +1,9 @@
+{
+   "skiamonitor": {
+     "urls": ["https://mon.skia.org"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+}

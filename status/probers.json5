@@ -1,0 +1,17 @@
+{
+   "skiastatus": {
+     "urls": ["https://status.skia.org"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiastatus_json": {
+     "urls": ["https://status.skia.org/json/skia/commits/"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "responsetest": "validJSON"
+   },
+}
