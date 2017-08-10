@@ -27,6 +27,10 @@
       width: 40em;
     }
 
+    .smaller-font {
+      font-size: 80%;
+    }
+
     .hidden {
       display: none;
     }
@@ -69,6 +73,7 @@
         <td>Benchmark Arguments</td>
         <td>
           <paper-input value="--dc-detect --dc-extra-screenshots=2" id="benchmark_args" class="long-field"></paper-input>
+          <span class="smaller-font">For description of these flags see the benchmark's <a href="https://chromium.googlesource.com/chromium/src/+/master/tools/perf/contrib/cluster_telemetry/screenshot_ct.py">documentation</a>.</span><br/>
         </td>
       </tr>
 
