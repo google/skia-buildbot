@@ -6,44 +6,46 @@ import (
 	"fmt"
 	"strings"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/gitiles"
 )
 
 // This file must be kept in sync with:
 // https://chromium.googlesource.com/chromium/tools/build/+/master/scripts/common/skia/builder_name_schema.json
 
-var (
-	schema *builderNameSchema
-)
-
 type builderNameSchema struct {
 	Schema         map[string][]string `json:"builder_name_schema"`
 	BuilderNameSep string              `json:"builder_name_sep"`
 }
 
-func init() {
+type BuilderNameParser interface {
+	ParseBuilderName(name string) (map[string]string, error)
+}
+
+type builderNameParser struct {
+	schema *builderNameSchema
+}
+
+func DefaultBuilderNameParser() (BuilderNameParser, error) {
 	buf := bytes.NewBuffer(nil)
 	r := gitiles.NewRepo("https://skia.googlesource.com/skia")
 	if err := r.ReadFile("infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json", buf); err != nil {
-		sklog.Fatal(err)
+		return nil, fmt.Errorf("Could not read schema file: %s", err)
 	}
 	res := new(builderNameSchema)
 	if err := json.NewDecoder(buf).Decode(res); err != nil {
-		sklog.Fatal(err)
+		return nil, fmt.Errorf("Could not decode schema file: %s", err)
 	}
-	schema = res
+	return &builderNameParser{schema: res}, nil
 }
 
-func ParseBuilderName(name string) (map[string]string, error) {
-	split := strings.Split(name, schema.BuilderNameSep)
+func (b *builderNameParser) ParseBuilderName(name string) (map[string]string, error) {
+	split := strings.Split(name, b.schema.BuilderNameSep)
 	if len(split) < 2 {
 		return nil, fmt.Errorf("Invalid builder name: %q", name)
 	}
 	role := split[0]
 	split = split[1:]
-	keys, ok := schema.Schema[role]
+	keys, ok := b.schema.Schema[role]
 	if !ok {
 		return nil, fmt.Errorf("Invalid builder name; %q is not a valid role.", role)
 	}

@@ -9,7 +9,8 @@ import (
 )
 
 func TestBuilderNameSchema(t *testing.T) {
-	testutils.SmallTest(t)
+	// Medium test because it reads config from disk from disk
+	testutils.MediumTest(t)
 	tc := map[string]map[string]string{
 		"Build-Ubuntu-GCC-x86-Release": {
 			"role":          "Build",
@@ -38,10 +39,12 @@ func TestBuilderNameSchema(t *testing.T) {
 			"extra_config":     "CT_DM_1m_SKPs",
 		},
 	}
+	p, err := DefaultBuilderNameParser()
+	assert.NoError(t, err)
 	for builderName, params := range tc {
-		res, err := ParseBuilderName(builderName)
+		res, err := p.ParseBuilderName(builderName)
 		if params == nil {
-			assert.NotNil(t, err)
+			assert.NoError(t, err)
 		} else {
 			assert.Equal(t, params, res)
 		}
