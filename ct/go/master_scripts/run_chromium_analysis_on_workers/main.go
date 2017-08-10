@@ -24,8 +24,7 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT             = 100
-	MAX_PAGES_PER_SWARMING_BOT_WITH_STDOUT = 50
+	MAX_PAGES_PER_SWARMING_BOT = 100
 )
 
 var (
@@ -196,20 +195,13 @@ func main() {
 		"TARGET_PLATFORM":    *targetPlatform,
 	}
 
-	// We limit the number of pages per swarming bot when the show stdout flag
-	// is used due to the 16MB log limit in swarming. See crbug.com/752908.
-	maxPagesPerSwarmingBot := MAX_PAGES_PER_SWARMING_BOT
-	if strings.Contains(*benchmarkExtraArgs, util.SHOW_STDOUT_FLAG) {
-		maxPagesPerSwarmingBot = MAX_PAGES_PER_SWARMING_BOT_WITH_STDOUT
-	}
-
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
 	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
 	if err != nil {
 		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
 		return
 	}
-	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerSwarmingBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, 1))
+	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, 1))
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
@@ -219,7 +211,7 @@ func main() {
 	noOutputSlaves := []string{}
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
-		if noOutputSlaves, err = util.MergeUploadCSVFiles(*runID, pathToPyFiles, gs, numPages, maxPagesPerSwarmingBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
+		if noOutputSlaves, err = util.MergeUploadCSVFiles(*runID, pathToPyFiles, gs, numPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 		}
 		// Cleanup created dir after the run completes.
