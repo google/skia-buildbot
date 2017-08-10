@@ -89,8 +89,6 @@ const (
 	PAGESET_REPEAT_FLAG = "--pageset-repeat"
 	// Run Benchmark timeout flag.
 	RUN_BENCHMARK_TIMEOUT_FLAG = "--run-benchmark-timeout"
-	// Show stdout flag.
-	SHOW_STDOUT_FLAG = "--show-stdout"
 
 	// Defaults for custom webpages.
 	DEFAULT_CUSTOM_PAGE_USERAGENT   = "desktop"
