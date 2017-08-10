@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cc61c85d_f2c7e083",
+        "filename": "ct_pixel_diff/go/ctdiffingestion/nsfw.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-10T21:18:57Z",
+      "side": 1,
+      "message": "Go has no built in set structure or a contains method for arrays/slices, which is why I did this. Initially thought of making a map[string]bool and marking each of the nsfw urls with true, but apparently empty structs use no memory so this is optimal if we go the map approach.",
+      "revId": "e26475a62db58cd476f9921731bf4af26ae0c57f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
