@@ -1,0 +1,124 @@
+<link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
+<link rel="import" href="/res/imp/bower_components/nvd3-elements/nvd3-discrete-bar.html">
+<link rel="import" href="/res/imp/bower_components/nvd3-elements/nvd3-donut.html">
+<link rel="import" href="/res/common/imp/spinner-sk.html">
+
+<link rel="import" href="/res/imp/shared-styles.html">
+
+<dom-module id="stats-page-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
+      h1 {
+        text-align: center;
+        font-size: 20px;
+      }
+
+      h2 {
+        text-align: center;
+      }
+    </style>
+    <spinner-sk id="spinner" busy="{{_hideAll}}"></spinner-sk>
+    <div hidden$="{{_hideAll}}">
+      <div class="vertical">
+        <h1>Histogram of Pixel Diff Percent</h1>
+        <nvd3-discrete-bar
+          data="[[histogram]]"
+          height="500"
+          xAxis="hi"
+          auto-resize
+          show-legend>
+        </nvd3-discrete-bar>
+        <h2>Percentage of Different Pixels (%)</h2>
+        </div>
+      </div>
+      <hr>
+      <div class="vertical">
+        <h1>Total Number of Diff Results: [[numTotalResults]]</h1>
+        <div class="horizontal layout wrap center-center">
+          <nvd3-donut
+            data="[[dynamicContent]]"
+            title="Results with Dynamic Content"
+            height="600"
+            width="600"
+            show-legend
+            auto-resize
+            grow-on-hover>
+          </nvd3-donut>
+          <nvd3-donut
+            data="[[zeroDiff]]"
+            title="Results with Zero Diff"
+            height="600"
+            width="600"
+            show-legend
+            auto-resize
+            grow-on-hover>
+          </nvd3-donut>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: "stats-page-sk",
+
+      properties: {
+        numTotalResults: {
+          type: Number,
+          value: 0
+        },
+
+        histogram: {
+          type: Array,
+          value: function() { return []; }
+        },
+
+        dynamicContent: {
+          type: Array,
+          value: function() { return []; }
+        },
+
+        zeroDiff: {
+          type: Array,
+          value: function() { return []; }
+        },
+      },
+
+      ready: function() {
+        var query = window.location.search;
+        this.$.spinner.startSpinner();
+        sk.get("/json/stats" + query).then(JSON.parse).then(function (json) {
+          var numTotalResults = json.stats['numTotalResults'];
+          this.set('numTotalResults', numTotalResults);
+
+          var histogramValues = [];
+          for (var key in json.histogram) {
+            var entry = {label:key, value:json.histogram[key]};
+            histogramValues.push(entry);
+          }
+          var histogramData = {values: histogramValues}
+          var histogram = [histogramData]
+          this.set('histogram', histogram);
+
+          var numDynamic = json.stats['numDynamicContent'];
+          var numStatic = numTotalResults - numDynamic;
+          var dynamic = {label:'Dynamic Content', value:numDynamic};
+          var static = {label:'Static Content', value:numStatic};
+          var dynamicContent = [dynamic, static];
+          this.set('dynamicContent', dynamicContent);
+
+          var numZeroDiff = json.stats['numZeroDiff'];
+          var numNonZeroDiff = numTotalResults - numZeroDiff;
+          var zero = {label:'Zero Diff', value:numZeroDiff};
+          var nonZero = {label:'Non-Zero Diff', value:numNonZeroDiff};
+          var zeroDiff = [zero, nonZero];
+          this.set('zeroDiff', zeroDiff);
+          this.$.spinner.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+          this.$.spinner.stopSpinner();
+        }.bind(this));
+      }
+    })
+  </script>
+</dom-module>

@@ -33,6 +33,21 @@ const (
 	TEXT  = "text"
 	VALUE = "value"
 
+	// Constants used to report statistics.
+	BUCKET_0            = "[0-10)"
+	BUCKET_1            = "[10-20)"
+	BUCKET_2            = "[20-30)"
+	BUCKET_3            = "[30-40)"
+	BUCKET_4            = "[40-50)"
+	BUCKET_5            = "[50-60)"
+	BUCKET_6            = "[60-70)"
+	BUCKET_7            = "[70-80)"
+	BUCKET_8            = "[80-90)"
+	BUCKET_9            = "[90-100]"
+	NUM_TOTAL_RESULTS   = "numTotalResults"
+	NUM_DYNAMIC_CONTENT = "numDynamicContent"
+	NUM_ZERO_DIFF       = "numZeroDiff"
+
 	// Number of ResultRec instances to render in one render request.
 	CHUNK_SIZE = 20
 )
@@ -100,6 +115,10 @@ type ResultStore interface {
 
 	// GetURLs returns the URLs of all cached results for the given runID.
 	GetURLs(runID string) ([]map[string]string, error)
+
+	// GetStats returns various statistics and a histogram using cached results
+	// for the given runID.
+	GetStats(runID string) (map[string]int, map[string]int, error)
 }
 
 // BoltResultStore implements the ResultStore interface with a boltDB instance.
@@ -515,5 +534,73 @@ func (b *BoltResultStore) GetURLs(runID string) ([]map[string]string, error) {
 		return urls, nil
 	} else {
 		return nil, fmt.Errorf("No cached results for run %s", runID)
+	}
+}
+
+// GetStats returns two maps, one that contains basic count statistics such as
+// the total number of diff results and number of results with dynamic content,
+// and another that represents a histogram of pixel diff percentages. Returns an
+// error if there is no data cached for the runID.
+func (b *BoltResultStore) GetStats(runID string) (map[string]int, map[string]int, error) {
+	if results, ok := b.cache[runID]; ok {
+		stats := map[string]int{
+			NUM_TOTAL_RESULTS:   0,
+			NUM_DYNAMIC_CONTENT: 0,
+			NUM_ZERO_DIFF:       0,
+		}
+		histogram := map[string]int{
+			BUCKET_0: 0,
+			BUCKET_1: 0,
+			BUCKET_2: 0,
+			BUCKET_3: 0,
+			BUCKET_4: 0,
+			BUCKET_5: 0,
+			BUCKET_6: 0,
+			BUCKET_7: 0,
+			BUCKET_8: 0,
+			BUCKET_9: 0,
+		}
+		for _, result := range results {
+			// Increment the total number of diff results.
+			stats[NUM_TOTAL_RESULTS]++
+
+			// Increment the number of results with dynamic content if the result has
+			// at least one dynamic pixel.
+			if result.DiffMetrics.NumDynamicPixels > 0 {
+				stats[NUM_DYNAMIC_CONTENT]++
+			}
+
+			percent := result.DiffMetrics.PixelDiffPercent
+			// Place the percent in the correct histogram bin.
+			if 0 <= percent && percent < 10 {
+				// Increment the number of results with zero diff if the result has
+				// a pixel diff percentage of exactly 0%.
+				if percent == 0 {
+					stats[NUM_ZERO_DIFF]++
+				}
+				histogram[BUCKET_0]++
+			} else if 10 <= percent && percent < 20 {
+				histogram[BUCKET_1]++
+			} else if 20 <= percent && percent < 30 {
+				histogram[BUCKET_2]++
+			} else if 30 <= percent && percent < 40 {
+				histogram[BUCKET_3]++
+			} else if 40 <= percent && percent < 50 {
+				histogram[BUCKET_4]++
+			} else if 50 <= percent && percent < 60 {
+				histogram[BUCKET_5]++
+			} else if 60 <= percent && percent < 70 {
+				histogram[BUCKET_6]++
+			} else if 70 <= percent && percent < 80 {
+				histogram[BUCKET_7]++
+			} else if 80 <= percent && percent < 90 {
+				histogram[BUCKET_8]++
+			} else if 90 <= percent && percent <= 100 {
+				histogram[BUCKET_9]++
+			}
+		}
+		return stats, histogram, nil
+	} else {
+		return nil, nil, fmt.Errorf("No cached results for run %s", runID)
 	}
 }

@@ -51,6 +51,7 @@
           this.$.spinner.stopSpinner();
         }.bind(this)).catch(function(e) {
           sk.errorMessage(e);
+          this.$.spinner.stopSpinner();
         }.bind(this));
       }
     })

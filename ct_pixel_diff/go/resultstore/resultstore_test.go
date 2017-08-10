@@ -369,3 +369,52 @@ func TestGetURLs(t *testing.T) {
 	assert.Equal(t, expectedOne, urls[0])
 	assert.Equal(t, expectedTwo, urls[1])
 }
+
+func TestGetStats(t *testing.T) {
+	testutils.MediumTest(t)
+
+	// Initialize the ResultStore.
+	resultStore := createBoltResultStore(t)
+
+	// Create two ResultRecs.
+	recOne := createResultRec(t)
+	recTwo := createResultRec(t)
+	recTwo.URL = TEST_URL_TWO
+	recTwo.Rank = 2
+	recTwo.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{
+		PixelDiffPercent: 100,
+		NumDynamicPixels: 1,
+	}
+
+	// Put them under different URLs so there are multiple entries associated
+	// with a run.
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
+	assert.NoError(t, err)
+
+	// Verify the correct statistics are returned.
+	stats, histogram, err := resultStore.GetStats(TEST_RUN_ID)
+	assert.NoError(t, err)
+
+	expectedStats := map[string]int{
+		NUM_TOTAL_RESULTS:   2,
+		NUM_DYNAMIC_CONTENT: 1,
+		NUM_ZERO_DIFF:       1,
+	}
+	assert.Equal(t, expectedStats, stats)
+
+	expectedHistogram := map[string]int{
+		BUCKET_0: 1,
+		BUCKET_1: 0,
+		BUCKET_2: 0,
+		BUCKET_3: 0,
+		BUCKET_4: 0,
+		BUCKET_5: 0,
+		BUCKET_6: 0,
+		BUCKET_7: 0,
+		BUCKET_8: 0,
+		BUCKET_9: 1,
+	}
+	assert.Equal(t, expectedHistogram, histogram)
+}
