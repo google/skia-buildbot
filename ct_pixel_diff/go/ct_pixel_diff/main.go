@@ -159,6 +159,7 @@ func main() {
 	router.HandleFunc("/", templateHandler("runs.html"))
 	router.HandleFunc("/load", templateHandler("results.html"))
 	router.HandleFunc("/search", templateHandler("search.html"))
+	router.HandleFunc("/stats", templateHandler("stats.html"))
 	router.HandleFunc(OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
@@ -170,6 +171,7 @@ func main() {
 	router.HandleFunc("/json/sort", jsonSortHandler).Methods("GET")
 	router.HandleFunc("/json/urls", jsonURLsHandler).Methods("GET")
 	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
+	router.HandleFunc("/json/stats", jsonStatsHandler).Methods("GET")
 
 	rootHandler := httputils.LoggingGzipRequestResponse(router)
 	if *forceLogin {
@@ -188,6 +190,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/results.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/search.html"),
+		filepath.Join(*resourcesDir, "templates/stats.html"),
 	))
 }
 

@@ -16,6 +16,7 @@
     "iron-elements": "^1.0.8",
     "paper-elements": "^1.0.7",
     "paper-autocomplete": "^3.0.0",
-    "polymer": "^1.7.0"
+    "polymer": "^1.7.0",
+    "nvd3-elements": "^0.21.0"
   }
 }

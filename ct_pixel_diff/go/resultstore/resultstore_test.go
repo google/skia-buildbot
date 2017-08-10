@@ -18,19 +18,15 @@ const (
 	// Temporary boltDB instance containing diff metrics data.
 	TEST_DIFF_DB = "diffs.db"
 
-	// Test runID and url for querying and updating the db.
-	TEST_RUN_ID = "lchoi-20170719123456"
-	TEST_URL    = "http://www.google.com"
-
-	// Test runID for querying runs that do not exist in the db.
+	// Test runIDs.
+	TEST_RUN_ID         = "lchoi-20170719123456"
+	TEST_RUN_ID_TWO     = "lchoi-20170721123456"
 	TEST_NOEXIST_RUN_ID = "lchoi-00000000000000"
 
-	// Test url for querying urls that do not exist in a bucket, and for testing
-	// GetAll.
-	TEST_URL_TWO = "http://www.youtube.com"
-
-	// Secondary runID for testing GetRunIDs.
-	TEST_RUN_ID_TWO = "lchoi-20170721123456"
+	// Test URLs.
+	TEST_URL       = "http://www.google.com"
+	TEST_URL_TWO   = "http://www.youtube.com"
+	TEST_URL_THREE = "http://www.facebook.com"
 )
 
 // Tests the IsReadyForDiff func and returns a ResultRec with test data.
@@ -368,4 +364,61 @@ func TestGetURLs(t *testing.T) {
 	}
 	assert.Equal(t, expectedOne, urls[0])
 	assert.Equal(t, expectedTwo, urls[1])
+}
+
+func TestGetStats(t *testing.T) {
+	testutils.MediumTest(t)
+
+	// Initialize the ResultStore.
+	resultStore := createBoltResultStore(t)
+
+	// Create three ResultRecs.
+	recOne := createResultRec(t)
+	recTwo := createResultRec(t)
+	recThree := createResultRec(t)
+	recTwo.URL = TEST_URL_TWO
+	recTwo.Rank = 2
+	recTwo.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{
+		PixelDiffPercent: 100,
+		NumDynamicPixels: 1,
+	}
+	recThree.URL = TEST_URL_THREE
+	recThree.Rank = 3
+	recThree.DiffMetrics = &dynamicdiff.DynamicDiffMetrics{
+		PixelDiffPercent: 100,
+		NumDynamicPixels: 2,
+	}
+	// Put them under different URLs so there are multiple entries associated
+	// with a run.
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_THREE, recThree)
+	assert.NoError(t, err)
+
+	// Verify the correct statistics are returned.
+	stats, histogram, err := resultStore.GetStats(TEST_RUN_ID)
+	assert.NoError(t, err)
+
+	expectedStats := map[string]int{
+		NUM_TOTAL_RESULTS:   3,
+		NUM_DYNAMIC_CONTENT: 2,
+		NUM_ZERO_DIFF:       1,
+	}
+	assert.Equal(t, expectedStats, stats)
+
+	expectedHistogram := map[string]int{
+		BUCKET_0: 1,
+		BUCKET_1: 0,
+		BUCKET_2: 0,
+		BUCKET_3: 0,
+		BUCKET_4: 0,
+		BUCKET_5: 0,
+		BUCKET_6: 0,
+		BUCKET_7: 0,
+		BUCKET_8: 0,
+		BUCKET_9: 2,
+	}
+	assert.Equal(t, expectedHistogram, histogram)
 }

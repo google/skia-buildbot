@@ -29,6 +29,7 @@ ${INSTALL}     --mode=644 ./frontend/templates/header.html       ${ROOT}/usr/loc
 ${INSTALL}     --mode=644 ./frontend/templates/results.html      ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates/results.html
 ${INSTALL}     --mode=644 ./frontend/templates/runs.html         ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates/runs.html
 ${INSTALL}     --mode=644 ./frontend/templates/search.html       ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates/search.html
+${INSTALL}     --mode=644 ./frontend/templates/stats.html        ${ROOT}/usr/local/share/ct_pixel_diff/frontend/templates/stats.html
 }
 
 source ../bash/release.sh
