@@ -235,6 +235,7 @@ type Metadata struct {
 	RunID                string `json:"run_id"`
 	NoPatchImagesCount   int    `json:"nopatch_images_count"`
 	WithPatchImagesCount int    `json:"withpatch_images_count"`
+	Description          string `json:"description"`
 }
 
 func createAndUploadMetadataFile(gs *util.GcsUtil) error {
@@ -256,6 +257,7 @@ func createAndUploadMetadataFile(gs *util.GcsUtil) error {
 		RunID:                *runID,
 		NoPatchImagesCount:   totalNoPatchWebpages,
 		WithPatchImagesCount: totalWithPatchWebpages,
+		Description:          *description,
 	}
 	m, err := json.Marshal(&metadata)
 	if err != nil {
