@@ -73,11 +73,6 @@ func (b *baseInitOpt) init(appName string) error {
 		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
 
-	// See skbug.com/4386 for details on why the below section exists.
-	sklog.Info("Initializing logging for log level INFO.")
-	sklog.Warning("Initializing logging for log level WARNING.")
-	sklog.Error("Initializing logging for log level ERROR.")
-
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
