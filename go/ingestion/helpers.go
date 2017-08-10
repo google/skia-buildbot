@@ -31,7 +31,7 @@ const MAX_URI_GET_TRIES = 4
 // Constructor is the signature that has to be implemented to register a
 // Processor implementation to be instantiated by name from a config struct.
 //   vcs is an instance that might be shared across multiple ingesters.
-//   config is ususally parsed from a TOML file.
+//   config is ususally parsed from a JSON5 file.
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (Processor, error)
 

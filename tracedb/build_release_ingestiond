@@ -28,9 +28,9 @@ ${INSTALL}     --mode=644 -T ./sys/pdf-ingestion.service    ${ROOT}/etc/systemd/
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/gold_ingestion
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/pdfium_gold_ingestion
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/pdf_ingestion
-${INSTALL}     --mode=644 -T ./sys/gold.toml                ${ROOT}/etc/gold_ingestion/config.toml
-${INSTALL}     --mode=644 -T ./sys/pdfium-gold.toml         ${ROOT}/etc/pdfium_gold_ingestion/config.toml
-${INSTALL}     --mode=644 -T ./sys/pdf.toml                 ${ROOT}/etc/pdf_ingestion/config.toml
+${INSTALL}     --mode=644 -T ./sys/gold.json5               ${ROOT}/etc/gold_ingestion/config.json5
+${INSTALL}     --mode=644 -T ./sys/pdfium-gold.json5        ${ROOT}/etc/pdfium_gold_ingestion/config.json5
+${INSTALL}     --mode=644 -T ./sys/pdf.json5                ${ROOT}/etc/pdf_ingestion/config.json5
 }
 
 source ../bash/release.sh
