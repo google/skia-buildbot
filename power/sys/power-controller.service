@@ -7,8 +7,8 @@ After=network-online.target
 ExecStart=/usr/local/bin/power-controller \
   --logtostderr \
   --resources_dir=/usr/local/share/power-controller/ \
-  --powercycle_config=/etc/powercycle/powercycle-rpi-01.yaml \
-  --powercycle_config=/etc/powercycle/powercycle-linux-01.yaml \
+  --powercycle_config=/etc/powercycle/powercycle-rpi-01.json5 \
+  --powercycle_config=/etc/powercycle/powercycle-linux-01.json5 \
   --port=:8002
 Restart=always
 User=default

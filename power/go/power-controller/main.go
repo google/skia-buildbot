@@ -43,7 +43,7 @@ var (
 	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	redirectURL   = flag.String("redirect_url", "https://power.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 
-	powercycleConfigs = common.NewMultiStringFlag("powercycle_config", nil, "YAML file with powercycle bot/device configuration. Same as used for powercycle.")
+	powercycleConfigs = common.NewMultiStringFlag("powercycle_config", nil, "JSON5 file with powercycle bot/device configuration. Same as used for powercycle.")
 	updatePeriod      = flag.Duration("update_period", time.Minute, "How often to update the list of down bots.")
 )
 

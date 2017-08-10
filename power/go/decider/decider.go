@@ -28,7 +28,7 @@ type decider struct {
 	hostMap     map[string]string // maps id -> host
 }
 
-var yamlFileMatcher = regexp.MustCompile(".+powercycle-(.+).yaml")
+var json5FileMatcher = regexp.MustCompile(".+powercycle-(.+).json5")
 
 // New creates a new Decider based off the powercycle configs. It will assume that
 // only the bots listed in that config file are powercycleable.
@@ -38,15 +38,15 @@ func New(powercycleConfigFiles []string) (Decider, map[string]string, error) {
 	hm := map[string]string{}
 	ids := util.StringSet{}
 	for _, file := range powercycleConfigFiles {
-		dg, err := powercycle.DeviceGroupFromYamlFile(file, false)
+		dg, err := powercycle.DeviceGroupFromJson5File(file, false)
 		if err != nil {
 			return nil, nil, err
 		}
 		ids = ids.AddLists(dg.DeviceIDs())
 		// Extract the jumphost name from the file name of the powercycle config file that
 		// was passed in.
-		if matches := yamlFileMatcher.FindStringSubmatch(file); matches == nil {
-			sklog.Warningf("The powercycle config files are expected to start with a powercycle- prefix and end in .yaml.  %s does not", file)
+		if matches := json5FileMatcher.FindStringSubmatch(file); matches == nil {
+			sklog.Warningf("The powercycle config files are expected to start with a powercycle- prefix and end in .json5.  %s does not", file)
 		} else {
 			hostname := "jumphost-" + matches[1]
 			for _, d := range dg.DeviceIDs() {

@@ -14,9 +14,9 @@ import (
 // and control an Arduino with servos via the serial_relay program, that
 // is assumed to run on the remote host.
 type SeeeduinoConfig struct {
-	Address    string         `yaml:"address"`  // IP address of the device, i.e. 192.168.1.33
-	BaseURL    string         `yaml:"base_url"` // Base url that signals a reboot "/arduino/reboot/"
-	DevPortMap map[string]int `yaml:"ports"`    // Mapping between device name and port
+	Address    string         `json:"address"`  // IP address of the device, i.e. 192.168.1.33
+	BaseURL    string         `json:"base_url"` // Base url that signals a reboot "/arduino/reboot/"
+	DevPortMap map[string]int `json:"ports"`    // Mapping between device name and port
 }
 
 // SeeeduinoClient implements the DeviceGroup interface.
