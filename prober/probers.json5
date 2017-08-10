@@ -11,6 +11,6 @@
      "expected": [200],
      "body": "",
      "mimetype": "video/webm",
-     "responsetest": "nonZeroContenLength"
+     "responsetest": "nonZeroContentLength"
    },
 }

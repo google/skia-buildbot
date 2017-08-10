@@ -29,19 +29,18 @@ import (
 // flags
 var (
 	config   = flag.String("config", "probers.json5", "Comma separated names of prober config files.")
-	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
-	testing  = flag.Bool("testing", false, "Set to true for local testing.")
+	validate = flag.Bool("validate", false, "Validate the config file and then exit.")
 )
 
 var (
 	// responseTesters is a mapping of names to functions that test response bodies.
 	responseTesters = map[string]types.ResponseTester{
-		"nonZeroContenLength": nonZeroContenLength,
-		"skfiddleJSONBad":     skfiddleJSONBad,
-		"skfiddleJSONGood":    skfiddleJSONGood,
-		"validJSON":           validJSON,
+		"nonZeroContentLength": nonZeroContentLength,
+		"skfiddleJSONBad":      skfiddleJSONBad,
+		"skfiddleJSONGood":     skfiddleJSONGood,
+		"validJSON":            validJSON,
 	}
 )
 
@@ -53,6 +52,7 @@ const (
 
 func readConfigFiles(filenames string) (types.Probes, error) {
 	allProbes := types.Probes{}
+	errs := []string{}
 	for _, filename := range strings.Split(filenames, ",") {
 		file, err := os.Open(filename)
 		if err != nil {
@@ -66,12 +66,18 @@ func readConfigFiles(filenames string) (types.Probes, error) {
 		for k, v := range *p {
 			v.Failure = map[string]metrics2.Int64Metric{}
 			v.Latency = map[string]metrics2.Int64Metric{}
-			if f, ok := responseTesters[v.ResponseTestName]; ok {
-				v.ResponseTest = f
-				sklog.Infof("Found a request test for %s", k)
+			if v.ResponseTestName != "" {
+				if f, ok := responseTesters[v.ResponseTestName]; ok {
+					v.ResponseTest = f
+				} else {
+					errs = append(errs, fmt.Sprintf("ResponseTestName Not Found %q", k))
+				}
 			}
 			allProbes[k] = v
 		}
+	}
+	if len(errs) != 0 {
+		return nil, fmt.Errorf("%s", strings.Join(errs, "\n  "))
 	}
 	return allProbes, nil
 }
@@ -86,8 +92,8 @@ func In(n int, list []int) bool {
 	return false
 }
 
-// nonZeroContenLength tests whether the Content-Length value is non-zero.
-func nonZeroContenLength(r io.Reader, headers http.Header) bool {
+// nonZeroContentLength tests whether the Content-Length value is non-zero.
+func nonZeroContentLength(r io.Reader, headers http.Header) bool {
 	return headers.Get("Content-Length") != "0"
 }
 
@@ -262,7 +268,18 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
-
+	cfg, err := readConfigFiles(*config)
+	if *validate {
+		if err != nil {
+			fmt.Printf("Validation Failed:\n  %s\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("Validation Successful")
+		os.Exit(0)
+	}
+	if err != nil {
+		sklog.Fatalln("Failed to read config file: ", err)
+	}
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
@@ -272,11 +289,6 @@ func main() {
 	liveness := metrics2.NewLiveness("probes")
 
 	// TODO(jcgregorio) Monitor config file and reload if it changes.
-	cfg, err := readConfigFiles(*config)
-	if err != nil {
-		sklog.Fatalln("Failed to read config file: ", err)
-	}
-	sklog.Infoln("Successfully read config file.")
 	// Register counters for each probe.
 	for name, probe := range cfg {
 		for _, url := range probe.URLs {
