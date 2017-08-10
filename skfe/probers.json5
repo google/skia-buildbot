@@ -1,15 +1,11 @@
 {
-   "skfe-1": {
-     "urls": ["http://skia-skfe-1"],
+   "skfe": {
+     "urls": [
+       "http://skia-skfe-1",
+       "http://skia-skfe-2",
+     ],
      "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-   "skfe-2": {
-     "urls": ["http://skia-skfe-2"],
-     "method": "GET",
-     "expected": [200],
+     "expected": [301],
      "body": "",
      "mimetype": ""
    },
