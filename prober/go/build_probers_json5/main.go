@@ -27,7 +27,7 @@ var (
 )
 
 func main() {
-	common.Init()
+	common.InitCmdLine()
 	// Collect all files named probers.json5.
 	files := []string{}
 	err := filepath.Walk(*srcdir, func(path string, info os.FileInfo, err error) error {

@@ -71,16 +71,21 @@ func init() {
 
 // Init runs commonly-used initialization metrics.
 func Init() {
-	flag.Parse()
-	defer sklog.Flush()
-	flag.VisitAll(func(f *flag.Flag) {
-		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
-	})
+	InitCmdLine()
 
 	// See skbug.com/4386 for details on why the below section exists.
 	sklog.Info("Initializing logging for log level INFO.")
 	sklog.Warning("Initializing logging for log level WARNING.")
 	sklog.Error("Initializing logging for log level ERROR.")
+}
+
+// InitCmdLine does commonly-used initialization for command-line applications.
+func InitCmdLine() {
+	flag.Parse()
+	defer sklog.Flush()
+	flag.VisitAll(func(f *flag.Flag) {
+		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
+	})
 
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
