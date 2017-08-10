@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf71f401_edac1565",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-10T14:19:44Z",
+      "side": 1,
+      "message": "nit: no goroutine",
+      "range": {
+        "startLine": 465,
+        "startChar": 4,
+        "endLine": 465,
+        "endChar": 26
+      },
+      "revId": "a5ceea34d79ce38acbb8df60e761219812977b3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d73ff6bd_a32e6431",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-10T14:19:44Z",
+      "side": 1,
+      "message": "Suggestion for future CL:\n\nDo collect and retry in goroutines, e.g.:\n\nchCollect :\u003d make(chan *swarming.SwarmingTask)\nchRetried :\u003d make(chan *swarming.SwarmingTask)\n\ngo func() {\n  defer close(chRetried)\n  for task :\u003d range chCollect {\n    task :\u003d task\n    go func() {\n      if _, _, err :\u003d task.Collect(s); err !\u003d nil {\n        sklog.Errorf(\"task %s failed: %s\", task.Title, err)\n        sklog.Infof(\"Retrying task %s\", task.Title)\n        t, err :\u003d s.TriggerSwarmingTasks(map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{\"runid\": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))\n        if err !\u003d nil {\n          sklog.Errorf(\"Could not trigger retry of swarming tasks: %s\", err)\n          continue\n        }\n        chRetried \u003c- t\n      }\n    }()\n  }\n}()\n\ngo func() {\n  for task :\u003d range chRetried {\n    task :\u003d task\n    go func() {\n      if _, _, err :\u003d task.Collect(s); err !\u003d nil {\n        sklog.Errorf(\"task %s failed in spite of a retry: %s\", task.Title, err)\n      }\n    }()\n  }\n}()\n\n// Trigger and collect swarming tasks.\nfor taskMap :\u003d range chTasks {\n  ...\n  for _, task :\u003d range tasks {\n    chCollect \u003c- task\n  }\n}\nclose(chCollect)",
+      "range": {
+        "startLine": 474,
+        "startChar": 0,
+        "endLine": 496,
+        "endChar": 3
+      },
+      "revId": "a5ceea34d79ce38acbb8df60e761219812977b3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
