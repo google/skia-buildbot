@@ -26,7 +26,7 @@ const (
 	TEST_NOEXIST_RUN_ID = "lchoi-00000000000000"
 
 	// Test url for querying urls that do not exist in a bucket, and for testing
-	// GetAll.
+	// getAll.
 	TEST_URL_TWO = "http://www.youtube.com"
 
 	// Secondary runID for testing GetRunIDs.
@@ -105,39 +105,6 @@ func TestGetAndPut(t *testing.T) {
 	storedRec, err = resultStore.Get(TEST_RUN_ID, TEST_URL)
 	assert.NoError(t, err)
 	assert.Equal(t, updateRec, storedRec)
-}
-
-func TestGetAll(t *testing.T) {
-	testutils.MediumTest(t)
-
-	// Initialize the ResultStore.
-	resultStore := createBoltResultStore(t)
-
-	// Create two ResultRecs and modify the URL of the second one.
-	recOne := createResultRec(t)
-	recTwo := createResultRec(t)
-	recTwo.URL = TEST_URL_TWO
-
-	// Put them under different URLs so there are multiple entries associated
-	// with a run.
-	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
-	assert.NoError(t, err)
-	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
-	assert.NoError(t, err)
-
-	// Verify that returned slice has proper length and the entries are equivalent
-	// to what was added.
-	recs, err := resultStore.GetAll(TEST_RUN_ID)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(recs))
-	assert.Equal(t, recOne, recs[0])
-	assert.Equal(t, recTwo, recs[1])
-
-	// If the run doesn't exist in the database, GetAll should return an empty
-	// list.
-	recs, err = resultStore.GetAll(TEST_NOEXIST_RUN_ID)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(recs))
 }
 
 func TestGetRunIDs(t *testing.T) {
@@ -223,6 +190,40 @@ func TestFillCache(t *testing.T) {
 	err = boltStore.fillCache()
 	assert.NoError(t, err)
 	assert.Equal(t, rec, boltStore.cache[TEST_RUN_ID][0])
+}
+
+func TestGetAll(t *testing.T) {
+	testutils.MediumTest(t)
+
+	// Initialize the ResultStore.
+	resultStore := createBoltResultStore(t)
+
+	// Create two ResultRecs and modify the URL of the second one.
+	recOne := createResultRec(t)
+	recTwo := createResultRec(t)
+	recTwo.URL = TEST_URL_TWO
+
+	// Put them under different URLs so there are multiple entries associated
+	// with a run.
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
+	assert.NoError(t, err)
+
+	// Verify that returned slice has proper length and the entries are equivalent
+	// to what was added.
+	boltStore := resultStore.(*BoltResultStore)
+	recs, err := boltStore.getAll(TEST_RUN_ID)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(recs))
+	assert.Equal(t, recOne, recs[0])
+	assert.Equal(t, recTwo, recs[1])
+
+	// If the run doesn't exist in the database, GetAll should return an empty
+	// list.
+	recs, err = boltStore.getAll(TEST_NOEXIST_RUN_ID)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(recs))
 }
 
 func TestGetFiltered(t *testing.T) {
@@ -368,4 +369,17 @@ func TestGetURLs(t *testing.T) {
 	}
 	assert.Equal(t, expectedOne, urls[0])
 	assert.Equal(t, expectedTwo, urls[1])
+}
+
+func TestIsNsfwUrl(t *testing.T) {
+	assert.False(t, isNsfwUrl(TEST_URL))
+	assert.False(t, isNsfwUrl(TEST_URL_TWO))
+	assert.False(t, isNsfwUrl("google.com"))
+	assert.False(t, isNsfwUrl("www.google.com"))
+	assert.True(t, isNsfwUrl("xhamster.com"))
+	assert.True(t, isNsfwUrl("www.xhamster.com"))
+	assert.True(t, isNsfwUrl("http://xhamster.com"))
+	assert.True(t, isNsfwUrl("http://www.xhamster.com"))
+	assert.True(t, isNsfwUrl("https://xhamster.com"))
+	assert.True(t, isNsfwUrl("https://www.xhamster.com"))
 }

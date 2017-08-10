@@ -77,9 +77,6 @@ type ResultStore interface {
 	// Get returns a ResultRec from the ResultStore using the runID and url.
 	Get(runID, url string) (*ResultRec, error)
 
-	// GetAll returns all the ResultRecs associated with the runID.
-	GetAll(runID string) ([]*ResultRec, error)
-
 	// GetRunIDs returns all the runIDs in the database that fall in between the
 	// start and end times.
 	GetRunIDs(start time.Time, end time.Time) ([]string, error)
@@ -152,7 +149,7 @@ func (b *BoltResultStore) fillCache() error {
 	}
 
 	for _, runID := range runIDs {
-		results, err := b.GetAll(runID)
+		results, err := b.getAll(runID)
 		if err != nil {
 			return err
 		}
@@ -160,6 +157,45 @@ func (b *BoltResultStore) fillCache() error {
 	}
 
 	return nil
+}
+
+// Returns all the SFW ResultRecs containing diff metrics that are stored in
+// the bucket associated with the given runID. Used to fill the cache.
+func (b *BoltResultStore) getAll(runID string) ([]*ResultRec, error) {
+	recs := []*ResultRec{}
+	viewFn := func(tx *bolt.Tx) error {
+		// Retrieve bucket using the runID. If the bucket doesn't exist, returns an
+		// empty list.
+		b := tx.Bucket([]byte(runID))
+		if b == nil {
+			return nil
+		}
+
+		// Iterate through all the entries in the bucket, deserialize the values,
+		// and append them to the list if they contain diff metrics and they're SFW.
+		err := b.ForEach(func(k, v []byte) error {
+			rec := &ResultRec{}
+			if err := json.Unmarshal(v, &rec); err != nil {
+				return err
+			}
+			if rec.DiffMetrics != nil && !isNsfwUrl(rec.URL) {
+				recs = append(recs, rec)
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err := b.db.View(viewFn)
+	if err != nil {
+		return nil, err
+	}
+
+	return recs, nil
 }
 
 // Get uses the given runID to specify the storage bucket within the boltDB.
@@ -195,45 +231,6 @@ func (b *BoltResultStore) Get(runID, url string) (*ResultRec, error) {
 	}
 
 	return rec, nil
-}
-
-// GetAll returns all the ResultRecs containing diff metrics that are stored in
-// the bucket associated with the given runID.
-func (b *BoltResultStore) GetAll(runID string) ([]*ResultRec, error) {
-	recs := []*ResultRec{}
-	viewFn := func(tx *bolt.Tx) error {
-		// Retrieve bucket using the runID. If the bucket doesn't exist, returns an
-		// empty list.
-		b := tx.Bucket([]byte(runID))
-		if b == nil {
-			return nil
-		}
-
-		// Iterate through all the entries in the bucket, deserialize the values,
-		// and append them to the list if they contain diff metrics.
-		err := b.ForEach(func(k, v []byte) error {
-			rec := &ResultRec{}
-			if err := json.Unmarshal(v, &rec); err != nil {
-				return err
-			}
-			if rec.DiffMetrics != nil {
-				recs = append(recs, rec)
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	err := b.db.View(viewFn)
-	if err != nil {
-		return nil, err
-	}
-
-	return recs, nil
 }
 
 // GetRunIDs returns the IDs of all the runs that were completed in the given
@@ -307,8 +304,8 @@ func (b *BoltResultStore) Put(runID, url string, rec *ResultRec) error {
 		return err
 	}
 
-	// Add the ResultRec to the cache if it has diff metrics.
-	if rec.DiffMetrics != nil {
+	// Add the ResultRec to the cache if it has diff metrics and it's SFW.
+	if rec.DiffMetrics != nil && !isNsfwUrl(rec.URL) {
 		if results, ok := b.cache[runID]; ok {
 			results = append(results, rec)
 			b.cache[runID] = results
