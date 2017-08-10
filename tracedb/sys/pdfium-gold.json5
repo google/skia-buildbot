@@ -1,0 +1,47 @@
+{
+  GitRepoDir: "/mnt/pd0/pdfium_gold/pdfium_repo",        // Directory location for the Skia repo.
+  GitRepoURL: "https://pdfium.googlesource.com/pdfium",  // URL location for the repo.
+
+  Ingesters: {
+
+    // Pdfium Gold ingester
+    gold: {
+      RunEvery: "5m",
+      NCommits: 75,
+      MinDays: 3,
+      StatusDir: "/mnt/pd0/pdfium_gold/ingest_status",
+      MetricName: "pdfium-gold-ingest",
+      LocalCache: false,
+      Sources: [
+        {
+          Bucket: "skia-pdfium-gm",
+          Dir: "dm-json-v1"
+        }
+      ],
+      ExtraParams: {
+        TraceService: "localhost:9091"
+      }
+    },
+
+    // Pdfium Gold trybot ingester
+    "gold-trybot": {
+      RunEvery: "5m",
+      NCommits: 10,
+      MinDays: 7,
+      StatusDir: "/mnt/pd0/pdfium_gold/ingest_status",
+      MetricName: "pdfium-gold-ingest-trybot",
+      LocalCache: false,
+      Sources: [
+        {
+          Bucket: "skia-pdfium-gm",
+          Dir: "trybot/dm-json-v1"
+        }
+      ],
+      ExtraParams: {
+        TraceService: "localhost:9091",
+        RietveldCodeReviewURL: "https://codereview.chromium.org",
+        GerritCodeReviewURL: "https://pdfium-review.googlesource.com"
+      }
+    }
+  }
+}

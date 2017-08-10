@@ -1,0 +1,58 @@
+{
+  GitRepoDir: "/mnt/pd0/gold/skiarepo",             // Directory location for the Skia repo.
+  GitRepoURL: "https://skia.googlesource.com/skia", // URL location for the repo.
+
+  Ingesters: {
+    // Gold ingester
+    gold: {
+      RunEvery: "5m",
+      NCommits: 75,
+      MinDays: 3,
+      StatusDir: "/mnt/pd0/gold/ingest_status",
+      MetricName: "gold-ingest",
+      LocalCache: false,
+      Sources: [
+        {
+          Bucket: "skia-infra-gm",
+          Dir: "dm-json-v1"
+        },
+        {
+          Bucket: "chromium-skia-gm",
+          Dir: "dm-json-v1"
+        },
+        {
+          Bucket: "skia-infra-gm",
+          Dir: "pdf/dm-json-v1"
+        }
+      ],
+      ExtraParams: {
+        TraceService: "localhost:9090"
+      }
+    },
+
+    // Gold trybot ingester
+    "gold-trybot": {
+      RunEvery: "5m",
+      NCommits: 10,
+      MinDays: 7,
+      StatusDir: "/mnt/pd0/gold/ingest_status",
+      MetricName: "gold-ingest-trybot",
+      LocalCache: false,
+      Sources: [
+        {
+          Bucket: "skia-infra-gm",
+          Dir: "trybot/dm-json-v1"
+        },
+        {
+          Bucket: "chromium-skia-gm",
+          Dir: "trybot/dm-json-v1"
+        }
+      ],
+      ExtraParams: {
+        TraceService: "localhost:9090",
+        RietveldCodeReviewURL: "https://codereview.chromium.org",
+        GerritCodeReviewURL: "https://skia-review.googlesource.com"
+      }
+    }
+  }
+}

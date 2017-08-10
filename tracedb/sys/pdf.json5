@@ -1,0 +1,30 @@
+{
+  GitRepoDir: "/mnt/pd0/gold/skiarepo",
+  GitRepoURL: "https://skia.googlesource.com/skia",
+  Ingesters: {
+    // pdf ingester.
+    pdf: {
+      RunEvery: "15m",
+      NCommits: 100,
+      MinDays: 21,
+      StatusDir: "/mnt/pd0/pdf/ingest_status",
+      MetricName: "pdf-raster",
+      LocalCache: false,
+      Sources: [
+        {
+          Bucket: "chromium-skia-gm",
+          Dir: "dm-json-v1"
+        }
+      ],
+      ExtraParams: {
+        InputImagesBucket: "chromium-skia-gm",
+        InputImagesDir: "dm-images-v1",
+        OutputJsonBucket: "skia-infra-gm",
+        OutputJsonDir: "pdf/dm-json-v1",
+        OutputImagesBucket: "chromium-skia-gm",
+        OutputImagesDir: "dm-images-v1",
+        PdfCacheDir: "/mnt/pd0/pdf/cache"
+      }
+    }
+  }
+}
