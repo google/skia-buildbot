@@ -1,0 +1,28 @@
+{
+  mpower: {
+    "mpower.02": {
+      address: "192.168.2.226:22",
+      user: "ubnt",
+      ports: {
+        "skia-e-linux-001": 1,
+        "skia-e-linux-002": 2,
+        "skia-e-linux-003": 3,
+        "skia-e-linux-004": 4,
+        "mp-2-test-relay": 5
+      }
+    },
+    "mpower.03": {
+      address: "192.168.2.212:22",
+      user: "ubnt",
+      ports: {
+        "skia-e-linux-013": 1,
+        "skia-e-linux-014": 2,
+        "skia-e-linux-015": 3,
+        "skia-e-linux-016": 4,
+        "skia-e-linux-017": 5,
+        "skia-e-linux-018": 6,
+        "test-relay": 7
+      }
+    }
+  }
+}

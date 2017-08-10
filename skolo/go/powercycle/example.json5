@@ -1,0 +1,58 @@
+{
+  "mpower": {
+    "mpower.01": {
+      "address": "192.168.2.212:22",
+      "user": "ubnt",
+      "ports": {
+        "skia-e-linux-001": 1,
+        "skia-e-linux-002": 2,
+        "skia-e-linux-003": 3,
+        "skia-e-linux-004": 4,
+        "test-relay-1": 5
+      }
+    },
+    "mpower.02": {
+      "address": "192.168.2.212:23",
+      "user": "ubnt",
+      "ports": {
+        "skia-e-linux-010": 1,
+        "skia-e-linux-011": 2,
+        "skia-e-linux-012": 3,
+        "skia-e-linux-013": 4,
+        "test-relay-2": 5
+      }
+    }
+  },
+  "edgeswitch": {
+    "edgeswitch.01": {
+      "address": "192.168.1.41:22",
+      "ports": {
+        "skia-rpi-TEST": 23,
+        "skia-i-rpi-096": 2,
+        "skia-i-rpi-097": 3,
+        "skia-i-rpi-098": 4,
+        "skia-i-rpi-099": 5
+      }
+    },
+    "edgeswitch.02": {
+      "address": "192.168.1.41:23",
+      "ports": {
+        "skia-rpi-2-TEST": 23,
+        "skia-i-rpi-196": 2,
+        "skia-i-rpi-197": 3,
+        "skia-i-rpi-198": 4,
+        "skia-i-rpi-199": 5
+      }
+    },
+    "edgeswitch.03": {
+      "address": "192.168.1.41:24",
+      "ports": {
+        "skia-rpi-1-TEST": 23,
+        "skia-i-rpi-296": 2,
+        "skia-i-rpi-297": 3,
+        "skia-i-rpi-298": 4,
+        "skia-i-rpi-299": 5
+      }
+    }
+  }
+}

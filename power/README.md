@@ -16,4 +16,4 @@ The easiest way to test locally is to set up an SSH tunnel to skia-prom
 
 Then, start the server,
 
-    go run ./go/power-controller/main.go --logtostderr --alerts_endpoint localhost:8001 --local --powercycle_config ../skolo/sys/powercycle.yaml
+    go run ./go/power-controller/main.go --logtostderr --alerts_endpoint localhost:8001 --local --powercycle_config ../skolo/sys/powercycle.json5
