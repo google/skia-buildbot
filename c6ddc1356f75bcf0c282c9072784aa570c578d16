@@ -46,6 +46,30 @@
       "revId": "c6ddc1356f75bcf0c282c9072784aa570c578d16",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bd9d7f9_6ac9c2b2",
+        "filename": "go/buildbot/builder_name_schema.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-10T19:20:03Z",
+      "side": 1,
+      "message": "Take a look at one of the other packages using generated data, eg. go/cipd.  Basically, write a short python/go script which reads the builder_name_schema.json file and spits out a builder_name_schema_gen.go or some such containing a Go data structure representing the JSON.  Then run \"go generate\" and check in the generated file.",
+      "parentUuid": "8d8b635f_a5e48850",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 32
+      },
+      "revId": "c6ddc1356f75bcf0c282c9072784aa570c578d16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
