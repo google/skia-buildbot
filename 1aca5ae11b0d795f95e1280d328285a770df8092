@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3f35be3b_46b16c45",
+        "filename": "ct_pixel_diff/frontend/res/imp/stats-page-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 7450
+      },
+      "writtenOn": "2017-08-10T18:39:08Z",
+      "side": 1,
+      "message": "It\u0027s the number of diff results stored in the ResultStore cache, which only contains results with complete/calculated diff metrics. I don\u0027t think this number will ever be the perfect 1k or 10k that is expected due to the various timing, and rendering issues that are associated with loading a page and screenshotting it in CT. It could be the case that neither nopatch or withpatch screenshot is calculated, one of them is missing, both are \"present\" in GS but one or two is missing pixel data, etc. If you look at the screenshots above, there were 6673/10k and 928/1k calculated diff results; these are not intermediate numbers and represent completed analyses.",
+      "parentUuid": "5f1fa502_cbdb4700",
+      "range": {
+        "startLine": 11,
+        "startChar": 42,
+        "endLine": 11,
+        "endChar": 67
+      },
+      "revId": "1aca5ae11b0d795f95e1280d328285a770df8092",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c0c8ea95_257fe0e6",
         "filename": "ct_pixel_diff/go/ct_pixel_diff/handlers_test.go",
         "patchSetId": 2
