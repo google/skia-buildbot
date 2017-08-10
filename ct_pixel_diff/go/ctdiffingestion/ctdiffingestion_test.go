@@ -123,3 +123,16 @@ func TestPixelDiffProcessor(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedRecTwo, recTwo)
 }
+
+func TestIsNsfwUrl(t *testing.T) {
+	assert.False(t, isNsfwUrl(TEST_URL_ONE))
+	assert.False(t, isNsfwUrl(TEST_URL_TWO))
+	assert.False(t, isNsfwUrl("google.com"))
+	assert.False(t, isNsfwUrl("www.google.com"))
+	assert.True(t, isNsfwUrl("xhamster.com"))
+	assert.True(t, isNsfwUrl("www.xhamster.com"))
+	assert.True(t, isNsfwUrl("http://xhamster.com"))
+	assert.True(t, isNsfwUrl("http://www.xhamster.com"))
+	assert.True(t, isNsfwUrl("https://xhamster.com"))
+	assert.True(t, isNsfwUrl("https://www.xhamster.com"))
+}

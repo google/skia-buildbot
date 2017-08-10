@@ -117,6 +117,11 @@ func (p *pixelDiffProcessor) Process(resultsFile ingestion.ResultFileLocation) e
 
 	// Process the screenshots.
 	for _, screenshot := range results.Screenshots {
+		// Do not process NSFW pages.
+		if isNsfwUrl(screenshot.URL) {
+			continue
+		}
+
 		// Trim the image extension from the filename and create the imageID.
 		filename := screenshot.Filename[:len(screenshot.Filename)-len(IMG_EXTENSION)]
 		imageID := getImageID(results.RunID, screenshot.Type, filename, screenshot.Rank)
