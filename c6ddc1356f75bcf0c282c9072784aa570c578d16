@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "571c0279_49c13b36",
+        "filename": "go/buildbot/builder_name_schema.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-10T19:00:52Z",
+      "side": 1,
+      "message": "IMO the better thing to do is to \"go generate\" the schema from the checked-in JSON.",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 32
+      },
+      "revId": "c6ddc1356f75bcf0c282c9072784aa570c578d16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
