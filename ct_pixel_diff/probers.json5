@@ -2,7 +2,7 @@
    "ct_pixel_diff": {
      "urls": ["https://ctpixeldiff.skia.org"],
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },

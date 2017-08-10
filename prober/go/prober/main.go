@@ -246,7 +246,7 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 			// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
 			if !In(resp.StatusCode, probe.Expected) {
-				sklog.Warningf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
+				sklog.Errorf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
 				probe.Failure[url].Update(1)
 				continue
 			}
@@ -299,6 +299,10 @@ func main() {
 
 	// Create a client that uses our dialer with a timeout.
 	c := httputils.NewConfiguredTimeoutClient(DIAL_TIMEOUT, REQUEST_TIMEOUT)
+	c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
 	probeOneRound(cfg, c)
 	for range time.Tick(*runEvery) {
 		probeOneRound(cfg, c)

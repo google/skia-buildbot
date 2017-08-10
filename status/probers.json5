@@ -2,7 +2,7 @@
    "skiastatus": {
      "urls": ["https://status.skia.org"],
      "method": "GET",
-     "expected": [200],
+     "expected": [302],
      "body": "",
      "mimetype": ""
    },

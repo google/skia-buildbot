@@ -19,7 +19,7 @@
        "https://ct.skia.org/recreate_webpage_archives_runs/"
      ],
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
@@ -40,7 +40,7 @@
        "https://ct.skia.org/_/get_chromium_build_tasks?size=1&successful=true"
      ],
      "method": "POST",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": "application/json"
    },

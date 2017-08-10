@@ -2,11 +2,19 @@
    "skiaperf": {
      "urls": [
        "https://perf.skia.org/e/",
+     ],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiaperf_protected": {
+     "urls": [
        "https://android-perf.skia.org/e/",
        "https://android-master-perf.skia.org/e/",
      ],
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },
@@ -16,7 +24,7 @@
        "https://android-master-ingest.skia.org",
      ],
      "method": "GET",
-     "expected": [200],
+     "expected": [307],
      "body": "",
      "mimetype": "",
      "responsetest": ""
