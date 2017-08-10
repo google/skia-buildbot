@@ -44,6 +44,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/editor-icons.html">
 <link rel="import" href="/res/imp/bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
 <link rel="import" href="/res/common/imp/spinner-sk.html">
 
@@ -56,13 +57,14 @@
     <style include="shared-styles">
       :host {
         --suggestions-wrapper: {
-          width: 660px;
+          width: 520px;
         };
       }
 
       .autocomplete-wrapper {
         padding-left: 1em;
-        width: 660px;
+        padding-right: 0.5em;
+        width: 520px;
       }
 
       .filter {
@@ -75,8 +77,15 @@
         padding-right: 0.5em;
       }
 
-      .filter-button {
+      a {
+        text-decoration: none;
+        color: black;
+        font-weight: normal;
+      }
+
+      paper-button {
         height: 50px;
+        padding-left: 0.5em;
       }
 
       diff-details-sk {
@@ -123,14 +132,19 @@
           <paper-item value="descending">Descending</paper-item>
         </paper-listbox>
       </paper-dropdown-menu>
-      <div class="autocomplete-wrapper">
-        <paper-input id="search" label="Search for a URL"></paper-input>
-        <paper-autocomplete-suggestions for="search" source="[[urlSources]]"></paper-autocomplete-suggestions>
+      <div class="horizontal layout wrap">
+        <div class="autocomplete-wrapper">
+          <paper-input id="search" label="Search for a URL"></paper-input>
+          <paper-autocomplete-suggestions for="search" source="[[urlSources]]"></paper-autocomplete-suggestions>
+        </div>
+        <a href$="/stats[[_getQuery()]]">
+          <paper-button toggle raised><iron-icon icon="editor:insert-chart"></iron-icon>View Stats</paper-button>
+        </a>
       </div>
       <div class="filter horizontal layout">
         <paper-input class="filter-input" id="minPercent" label="Minimum pixel diff percentage to display" type="number" value="0" required></paper-input>
         <paper-input class="filter-input" id="maxPercent" label="Maximum pixel diff percentage to display" type="number" value="100" required></paper-input>
-        <paper-button class="filter-button" toggle raised on-tap="_filterResults"><iron-icon icon="filter-list"></iron-icon>Filter</paper-button>
+        <paper-button toggle raised on-tap="_filterResults"><iron-icon icon="filter-list"></iron-icon>Filter</paper-button>
       </div>
       <iron-scroll-threshold id="scroller" on-lower-threshold="_renderMoreData" scroll-target="document">
         <template is="dom-repeat" items="[[data]]">
@@ -259,6 +273,10 @@
         this.set('data', []);
         this.set('renderIdx', 0);
         this._renderMoreData();
+      },
+
+      _getQuery: function() {
+        return window.location.search;
       }
     });
   </script>

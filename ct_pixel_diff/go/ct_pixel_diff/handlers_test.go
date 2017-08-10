@@ -20,6 +20,7 @@ const (
 	TEST_RUN_ID_TWO = "rmistry-20170717202555"
 	TEST_URL        = "http://www.google.com"
 	TEST_URL_TWO    = "http://www.youtube.com"
+	TEST_URL_THREE  = "http://www.facebook.com"
 )
 
 func createResultStore(t *testing.T) resultstore.ResultStore {
@@ -147,7 +148,7 @@ func TestJsonSortHandler(t *testing.T) {
 
 	q := req.URL.Query()
 	q.Add("runID", TEST_RUN_ID)
-	q.Add("sortField", "rank")
+	q.Add("sortField", resultstore.RANK)
 	q.Add("sortOrder", "ascending")
 	req.URL.RawQuery = q.Encode()
 
@@ -202,17 +203,20 @@ func TestJsonURLsHandler(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	expectedOne := map[string]string{
-		"text":  "google.com",
-		"value": "http://www.",
+		resultstore.TEXT:  "google.com",
+		resultstore.VALUE: "http://www.",
 	}
 	expectedTwo := map[string]string{
-		"text":  "youtube.com",
-		"value": "http://www.",
+		resultstore.TEXT:  "youtube.com",
+		resultstore.VALUE: "http://www.",
 	}
-	results, err := resultStore.GetURLs(TEST_RUN_ID)
+	expected := map[string][]map[string]string{
+		"urls": []map[string]string{expectedOne, expectedTwo},
+	}
+	results := map[string][]map[string]string{}
+	err = json.NewDecoder(rr.Body).Decode(&results)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedOne, results[0])
-	assert.Equal(t, expectedTwo, results[1])
+	assert.Equal(t, expected, results)
 }
 
 func TestJsonSearchHandler(t *testing.T) {
@@ -242,7 +246,100 @@ func TestJsonSearchHandler(t *testing.T) {
 	q.Add("url", TEST_URL)
 	req.URL.RawQuery = q.Encode()
 
-	result, err := resultStore.Get(TEST_RUN_ID, TEST_URL)
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(jsonSearchHandler)
+	handler.ServeHTTP(rr, req)
+
+	expected := map[string]*resultstore.ResultRec{
+		"result": recOne,
+	}
+	result := map[string]*resultstore.ResultRec{}
+	err = json.NewDecoder(rr.Body).Decode(&result)
 	assert.NoError(t, err)
-	assert.Equal(t, recOne, result)
+	assert.Equal(t, expected, result)
+}
+
+func TestJsonStatsHandler(t *testing.T) {
+	testutils.MediumTest(t)
+
+	// Create a ResultStore and assign it to the module level variable so that
+	// the handler can interact with it.
+	rs := createResultStore(t)
+	resultStore = rs
+	recOne := &resultstore.ResultRec{
+		RunID:        TEST_RUN_ID,
+		URL:          TEST_URL,
+		NoPatchImg:   "lchoi-20170726123456/nopatch/1/http___www_google_com",
+		WithPatchImg: "lchoi-20170726123456/withpatch/1/http___www_google_com",
+		DiffMetrics: &dynamicdiff.DynamicDiffMetrics{
+			PixelDiffPercent: 0,
+		},
+	}
+	recTwo := &resultstore.ResultRec{
+		RunID:        TEST_RUN_ID,
+		URL:          TEST_URL_TWO,
+		Rank:         2,
+		NoPatchImg:   "lchoi-20170726123456/nopatch/2/http___www_youtube_com",
+		WithPatchImg: "lchoi-20170726123456/withpatch/2/http___www_youtube_com",
+		DiffMetrics: &dynamicdiff.DynamicDiffMetrics{
+			PixelDiffPercent: 100,
+			NumDynamicPixels: 1,
+		},
+	}
+	recThree := &resultstore.ResultRec{
+		RunID:        TEST_RUN_ID,
+		URL:          TEST_URL_THREE,
+		Rank:         3,
+		NoPatchImg:   "lchoi-20170726123456/nopatch/2/http___www_facebook_com",
+		WithPatchImg: "lchoi-20170726123456/withpatch/2/http___www_facebook_com",
+		DiffMetrics: &dynamicdiff.DynamicDiffMetrics{
+			PixelDiffPercent: 100,
+			NumDynamicPixels: 1,
+		},
+	}
+	err := resultStore.Put(TEST_RUN_ID, TEST_URL, recOne)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_TWO, recTwo)
+	assert.NoError(t, err)
+	err = resultStore.Put(TEST_RUN_ID, TEST_URL_THREE, recThree)
+	assert.NoError(t, err)
+
+	// Create a request with the appropriate query parameters to the json stats
+	// endpoint to run the jsonStatsHandler.
+	req, err := http.NewRequest("GET", "/json/stats", nil)
+	assert.NoError(t, err)
+
+	q := req.URL.Query()
+	q.Add("runID", TEST_RUN_ID)
+	req.URL.RawQuery = q.Encode()
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(jsonStatsHandler)
+	handler.ServeHTTP(rr, req)
+
+	expectedStats := map[string]int{
+		resultstore.NUM_TOTAL_RESULTS:   3,
+		resultstore.NUM_DYNAMIC_CONTENT: 2,
+		resultstore.NUM_ZERO_DIFF:       1,
+	}
+	expectedHistogram := map[string]int{
+		resultstore.BUCKET_0: 1,
+		resultstore.BUCKET_1: 0,
+		resultstore.BUCKET_2: 0,
+		resultstore.BUCKET_3: 0,
+		resultstore.BUCKET_4: 0,
+		resultstore.BUCKET_5: 0,
+		resultstore.BUCKET_6: 0,
+		resultstore.BUCKET_7: 0,
+		resultstore.BUCKET_8: 0,
+		resultstore.BUCKET_9: 2,
+	}
+	expected := map[string]map[string]int{
+		"stats":     expectedStats,
+		"histogram": expectedHistogram,
+	}
+	results := map[string]map[string]int{}
+	err = json.NewDecoder(rr.Body).Decode(&results)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, results)
 }

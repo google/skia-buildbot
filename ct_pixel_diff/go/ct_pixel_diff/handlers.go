@@ -144,6 +144,17 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, map[string]*resultstore.ResultRec{"result": result})
 }
 
+// jsonStatsHandler parses a runID from the query and uses it to return various
+// statistics about the run's cached results.
+func jsonStatsHandler(w http.ResponseWriter, r *http.Request) {
+	runID := r.FormValue("runID")
+	stats, histogram, err := resultStore.GetStats(runID)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to retrieve stats for run %s", runID))
+	}
+	sendJsonResponse(w, map[string]map[string]int{"stats": stats, "histogram": histogram})
+}
+
 // makeResourceHandler creates a static file handler that sets a caching policy.
 func makeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(resourceDir))

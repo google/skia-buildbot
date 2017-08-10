@@ -33,6 +33,21 @@ const (
 	TEXT  = "text"
 	VALUE = "value"
 
+	// Constants used to report statistics.
+	BUCKET_0            = "[0-10)"
+	BUCKET_1            = "[10-20)"
+	BUCKET_2            = "[20-30)"
+	BUCKET_3            = "[30-40)"
+	BUCKET_4            = "[40-50)"
+	BUCKET_5            = "[50-60)"
+	BUCKET_6            = "[60-70)"
+	BUCKET_7            = "[70-80)"
+	BUCKET_8            = "[80-90)"
+	BUCKET_9            = "[90-100]"
+	NUM_TOTAL_RESULTS   = "numTotalResults"
+	NUM_DYNAMIC_CONTENT = "numDynamicContent"
+	NUM_ZERO_DIFF       = "numZeroDiff"
+
 	// Number of ResultRec instances to render in one render request.
 	CHUNK_SIZE = 20
 )
@@ -100,6 +115,10 @@ type ResultStore interface {
 
 	// GetURLs returns the URLs of all cached results for the given runID.
 	GetURLs(runID string) ([]map[string]string, error)
+
+	// GetStats returns various statistics and a histogram using cached results
+	// for the given runID.
+	GetStats(runID string) (map[string]int, map[string]int, error)
 }
 
 // BoltResultStore implements the ResultStore interface with a boltDB instance.
@@ -349,57 +368,59 @@ func (b *BoltResultStore) RemoveRun(runID string) error {
 // start its next filter query in the cache. Returns an error if there is no
 // data cached for the runID.
 func (b *BoltResultStore) GetFiltered(runID string, startIdx int, min float32, max float32) ([]*ResultRec, int, error) {
-	if results, ok := b.cache[runID]; ok {
-		ret := []*ResultRec{}
-		i := 0
-		for i < CHUNK_SIZE {
-			if startIdx >= len(results) {
-				return ret, len(results), nil
-			}
-			percent := results[startIdx].DiffMetrics.PixelDiffPercent
-			if min <= percent && percent <= max {
-				ret = append(ret, results[startIdx])
-				i++
-			}
-			startIdx++
-		}
-		return ret, startIdx, nil
-	} else {
+	results, ok := b.cache[runID]
+	if !ok {
 		return nil, -1, fmt.Errorf("No cached results for run %s", runID)
 	}
+
+	ret := []*ResultRec{}
+	i := 0
+	for i < CHUNK_SIZE {
+		if startIdx >= len(results) {
+			return ret, len(results), nil
+		}
+		percent := results[startIdx].DiffMetrics.PixelDiffPercent
+		if min <= percent && percent <= max {
+			ret = append(ret, results[startIdx])
+			i++
+		}
+		startIdx++
+	}
+	return ret, startIdx, nil
 }
 
 // SortRun sorts the cached ResultRecs for the given runID using the given sort
 // parameter and sort order (ascending/descending). Returns an error if there
 // is no data cached for the runID.
 func (b *BoltResultStore) SortRun(runID, sortField, sortOrder string) error {
-	if results, ok := b.cache[runID]; ok {
-		var lessFn resultRecLessFn
-		switch sortField {
-		// The ResultRecs are sorted by URL if they have equal values for the sort
-		// parameter.
-		case NUM_DIFF:
-			lessFn = sortByNumDiffPixels
-		case PERCENT_DIFF:
-			lessFn = sortByPercentDiffPixels
-		case RED_DIFF:
-			lessFn = sortByMaxRedDiff
-		case GREEN_DIFF:
-			lessFn = sortByMaxGreenDiff
-		case BLUE_DIFF:
-			lessFn = sortByMaxBlueDiff
-		case RANK:
-			lessFn = sortByRank
-		}
-		sortSlice := sort.Interface(newResultRecSlice(results, lessFn))
-		if sortOrder == DSC {
-			sortSlice = sort.Reverse(sortSlice)
-		}
-		sort.Sort(sortSlice)
-		return nil
-	} else {
+	results, ok := b.cache[runID]
+	if !ok {
 		return fmt.Errorf("No cached results for run %s", runID)
 	}
+
+	var lessFn resultRecLessFn
+	switch sortField {
+	// The ResultRecs are sorted by URL if they have equal values for the sort
+	// parameter.
+	case NUM_DIFF:
+		lessFn = sortByNumDiffPixels
+	case PERCENT_DIFF:
+		lessFn = sortByPercentDiffPixels
+	case RED_DIFF:
+		lessFn = sortByMaxRedDiff
+	case GREEN_DIFF:
+		lessFn = sortByMaxGreenDiff
+	case BLUE_DIFF:
+		lessFn = sortByMaxBlueDiff
+	case RANK:
+		lessFn = sortByRank
+	}
+	sortSlice := sort.Interface(newResultRecSlice(results, lessFn))
+	if sortOrder == DSC {
+		sortSlice = sort.Reverse(sortSlice)
+	}
+	sort.Sort(sortSlice)
+	return nil
 }
 
 // Function signature for a ResultRec comparator.
@@ -486,34 +507,104 @@ func sortByRank(r *resultRecSlice, i, j int) bool {
 // required by the frontend element responsible for making url suggestions.
 // Returns an error if there is no data cached for the runID.
 func (b *BoltResultStore) GetURLs(runID string) ([]map[string]string, error) {
-	if results, ok := b.cache[runID]; ok {
-		urls := []map[string]string{}
-		for _, result := range results {
-			url := map[string]string{}
-			var prefix bytes.Buffer
-			formattedURL := result.URL
-
-			// Strips either "http://" or "https://"
-			if strings.HasPrefix(formattedURL, HTTP) {
-				prefix.WriteString(HTTP)
-				formattedURL = strings.TrimPrefix(formattedURL, HTTP)
-			} else if strings.HasPrefix(formattedURL, HTTPS) {
-				prefix.WriteString(HTTPS)
-				formattedURL = strings.TrimPrefix(formattedURL, HTTPS)
-			}
-
-			// Strips "www." prefix
-			if strings.HasPrefix(formattedURL, WWW) {
-				prefix.WriteString(WWW)
-				formattedURL = strings.TrimPrefix(formattedURL, WWW)
-			}
-
-			url[TEXT] = formattedURL
-			url[VALUE] = prefix.String()
-			urls = append(urls, url)
-		}
-		return urls, nil
-	} else {
+	results, ok := b.cache[runID]
+	if !ok {
 		return nil, fmt.Errorf("No cached results for run %s", runID)
 	}
+
+	urls := []map[string]string{}
+	for _, result := range results {
+		url := map[string]string{}
+		var prefix bytes.Buffer
+		formattedURL := result.URL
+
+		// Strips either "http://" or "https://"
+		if strings.HasPrefix(formattedURL, HTTP) {
+			prefix.WriteString(HTTP)
+			formattedURL = strings.TrimPrefix(formattedURL, HTTP)
+		} else if strings.HasPrefix(formattedURL, HTTPS) {
+			prefix.WriteString(HTTPS)
+			formattedURL = strings.TrimPrefix(formattedURL, HTTPS)
+		}
+
+		// Strips "www." prefix
+		if strings.HasPrefix(formattedURL, WWW) {
+			prefix.WriteString(WWW)
+			formattedURL = strings.TrimPrefix(formattedURL, WWW)
+		}
+
+		url[TEXT] = formattedURL
+		url[VALUE] = prefix.String()
+		urls = append(urls, url)
+	}
+	return urls, nil
+}
+
+// GetStats returns two maps, one that contains basic count statistics such as
+// the total number of diff results and number of results with dynamic content,
+// and another that represents a histogram of pixel diff percentages. Returns an
+// error if there is no data cached for the runID.
+func (b *BoltResultStore) GetStats(runID string) (map[string]int, map[string]int, error) {
+	results, ok := b.cache[runID]
+	if !ok {
+		return nil, nil, fmt.Errorf("No cached results for run %s", runID)
+	}
+
+	stats := map[string]int{
+		NUM_TOTAL_RESULTS:   0,
+		NUM_DYNAMIC_CONTENT: 0,
+		NUM_ZERO_DIFF:       0,
+	}
+	histogram := map[string]int{
+		BUCKET_0: 0,
+		BUCKET_1: 0,
+		BUCKET_2: 0,
+		BUCKET_3: 0,
+		BUCKET_4: 0,
+		BUCKET_5: 0,
+		BUCKET_6: 0,
+		BUCKET_7: 0,
+		BUCKET_8: 0,
+		BUCKET_9: 0,
+	}
+	for _, result := range results {
+		// Increment the total number of diff results.
+		stats[NUM_TOTAL_RESULTS]++
+
+		// Increment the number of results with dynamic content if the result has
+		// at least one dynamic pixel.
+		if result.DiffMetrics.NumDynamicPixels > 0 {
+			stats[NUM_DYNAMIC_CONTENT]++
+		}
+
+		percent := result.DiffMetrics.PixelDiffPercent
+		// Place the percent in the correct histogram bin.
+		if 0 <= percent && percent < 10 {
+			// Increment the number of results with zero diff if the result has
+			// a pixel diff percentage of exactly 0%.
+			if percent == 0 {
+				stats[NUM_ZERO_DIFF]++
+			}
+			histogram[BUCKET_0]++
+		} else if 10 <= percent && percent < 20 {
+			histogram[BUCKET_1]++
+		} else if 20 <= percent && percent < 30 {
+			histogram[BUCKET_2]++
+		} else if 30 <= percent && percent < 40 {
+			histogram[BUCKET_3]++
+		} else if 40 <= percent && percent < 50 {
+			histogram[BUCKET_4]++
+		} else if 50 <= percent && percent < 60 {
+			histogram[BUCKET_5]++
+		} else if 60 <= percent && percent < 70 {
+			histogram[BUCKET_6]++
+		} else if 70 <= percent && percent < 80 {
+			histogram[BUCKET_7]++
+		} else if 80 <= percent && percent < 90 {
+			histogram[BUCKET_8]++
+		} else if 90 <= percent && percent <= 100 {
+			histogram[BUCKET_9]++
+		}
+	}
+	return stats, histogram, nil
 }

@@ -136,3 +136,22 @@ testdata.results = [
     }
   }
 ]
+
+testdata.stats = {
+  "numTotalResults": 100,
+  "numDynamicContent": 20,
+  "numZeroDiff": 50
+}
+
+testdata.histogram = {
+  "[0-10)": 10,
+  "[10-20)": 10,
+  "[20-30)": 7,
+  "[30-40)": 13,
+  "[40-50)": 2,
+  "[50-60)": 18,
+  "[60-70)": 19,
+  "[70-80)": 1,
+  "[80-90)": 10,
+  "[90-100]": 10
+}
