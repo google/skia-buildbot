@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5cbdb2f_1bca9151",
+        "filename": "ct_pixel_diff/frontend/res/imp/stats-page-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-10T15:12:41Z",
+      "side": 1,
+      "message": "nit: I think declaring these intermediate variables create unnecessary noise. \ncombine these three lines into: \n  this.set(\u0027histogram\u0027, [{values: histogramValues}]);",
+      "revId": "43f9920ef73dc830cfbf727cb1be4a8b78604ba8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dee62152_2fe99ae8",
+        "filename": "ct_pixel_diff/frontend/res/imp/stats-page-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-10T15:12:41Z",
+      "side": 1,
+      "message": "nit: same here and below. Intermediate variables are hard to parse IMO because then I need to check where else are they used, when all they are used for is setting a struct. \nthis.set(\u0027dynamicContent\u0027, [\n    {...rhs of dynamice \u003d ...},\n    {...rhs of static \u003d ... },\n]);",
+      "revId": "43f9920ef73dc830cfbf727cb1be4a8b78604ba8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf9208f1_5d4d33e1",
+        "filename": "ct_pixel_diff/go/resultstore/resultstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 603,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-10T15:12:41Z",
+      "side": 1,
+      "message": "Invert the if and move the error to the top. \n\n  results, ok :\u003d b.cache[runID]\n  if !ok {\n     return nil, nil, fmt.Errorf(\"No cached results for run %s\", runID)\n  }\n\n  ... code to deal with result ...",
+      "revId": "43f9920ef73dc830cfbf727cb1be4a8b78604ba8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
