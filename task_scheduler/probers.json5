@@ -5,6 +5,6 @@
      "expected": [200],
      "body": "",
      "mimetype": "",
-     "responsetest": "nonZeroContenLength"
+     "responsetest": "nonZeroContentLength"
    },
 }
