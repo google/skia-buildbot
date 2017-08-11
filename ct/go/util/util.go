@@ -159,6 +159,9 @@ func ResetCheckout(dir string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
+	// Clear out remnants of incomplete rebases from .git/rebase-apply.
+	rebaseArgs := []string{"rebase", "--abort"}
+	util.LogErr(ExecuteCmd(BINARY_GIT, rebaseArgs, []string{}, GIT_REBASE_TIMEOUT, nil, nil))
 	// Make sure we are on master branch and not stuck in a rebase branch for whatever reason.
 	branchArgs := []string{"checkout", "master"}
 	util.LogErr(ExecuteCmd(BINARY_GIT, branchArgs, []string{}, GIT_BRANCH_TIMEOUT, nil, nil))
