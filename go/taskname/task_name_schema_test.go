@@ -1,4 +1,4 @@
-package buildbot
+package taskname
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 )
 
-func TestBuilderNameSchema(t *testing.T) {
+func TestTaskNameSchema(t *testing.T) {
 	testutils.SmallTest(t)
 	tc := map[string]map[string]string{
 		"Build-Ubuntu-GCC-x86-Release": {
@@ -38,10 +38,12 @@ func TestBuilderNameSchema(t *testing.T) {
 			"extra_config":     "CT_DM_1m_SKPs",
 		},
 	}
+	p, err := DefaultTaskNameParser()
+	assert.NoError(t, err)
 	for builderName, params := range tc {
-		res, err := ParseBuilderName(builderName)
+		res, err := p.ParseTaskName(builderName)
 		if params == nil {
-			assert.NotNil(t, err)
+			assert.NoError(t, err)
 		} else {
 			assert.Equal(t, params, res)
 		}
