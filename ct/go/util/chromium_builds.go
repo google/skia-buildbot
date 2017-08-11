@@ -245,21 +245,21 @@ func ResetChromiumCheckout(chromiumSrcDir string) error {
 	}
 	// Reset Skia.
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
-	if err := ResetCheckout(skiaDir); err != nil {
+	if err := ResetCheckout(skiaDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
 	// Reset V8.
 	v8Dir := filepath.Join(chromiumSrcDir, "v8")
-	if err := ResetCheckout(v8Dir); err != nil {
+	if err := ResetCheckout(v8Dir, "origin/master"); err != nil {
 		return fmt.Errorf("Could not reset V8's checkout in %s: %s", v8Dir, err)
 	}
 	// Reset Catapult.
 	catapultDir := filepath.Join(chromiumSrcDir, RelativeCatapultSrcDir)
-	if err := ResetCheckout(catapultDir); err != nil {
+	if err := ResetCheckout(catapultDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Catapult's checkout in %s: %s", catapultDir, err)
 	}
 	// Reset Chromium.
-	if err := ResetCheckout(chromiumSrcDir); err != nil {
+	if err := ResetCheckout(chromiumSrcDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Chromium's checkout in %s: %s", chromiumSrcDir, err)
 	}
 	return nil

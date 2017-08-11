@@ -155,7 +155,7 @@ func BuildPDFium() error {
 }
 
 // ResetCheckout resets the specified Git checkout.
-func ResetCheckout(dir string) error {
+func ResetCheckout(dir, resetTo string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
@@ -166,7 +166,7 @@ func ResetCheckout(dir string) error {
 	branchArgs := []string{"checkout", "master"}
 	util.LogErr(ExecuteCmd(BINARY_GIT, branchArgs, []string{}, GIT_BRANCH_TIMEOUT, nil, nil))
 	// Run "git reset --hard HEAD"
-	resetArgs := []string{"reset", "--hard", "HEAD"}
+	resetArgs := []string{"reset", "--hard", resetTo}
 	util.LogErr(ExecuteCmd(BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
 	// Run "git clean -f -d"
 	cleanArgs := []string{"clean", "-f", "-d"}
