@@ -5,9 +5,9 @@
 	// URL location for the repo.
 	"GitRepoURL": "https://skia.googlesource.com/skia",
 
-	"Ingesters": [
+	"Ingesters": {
 		// Nanobench ingester
-		{
+		"nano": {
 			"RunEvery": "1m",
 			"NCommits": 10,
 			"MinDays": 2,
@@ -25,7 +25,7 @@
 			],
 		},
 		// Nanobench Trybot ingester
-		{
+		"nano-trybot": {
 			"RunEvery": "1m",
 			"NCommits": 10,
 			"MinDays": 2,
@@ -38,5 +38,5 @@
 				},
 			],
 		},
-	]
+	}
 }
