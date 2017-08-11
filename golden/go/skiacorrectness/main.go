@@ -327,7 +327,7 @@ func main() {
 	router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
 	router.HandleFunc("/json/list", jsonListTestsHandler).Methods("GET")
 	router.HandleFunc("/json/paramset", jsonParamsHandler).Methods("GET")
-	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
+	router.HandleFunc("/json/legacysearch", jsonLegacySearchHandler).Methods("GET")
 	router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
 	router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
 	router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
@@ -345,7 +345,7 @@ func main() {
 	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
 
 	// New endpoints
-	router.HandleFunc("/json/newsearch", jsonNewSearchHandler).Methods("GET")
+	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
 
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"
