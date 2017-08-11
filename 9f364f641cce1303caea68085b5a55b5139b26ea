@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da03ff88_bad4ddad",
+        "filename": "golden/frontend/res/imp/legacy-digest-details-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-11T15:34:05Z",
+      "side": 1,
+      "message": "I think it\u0027s because I renamed the file and there were two files that had very similar content and the renaming attributed it to the wrong one. \nFixed.",
+      "parentUuid": "a242c174_cf2a65c9",
+      "range": {
+        "startLine": 170,
+        "startChar": 56,
+        "endLine": 170,
+        "endChar": 58
+      },
+      "revId": "9f364f641cce1303caea68085b5a55b5139b26ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f31723f7_a3987ef1",
         "filename": "golden/frontend/res/imp/legacy-search-page-sk.html",
         "patchSetId": 8
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "5e97d83c_0be8342f",
+        "filename": "golden/frontend/res/imp/legacy-search-page-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-11T15:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f31723f7_a3987ef1",
+      "range": {
+        "startLine": 133,
+        "startChar": 20,
+        "endLine": 133,
+        "endChar": 22
+      },
+      "revId": "9f364f641cce1303caea68085b5a55b5139b26ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b36cc35_cf47ffb8",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 8
@@ -59,6 +107,30 @@
       "writtenOn": "2017-07-24T13:17:19Z",
       "side": 1,
       "message": "SRDigestDetails\n\nThis may be a silly question, but what does the SR stand for?  Search Refactor?",
+      "range": {
+        "startLine": 76,
+        "startChar": 3,
+        "endLine": 76,
+        "endChar": 16
+      },
+      "revId": "9f364f641cce1303caea68085b5a55b5139b26ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6145f0ba_7d8731b2",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-11T15:34:05Z",
+      "side": 1,
+      "message": "\"Search Result\". There is a TODO further up that mentions that this will be removed once the old code goes away.",
+      "parentUuid": "9b36cc35_cf47ffb8",
       "range": {
         "startLine": 76,
         "startChar": 3,
@@ -91,6 +163,30 @@
       "revId": "9f364f641cce1303caea68085b5a55b5139b26ea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e952c91c_c5f88f98",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-11T15:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bf34e7bc_cf1ffc33",
+      "range": {
+        "startLine": 605,
+        "startChar": 64,
+        "endLine": 605,
+        "endChar": 68
+      },
+      "revId": "9f364f641cce1303caea68085b5a55b5139b26ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
