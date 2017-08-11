@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7167e9e4_52e676ab",
+        "filename": "perf/go/perfclient/perf_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-11T15:02:38Z",
+      "side": 1,
+      "message": "Take interfaces, return concrete types.",
+      "revId": "0488e7786e4b1630cac16ce3cdf4f86732b8ff33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d2c85fc_6de2e1d1",
+        "filename": "perf/go/perfclient/perf_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-11T15:02:38Z",
+      "side": 1,
+      "message": "// Implements PerfClient.PushToPerf.",
+      "revId": "0488e7786e4b1630cac16ce3cdf4f86732b8ff33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
