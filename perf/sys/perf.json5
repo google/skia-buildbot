@@ -38,5 +38,19 @@
 				},
 			],
 		},
+		// Task Duration ingester
+		"task-duration": {
+			"RunEvery": "1m",
+			"NCommits": 10,
+			"MinDays": 2,
+			"StatusDir": "/mnt/pd0/skiaperf/task_duration_status",
+			"MetricName": "task-duration",
+			"Sources": [
+				{
+					"Bucket": "skia-perf",
+					"Dir": "task-duration",
+				},
+			],
+		},
 	}
 }

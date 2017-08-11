@@ -10,6 +10,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"path"
+	"strings"
 	"time"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
@@ -17,7 +18,10 @@ import (
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/taskname"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/ingestcommon"
+	"go.skia.org/infra/perf/go/perfclient"
 )
 
 const (
@@ -40,9 +44,9 @@ var (
 
 // loadSwarmingTasks loads the Swarming tasks which were created within the
 // given time range, plus any tasks we're explicitly told to load. Inserts all
-// completed tasks into the EventDB and returns any unfinished tasks so that
-// they can be revisited later.
-func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, lastLoad, now time.Time, revisit []string) ([]string, error) {
+// completed tasks into the EventDB and perf. Then, it returns any unfinished
+// tasks so that they can be revisited later.
+func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, perfClient perfclient.ClientInterface, bnp taskname.TaskNameParser, lastLoad, now time.Time, revisit []string) ([]string, error) {
 	sklog.Info("Loading swarming tasks.")
 
 	// TODO(borenet): Load tasks for all pools we care about, including
@@ -65,11 +69,21 @@ func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, lastLoad, now t
 		if t.TaskResult.DedupedFrom != "" {
 			continue
 		}
-		// Only include finished tasks.
-		if t.TaskResult.State != swarming.TASK_STATE_COMPLETED {
+
+		// Check back on Pending/Running tasks
+		if t.TaskResult.State == swarming.TASK_STATE_PENDING ||
+			t.TaskResult.State == swarming.TASK_STATE_RUNNING {
 			revisitLater = append(revisitLater, t.TaskId)
 			continue
 		}
+		// Only include finished tasks (this includes completed success
+		// and completed failure.
+		if t.TaskResult.State != swarming.TASK_STATE_COMPLETED {
+			continue
+		}
+
+		reportDurationToPerf(t, perfClient, now, bnp)
+
 		var buf bytes.Buffer
 		if err := gob.NewEncoder(&buf).Encode(t); err != nil {
 			return nil, fmt.Errorf("Failed to serialize Swarming task: %s", err)
@@ -89,6 +103,46 @@ func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, lastLoad, now t
 	}
 	sklog.Infof("... loaded %d swarming tasks.", loaded)
 	return revisitLater, nil
+}
+
+func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfClient perfclient.ClientInterface, now time.Time, bnp taskname.TaskNameParser) {
+
+	// Pull taskName from tags, because the task name could be changed (e.g. retries)
+	// and that would make ParseTaskName not happy.
+	taskName := ""
+	taskRevision := ""
+	for _, tag := range t.Request.Tags {
+		if strings.HasPrefix(tag, "sk_revision") {
+			taskRevision = strings.Split(tag, ":")[1]
+		}
+		if strings.HasPrefix(tag, "sk_name") {
+			taskName = strings.Split(tag, ":")[1]
+		}
+	}
+	parsed, err := bnp.ParseTaskName(taskName)
+	if err != nil {
+		sklog.Warningf("Could not parse task name of %s: %s", taskName, err)
+		return
+	}
+
+	toReport := ingestcommon.BenchData{
+		Hash: taskRevision,
+		Key:  parsed,
+		Results: map[string]ingestcommon.BenchResults{
+			taskName: {
+				"task_duration": {
+					"task_ms": t.TaskResult.Duration,
+				},
+			},
+		},
+	}
+
+	sklog.Debugf("Reporting that %s took %f ms", taskName, t.TaskResult.Duration)
+
+	if err := perfClient.PushToPerf(now, taskName, "task_duration", toReport); err != nil {
+		sklog.Warningf("Ran into error while pushing task duration to perf: %s", err)
+	}
+
 }
 
 // decodeTasks decodes a slice of events.Event into a slice of Swarming task
@@ -264,14 +318,14 @@ func setupMetrics(workdir string) (events.EventDB, *events.EventMetrics, error) 
 
 // startLoadingTasks initiates the goroutine which periodically loads Swarming
 // tasks into the EventDB.
-func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events.EventDB) {
+func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events.EventDB, perfClient perfclient.ClientInterface, bnp taskname.TaskNameParser) {
 	// Start collecting the metrics.
 	lv := metrics2.NewLiveness("last-successful-swarming-task-metrics")
 	lastLoad := time.Now().Add(-2 * time.Minute)
 	revisitTasks := []string{}
 	go util.RepeatCtx(10*time.Minute, ctx, func() {
 		now := time.Now()
-		revisit, err := loadSwarmingTasks(swarm, edb, lastLoad, now, revisitTasks)
+		revisit, err := loadSwarmingTasks(swarm, edb, perfClient, bnp, lastLoad, now, revisitTasks)
 		if err != nil {
 			sklog.Errorf("Failed to load swarming tasks into metrics: %s", err)
 		} else {
@@ -284,12 +338,12 @@ func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events
 
 // StartSwarmingTaskMetrics initiates a goroutine which loads Swarming task
 // results and computes metrics.
-func StartSwarmingTaskMetrics(workdir string, swarm swarming.ApiClient, ctx context.Context) error {
+func StartSwarmingTaskMetrics(workdir string, swarm swarming.ApiClient, ctx context.Context, perfClient perfclient.ClientInterface, bnp taskname.TaskNameParser) error {
 	edb, em, err := setupMetrics(workdir)
 	if err != nil {
 		return err
 	}
 	em.Start(ctx)
-	startLoadingTasks(swarm, ctx, edb)
+	startLoadingTasks(swarm, ctx, edb, perfClient, bnp)
 	return nil
 }
