@@ -210,15 +210,21 @@ type TestRollup struct {
 	SampleDigest string `json:"sample_digest"`
 }
 
-// jsonSearchHandler is the endpoint for all searches.
-func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
+// TODO(stephana): Remove jsonLegacySearch and dependencies once the
+// new search proves to be stable enough.
+
+// jsonLegacySearchHandler is the deprecated endpoint for searches.
+func jsonLegacySearchHandler(w http.ResponseWriter, r *http.Request) {
 	query := search.Query{Limit: 50}
 	if err := search.ParseQuery(r, &query); err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
+	legacySearchImpl(w, r, &query)
+}
 
-	searchResponse, err := search.Search(&query, storages, ixr.GetIndex())
+func legacySearchImpl(w http.ResponseWriter, r *http.Request, query *search.Query) {
+	searchResponse, err := search.Search(query, storages, ixr.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -230,15 +236,17 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// TODO(stephana): Once the new search is stable enough, replace the
-// the above search endpoint with it.
-
-// jsonNewSearchHandler is the endpoint for the new search
-// implementation.
-func jsonNewSearchHandler(w http.ResponseWriter, r *http.Request) {
+// jsonSearchHandler is the endpoint for all searches.
+func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	query := search.Query{Limit: 50}
 	if err := search.ParseQuery(r, &query); err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+
+	// If a trybot issue is provided revert to the legacy search.
+	if query.Issue != "" {
+		legacySearchImpl(w, r, &query)
 		return
 	}
 
@@ -306,7 +314,7 @@ func jsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := search.GetDigestDetails(test, digest, storages, ixr.GetIndex())
+	ret, err := searchAPI.GetDigestDetails(test, digest)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to get digest details.")
 		return

@@ -1,13 +1,13 @@
 <!-- The <diff-page-sk> custom element declaration.
 
-  A container element to display difference between two digests within the same test. 
+  A container element to display difference between two digests within the same test.
 
   Attributes:
     None
 
   Methods:
-    pageSelected: This function has to be called if the page is selected by the router. 
-    pageDeselected: This function has to be called if the page is deselected by the router. 
+    pageSelected: This function has to be called if the page is selected by the router.
+    pageDeselected: This function has to be called if the page is deselected by the router.
 
   Events:
     None
@@ -16,7 +16,7 @@
     None
 -->
 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 
 <link rel="import" href="digest-details-sk.html">
 <link rel="import" href="shared-styles.html">
@@ -29,11 +29,11 @@
       }
     </style>
     <div class="diffContainer">
-      <digest-details-sk 
+      <digest-details-sk
               mode="diff"
               details="{{data.left}}"
               right="{{data.right}}"
-              diff="{{data.diff}}">
+              metric="combined">
       </digest-details-sk>
     </div>
     <zoom-dialog-sk></zoom-dialog-sk>
@@ -46,14 +46,14 @@
 
       properties: {
         data: {
-          type: Object, 
+          type: Object,
           notify: true
         }
       },
 
       ready: function() {
         this.listen(this, 'triage', '_handleTriage');
-      }, 
+      },
 
       // Called when the page is selected into view.
       pageSelected: function(routeName) {
@@ -63,7 +63,7 @@
         }.bind(this)).catch(sk.errorMessage);
       },
 
-      // Called when the page is no long viewed. 
+      // Called when the page is no long viewed.
       pageDeselected: function() {},
 
       _handleTriage: function(ev) {

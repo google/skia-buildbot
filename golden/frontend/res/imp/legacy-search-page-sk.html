@@ -1,5 +1,5 @@
 <!--
-  The <newsearch-page-sk> custom element declaration.
+  The <legacy-search-page-sk> custom element declaration.
 
   Shows the results of a search request.
   It sends the query string as a JSON request to the
@@ -32,20 +32,19 @@
 <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="bower_components/paper-menu-button/paper-menu-button.html">
-<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel=import href="detail-list-sk.html">
-<link rel=import href="newdigest-details-sk.html">
+<link rel=import href="legacy-digest-details-sk.html">
 <link rel=import href="search-controls-sk.html">
 <link rel=import href="trybot-controls-sk.html">
 <link rel="import" href="../common/imp/triage-sk.html">
 
-<dom-module id="newsearch-page-sk">
+<dom-module id="legacy-search-page-sk">
   <template>
     <style include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles">
-      newdigest-details-sk {
+     legacy-digest-details-sk {
         display: block;
         box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
         margin-top: 1em;
@@ -58,7 +57,7 @@
         padding-right: 0;
       }
 
-      newdigest-details-sk[data-focus] {
+      legacy-digest-details-sk[data-focus] {
         box-shadow: 3px 3px 6px 5px #FF7F00;
       }
 
@@ -108,18 +107,12 @@
       #closestButton[raised]:hover {
         background: #ddd;
       }
-
-      .searchResponse {
-        padding: 1em;
-        margin: 1em 1em 1em 0;
-        border: 1px solid #555555;
-      }
     </style>
 
-    <div class="searchPageWrapper layout vertical">
-      <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
+    <div class="searchPageWrapper">
+      <activity-sk id="activityBar" busy="[[_hideAll]]"></activity-sk>
       <div class="layout horizontal">
-          <search-controls-sk id="searchControls" beta></search-controls-sk>
+          <search-controls-sk id="searchControls"></search-controls-sk>
           <div>
             <paper-button id="triggerSearchButton" raised disabled="[[_hideAll]]">Search</paper-button>
           </div>
@@ -127,18 +120,13 @@
           <paper-menu-button close-on-activate no-animations class="actionMenu">
             <paper-button class="dropdown-trigger actionButton" raised>Actions</paper-button>
             <paper-menu class="dropdown-content">
-              <paper-item id="actionTestView">Switch To Test View</paper-item>
-              <paper-item id="actionBulkTriage">Bulk Triage</paper-item>
-              <paper-item id="actionLegacySearch">Legacy Search</paper-item>
-              <paper-item id="actionHelpDialog">Help</paper-item>
+              <paper-item on-tap="_handleSwitchToByTest">Switch To Test View</paper-item>
+              <paper-item on-tap="_handleBulkButton">Bulk Triage</paper-item>
+              <paper-item on-tap="_handleNewSearchButton">Beta Search</paper-item>
+              <paper-item on-tap="_openHelpDialog">Help</paper-item>
             </paper-menu>
           </paper-menu-button>
-      </div>
 
-      <div class="searchResponse" hidden$="[[_noResult(_allData)]]">
-        Displaying: [[_allData.size]] of [[_allData.digests.length]] images starting at [[_allData.offset]]<br>
-        UniqueTests Visible: [[_uniqueTests.length]] <br>
-        UniqueTests Total: [[_uniqueTestsAll.length]]<br>
       </div>
       <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
 
@@ -149,14 +137,13 @@
         <div hidden$="[[_emptyResult(data)]]">
           <detail-list-sk id="detailList">
             <template is="dom-repeat" items="[[data.digests]]">
-              <newdigest-details-sk
+              <legacy-digest-details-sk
                       id$="[[_entryId(item)]]"
                       mode="list"
                       triage
                       details="[[item]]"
-                      commits="[[data.commits]]"
-                      metric="[[_state.metric]]">
-              </newdigest-details-sk>
+                      commits="[[data.commits]]">
+              </legacy-digest-details-sk>
             </template>
           </detail-list-sk>
         </div>
@@ -166,13 +153,10 @@
       <h2>Bulk Triage</h2>
       <p>Assign the status to all images on this page at once.</p>
       <div class="layout horizontal">
-        <triage-sk value="{{_bulkStatus}}" id="triageControls"></triage-sk>
+        <triage-sk value="[[_bulkStatus]]" id="triageControls"></triage-sk>
         <paper-button id="closestButton" on-tap="_handleClosestButton" title="Assign status of closest image">
           <iron-icon icon="icons:view-agenda"></iron-icon>
         </paper-button>
-      </div>
-      <div hidden$="[[_noMore(_allData)]]">
-        <paper-toggle-button checked="{{_triageAll}}">Triage all [[_getBulkTriageCount(_allData.digests, _bulkStatus)]].</paper-toggle-button>
       </div>
       <div class="buttons">
         <paper-button raise dialog-dismiss>Cancel</paper-button>
@@ -183,7 +167,7 @@
   </template>
   <script>
     Polymer({
-      is: "newsearch-page-sk",
+      is: "legacy-search-page-sk",
 
       behaviors: [gold.PageStateBehavior],
 
@@ -192,30 +176,21 @@
           type: Object,
           value: function() { return {}; }
         },
+
         _bulkStatus: {
           type: String,
           value: "",
           observer: "_handleBulkStatusChanged"
-        },
-        _triageAll: {
-          type: Boolean,
-          value: false
         }
       },
 
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
-        this.listen(this.$.triggerSearchButton, 'tap', '_handleSearchButton');
-        this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
-        this.listen(this.$.actionBulkTriage, 'tap', '_handleBulkButton');
-        this.listen(this.$.actionLegacySearch, 'tap', '_handleLegacySearchButton');
-        this.listen(this.$.actionHelpDialog, 'tap', '_openHelpDialog');
+        this.listen(this.$.triggerSearchButton, 'click', '_handleSearchButton');
         this._setDefaultState(gold.defaultSearchState, false);
       },
 
       pageSelected: function(ctx) {
-        this.set('data', {});
-        this.set('_allData', {});
         this.$.detailList.startUse();
 
         // Initialize the state and set values of the controls.
@@ -250,12 +225,11 @@
 
       _handleBulkButton: function(ev) {
         this.set("_bulkStatus", "");
-        this.set("_triageAll", false);
         this.$.bulkDialog.open();
       },
 
-      _handleLegacySearchButton: function(ev) {
-        this._redirectToState({}, "/search");
+      _handleNewSearchButton: function(ev) {
+        this._redirectToState({}, "/newsearch");
       },
 
       _handleClosestButton: function(ev) {
@@ -270,42 +244,18 @@
         }
       },
 
-      // _statusClosest returns label based on whether the digest is closest to
-      // a positive or negative image.
-      _statusClosest:function(digest) {
-         if (digest.closestRef === gold.REF_NEG) {
-           return gold.NEGATIVE;
-        }
-        return gold.POSITIVE;
-      },
-
-      // _getBulkTriageCount returns the number of digests that will be triaged
-      // in a bulk triage operation.
-      _getBulkTriageCount: function(digests, bulkStatus) {
-        if (bulkStatus !== '=') {
-          return digests.length;
-        }
-
-        // If we compare to the closest we only show the number of digests
-        // that actually have a reference image.
-        var count = 0;
-        for(var i=0; i < digests.length; i++) {
-          if (digests[i].closestRef !== '') {
-            count++;
-          }
-        }
-        return count;
-      },
-
       _doBulkTriage: function(ev) {
         var targetStatus = this.$.triageControls.value;
-        var digests = (this._triageAll) ? this._allData.digests : this.data.digests;
+        var digests = this.data.digests;
         var triageList = [];
         if (targetStatus === '=') {
           for(var i=0; i < digests.length; i++) {
-            if (digests[i].closestRef !== '') {
-              var status = this._statusClosest(digests[i]);
-              triageList.push([digests[i].test, digests[i].digest, status]);
+            var element= this.$$('#' + this._entryId(digests[i]));
+            if (element) {
+              var status = element.statusClosest();
+              if (status) {
+                triageList.push([digests[i].test, digests[i].digest, status]);
+              }
             }
           }
         } else {
@@ -325,31 +275,14 @@
 
       _load: function() {
         var q = window.location.search;
-        sk.get("/json/newsearch" + q).then(JSON.parse).then(function (json) {
-          // Split out the digests that are being displayed and keep a copy
-          // of all digests that matched the query.
-          var displayData = sk.object.shallowCopy(json);
-          displayData.digests = displayData.digests.slice(json.offset, json.offset+json.size);
-          this.set('_allData', json);
-
-          this.set('_uniqueTestsAll', this._getUniqueTests(json.digests));
-          this.set('_uniqueTests', this._getUniqueTests(displayData.digests));
-
-          this.set('data', displayData);
+        sk.get("/json/legacysearch" + q).then(JSON.parse).then(function (json) {
+          this.set('data', json);
           this.$.trybotControls.setIssue(json.issue);
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
           this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
-      },
-
-      _getUniqueTests: function(digests) {
-        var unique = {};
-        for(var i=0; i < digests.length; i++) {
-          unique[digests[i].test] = true;
-        }
-        return Object.keys(unique);
       },
 
       _loadParamset: function() {
@@ -386,14 +319,6 @@
       // Returns true if there was a query and the result is empty.
       _emptyResult: function(data) {
         return !data.digests || data.digests.length === 0;
-      },
-
-      _noResult: function(data) {
-        return !data.digests;
-      },
-
-      _noMore: function(allData) {
-        return (allData.digests && allData.digests.length <= allData.size);
       }
     });
   </script>

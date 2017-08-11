@@ -33,11 +33,11 @@
 
   </script>
 
-  <link rel="import" href="search-page-sk.html">
+  <link rel="import" href="legacy-search-page-sk.html">
 
 </head>
 <body>
-  <search-page-sk id="searchPage"></search-page-sk>
+  <legacy-search-page-sk id="searchPage"></legacy-search-page-sk>
   <div>Error: &quot;<span id="errorMsg"></span>&quot;</div>
 
   <script type="text/javascript" charset="utf-8">
@@ -50,7 +50,7 @@
       // var q = "?head=true&query=source_type%3Dgm";
       var q = "?blame=09aa1fce69b214714171db12c341aebd78dd29ea&head=true&query=source_type%3Dgm";
       window.history.replaceState(null, null, window.location.pathname + q);
-      $$$('search-page-sk').pageSelected(new page.Context(window.location.pathname + q));
+      $$$('legacy-search-page-sk').pageSelected(new page.Context(window.location.pathname + q));
   </script>
 </body>
 </html>

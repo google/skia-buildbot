@@ -1,4 +1,4 @@
-<!-- The <newdigest-details-sk> custom element declaration.
+<!-- The <legacy-digest-details-sk> custom element declaration.
 
   Displays the details about a digest.
 
@@ -16,11 +16,11 @@
               and 'diff' contains diff information. Any 'diff' field within
               'details' is ignored.
 
-    details - Object, a deserialized instance of search.SRDigest.
-    right - Object, a deserialized instance of search.SRDigest.
-    diff - Object, a deserialized instance of search.SRDiffDigest.
-    commits - Array, a list of commits that 'details' refers to.
-    embedded - Boolean, a flag that indicates that this is embedded as an
+    details - An serialization of a search.Digest.
+    right - A serialization of search.Digest.
+    diff - A serialization of diff.
+    commits - A list of commits that 'details' refers to.
+    embedded - Boolean flag that indicates that this is embedded as an
                auxiliary view and some field like title should be omitted.
 
   Events:
@@ -34,8 +34,7 @@
        }
 
     zoom-clicked - This event is triggered when the user clicks on the 'zoom'
-      button. The 'detail' in the event is the object expected by the
-      multi-zoom-sk element.
+      button. The 'detail' in the event is the legacy-digest-details-sk object.
 
     clear - Clears the current digest shown.
 
@@ -61,7 +60,7 @@
 <link rel="import" href="commits-dialog-sk.html">
 <link rel="import" href="shared-styles.html">
 
-<dom-module id="newdigest-details-sk">
+<dom-module id="legacy-digest-details-sk">
   <template>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles"></style>
@@ -154,11 +153,6 @@
         margin-bottom: 0.5em;
         white-space: nowrap;
       }
-
-      .metricHead {
-        min-width: 12em;
-      }
-
     </style>
     <div class="horizontal layout wrap" hidden$="[[_noData(details)]]">
       <div class="vertical layout leftCol">
@@ -187,12 +181,12 @@
               <div>
                 <a href$="[[_diffPageUrl(details, _right)]]">Diff Details</a>
               </div>
-              <div><span class="metricHead">Diff Metric:</span> <span>[[_fixedMetric(_diff, metric)]]</span></div>
-              <div><span class="metricHead">Diff %:</span> <span>[[_fixedPercent(_diff)]]</span></div>
-              <div><span class="metricHead">Pixels:</span> [[_diff.numDiffPixels]]</div>
-              <div><span class="metricHead">Max RGBA:</span> [<span>[[_diff.maxRGBADiffs]]</span>]</div>
+              <div>
+                Diff: <span>[[_fixedPercent(_diff.diff)]]</span>%
+              </div>
+              <div>Max RGBA: [<span>[[_diff.maxRGBA]]</span>]</div>
             </div>
-            <triage-sk value="{{details.status}}"
+            <triage-sk value="[[details.status]]"
                        id="triageControls"
                        data-digest$="[[details.digest]]"
                        data-test$="[[details.test]]">
@@ -269,12 +263,12 @@
         <div class="vertical layout dotInfo" hidden$="[[_hideDotsBlame(details)]]">
           <dots-sk id="dots"></dots-sk>
           <dot-legend-sk id="dotlegend"
-                         test="{{details.test}}"
-                         digests={{details.traces.digests}}>
+                         test="[[details.test]]"
+                         digests=[[details.traces.digests]]>
           </dot-legend-sk>
          <blame-sk id="blame"
-                   commits="{{commits}}"
-                   value="{{details.diff.blame}}">
+                   commits="[[commits]]"
+                   value="[[details.diff.blame]]">
           </blame-sk>
         </div>
       </div>
@@ -289,7 +283,7 @@
   </template>
   <script>
     Polymer({
-      is: 'newdigest-details-sk',
+      is: 'legacy-digest-details-sk',
 
       properties: {
         mode: {
@@ -320,10 +314,6 @@
         embedded: {
           type: Boolean,
           value: false
-        },
-
-        metric: {
-          type: String,
         },
 
         _negIsClosest: {
@@ -441,15 +431,38 @@
       },
 
       _setRightFromDetails: function(detailsView) {
-        this._negIsClosest = false;
+        var status = "";
+        var foundDiff = null;
+
         this._right = null;
+        this._negIsClosest = false;
         this._diff = null;
         this._rightParamTitle = '';
-        if (!detailsView && this.details.closestRef) {
-          this._negIsClosest = (this.details.closestRef === gold.REF_NEG);
-          this._right = this.details.refDiffs[this.details.closestRef];
-          this._diff = this._right;
-          this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
+        if (!detailsView) {
+          var pos = this.details.diff.pos;
+          var neg = this.details.diff.neg;
+          if (pos && neg) {
+            if (neg.closest.diff < pos.closest.diff) {
+              foundDiff = neg;
+              status = gold.NEGATIVE;
+            } else {
+              foundDiff = pos;
+              status = gold.POSITIVE;
+            }
+          } else if (pos) {
+            foundDiff = pos;
+            status = gold.POSITIVE;
+          } else if (neg) {
+            foundDiff = neg;
+            status = gold.NEGATIVE;
+          }
+
+          if (foundDiff) {
+            this._negIsClosest = (status === gold.NEGATIVE);
+            this._right = this._digestFromDiff(this.details.test, foundDiff, status);
+            this._diff = foundDiff.closest;
+            this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
+          }
         }
 
         // Set the blame, dots, dotlegend
@@ -461,10 +474,10 @@
         return (this._right) ? ((this._negIsClosest) ? gold.NEGATIVE : gold.POSITIVE) : null;
       },
 
-      _digestFromDiff: function(test, refDiff, status) {
+      _digestFromDiff: function(test, diff, status) {
         return {
           test: test,
-          digest: refDiff.digest,
+          digest: diff.closest.digest,
           status: status,
           paramset: diff.paramset
         };
@@ -472,8 +485,18 @@
 
       _setProperties: function() {
         this._leftParamTitle = this._abbrev(this.details.digest);
-        var paramSets = [this.details.paramset];
-        var paramTitles = [this._leftParamTitle];
+        var paramSets = [];
+        var paramTitles = [];
+
+        // TODO(stephana): Remove this check once we have figured out why
+        // this.details.paramset is null or undefined.
+        if (this.details.paramset) {
+          paramSets.push(this.details.paramset);
+          paramTitles.push(this._leftParamTitle);
+        } else {
+          console.log("Error: this.details.paramset is undefined or null.");
+        }
+
         if (this._right) {
           this.set('_diffImgHref', gold.diffImgHref(this._right.digest, this.details.digest));
 
@@ -484,9 +507,6 @@
             paramTitles.push(this._rightParamTitle);
           }
         }
-
-        // TODO(stephana): Remove the forced re-render of _diff by cleaning up how
-        // the properties are set outside this function.
         if (this._diff) {
           this.set('_diff', this._diff);
         }
@@ -515,12 +535,8 @@
 
       _imageInfoHref: gold.imageInfoHref,
 
-      _fixedPercent: function (refDiff) {
-        return (refDiff) ? refDiff.pixelDiffPercent.toFixed(2) : '';
-      },
-
-      _fixedMetric: function (refDiff, metric) {
-        return (refDiff && metric) ? refDiff.diffs[metric].toFixed(2) : '';
+      _fixedPercent: function (i) {
+        return (typeof(i) === 'number') ? i.toFixed(2) : '';
       },
 
       _diffPageUrl: function (left, right) {
@@ -545,6 +561,10 @@
 
       _statusStr: function(_negIsClosest) {
         return _negIsClosest ? 'Negative' : 'Positive';
+      },
+
+      _noPosNeg: function (closest) {
+        return !closest || !closest.closest || (closest.closest.digest != '');
       },
 
       _cmpUrl: function (test) {
