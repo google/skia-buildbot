@@ -74,7 +74,7 @@ func SyncDir(dir string, revisions map[string]string, additionalArgs []string) e
 		if err == nil {
 			break
 		}
-		sklog.Errorf("Error syncing %s", dir)
+		sklog.Errorf("Error syncing %s: %s", dir, err)
 	}
 
 	if err != nil {
@@ -159,6 +159,9 @@ func ResetCheckout(dir string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
+	// Make sure we are on master branch and not stuck in a rebase branch for whatever reason.
+	branchArgs := []string{"checkout", "master"}
+	util.LogErr(ExecuteCmd(BINARY_GIT, branchArgs, []string{}, GIT_BRANCH_TIMEOUT, nil, nil))
 	// Run "git reset --hard HEAD"
 	resetArgs := []string{"reset", "--hard", "HEAD"}
 	util.LogErr(ExecuteCmd(BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
