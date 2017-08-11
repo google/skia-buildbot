@@ -107,6 +107,7 @@ const (
 
 	// util.ResetCheckout
 	GIT_BRANCH_TIMEOUT = 10 * time.Minute
+	GIT_REBASE_TIMEOUT = 10 * time.Minute
 	GIT_RESET_TIMEOUT  = 10 * time.Minute
 	GIT_CLEAN_TIMEOUT  = 10 * time.Minute
 
