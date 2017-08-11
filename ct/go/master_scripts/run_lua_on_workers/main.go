@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT = 10000
+	MAX_PAGES_PER_SWARMING_BOT = 100
 )
 
 var (
@@ -33,7 +33,7 @@ var (
 	description   = flag.String("description", "", "The description of the run as entered by the requester.")
 	gaeTaskID     = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType   = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
-	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
+	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this lua scraping run.")
 	runOnGCE      = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
 	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
@@ -149,6 +149,9 @@ func main() {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
+
+	fmt.Println("DONE DONE DONE DONE")
+	return
 
 	// Copy outputs from all slaves locally and combine it into one file.
 	consolidatedFileName := "lua-output"

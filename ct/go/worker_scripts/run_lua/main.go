@@ -44,6 +44,10 @@ func runLua() error {
 		return errors.New("Must specify --run_id")
 	}
 
+	// Return early for tests.
+	//return nil
+	return errors.New("INTENTIONALLY FAILING")
+
 	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
 	skutil.LogErr(util.SyncDir(util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
 
