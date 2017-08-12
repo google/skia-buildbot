@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT = 100
+	MAX_PAGES_PER_SWARMING_BOT = 50
 
 	PIXEL_DIFF_RESULTS_LINK_TEMPLATE = "https://ctpixeldiff.skia.org/load?runID=%s"
 )

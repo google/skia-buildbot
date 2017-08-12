@@ -41,7 +41,7 @@ var (
 	benchmarkExtraArgs        = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgsNoPatch   = flag.String("browser_extra_args_nopatch", "", "The extra arguments that are passed to the browser while running the benchmark during the nopatch run.")
 	browserExtraArgsWithPatch = flag.String("browser_extra_args_withpatch", "", "The extra arguments that are passed to the browser while running the benchmark during the withpatch run.")
-	chromeCleanerTimer        = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
+	chromeCleanerTimer        = flag.Duration("cleaner_timer", 45*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
 func pixelDiff() error {
