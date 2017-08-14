@@ -20,6 +20,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/common/imp/spinner-sk.html">
 
+<link rel="import" href="/res/imp/disclaimer-sk.html">
 <link rel="import" href="/res/imp/run-details-sk.html">
 <link rel="import" href="/res/imp/shared-styles.html">
 
@@ -31,9 +32,14 @@
         width: 15%;
         padding-left: 2em;
       }
+
+      disclaimer-sk {
+        padding-left: 2em;
+      }
     </style>
     <spinner-sk id="spinner" busy="{{_hideAll}}"></spinner-sk>
     <div hidden$="{{_hideAll}}">
+      <disclaimer-sk></disclaimer-sk>
       <paper-input label="Filter runs" value="{{filterVal::input}}"></paper-input>
       <div hidden$="[[_emptyResult(data)]]">
         <template is="dom-repeat" items="[[data]]" filter="[[_filter(filterVal)]]" initial-count="20">
