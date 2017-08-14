@@ -32,22 +32,13 @@
    "android_untriaged": {
      "urls": [
        "https://perf.skia.org/e/",
-     ],
-     "method": "POST",
-     "expected": [200],
-     "body": "{begin: 1502386303, end: 1502731903, subset: \"untriaged\"}",
-     "mimetype": "application/json",
-     "responsetest": "validJSON",
-   },
-   "android_untriaged_protected": {
-     "urls": [
        "https://android-ingest.skia.org",
        "https://android-master-ingest.skia.org",
      ],
-     "method": "POST",
-     "expected": [307],
-     "body": "{begin: 1502386303, end: 1502731903, subset: \"untriaged\"}",
-     "mimetype": "application/json",
-     "responsetest": "",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "",
+     "responsetest": "validJSON",
    },
 }
