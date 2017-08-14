@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43471dfe_99c544df",
+        "filename": "status/res/imp/commits-canvas-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T18:05:32Z",
+      "side": 1,
+      "message": "The alternative is to pass this around through 4-5 functions, and it\u0027s a bit ugly.",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 31
+      },
+      "revId": "99ed4ec7a1de64414fd3a2556034dff99d72ff4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
