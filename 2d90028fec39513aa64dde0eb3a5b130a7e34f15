@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7320a6ca_8247197c",
+        "filename": "go/taskname/mock_task_name_schema.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T11:34:26Z",
+      "side": 1,
+      "message": "Why do we need this?  It appears to be unused.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 32
+      },
+      "revId": "2d90028fec39513aa64dde0eb3a5b130a7e34f15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13181e09_a3654c7b",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T11:34:26Z",
+      "side": 1,
+      "message": "Why do we need to return error?",
+      "range": {
+        "startLine": 26,
+        "startChar": 46,
+        "endLine": 26,
+        "endChar": 51
+      },
+      "revId": "2d90028fec39513aa64dde0eb3a5b130a7e34f15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fafa06f_3e8a8922",
+        "filename": "go/taskname/task_name_schema_gen.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T11:34:26Z",
+      "side": 1,
+      "message": "Nit: spelling",
+      "range": {
+        "startLine": 14,
+        "startChar": 7,
+        "endLine": 14,
+        "endChar": 8
+      },
+      "revId": "2d90028fec39513aa64dde0eb3a5b130a7e34f15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb29a42d_ae04339d",
+        "filename": "go/taskname/task_name_schema_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T11:34:26Z",
+      "side": 1,
+      "message": "Probably a moot point since there are no negative test cases, but this is backwards; the point was to check that an invalid builder name caused an error to be returned.",
+      "range": {
+        "startLine": 45,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 25
+      },
+      "revId": "2d90028fec39513aa64dde0eb3a5b130a7e34f15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
