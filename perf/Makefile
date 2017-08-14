@@ -10,7 +10,14 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: skiaperf web ptracequery perf_migratedb perf_update_regressions
+build: skiaperf web ptracequery perf_migratedb perf_update_regressions ingest_json_validator
+
+.PHONY: validate
+validate: ingest_json_validator
+	ingest_json_validator --config_filename=sys/android-master-perf.json5
+	ingest_json_validator --config_filename=sys/android-perf.json5
+	ingest_json_validator --config_filename=sys/perf.json5
+	ingest_json_validator --config_filename=default.json5
 
 .PHONY: skiaperf
 skiaperf:
@@ -18,6 +25,9 @@ skiaperf:
 
 ptracequery:
 	go install -v ./go/ptracequery
+
+ingest_json_validator:
+	go install -v ./go/ingest_json_validator
 
 .PHONY: web
 web: clean_webtools elements_html core_js
