@@ -805,6 +805,25 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	now := time.Now()
+	rr := &RegressionRangeRequest{
+		Begin:  now.Add(-48 * time.Hour).Unix(),
+		End:    now.Unix(),
+		Subset: regression.ALL_SUBSET,
+	}
+
+	// Query for Regressions in the range.
+	regMap, err := regStore.Range(rr.Begin, rr.End, rr.Subset)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load regressions.")
+	}
+	if err := json.NewEncoder(w).Encode(struct{ Count int }{Count: len(regMap)}); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
 // RegressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
 // of Regressions.
 //
@@ -1230,11 +1249,16 @@ func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
 }
 
+var internalOnlyWhitelist = []string{
+	"/oauth2callback/",
+	"/_/reg/count",
+}
+
 // internalOnlyHandler wraps the handler with a handler that only allows
 // authenticated access, with the exception of the /oauth2callback/ handler.
 func internalOnlyHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/oauth2callback/" || login.LoggedInAs(r) != "" {
+		if util.In(r.URL.Path, internalOnlyWhitelist) || login.LoggedInAs(r) != "" {
 			h.ServeHTTP(w, r)
 		} else {
 			http.Redirect(w, r, login.LoginURL(w, r), http.StatusTemporaryRedirect)
@@ -1299,6 +1323,7 @@ func main() {
 	router.HandleFunc("/_/cluster/start", clusterStartHandler).Methods("POST")
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler).Methods("GET")
 	router.HandleFunc("/_/reg/", regressionRangeHandler).Methods("POST")
+	router.HandleFunc("/_/reg/count", regressionCountHandler).Methods("GET")
 	router.HandleFunc("/_/reg/current", regressionCurrentHandler).Methods("GET")
 	router.HandleFunc("/_/triage/", triageHandler).Methods("POST")
 	router.HandleFunc("/_/alerts/", alertsHandler)
