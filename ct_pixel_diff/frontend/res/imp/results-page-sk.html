@@ -49,6 +49,7 @@
 <link rel="import" href="/res/common/imp/spinner-sk.html">
 
 <link rel="import" href="/res/imp/diff-details-sk.html">
+<link rel="import" href="/res/imp/disclaimer-sk.html">
 <link rel="import" href="/res/imp/shared-styles.html">
 
 <dom-module id="results-page-sk">
@@ -113,9 +114,14 @@
       paper-listbox {
         width: 325px;
       }
+
+      disclaimer-sk {
+        padding-left: 1em;
+      }
     </style>
     <spinner-sk id="spinner" busy="{{_hideAll}}"></spinner-sk>
     <div hidden$="{{_hideAll}}">
+      <disclaimer-sk></disclaimer-sk>
       <paper-dropdown-menu id="sortmenu" label="Sort By">
         <paper-listbox class="dropdown-content" selected="5">
           <paper-item value="numDiff">Number of Different Pixels</paper-item>
