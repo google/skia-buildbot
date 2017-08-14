@@ -27,8 +27,9 @@ func clean(s string) string {
 type promInt64 struct {
 	// i tracks the value of the gauge, because prometheus client lib doesn't
 	// support get on Gauge values.
-	i     int64
-	gauge prometheus.Gauge
+	i      int64
+	gauge  prometheus.Gauge
+	delete func() error
 }
 
 func (m *promInt64) Get() int64 {
@@ -41,17 +42,17 @@ func (m *promInt64) Update(v int64) {
 }
 
 func (m *promInt64) Delete() error {
-	// The delete is a lie.
-	return nil
+	return m.delete()
 }
 
 // promFloat64 implements the Float64Metric interface.
 type promFloat64 struct {
 	// i tracks the value of the gauge, because prometheus client lib doesn't
 	// support get on Gauge values.
-	mutex sync.Mutex
-	i     float64
-	gauge prometheus.Gauge
+	mutex  sync.Mutex
+	i      float64
+	gauge  prometheus.Gauge
+	delete func() error
 }
 
 func (m *promFloat64) Get() float64 {
@@ -68,8 +69,7 @@ func (m *promFloat64) Update(v float64) {
 }
 
 func (m *promFloat64) Delete() error {
-	// The delete is a lie.
-	return nil
+	return m.delete()
 }
 
 // promFloat64Summary implements the Float64Metric interface.
@@ -103,7 +103,7 @@ func (pc *promCounter) Reset() {
 }
 
 func (pc *promCounter) Delete() error {
-	return nil
+	return pc.pi.delete()
 }
 
 // promClient implements the Client interface.
@@ -202,11 +202,21 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 	}
 	p.int64Mutex.Unlock()
 
-	gauge, err := gaugeVec.GetMetricWith(prometheus.Labels(cleanTags))
+	labels := prometheus.Labels(cleanTags)
+	gauge, err := gaugeVec.GetMetricWith(labels)
 	if err != nil {
 		glog.Fatalf("Failed to get gauge: %s", err)
 	}
 	ret = &promInt64{
+		delete: func() error {
+			if !gaugeVec.Delete(labels) {
+				return fmt.Errorf("Failed to delete metric.")
+			}
+			p.int64Mutex.Lock()
+			defer p.int64Mutex.Unlock()
+			delete(p.int64Gauges, gaugeKey)
+			return nil
+		},
 		gauge: gauge,
 	}
 
@@ -254,11 +264,21 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 	}
 	p.float64Mutex.Unlock()
 
-	gauge, err := gaugeVec.GetMetricWith(prometheus.Labels(cleanTags))
+	labels := prometheus.Labels(cleanTags)
+	gauge, err := gaugeVec.GetMetricWith(labels)
 	if err != nil {
 		glog.Fatalf("Failed to get gauge: %s", err)
 	}
 	ret = &promFloat64{
+		delete: func() error {
+			if !gaugeVec.Delete(labels) {
+				return fmt.Errorf("Failed to delete metric.")
+			}
+			p.float64Mutex.Lock()
+			defer p.float64Mutex.Unlock()
+			delete(p.float64Gauges, gaugeKey)
+			return nil
+		},
 		gauge: gauge,
 	}
 	p.float64Gauges[gaugeKey] = ret
