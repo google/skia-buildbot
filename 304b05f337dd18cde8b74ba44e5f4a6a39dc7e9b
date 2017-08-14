@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53b7339c_e3227d62",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T12:02:19Z",
+      "side": 1,
+      "message": "This was a little confusing to read at first.  Can we move it into the block at 81? ie. \n\nif t.TaskResult.State !\u003d swarming.TASK_STATE_COMPLETED {\n    if t.TaskResult.State \u003d\u003d swarming.TASK_STATE_PENDING || t.TaskResult.State \u003d\u003d swarming.TASK_STATE_RUNNING {\n        revisitLater \u003d\u003d...\n    }\n    continue\n}",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 54
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32e25ea1_837c2877",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T12:02:19Z",
+      "side": 1,
+      "message": "Nit: close paren",
+      "range": {
+        "startLine": 80,
+        "startChar": 26,
+        "endLine": 80,
+        "endChar": 27
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa2dd4c9_93d53819",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T12:02:19Z",
+      "side": 1,
+      "message": "Do we not care about missing data?  IMO we should at least log errors so that we get alerts if/when we start mass-failing to upload data.  We could also return an error here and add the failed task ID to revisitLater.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 159
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec0cc165_a1295b26",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-14T12:02:19Z",
+      "side": 1,
+      "message": "One wrinkle here is that infra tasks also use the Skia pool. Currently those are covered by the schema in skia.git, but IMO keeping those in sync goes against the principle of independent repos (and also branches, but I\u0027m not sure how we avoid that here) of the task scheduler. Maybe the long-term solution is to somehow fold the naming schema into tasks.json.  For now, it\u0027s probably enough to just check the sk_repo tag and return if it\u0027s anything other than common.REPO_SKIA.",
+      "range": {
+        "startLine": 122,
+        "startChar": 1,
+        "endLine": 122,
+        "endChar": 43
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
