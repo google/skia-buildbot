@@ -29,11 +29,11 @@
      "mimetype": "",
      "responsetest": ""
    },
-   "android_untriaged": {
+   "skiaperf_untriaged": {
      "urls": [
-       "https://perf.skia.org/e/",
-       "https://android-ingest.skia.org",
-       "https://android-master-ingest.skia.org",
+       "https://perf.skia.org/_/reg/count",
+       "https://android-perf.skia.org/_/reg/count",
+       "https://android-master-perf.skia.org/_/reg/count",
      ],
      "method": "GET",
      "expected": [200],
