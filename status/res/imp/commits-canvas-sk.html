@@ -40,10 +40,11 @@
     None.
 -->
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/common/imp/styles-sk.html">
 
 <dom-module id="commits-canvas-sk">
   <template>
-    <style>
+    <style include="styles-sk">
       #container {
         position: relative;
       }
@@ -114,19 +115,8 @@
     var paddingY = 20;             // Top padding pixels.
     var radius = 3;                // Radius of commit dots.
     var columnWidth = commitY;     // Pixel width of per-branch colums.
-    // Colors used for the branches. Obtained from
-    // http://blog.mollietaylor.com/2012/10/color-blindness-and-palette-choice.html
-    // TODO(borenet): We should share this with the styles-sk element.
-    var palette = [
-      "#1B9E77", // Blue/green
-      "#D95F02", // Red/orange
-      "#7570B3", // Purple
-      "#E7298A", // Pink
-      "#66A61E", // Light green
-      "#E6AB02", // Light orange
-      "#A6761D", // Brown
-      "#666666", // Gray
-    ];
+    // This is filled in later.
+    var palette = [];
     var commitBg = "#FFFFFF";    // Background color of alternating commits.
     var commitBgAlt = "#EFEFEF"; // Background color of alternating commits.
     var font = "10px monospace"; // Font used for labels.
@@ -529,6 +519,18 @@
         for (var i = 0; i < commits.length; i++) {
           this.displayCommits[commits[i].hash].drawBackground(ctx);
         }
+
+        // Create the color palette for the commits.
+        palette = [
+          this.getComputedStyleValue("--color-bluegreen"),
+          this.getComputedStyleValue("--color-redorange"),
+          this.getComputedStyleValue("--color-purple"),
+          this.getComputedStyleValue("--color-pink"),
+          this.getComputedStyleValue("--color-lightgreen"),
+          this.getComputedStyleValue("--color-lightorange"),
+          this.getComputedStyleValue("--color-burntorange"),
+          this.getComputedStyleValue("--color-gray"),
+        ];
 
         // Draw the commits.
         for (var i = 0; i < commits.length; i++) {
