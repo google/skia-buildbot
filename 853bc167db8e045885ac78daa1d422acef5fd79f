@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c1d7c41_d7924075",
+        "filename": "status/res/imp/status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-15T17:18:15Z",
+      "side": 1,
+      "message": "Otherwise, when the toolbar is too long (eg. for the internal_test repo) the commits table will scroll around awkwardly.",
+      "range": {
+        "startLine": 81,
+        "startChar": 10,
+        "endLine": 81,
+        "endChar": 29
+      },
+      "revId": "853bc167db8e045885ac78daa1d422acef5fd79f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
