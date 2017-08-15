@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 	"path"
@@ -23,7 +24,8 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
-	"golang.org/x/net/context"
+	"go.skia.org/infra/go/taskname"
+	"go.skia.org/infra/perf/go/perfclient"
 	"google.golang.org/api/option"
 )
 
@@ -46,6 +48,9 @@ var (
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
+
+	perfBucket = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
+	perfPrefix = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
 )
 
 var (
@@ -89,6 +94,20 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+
+	authClient, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	gsClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(authClient))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	storageClient := gcs.NewGCSClient(gsClient, *perfBucket)
+	pc := perfclient.New(*perfPrefix, storageClient)
+
+	tnp := taskname.DefaultTaskNameParser()
 
 	// Shared repo objects.
 	reposDir := path.Join(w, "repos")
@@ -181,7 +200,7 @@ func main() {
 	}
 
 	// Swarming tasks.
-	if err := swarming_metrics.StartSwarmingTaskMetrics(w, swarm, context.Background()); err != nil {
+	if err := swarming_metrics.StartSwarmingTaskMetrics(w, swarm, context.Background(), pc, tnp); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -208,14 +227,6 @@ func main() {
 	// Time since last successful backup.
 	go func() {
 		lv := metrics2.NewLiveness("last-buildbot-db-backup", nil)
-		authClient, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_ONLY)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		gsClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(authClient))
-		if err != nil {
-			sklog.Fatal(err)
-		}
 		setLastBackupTime := func() error {
 			last := time.Time{}
 			if err := gcs.AllFilesInDir(gsClient, "skia-buildbots", "db_backup", func(item *storage.ObjectAttrs) {
