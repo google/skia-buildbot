@@ -74,7 +74,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 	for id, ingesterConf := range config.Ingesters {
 		processorConstructor, ok := constructors[id]
 		if !ok {
-			return nil, fmt.Errorf("Unknow ingester: '%s'", id)
+			return nil, fmt.Errorf("Unknown ingester: '%s'", id)
 		}
 
 		// Instantiate the sources
