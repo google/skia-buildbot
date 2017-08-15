@@ -30,7 +30,6 @@
     category_list: Array<String>, an array of the builder category names.
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
-    highlighted_commit_hashes: Array<String>, the commit hashes which should be highlighted.
     logged_in: Boolean, if the links should be for internal or external buildbot pages.
     num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of an issue number that was relanded to the commit that relands it.
@@ -62,9 +61,6 @@
 <dom-module id="commits-table-d3-sk">
   <template>
     <style include="iron-flex styles-sk">
-      #container {
-        overflow-x: hidden;
-      }
       #commits {
         min-height: 780px;
         min-width: 50px;
@@ -79,8 +75,6 @@
         height: 68px;
       }
       #table {
-        overflow-x: auto;
-        overflow-y: hidden;
         /* 80 pixels of header and 35 * 20px of commits.
         It is important to preallocate this size, otherwise the flexbox layout
         behaves strangely (i.e. wrong) when the data is first added. */
@@ -135,9 +129,6 @@
         commits_map: {
           type: Object,
         },
-        highlighted_commit_hashes: {
-          type: Array,
-        },
         logged_in: {
           type: Boolean,
         },
@@ -165,7 +156,7 @@
         }
       },
       observers: [
-        "redraw(builders, build_details, categories, category_list, commit_label, commits, commits_map, highlighted_commit_hashes, relanded_map, repo, reverted_map, time_points)",
+        "redraw(builders, build_details, categories, category_list, commit_label, commits, commits_map, relanded_map, repo, reverted_map, time_points)",
       ],
 
       ready: function() {
@@ -187,7 +178,7 @@
       _redraw:function() {
         this.set("drawing", true);
         console.time("d3 rendering");
-        this._drawCommitMessages(this.commits, this.highlighted_commit_hashes, this.relanded_map, this.reverted_map, this.time_points);
+        this._drawCommitMessages(this.commits, this.relanded_map, this.reverted_map, this.time_points);
 
         this._drawCategories(this.category_list, this.categories);
 
@@ -201,7 +192,7 @@
       },
 
       // Draw all of the commit divs that are on the left.
-      _drawCommitMessages: function(commits, highlighted_commit_hashes, relanded_map, reverted_map, time_points){
+      _drawCommitMessages: function(commits, relanded_map, reverted_map, time_points){
         var openCommitDialog = this._openCommitDialog.bind(this);
         var commitLabel = this.commit_label;
         // It's easiest to delete all .commits and redraw them.  Normally, we would only update
@@ -238,18 +229,6 @@
               return commit.shortSubject;
             }
             return commit.author;
-          });
-
-        // handle highlighted and alternating grey/white logic.
-        newCommits
-          .insert("div")
-          .classed("back", true)
-          .style("background-color", function(commit){
-            if (highlighted_commit_hashes.indexOf(commit.hash) !== -1){
-              return "#FFD740";
-            } else if (commit.index % 2 === 1) {
-              return "#FFF";
-            }
           });
 
         // Add a spacer to every commit where the time bubble could be.  This allows all
