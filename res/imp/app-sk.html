@@ -1,6 +1,6 @@
 <!--
 `app-sk` provides general application layout, introducing a
-responsive scaffold containing a header, toolbar, rtoolbar, title and
+responsive scaffold containing a header, toolbar, mtoolbar, rtoolbar, title and
 areas for application content, as well as automatic inclusion of
 common menu items, login status, and version tag.
 
@@ -8,7 +8,8 @@ Example:
 
     <app-sk mode="standard" responsive_width="600px" drawer_width="230px">
       <h1 header>Title goes here</h1>
-      <foo-status-sk rtoolbar></foo-status-sk> <!-to be right aligned, on the top bar->
+      <div mtoolbar>middle stuff</div> <!- in the middle, between the title and rtoolbar ->
+      <foo-status-sk rtoolbar></foo-status-sk> <!-to be right aligned, on the top bar ->
       <div navigation>Nav goes here</div>
       <div>Content goes here</div>
     </app-sk>
@@ -63,6 +64,7 @@ Events:
   }
   #menuButton  {
     min-width: 40px;
+    padding: 8px 0px;
   }
   #headerPanel {
     height: 100vh;
@@ -85,7 +87,9 @@ Events:
       <paper-toolbar id="header" style$="{{_headerStyle(narrow,header_height,header_responsive_height)}}">
         <paper-icon-button id="menuButton" icon="icons:menu" on-tap="_togglePanel" hidden$="{{!_showMenuButton}}"></paper-icon-button>
         <content select="[header], header, [toolbar], toolbar"></content>
-        <div class="flex"></div>
+        <div class="flex">
+          <content select="[mtoolbar], mtoolbar"></content>
+        </div>
         <content select="[rtoolbar], rtoolbar"></content>
         <login-sk id="login" email="{{logged_in_email}}"></login-sk>
       </paper-toolbar>

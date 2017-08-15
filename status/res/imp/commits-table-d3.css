@@ -8,15 +8,12 @@ commits-table-d3-sk .commit {
   cursor: pointer;
 }
 
-commits-table-d3-sk .back {
-  /* The goal is to have this behind every row and stretch the entire screen width*/
-  background-color: #efefef;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  top: 0;
-  width: 4000px;
-  z-index:-1;
+commits-table-d3-sk .commit:nth-child(odd) {
+  background-color: #FFF;
+}
+
+commits-table-d3-sk .commit:nth-child(even) {
+  background-color: #EFEFEF;
 }
 
 commits-table-d3-sk .time-spacer {
@@ -109,7 +106,6 @@ commits-table-d3-sk .builder {
   flex: 1 1 auto;
   display:flex;
   flex-direction: column;
-  margin-right: 1px;
   min-width:20px;
 }
 
@@ -138,6 +134,14 @@ commits-table-d3-sk .build {
   height: 20px;
   /* Basically disable flexing so we can control the sizes.*/
   flex: 0 0 auto;
+}
+
+commits-table-d3-sk .build:nth-child(even) {
+  background-color: #FFF;
+}
+
+commits-table-d3-sk .build:nth-child(odd) {
+  background-color: #EFEFEF;
 }
 
 commits-table-d3-sk .build > div {

@@ -38,6 +38,13 @@
       a {
         color: inherit;
       }
+      #container {
+        text-align: center;
+        width: 100%;
+      }
+      span.nowrap {
+        white-space: nowrap;
+      }
     </style>
     <iron-ajax
       id="status"
@@ -72,10 +79,12 @@
       last-response="{{_trooperStatus}}">
     </iron-ajax>
     <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
-    <div>
-      <a href="https://skia-tree-status.appspot.com" target="_blank">{{_message}}</a>
-      [{{_author}}
-      {{_timeSince}} ago]
+    <div id="container">
+      <span><a href="https://skia-tree-status.appspot.com" target="_blank">{{_message}}</a></span>
+      <span class="nowrap">
+        [{{_author}}
+         {{_timeSince}} ago]
+      </span>
     </div>
   </template>
   <script>
