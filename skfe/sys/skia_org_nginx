@@ -632,34 +632,6 @@ server {
     return 301 https://fiddle.skia.org$request_uri;
 }
 
-#####   imageinfo.skia.org   ###########################
-server {
-    listen      443;
-    server_name imageinfo.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/imageinfo.access.log;
-    error_log /var/log/nginx/imageinfo.error.log error;
-
-    # Enforce browser XSS protection
-    add_header X-XSS-Protection "1; mode=block";
-    # Disable content sniffing
-    add_header X-Content-Type-Options nosniff;
-
-    client_max_body_size 500M;
-
-    location / {
-        proxy_pass http://skia-imageinfo:8000;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name imageinfo.skia.org;
-    return 301 https://imageinfo.skia.org$request_uri;
-}
-
 #####   fuzzer.skia.org   ###########################
 server {
     listen      443;

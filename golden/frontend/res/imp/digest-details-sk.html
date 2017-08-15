@@ -216,11 +216,6 @@
                     <a target="_blank" href$="[[_digestHref(details.digest)]]" rel="noopener">
                       <iron-icon icon="open-in-new"></iron-icon>
                     </a>
-
-                    <a target="_blank" href$="[[_imageInfoHref(details.digest)]]" rel="noopener">
-                      <iron-icon icon="icons:info-outline"></iron-icon>
-                    </a>
-
                   </div>
                 </div>
                 <div>
@@ -520,8 +515,6 @@
       },
 
       _digestHref: gold.imgHref,
-
-      _imageInfoHref: gold.imageInfoHref,
 
       _fixedPercent: function (refDiff) {
         return (refDiff) ? refDiff.pixelDiffPercent.toFixed(2) : '';

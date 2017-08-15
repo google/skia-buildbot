@@ -101,10 +101,6 @@ scrape_configs:
         labels:
           corpus: pdf
 
-  - job_name: 'imageinfo'
-    static_configs:
-      - targets: ['skia-imageinfo:20000']
-
   - job_name: 'logmetrics'
     static_configs:
       - targets: ['skia-monitoring:20001']
@@ -177,7 +173,6 @@ scrape_configs:
       - targets: ['skia-fuzzer-fe:11000']
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']
-      - targets: ['skia-imageinfo:11000']
       - targets: ['skia-internal:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-monitoring:11000']

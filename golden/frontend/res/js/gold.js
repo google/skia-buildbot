@@ -137,12 +137,6 @@ var gold = gold || {};
     return '/img/images/' + digest + '.png'
   };
 
-  // Returns the URL to the image info site for the given digest.
-  gold.imageInfoHref = function(digest) {
-    var imgUrl = window.location.protocol + '//' + window.location.hostname + gold.imgHref(digest);
-    return 'https://imageinfo.skia.org/info?' + sk.query.fromObject({url: imgUrl});
-  },
-
   // Return the URL for the diff image between the two given digests.
   gold.diffImgHref = function(d1, d2) {
     if (!d1 || !d2) {

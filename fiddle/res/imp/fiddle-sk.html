@@ -269,9 +269,6 @@ sk_sp&lt;SkImage> image;</pre>
               <template is="dom-if" if="{{_not(embedded)}}">
                 <p>
                   CPU
-                  <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_raster.png"
-                    title="Inspect the image in https://imageinfo.skia.org."
-                    target=_blank ><iron-icon icon="pageview"></iron-icon></a>
                 </p>
               </template>
             </div>
@@ -290,11 +287,6 @@ sk_sp&lt;SkImage> image;</pre>
                     <img src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
                     <p>
                         GPU
-                        <a href="https://imageinfo.skia.org/info?url=https://fiddle.skia.org/i/{{fiddlehash}}_gpu.png"
-                            title="Inspect the image in https://imageinfo.skia.org."
-                            target=_blank
-                            >
-                            <iron-icon icon="pageview"></iron-icon></a>
                     </p>
                 </template>
                 <template is="dom-if" if="{{animated}}">
