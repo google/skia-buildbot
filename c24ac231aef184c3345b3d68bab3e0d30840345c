@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "99c6bc63_76b0551d",
+        "filename": "perf/go/ingest_json_validator/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T11:41:39Z",
+      "side": 1,
+      "message": "JSON5",
+      "range": {
+        "startLine": 12,
+        "startChar": 89,
+        "endLine": 12,
+        "endChar": 93
+      },
+      "revId": "c24ac231aef184c3345b3d68bab3e0d30840345c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
