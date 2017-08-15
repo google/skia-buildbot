@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c13353ee_4a18b1c8",
+        "filename": "go/taskname/mock_task_name_schema.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T11:56:36Z",
+      "side": 1,
+      "message": "It becomes used in https://skia-review.googlesource.com/c/33360",
+      "parentUuid": "7320a6ca_8247197c",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 32
+      },
+      "revId": "2d90028fec39513aa64dde0eb3a5b130a7e34f15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "13181e09_a3654c7b",
         "filename": "go/taskname/task_name_schema.go",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-14T11:34:26Z",
       "side": 1,
       "message": "Why do we need to return error?",
+      "range": {
+        "startLine": 26,
+        "startChar": 46,
+        "endLine": 26,
+        "endChar": 51
+      },
+      "revId": "2d90028fec39513aa64dde0eb3a5b130a7e34f15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76566d76_2b42dced",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T11:56:36Z",
+      "side": 1,
+      "message": "Good catch - that was left over from before \"go generate\"",
+      "parentUuid": "13181e09_a3654c7b",
       "range": {
         "startLine": 26,
         "startChar": 46,
@@ -82,6 +130,30 @@
       "writtenOn": "2017-08-14T11:34:26Z",
       "side": 1,
       "message": "Probably a moot point since there are no negative test cases, but this is backwards; the point was to check that an invalid builder name caused an error to be returned.",
+      "range": {
+        "startLine": 45,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 25
+      },
+      "revId": "2d90028fec39513aa64dde0eb3a5b130a7e34f15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f521c12_228233a0",
+        "filename": "go/taskname/task_name_schema_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T11:56:36Z",
+      "side": 1,
+      "message": "Ah, I wasn\u0027t as careful reading about that as I should have been.  I\u0027ll add a negative test or two to the follow up CL.",
+      "parentUuid": "fb29a42d_ae04339d",
       "range": {
         "startLine": 45,
         "startChar": 2,
