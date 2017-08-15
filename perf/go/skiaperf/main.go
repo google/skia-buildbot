@@ -87,7 +87,7 @@ var (
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	gitRepoDir            = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL            = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-	interesting           = flag.Float64("interesting", 50.0, "The threshhold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
+	interesting           = flag.Float64("interesting", 50.0, "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
 	internalOnly          = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
 	keyOrder              = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -144,7 +144,7 @@ type SkPerfConfig struct {
 	Radius      int      `json:"radius"`       // The number of commits when doing clustering.
 	KeyOrder    []string `json:"key_order"`    // The order of the keys to appear first in query2-sk elements.
 	NumShift    int      `json:"num_shift"`    // The number of commits the shift navigation buttons should jump.
-	Interesting float32  `json:"interesting"`  // The threshhold for a cluster to be interesting.
+	Interesting float32  `json:"interesting"`  // The threshold for a cluster to be interesting.
 	StepUpOnly  bool     `json:"step_up_only"` // If true then only regressions that are a step up are displayed.
 }
 
