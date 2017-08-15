@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "60e8df1e_885323b2",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-15T14:41:02Z",
+      "side": 1,
+      "message": "Perfect.",
+      "parentUuid": "3e3329c5_2960ff6b",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 159
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec0cc165_a1295b26",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 7
