@@ -23,11 +23,11 @@ type taskNameParser struct {
 
 // DefaultTaskNameParser creates a TaskNameParser using the schema created by
 // gen_schema.go.
-func DefaultTaskNameParser() (TaskNameParser, error) {
+func DefaultTaskNameParser() TaskNameParser {
 	return &taskNameParser{
 		Schema:      SCHEMA_FROM_GIT,
-		TaskNameSep: SEPERATOR_FROM_GIT,
-	}, nil
+		TaskNameSep: SEPARATOR_FROM_GIT,
+	}
 }
 
 // See TaskNameParser for more information
