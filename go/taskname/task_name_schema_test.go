@@ -38,14 +38,26 @@ func TestTaskNameSchema(t *testing.T) {
 			"extra_config":     "CT_DM_1m_SKPs",
 		},
 	}
-	p, err := DefaultTaskNameParser()
-	assert.NoError(t, err)
+	p := DefaultTaskNameParser()
 	for builderName, params := range tc {
 		res, err := p.ParseTaskName(builderName)
-		if params == nil {
-			assert.NoError(t, err)
-		} else {
-			assert.Equal(t, params, res)
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, params, res)
+	}
+}
+
+func TestBadTaskNameSchema(t *testing.T) {
+	testutils.SmallTest(t)
+	tc := []string{
+		"Alpha-Ubuntu-GCC-x86-Release",
+		"Build",
+		"Build-Ubuntu-GCC-x86-Debug-Android-Way-Too-Many-Extras",
+		"",
+	}
+	p := DefaultTaskNameParser()
+	for _, builderName := range tc {
+		res, err := p.ParseTaskName(builderName)
+		assert.Error(t, err)
+		assert.Nil(t, res)
 	}
 }

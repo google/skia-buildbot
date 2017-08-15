@@ -27,7 +27,7 @@ package taskname
 var SCHEMA_FROM_GIT = map[string][]string{
 %s}
 
-var SEPERATOR_FROM_GIT = "%s"
+var SEPARATOR_FROM_GIT = "%s"
 `
 )
 

@@ -9,6 +9,7 @@ var SCHEMA_FROM_GIT = map[string][]string{
 	"Infra":       {"frequency"},
 	"Perf":        {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration"},
 	"Test":        {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration"},
+	"Upload":      {"orig_role", "os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration"},
 }
 
-var SEPERATOR_FROM_GIT = "-"
+var SEPARATOR_FROM_GIT = "-"
