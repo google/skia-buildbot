@@ -113,7 +113,7 @@ db_too_many_free_pages
 
 The number of cached free pages in the Task Scheduler BoltDB has grown
 large. As this number grows, DB performance suffers. Please file a bug and
-increase the threshhold in alerts.cfg. It's unclear what causes this issue, but
+increase the threshold in alerts.cfg. It's unclear what causes this issue, but
 it might be due to killing the process without gracefully closing the DB or due
 to large read transactions concurrent with write transactions.
 

@@ -141,7 +141,7 @@ func newRunningProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.Comm
 type RunningClusterRequests struct {
 	git                *gitinfo.GitInfo
 	cidl               *cid.CommitIDLookup
-	defaultInteresting float32 // The threshhold to control if a cluster is considered interesting.
+	defaultInteresting float32 // The threshold to control if a cluster is considered interesting.
 
 	mutex sync.Mutex
 	// inProcess maps a ClusterRequest.Id() of the request to the ClusterRequestProcess

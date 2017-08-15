@@ -74,9 +74,9 @@ func newClusterSummary() *ClusterSummary {
 // ClusterSummaries is one summary for each cluster that the k-means clustering
 // found.
 type ClusterSummaries struct {
-	Clusters         []*ClusterSummary
-	StdDevThreshhold float32
-	K                int
+	Clusters        []*ClusterSummary
+	StdDevThreshold float32
+	K               int
 }
 
 // chooseK chooses a random sample of k observations. Used as the starting
@@ -231,12 +231,12 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 type Progress func(totalError float64)
 
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
-func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold float32, progress Progress, interesting float32, algo ClusterAlgo) (*ClusterSummaries, error) {
+func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold float32, progress Progress, interesting float32, algo ClusterAlgo) (*ClusterSummaries, error) {
 	if algo == KMEANS_ALGO {
 		// Convert the DataFrame to a slice of kmeans.Clusterable.
 		observations := make([]kmeans.Clusterable, 0, len(df.TraceSet))
 		for key, trace := range df.TraceSet {
-			observations = append(observations, ctrace2.NewFullTrace(key, trace, stddevThreshhold))
+			observations = append(observations, ctrace2.NewFullTrace(key, trace, stddevThreshold))
 		}
 		if len(observations) == 0 {
 			return nil, fmt.Errorf("Zero traces in the DataFrame.")
@@ -258,7 +258,7 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold 
 		}
 		clusterSummaries := getClusterSummaries(observations, centroids, df.Header, interesting)
 		clusterSummaries.K = k
-		clusterSummaries.StdDevThreshhold = stddevThreshhold
+		clusterSummaries.StdDevThreshold = stddevThreshold
 		return clusterSummaries, nil
 	} else if algo == STEPFIT_ALGO {
 
@@ -273,7 +273,7 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold 
 				sklog.Infof("stepfit count: %d", count)
 			}
 			t := vec32.Dup(trace)
-			vec32.Norm(t, stddevThreshhold)
+			vec32.Norm(t, stddevThreshold)
 			sf := stepfit.GetStepFitAtMid(t, interesting)
 			// If stepfit is at the middle and if it is a step up or down.
 			if sf.Status == stepfit.LOW {
@@ -296,9 +296,9 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshhold 
 		}
 		sklog.Infof("Found LOW: %d HIGH: %d", low.Num, high.Num)
 		ret := &ClusterSummaries{
-			Clusters:         []*ClusterSummary{},
-			K:                k,
-			StdDevThreshhold: stddevThreshhold,
+			Clusters:        []*ClusterSummary{},
+			K:               k,
+			StdDevThreshold: stddevThreshold,
 		}
 		if low.Num > 0 {
 			low.ParamSummaries = getParamSummariesForKeys(low.Keys)
