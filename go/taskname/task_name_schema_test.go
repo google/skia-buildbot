@@ -37,6 +37,18 @@ func TestTaskNameSchema(t *testing.T) {
 			"configuration":    "Debug",
 			"extra_config":     "CT_DM_1m_SKPs",
 		},
+		"Upload-Test-Android-Clang-Nexus6p-GPU-Adreno430-arm64-Release-Android_Vulkan": {
+			"role":             "Upload",
+			"orig_role":        "Test",
+			"os":               "Android",
+			"compiler":         "Clang",
+			"model":            "Nexus6p",
+			"cpu_or_gpu":       "GPU",
+			"cpu_or_gpu_value": "Adreno430",
+			"arch":             "arm64",
+			"configuration":    "Release",
+			"extra_config":     "Android_Vulkan",
+		},
 	}
 	p := DefaultTaskNameParser()
 	for builderName, params := range tc {
