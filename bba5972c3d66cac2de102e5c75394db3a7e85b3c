@@ -22,6 +22,30 @@
       "revId": "bba5972c3d66cac2de102e5c75394db3a7e85b3c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75298398_c9006aa7",
+        "filename": "res/imp/app-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-15T14:47:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f538ba7_f8c0dbfb",
+      "range": {
+        "startLine": 91,
+        "startChar": 47,
+        "endLine": 91,
+        "endChar": 49
+      },
+      "revId": "bba5972c3d66cac2de102e5c75394db3a7e85b3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
