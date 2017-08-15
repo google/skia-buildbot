@@ -28,7 +28,6 @@
     category_list: Array<String>, an array of the builder category names.
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
-    highlighted_commit_hashes: Array<String>, the commit hashes which should be highlighted.
     logged_in: Boolean, if the links should be for internal or external buildbot pages.
     num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
@@ -64,14 +63,7 @@
 
 <dom-module id="commits-table-sk">
   <template>
-    <style>
-      /*Hide scrollbar on filter wrapper*/
-      #filterWrapper::-webkit-scrollbar {
-         height: 0px;
-      }
-      #filterWrapper {
-        overflow-x: auto;
-      }
+    <style include="iron-flex iron-flex-alignment iron-positioning">
       .filters{
         font-size: .75em;
         height: 50px;
@@ -93,7 +85,7 @@
 
       /* Depending on if the subject or author is being shown, we may need more or less space.*/
       #buildbotSelector.near {
-        margin-left: 80px;
+        margin-left: 40px;
       }
 
       #buildbotSelector.far {
@@ -127,14 +119,14 @@
     <confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
     <div>
       <div id="filterWrapper">
-        <div class="filters">
+        <div class="filters horizontal layout center">
           <paper-radio-group id="commitLabelSelector" selected="{{commit_label}}">
             <template is="dom-repeat" items="{{_commit_labels}}" as="label">
               <paper-radio-button name="{{label}}">{{_getPrettyCommitLabel(label)}}</paper-radio-button><br/>
             </template>
           </paper-radio-group>
 
-          <paper-radio-group id="buildbotSelector" class$="{{_getLeftAlign(commit_label)}}" selected="{{filter}}">
+          <paper-radio-group id="buildbotSelector" class$="{{_getLeftAlign(commit_label)}} horizontal layout center" selected="{{filter}}">
             <template is="dom-repeat" items="{{_short_filters}}" as="filter">
               <paper-radio-button name="{{filter}}">{{_getPrettyFilterLabel(filter)}}</paper-radio-button>
               <div class="tooltip" title$="{{_getPrettyFilterText(filter)}}">
@@ -184,7 +176,6 @@
           commit_label="[[commit_label]]"
           commits="[[commits]]"
           commits_map="[[commits_map]]"
-          highlighted_commit_hashes="[[highlighted_commit_hashes]]"
           logged_in="[[logged_in]]"
           num_builders="[[num_builders]]"
           relanded_map="[[relanded_map]]"
@@ -239,9 +230,6 @@
         },
         commits_map: {
           type: Object,
-        },
-        highlighted_commit_hashes: {
-          type: Array,
         },
         logged_in: {
           type: Boolean,

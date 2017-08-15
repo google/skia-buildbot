@@ -65,7 +65,8 @@
           padding: 0px;
         };
         --paper-item-min-height: 26px;
-        --paper-toolbar-height: 50px;
+        --paper-toolbar-height: 56px;
+        --paper-toolbar-sm-height: 56px;
         --status-sk-icon-color: var(--color-lightorange);
         --status-sk-main-text-color: black;
         --status-sk-header-background-color: var(--color-lightgreen);
@@ -76,8 +77,9 @@
           color: var(--status-sk-header-text-color);
           font-size: 15px;
           font-family: sans-serif;
+          height: 56px;
+          padding: 0px;
           text-align: center;
-
           background-color: var(--status-sk-header-background-color);
         };
         login-sk{
@@ -111,25 +113,9 @@
         margin-right: 5px;
       }
 
-      #mainContent {
-        position:relative;
-      }
-
       #can {
-        position:absolute;
-        top:0;
-        left:0;
         width:175px;
         z-index: 5;
-      }
-
-      /* The table needs to be placed absolutely so that the table portion can scroll independent
-      of the commits panel*/
-      #table {
-        position:absolute;
-        top:10px;
-        left:174px;
-        right:0;
       }
 
       a {
@@ -146,32 +132,6 @@
 
       h1.shrunk {
         font-size:1.5em;
-        display: block;
-      }
-      #infobar.shrunk, .shrunk {
-        display:none;
-      }
-
-      #can.shrunk {
-        display: block;
-        position:absolute;
-        top:0;
-        left:0;
-        width:100px;
-      }
-
-      #table.shrunk {
-        display: block;
-        position: absolute;
-        top:10px;
-        left:100px;
-        right:0;
-      }
-
-      #spinner {
-        position: absolute;
-        top: 5px;
-        right: 5px;
       }
     </style>
 
@@ -186,15 +146,14 @@
     <url-param-sk name="commit_label" value="{{label}}" default="author"></url-param-sk>
     <url-param-sk name="filter" value="{{filter}}" default="interesting"></url-param-sk>
     <url-param-sk name="search_value" value="{{search}}"></url-param-sk>
-    <url-param-sk name="commit" value="{{highlighted_commit_hashes}}" multi></url-param-sk>
 
     <app-sk id="app" class="fit"
         drawer_width="220px"
         mode="waterfall"
         tall_class="standard"
         responsive_width="800px"
-        header_height="50px"
-        header_responsive_height="50px"
+        header_height="56px"
+        header_responsive_height="56px"
         logged_in_email="{{email}}"
         narrow="{{narrow}}">
 
@@ -205,7 +164,7 @@
 
       <div class="container" navigation>
         <h2>AutoRollers</h2>
-        <autoroll-widget-sk class="shrinkable" navigation
+        <autoroll-widget-sk navigation
           reload="[[reload]]"
           rollers="{{roll_statuses}}"
           on-update="_handleAutoRollUpdate"
@@ -259,21 +218,22 @@
         </div>
       </div>
 
-      <h1 class="shrinkable" toolbar>Status: [[repo]]</h1>
+      <h1 class="shrinkable" toolbar>
+        <template is="dom-if" if="[[!narrow]]">Status: </template>[[repo]]
+      </h1>
 
-      <div rtoolbar class="horizontal layout center flex">
-        <tree-status-sk
-          reload="[[reload]]"
-          open="{{open}}"
-          sheriff="{{sheriff}}"
-          wrangler="{{wrangler}}"
-          robocop="{{robocop}}"
-          trooper="{{trooper}}">
-        </tree-status-sk>
-      </div>
+      <tree-status-sk mtoolbar
+        class="horizontal layout center flex"
+        reload="[[reload]]"
+        open="{{open}}"
+        sheriff="{{sheriff}}"
+        wrangler="{{wrangler}}"
+        robocop="{{robocop}}"
+        trooper="{{trooper}}">
+      </tree-status-sk>
 
-      <div id="mainContent">
-        <commits-canvas-sk id="can" class="shrinkable"
+      <div id="mainContent" class="horizontal layout">
+        <commits-canvas-sk id="can"
           roll_statuses="[[roll_statuses]]"
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
@@ -282,7 +242,7 @@
           reload="{{reload}}">
         </commits-canvas-sk>
 
-        <commits-table-sk id="table" class="shrinkable"
+        <commits-table-sk id="table" class="flex"
             builders="[[builders]]"
             builds="[[builds]]"
             categories="[[categories]]"
@@ -290,7 +250,6 @@
             build_details="[[build_details]]"
             commits="[[commits]]"
             commits_map="[[commits_map]]"
-            highlighted_commit_hashes="[[highlighted_commit_hashes]]"
             logged_in="[[logged_in]]"
             num_builders="[[num_builders]]"
             purple_builds="[[purple_builds]]"

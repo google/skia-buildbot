@@ -47,7 +47,6 @@
     <url-param-sk name="commit_label" value="{{label}}" default="author"></url-param-sk>
     <url-param-sk name="filter" value="{{filter}}" default="interesting"></url-param-sk>
     <url-param-sk name="search_value" value="{{search}}"></url-param-sk>
-    <url-param-sk name="commit" value="{{highlighted_commit_hashes}}" multi></url-param-sk>
 
     <commits-table-sk id="table"
         builders="[[builders]]"
@@ -57,7 +56,6 @@
         build_details="[[build_details]]"
         commits="[[commits]]"
         commits_map="[[commits_map]]"
-        highlighted_commit_hashes="[[highlighted_commit_hashes]]"
         num_builders="[[num_builders]]"
         relanded_map="[[relanded_map]]"
         repo="skia"

@@ -45,19 +45,10 @@
 <dom-module id="commits-canvas-sk">
   <template>
     <style include="styles-sk">
-      #container {
-        position: relative;
-      }
-
-      #reload {
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-
       .refresh {
         font-size: 12px;
         font-weight: normal;
+        height: 108px;
         padding: 5px;
       }
 
@@ -73,19 +64,9 @@
         font-size: 1.0em;
       }
 
-      #commitCanvas {
-        position: absolute;
-        top: 128px;
-        left:0;
-        width: 0;
-        height: 0;
-        z-index: -1;
-      }
-
       #commitCanvas.pointer {
         cursor: pointer;
       }
-
     </style>
 
     <div id="container">
