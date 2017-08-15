@@ -7,7 +7,7 @@ import (
 
 //go:generate go run gen_schema.go
 
-// TaskNameParser parses a builder/task name into its constituant parts
+// TaskNameParser parses a builder/task name into its constituent parts
 // See https://skia.googlesource.com/skia/+/master/infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json
 type TaskNameParser interface {
 	ParseTaskName(name string) (map[string]string, error)
