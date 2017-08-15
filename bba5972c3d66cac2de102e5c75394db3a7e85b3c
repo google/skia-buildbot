@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4f538ba7_f8c0dbfb",
+        "filename": "res/imp/app-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T14:39:27Z",
+      "side": 1,
+      "message": "missing \u003e",
+      "range": {
+        "startLine": 91,
+        "startChar": 47,
+        "endLine": 91,
+        "endChar": 49
+      },
+      "revId": "bba5972c3d66cac2de102e5c75394db3a7e85b3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
