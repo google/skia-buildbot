@@ -22,6 +22,10 @@
 					"Bucket": "skia-perf",
 					"Dir": "nano-json-v1",
 				},
+				{
+					"Bucket": "skia-perf",
+					"Dir": "task-duration",
+				},
 			],
 		},
 		// Nanobench Trybot ingester
@@ -37,20 +41,6 @@
 					"Dir": "trybot/nano-json-v1",
 				},
 			],
-		},
-		// Task Duration ingester
-		"task-duration": {
-			"RunEvery": "1m",
-			"NCommits": 10,
-			"MinDays": 2,
-			"StatusDir": "/mnt/pd0/skiaperf/task_duration_status",
-			"MetricName": "task-duration",
-			"Sources": [
-				{
-					"Bucket": "skia-perf",
-					"Dir": "task-duration",
-				},
-			],
-		},
+		}
 	}
 }
