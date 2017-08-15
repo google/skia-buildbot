@@ -1,9 +1,0 @@
-{
-   "imageinfo": {
-     "urls": ["https://imageinfo.skia.org"],
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-}

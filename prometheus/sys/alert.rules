@@ -187,7 +187,7 @@ ALERT PerfIngestErrorTooHigh
     description = "Perf ingestion error rate too high. See https://prom.skia.org/graph?g0.range_input=1h&g0.expr=rate(ingestion%7Bmetric%3D%22errors%22%7D%5B5m%5D)&g0.tab=0"
   }
 
-# For fiddle, debugger, and imageinfo.
+# For fiddle and debugger.
 
 ALERT BuildsFailed
   IF builds_failed >= 2
