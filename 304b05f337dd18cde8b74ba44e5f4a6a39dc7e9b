@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "44c9921b_590f1e92",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T13:43:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53b7339c_e3227d62",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 54
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32e25ea1_837c2877",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f18ebd9_79fd852d",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T13:43:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32e25ea1_837c2877",
+      "range": {
+        "startLine": 80,
+        "startChar": 26,
+        "endLine": 80,
+        "endChar": 27
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3e3329c5_2960ff6b",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T13:43:36Z",
+      "side": 1,
+      "message": "I was using sklog.Warning below, but you are right that it\u0027s more go-like to return the error.  I\u0027ve changed it to return error if we think retrying would help (i.e. failure pushing to perf) and not for a will always fail (i.e. task name didn\u0027t parse right).",
+      "parentUuid": "fa2dd4c9_93d53819",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 159
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec0cc165_a1295b26",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 7
@@ -91,6 +163,30 @@
       "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4cf53818_86c4ab51",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-15T13:43:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec0cc165_a1295b26",
+      "range": {
+        "startLine": 122,
+        "startChar": 1,
+        "endLine": 122,
+        "endChar": 43
+      },
+      "revId": "304b05f337dd18cde8b74ba44e5f4a6a39dc7e9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
