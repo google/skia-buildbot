@@ -16,6 +16,13 @@ sudo pip install -U crcmod
 sudo apt-get -y --purge remove apache2*
 sudo sh -c "echo '* - nofile 500000' >> /etc/security/limits.conf"
 
+# Uninstall openjdk-7 and install openjdk-8. See skbug.com/6975 for context.
+sudo apt-get -y --purge remove openjdk-7-jdk openjdk-7-jre openjdk-7-jre-headless
+sudo apt-get -y install software-properties-common
+sudo add-apt-repository -y ppa:openjdk-r/ppa
+sudo apt-get update
+sudo apt-get -y install openjdk-8-jdk openjdk-8-jre
+
 # Fix symlinks.
 sudo ln -s -f /usr/bin/clang-3.6 /usr/bin/clang
 sudo ln -s -f /usr/bin/clang++-3.6 /usr/bin/clang++
