@@ -16,6 +16,24 @@
       "revId": "2a465eca1f145aac981ad5c32d768395892a45ee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5db8e704_9f1f828f",
+        "filename": "push/templates/index.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-16T17:44:01Z",
+      "side": 1,
+      "message": "Yeah, the title bar is supposed to be blue, not purple.",
+      "parentUuid": "70d96ca3_c02a73dc",
+      "revId": "2a465eca1f145aac981ad5c32d768395892a45ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
