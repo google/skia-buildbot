@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BurntSushi/toml"
+	"github.com/flynn/json5"
 	iexec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
@@ -499,15 +499,20 @@ type ServerConfig struct {
 //
 // It is a list of servers (by GCE domain name) and the list
 // of apps that are allowed to be installed on them. It is
-// loaded from infra/push/skiapush.conf in toml format.
+// loaded from infra/push/skiapush.json5 in JSON5 format.
 type PackageConfig struct {
 	Servers map[string]ServerConfig
 }
 
 func LoadPackageConfig(filename string) (PackageConfig, error) {
 	var config PackageConfig
-	// Read toml config file.
-	if _, err := toml.DecodeFile(filename, &config); err != nil {
+	f, err := os.Open(filename)
+	if err != nil {
+		return config, fmt.Errorf("Failed to open config file: %s", err)
+	}
+	defer util.Close(f)
+	dec := json5.NewDecoder(f)
+	if err := dec.Decode(&config); err != nil {
 		return config, fmt.Errorf("Failed to decode config file: %s", err)
 	}
 	return config, nil

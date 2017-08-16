@@ -1,0 +1,322 @@
+// This configuration file controls which applications
+// can be pushed to which servers.
+//
+// The AppNames should match up with the directory
+// names in gs://skia-push/debs/.
+//
+{
+  "Servers": {
+    "skia-monitoring": {
+      "AppNames": [
+        "grafanad",
+        "grafana-configd",
+        "logmetrics",
+        "proberd",
+        "pulld",
+        "graphite-exporter",
+      ],
+    },
+    "skia-push": {
+      "AppNames": [
+        "pulld",
+      "pushd",
+      ],
+    },
+    "skia-docs": {
+      "AppNames": [
+        "docserver",
+      "contest",
+      "pulld",
+      ],
+    },
+    "skia-skfe-1": {
+      "AppNames": [
+        "pulld",
+      "skfe-config",
+      ],
+    },
+    "skia-skfe-2": {
+      "AppNames": [
+        "pulld",
+      "skfe-config",
+      ],
+    },
+    "skia-perf": {
+      "AppNames": [
+        "pulld",
+      "skiaperfd",
+      ],
+    },
+    "skia-gold-prod": {
+      "AppNames": [
+        "pulld",
+      "skiacorrectness-prod",
+      ],
+    },
+    "skia-diffserver-prod": {
+      "AppNames": [
+        "pulld",
+      "diffserver-prod",
+      ],
+    },
+    "skia-gold-pdfium": {
+      "AppNames": [
+        "pulld",
+      "skiacorrectness-pdfium",
+      ],
+    },
+    "skia-systemd-snapshot-maker": {
+      "AppNames": [
+        "pulld",
+      ],
+    },
+    "skia-ct-master": {
+      "AppNames": [
+        "pulld",
+      "ct-masterd",
+      ],
+    },
+    "skia-ctfe": {
+      "AppNames": [
+        "pulld",
+      "ctfe",
+      ],
+    },
+    "skia-cq-watcher": {
+      "AppNames": [
+        "pulld",
+      "cq-watcherd",
+      ],
+    },
+    "skia-swarming-logger": {
+      "AppNames": [
+        "swarming-logger",
+      "pulld",
+      ],
+    },
+    "skia-task-scheduler": {
+      "AppNames": [
+        "task-scheduler",
+      "task-scheduler-db-backup",
+      "task-scheduler-trigger-nightly",
+      "task-scheduler-trigger-weekly",
+      "pulld",
+      ],
+    },
+    "skia-task-scheduler-internal": {
+      "AppNames": [
+        "task-scheduler-internal",
+      "task-scheduler-db-backup",
+      "task-scheduler-trigger-nightly",
+      "task-scheduler-trigger-weekly",
+      "pulld",
+      ],
+    },
+    "skia-status": {
+      "AppNames": [
+        "statusd",
+      "pulld",
+      ],
+    },
+    "skia-status-internal": {
+      "AppNames": [
+        "status-internal",
+      "pulld",
+      ],
+    },
+    "skia-autoroll": {
+      "AppNames": [
+        "skia-autorolld",
+      "pulld",
+      ],
+    },
+    "skia-internal-autoroll": {
+      "AppNames": [
+        "skia-internal-autorolld",
+      "pulld",
+      ],
+    },
+    "android-master-autoroll": {
+      "AppNames": [
+        "android-master-autorolld",
+      "pulld",
+      ],
+    },
+    "android-o-autoroll": {
+      "AppNames": [
+        "android-o-autorolld",
+      "pulld",
+      ],
+    },
+    "angle-autoroll": {
+      "AppNames": [
+        "angle-autorolld",
+      "pulld",
+      ],
+    },
+    "catapult-autoroll": {
+      "AppNames": [
+        "catapult-autorolld",
+      "pulld",
+      ],
+    },
+    "nacl-autoroll": {
+      "AppNames": [
+        "nacl-autorolld",
+      "pulld",
+      ],
+    },
+    "pdfium-autoroll": {
+      "AppNames": [
+        "pdfium-autorolld",
+      "pulld",
+      ],
+    },
+    "fuchsia-autoroll": {
+      "AppNames": [
+        "fuchsia-autorolld",
+      "pulld",
+      ],
+    },
+    "skia-datahopper2": {
+      "AppNames": [
+        "buildbot-db-backup",
+      "datahopperd",
+      "pulld",
+      ],
+    },
+    "skia-datahopper-test1": {
+      "AppNames": [
+        "datahopperd",
+      "pulld",
+      ],
+    },
+    "skia-datahopper-test2": {
+      "AppNames": [
+        "datahopperd",
+      "pulld",
+      ],
+    },
+    "skia-fuzzer-fe": {
+      "AppNames": [
+        "pulld",
+      "fuzzer-fe",
+      ],
+    },
+    "skia-fuzzer-be-1": {
+      "AppNames": [
+        "pulld",
+      "fuzzer-be-1",
+      ],
+    },
+    "skia-fuzzer-be-2": {
+      "AppNames": [
+        "pulld",
+      "fuzzer-be-2",
+      ],
+    },
+    "skia-fuzzer-be-3": {
+      "AppNames": [
+        "pulld",
+      "fuzzer-be-3",
+      ],
+    },
+    "skia-internal": {
+      "AppNames": [
+        "datahopper-internald",
+      "pulld",
+      ],
+    },
+    "skia-tracedb": {
+      "AppNames": [
+        "pulld",
+      "traceserverd",
+      "ingestiond",
+      ],
+    },
+    "skia-debugger": {
+      "AppNames": [
+        "pulld",
+      "skdebuggerd",
+      ],
+    },
+    "skia-fiddle": {
+      "AppNames": [
+        "pulld",
+      "fiddle",
+      ],
+    },
+    "skia-rpi-master": {
+      "AppNames": [
+        "pulld-not-gce",
+      "rpi-backup",
+      ],
+    },
+    "skia-rpi-master-spare": {
+      "AppNames": [
+        "pulld-not-gce",
+      "hotspare",
+      ],
+    },
+    "jumphost-rpi-01": {
+      "AppNames": [
+        "powercycle-rpi-01",
+      "prometheus-jumphost-rpi-01",
+      "pulld-not-gce",
+      "router-backup",
+      ],
+    },
+    "jumphost-linux-01": {
+      "AppNames": [
+        "powercycle-linux-01",
+      "prometheus-jumphost-linux-01",
+      "pulld-not-gce",
+      "router-backup",
+      ],
+    },
+    "skia-android-ingest": {
+      "AppNames": [
+        "androidingest",
+      "pulld",
+      ],
+    },
+    "skia-prom": {
+      "AppNames": [
+        "prometheus",
+      "prometheus-config",
+      "sheriff-emails",
+      "pulld",
+      ],
+    },
+    "skia-proxy": {
+      "AppNames": [
+        "corpproxy",
+      "pulld",
+      ],
+    },
+    "skia-android-perf": {
+      "AppNames": [
+        "android-skiaperfd",
+      "pulld",
+      ],
+    },
+    "skia-android-master-perf": {
+      "AppNames": [
+        "android-master-skiaperfd",
+      "pulld",
+      ],
+    },
+    "skia-power-controller": {
+      "AppNames": [
+        "power-controller",
+      "pulld",
+      ],
+    },
+    "skia-ct-pixel-diff": {
+      "AppNames": [
+        "pulld",
+      "ct-pixel-diff",
+      ],
+    },
+  },
+}
