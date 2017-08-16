@@ -12,6 +12,8 @@ VULCANIZE1=true
 build: core_js elements_html
 	go install -v ./go/push
 	go install -v ./go/pushcli
+	go install -v ./go/build_skiapush_json5
+	build_skiapush_json5
 
 release: build
 	./build_pushd_release "$(MESSAGE)"

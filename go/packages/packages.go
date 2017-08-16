@@ -504,6 +504,12 @@ type PackageConfig struct {
 	Servers map[string]ServerConfig
 }
 
+func New() PackageConfig {
+	return PackageConfig{
+		Servers: map[string]ServerConfig{},
+	}
+}
+
 func LoadPackageConfig(filename string) (PackageConfig, error) {
 	var config PackageConfig
 	f, err := os.Open(filename)
