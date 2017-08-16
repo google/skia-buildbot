@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05d93c3d_cf81919e",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-16T12:42:25Z",
+      "side": 1,
+      "message": "Might be more informational to say:\n\"Abandoning draft/new autoroll issues older than a week\"\n\nOr something else that specifies what we are abandoning to clear any potential confusion for the CC\u0027ed sheriffs. You could even reference skbug.com/6932 which has all information.",
+      "range": {
+        "startLine": 350,
+        "startChar": 41,
+        "endLine": 350,
+        "endChar": 47
+      },
+      "revId": "45db6cb72ba8ef43d3c225521cc784c9af39b8f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
