@@ -273,6 +273,30 @@ func (g *Gerrit) ExtractIssue(issueURL string) (string, bool) {
 	return match[1], true
 }
 
+// Fix up a ChangeInfo object, received via the Gerrit API, to contain all of
+// the fields it is expected to contain. Returns the ChangeInfo object for
+// convenience.
+func fixupChangeInfo(ci *ChangeInfo) *ChangeInfo {
+	// Set created, updated and submitted timestamps. Also set the committed flag.
+	ci.Created = parseTime(ci.CreatedString)
+	ci.Updated = parseTime(ci.UpdatedString)
+	if ci.SubmittedString != "" {
+		ci.Submitted = parseTime(ci.SubmittedString)
+		ci.Committed = true
+	}
+	// Make patchset objects with the revision IDs and created timestamps.
+	patchsets := make([]*Revision, 0, len(ci.Revisions))
+	for id, r := range ci.Revisions {
+		// Fill in the missing fields.
+		r.ID = id
+		r.Created = parseTime(r.CreatedString)
+		patchsets = append(patchsets, r)
+	}
+	sort.Sort(revisionSlice(patchsets))
+	ci.Patchsets = patchsets
+	return ci
+}
+
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to
 // the partial data returned by Gerrit's search endpoint.
 func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
@@ -281,26 +305,7 @@ func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 	if err := g.get(url, fullIssue); err != nil {
 		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
 	}
-
-	// Set created, updated and submitted timestamps. Also set the committed flag.
-	fullIssue.Created = parseTime(fullIssue.CreatedString)
-	fullIssue.Updated = parseTime(fullIssue.UpdatedString)
-	if fullIssue.SubmittedString != "" {
-		fullIssue.Submitted = parseTime(fullIssue.SubmittedString)
-		fullIssue.Committed = true
-	}
-	// Make patchset objects with the revision IDs and created timestamps.
-	patchsets := make([]*Revision, 0, len(fullIssue.Revisions))
-	for id, r := range fullIssue.Revisions {
-		// Fill in the missing fields.
-		r.ID = id
-		r.Created = parseTime(r.CreatedString)
-		patchsets = append(patchsets, r)
-	}
-	sort.Sort(revisionSlice(patchsets))
-	fullIssue.Patchsets = patchsets
-
-	return fullIssue, nil
+	return fixupChangeInfo(fullIssue), nil
 }
 
 // GetPatchsetIDs is a convenience function that returns the sorted list of patchset IDs.
@@ -615,9 +620,7 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 		for _, issue := range data {
 			// See if there are more changes available.
 			moreChanges = issue.MoreChanges
-			// Save Created as a timestamp for sorting.
-			issue.Created = parseTime(issue.CreatedString)
-			issues = append(issues, issue)
+			issues = append(issues, fixupChangeInfo(issue))
 		}
 		if len(issues) >= limit || !moreChanges {
 			break
