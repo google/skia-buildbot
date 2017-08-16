@@ -505,7 +505,7 @@
               var removeClasses = [];
               for (var i = 0; i < build.classList.length; i++) {
                 var c = build.classList.item(i);
-                if (c.indexOf("bg-") === 0) {
+                if (c.indexOf("bg-") === 0 || c.indexOf("build_") === 0) {
                   removeClasses.push(c);
                 }
               }
