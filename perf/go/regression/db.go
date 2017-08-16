@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/cid"
@@ -23,6 +24,7 @@ const (
 
 // Store persists Regressions to/from an SQL database.
 type Store struct {
+	mutex sync.Mutex
 }
 
 // NewStore returns a new Store.
@@ -71,6 +73,8 @@ func (s *Store) store(tx *sql.Tx, cid *cid.CommitDetail, r *Regressions) error {
 
 // Untriaged returns the number of untriaged regressions.
 func (s *Store) Untriaged() (int, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	row := db.DB.QueryRow("SELECT count(*) FROM regression WHERE triaged=false")
 	if row == nil {
 		return -1, fmt.Errorf("Failed to query database for count of untriaged regressions.")
@@ -84,6 +88,8 @@ func (s *Store) Untriaged() (int, error) {
 
 // Range returns a map from cid.ID()'s to *Regressions that exist in the given time range.
 func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	ret := map[string]*Regressions{}
 
 	rows, err := db.DB.Query("SELECT cid, timestamp, body FROM regression WHERE timestamp >= ? AND timestamp < ? ORDER BY timestamp", begin, end)
@@ -135,6 +141,8 @@ func intx(f func(tx *sql.Tx) error) (err error) {
 
 // SetHigh sets the cluster for a high regression at the given commit and alertID.
 func (s *Store) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	isNew := false
 	err := intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
@@ -149,6 +157,8 @@ func (s *Store) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.Fra
 
 // SetLow sets the cluster for a low regression at the given commit and alertID.
 func (s *Store) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	isNew := false
 	err := intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
@@ -163,6 +173,8 @@ func (s *Store) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.Fram
 
 // TriageLow sets the triage status for the low cluster at the given commit and alertID.
 func (s *Store) TriageLow(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	return intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
 		if err != nil {
@@ -177,6 +189,8 @@ func (s *Store) TriageLow(cid *cid.CommitDetail, alertID string, tr TriageStatus
 
 // TriageHigh sets the triage status for the high cluster at the given commit and alertID.
 func (s *Store) TriageHigh(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	return intx(func(tx *sql.Tx) error {
 		r, err := s.load(tx, cid)
 		if err != nil {
