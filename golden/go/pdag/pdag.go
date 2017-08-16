@@ -191,6 +191,7 @@ func (n *Node) receiver() {
 			// If there was an error. Skip the function call.
 			if !msg.hasErr() {
 				if err := n.procFn(msg.state); err != nil {
+					sklog.Infof("Error in node %s : %s", n.name, err)
 					msg.setErr(err)
 				}
 			}

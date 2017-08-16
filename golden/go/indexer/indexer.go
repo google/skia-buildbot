@@ -300,6 +300,7 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 func calcTallies(state interface{}) error {
 	idx := state.(*SearchIndex)
 	idx.tallies.Calculate(idx.tilePair.Tile)
+	sklog.Infof("step 1")
 	return nil
 }
 
@@ -308,6 +309,7 @@ func calcTallies(state interface{}) error {
 func calcTalliesWithIgnores(state interface{}) error {
 	idx := state.(*SearchIndex)
 	idx.talliesWithIgnores.Calculate(idx.tilePair.TileWithIgnores)
+	sklog.Infof("step 2")
 	return nil
 }
 
@@ -315,6 +317,7 @@ func calcTalliesWithIgnores(state interface{}) error {
 func calcSummaries(state interface{}) error {
 	idx := state.(*SearchIndex)
 	err := idx.summaries.Calculate(idx.tilePair.Tile, idx.testNames, idx.tallies, idx.blamer)
+	sklog.Infof("step 3: %s", err)
 	return err
 }
 
@@ -322,6 +325,7 @@ func calcSummaries(state interface{}) error {
 func calcSummariesWithIgnores(state interface{}) error {
 	idx := state.(*SearchIndex)
 	err := idx.summariesWithIgnores.Calculate(idx.tilePair.TileWithIgnores, idx.testNames, idx.talliesWithIgnores, idx.blamer)
+	sklog.Infof("step 4: %s", err)
 	return err
 }
 
@@ -329,6 +333,7 @@ func calcSummariesWithIgnores(state interface{}) error {
 func calcParamsets(state interface{}) error {
 	idx := state.(*SearchIndex)
 	idx.paramsetSummary.Calculate(idx.tilePair, idx.tallies, idx.talliesWithIgnores)
+	sklog.Infof("step 5")
 	return nil
 }
 
@@ -336,10 +341,12 @@ func calcParamsets(state interface{}) error {
 func calcBlame(state interface{}) error {
 	idx := state.(*SearchIndex)
 	err := idx.blamer.Calculate(idx.tilePair.Tile)
+	sklog.Infof("step 6: %s", err)
 	return err
 }
 
 func writeKnownHashesList(state interface{}) error {
+	sklog.Infof("WRITING known hashes")
 	idx := state.(*SearchIndex)
 
 	// Only write the hash file if a storage client is available.
@@ -378,6 +385,7 @@ func writeKnownHashesList(state interface{}) error {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
 	}()
+	sklog.Infof("step 7")
 	return nil
 }
 

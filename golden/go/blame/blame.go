@@ -3,6 +3,7 @@ package blame
 import (
 	"sort"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -136,10 +137,13 @@ func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, co
 
 // Calculate calculates the blame list from the given tile.
 func (b *Blamer) Calculate(tile *tiling.Tile) error {
+	sklog.Infof("step a")
 	exp, err := b.storages.ExpectationsStore.Get()
 	if err != nil {
+		sklog.Infof("ERRR: %s", err)
 		return err
 	}
+	sklog.Infof("step b")
 
 	defer timer.New("blame").Stop()
 
@@ -147,12 +151,14 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 	// smalles start and end index of the ranges for a testName/digest pair.
 	blameStart := map[string]map[string]int{}
 	blameEnd := map[string]map[string]int{}
+	sklog.Infof("step c")
 
 	// blameRange stores the candidate ranges for a testName/digest pair.
 	blameRange := map[string]map[string][][]int{}
 	firstCommit := tile.Commits[0]
 	tileLen := tile.LastCommitIndex() + 1
 	ret := map[string]map[string]*BlameDistribution{}
+	sklog.Infof("step d")
 
 	for _, trace := range tile.Traces {
 		gtr := trace.(*types.GoldenTrace)
@@ -185,6 +191,8 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 				// Get the info about this digest.
 				digestInfo, err := b.storages.GetOrUpdateDigestInfo(testName, digest, tile.Commits[idx])
 				if err != nil {
+					sklog.Infof("ERRR: %s", err)
+
 					return err
 				}
 
@@ -240,5 +248,7 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 
 	// Swap out the old blame lists for the new ones.
 	b.testBlameLists, b.commits = ret, commits
+	sklog.Infof("ERRR: %s", err)
+
 	return nil
 }
