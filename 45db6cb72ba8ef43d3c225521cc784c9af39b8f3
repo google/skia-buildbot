@@ -22,6 +22,30 @@
       "revId": "45db6cb72ba8ef43d3c225521cc784c9af39b8f3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "092adf0b_891f51ed",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-16T14:36:49Z",
+      "side": 1,
+      "message": "Went with your first suggestion.  I think the act of cleaning up old issues is self-explanatory enough that we don\u0027t need to go into too much detail.",
+      "parentUuid": "05d93c3d_cf81919e",
+      "range": {
+        "startLine": 350,
+        "startChar": 41,
+        "endLine": 350,
+        "endChar": 47
+      },
+      "revId": "45db6cb72ba8ef43d3c225521cc784c9af39b8f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
