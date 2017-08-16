@@ -1,6 +1,7 @@
 package digesttools
 
 import (
+	"image"
 	"math"
 	"net/http"
 	"testing"
@@ -20,6 +21,7 @@ func (m MockDiffStore) WarmDigests(priority int64, digests []string, sync bool) 
 func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
 func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
 func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
+func (m MockDiffStore) GetImage(digest string) (*image.NRGBA, error)                          { return nil, nil }
 
 // Get always finds that digest "eee" is closest to dMain.
 func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]interface{}, error) {

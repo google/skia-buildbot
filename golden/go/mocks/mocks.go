@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"image"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -55,6 +56,7 @@ func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error      
 func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
 func (m MockDiffStore) WarmDigests(priority int64, digests []string, sync bool)               {}
 func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
+func (m MockDiffStore) GetImage(digest string) (*image.NRGBA, error)                          { return nil, nil }
 
 func NewMockDiffStore() diff.DiffStore {
 	return MockDiffStore{}
