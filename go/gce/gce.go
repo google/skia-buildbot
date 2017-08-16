@@ -314,11 +314,8 @@ type Instance struct {
 	// Whether or not to include an NVIDIA Tesla k80 GPU on the instance.
 	Gpu bool
 
-	// Files to download from Google Storage. Map keys are destination paths
-	// on the GCE instance and and values are the source URLs. Paths may be
-	// absolute or relative (to the default user's home dir, eg.
-	// /home/default).
-	GSDownloads map[string]string
+	// Files to download from Google Storage.
+	GSDownloads []*GSDownload
 
 	// GCE machine type specification, eg. "n1-standard-16".
 	MachineType string
@@ -803,9 +800,16 @@ func (g *GCloud) WaitForInstanceReady(vm *Instance, timeout time.Duration) error
 
 // DownloadFile downloads the given file from Google Cloud Storage to the
 // instance.
-func (g *GCloud) DownloadFile(vm *Instance, src, dst string) error {
-	_, err := g.Ssh(vm, "gsutil", "cp", src, dst)
-	return err
+func (g *GCloud) DownloadFile(vm *Instance, f *GSDownload) error {
+	if _, err := g.Ssh(vm, "gsutil", "cp", f.Source, f.Dest); err != nil {
+		return err
+	}
+	if f.Mode != "" {
+		if _, err := g.Ssh(vm, "chmod", f.Mode, f.Dest); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // GetFileFromMetadata downloads the given metadata entry to a file.
@@ -919,8 +923,8 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 	}
 
 	// GSutil downloads.
-	for dst, src := range vm.GSDownloads {
-		if err := g.DownloadFile(vm, src, dst); err != nil {
+	for _, f := range vm.GSDownloads {
+		if err := g.DownloadFile(vm, f); err != nil {
 			return err
 		}
 	}
@@ -1113,4 +1117,16 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 	}
 	sklog.Infof("Successfully captured image %q", imageName)
 	return nil
+}
+
+// A file to be downloaded from GS.
+type GSDownload struct {
+	// Full GS path of the file to download.
+	Source string
+	// Absolute or relative (to the user's home dir) destination path of the
+	// file to download.
+	Dest string
+	// Mode, as accepted by the chmod command, for the file. If not
+	// specified, the default file mode is used.
+	Mode string
 }
