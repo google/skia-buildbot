@@ -74,7 +74,7 @@ const (
 // flags
 var (
 	bucketName     = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
-	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
+	configFilename = flag.String("config_filename", "skiapush.json5", "Config filename.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")

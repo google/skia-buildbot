@@ -27,7 +27,7 @@ var (
 	rollback       = flag.Bool("rollback", false, "If true roll back to the next most recent package, otherwise use the most recently pushed package.")
 	force          = flag.Bool("force", false, "If true then install the package even if it hasn't previously been installed on the given server.")
 	dryrun         = flag.Bool("dryrun", false, "If true don't actually push, but just log what actions would be taken.")
-	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename used by Push.")
+	configFilename = flag.String("config_filename", "skiapush.json5", "Config filename used by Push.")
 )
 
 func init() {
