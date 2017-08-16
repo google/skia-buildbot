@@ -59,7 +59,7 @@ func Swarming20170731(name, serviceAccount string) *gce.Instance {
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		Gpu:               *gpu,
-		GSDownloads:       map[string]string{},
+		GSDownloads:       []*gce.GSDownload{},
 		MachineType:       gce.MACHINE_TYPE_STANDARD_16,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
@@ -77,9 +77,15 @@ func Swarming20170731(name, serviceAccount string) *gce.Instance {
 }
 
 // Configs for Linux GCE instances.
-func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
-	vm.GSDownloads["/home/chrome-bot/.gitconfig"] = GS_URL_GITCONFIG
-	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC_EXTERNAL
+func AddLinuxConfigs(vm *gce.Instance, netrcUrl string) *gce.Instance {
+	vm.GSDownloads = append(vm.GSDownloads, &gce.GSDownload{
+		Source: GS_URL_GITCONFIG,
+		Dest:   "/home/chrome-bot/.gitconfig",
+	}, &gce.GSDownload{
+		Source: netrcUrl,
+		Dest:   "/home/chrome-bot/.netrc",
+		Mode:   "600",
+	})
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
@@ -89,19 +95,17 @@ func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 
 // Linux GCE instances.
 func LinuxSwarmingBot(num int) *gce.Instance {
-	return AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM))
+	return AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM), GS_URL_NETRC_EXTERNAL)
 }
 
 // Internal Linux GCE instances.
 func InternalLinuxSwarmingBot(num int) *gce.Instance {
-	vm := AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING))
-	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC_INTERNAL
-	return vm
+	return AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING), GS_URL_NETRC_INTERNAL)
 }
 
 // Skia CT bots.
 func SkiaCTBot(num int) *gce.Instance {
-	vm := AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-ct-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM))
+	vm := AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-ct-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM), GS_URL_NETRC_EXTERNAL)
 	vm.DataDisk.SizeGb = 3000
 	// SkiaCT bots use a datadisk with a snapshot that is prepopulated with 1M SKPS.
 	vm.DataDisk.SourceSnapshot = "skia-ct-skps-snapshot-2"

@@ -32,10 +32,20 @@ func CT20170602(name string) *gce.Instance {
 			SizeGb: 300,
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		GSDownloads: map[string]string{
-			"/home/chrome-bot/.gitconfig": GS_URL_GITCONFIG,
-			"/home/chrome-bot/.netrc":     GS_URL_NETRC,
-			"/home/chrome-bot/.boto":      GS_URL_BOTO,
+		GSDownloads: []*gce.GSDownload{
+			{
+				Source: GS_URL_GITCONFIG,
+				Dest:   "/home/chrome-bot/.gitconfig",
+			},
+			{
+				Source: GS_URL_NETRC,
+				Dest:   "/home/chrome-bot/.netrc",
+				Mode:   "600",
+			},
+			{
+				Source: GS_URL_BOTO,
+				Dest:   "/home/chrome-bot/.boto",
+			},
 		},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_2,
 		Metadata:          map[string]string{},
