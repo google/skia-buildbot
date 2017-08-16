@@ -1,19 +1,15 @@
 package metrics2
 
 import (
-	"io/ioutil"
-	"net/http/httptest"
 	"strconv"
-	"strings"
 	"testing"
 
+	metrics_util "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
 
 	assert "github.com/stretchr/testify/require"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func TestClean(t *testing.T) {
@@ -23,34 +19,14 @@ func TestClean(t *testing.T) {
 
 func getPromClient() *promClient {
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-	return newPromClient()
-}
-
-func get(t *testing.T, metric string) string {
-	req := httptest.NewRequest("GET", "/metrics", nil)
-	rw := httptest.NewRecorder()
-	promhttp.HandlerFor(prometheus.DefaultRegisterer.(*prometheus.Registry), promhttp.HandlerOpts{
-		ErrorLog:           nil,
-		ErrorHandling:      promhttp.PanicOnError,
-		DisableCompression: true,
-	}).ServeHTTP(rw, req)
-	resp := rw.Result()
-	defer util.Close(resp.Body)
-	b, err := ioutil.ReadAll(resp.Body)
-	assert.NoError(t, err)
-	for _, s := range strings.Split(string(b), "\n") {
-		if strings.HasPrefix(s, metric) {
-			return strings.Split(s, " ")[1]
-		}
-	}
-	return ""
+	return NewPromClient()
 }
 
 func TestInt64(t *testing.T) {
 	testutils.SmallTest(t)
 	c := getPromClient()
 	check := func(m Int64Metric, metric string, expect int64) {
-		actual, err := strconv.ParseInt(get(t, metric), 10, 64)
+		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, metric), 10, 64)
 		assert.NoError(t, err)
 		assert.Equal(t, expect, actual)
 		assert.Equal(t, m.Get(), expect)
@@ -84,14 +60,14 @@ func TestInt64(t *testing.T) {
 
 	// Test delete.
 	assert.NoError(t, g.Delete())
-	assert.Equal(t, "", get(t, "a_c{some_key=\"some-new-value\"}"))
+	assert.Equal(t, "", metrics_util.GetRecordedMetric(t, "a_c{some_key=\"some-new-value\"}"))
 }
 
 func TestFloat64(t *testing.T) {
 	testutils.SmallTest(t)
 	c := getPromClient()
 	check := func(m Float64Metric, metric string, expect float64) {
-		actual, err := strconv.ParseFloat(get(t, metric), 64)
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, metric), 64)
 		assert.NoError(t, err)
 		assert.Equal(t, expect, actual)
 		assert.Equal(t, m.Get(), expect)
@@ -125,14 +101,14 @@ func TestFloat64(t *testing.T) {
 
 	// Test delete.
 	assert.NoError(t, g.Delete())
-	assert.Equal(t, "", get(t, "float_metric_name{a=\"2\",b=\"1\"}"))
+	assert.Equal(t, "", metrics_util.GetRecordedMetric(t, "float_metric_name{a=\"2\",b=\"1\"}"))
 }
 
 func TestCounter(t *testing.T) {
 	testutils.SmallTest(t)
 	c := getPromClient()
 	check := func(m Counter, metric string, expect int64) {
-		actual, err := strconv.ParseInt(get(t, metric), 10, 64)
+		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, metric), 10, 64)
 		assert.NoError(t, err)
 		assert.Equal(t, expect, actual)
 		assert.Equal(t, m.Get(), expect)
@@ -155,7 +131,7 @@ func TestCounter(t *testing.T) {
 
 	// Test delete.
 	assert.NoError(t, g.Delete())
-	assert.Equal(t, "", get(t, "c{some_key=\"some-value\"}"))
+	assert.Equal(t, "", metrics_util.GetRecordedMetric(t, "c{some_key=\"some-value\"}"))
 }
 
 func TestPanicOn(t *testing.T) {
