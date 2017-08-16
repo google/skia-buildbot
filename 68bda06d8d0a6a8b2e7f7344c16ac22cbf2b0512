@@ -22,6 +22,30 @@
       "revId": "68bda06d8d0a6a8b2e7f7344c16ac22cbf2b0512",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "206a38eb_5c62aa5d",
+        "filename": "perf/probers.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-16T14:23:13Z",
+      "side": 1,
+      "message": "This was fixed in a follow-up CL after I whitelisted the untriaged endpoint.",
+      "parentUuid": "97f3a2c7_24ddf663",
+      "range": {
+        "startLine": 34,
+        "startChar": 16,
+        "endLine": 34,
+        "endChar": 29
+      },
+      "revId": "68bda06d8d0a6a8b2e7f7344c16ac22cbf2b0512",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
