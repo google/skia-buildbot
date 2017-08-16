@@ -59,7 +59,7 @@ func Swarming20170731(name, serviceAccount string) *gce.Instance {
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		Gpu:               *gpu,
-		GSDownloads:       map[string]string{},
+		GSDownloads:       []*gce.GSDownload{},
 		MachineType:       gce.MACHINE_TYPE_STANDARD_16,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
@@ -78,8 +78,14 @@ func Swarming20170731(name, serviceAccount string) *gce.Instance {
 
 // Configs for Linux GCE instances.
 func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
-	vm.GSDownloads["/home/chrome-bot/.gitconfig"] = GS_URL_GITCONFIG
-	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC_EXTERNAL
+	vm.GSDownloads = append(vm.GSDownloads, &gce.GSDownload{
+		Source: GS_URL_GITCONFIG,
+		Dest:   "/home/chrome-bot/.gitconfig",
+	}, &gce.GSDownload{
+		Source: GS_URL_NETRC_EXTERNAL,
+		Dest:   "/home/chrome-bot/.netrc",
+		Mode:   "600",
+	})
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
@@ -95,7 +101,11 @@ func LinuxSwarmingBot(num int) *gce.Instance {
 // Internal Linux GCE instances.
 func InternalLinuxSwarmingBot(num int) *gce.Instance {
 	vm := AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING))
-	vm.GSDownloads["/home/chrome-bot/.netrc"] = GS_URL_NETRC_INTERNAL
+	for _, f := range vm.GSDownloads {
+		if f.Source == GS_URL_NETRC_EXTERNAL {
+			f.Source = GS_URL_NETRC_INTERNAL
+		}
+	}
 	return vm
 }
 

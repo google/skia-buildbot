@@ -46,7 +46,7 @@ func Server20170518(name string) *gce.Instance {
 			SizeGb: 300,
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		GSDownloads:       map[string]string{},
+		GSDownloads:       []*gce.GSDownload{},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_16,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
@@ -73,9 +73,17 @@ func Server20170613(name string) *gce.Instance {
 
 // Add configuration for servers who use git.
 func AddGitConfigs(vm *gce.Instance, gitUser string) *gce.Instance {
-	vm.GSDownloads["~/.gitconfig"] = GS_URL_GITCONFIG
-	vm.GSDownloads["~/.netrc"] = GS_URL_NETRC
-	vm.GSDownloads["~/.gitcookies"] = fmt.Sprintf(GS_URL_GITCOOKIES_TMPL, gitUser)
+	vm.GSDownloads = append(vm.GSDownloads, &gce.GSDownload{
+		Source: GS_URL_GITCONFIG,
+		Dest:   "~/.gitconfig",
+	}, &gce.GSDownload{
+		Source: GS_URL_NETRC,
+		Dest:   "~/.netrc",
+		Mode:   "600",
+	}, &gce.GSDownload{
+		Source: fmt.Sprintf(GS_URL_GITCOOKIES_TMPL, gitUser),
+		Dest:   "~/.gitcookies",
+	})
 	return vm
 }
 
