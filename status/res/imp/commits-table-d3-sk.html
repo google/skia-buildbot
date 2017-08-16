@@ -495,24 +495,26 @@
             var build = this.children[0];
             // Clear any icons already drawn in the child.
             build.innerHTML = "";
-            var details = build_details[d.commit.hash] && build_details[d.commit.hash][d.builder];
+
+            // Remove any previously-set classes.
+            var removeClasses = [];
+            for (var i = 0; i < build.classList.length; i++) {
+              var c = build.classList.item(i);
+              if (c.indexOf("bg-") === 0 || c.indexOf("build_") === 0) {
+                removeClasses.push(c);
+              }
+            }
+            removeClasses.forEach(function(c) {
+              build.classList.remove(c);
+            });
+
+            // Add build display class.
             for (var i = 0; i < d.displayClass.length; i++) {
               build.classList.add(d.displayClass[i]);
             }
 
+            var details = build_details[d.commit.hash] && build_details[d.commit.hash][d.builder];
             if (details) {
-              // Remove any previously-set classes.
-              var removeClasses = [];
-              for (var i = 0; i < build.classList.length; i++) {
-                var c = build.classList.item(i);
-                if (c.indexOf("bg-") === 0 || c.indexOf("build_") === 0) {
-                  removeClasses.push(c);
-                }
-              }
-              removeClasses.forEach(function(c) {
-                build.classList.remove(c);
-              });
-
               // Add the new class.
               build.classList.add(build_details[d.commit.hash][d.builder].colorClass);
               build.title = d.builder + ", #"+details.number;
