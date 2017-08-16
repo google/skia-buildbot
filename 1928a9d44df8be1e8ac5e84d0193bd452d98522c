@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b397e769_bf93804e",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-16T14:57:51Z",
+      "side": 1,
+      "message": "This loop seems a little hacky, might be better to add a new parameter for netrc URL to AddLinuxConfigs.",
+      "revId": "1928a9d44df8be1e8ac5e84d0193bd452d98522c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
