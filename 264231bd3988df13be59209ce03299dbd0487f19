@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "30527254_9a14de8b",
+        "filename": "autoroll/skiapush.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T17:00:22Z",
+      "side": 1,
+      "message": "Is it possible to use the same app name across all hosts without requiring the same systemd service file?  I\u0027d really like the log links to work so that clicking gets you to the filter for \"autoroll\" as opposed to \"skia-autorolld\".",
+      "range": {
+        "startLine": 5,
+        "startChar": 9,
+        "endLine": 5,
+        "endChar": 23
+      },
+      "revId": "264231bd3988df13be59209ce03299dbd0487f19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
