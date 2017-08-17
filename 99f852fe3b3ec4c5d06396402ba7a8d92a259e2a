@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d4f4d15_6300e7f2",
+        "filename": "datahopper/go/swarming_metrics/bots_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T15:18:28Z",
+      "side": 1,
+      "message": "Note that the expectation might be that this matches the metric name constant.  We could change that constant to match the actual sanitized name, or leave it as-is, implicitly testing the metric name sanitation here.",
+      "range": {
+        "startLine": 89,
+        "startChar": 70,
+        "endLine": 89,
+        "endChar": 95
+      },
+      "revId": "99f852fe3b3ec4c5d06396402ba7a8d92a259e2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
