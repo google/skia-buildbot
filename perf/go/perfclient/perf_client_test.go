@@ -46,7 +46,7 @@ func TestHappyCase(t *testing.T) {
 	compressed := bytes.Buffer{}
 	cw := gzip.NewWriter(&compressed)
 	_, err = cw.Write(expected)
-	cw.Close()
+	assert.NoError(t, cw.Close())
 	assert.NoError(t, err)
 
 	ms.On("SetFileContents", ctx, "/foobar/2017/09/01/13/MyTest-Debug/testprefix_b7e46f46f13e9ddfa40cdb44f921efd1_1504273020000.json", gcs.FileWriteOptions{
