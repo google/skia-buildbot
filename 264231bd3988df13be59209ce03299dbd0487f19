@@ -22,6 +22,30 @@
       "revId": "264231bd3988df13be59209ce03299dbd0487f19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d00698c5_8853580f",
+        "filename": "autoroll/skiapush.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-17T17:05:59Z",
+      "side": 1,
+      "message": "Agreed, we need to do something to get the log links working for all apps, let me think about how to accomplish that.",
+      "parentUuid": "30527254_9a14de8b",
+      "range": {
+        "startLine": 5,
+        "startChar": 9,
+        "endLine": 5,
+        "endChar": 23
+      },
+      "revId": "264231bd3988df13be59209ce03299dbd0487f19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
