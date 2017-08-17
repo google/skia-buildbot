@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8e16fd63_55167df6",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-17T13:11:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7f1c4304_ccd67ac8",
+      "range": {
+        "startLine": 49,
+        "startChar": 29,
+        "endLine": 49,
+        "endChar": 33
+      },
+      "revId": "caf6cf3678b26c36afb2871143c6619fafc35d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df26bff_cdc139a0",
         "filename": "ct/go/util/util.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "f9ae61b8_a3c708dd",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 685,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-17T13:11:48Z",
+      "side": 1,
+      "message": "Not sure why I did that.. Done.",
+      "parentUuid": "4df26bff_cdc139a0",
+      "range": {
+        "startLine": 685,
+        "startChar": 11,
+        "endLine": 685,
+        "endChar": 26
+      },
+      "revId": "caf6cf3678b26c36afb2871143c6619fafc35d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a9cc0e1a_eb14d5d1",
         "filename": "ct/go/util/util.go",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2017-08-16T20:16:31Z",
       "side": 1,
       "message": "I suggest writing the header to b before starting the benchmark, writing the trailer after, and logging/printing to stdout everything at once; otherwise you could still have problems with interleaved output.\n\nI think there may be a max length for sklog messages, so fmt.Println may be the way to go.",
+      "range": {
+        "startLine": 699,
+        "startChar": 0,
+        "endLine": 702,
+        "endChar": 37
+      },
+      "revId": "caf6cf3678b26c36afb2871143c6619fafc35d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7ce1639_c01a25aa",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-17T13:11:48Z",
+      "side": 1,
+      "message": "PTAL",
+      "parentUuid": "a9cc0e1a_eb14d5d1",
       "range": {
         "startLine": 699,
         "startChar": 0,
