@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd2434fd_32ebe0ed",
+        "filename": "datahopper/go/swarming_metrics/bots_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T11:21:51Z",
+      "side": 1,
+      "message": "Can we put this in metrics2/testutils as well?",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 1
+      },
+      "revId": "5a89dc3537dafbe371a3dec0f12c7dd497e3bfad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e65f362a_1733319d",
+        "filename": "datahopper/go/swarming_metrics/bots_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T11:21:51Z",
+      "side": 1,
+      "message": "Needs assert.NoError(t, reportBotMetrics(...))",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 17
+      },
+      "revId": "5a89dc3537dafbe371a3dec0f12c7dd497e3bfad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b2fa71c_8e5a5dc2",
+        "filename": "go/metrics2/prom_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T11:21:51Z",
+      "side": 1,
+      "message": "It would be more convenient if we could supply the metric name and the tags map here and have the function derive the measurement name.  WDYT?",
+      "range": {
+        "startLine": 63,
+        "startChar": 55,
+        "endLine": 63,
+        "endChar": 89
+      },
+      "revId": "5a89dc3537dafbe371a3dec0f12c7dd497e3bfad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
