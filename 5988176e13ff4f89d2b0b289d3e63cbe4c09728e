@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b973686e_dbc069b8",
+        "filename": "scripts/run_on_swarming_bots/check_git_creds.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T17:44:34Z",
+      "side": 1,
+      "message": "Windows Skolo bots don\u0027t have git installed, so you would need to include it in the isolate.",
+      "range": {
+        "startLine": 25,
+        "startChar": 2,
+        "endLine": 25,
+        "endChar": 17
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5524ac3b_db0d4a8b",
+        "filename": "scripts/run_on_swarming_bots/check_git_creds.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T17:44:34Z",
+      "side": 1,
+      "message": "Windows Skolo bots don\u0027t have depot_tools installed. (If they did, wouldn\u0027t it be at C:\\depot_tools?)",
+      "range": {
+        "startLine": 43,
+        "startChar": 2,
+        "endLine": 43,
+        "endChar": 62
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85cd4044_65ff4ebc",
+        "filename": "scripts/run_on_swarming_bots/download_git_creds.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T17:44:34Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd088c8f_0adbe497",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T17:44:34Z",
+      "side": 1,
+      "message": "Wouldn\u0027t this allow anyone with read access to the isolate server to also get read access to any GCS bucket you can read?\n\nIn some ways, it seems less risky to just include the credential files in the isolate.\n\nThere are a few ways to make it more difficult to steal the credential files, but really the simplest secure way is to encrypt the files before isolating them and decrypt them on the bot. This requires having the decryption key available to the bot, which in practice means making it available in clear text on each Skolo LAN and in GCE metadata.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 110
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba09fb09_03f89a91",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T17:44:34Z",
+      "side": 1,
+      "message": "Don\u0027t need these, right?",
+      "range": {
+        "startLine": 130,
+        "startChar": 41,
+        "endLine": 130,
+        "endChar": 89
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
