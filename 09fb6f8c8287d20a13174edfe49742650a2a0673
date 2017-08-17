@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0044841a_e60c8eda",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-17T19:06:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "db8eef8b_6ec197da",
+      "range": {
+        "startLine": 310,
+        "startChar": 75,
+        "endLine": 310,
+        "endChar": 85
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8930d5f7_5f87a3d3",
         "filename": "datahopper/go/datahopper/main.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-17T18:44:20Z",
       "side": 1,
       "message": "These seem to be unused.",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 1
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05c5a09e_1567e940",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-17T19:06:40Z",
+      "side": 1,
+      "message": "Yeah... Looks like it.  Not seeing anything in prom.skia.org either, at least not for a while.\n\nEric, any thoughts?",
+      "parentUuid": "8930d5f7_5f87a3d3",
       "range": {
         "startLine": 33,
         "startChar": 0,
@@ -119,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "d0ddb96a_efee7403",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-17T19:06:40Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a56ae3e3_c1e420d8",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 52
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d791b91d_0e2f1459",
         "filename": "fuzzer/go/generator/afl_generation.go",
         "patchSetId": 1
@@ -142,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "e6cc604e_3bc756cc",
+        "filename": "fuzzer/go/generator/afl_generation.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-17T19:06:40Z",
+      "side": 1,
+      "message": "No.  Fixed",
+      "parentUuid": "d791b91d_0e2f1459",
+      "range": {
+        "startLine": 169,
+        "startChar": 26,
+        "endLine": 169,
+        "endChar": 51
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eecd1e26_58f9dd4d",
         "filename": "go/metrics2/prom.go",
         "patchSetId": 1
@@ -153,6 +249,24 @@
       "writtenOn": "2017-08-17T18:47:01Z",
       "side": 1,
       "message": "return s;",
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bba67c5_039939b9",
+        "filename": "go/metrics2/prom.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-17T19:06:40Z",
+      "side": 1,
+      "message": "I don\u0027t think we are quite ready for \"return s\" - there are likely things I missed",
+      "parentUuid": "eecd1e26_58f9dd4d",
       "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
