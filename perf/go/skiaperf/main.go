@@ -253,7 +253,6 @@ func Init() {
 	notifier = notify.New(emailAuth, *subdomain)
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting))
-	dataframe.StartWarmer(git)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
 	paramsProvider := newParamsetProvider(freshDataFrame)
