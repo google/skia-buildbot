@@ -102,8 +102,8 @@ const (
 	GN_GEN_TIMEOUT      = 2 * time.Minute
 
 	// util.SyncDir
-	GIT_PULL_TIMEOUT     = 20 * time.Minute
-	GCLIENT_SYNC_TIMEOUT = 20 * time.Minute
+	GIT_PULL_TIMEOUT     = 30 * time.Minute
+	GCLIENT_SYNC_TIMEOUT = 30 * time.Minute
 
 	// util.ResetCheckout
 	GIT_BRANCH_TIMEOUT = 10 * time.Minute
