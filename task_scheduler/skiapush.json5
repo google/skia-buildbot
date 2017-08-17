@@ -1,0 +1,22 @@
+{
+  "Servers": {
+    "skia-task-scheduler": {
+      "AppNames": [
+        "task-scheduler",
+        "task-scheduler-db-backup",
+        "task-scheduler-trigger-nightly",
+        "task-scheduler-trigger-weekly",
+        "pulld",
+      ],
+    },
+    "skia-task-scheduler-internal": {
+      "AppNames": [
+        "task-scheduler-internal",
+        "task-scheduler-db-backup",
+        "task-scheduler-trigger-nightly",
+        "task-scheduler-trigger-weekly",
+        "pulld",
+      ],
+    },
+  }
+}

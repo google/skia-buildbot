@@ -1,0 +1,33 @@
+{
+  "Servers": {
+    "skia-rpi-master": {
+      "AppNames": [
+        "pulld-not-gce",
+        "rpi-backup",
+      ],
+    },
+    "skia-rpi-master-spare": {
+      "AppNames": [
+        "pulld-not-gce",
+        "hotspare",
+      ],
+    },
+    "jumphost-rpi-01": {
+      "AppNames": [
+        "powercycle-rpi-01",
+        "prometheus-jumphost-rpi-01",
+        "pulld-not-gce",
+        "router-backup",
+      ],
+    },
+    "jumphost-linux-01": {
+      "AppNames": [
+        "powercycle-linux-01",
+        "prometheus-jumphost-linux-01",
+        "pulld-not-gce",
+        "router-backup",
+      ],
+    },
+  }
+}
+

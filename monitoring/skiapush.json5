@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "skia-monitoring": {
+      "AppNames": [
+        "grafanad",
+        "grafana-configd",
+        "logmetrics",
+        "proberd",
+        "pulld",
+        "graphite-exporter",
+      ],
+    },
+  },
+}

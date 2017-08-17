@@ -1,0 +1,16 @@
+{
+  "Servers": {
+    "skia-status": {
+      "AppNames": [
+        "statusd",
+        "pulld",
+      ],
+    },
+    "skia-status-internal": {
+      "AppNames": [
+        "status-internal",
+        "pulld",
+      ],
+    },
+  }
+}

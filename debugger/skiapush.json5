@@ -1,0 +1,10 @@
+{
+  "Servers": {
+    "skia-debugger": {
+      "AppNames": [
+        "pulld",
+      "skdebuggerd",
+      ],
+    },
+  }
+}

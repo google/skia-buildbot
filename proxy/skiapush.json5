@@ -1,0 +1,11 @@
+{
+  "Servers": {
+    "skia-proxy": {
+      "AppNames": [
+        "corpproxy",
+        "pulld",
+      ],
+    },
+  }
+}
+

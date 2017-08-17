@@ -1,0 +1,29 @@
+{
+  "Servers": {
+    "skia-gold-prod": {
+      "AppNames": [
+        "pulld",
+        "skiacorrectness-prod",
+      ],
+    },
+    "skia-diffserver-prod": {
+      "AppNames": [
+        "pulld",
+        "diffserver-prod",
+      ],
+    },
+    "skia-gold-pdfium": {
+      "AppNames": [
+        "pulld",
+        "skiacorrectness-pdfium",
+      ],
+    },
+    "skia-tracedb": {
+      "AppNames": [
+        "pulld",
+        "traceserverd",
+        "ingestiond",
+      ],
+    },
+  },
+}

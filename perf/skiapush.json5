@@ -1,0 +1,28 @@
+{
+  "Servers": {
+    "skia-perf": {
+      "AppNames": [
+        "pulld",
+        "skiaperfd",
+      ],
+    },
+    "skia-android-perf": {
+      "AppNames": [
+        "android-skiaperfd",
+        "pulld",
+      ],
+    },
+    "skia-android-master-perf": {
+      "AppNames": [
+        "android-master-skiaperfd",
+        "pulld",
+      ],
+    },
+    "skia-android-ingest": {
+      "AppNames": [
+        "androidingest",
+        "pulld",
+      ],
+    },
+  },
+}

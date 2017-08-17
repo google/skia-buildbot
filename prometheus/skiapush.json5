@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "skia-prom": {
+      "AppNames": [
+        "prometheus",
+        "prometheus-config",
+        "sheriff-emails",
+        "pulld",
+      ],
+    },
+  }
+}
+
