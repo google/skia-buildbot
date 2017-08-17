@@ -294,6 +294,24 @@
       "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eda55c6b_4623cabf",
+        "filename": "go/metrics2/prom.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-17T19:35:51Z",
+      "side": 1,
+      "message": "Ah, I thought the if statement returned an error, not just logged an error. LGTM",
+      "parentUuid": "5bba67c5_039939b9",
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
