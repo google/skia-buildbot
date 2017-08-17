@@ -95,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "a56ae3e3_c1e420d8",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T18:56:30Z",
+      "side": 1,
+      "message": "Ah, you\u0027re right, never mind.",
+      "parentUuid": "80eae77a_21fa45ff",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 52
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d791b91d_0e2f1459",
         "filename": "fuzzer/go/generator/afl_generation.go",
         "patchSetId": 1
