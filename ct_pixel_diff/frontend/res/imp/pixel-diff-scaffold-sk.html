@@ -20,6 +20,7 @@
 <link rel=import href="/res/imp/bower_components/paper-menu/paper-menu.html">
 <link rel=import href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
 <link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel=import href="/res/imp/bower_components/iron-icons/av-icons.html">
 <link rel=import href="/res/imp/bower_components/iron-icon/iron-icon.html">
 <link rel=import href="/res/common/imp/login.html">
 <link rel=import href="/res/common/imp/error-toast-sk.html">
@@ -76,7 +77,8 @@
         <paper-menu-button no_overlap>
           <paper-icon-button icon="menu" class="dropdown-trigger"></paper-icon-button>
           <paper-menu id=nav class="dropdown-content">
-            <paper-item><a href="/"><iron-icon icon="icons:view-list"></iron-icon><span>Runs</span></a></paper-item>
+            <paper-item><a href="/"><iron-icon icon="icons:view-list"></iron-icon><span>View Runs</span></a></paper-item>
+            <paper-item><a target="_blank" href="https://ct.skia.org/pixel_diff/"><iron-icon icon="av:library-add"></iron-icon><span>New Run</span></a></paper-item>
             <paper-item><a target="_blank" href="https://github.com/google/skia-buildbot/tree/master/ct_pixel_diff"><iron-icon icon="folder"></iron-icon><span>Code</span></a></paper-item>
           </paper-menu>
         </paper-menu-button>
