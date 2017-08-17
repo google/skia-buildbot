@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"io"
 	"math"
 	"net/http"
 	"os"
@@ -145,6 +146,9 @@ type DiffStore interface {
 	//        <irlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
 
+	// GetImage returns the pixel data for the given imageID (aka digest).
+	GetImage(imageID string) (*image.NRGBA, error)
+
 	// WarmDigest will fetch the given digests. If sync is true the call will
 	// block until all digests have been fetched or failed to fetch.
 	WarmDigests(priority int64, digests []string, sync bool)
@@ -165,19 +169,29 @@ type DiffStore interface {
 	PurgeDigests(digests []string, purgeGCS bool) error
 }
 
-// OpenImage is a utility function that opens the specified file and returns an
-// image.Image
-func OpenImage(filePath string) (image.Image, error) {
-	reader, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(reader)
+// OpenNRGBAFromReader reads an NRGBA image from the given reader.
+// If the underlying image is not NRGBA it will be converted.
+func OpenNRGBAFromReader(reader io.Reader) (*image.NRGBA, error) {
 	im, err := png.Decode(reader)
 	if err != nil {
 		return nil, err
 	}
-	return im, nil
+	return GetNRGBA(im), nil
+}
+
+// OpenNRGBA opens the given file path and returns the image as image.NRGBA.
+func OpenNRGBA(fileName string) (*image.NRGBA, error) {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(f)
+
+	return OpenNRGBAFromReader(f)
+}
+
+func WritePNG(w io.Writer, img *image.NRGBA) error {
+	return png.Encode(w, img)
 }
 
 // Returns the percentage of pixels that differ, as a float between 0 and 100
