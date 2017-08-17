@@ -202,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "8a0b3cc1_fe633403",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T18:09:00Z",
+      "side": 1,
+      "message": "All you have to do is:\n1. Generate a key pair.\n2. On each jumphost:\n a. scp the private key over\n b. run \u0027python -m SimpleHTTPServer 8000\u0027 in the directory of the key\n3. In your python script, hit each possible jumphost IP until you get the key. 10.1.1.4, 192.168.2.210, 192.168.1.20 (we will hopefully standardize these at some point...)",
+      "parentUuid": "3e066051_e0c9311a",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 110
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ba09fb09_03f89a91",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 2
