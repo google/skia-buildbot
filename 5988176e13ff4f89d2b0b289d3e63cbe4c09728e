@@ -178,6 +178,30 @@
     },
     {
       "key": {
+        "uuid": "cafdcff0_cee67313",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-17T18:04:03Z",
+      "side": 1,
+      "message": "I thought any chromium.org account can also see isolates (at least on chromium-swarm).",
+      "parentUuid": "3e066051_e0c9311a",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 110
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ba09fb09_03f89a91",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 2
