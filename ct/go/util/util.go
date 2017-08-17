@@ -2,6 +2,7 @@
 package util
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -39,19 +40,24 @@ func TimeTrack(start time.Time, name string) {
 	sklog.Infof("===== %s took %s =====", name, elapsed)
 }
 
-// ExecuteCmd executes the specified binary with the specified args and env. Stdout and Stderr are
-// written to stdout and stderr respectively if specified. If not specified then Stdout and Stderr
-// will be outputted only to sklog.
+// ExecuteCmd calls ExecuteCmdWithConfigurableLogging with logStdout and logStderr set to true.
 func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer) error {
+	return ExecuteCmdWithConfigurableLogging(binary, args, env, timeout, stdout, stderr, true, true)
+}
+
+// ExecuteCmdWithConfigurableLogging executes the specified binary with the specified args and env.
+// Stdout and Stderr are written to stdout and stderr respectively if specified. If not specified
+// then Stdout and Stderr will be outputted only to sklog.
+func ExecuteCmdWithConfigurableLogging(binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer, logStdout, logStderr bool) error {
 	return exec.Run(&exec.Command{
 		Name:        binary,
 		Args:        args,
 		Env:         env,
 		InheritPath: true,
 		Timeout:     timeout,
-		LogStdout:   true,
+		LogStdout:   logStdout,
 		Stdout:      stdout,
-		LogStderr:   true,
+		LogStderr:   logStderr,
 		Stderr:      stderr,
 	})
 }
@@ -672,13 +678,28 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	for _, e := range os.Environ() {
 		env = append(env, e)
 	}
-	if err := ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+
+	// Create buffer for capturing the stdout and stderr of the benchmark run.
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", pagesetPath)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+	if err := ExecuteCmdWithConfigurableLogging("python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		if targetPlatform == PLATFORM_ANDROID {
 			// Kill the port-forwarder to start from a clean slate.
-			util.LogErr(ExecuteCmd("pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, nil, nil))
+			util.LogErr(ExecuteCmdWithConfigurableLogging("pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))
 		}
+		util.LogErr(printRunBenchmarkOutput(b, pagesetPath))
 		return fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
+	return printRunBenchmarkOutput(b, pagesetPath)
+}
+
+func printRunBenchmarkOutput(b bytes.Buffer, pagesetPath string) error {
+	if _, err := b.WriteString("===================="); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+	fmt.Println(b.String())
 	return nil
 }
 
