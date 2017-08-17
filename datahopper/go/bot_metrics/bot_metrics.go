@@ -491,7 +491,7 @@ func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) erro
 		}
 	}
 
-	lv := metrics2.NewLiveness("last-successful-bot-coverage-metrics")
+	lv := metrics2.NewLiveness("last_successful_bot_coverage_metrics")
 	lastFinished, err := readTs(workdir)
 	if err != nil {
 		return fmt.Errorf("Failed to read timestamp: %s", err)

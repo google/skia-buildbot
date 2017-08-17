@@ -144,7 +144,7 @@ func (s *Containers) startContainer(user string) error {
 	// Kick off a Go routine that calls runner.Start and then removes the
 	// container from s.containers once skiaserve exits.
 	go func() {
-		counter := metrics2.GetCounter("running.instances", nil)
+		counter := metrics2.GetCounter("running_instances", nil)
 		counter.Inc(1)
 		co.started = time.Now()
 		// This call to s.runner.Start() doesn't return until the container exits.

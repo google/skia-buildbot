@@ -158,8 +158,8 @@ func New(dir string) (*BoltTraceStore, error) {
 		dir:           dir,
 		cache:         cache,
 		queryCache:    queryCache,
-		cacheLen:      metrics2.GetInt64Metric("perf.ptracestore.cache.len", nil),
-		queryCacheLen: metrics2.GetInt64Metric("perf.ptracestore.querycache.len", nil),
+		cacheLen:      metrics2.GetInt64Metric("perf_ptracestore_cache_len", nil),
+		queryCacheLen: metrics2.GetInt64Metric("perf_ptracestore_querycache_len", nil),
 	}
 	go bs.metrics()
 	return bs, nil
