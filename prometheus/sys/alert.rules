@@ -85,6 +85,14 @@ ALERT PackageInstall
     description = "Package failing to install via pulld on {{ $labels.host }}.",
   }
 
+ALERT TooManyOpenFDs
+  IF process_open_fds > 2000
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.host }}",
+    description = "Too many open file handles on {{ $labels.host }}.",
+  }
+
 # CT
 ALERT CTPollerHealthCheck
   IF healthy{instance="skia-ct-master:20000",job="ct-poller"} != 1
