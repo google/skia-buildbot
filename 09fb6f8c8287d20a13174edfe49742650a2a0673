@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f678a97b_737f331f",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T18:42:18Z",
+      "side": 1,
+      "message": "Hrm, I think this is going to break, since EventDB uses the measurement name as a BoltDB bucket name.  We probably want to keep it the same, or run a migration from one bucket to the other, so that we don\u0027t end up with our data chopped off.",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 52
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
