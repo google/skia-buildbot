@@ -32,20 +32,20 @@ const (
       'python', '-u', '%s',
     ],
     'files': [
-      '%s',
-    ],
+%s],
   },
 }`
 )
 
 var (
-	dimensions  = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
-	pool        = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
-	script      = flag.String("script", "", "Path to a Python script to run.")
-	taskName    = flag.String("task_name", "", "Name of the task to run.")
-	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
-	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
-	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
+	dimensions        = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
+	pool              = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
+	script            = flag.String("script", "", "Path to a Python script to run.")
+	taskName          = flag.String("task_name", "", "Name of the task to run.")
+	workdir           = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
+	includeBots       = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
+	internal          = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
+	includeOAuthToken = flag.Bool("include-oauth-token", false, "Whether or not to include an OAuth token file.")
 )
 
 func main() {
@@ -117,10 +117,25 @@ func main() {
 	if err := ioutil.WriteFile(dstScript, contents, 0644); err != nil {
 		sklog.Fatal(err)
 	}
+	files := []string{scriptName}
+	if *includeOAuthToken {
+		// Create a separate auth token to send to the task.
+		tokenfile := "oauth_token.json"
+		tokenpath := path.Join(path.Join(*workdir, tokenfile))
+		scopes := []string{auth.SCOPE_READ_ONLY, auth.SCOPE_READ_WRITE, auth.SCOPE_FULL_CONTROL}
+		if _, err := auth.NewClient(true, tokenpath, scopes...); err != nil {
+			sklog.Fatal(err)
+		}
+		files = append(files, tokenfile)
+	}
+	filesStr := ""
+	for _, f := range files {
+		filesStr += fmt.Sprintf("'%s',\n", f)
+	}
 
 	// Create an isolate file.
 	isolateFile := path.Join(*workdir, TMP_ISOLATE_FILE_NAME)
-	if err := ioutil.WriteFile(isolateFile, []byte(fmt.Sprintf(TMP_ISOLATE_FILE_CONTENTS, scriptName, scriptName)), 0644); err != nil {
+	if err := ioutil.WriteFile(isolateFile, []byte(fmt.Sprintf(TMP_ISOLATE_FILE_CONTENTS, scriptName, filesStr)), 0644); err != nil {
 		sklog.Fatal(err)
 	}
 
