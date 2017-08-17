@@ -216,9 +216,6 @@ https://%s.googlesource.com/%s.git/+log/%s
 		return 0, fmt.Errorf("Failed to commit: %s", commitErr)
 	}
 
-	// TODO(rmistry): Remove after things reliably work.
-	emails = append(emails, "rmistry@google.com")
-
 	// Upload the CL to Gerrit.
 	uploadCmd := &exec.Command{
 		Dir:  mr.parentDir,
