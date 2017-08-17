@@ -388,6 +388,8 @@ func runWarmer(state interface{}) error {
 
 	// TODO (stephana): Instead of warming everything we should warm non-ignored
 	// traces with higher priority.
-	go idx.warmer.Run(idx.tilePair.TileWithIgnores, idx.summariesWithIgnores, idx.talliesWithIgnores)
+	// go idx.warmer.Run(idx.tilePair.TileWithIgnores, idx.summariesWithIgnores, idx.talliesWithIgnores)
+	go idx.warmer.WarmAllDiffs(idx.talliesWithIgnores)
+
 	return nil
 }

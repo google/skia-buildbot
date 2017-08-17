@@ -119,3 +119,14 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 	storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests, false)
 	return nil
 }
+
+func (w *Warmer) WarmAllDiffs(tallies *tally.Tallies) {
+	byTest := tallies.ByTest()
+	for _, digestMap := range byTest {
+		digests := make([]string, 0, len(digestMap))
+		for digest := range digestMap {
+			digests = append(digests, digest)
+		}
+		w.storages.DiffStore.WarmDiffs(diff.PRIORITY_BACKGROUND, digests, digests)
+	}
+}
