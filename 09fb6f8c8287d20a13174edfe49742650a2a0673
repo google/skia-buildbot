@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "80eae77a_21fa45ff",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T18:49:43Z",
+      "side": 1,
+      "message": "The bucket name appears to be the stream, not the metric name.",
+      "parentUuid": "f678a97b_737f331f",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 52
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d791b91d_0e2f1459",
         "filename": "fuzzer/go/generator/afl_generation.go",
         "patchSetId": 1
