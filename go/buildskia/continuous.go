@@ -88,9 +88,9 @@ func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, prese
 		repo:              repo,
 		perBuild:          perBuild,
 		preserve:          preserve,
-		buildFailures:     metrics2.GetCounter("builds-failed", nil),
+		buildFailures:     metrics2.GetCounter("builds_failed", nil),
 		buildLiveness:     metrics2.NewLiveness("build"),
-		repoSyncFailures:  metrics2.GetCounter("repo-sync-failed", nil),
+		repoSyncFailures:  metrics2.GetCounter("repo_sync_failed", nil),
 		timeBetweenBuilds: timeBetweenBuilds,
 		useGn:             useGn,
 	}
@@ -299,7 +299,7 @@ func (b *ContinuousBuilder) writeNewGoodBuilds(hashes []string) error {
 
 func (b *ContinuousBuilder) startDecimation() {
 	decimateLiveness := metrics2.NewLiveness("decimate")
-	decimateFailures := metrics2.GetCounter("decimate-failed", nil)
+	decimateFailures := metrics2.GetCounter("decimate_failed", nil)
 	for range time.Tick(DECIMATION_PERIOD) {
 		hashes, err := b.AvailableBuilds()
 		if err != nil {

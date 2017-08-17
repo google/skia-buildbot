@@ -94,7 +94,7 @@ var (
 	repos repograph.Map
 
 	// tradefedLiveness is a metric for the time since last successful run through step().
-	tradefedLiveness = metrics2.NewLiveness("android-internal-ingest", nil)
+	tradefedLiveness = metrics2.NewLiveness("android_internal_ingest", nil)
 
 	// noCodenameTargets is a set of targets that do not need to be obfuscated.
 	noCodenameTargets = map[string]bool{
@@ -687,7 +687,7 @@ func updateWebhookMetrics() error {
 			return err
 		}
 
-		metric := metrics2.GetInt64Metric("datahopper_internal.ingest-build-webhook.oldest-untested-commit-age", map[string]string{"codename": codename})
+		metric := metrics2.GetInt64Metric("datahopper_internal_ingest_build_webhook_oldest_untested_commit_age", map[string]string{"codename": codename})
 		if untestedCommitInfo == nil {
 			// There are no untested commits.
 			metric.Update(0)
@@ -702,7 +702,7 @@ func updateWebhookMetrics() error {
 // startWebhookMetrics starts a goroutine to run updateWebhookMetrics.
 func startWebhookMetrics() {
 	// A metric to ensure the other metrics are being updated.
-	metricLiveness := metrics2.NewLiveness("ingest-build-webhook-oldest-untested-commit-age-metric", nil)
+	metricLiveness := metrics2.NewLiveness("ingest_build_webhook_oldest_untested_commit_age_metric", nil)
 	go func() {
 		for range time.Tick(common.SAMPLE_PERIOD) {
 			if err := updateWebhookMetrics(); err != nil {
@@ -773,7 +773,7 @@ func main() {
 
 	// Initialize and start metrics.
 	for codename := range ingestBuildWebhookCodenames {
-		ingestBuildWebhookLiveness[codename] = metrics2.NewLiveness("ingest-build-webhook.", map[string]string{"codename": codename})
+		ingestBuildWebhookLiveness[codename] = metrics2.NewLiveness("ingest_build_webhook", map[string]string{"codename": codename})
 	}
 	startWebhookMetrics()
 

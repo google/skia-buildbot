@@ -520,7 +520,7 @@ func oneStep() {
 		}
 	}
 	sklog.Infof("Finished oneStep: Found %d dirty packages running.", count)
-	metrics2.GetInt64Metric("dirty-packages", nil).Update(count)
+	metrics2.GetInt64Metric("dirty_packages", nil).Update(count)
 }
 
 // startDirtyMonitoring periodically checks the number of dirty packages being

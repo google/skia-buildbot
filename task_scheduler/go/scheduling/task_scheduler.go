@@ -165,7 +165,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 // will be run before each scheduling iteration.
 func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	s.tryjobs.Start(ctx)
-	lvScheduling := metrics2.NewLiveness("last-successful-task-scheduling")
+	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
 	go util.RepeatCtx(5*time.Second, ctx, func() {
 		beforeMainLoop()
 		if err := s.MainLoop(); err != nil {
@@ -174,7 +174,7 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 			lvScheduling.Reset()
 		}
 	})
-	lvUpdate := metrics2.NewLiveness("last-successful-tasks-update")
+	lvUpdate := metrics2.NewLiveness("last_successful_tasks_update")
 	go util.RepeatCtx(5*time.Minute, ctx, func() {
 		if err := s.updateUnfinishedTasks(); err != nil {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)

@@ -30,12 +30,12 @@ import (
 )
 
 const (
-	MEASUREMENT_SWARM_TASKS_STATE             = "swarming.tasks.state"
-	MEASUREMENT_SWARM_TASKS_DURATION          = "swarming.tasks.duration"
-	MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT      = "swarming.tasks.overhead.bot"
-	MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD = "swarming.tasks.overhead.download"
-	MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD   = "swarming.tasks.overhead.upload"
-	MEASUREMENT_SWARM_TASKS_PENDING_TIME      = "swarming.tasks.pending-time"
+	MEASUREMENT_SWARM_TASKS_STATE             = "swarming_tasks_state"
+	MEASUREMENT_SWARM_TASKS_DURATION          = "swarming_tasks_duration"
+	MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT      = "swarming_tasks_overhead_bot"
+	MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD = "swarming_tasks_overhead_download"
+	MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD   = "swarming_tasks_overhead_upload"
+	MEASUREMENT_SWARM_TASKS_PENDING_TIME      = "swarming_tasks_pending_time"
 )
 
 // flags
@@ -149,8 +149,8 @@ func main() {
 
 	// Number of commits in the repo.
 	go func() {
-		skiaGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "skia"})
-		infraGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "infra"})
+		skiaGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "skia"})
+		infraGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "infra"})
 		for range time.Tick(5 * time.Minute) {
 			nSkia, err := repos[common.REPO_SKIA].Repo().NumCommits()
 			if err != nil {
@@ -169,7 +169,7 @@ func main() {
 
 	// Time since last successful backup.
 	go func() {
-		lv := metrics2.NewLiveness("last-buildbot-db-backup", nil)
+		lv := metrics2.NewLiveness("last_buildbot_db_backup", nil)
 		setLastBackupTime := func() error {
 			last := time.Time{}
 			if err := gcs.AllFilesInDir(gsClient, "skia-buildbots", "db_backup", func(item *storage.ObjectAttrs) {

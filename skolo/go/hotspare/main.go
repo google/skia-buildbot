@@ -69,7 +69,7 @@ func (v *virtualIPManager) Run() {
 		} else {
 			sklog.Infof("Connected successfully to %s. %v\n", v.Addr, conn.Close())
 		}
-		metrics2.GetInt64Metric("skolo.hotspare.consecutive_failures", nil).Update(int64(v.consecutiveFailures))
+		metrics2.GetInt64Metric("skolo_hotspare_consecutive_failures", nil).Update(int64(v.consecutiveFailures))
 	}
 }
 
