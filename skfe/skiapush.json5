@@ -1,0 +1,16 @@
+{
+  "Servers": {
+    "skia-skfe-1": {
+      "AppNames": [
+        "pulld",
+      "skfe-config",
+      ],
+    },
+    "skia-skfe-2": {
+      "AppNames": [
+        "pulld",
+      "skfe-config",
+      ],
+    },
+  },
+}

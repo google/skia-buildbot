@@ -1,0 +1,10 @@
+{
+  "Servers": {
+    "skia-swarming-logger": {
+      "AppNames": [
+        "swarming-logger",
+        "pulld",
+      ],
+    },
+  },
+}

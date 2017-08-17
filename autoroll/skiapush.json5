@@ -1,0 +1,58 @@
+{
+  "Servers": {
+    "skia-autoroll": {
+      "AppNames": [
+        "skia-autorolld",
+        "pulld",
+      ],
+    },
+    "skia-internal-autoroll": {
+      "AppNames": [
+        "skia-internal-autorolld",
+        "pulld",
+      ],
+    },
+    "android-master-autoroll": {
+      "AppNames": [
+        "android-master-autorolld",
+        "pulld",
+      ],
+    },
+    "android-o-autoroll": {
+      "AppNames": [
+        "android-o-autorolld",
+        "pulld",
+      ],
+    },
+    "angle-autoroll": {
+      "AppNames": [
+        "angle-autorolld",
+        "pulld",
+      ],
+    },
+    "catapult-autoroll": {
+      "AppNames": [
+        "catapult-autorolld",
+        "pulld",
+      ],
+    },
+    "nacl-autoroll": {
+      "AppNames": [
+        "nacl-autorolld",
+        "pulld",
+      ],
+    },
+    "pdfium-autoroll": {
+      "AppNames": [
+        "pdfium-autorolld",
+        "pulld",
+      ],
+    },
+    "fuchsia-autoroll": {
+      "AppNames": [
+        "fuchsia-autorolld",
+        "pulld",
+      ],
+    },
+  }
+}

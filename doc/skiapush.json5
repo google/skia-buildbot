@@ -1,0 +1,11 @@
+{
+  "Servers": {
+    "skia-docs": {
+      "AppNames": [
+        "docserver",
+        "contest",
+        "pulld",
+      ],
+    },
+  },
+}

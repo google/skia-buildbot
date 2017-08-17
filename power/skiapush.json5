@@ -1,0 +1,11 @@
+{
+  "Servers": {
+    "skia-power-controller": {
+      "AppNames": [
+        "power-controller",
+        "pulld",
+      ],
+    },
+  }
+}
+

@@ -1,0 +1,16 @@
+{
+  "Servers": {
+    "skia-ct-master": {
+      "AppNames": [
+        "pulld",
+        "ct-masterd",
+      ],
+    },
+    "skia-ctfe": {
+      "AppNames": [
+        "pulld",
+        "ctfe",
+      ],
+    },
+  },
+}
