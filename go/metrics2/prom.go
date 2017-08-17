@@ -121,7 +121,7 @@ type promClient struct {
 	float64SummaryMutex sync.Mutex
 }
 
-func newPromClient() *promClient {
+func NewPromClient() *promClient {
 	return &promClient{
 		int64GaugeVecs:     map[string]*prometheus.GaugeVec{},
 		int64Gauges:        map[string]*promInt64{},

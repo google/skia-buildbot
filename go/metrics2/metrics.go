@@ -112,7 +112,7 @@ type Client interface {
 }
 
 var (
-	defaultClient Client = newPromClient()
+	defaultClient Client = NewPromClient()
 )
 
 // GetDefaultClient returns the default Client.
