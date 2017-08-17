@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "02eb2e7d_3e8a5c5a",
+        "filename": "scripts/run_on_swarming_bots/check_git_creds.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T17:55:46Z",
+      "side": 1,
+      "message": "Maybe we need Git as a CIPD package?  It may be that we need to have git on the bots.  See https://skia-review.googlesource.com/c/32520",
+      "parentUuid": "b973686e_dbc069b8",
+      "range": {
+        "startLine": 25,
+        "startChar": 2,
+        "endLine": 25,
+        "endChar": 17
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5524ac3b_db0d4a8b",
         "filename": "scripts/run_on_swarming_bots/check_git_creds.py",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-17T17:44:34Z",
       "side": 1,
       "message": "Windows Skolo bots don\u0027t have depot_tools installed. (If they did, wouldn\u0027t it be at C:\\depot_tools?)",
+      "range": {
+        "startLine": 43,
+        "startChar": 2,
+        "endLine": 43,
+        "endChar": 62
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2af316f5_55b176b8",
+        "filename": "scripts/run_on_swarming_bots/check_git_creds.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T17:55:46Z",
+      "side": 1,
+      "message": "I only checked with GCE bots since the local ones tend to be busy.  GCE bots have it in the homedir.",
+      "parentUuid": "5524ac3b_db0d4a8b",
       "range": {
         "startLine": 43,
         "startChar": 2,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "7840b611_b7442c34",
+        "filename": "scripts/run_on_swarming_bots/download_git_creds.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T17:55:46Z",
+      "side": 1,
+      "message": "See other",
+      "parentUuid": "85cd4044_65ff4ebc",
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cd088c8f_0adbe497",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 2
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "3e066051_e0c9311a",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T17:55:46Z",
+      "side": 1,
+      "message": "Agreed, this is risky.  However, AFAIK only Googlers can see isolates, and the token is only good for an hour.  Plus the isolate gets deleted after some amount of time.  Your last sentence sounds great.  How far are we from having that?",
+      "parentUuid": "cd088c8f_0adbe497",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 110
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ba09fb09_03f89a91",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 2
@@ -99,6 +189,30 @@
       "writtenOn": "2017-08-17T17:44:34Z",
       "side": 1,
       "message": "Don\u0027t need these, right?",
+      "range": {
+        "startLine": 130,
+        "startChar": 41,
+        "endLine": 130,
+        "endChar": 89
+      },
+      "revId": "5988176e13ff4f89d2b0b289d3e63cbe4c09728e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "768e84fd_3ea14ecf",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T17:55:46Z",
+      "side": 1,
+      "message": "Good catch.",
+      "parentUuid": "ba09fb09_03f89a91",
       "range": {
         "startLine": 130,
         "startChar": 41,
