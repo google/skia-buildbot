@@ -91,6 +91,23 @@
       "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eecd1e26_58f9dd4d",
+        "filename": "go/metrics2/prom.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-17T18:47:01Z",
+      "side": 1,
+      "message": "return s;",
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
