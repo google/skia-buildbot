@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "db8eef8b_6ec197da",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T18:44:20Z",
+      "side": 1,
+      "message": "You changed this in autoroll/go/roller/autoroller.go but not here.",
+      "range": {
+        "startLine": 310,
+        "startChar": 75,
+        "endLine": 310,
+        "endChar": 85
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8930d5f7_5f87a3d3",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T18:44:20Z",
+      "side": 1,
+      "message": "These seem to be unused.",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 1
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f678a97b_737f331f",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 1
@@ -18,6 +64,29 @@
         "startChar": 1,
         "endLine": 30,
         "endChar": 52
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d791b91d_0e2f1459",
+        "filename": "fuzzer/go/generator/afl_generation.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-17T18:44:20Z",
+      "side": 1,
+      "message": "Name changed... intentional?",
+      "range": {
+        "startLine": 169,
+        "startChar": 26,
+        "endLine": 169,
+        "endChar": 51
       },
       "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
