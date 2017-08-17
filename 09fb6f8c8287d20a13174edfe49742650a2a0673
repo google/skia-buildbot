@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "48cc2fa9_c50bf453",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-17T19:12:52Z",
+      "side": 1,
+      "message": "I think these have been superceded by the event-based metrics.  If they aren\u0027t referenced in this file, we can kill them.  Data is still coming in: https://mon.skia.org/dashboard/db/swarming-tasks",
+      "parentUuid": "05c5a09e_1567e940",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 1
+      },
+      "revId": "09fb6f8c8287d20a13174edfe49742650a2a0673",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f678a97b_737f331f",
         "filename": "datahopper/go/swarming_metrics/tasks.go",
         "patchSetId": 1
