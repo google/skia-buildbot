@@ -1,0 +1,28 @@
+{
+  "Servers": {
+    "skia-fuzzer-fe": {
+      "AppNames": [
+        "pulld",
+        "fuzzer-fe",
+      ],
+    },
+    "skia-fuzzer-be-1": {
+      "AppNames": [
+        "pulld",
+        "fuzzer-be-1",
+      ],
+    },
+    "skia-fuzzer-be-2": {
+      "AppNames": [
+        "pulld",
+        "fuzzer-be-2",
+      ],
+    },
+    "skia-fuzzer-be-3": {
+      "AppNames": [
+        "pulld",
+        "fuzzer-be-3",
+      ],
+    },
+  }
+}

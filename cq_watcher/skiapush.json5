@@ -1,0 +1,10 @@
+{
+  "Servers": {
+    "skia-cq-watcher": {
+      "AppNames": [
+        "pulld",
+        "cq-watcherd",
+      ],
+    },
+  },
+}
