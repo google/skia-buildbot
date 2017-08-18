@@ -24,7 +24,7 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to run pixel diff.
-	WORKER_POOL_SIZE = 10
+	WORKER_POOL_SIZE = 5
 
 	// Hacky way to detect when webpages are missing.
 	// See https://bugs.chromium.org/p/skia/issues/detail?id=6778&desc=2#c2
