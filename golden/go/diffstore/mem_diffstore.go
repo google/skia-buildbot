@@ -255,6 +255,10 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 	return ret, nil
 }
 
+func (d *MemDiffStore) ConvertLegacy() {
+	d.metricsStore.convertDatabaseFromLegacy()
+}
+
 // WarmDigests fetches images based on the given list of digests. It does
 // not cache the images but makes sure they are downloaded from GCS.
 func (d *MemDiffStore) WarmDigests(priority int64, digests []string, sync bool) {
