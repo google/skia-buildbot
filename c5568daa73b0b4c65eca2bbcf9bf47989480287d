@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f5c11a30_e2ae2cf5",
+        "filename": "ct/go/worker_scripts/capture_archives/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-18T14:34:47Z",
+      "side": 1,
+      "message": "nit: successfulCapture :\u003d false",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 95,
+        "endChar": 0
+      },
+      "revId": "c5568daa73b0b4c65eca2bbcf9bf47989480287d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
