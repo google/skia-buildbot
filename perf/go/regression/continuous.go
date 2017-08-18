@@ -167,7 +167,7 @@ func (c *Continuous) Run() {
 					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
 					resp, err := clustering2.Run(req, c.git, c.cidl)
 					if err != nil {
-						sklog.Errorf("Failed while clustering %v %s", *req, err)
+						sklog.Warningf("Failed while clustering %v %s", *req, err)
 						continue
 					}
 
@@ -192,7 +192,7 @@ func (c *Continuous) Run() {
 								sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
 								isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
 								if err != nil {
-									sklog.Errorf("Failed to save newly found cluster: %s", err)
+									sklog.Errorf("Failed to save newly found cluster %#v: %s", *req, err)
 									continue
 								}
 								if isNew {
