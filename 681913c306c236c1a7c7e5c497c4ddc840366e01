@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7da66ba3_6acfaf35",
+        "filename": "go/boltutil/store.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-18T19:19:17Z",
+      "side": 1,
+      "message": "Why not return an error?",
+      "range": {
+        "startLine": 149,
+        "startChar": 14,
+        "endLine": 149,
+        "endChar": 17
+      },
+      "revId": "681913c306c236c1a7c7e5c497c4ddc840366e01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "676c79c1_1997ce07",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-18T19:19:17Z",
+      "side": 1,
+      "message": "You aren\u0027t worried about getting flooded with go routines in the background?",
+      "range": {
+        "startLine": 174,
+        "startChar": 1,
+        "endLine": 174,
+        "endChar": 10
+      },
+      "revId": "681913c306c236c1a7c7e5c497c4ddc840366e01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7d833e2_0791a4c9",
+        "filename": "golden/go/diffstore/metrics_store_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-18T19:19:17Z",
+      "side": 1,
+      "message": "Need SmallTest or MediumTest or LargeTest",
+      "range": {
+        "startLine": 13,
+        "startChar": 36,
+        "endLine": 13,
+        "endChar": 37
+      },
+      "revId": "681913c306c236c1a7c7e5c497c4ddc840366e01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03184fba_5dc8f774",
+        "filename": "golden/go/diffstore/metrics_store_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-18T19:19:17Z",
+      "side": 1,
+      "message": "If ids is deterministic, you may consider specifying how many items are expected.",
+      "range": {
+        "startLine": 21,
+        "startChar": 20,
+        "endLine": 21,
+        "endChar": 23
+      },
+      "revId": "681913c306c236c1a7c7e5c497c4ddc840366e01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
