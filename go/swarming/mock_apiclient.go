@@ -262,6 +262,22 @@ func (_m *MockApiClient) ListTaskResults(start time.Time, end time.Time, tags []
 	return r0, r1
 }
 
+// ListBotTasks provides a mock function with given fields: botID, limit
+func (_m *MockApiClient) ListBotTasks(botID string, limit int) ([]*v1.SwarmingRpcsTaskResult, error) {
+	ret := _m.Called(botID, limit)
+
+	var r0 []*v1.SwarmingRpcsTaskResult
+	if rf, ok := ret.Get(0).(func(string, int) []*v1.SwarmingRpcsTaskResult); ok {
+		r0 = rf(botID, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*v1.SwarmingRpcsTaskResult)
+		}
+	}
+
+	return r0, ret.Error(1)
+}
+
 // ListTasks provides a mock function with given fields: start, end, tags, state
 func (_m *MockApiClient) ListTasks(start time.Time, end time.Time, tags []string, state string) ([]*v1.SwarmingRpcsTaskRequestMetadata, error) {
 	ret := _m.Called(start, end, tags, state)
