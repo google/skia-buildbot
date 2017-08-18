@@ -64,7 +64,7 @@ func TestAdd(t *testing.T) {
 	source, value, err = d.Details(commitID, ",something=unknown,")
 	assert.Error(t, err)
 
-	assert.Equal(t, 1, d.cache.Len())
+	assert.Equal(t, 1, len(d.cache))
 
 	// Add new values that would go into a different tile.
 	commitID2 := &cid.CommitID{
@@ -78,7 +78,7 @@ func TestAdd(t *testing.T) {
 	err = d.Add(commitID2, values2, "gs://skia-perf/nano-json-v1/blah2/blah.json")
 	assert.NoError(t, err)
 
-	assert.Equal(t, 2, d.cache.Len())
+	assert.Equal(t, 2, len(d.cache))
 
 	source, value, err = d.Details(commitID2, ",config=565,test=foo,")
 	assert.NoError(t, err)
