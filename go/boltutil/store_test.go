@@ -124,6 +124,17 @@ func TestIndexedBucket(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Record{nil, inputRecs[0]}, foundRec)
 
+	// Read the raw record and make sure they are correct.
+	foundBytes, err := ib.ReadRaw("id_01")
+	assert.NoError(t, err)
+	decodedRec, err := ib.codec.Decode(foundBytes)
+	assert.NoError(t, err)
+	assert.Equal(t, inputRecs[0], decodedRec)
+
+	foundBytes, err = ib.ReadRaw("id_03")
+	assert.NoError(t, err)
+	assert.Nil(t, foundBytes)
+
 	found, err = ib.ReadIndex(TEST_INDEX_ONE, []string{"val_01", "val_02", "val_03"})
 	assert.NoError(t, err)
 	compReadIndex(t, map[string][]string{
@@ -160,12 +171,27 @@ func TestIndexedBucket(t *testing.T) {
 		Codec:   util.JSONCodec(&exampleRec{}),
 	})
 
-	found, err = ib.ReadIndex(TEST_INDEX_TWO, []string{"val_11", "val_12"})
-	assert.NoError(t, err)
-	compReadIndex(t, map[string][]string{
+	expectedIDs := map[string][]string{
 		"val_11": {"id_01", "id_02"},
 		"val_12": {"id_04", "id_05"},
-	}, found)
+	}
+	found, err = ib.ReadIndex(TEST_INDEX_TWO, []string{"val_11", "val_12"})
+	assert.NoError(t, err)
+	compReadIndex(t, expectedIDs, found)
+
+	// Delete all indices by hand and re-index the db.
+	_ = ib.DB.Update(func(tx *bolt.Tx) error {
+		assert.NoError(t, tx.DeleteBucket([]byte(TEST_INDEX_ONE)))
+		assert.NoError(t, tx.DeleteBucket([]byte(TEST_INDEX_TWO)))
+		return nil
+	})
+
+	assert.Panics(t, func() { _, _ = ib.ReadIndex(TEST_INDEX_TWO, []string{"val_11", "val_12"}) })
+	assert.NoError(t, ib.ReIndex())
+	found, err = ib.ReadIndex(TEST_INDEX_TWO, []string{"val_11", "val_12"})
+	assert.NoError(t, err)
+	assert.Equal(t, expectedIDs, found)
+
 	assert.NoError(t, db.Close())
 
 	// Remove an index which will also force reading the meta data.

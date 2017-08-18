@@ -141,6 +141,29 @@ func (ix *IndexedBucket) ReadIndexTx(tx *bolt.Tx, idx string, keys []string) (ma
 	return ret, err
 }
 
+// ReadRaw reads the bytes for a given key. If the key does not exist
+// the returned byte slice is nil.
+func (ix *IndexedBucket) ReadRaw(key string) ([]byte, error) {
+	// Key cannot be empty.
+	if key == "" {
+		return nil, nil
+	}
+
+	var ret []byte = nil
+	viewFn := func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(ix.mainBucket)
+		contentBytes := bucket.Get([]byte(key))
+		if contentBytes != nil {
+			// If we have data make a copy.
+			ret = append(ret, contentBytes...)
+		}
+		return nil
+	}
+
+	err := ix.DB.View(viewFn)
+	return ret, err
+}
+
 // WriteFn is the type of the callback function that can be handed to the
 // Write method to update existing records before they are overwritten with a
 // new instance. The passed records are the current records in the database
@@ -252,6 +275,17 @@ func (ix *IndexedBucket) Delete(keys []string) error {
 // DeleteTx does the same as Delete but uses an existing transaction.
 func (ix *IndexedBucket) DeleteTx(tx *bolt.Tx, keys []string) error {
 	return ix.deleteRecs(keys, tx)
+}
+
+// ReIndex rebuilds the indices that were specified when the instance was created.
+// This will block until all indices are rebuild.
+func (ix *IndexedBucket) ReIndex() error {
+	updateFn := func(tx *bolt.Tx) error {
+		// Build all indices. This will remove the indices before bulding if they exist.
+		return ix.buildIndices(tx, ix.indices)
+	}
+
+	return ix.DB.Update(updateFn)
 }
 
 // deleteRecs deletes the records identified by keys. It uses tx if it's not
