@@ -83,6 +83,10 @@ type ApiClient interface {
 
 	GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error)
 
+	// ListBotTasks returns a slice of SwarmingRpcsTaskResult that are the last
+	// N tasks done by a bot. When limit is big (>100), this call is very expensive.
+	ListBotTasks(botID string, limit int) ([]*swarming.SwarmingRpcsTaskResult, error)
+
 	// ListTasks returns a slice of swarming.SwarmingRpcsTaskRequestMetadata
 	// instances corresponding to the specified tags and within given time window.
 	// The results will have TaskId, TaskResult, and Request fields populated.
@@ -208,6 +212,25 @@ func (c *apiClient) GetStdoutOfTask(id string) (*swarming.SwarmingRpcsTaskOutput
 
 func (c *apiClient) GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error) {
 	return c.s.Bot.Terminate(id).Do()
+}
+
+type limitOption struct {
+	limit int
+}
+
+func (l *limitOption) Get() (string, string) {
+	return "limit", strconv.Itoa(l.limit)
+}
+
+func (c *apiClient) ListBotTasks(botID string, limit int) ([]*swarming.SwarmingRpcsTaskResult, error) {
+	// The paramaters for Do() are a list of things that implement the Get() method
+	// which returns a key and a value. This gets turned into key=value on the url
+	// request, which works, even though Limit is not part of the client library.
+	res, err := c.s.Bot.Tasks(botID).Do(&limitOption{limit: 1})
+	if err != nil {
+		return nil, err
+	}
+	return res.Items, nil
 }
 
 func (c *apiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {

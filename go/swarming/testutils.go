@@ -122,6 +122,17 @@ func (c *TestClient) ListTasks(start, end time.Time, tags []string, state string
 	return rv, nil
 }
 
+func (c *TestClient) ListBotTasks(botID string, limit int) ([]*swarming.SwarmingRpcsTaskResult, error) {
+	// For now, just return all tasks in the list.  This could probably be better.
+	c.taskListMtx.RLock()
+	defer c.taskListMtx.RUnlock()
+	rv := make([]*swarming.SwarmingRpcsTaskResult, 0, len(c.taskList))
+	for _, t := range c.taskList {
+		rv = append(rv, t.TaskResult)
+	}
+	return rv, nil
+}
+
 func (c *TestClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
 }
