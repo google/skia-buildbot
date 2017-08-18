@@ -14,12 +14,29 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+// Init initializes metrics for testing.
+func Init() {
+	prometheus.DefaultRegisterer = prometheus.NewRegistry()
+}
+
 // GetRecordedMetric returns the value that prometheus is reporting.
 // Using this allows for unit tests to check that metrics are properly
 // being calculated and sent. This approach was found to be less awkward
 // than using mocks and is decenly performant.
 // See datahopper/bot_metrics/bots_test.go for an example use.
 func GetRecordedMetric(t *testing.T, metricName string, tags map[string]string) string {
+	output := ListMetrics(t)
+	metric := metricName + StringifyTags(tags)
+	for _, s := range strings.Split(output, "\n") {
+		if strings.HasPrefix(s, metric) {
+			return strings.Split(s, " ")[1]
+		}
+	}
+	return "Could not find anything for " + metric
+}
+
+// ListMetrics lists all of the known metrics and their values.
+func ListMetrics(t *testing.T) string {
 	req := httptest.NewRequest("GET", "/metrics", nil)
 	rw := httptest.NewRecorder()
 	promhttp.HandlerFor(prometheus.DefaultRegisterer.(*prometheus.Registry), promhttp.HandlerOpts{
@@ -31,16 +48,10 @@ func GetRecordedMetric(t *testing.T, metricName string, tags map[string]string) 
 	defer util.Close(resp.Body)
 	b, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	metric := metricName + stringifyTags(tags)
-	for _, s := range strings.Split(string(b), "\n") {
-		if strings.HasPrefix(s, metric) {
-			return strings.Split(s, " ")[1]
-		}
-	}
-	return "Could not find anything for " + metric
+	return string(b)
 }
 
-func stringifyTags(tags map[string]string) string {
+func StringifyTags(tags map[string]string) string {
 	// Prometheus always puts tags/labels in order by key value
 	// https://github.com/prometheus/client_golang/blob/94ff84a9a6ebb5e6eb9172897c221a64df3443bc/prometheus/desc.go#L106
 	// We do the same for tests

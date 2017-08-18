@@ -10,7 +10,7 @@ Type=oneshot
 #  - workdir is --workdir argument in task-scheduler.service
 #  - triggerdir is scheduling.TRIGGER_DIRNAME in periodic.go
 #  - trigger selects Jobs by the value of JobSpec.Trigger
-ExecStart=/usr/bin/touch /mnt/pd0/task_scheduler_workdir/periodic-job-trigger/nightly
+ExecStart=/usr/bin/touch /mnt/pd0/task_scheduler_workdir/periodic-trigger/nightly
 User=default
 Group=default
 LimitNOFILE=10000
