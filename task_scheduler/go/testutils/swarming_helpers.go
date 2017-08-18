@@ -1,4 +1,4 @@
-package main
+package testutils
 
 import (
 	"fmt"
@@ -16,9 +16,9 @@ const (
 	BOT_ID_PREFIX = "bot-"
 )
 
-// mockSwarmingBotsForAllTasksForTesting returns a list containing one swarming
+// MockSwarmingBotsForAllTasksForTesting returns a list containing one swarming
 // bot for each TaskSpec in the given repos, or nil on error.
-func mockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.SwarmingRpcsBotInfo {
+func MockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.SwarmingRpcsBotInfo {
 	botId := 0
 	rv := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, repo := range repos {
@@ -61,10 +61,10 @@ func mockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.
 	return rv
 }
 
-// periodicallyUpdateMockTasksForTesting simulates running the mocked tasks in
+// PeriodicallyUpdateMockTasksForTesting simulates running the mocked tasks in
 // TestClient by updating the status, started/completed times, isolated output,
 // etc. Does not return.
-func periodicallyUpdateMockTasksForTesting(swarm *swarming.TestClient) {
+func PeriodicallyUpdateMockTasksForTesting(swarm *TestClient) {
 	for range time.Tick(time.Minute) {
 		swarm.DoMockTasks(func(task *swarming_api.SwarmingRpcsTaskRequestMetadata) {
 			created, err := swarming.Created(task)
