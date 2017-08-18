@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "98250b83_33da2594",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-18T18:11:17Z",
+      "side": 1,
+      "message": "SGTM.  I think the RPI is the exception here; generally when we add a bot we hope to see it get used, so I think we\u0027ll want to know.",
+      "parentUuid": "2c716716_971cdb5f",
+      "range": {
+        "startLine": 77,
+        "startChar": 3,
+        "endLine": 77,
+        "endChar": 100
+      },
+      "revId": "6d826123e0f99a8378f5fc28a2f5e71eabf7f730",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6a0ed055_051d0cdb",
         "filename": "prometheus/sys/alert.rules",
         "patchSetId": 1
