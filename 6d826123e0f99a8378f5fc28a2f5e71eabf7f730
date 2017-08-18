@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ce1bbf9_eef7e874",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-18T17:22:46Z",
+      "side": 1,
+      "message": "Should this be a warning/error?  We could also log this message and use bot.FirstSeenTs instead of the last task timestamp, in case the bot was recently brought up but still hasn\u0027t run a task in 72 hours.",
+      "range": {
+        "startLine": 77,
+        "startChar": 3,
+        "endLine": 77,
+        "endChar": 100
+      },
+      "revId": "6d826123e0f99a8378f5fc28a2f5e71eabf7f730",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a0ed055_051d0cdb",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-18T17:22:46Z",
+      "side": 1,
+      "message": "Alert names mixed up?",
+      "range": {
+        "startLine": 273,
+        "startChar": 6,
+        "endLine": 273,
+        "endChar": 20
+      },
+      "revId": "6d826123e0f99a8378f5fc28a2f5e71eabf7f730",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
