@@ -12,6 +12,7 @@ import (
 const (
 	MEASUREMENT_SWARM_BOTS_LAST_SEEN   = "swarming_bots_last_seen"
 	MEASUREMENT_SWARM_BOTS_QUARANTINED = "swarming_bots_quarantined"
+	MEASUREMENT_SWARM_BOTS_LAST_TASK   = "swarming_bots_last_task"
 )
 
 // cleanupOldMetrics deletes old metrics, replace with new ones. This fixes the case where
@@ -42,7 +43,7 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 	for _, bot := range bots {
 		last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
 		if err != nil {
-			sklog.Errorf("Malformed time in bot: %s", err)
+			sklog.Errorf("Malformed last seen time in bot: %s", err)
 			continue
 		}
 
@@ -65,6 +66,28 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 		m2 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
 		m2.Update(quarantined)
 		newMetrics = append(newMetrics, m2)
+
+		// Last task performed <duration> ago
+		lastTasks, err := client.ListBotTasks(bot.BotId, 1)
+		if err != nil {
+			sklog.Errorf("Problem getting tasks that bot %s has run: %s", bot.BotId, err)
+			continue
+		}
+		ts := ""
+		if len(lastTasks) == 0 {
+			ts = bot.FirstSeenTs
+		} else {
+			ts = lastTasks[0].ModifiedTs
+		}
+
+		last, err = time.Parse("2006-01-02T15:04:05", ts)
+		if err != nil {
+			sklog.Errorf("Malformed last modified time in bot %s's last task %q: %s", bot.BotId, ts, err)
+			continue
+		}
+		m3 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_TASK, tags)
+		m3.Update(int64(now.Sub(last)))
+		newMetrics = append(newMetrics, m1)
 	}
 	return newMetrics, nil
 }

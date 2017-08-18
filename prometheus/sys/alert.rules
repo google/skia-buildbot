@@ -256,7 +256,7 @@ ALERT DatahopperErrorRate
 # Swarming
 
 ALERT BotMissing
-  IF swarming_bots_last_seen{bot!~"ct-gce-.*"}/1024/1024/1024/60 > 15
+  IF swarming_bots_last_seen{bot!~"ct-gce-.*"}/1000/1000/1000/60 > 15
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
@@ -270,6 +270,14 @@ ALERT CtGceBotMissing
     description = "1 or more CT GCE bots are down: https://chrome-swarming.appspot.com/botlist?f=status%3Adead&f=gpu%3Anone&f=pool%3ACT&l=100"
   }
 
+ALERT BotUnemployed
+  IF swarming_bots_last_task{pool=~"Skia.*"}/1000/1000/1000/60/60 >= 72
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    abbr = "{{ $labels.bot }}",
+    description = "Swarming bot {{ $labels.bot }} hasn't run a job in 72 hours. Maybe it's dimensions need changing? https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+  }
+
 ALERT BotQuarantined
   IF avg_over_time(swarming_bots_quarantined[10m]) >= 1
   LABELS { category = "infra", severity = "critical"}
@@ -277,7 +285,6 @@ ALERT BotQuarantined
     abbr = "{{ $labels.bot }}",
     description = "Swarming bot {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
   }
-
 # Swarming Logger
 
 ALERT SwarmingLoggerErrorRate
