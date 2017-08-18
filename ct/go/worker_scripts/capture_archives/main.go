@@ -89,6 +89,10 @@ func captureArchives() error {
 	// kill all zombie chrome processes.
 	var mutex sync.RWMutex
 
+	// Boolean that records whether there has been atleast one successful capture.
+	// This bool will be used to determine if the task is successful at the end.
+	successfulCapture := false
+
 	// Loop through workers in the worker pool.
 	for i := 0; i < WORKER_POOL_SIZE; i++ {
 		// Increment the WaitGroup counter.
@@ -137,6 +141,7 @@ func captureArchives() error {
 				for i := 0; ; i++ {
 					err = util.ExecuteCmd(util.BINARY_PYTHON_2_7_11, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 					if err == nil {
+						successfulCapture = true
 						break
 					}
 					if i >= (retryAttempts - 1) {
@@ -159,13 +164,9 @@ func captureArchives() error {
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
 
-	// Check to see if there is anything in the pathToArchives dir.
-	archivesEmpty, err := skutil.IsDirEmpty(pathToArchives)
-	if err != nil {
-		return err
-	}
-	if archivesEmpty {
-		return fmt.Errorf("Could not create any archives in %s", pathToArchives)
+	// Check to see if the task was successful.
+	if !successfulCapture {
+		return fmt.Errorf("Could not successfully capture any archives in %s", pathToArchives)
 	}
 
 	// Upload all webpage archives to Google Storage.
