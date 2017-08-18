@@ -1,9 +1,14 @@
 package diffstore
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/boltutil"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 )
 
 const (
@@ -86,6 +91,15 @@ func (m *metricsStore) loadDiffMetrics(id string) (interface{}, error) {
 		return nil, nil
 	}
 
+	// TODO(stephana): Remove the database guard below when we don't need it anymore.
+	// get the record and check if it's a legacy entry.
+	rec := recs[0].(*metricsRec)
+	if len(rec.DiffMetrics) == 0 {
+		if diffMetrics := m.fixLegacyRecord(id); diffMetrics != nil {
+			return diffMetrics, nil
+		}
+	}
+
 	// Deserialize the byte array representing the DiffMetrics.
 	diffMetrics, err := m.codec.Decode(recs[0].(*metricsRec).DiffMetrics)
 	if err != nil {
@@ -100,6 +114,10 @@ func (m *metricsStore) saveDiffMetrics(id string, diffMetrics interface{}) error
 	bytes, err := m.codec.Encode(diffMetrics)
 	if err != nil {
 		return err
+	}
+
+	if len(bytes) == 0 {
+		return fmt.Errorf("Got empty string for encoded diff metric.")
 	}
 
 	rec := &metricsRec{ID: id, DiffMetrics: bytes}
@@ -123,4 +141,89 @@ func (m *metricsStore) purgeDiffMetrics(digests []string) error {
 	}
 
 	return m.store.DB.Update(updateFn)
+}
+
+// legacyMetricsRec is the old format of the metrics records. Used by the
+// db guard below.
+type legacyMetricsRec struct {
+	ID string `json:"id"`
+	*diff.DiffMetrics
+}
+
+func (m *metricsStore) fixLegacyRecord(id string) *diff.DiffMetrics {
+	// Read the bytes from the db.
+	contentBytes, err := m.store.ReadRaw(id)
+	if err != nil {
+		sklog.Errorf("Error reading raw legacy record: %s", err)
+		return nil
+	}
+
+	legRec := legacyMetricsRec{}
+	if err := json.Unmarshal(contentBytes, &legRec); err != nil {
+		sklog.Errorf("Unable to decode legacy error: %s", err)
+		return nil
+	}
+
+	// Use simple heuristic to figure whether we have a record.
+	if len(legRec.DiffMetrics.MaxRGBADiffs) != 4 {
+		sklog.Errorf("Did not get a valid legacy diff metrics record.")
+		return nil
+	}
+
+	// Write the new record to the database in the background.
+	go func() {
+		if err := m.saveDiffMetrics(id, legRec.DiffMetrics); err != nil {
+			sklog.Errorf("Error writing legacy record to DB: %s", err)
+		}
+		sklog.Infof("Legacy database record (%s) written to the database.", id)
+	}()
+
+	return legRec.DiffMetrics
+}
+
+// convertDatabaseFromLegacy iterates over the entire database in the background
+// and loads every entry, implicitly forcing a conversion to the new serialization format.
+func (m *metricsStore) convertDatabaseFromLegacy() {
+	go func() {
+		ids, err := m.listIDs()
+		if err != nil {
+			sklog.Errorf("Unable to get the database ids. Got error: %s", err)
+		}
+
+		for _, id := range ids {
+			// The call to loadDiffMetrics will also convert a legacy record to the new record if necessary.
+			if _, err := m.loadDiffMetrics(id); err != nil {
+				sklog.Errorf("Error trying to convert legacy record: %s", err)
+			}
+		}
+		sklog.Infof("Legacy conversion: Loaded %d records.", len(ids))
+		if err := m.store.ReIndex(); err != nil {
+			sklog.Errorf("Error re-indexing data store: %s", err)
+		}
+		sklog.Infof("Legacy conversion completed.")
+	}()
+}
+
+// listIDs returns a slice with all the ids in the database.
+func (m *metricsStore) listIDs() ([]string, error) {
+	ret := []string{}
+	viewFn := func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(METRICSDB_NAME))
+		if b == nil {
+			return nil
+		}
+
+		ret = make([]string, 0, b.Stats().KeyN)
+		c := b.Cursor()
+
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			ret = append(ret, string(append([]byte(nil), k...)))
+		}
+		return nil
+	}
+
+	if err := m.store.DB.View(viewFn); err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
