@@ -232,7 +232,7 @@ func (fr *RunningClusterRequests) Response(id string) (*ClusterResponse, error) 
 func (p *ClusterRequestProcess) reportError(err error, message string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	sklog.Errorf("ClusterRequest failed: %#v %s: %s", *(p.request), message, err)
+	sklog.Warningf("ClusterRequest failed: %#v %s: %s", *(p.request), message, err)
 	p.message = message
 	p.state = PROCESS_ERROR
 	p.lastUpdate = time.Now()
