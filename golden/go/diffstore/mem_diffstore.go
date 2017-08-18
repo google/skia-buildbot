@@ -255,6 +255,13 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 	return ret, nil
 }
 
+// TODO(stephana): Remove the conversion below once all caches are fixed.
+
+// ConvertLegacy converts the legacy metrics cache to the new format in the background.
+func (d *MemDiffStore) ConvertLegacy() {
+	d.metricsStore.convertDatabaseFromLegacy()
+}
+
 // WarmDigests fetches images based on the given list of digests. It does
 // not cache the images but makes sure they are downloaded from GCS.
 func (d *MemDiffStore) WarmDigests(priority int64, digests []string, sync bool) {

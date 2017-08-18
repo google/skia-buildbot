@@ -2,6 +2,7 @@ package digeststore
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 
@@ -77,6 +78,10 @@ func New(storageDir string) (DigestStore, error) {
 }
 
 func (b BoltDigestStore) Get(testName, digest string) (*DigestInfo, bool, error) {
+	if testName == "" {
+		return nil, false, fmt.Errorf("No testname provided for digest '%s'", digest)
+	}
+
 	var ret *DigestInfo = nil
 	err := b.digestDB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(testName))
