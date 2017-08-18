@@ -3,6 +3,8 @@ package diffstore
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"runtime"
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/boltutil"
@@ -185,18 +187,27 @@ func (m *metricsStore) fixLegacyRecord(id string) *diff.DiffMetrics {
 // and loads every entry, implicitly forcing a conversion to the new serialization format.
 func (m *metricsStore) convertDatabaseFromLegacy() {
 	go func() {
-		ids, err := m.listIDs()
+		allIDs, err := m.listIDs()
 		if err != nil {
 			sklog.Errorf("Unable to get the database ids. Got error: %s", err)
 		}
 
-		for _, id := range ids {
-			// The call to loadDiffMetrics will also convert a legacy record to the new record if necessary.
-			if _, err := m.loadDiffMetrics(id); err != nil {
-				sklog.Errorf("Error trying to convert legacy record: %s", err)
-			}
+		partitions := runtime.NumCPU()
+		partSize := int(math.Ceil(float64(len(allIDs)) / float64(partitions)))
+		var sliceSize int
+		for i := 0; i < len(allIDs); i += sliceSize {
+			sliceSize = util.MinInt(i+partSize, len(allIDs))
+			go func(ids []string) {
+				for _, id := range ids {
+					// The call to loadDiffMetrics will also convert a legacy record to the new record if necessary.
+					if _, err := m.loadDiffMetrics(id); err != nil {
+						sklog.Errorf("Error trying to convert legacy record: %s", err)
+					}
+				}
+				sklog.Infof("Legacy conversion: Loaded %d records.", len(ids))
+			}(allIDs[i : i+sliceSize])
 		}
-		sklog.Infof("Legacy conversion: Loaded %d records.", len(ids))
+
 		if err := m.store.ReIndex(); err != nil {
 			sklog.Errorf("Error re-indexing data store: %s", err)
 		}
