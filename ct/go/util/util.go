@@ -33,6 +33,8 @@ const (
 	TS_FORMAT = "20060102150405"
 
 	REMOVE_INVALID_SKPS_WORKER_POOL = 20
+
+	MAX_SIMULTANEOUS_SWARMING_TASKS_PER_RUN = 10000
 )
 
 func TimeTrack(start time.Time, name string) {
@@ -453,35 +455,60 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	} else {
 		dimensions = GOLO_WORKER_DIMENSIONS
 	}
-	// Trigger swarming using the isolate hashes.
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
-	if err != nil {
-		return numTasks, fmt.Errorf("Could not trigger swarming task: %s", err)
-	}
-	// Collect all tasks and collect the ones that fail.
-	failedTasksToHashes := map[string]string{}
-	for _, task := range tasks {
-		if _, _, err := task.Collect(s); err != nil {
-			sklog.Errorf("task %s failed: %s", task.Title, err)
-			failedTasksToHashes[task.Title] = tasksToHashes[task.Title]
-			continue
-		}
-	}
 
-	if len(failedTasksToHashes) > 0 {
-		sklog.Info("Retrying tasks that failed...")
-		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
-		if err != nil {
-			return numTasks, fmt.Errorf("Could not trigger swarming task: %s", err)
+	// The channel where batches of tasks to be triggered and collected will be sent to.
+	chTasks := make(chan map[string]string)
+	// Kick off one goroutine to populate the above channel.
+	go func() {
+		defer close(chTasks)
+		tmpMap := map[string]string{}
+		for task, hash := range tasksToHashes {
+			if len(tmpMap) >= MAX_SIMULTANEOUS_SWARMING_TASKS_PER_RUN {
+				// Add the map to the channel.
+				chTasks <- tmpMap
+				// Reinitialize the temporary map.
+				tmpMap = map[string]string{}
+			}
+			tmpMap[task] = hash
 		}
-		// Collect all tasks and log the ones that fail.
-		for _, task := range retryTasks {
+		chTasks <- tmpMap
+	}()
+
+	// Trigger and collect swarming tasks.
+	for taskMap := range chTasks {
+		// Save all retried tasks so that we can collect them at the end.
+		retriedTasks := []*swarming.SwarmingTask{}
+		// Trigger swarming using the isolate hashes.
+		tasks, err := s.TriggerSwarmingTasks(taskMap, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+		if err != nil {
+			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
+		}
+		// Collect all tasks and retrigger the ones that fail.
+		for _, task := range tasks {
 			if _, _, err := task.Collect(s); err != nil {
-				sklog.Errorf("task %s failed inspite of a retry: %s", task.Title, err)
+				sklog.Errorf("task %s failed: %s", task.Title, err)
+				sklog.Infof("Retrying task %s", task.Title)
+				t, err := s.TriggerSwarmingTasks(map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+				if err != nil {
+					return numTasks, fmt.Errorf("Could not trigger retry of swarming tasks: %s", err)
+				}
+				retriedTasks = append(retriedTasks, t...)
 				continue
 			}
 		}
+
+		if len(retriedTasks) > 0 {
+			// Collect all retried tasks and log the ones that fail.
+			for _, task := range retriedTasks {
+				if _, _, err := task.Collect(s); err != nil {
+					sklog.Errorf("task %s failed inspite of a retry: %s", task.Title, err)
+					continue
+				}
+			}
+		}
+
 	}
+
 	return numTasks, nil
 }
 
