@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2c716716_971cdb5f",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-18T17:59:23Z",
+      "side": 1,
+      "message": "I don\u0027t think it should be a warning error.  If we add an RPI and it sits empty for a few weeks, w/o running any tasks, I think that should be fine.\n\nFirst Seen is good instead, just to make sure we are aware of it.",
+      "parentUuid": "4ce1bbf9_eef7e874",
+      "range": {
+        "startLine": 77,
+        "startChar": 3,
+        "endLine": 77,
+        "endChar": 100
+      },
+      "revId": "6d826123e0f99a8378f5fc28a2f5e71eabf7f730",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6a0ed055_051d0cdb",
         "filename": "prometheus/sys/alert.rules",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-18T17:22:46Z",
       "side": 1,
       "message": "Alert names mixed up?",
+      "range": {
+        "startLine": 273,
+        "startChar": 6,
+        "endLine": 273,
+        "endChar": 20
+      },
+      "revId": "6d826123e0f99a8378f5fc28a2f5e71eabf7f730",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b558c3ec_02e09b5c",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-08-18T17:59:23Z",
+      "side": 1,
+      "message": "Herp Derp.\n\nFixed.",
+      "parentUuid": "6a0ed055_051d0cdb",
       "range": {
         "startLine": 273,
         "startChar": 6,
