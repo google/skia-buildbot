@@ -29,6 +29,9 @@ const (
 	// Hacky way to detect when webpages are missing.
 	// See https://bugs.chromium.org/p/skia/issues/detail?id=6778&desc=2#c2
 	SIZE_OF_IMAGES_WITH_404 = 7963
+
+	// screenshot_ct specific flags.
+	DC_EXTRA_SCREENSHOTS_FLAG = "--dc-extra-screenshots"
 )
 
 var (
@@ -179,11 +182,22 @@ func pixelDiff() error {
 	// Create channel that contains all pageset file names. This channel will
 	// be consumed by the worker pool.
 	pagesetRequests := util.GetClosedChannelOfPagesets(fileInfos)
-	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].PixelDiffTimeoutSecs
 	// Dict of rank to URL. Will be used when populating the metadata file.
 	rankToURL := map[int]string{}
 	// Mutex to control access to above map.
 	var rankDictMutex sync.RWMutex
+
+	// Calculate the timeout.
+	timeoutSecs := util.GetRunBenchmarkTimeoutValue(*benchmarkExtraArgs, util.PagesetTypeToInfo[*pagesetType].PixelDiffTimeoutSecs)
+	numExtraScreenshots := util.GetIntFlagValue(*benchmarkExtraArgs, DC_EXTRA_SCREENSHOTS_FLAG, 0)
+	if numExtraScreenshots > 0 {
+		// Increase the timeoutSecs.
+		timeoutSecs = timeoutSecs * numExtraScreenshots
+	}
+	sklog.Infof("Using %d seconds for timeout", timeoutSecs)
+	// Remove from benchmarkExtraArgs "special" flags that are recognized by CT but not
+	// by the run_benchmark script.
+	*benchmarkExtraArgs = util.RemoveFlagsFromArgs(*benchmarkExtraArgs, util.RUN_BENCHMARK_TIMEOUT_FLAG)
 
 	var wg sync.WaitGroup
 	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
