@@ -124,6 +124,17 @@ func TestIndexedBucket(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []Record{nil, inputRecs[0]}, foundRec)
 
+	// Read the raw record and make sure they are correct.
+	foundBytes, err := ib.ReadRaw("id_01")
+	assert.NoError(t, err)
+	decodedRec, err := ib.codec.Decode(foundBytes)
+	assert.NoError(t, err)
+	assert.Equal(t, inputRecs[0], decodedRec)
+
+	foundBytes, err = ib.ReadRaw("id_03")
+	assert.NoError(t, err)
+	assert.Nil(t, foundBytes)
+
 	found, err = ib.ReadIndex(TEST_INDEX_ONE, []string{"val_01", "val_02", "val_03"})
 	assert.NoError(t, err)
 	compReadIndex(t, map[string][]string{

@@ -141,6 +141,29 @@ func (ix *IndexedBucket) ReadIndexTx(tx *bolt.Tx, idx string, keys []string) (ma
 	return ret, err
 }
 
+// ReadRaw reads the bytes for a given key. If the key does not exist
+// the returned byte slice is nil.
+func (ix *IndexedBucket) ReadRaw(key string) ([]byte, error) {
+	// Key cannot be empty.
+	if key == "" {
+		return nil, nil
+	}
+
+	var ret []byte = nil
+	viewFn := func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(ix.mainBucket)
+		contentBytes := bucket.Get([]byte(key))
+		if contentBytes != nil {
+			// If we have data make a copy.
+			ret = append(ret, contentBytes...)
+		}
+		return nil
+	}
+
+	err := ix.DB.View(viewFn)
+	return ret, err
+}
+
 // WriteFn is the type of the callback function that can be handed to the
 // Write method to update existing records before they are overwritten with a
 // new instance. The passed records are the current records in the database
