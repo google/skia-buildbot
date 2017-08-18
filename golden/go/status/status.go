@@ -111,7 +111,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		return err
 	}
 
-	liveness := metrics2.NewLiveness("gold.status-monitoring")
+	liveness := metrics2.NewLiveness("gold_status_monitoring")
 
 	go func() {
 		for {

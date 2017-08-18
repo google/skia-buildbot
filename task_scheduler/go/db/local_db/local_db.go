@@ -313,7 +313,7 @@ func NewDB(name, filename string) (db.BackupDBCloser, error) {
 		name:     name,
 		filename: path.Base(filename),
 		db:       boltdb,
-		txCount: metrics2.GetCounter("db-active-tx", map[string]string{
+		txCount: metrics2.GetCounter("db_active_tx", map[string]string{
 			"database": name,
 		}),
 		txNextId: 0,

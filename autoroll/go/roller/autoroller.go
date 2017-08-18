@@ -54,7 +54,7 @@ func newAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, g
 		cqExtraTrybots: cqExtraTrybots,
 		emails:         emails,
 		gerrit:         gerrit,
-		liveness:       metrics2.NewLiveness("last-autoroll-landed", map[string]string{"child-path": childPath}),
+		liveness:       metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": childPath}),
 		modeHistory:    mh,
 		recent:         recent,
 		retrieveRoll:   retrieveRoll,
@@ -117,7 +117,7 @@ func NewManifestAutoRoller(workdir, parentRepo, parentBranch, childPath, childBr
 func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx context.Context) {
 	sklog.Infof("Starting autoroller.")
 	repo_manager.Start(r.rm, repoFrequency, ctx)
-	lv := metrics2.NewLiveness("last-successful-autoroll-tick")
+	lv := metrics2.NewLiveness("last_successful_autoroll_tick")
 	go util.RepeatCtx(tickFrequency, ctx, func() {
 		if err := r.Tick(); err != nil {
 			sklog.Errorf("Failed to run autoroll: %s", err)

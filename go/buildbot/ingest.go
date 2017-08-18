@@ -600,7 +600,7 @@ func IngestNewBuildsLoop(db DB, repos repograph.Map) error {
 	cache := newIngestCache(local)
 	lv := map[string]metrics2.Liveness{}
 	for _, m := range MASTER_NAMES {
-		lv[m] = metrics2.NewLiveness("buildbot-ingest", map[string]string{"master": m})
+		lv[m] = metrics2.NewLiveness("buildbot_ingest", map[string]string{"master": m})
 	}
 	go func() {
 		for range time.Tick(10 * time.Second) {

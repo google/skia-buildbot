@@ -197,7 +197,7 @@ func StartJobMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
 		return err
 	}
 	edb.em = em
-	lv := metrics2.NewLiveness("last-successful-job-metrics-update")
+	lv := metrics2.NewLiveness("last_successful_job_metrics_update")
 	go util.RepeatCtx(5*time.Minute, ctx, func() {
 		if err := edb.update(); err != nil {
 			sklog.Errorf("Failed to update job data: %s", err)

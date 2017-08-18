@@ -331,7 +331,7 @@ func (fp *FailureParser) Tick() error {
 
 // Start initiates the FailureParser's periodic poll-and-parse-failures loop.
 func (fp *FailureParser) Start(ctx context.Context) {
-	lv := metrics2.NewLiveness("last-successful-failure-parsing")
+	lv := metrics2.NewLiveness("last_successful_failure_parsing")
 	go util.RepeatCtx(1*time.Minute, ctx, func() {
 		if err := fp.Tick(); err != nil {
 			sklog.Errorf("Failed to parse failures: %s", err)

@@ -28,8 +28,8 @@ func oneStep(store IgnoreStore, metric metrics2.Int64Metric) error {
 // ignore store that counts expired ignore rules and pushes
 // that info into a metric.
 func Init(store IgnoreStore) error {
-	numExpired := metrics2.GetInt64Metric("gold.num-expired-ignore-rules", nil)
-	liveness := metrics2.NewLiveness("gold.expired-ignore-rules-monitoring")
+	numExpired := metrics2.GetInt64Metric("gold_num_expired_ignore_rules", nil)
+	liveness := metrics2.NewLiveness("gold_expired_ignore_rules_monitoring")
 
 	err := oneStep(store, numExpired)
 	if err != nil {

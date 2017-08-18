@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	MEASUREMENT_SWARM_BOTS_LAST_SEEN   = "swarming.bots.last-seen"
-	MEASUREMENT_SWARM_BOTS_QUARANTINED = "swarming.bots.quarantined"
+	MEASUREMENT_SWARM_BOTS_LAST_SEEN   = "swarming_bots_last_seen"
+	MEASUREMENT_SWARM_BOTS_QUARANTINED = "swarming_bots_quarantined"
 )
 
 // cleanupOldMetrics deletes old metrics, replace with new ones. This fixes the case where
