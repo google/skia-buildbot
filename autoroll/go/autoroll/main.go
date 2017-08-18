@@ -307,7 +307,7 @@ func main() {
 			if status.LastRoll != nil && status.LastRoll.Closed && status.LastRoll.Committed {
 				v = int64(1)
 			}
-			metrics2.GetInt64Metric("autoroll.last-roll-result", map[string]string{"child-path": *childPath}).Update(v)
+			metrics2.GetInt64Metric("autoroll_last_roll_result", map[string]string{"child_path": *childPath}).Update(v)
 		}
 	}()
 

@@ -124,10 +124,10 @@ func runServer(serverURL string) {
 // startCtfeMetrics registers metrics which indicate CT is running healthily
 // and starts a goroutine to update them periodically.
 func startCtfeMetrics() {
-	pendingTasksGauge := metrics2.GetInt64Metric("num-pending-tasks")
-	oldestPendingTaskAgeGauge := metrics2.GetFloat64Metric("oldest-pending-task-age")
+	pendingTasksGauge := metrics2.GetInt64Metric("num_pending_tasks")
+	oldestPendingTaskAgeGauge := metrics2.GetFloat64Metric("oldest_pending_task_age")
 	// 0=no tasks pending; 1=started; 2=not started
-	oldestPendingTaskStatusGauge := metrics2.GetInt64Metric("oldest-pending-task-status")
+	oldestPendingTaskStatusGauge := metrics2.GetInt64Metric("oldest_pending_task_status")
 	go func() {
 		for range time.Tick(common.SAMPLE_PERIOD) {
 			pendingTaskCount, err := pending_tasks.GetPendingTaskCount()

@@ -137,12 +137,12 @@ func newGsDbBackupWithClient(ctx context.Context, gsBucket string, db db.BackupD
 		ctx:                         ctx,
 		triggerDir:                  path.Join(workdir, TRIGGER_DIRNAME),
 		modifiedJobsId:              modJobsId,
-		lastDBBackupLiveness:        metrics2.NewLiveness("last-db-backup", metricTags),
-		recentDBBackupCount:         metrics2.GetInt64Metric("recent-db-backup-count", metricTags),
-		maybeBackupDBLiveness:       metrics2.NewLiveness("db-backup-maybe-backup-db", metricTags),
-		jobBackupCount:              metrics2.GetCounter("incremental-job-backup", metricTags),
-		incrementalBackupLiveness:   metrics2.NewLiveness("incremental-backup", metricTags),
-		incrementalBackupResetCount: metrics2.GetCounter("incremental-backup-reset", metricTags),
+		lastDBBackupLiveness:        metrics2.NewLiveness("last_db_backup", metricTags),
+		recentDBBackupCount:         metrics2.GetInt64Metric("recent_db_backup_count", metricTags),
+		maybeBackupDBLiveness:       metrics2.NewLiveness("db_backup_maybe_backup_db", metricTags),
+		jobBackupCount:              metrics2.GetCounter("incremental_job_backup", metricTags),
+		incrementalBackupLiveness:   metrics2.NewLiveness("incremental_backup", metricTags),
+		incrementalBackupResetCount: metrics2.GetCounter("incremental_backup_reset", metricTags),
 	}
 	// Release resources when done.
 	go func() {

@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	MEASUREMENT_SWARMING_TASKS = "swarming-task-events"
+	MEASUREMENT_SWARMING_TASKS = "swarming_task_events"
 	STREAM_SWARMING_TASKS      = "swarming-tasks"
 )
 
@@ -341,7 +341,7 @@ func setupMetrics(workdir string) (events.EventDB, *events.EventMetrics, error) 
 // tasks into the EventDB.
 func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events.EventDB, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser) {
 	// Start collecting the metrics.
-	lv := metrics2.NewLiveness("last-successful-swarming-task-metrics")
+	lv := metrics2.NewLiveness("last_successful_swarming_task_metrics")
 	lastLoad := time.Now().Add(-2 * time.Minute)
 	revisitTasks := []string{}
 	go util.RepeatCtx(10*time.Minute, ctx, func() {

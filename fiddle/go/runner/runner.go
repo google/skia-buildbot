@@ -35,8 +35,8 @@ DrawOptions GetDrawOptions() {
 )
 
 var (
-	runTotal    = metrics2.GetCounter("run-total", nil)
-	runFailures = metrics2.GetCounter("run-failures", nil)
+	runTotal    = metrics2.GetCounter("run_total", nil)
+	runFailures = metrics2.GetCounter("run_failures", nil)
 )
 
 // prepCodeToCompile adds the line numbers and the right prefix code

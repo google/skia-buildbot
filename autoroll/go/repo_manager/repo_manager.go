@@ -102,7 +102,7 @@ func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 // Start makes the RepoManager begin the periodic update process.
 func Start(r RepoManager, frequency time.Duration, ctx context.Context) {
 	sklog.Infof("Starting repo_manager")
-	lv := metrics2.NewLiveness("last-successful-repo-manager-update")
+	lv := metrics2.NewLiveness("last_successful_repo_manager_update")
 	go util.RepeatCtx(frequency, ctx, func() {
 		sklog.Infof("Running repo_manager update.")
 		if err := r.Update(); err != nil {

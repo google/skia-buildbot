@@ -23,7 +23,7 @@ func rebootMonitoringInit() {
 	if secondary != "" {
 		owners += ", " + secondary
 	}
-	reboot := metrics2.GetInt64Metric("reboot-required-i", map[string]string{
+	reboot := metrics2.GetInt64Metric("reboot_required_i", map[string]string{
 		"host":   name,
 		"owners": owners,
 	})

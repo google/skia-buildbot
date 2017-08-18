@@ -86,16 +86,16 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 		// even though this is a (really big) int, JSON notation returns scientific notation
 		// for large enough ints, which means we need to ParseFloat, the only parser we have
 		// that can read Scientific notation.
-		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, "swarming_bots_last_seen", tags), 64)
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags), 64)
 		assert.NoError(t, err)
-		assert.Equal(t, int64(e.lastSeenDelta), int64(actual), "Wrong last seen time for metric swarming_bots_last_seen")
+		assert.Equalf(t, int64(e.lastSeenDelta), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_SEEN)
 
-		actual, err = strconv.ParseFloat(metrics_util.GetRecordedMetric(t, "swarming_bots_quarantined", tags), 64)
+		actual, err = strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_QUARANTINED, tags), 64)
 		assert.NoError(t, err)
 		expected := 0
 		if e.quarantined {
 			expected = 1
 		}
-		assert.Equalf(t, int64(expected), int64(actual), "Wrong last seen time for metric swarming_bots_quarantined")
+		assert.Equalf(t, int64(expected), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_QUARANTINED)
 	}
 }

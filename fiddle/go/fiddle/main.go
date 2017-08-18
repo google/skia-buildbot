@@ -114,10 +114,10 @@ var (
 	//
 	// Note that slice items 2, 3, and 4 are the ones we are really interested in.
 	parseCompilerOutput = regexp.MustCompile("^(.*/)(draw.cpp:([0-9]+):([-0-9]+):.*)")
-	namedFailures       = metrics2.GetCounter("named-failures", nil)
-	maybeSecViolations  = metrics2.GetCounter("maybe-sec-container-violation", nil)
+	namedFailures       = metrics2.GetCounter("named_failures", nil)
+	maybeSecViolations  = metrics2.GetCounter("maybe_sec_container_violation", nil)
 	runs                = metrics2.GetCounter("runs", nil)
-	tryNamedLiveness    = metrics2.NewLiveness("try-named")
+	tryNamedLiveness    = metrics2.NewLiveness("try_named")
 
 	build        *buildskia.ContinuousBuilder
 	fiddleStore  *store.Store

@@ -199,7 +199,7 @@ func NewLocalDB(filename string) (DB, error) {
 	}
 	db := &localDB{
 		db: d,
-		txCount: metrics2.GetCounter("db-active-tx", map[string]string{
+		txCount: metrics2.GetCounter("db_active_tx", map[string]string{
 			"database": "buildbot",
 		}),
 		txNextId: 0,

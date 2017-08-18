@@ -20,6 +20,9 @@ var (
 )
 
 func clean(s string) string {
+	if invalidChar.MatchString(s) {
+		glog.Warningf("Hey, metrics string %s should not have invalid characters in it", s)
+	}
 	return invalidChar.ReplaceAllLiteralString(s, "_")
 }
 

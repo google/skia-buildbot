@@ -55,8 +55,8 @@ func (c *Process) Last() (int64, int64, string, error) {
 func (c *Process) Start() {
 	go func() {
 		t := metrics2.NewTimer("repobuilder")
-		liveness := metrics2.NewLiveness("last-successful-add")
-		failures := metrics2.GetCounter("process-failures", nil)
+		liveness := metrics2.NewLiveness("last_successful_add")
+		failures := metrics2.GetCounter("process_failures", nil)
 		for range time.Tick(time.Minute) {
 			t.Start()
 			buildid, _, _, err := c.repo.GetLast()

@@ -241,7 +241,7 @@ type responseProxy struct {
 func (rp *responseProxy) WriteHeader(code int) {
 	if !rp.wroteHeader {
 		sklog.Infof("Response Code: %d", code)
-		metrics2.GetCounter("http.response", map[string]string{"statuscode": strconv.Itoa(code)}).Inc(1)
+		metrics2.GetCounter("http_response", map[string]string{"statuscode": strconv.Itoa(code)}).Inc(1)
 		rp.ResponseWriter.WriteHeader(code)
 		rp.wroteHeader = true
 	}

@@ -29,15 +29,6 @@ import (
 	"google.golang.org/api/option"
 )
 
-const (
-	MEASUREMENT_SWARM_TASKS_STATE             = "swarming.tasks.state"
-	MEASUREMENT_SWARM_TASKS_DURATION          = "swarming.tasks.duration"
-	MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT      = "swarming.tasks.overhead.bot"
-	MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD = "swarming.tasks.overhead.download"
-	MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD   = "swarming.tasks.overhead.upload"
-	MEASUREMENT_SWARM_TASKS_PENDING_TIME      = "swarming.tasks.pending-time"
-)
-
 // flags
 var (
 	grpcPort           = flag.String("grpc_port", ":8000", "Port on which to run the buildbot data gRPC server.")
@@ -149,8 +140,8 @@ func main() {
 
 	// Number of commits in the repo.
 	go func() {
-		skiaGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "skia"})
-		infraGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "infra"})
+		skiaGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "skia"})
+		infraGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "infra"})
 		for range time.Tick(5 * time.Minute) {
 			nSkia, err := repos[common.REPO_SKIA].Repo().NumCommits()
 			if err != nil {
@@ -169,7 +160,7 @@ func main() {
 
 	// Time since last successful backup.
 	go func() {
-		lv := metrics2.NewLiveness("last-buildbot-db-backup", nil)
+		lv := metrics2.NewLiveness("last_buildbot_db_backup", nil)
 		setLastBackupTime := func() error {
 			last := time.Time{}
 			if err := gcs.AllFilesInDir(gsClient, "skia-buildbots", "db_backup", func(item *storage.ObjectAttrs) {

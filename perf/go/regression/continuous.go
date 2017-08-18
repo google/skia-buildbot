@@ -90,9 +90,9 @@ func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 //
 // Note that it never returns so it should be called as a Go routine.
 func (c *Continuous) Run() {
-	newClustersGauge := metrics2.GetInt64Metric("perf.clustering.untriaged", nil)
-	runsCounter := metrics2.GetCounter("perf.clustering.runs", nil)
-	clusteringLatency := metrics2.NewTimer("perf.clustering.latency", nil)
+	newClustersGauge := metrics2.GetInt64Metric("perf_clustering_untriaged", nil)
+	runsCounter := metrics2.GetCounter("perf_clustering_runs", nil)
+	clusteringLatency := metrics2.NewTimer("perf_clustering_latency", nil)
 
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
