@@ -122,7 +122,7 @@
             <paper-menu class="dropdown-content">
               <paper-item on-tap="_handleSwitchToByTest">Switch To Test View</paper-item>
               <paper-item on-tap="_handleBulkButton">Bulk Triage</paper-item>
-              <paper-item on-tap="_handleNewSearchButton">Beta Search</paper-item>
+              <paper-item on-tap="_handleNewSearchButton">New Search</paper-item>
               <paper-item on-tap="_openHelpDialog">Help</paper-item>
             </paper-menu>
           </paper-menu-button>
@@ -229,7 +229,7 @@
       },
 
       _handleNewSearchButton: function(ev) {
-        this._redirectToState({}, "/newsearch");
+        this._redirectToState({}, "/search");
       },
 
       _handleClosestButton: function(ev) {
