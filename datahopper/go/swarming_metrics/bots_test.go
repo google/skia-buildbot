@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
@@ -21,13 +19,6 @@ type expectations struct {
 	quarantined   bool
 	isDead        bool
 	lastSeenDelta time.Duration
-}
-
-// getPromClient creates a fresh Prometheus Registry and
-// a fresh Prometheus Client. This wipes out all previous metrics.
-func getPromClient() metrics2.Client {
-	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-	return metrics2.NewPromClient()
 }
 
 func TestDeadQuarantinedBotMetrics(t *testing.T) {
@@ -71,7 +62,9 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 
 	ms.On("ListBotsForPool", "SomePool").Return(b, nil)
 
-	pc := getPromClient()
+	pc := metrics2.NewPromClient()
+	m := metrics_util.NewTest(t)
+	defer m.Cleanup()
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, "SomePool", "SomeServer")
 	assert.NoError(t, err)
@@ -86,11 +79,11 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 		// even though this is a (really big) int, JSON notation returns scientific notation
 		// for large enough ints, which means we need to ParseFloat, the only parser we have
 		// that can read Scientific notation.
-		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, "swarming_bots_last_seen", tags), 64)
+		actual, err := strconv.ParseFloat(m.GetRecordedMetric("swarming_bots_last_seen", tags), 64)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(e.lastSeenDelta), int64(actual), "Wrong last seen time for metric swarming_bots_last_seen")
 
-		actual, err = strconv.ParseFloat(metrics_util.GetRecordedMetric(t, "swarming_bots_quarantined", tags), 64)
+		actual, err = strconv.ParseFloat(m.GetRecordedMetric("swarming_bots_quarantined", tags), 64)
 		assert.NoError(t, err)
 		expected := 0
 		if e.quarantined {
