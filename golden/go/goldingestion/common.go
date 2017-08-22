@@ -42,8 +42,10 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Result is used by DMResults hand holds the invidual result of one test.
@@ -182,8 +184,15 @@ func (d *DMResults) getTraceDBEntries() map[string]*tracedb.Entry {
 // ignored.
 func (d *DMResults) ignoreResult(params map[string]string) bool {
 	// Ignore anything that is not a png.
-	ext, ok := params["ext"]
-	return !ok || (ext != "png")
+	if ext, ok := params["ext"]; !ok || (ext != "png") {
+		return true
+	}
+
+	if params[types.PRIMARY_KEY_FIELD] == "" {
+		sklog.Errorf("Missing test name in %s", d.name)
+		return true
+	}
+	return false
 }
 
 // Name returns the name/path from which these results were parsed.
