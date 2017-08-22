@@ -6,7 +6,9 @@ package git
 
 import (
 	"fmt"
+	"time"
 
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -28,7 +30,13 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 
 // Update syncs the Repo from its remote.
 func (r *Repo) Update() error {
-	out, err := r.Git("remote", "update")
+	cmd := &exec.Command{
+		Name:    "git",
+		Args:    []string{"remote", "update"},
+		Dir:     r.Dir(),
+		Timeout: time.Minute,
+	}
+	out, err := exec.RunCommand(cmd)
 	if err != nil {
 		return fmt.Errorf("Failed to update Repo: %s; output:\n%s", err, out)
 	}
