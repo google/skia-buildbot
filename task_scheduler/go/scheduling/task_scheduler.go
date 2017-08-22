@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -934,8 +935,12 @@ func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<
 				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
-			resp, err := s.swarming.TriggerTask(req)
-			if err != nil {
+			var resp *swarming_api.SwarmingRpcsTaskRequestMetadata
+			if err := timeout.Run(func() error {
+				var err error
+				resp, err = s.swarming.TriggerTask(req)
+				return err
+			}, time.Minute); err != nil {
 				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
