@@ -16,6 +16,24 @@
       "revId": "70378110f80b48188aae3d3de8fa9253f38fb0b6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9757c77a_2f5a5536",
+        "filename": "go/git/repo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-22T18:17:06Z",
+      "side": 1,
+      "message": "Agreed.  I didn\u0027t want to have to plumb the timeouts through.",
+      "parentUuid": "a3bbe645_373bb6e8",
+      "revId": "70378110f80b48188aae3d3de8fa9253f38fb0b6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
