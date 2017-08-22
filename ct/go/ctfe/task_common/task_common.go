@@ -560,7 +560,7 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 var rietveldURLRegexp = regexp.MustCompile("^(https?://codereview\\.chromium\\.org)/(\\d{3,})/?$")
-var gerritURLRegexp = regexp.MustCompile("^(https?://(?:[a-z]+)-review\\.googlesource\\.com)/c/(\\d{3,})/?$")
+var gerritURLRegexp = regexp.MustCompile("^(https?://(?:[a-z]+)-review\\.googlesource\\.com)/c/(?:.+/)?(\\d{3,})/?$")
 
 type clDetail struct {
 	Issue         int64  `json:"issue"`
