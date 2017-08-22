@@ -394,7 +394,8 @@ func (s *SearchAPI) getDrawableTraces(test, digest string, last int, exp *expsto
 		tr := &outputTraces[i]
 		tr.ID = traceID
 		tr.Params = oneTrace.Params_
-		tr.Data = make([]Point, 0, last+1)
+		tr.Data = make([]Point, last+1, last+1)
+		insertNext := last
 
 		for j := last; j >= 0; j-- {
 			d := oneTrace.Values[j]
@@ -416,12 +417,16 @@ func (s *SearchAPI) getDrawableTraces(test, digest string, last int, exp *expsto
 				}
 			}
 
-			tr.Data = append(tr.Data, Point{
+			// Insert the trace points from last to first.
+			tr.Data[insertNext] = Point{
 				X: j,
 				Y: i,
 				S: refDigestStatus,
-			})
+			}
+			insertNext--
 		}
+		// Trim the leading traces if necessary.
+		tr.Data = tr.Data[insertNext+1:]
 	}
 
 	return &Traces{
