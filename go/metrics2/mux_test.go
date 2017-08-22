@@ -3,9 +3,9 @@ package metrics2
 import (
 	"testing"
 
+	metrics_testutils "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/testutils"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -68,18 +68,19 @@ func testClient(t *testing.T, c Client) {
 func TestClients(t *testing.T) {
 	testutils.SmallTest(t)
 	// Test Prometheus client.
-	var c Client = getPromClient()
+	var c Client = NewPromClient()
 	testClient(t, c)
 
 	// Test Mux using a single Prometheus client.
-	prometheus.DefaultRegisterer = prometheus.NewRegistry()
+	m := metrics_testutils.NewTest(t)
+	defer m.Cleanup()
 	var err error
 	c, err = newMuxClient([]Client{c})
 	assert.NoError(t, err)
 	testClient(t, c)
 
 	// Test Mux using two Prometheus clients.
-	c = getPromClient()
+	c = NewPromClient()
 	c, err = newMuxClient([]Client{c, c})
 	assert.NoError(t, err)
 	testClient(t, c)

@@ -8,8 +8,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 
 	assert "github.com/stretchr/testify/require"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func TestClean(t *testing.T) {
@@ -17,21 +15,16 @@ func TestClean(t *testing.T) {
 	assert.Equal(t, "a_b_c", clean("a.b-c"))
 }
 
-// getPromClient creates a fresh Prometheus Registry and
-// a fresh Prometheus Client. This wipes out all previous metrics.
-func getPromClient() *promClient {
-	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-	return NewPromClient()
-}
-
 func TestInt64(t *testing.T) {
 	testutils.SmallTest(t)
-	c := getPromClient()
-	check := func(m Int64Metric, metric string, tags map[string]string, expect int64) {
-		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, metric, tags), 10, 64)
+	m := metrics_util.NewTest(t)
+	defer m.Cleanup()
+	c := NewPromClient()
+	check := func(i Int64Metric, metric string, tags map[string]string, expect int64) {
+		actual, err := strconv.ParseInt(m.GetRecordedMetric(metric, tags), 10, 64)
 		assert.NoError(t, err)
 		assert.Equal(t, expect, actual)
-		assert.Equal(t, m.Get(), expect)
+		assert.Equal(t, i.Get(), expect)
 	}
 	labels := map[string]string{"some_key": "some-value"}
 	g := c.GetInt64Metric("a.b", labels)
@@ -65,17 +58,19 @@ func TestInt64(t *testing.T) {
 
 	// Test delete.
 	assert.NoError(t, g.Delete())
-	assert.Equal(t, `Could not find anything for metric_name{a="2",b="1"}`, metrics_util.GetRecordedMetric(t, "metric_name", labels))
+	assert.Equal(t, `Could not find anything for metric_name{a="2",b="1"}`, m.GetRecordedMetric("metric_name", labels))
 }
 
 func TestFloat64(t *testing.T) {
 	testutils.SmallTest(t)
-	c := getPromClient()
-	check := func(m Float64Metric, metric string, tags map[string]string, expect float64) {
-		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, metric, tags), 64)
+	m := metrics_util.NewTest(t)
+	defer m.Cleanup()
+	c := NewPromClient()
+	check := func(f Float64Metric, metric string, tags map[string]string, expect float64) {
+		actual, err := strconv.ParseFloat(m.GetRecordedMetric(metric, tags), 64)
 		assert.NoError(t, err)
 		assert.Equal(t, expect, actual)
-		assert.Equal(t, m.Get(), expect)
+		assert.Equal(t, f.Get(), expect)
 	}
 	labels := map[string]string{"some_key": "some-value"}
 	g := c.GetFloat64Metric("a.c", labels)
@@ -109,17 +104,19 @@ func TestFloat64(t *testing.T) {
 
 	// Test delete.
 	assert.NoError(t, g.Delete())
-	assert.Equal(t, `Could not find anything for float_metric_name{a="2",b="1"}`, metrics_util.GetRecordedMetric(t, "float_metric_name", labels))
+	assert.Equal(t, `Could not find anything for float_metric_name{a="2",b="1"}`, m.GetRecordedMetric("float_metric_name", labels))
 }
 
 func TestCounter(t *testing.T) {
 	testutils.SmallTest(t)
-	c := getPromClient()
-	check := func(m Counter, metric string, tags map[string]string, expect int64) {
-		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, metric, tags), 10, 64)
+	m := metrics_util.NewTest(t)
+	defer m.Cleanup()
+	c := NewPromClient()
+	check := func(c Counter, metric string, tags map[string]string, expect int64) {
+		actual, err := strconv.ParseInt(m.GetRecordedMetric(metric, tags), 10, 64)
 		assert.NoError(t, err)
 		assert.Equal(t, expect, actual)
-		assert.Equal(t, m.Get(), expect)
+		assert.Equal(t, c.Get(), expect)
 	}
 	labels := map[string]string{"some_key": "some-value"}
 	g := c.GetCounter("c", labels)
@@ -140,7 +137,7 @@ func TestCounter(t *testing.T) {
 
 	// Test delete.
 	assert.NoError(t, g.Delete())
-	assert.Equal(t, `Could not find anything for c{some_key="some-value"}`, metrics_util.GetRecordedMetric(t, "c", labels))
+	assert.Equal(t, `Could not find anything for c{some_key="some-value"}`, m.GetRecordedMetric("c", labels))
 }
 
 func TestPanicOn(t *testing.T) {

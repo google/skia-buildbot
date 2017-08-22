@@ -504,20 +504,20 @@ ALERT TaskSchedulerDBFreePages
     description = "There are a large number of free pages in the Task Scheduler DB on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#db_too_many_free_pages"
   }
 
-ALERT TaskSchedulerNightlyTrigger
-  IF liveness_task_scheduler_periodic_trigger_s{trigger="nightly"}/60/60 > 25
+ALERT NightlyTrigger
+  IF liveness_periodic_trigger_s{trigger="nightly"}/60/60 > 25
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler Nightly Trigger ({{ $labels.instance }})",
-    description = "The Task Scheduler's nightly trigger has not run in over 25 hours on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_nightly"
+    summary = "Nightly Trigger ({{ $labels.instance }})",
+    description = "The nightly trigger has not run in over 25 hours on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_nightly"
   }
 
-ALERT TaskSchedulerWeeklyTrigger
-  IF liveness_task_scheduler_periodic_trigger_s{trigger="weekly"}/60/60/24 > 8
+ALERT WeeklyTrigger
+  IF liveness_periodic_trigger_s{trigger="weekly"}/60/60/24 > 8
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler Weekly Trigger ({{ $labels.instance }})",
-    description = "The Task Scheduler's weekly trigger has not run in over 8 days on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_weekly"
+    summary = "Weekly Trigger ({{ $labels.instance }})",
+    description = "The weekly trigger has not run in over 8 days on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_weekly"
   }
 
 # Skolo
