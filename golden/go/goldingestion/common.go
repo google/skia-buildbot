@@ -42,8 +42,10 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Result is used by DMResults hand holds the invidual result of one test.
@@ -162,7 +164,7 @@ func (d *DMResults) idAndParams(r *Result) (string, map[string]string) {
 }
 
 // getTraceDBEntries returns the traceDB entries to be inserted into the data store.
-func (d *DMResults) getTraceDBEntries() map[string]*tracedb.Entry {
+func (d *DMResults) getTraceDBEntries() (map[string]*tracedb.Entry, error) {
 	ret := make(map[string]*tracedb.Entry, len(d.Results))
 	for _, result := range d.Results {
 		traceId, params := d.idAndParams(result)
@@ -175,15 +177,30 @@ func (d *DMResults) getTraceDBEntries() map[string]*tracedb.Entry {
 			Value:  []byte(result.Digest),
 		}
 	}
-	return ret
+
+	// If all results were ignored then we return an error.
+	if len(ret) == 0 {
+		return nil, fmt.Errorf("No valid results in file %s.", d.name)
+	}
+
+	return ret, nil
 }
 
 // ignoreResult returns true if the result with the given parameters should be
 // ignored.
 func (d *DMResults) ignoreResult(params map[string]string) bool {
 	// Ignore anything that is not a png.
-	ext, ok := params["ext"]
-	return !ok || (ext != "png")
+	if ext, ok := params["ext"]; !ok || (ext != "png") {
+		return true
+	}
+
+	// Ignore results that don't have a test given and log an error since that
+	// should not happen. But we want to keep other results in the same input file.
+	if params[types.PRIMARY_KEY_FIELD] == "" {
+		sklog.Errorf("Missing test name in %s", d.name)
+		return true
+	}
+	return false
 }
 
 // Name returns the name/path from which these results were parsed.

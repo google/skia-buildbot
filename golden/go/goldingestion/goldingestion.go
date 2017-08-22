@@ -76,8 +76,14 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
+	// Get the entries that should be added to the tracedb.
+	entries, err := dmResults.getTraceDBEntries()
+	if err != nil {
+		return err
+	}
+
 	// Write the result to the tracedb.
-	err = g.traceDB.Add(cid, dmResults.getTraceDBEntries())
+	err = g.traceDB.Add(cid, entries)
 
 	// If there was no problem and we have an ingestion store that record that we have processed that file.
 	if (err == nil) && (g.ingestionStore != nil) {

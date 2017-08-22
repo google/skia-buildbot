@@ -177,7 +177,8 @@ func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*til
 func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.Commit) (*digeststore.DigestInfo, error) {
 	digestInfo, ok, err := s.DigestStore.Get(testName, digest)
 	if err != nil {
-		return nil, err
+		sklog.Warningf("Error retrieving digest info: %s", err)
+		return &digeststore.DigestInfo{Exception: err.Error()}, nil
 	}
 
 	if ok {

@@ -293,7 +293,7 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 		wg.Add(1)
 		go func(resultLocation ResultFileLocation) {
 			defer wg.Done()
-			defer metrics2.NewTimer("ingestion.process-file", map[string]string{"id": i.id}).Stop()
+			defer metrics2.NewTimer("ingestion_process_file", map[string]string{"id": i.id}).Stop()
 			err := i.processor.Process(resultLocation)
 
 			mutex.Lock()
