@@ -9,11 +9,10 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
+func TaskSchedulerBase(name string) *gce.Instance {
 	vm := server.AddGitConfigs(server.Server20170613(name), name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
-	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
 	vm.Scopes = append(vm.Scopes,
@@ -27,11 +26,11 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 }
 
 func TaskSchedulerProd() *gce.Instance {
-	return TaskSchedulerBase("skia-task-scheduler", "104.154.112.128")
+	return TaskSchedulerBase("skia-task-scheduler")
 }
 
 func TaskSchedulerInternal() *gce.Instance {
-	return TaskSchedulerBase("skia-task-scheduler-internal", "104.154.112.135")
+	return TaskSchedulerBase("skia-task-scheduler-internal")
 }
 
 func main() {
