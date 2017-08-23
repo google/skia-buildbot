@@ -8,8 +8,10 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"syscall"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sharedb"
@@ -38,6 +40,12 @@ func main() {
 	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),
 	}
+
+	go func() {
+		for range time.Tick(time.Minute * 5) {
+			runtime.GC()
+		}
+	}()
 
 	// Should we disable cloud logging.
 	if !(*noCloudLog) {

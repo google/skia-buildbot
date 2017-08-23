@@ -91,6 +91,12 @@ func main() {
 	defer common.LogPanic()
 	var err error
 
+	go func() {
+		for range time.Tick(time.Minute * 5) {
+			runtime.GC()
+		}
+	}()
+
 	mainTimer := timer.New("main init")
 	// Setup DB flags. But don't specify a default host or default database
 	// to avoid accidental writes.
