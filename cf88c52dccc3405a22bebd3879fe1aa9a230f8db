@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9ce4eaa_41d470bb",
+        "filename": "swarming_logger/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-23T18:22:27Z",
+      "side": 1,
+      "message": "This needs to go.",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 33
+      },
+      "revId": "cf88c52dccc3405a22bebd3879fe1aa9a230f8db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
