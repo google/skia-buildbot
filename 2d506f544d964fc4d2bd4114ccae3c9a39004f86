@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53f95fb8_4b2db33b",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T19:12:02Z",
+      "side": 1,
+      "message": "uber-nit: unused",
+      "range": {
+        "startLine": 85,
+        "startChar": 42,
+        "endLine": 85,
+        "endChar": 44
+      },
+      "revId": "2d506f544d964fc4d2bd4114ccae3c9a39004f86",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
