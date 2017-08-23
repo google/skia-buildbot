@@ -1,0 +1,268 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "544cf822_c63897a7",
+        "filename": "go/metrics2/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "nit: document",
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4961c6d5_bca917f4",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "nit: Would be nice to come up with a generic way to add periodic-trigger-* systemd services, but until that happens, this sentence is probably more confusing than helpful.",
+      "range": {
+        "startLine": 20,
+        "startChar": 58,
+        "endLine": 21,
+        "endChar": 54
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "539d7a2b_715705cf",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "nit: not really an error; Infof seems better. One more below.",
+      "range": {
+        "startLine": 59,
+        "startChar": 8,
+        "endLine": 59,
+        "endChar": 14
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb009414_53baa449",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "nit: util.WithWriteFile",
+      "range": {
+        "startLine": 86,
+        "startChar": 1,
+        "endLine": 86,
+        "endChar": 32
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ea220d1_b5169a51",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "nit: \"triggered functions\"",
+      "range": {
+        "startLine": 119,
+        "startChar": 72,
+        "endLine": 119,
+        "endChar": 78
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4760246c_ea6f2305",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "errs is never used after this statement.",
+      "range": {
+        "startLine": 185,
+        "startChar": 4,
+        "endLine": 185,
+        "endChar": 28
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe28b2be_066f9378",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "nit: errors.New",
+      "range": {
+        "startLine": 200,
+        "startChar": 9,
+        "endLine": 200,
+        "endChar": 19
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c19f1df_4894f810",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "Intentionally unused?",
+      "range": {
+        "startLine": 206,
+        "startChar": 5,
+        "endLine": 206,
+        "endChar": 10
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a35f25ea_2a36aa4f",
+        "filename": "go/periodic_triggers/periodic_triggers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "nit: use underscores",
+      "range": {
+        "startLine": 216,
+        "startChar": 29,
+        "endLine": 216,
+        "endChar": 66
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bc4a859_b6651099",
+        "filename": "task_scheduler/go/scheduling/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "nit: slightly confusing to have a function and a method with the same name in this file.",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 24
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43d86a0a_f83207ca",
+        "filename": "task_scheduler/sys/task-scheduler-trigger-nightly.service",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "Need to update this dirname in task_scheduler/build_trigger_nightly_release.",
+      "range": {
+        "startLine": 13,
+        "startChar": 57,
+        "endLine": 13,
+        "endChar": 73
+      },
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4659ef09_1638e680",
+        "filename": "task_scheduler/sys/task-scheduler-trigger-weekly.service",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-23T17:32:05Z",
+      "side": 1,
+      "message": "Need to update this dirname in task_scheduler/build_trigger_weekly_release.",
+      "revId": "35a515ec661bbb9ea58657d55908ee34b380a79c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
