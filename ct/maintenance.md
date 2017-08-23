@@ -168,7 +168,7 @@ sys/ctfe.service. You can then see the updated frontend at
 To access skia-ctfe directly, use `gcloud compute ssh default@skia-ctfe --zone
 us-central1-c`.
 
-Frontend logs are available [here](http://104.154.112.110:10115/) or via the
+Frontend logs are available via the
 link from [push](https://push.skia.org/).
 
 ### Master

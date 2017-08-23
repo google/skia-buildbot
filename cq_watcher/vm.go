@@ -5,10 +5,9 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func CqWatcherBase(name, ipAddress string) *gce.Instance {
+func CqWatcherBase(name string) *gce.Instance {
 	vm := server.Server20170613(name)
 	vm.DataDisk = nil
-	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_2
 	vm.Metadata["owner_primary"] = "rmistry"
 	vm.Metadata["owner_secondary"] = "borenet"
@@ -16,7 +15,7 @@ func CqWatcherBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return CqWatcherBase("skia-cq-watcher", "104.154.112.115")
+	return CqWatcherBase("skia-cq-watcher")
 }
 
 func main() {
