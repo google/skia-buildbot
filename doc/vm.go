@@ -7,7 +7,7 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func DocBase(name, ipAddress string) *gce.Instance {
+func DocBase(name string) *gce.Instance {
 	vm := server.Server20170613(name) // TODO(borenet): Needs git configs.
 	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
 	vm.DataDisk.SizeGb = 1000
@@ -19,7 +19,7 @@ func DocBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return DocBase("skia-docs", "104.154.112.101")
+	return DocBase("skia-docs")
 }
 
 func main() {

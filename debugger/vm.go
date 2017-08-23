@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func DebuggerBase(name, ipAddress string) *gce.Instance {
+func DebuggerBase(name string) *gce.Instance {
 	vm := server.Server20170613(name) // TODO(borenet): Needs git configs.
 	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
 	vm.DataDisk.SizeGb = 1000
@@ -25,7 +25,7 @@ func DebuggerBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return DebuggerBase("skia-debugger", "104.154.112.116")
+	return DebuggerBase("skia-debugger")
 }
 
 func main() {
