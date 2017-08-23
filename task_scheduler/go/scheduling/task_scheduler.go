@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/periodic_triggers"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
@@ -85,6 +86,7 @@ type TaskScheduler struct {
 	newTasks    map[db.RepoState]util.StringSet
 	newTasksMtx sync.RWMutex
 
+	periodicTriggers *periodic_triggers.Triggerer
 	pools            []string
 	pubsubTopic      string
 	queue            []*taskCandidate // protected by queueMtx.
@@ -94,7 +96,6 @@ type TaskScheduler struct {
 	taskCfgCache     *specs.TaskCfgCache
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
-	triggerMetrics   *periodicTriggerMetrics
 	tryjobs          *tryjobs.TryJobIntegrator
 	window           *window.Window
 	workdir          string
@@ -131,9 +132,9 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
 
-	pm, err := newPeriodicTriggerMetrics(workdir)
+	pt, err := periodic_triggers.NewTriggerer(workdir)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create PeriodicTriggerMetrics: %s", err)
+		return nil, fmt.Errorf("Failed to create periodic triggers: %s", err)
 	}
 
 	s := &TaskScheduler{
@@ -145,6 +146,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		jCache:           jCache,
 		newTasks:         map[db.RepoState]util.StringSet{},
 		newTasksMtx:      sync.RWMutex{},
+		periodicTriggers: pt,
 		pools:            pools,
 		pubsubTopic:      pubsubTopic,
 		queue:            []*taskCandidate{},
@@ -154,11 +156,11 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		taskCfgCache:     taskCfgCache,
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
-		triggerMetrics:   pm,
 		tryjobs:          tryjobs,
 		window:           w,
 		workdir:          workdir,
 	}
+	s.registerPeriodicTriggers()
 	return s, nil
 }
 
