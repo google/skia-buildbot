@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2150c8f_eeda04c0",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-23T14:25:20Z",
+      "side": 1,
+      "message": "Drive-by improvement.",
+      "range": {
+        "startLine": 15,
+        "startChar": 56,
+        "endLine": 15,
+        "endChar": 64
+      },
+      "revId": "6c3e7729e95f305a9f302ac474eb9450f017ee54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
