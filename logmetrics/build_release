@@ -12,7 +12,7 @@ copy_release_files()
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/logmetrics ${ROOT}/usr/local/bin/logmetrics
-${INSTALL} --mode=644 -T ./metrics.toml           ${ROOT}/etc/logmetrics/metrics.toml
+${INSTALL} --mode=644 -T ./metrics.json5          ${ROOT}/etc/logmetrics/metrics.json5
 }
 
 source ../bash/release.sh

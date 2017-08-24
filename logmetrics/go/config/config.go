@@ -4,10 +4,10 @@ package config
 import (
 	"fmt"
 
-	"github.com/BurntSushi/toml"
+	"go.skia.org/infra/go/config"
 )
 
-// Metric is used to parse the toml entries in metrics.cfg files.
+// Metric is used to parse the entries in metrics.json5 files.
 type Metric struct {
 	// Name is the measurement name.
 	Name string
@@ -16,13 +16,12 @@ type Metric struct {
 	Filter string
 }
 
-// ReadMetrics loads the toml file at the given location.
+// ReadMetrics loads the config file at the given location.
 func ReadMetrics(filename string) ([]Metric, error) {
 	var m struct {
 		Metrics []Metric
 	}
-	_, err := toml.DecodeFile(filename, &m)
-	if err != nil {
+	if err := config.ParseConfigFile(filename, "", &m); err != nil {
 		return nil, fmt.Errorf("Failed to decode metrics file %q: %s", filename, err)
 	}
 	if len(m.Metrics) == 0 {

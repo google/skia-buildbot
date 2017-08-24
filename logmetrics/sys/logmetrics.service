@@ -7,7 +7,7 @@ After=network-online.target
 ExecStart=/usr/local/bin/logmetrics \
     --logtostderr \
     --prom_port=:20001 \
-    --metrics_filename=/etc/logmetrics/metrics.toml
+    --metrics_filename=/etc/logmetrics/metrics.json5
 Restart=always
 User=default
 Group=default
