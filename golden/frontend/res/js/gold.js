@@ -369,7 +369,7 @@ var gold = gold || {};
     _redirectToState: function(updates, newTargetPath) {
       // Save the current history entry before the redirect.
       this._ctx.pushState();
-      var newState = sk.object.applyDelta(updates, this._state);
+      var newState = this._addCorpus(sk.object.applyDelta(updates, this._state));
       var targetPath = newTargetPath ||  window.location.pathname;
 
       // TODO(stephana): Remove below if we can ever assign blame across corpora.
