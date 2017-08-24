@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7c94cc74_51e5e663",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-24T19:23:54Z",
+      "side": 1,
+      "message": "This will clear out your returned error in the case where you have to roll back.  Better to concatenate the two errors if necessary, or just log the rollback error.",
+      "range": {
+        "startLine": 136,
+        "startChar": 3,
+        "endLine": 136,
+        "endChar": 22
+      },
+      "revId": "375b0da59a8368d6841e1a9042a4fc1cea4f999f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
