@@ -19,7 +19,7 @@ import (
 // flags
 var (
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	metricsFilename = flag.String("metrics_filename", "metrics.toml", "The file with all the metrics and their filters.")
+	metricsFilename = flag.String("metrics_filename", "metrics.json5", "The file with all the metrics and their filters.")
 	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	validateOnly    = flag.Bool("validate_only", false, "Exits after successfully reading the config file.")
 )

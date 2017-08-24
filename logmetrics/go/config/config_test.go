@@ -11,7 +11,7 @@ import (
 
 func TestConfigRead(t *testing.T) {
 	testutils.SmallTest(t)
-	m, err := ReadMetrics(filepath.Join("./testdata", "metrics.cfg"))
+	m, err := ReadMetrics(filepath.Join("./testdata", "metrics.json5"))
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(m))
 	assert.Equal(t, "qps", m[0].Name)
