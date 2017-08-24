@@ -167,8 +167,9 @@ const (
 	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chrome-swarming.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s&st=1262304000000"
 	SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE = SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE + "&f=name:%s"
 	// Priorities
-	USER_TASKS_PRIORITY  = swarming.RECOMMENDED_PRIORITY
-	ADMIN_TASKS_PRIORITY = swarming.RECOMMENDED_PRIORITY + 10 // Use lower priority for admin tasks because they can be long runned and we do not want to starve user jobs.
+	USER_TASKS_PRIORITY         = swarming.RECOMMENDED_PRIORITY
+	ADMIN_TASKS_PRIORITY        = swarming.RECOMMENDED_PRIORITY + 10 // Use lower priority for admin tasks because they can be long runned and we do not want to starve user jobs.
+	LONG_RUNNING_TASKS_PRIORITY = swarming.RECOMMENDED_PRIORITY + 10 // To prevent long running tasks from starving user jobs.
 )
 
 type PagesetTypeInfo struct {
