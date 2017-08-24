@@ -6,11 +6,10 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func DatahopperInternalBase(name, ipAddress string) *gce.Instance {
+func DatahopperInternalBase(name string) *gce.Instance {
 	vm := server.AddGitConfigs(server.Server20170613(name), "skia-internal")
 	vm.DataDisk.SizeGb = 50
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
 	vm.Metadata["owner_primary"] = "jcgregorio"
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
@@ -21,7 +20,7 @@ func DatahopperInternalBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return DatahopperInternalBase("skia-internal", "104.154.112.118")
+	return DatahopperInternalBase("skia-internal")
 }
 
 func main() {

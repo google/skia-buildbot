@@ -8,11 +8,10 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func StatusBase(name, ipAddress string) *gce.Instance {
+func StatusBase(name string) *gce.Instance {
 	vm := server.AddGitConfigs(server.Server20170613(name), name)
 	vm.DataDisk.SizeGb = 100
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "kjlubick"
 
@@ -23,11 +22,11 @@ func StatusBase(name, ipAddress string) *gce.Instance {
 }
 
 func StatusProd() *gce.Instance {
-	return StatusBase("skia-status", "104.154.112.113")
+	return StatusBase("skia-status")
 }
 
 func StatusInternal() *gce.Instance {
-	return StatusBase("skia-status-internal", "104.154.112.138")
+	return StatusBase("skia-status-internal")
 }
 
 func main() {

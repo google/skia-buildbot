@@ -27,11 +27,11 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 }
 
 func TaskSchedulerProd() *gce.Instance {
-	return TaskSchedulerBase("skia-task-scheduler", "104.154.112.128")
+	return TaskSchedulerBase("skia-task-scheduler", "35.202.175.145" /* Whitelisted in swarming, isolate and buildbucket servers */)
 }
 
 func TaskSchedulerInternal() *gce.Instance {
-	return TaskSchedulerBase("skia-task-scheduler-internal", "104.154.112.135")
+	return TaskSchedulerBase("skia-task-scheduler-internal", "35.184.167.88" /* Whitelisted in swarming, isolate and buildbucket servers */)
 }
 
 func main() {
