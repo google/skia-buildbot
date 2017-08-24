@@ -20,15 +20,15 @@ func PerfBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return PerfBase("skia-perf", "104.154.112.108")
+	return PerfBase("skia-perf", "35.192.9.78")
 }
 
 func AndroidMaster() *gce.Instance {
-	return PerfBase("skia-android-master-perf", "104.154.112.139")
+	return PerfBase("skia-android-master-perf", "35.202.218.36")
 }
 
 func Android() *gce.Instance {
-	return PerfBase("skia-android-perf", "104.154.112.137")
+	return PerfBase("skia-android-perf", "104.198.232.107")
 }
 
 func main() {
