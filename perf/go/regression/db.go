@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -96,6 +97,7 @@ func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions,
 	if subset == UNTRIAGED_SUBSET {
 		rows, err = db.DB.Query("SELECT cid, timestamp, body FROM regression WHERE triaged=false ORDER BY timestamp")
 	}
+	sklog.Warningf("Mysql Open Connections: %d", db.DB.Stats().OpenConnections)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query from database: %s", err)
 	}
