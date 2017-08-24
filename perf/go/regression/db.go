@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -34,7 +34,7 @@ func NewStore() *Store {
 
 // load Regressions stored for the given commit.
 func (s *Store) load(tx *sql.Tx, cid *cid.CommitDetail) (*Regressions, error) {
-	row := tx.QueryRow("SELECT cid, body FROM regression WHERE cid=?", cid.ID())
+	row := tx.QueryRow("SELECT cid, body FROM regression WHERE cid=? FOR UPDATE", cid.ID())
 	if row == nil {
 		return nil, fmt.Errorf("Failed to query database for %q.", cid.ID())
 	}
@@ -96,10 +96,14 @@ func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions,
 	if subset == UNTRIAGED_SUBSET {
 		rows, err = db.DB.Query("SELECT cid, timestamp, body FROM regression WHERE triaged=false ORDER BY timestamp")
 	}
+	sklog.Warningf("MySQL Open Connections: %d", db.DB.Stats().OpenConnections)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query from database: %s", err)
 	}
-	defer util.Close(rows)
+	defer func() {
+		err := rows.Close()
+		sklog.Errorf("MySQL error from iterating rows: %s %s", err, rows.Err())
+	}()
 	for rows.Next() {
 		var id string
 		var timestamp int64
@@ -129,7 +133,9 @@ func intx(f func(tx *sql.Tx) error) (err error) {
 
 	defer func() {
 		if err != nil {
-			_ = tx.Rollback()
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				err = fmt.Errorf("Error occurred in rollback: %s while attempting to recover from %s.", rollbackErr, err)
+			}
 			return
 		}
 		err = tx.Commit()
