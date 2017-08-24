@@ -17,11 +17,11 @@ func MonitoringBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return MonitoringBase("skia-monitoring", "104.154.112.119")
+	return MonitoringBase("skia-monitoring", "35.202.138.145" /* Whitelisted in skia-master-db cloud DB */)
 }
 
 func Staging() *gce.Instance {
-	return MonitoringBase("skia-monitoring-staging", "104.154.112.117")
+	return MonitoringBase("skia-monitoring-staging", "35.193.5.196")
 }
 
 func main() {
