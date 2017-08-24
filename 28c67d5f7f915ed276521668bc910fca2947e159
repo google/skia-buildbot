@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6dee9d44_5f20ab03",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-24T14:50:41Z",
+      "side": 1,
+      "message": "nit: rename LONG_RUNNING_TASKS_PRIORITY or add a new constant.",
+      "range": {
+        "startLine": 202,
+        "startChar": 18,
+        "endLine": 202,
+        "endChar": 38
+      },
+      "revId": "28c67d5f7f915ed276521668bc910fca2947e159",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
