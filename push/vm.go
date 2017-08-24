@@ -6,10 +6,9 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func PushBase(name, ipAddress string) *gce.Instance {
+func PushBase(name string) *gce.Instance {
 	vm := server.Server20170613(name)
 	vm.DataDisk = nil
-	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_1
 	vm.Metadata["owner_primary"] = "jcgregorio"
 
@@ -18,7 +17,7 @@ func PushBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return PushBase("skia-push", "104.154.112.100")
+	return PushBase("skia-push")
 }
 
 func main() {

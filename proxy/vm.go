@@ -5,10 +5,9 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func ProxyBase(name, ipAddress string) *gce.Instance {
+func ProxyBase(name string) *gce.Instance {
 	vm := server.Server20170613(name)
 	vm.DataDisk = nil
-	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
 	vm.Metadata["owner_primary"] = "jcgregorio"
 	vm.Metadata["owner_secondary"] = "borenet"
@@ -16,7 +15,7 @@ func ProxyBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return ProxyBase("skia-proxy", "104.154.112.136")
+	return ProxyBase("skia-proxy")
 }
 
 func main() {
