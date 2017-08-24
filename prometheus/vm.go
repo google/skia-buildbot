@@ -5,11 +5,10 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func PromBase(name, ipAddress string) *gce.Instance {
+func PromBase(name string) *gce.Instance {
 	vm := server.Server20170613(name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
 	vm.Metadata["owner_primary"] = "jcgregorio"
 	vm.Metadata["owner_secondary"] = "borenet"
@@ -17,7 +16,7 @@ func PromBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return PromBase("skia-prom", "104.154.112.98")
+	return PromBase("skia-prom")
 }
 
 func main() {
