@@ -30,7 +30,6 @@ func FuzzerBase(name string) *gce.Instance {
 
 func FrontEnd() *gce.Instance {
 	vm := FuzzerBase("skia-fuzzer-fe")
-	vm.ExternalIpAddress = "104.154.112.170"
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_8
 	return vm
 }
