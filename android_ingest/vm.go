@@ -6,10 +6,9 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func AndroidIngestBase(name, ipAddress string) *gce.Instance {
+func AndroidIngestBase(name string) *gce.Instance {
 	vm := server.Server20170613(name)
 	vm.DataDisk = nil
-	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_1
 	vm.Metadata["owner_primary"] = "jcgregorio"
 	vm.Metadata["owner_secondary"] = "stephana"
@@ -18,7 +17,7 @@ func AndroidIngestBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return AndroidIngestBase("skia-android-ingest", "104.154.112.97")
+	return AndroidIngestBase("skia-android-ingest")
 }
 
 func main() {
