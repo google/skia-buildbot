@@ -22,6 +22,29 @@
       "revId": "375b0da59a8368d6841e1a9042a4fc1cea4f999f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92342dcf_182ee722",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-24T19:24:53Z",
+      "side": 1,
+      "message": "Seems like this could overwrite your non-nil return value with nil.",
+      "range": {
+        "startLine": 136,
+        "startChar": 3,
+        "endLine": 136,
+        "endChar": 22
+      },
+      "revId": "375b0da59a8368d6841e1a9042a4fc1cea4f999f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
