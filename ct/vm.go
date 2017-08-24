@@ -9,22 +9,23 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func CtBase(name string) *gce.Instance {
+func CtBase(name, ipAddress string) *gce.Instance {
 	vm := server.Server20170613(name)
+	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "rmistry"
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
 	return vm
 }
 
 func CTFE() *gce.Instance {
-	vm := CtBase("skia-ctfe")
+	vm := CtBase("skia-ctfe", "35.202.138.233" /* Whitelisted in ctfe cloud DB */)
 	vm.DataDisk = nil
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
 	return vm
 }
 
 func CtMaster() *gce.Instance {
-	vm := CtBase("skia-ct-master")
+	vm := CtBase("skia-ct-master", "130.211.125.233" /* Whitelisted in swarming and isolate servers */)
 	vm.DataDisk.SizeGb = 500
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
