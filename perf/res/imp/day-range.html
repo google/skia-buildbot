@@ -21,89 +21,56 @@
     None.
 -->
 
-<link rel="import" href="/res/imp/rangesel.html" />
+<link rel="import" href="/res/imp/bower_components/paper-date-picker-item/paper-datetime-picker-item.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 
 <dom-module id="day-range-sk">
-  <style>
+  <style include="iron-flex iron-flex-alignment iron-positioning">
     :host {
       position: relative;
     }
 
-    range-sel-sk {
-      display: block;
-      margin-bottom: 2em;
+    paper-dialog {
+      padding: 1em;
+      width: 60em;
     }
 
-    #hbegin,
-    #hend {
-     display: inline-block;
-     margin: 0.5em 0 0.5em 0.5em;
-     padding: 0.4em;
-     border: solid 1px lightgray;
-    }
-
-    #ticks {
-      position: absolute;
-      width: 600px;
-      height: 40px;
-      top: 30px;
-      left: 10px;
-    }
-
-    .tick {
-      position: absolute;
-      border-left: solid gray 1px;
-      padding: 16px 0 0 4px;
-      font-size: 10px;
+    vaadin-date-picker {
+      display: inline-block;
     }
   </style>
   <template>
-    <range-sel-sk
-      begin="[[_pct_begin]]"
-      end="[[_pct_end]]"
-      on-range-change="_rangeChange"
-      on-range-change-end="_rangeChangeEnd"
-      ></range-sel-sk>
-    <div id=ticks>
-      <div id=m0  class=tick></div>
-      <div id=m1  class=tick></div>
-      <div id=m2  class=tick></div>
-      <div id=m3  class=tick></div>
-      <div id=m4  class=tick></div>
-      <div id=m5  class=tick></div>
-      <div id=m6  class=tick></div>
-      <div id=m7  class=tick></div>
-      <div id=m8  class=tick></div>
-      <div id=m9  class=tick></div>
-      <div id=m10 class=tick></div>
-      <div id=m11 class=tick></div>
-    </div>
-    <span id=hbegin></span>
-    <span id=hend></span>
+    <div>Begin: [[begin]] End: [[end]]</div>
+    <button on-tap="_edit">Edit</button>
+    <paper-dialog id=edit on-iron-overlay-closed=_onDialogClose>
+      <paper-datetime-picker-item on-date-changed=_beginCtrlChange id=begin date="{{_begin}}" label=Begin></paper-datetime-picker-item>
+      <paper-datetime-picker-item on-date-changed=_endCtrlChange   id=end date="{{_end}}"     label=End></paper-datetime-picker-item>
+      <div class="buttons">
+        <paper-button dialog-dismiss>Cancel</paper-button>
+        <paper-button dialog-confirm autofocus>Accept</paper-button>
+      </div>
+    </paper-dialog>
   </template>
 </dom-module>
 
 <script>
   (function () {
-    var MONTHS = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-      ];
 
     Polymer({
       is: "day-range-sk",
 
+      ready: function() {
+      },
+
       properties: {
+        _begin: {
+          type: Date,
+          value: new Date(),
+        },
+        _end: {
+          type: Date,
+          value: new Date(),
+        },
         begin: {
           type: Number,
           value: 0,
@@ -116,85 +83,39 @@
           reflectToAttribute: true,
           observer: "_endChange",
         },
-        now: {
-          type: Date,
-          value: Date.now(),
-        },
-        _pct_begin: {
-          type: Number,
-          value: 0,
-        },
-        _pct_end: {
-          type: Number,
-          value: 0,
-        },
       },
 
-      ready: function() {
-        this._calcTicks();
+      _edit: function() {
+        this.$.edit.open();
       },
 
-      _ts2Percent: function(ts) {
-        var t = new Date(ts*1000);
-        var diff = new Date(this.now - t);
-        return (1.0 - diff/(365*24*60*60*1000)) * 100;
-      },
-
-      _percent2Ts: function(p) {
-        return Math.floor((new Date(this.now - (1.0 - p/100)*(365*24*60*60*1000)))/1000);
+      _onDialogClose: function(e) {
+        if (!e.detail.confirmed) {
+          return
+        }
+        this.begin = this._begin.valueOf()/1000;
+        this.end = this._end.valueOf()/1000;
+        var detail = {
+          begin: this.begin,
+          end: this.end,
+        }
+        this.dispatchEvent(new CustomEvent('day-range-change', { detail: detail, bubbles: true }));
       },
 
       _beginChange: function() {
-        this.set("_pct_begin", this._ts2Percent(this.begin));
-        this._calcTicks();
-        this.$.hbegin.textContent = this._display(this._ts2Percent(this.begin));
+        this._begin = new Date(this.begin*1000);
       },
 
       _endChange: function() {
-        this.set("_pct_end", this._ts2Percent(this.end));
-        this._calcTicks();
-        this.$.hend.textContent = this._display(this._ts2Percent(this.end));
+        this._end = new Date(this.end*1000);
       },
 
-      _rangeChange: function(e) {
-        this.$.hbegin.textContent = this._display(e.detail.begin);
-        this.$.hend.textContent = this._display(e.detail.end);
+      _beginCtrlChange: function(e) {
+        console.log(e.detail.value);
       },
 
-      _rangeChangeEnd: function(e) {
-        this.set("begin", this._percent2Ts(e.detail.begin));
-        this.set("end", this._percent2Ts(e.detail.end));
-        var msg = {
-          begin: this.begin,
-          end: this.end,
-        };
-        this.fire("day-range-change", msg);
-      },
-
-      _display: function(p) {
-        var ts = this._percent2Ts(p);
-        // Convert ts to human friendly string.
-        var d = new Date(ts*1000);
-        return MONTHS[d.getMonth()] + " " + d.getDate();
-      },
-
-      _calcTicks: function() {
-        var d = new Date();
-        d.setDate(1);
-        var month = d.getMonth();
-        for (var i = 0; i < 12; i++) {
-          var ele = $$$('#m' + i, this);
-          ele.textContent = MONTHS[d.getMonth()];
-          ele.style.left = Math.floor(600*this._ts2Percent(d.valueOf()/1000)/100) - 2 + "px";
-          if (month == 0) {
-            d.setFullYear(d.getFullYear()-1);
-            month = 11;
-            d.setMonth(month);
-          } else {
-            month--;
-            d.setMonth(month);
-          }
-        }
+      _endCtrlChange: function(e) {
+        console.log(e.detail.value);
       },
 
     });
