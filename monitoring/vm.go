@@ -17,7 +17,7 @@ func MonitoringBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return MonitoringBase("skia-monitoring", "104.154.112.119")
+	return MonitoringBase("skia-monitoring", "104.154.112.119" /* Whitelisted in skia-master-db cloud DB */)
 }
 
 func Staging() *gce.Instance {
