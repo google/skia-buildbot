@@ -34,13 +34,9 @@ func NewStore() *Store {
 
 // load Regressions stored for the given commit.
 func (s *Store) load(tx *sql.Tx, cid *cid.CommitDetail) (*Regressions, error) {
-	row := tx.QueryRow("SELECT cid, body FROM regression WHERE cid=? FOR UPDATE", cid.ID())
-	if row == nil {
-		return nil, fmt.Errorf("Failed to query database for %q.", cid.ID())
-	}
 	var id string
 	var body string
-	if err := row.Scan(&id, &body); err != nil {
+	if err := db.DB.QueryRow("SELECT cid, body FROM regression WHERE cid=? FOR UPDATE", cid.ID()).Scan(&id, &body); err != nil {
 		return nil, fmt.Errorf("Failed to read from database: %s", err)
 	}
 	ret := New()
@@ -75,12 +71,8 @@ func (s *Store) store(tx *sql.Tx, cid *cid.CommitDetail, r *Regressions) error {
 func (s *Store) Untriaged() (int, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	row := db.DB.QueryRow("SELECT count(*) FROM regression WHERE triaged=false")
-	if row == nil {
-		return -1, fmt.Errorf("Failed to query database for count of untriaged regressions.")
-	}
 	var count int
-	if err := row.Scan(&count); err != nil {
+	if err := db.DB.QueryRow("SELECT count(*) FROM regression WHERE triaged=false").Scan(&count); err != nil {
 		return -1, fmt.Errorf("Failed to read from database: %s", err)
 	}
 	return count, nil
@@ -96,14 +88,14 @@ func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions,
 	if subset == UNTRIAGED_SUBSET {
 		rows, err = db.DB.Query("SELECT cid, timestamp, body FROM regression WHERE triaged=false ORDER BY timestamp")
 	}
-	sklog.Warningf("MySQL Open Connections: %d", db.DB.Stats().OpenConnections)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to query from database: %s", err)
-	}
 	defer func() {
 		err := rows.Close()
 		sklog.Errorf("MySQL error from iterating rows: %s %s", err, rows.Err())
 	}()
+	sklog.Warningf("MySQL Open Connections: %d", db.DB.Stats().OpenConnections)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to query from database: %s", err)
+	}
 	for rows.Next() {
 		var id string
 		var timestamp int64
