@@ -300,7 +300,7 @@
       },
 
       _traceSelected: function(e) {
-        var h = this._frame.dataframe.header[e.detail.index];
+        var h = this._frame.dataframe.header[e.detail.pt[0]];
         sk.post("/_/cid/", JSON.stringify([h])).then(JSON.parse).then(function(json){
           this.$.commits.setCommitDetail(json);
         }.bind(this)).catch(sk.errorMessage);
