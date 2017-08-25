@@ -176,7 +176,7 @@ func (r *AutoRoller) SetMode(m, user, message string) error {
 
 // Return the roll-up status of the bot.
 func (r *AutoRoller) GetStatus(includeError bool) *AutoRollStatus {
-	return r.status.Get(includeError)
+	return r.status.Get(includeError, nil)
 }
 
 // Return minimal status information for the bot.
