@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ae4416cb_fb2d106a",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-25T19:18:15Z",
+      "side": 1,
+      "message": "ReadObj and WriteObj are kind of duplicates of other functionality in the go/gcs package, but those weren\u0027t as convenient for this application as these are.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 55
+      },
+      "revId": "f1212ddca328e970b33df75365cb7eaf99661b9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
