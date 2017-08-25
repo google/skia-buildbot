@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "88961875_b80960d2",
+        "filename": "swarming_logger/go/process/ingest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-25T20:22:30Z",
+      "side": 1,
+      "message": "nit: \\n",
+      "range": {
+        "startLine": 117,
+        "startChar": 33,
+        "endLine": 117,
+        "endChar": 35
+      },
+      "revId": "0e414dac97735a160dc629ba6efb78c679ee9de5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bf539e5_42a44b70",
+        "filename": "swarming_logger/go/process/ingest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-25T20:22:30Z",
+      "side": 1,
+      "message": "nit: Need some overlap with the period used above; otherwise you\u0027ll miss some around 48 hours before \"now\".",
+      "range": {
+        "startLine": 142,
+        "startChar": 23,
+        "endLine": 142,
+        "endChar": 26
+      },
+      "revId": "0e414dac97735a160dc629ba6efb78c679ee9de5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b49f4aa_b23f3228",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-25T20:22:30Z",
+      "side": 1,
+      "message": "nit: not sure what this is used for, but ISTM sometimes a context is needed in order to clean up background processes on cancel, so you might want to do this:\nctx, cancel :\u003d context.WithCancel(context.Background())\ndefer cancel()\ngcs, err :\u003d storage.NewClient(ctx, option.WithHTTPClient(c))",
+      "range": {
+        "startLine": 316,
+        "startChar": 31,
+        "endLine": 316,
+        "endChar": 51
+      },
+      "revId": "0e414dac97735a160dc629ba6efb78c679ee9de5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
