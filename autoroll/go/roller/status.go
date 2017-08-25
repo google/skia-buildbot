@@ -62,12 +62,17 @@ type AutoRollStatusCache struct {
 }
 
 // Get returns the current status information.
-func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
+func (c *AutoRollStatusCache) Get(includeError bool, cleanIssue func(*autoroll.AutoRollIssue)) *AutoRollStatus {
+	if cleanIssue == nil {
+		cleanIssue = func(*autoroll.AutoRollIssue) {}
+	}
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 	recent := make([]*autoroll.AutoRollIssue, 0, len(c.recent))
 	for _, r := range c.recent {
-		recent = append(recent, r.Copy())
+		cpy := r.Copy()
+		cleanIssue(cpy)
+		recent = append(recent, cpy)
 	}
 	validModes := make([]string, len(modes.VALID_MODES))
 	copy(validModes, modes.VALID_MODES)
@@ -91,9 +96,11 @@ func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 	if c.currentRoll != nil {
 		s.CurrentRoll = c.currentRoll.Copy()
 		s.AutoRollMiniStatus.CurrentRollRev = c.currentRoll.RollingTo
+		cleanIssue(s.CurrentRoll)
 	}
 	if c.lastRoll != nil {
 		s.LastRoll = c.lastRoll.Copy()
+		cleanIssue(s.CurrentRoll)
 	}
 	if c.mode != nil {
 		s.Mode = c.mode.Copy()
