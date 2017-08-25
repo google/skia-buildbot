@@ -109,7 +109,7 @@ func New(dir string) (*BoltTraceStore, error) {
 	bs := &BoltTraceStore{
 		dir:      dir,
 		cache:    map[string]*bolt.DB{},
-		cacheLen: metrics2.GetInt64Metric("perf.ptracestore.cache.len", nil),
+		cacheLen: metrics2.GetInt64Metric("perf_ptracestore_cache_len", nil),
 	}
 	go bs.metrics()
 	return bs, nil
