@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "705fc930_812324c3",
+        "filename": "android_ingest/go/poprepo/poprepo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-25T20:36:33Z",
+      "side": 1,
+      "message": "This shouldn\u0027t be needed, but I guess better safe than sorry?",
+      "range": {
+        "startLine": 46,
+        "startChar": 24,
+        "endLine": 46,
+        "endChar": 47
+      },
+      "revId": "16eeb1ae2239929964907020327965061880b9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
