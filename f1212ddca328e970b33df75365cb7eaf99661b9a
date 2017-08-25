@@ -22,6 +22,52 @@
       "revId": "f1212ddca328e970b33df75365cb7eaf99661b9a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64cb27e6_8c579c4d",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-25T20:18:12Z",
+      "side": 1,
+      "message": "IIRC, the API isn\u0027t smart enough to automatically gzip your files. You need to do something like:\nw.ObjectAttrs.ContentEncoding \u003d \"gzip\"\ngzW :\u003d gzip.NewWriter(w)\ngzW.Write(content)\n\nExample here: https://skia.googlesource.com/buildbot/+/4198b2f7e5b0c5c232ecb5f30f5e8dd99eeb9d23/task_scheduler/go/db/recovery/backups.go#242",
+      "range": {
+        "startLine": 47,
+        "startChar": 1,
+        "endLine": 47,
+        "endChar": 2
+      },
+      "revId": "f1212ddca328e970b33df75365cb7eaf99661b9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bcc47c6_ae12f94c",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-25T20:18:12Z",
+      "side": 1,
+      "message": "Need to check if w.Close() returns an error.",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 17
+      },
+      "revId": "f1212ddca328e970b33df75365cb7eaf99661b9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
