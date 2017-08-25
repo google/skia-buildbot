@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"go.skia.org/infra/go/sklog"
 
@@ -31,14 +32,19 @@ type PopRepoI interface {
 
 	// Add a new buildid to the repo.
 	Add(buildid, ts int64) error
+
+	// LookupBuildID looks up a buildid from the git hash.
+	LookupBuildID(hash string) (int64, error)
 }
 
 // PopRepo implements PopRepoI.
 type PopRepo struct {
-	checkout  *git.Checkout
 	workdir   string
 	local     bool
 	subdomain string
+
+	mutex    sync.Mutex // mutex protects checkout.
+	checkout *git.Checkout
 }
 
 // NewPopRepo returns a *PopRepo that writes and reads BuildIds into the
@@ -58,6 +64,8 @@ func NewPopRepo(checkout *git.Checkout, local bool, subdomain string) *PopRepo {
 // GetLast returns the last buildid, the timestamp of when that buildid was
 // added, and the git hash.
 func (p *PopRepo) GetLast() (int64, int64, string, error) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 	fullpath := filepath.Join(p.checkout.Dir(), BUILDID_FILENAME)
 	b, err := ioutil.ReadFile(fullpath)
 	if err != nil {
@@ -83,9 +91,22 @@ func (p *PopRepo) GetLast() (int64, int64, string, error) {
 	return buildid, ts, hash, nil
 }
 
+func (p *PopRepo) LookupBuildID(hash string) (int64, error) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	commit, err := p.checkout.Details(hash)
+	if err != nil {
+		return -1, fmt.Errorf("Failed looking up buildid: %s", err)
+	}
+	parts := strings.Split(commit.Subject, "/")
+	return strconv.ParseInt(parts[len(parts)-1], 10, 64)
+}
+
 // Add a new buildid and its assocatied Unix timestamp to the repo.
 //
 func (p *PopRepo) Add(buildid int64, ts int64) error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 	rollback := false
 	defer func() {
 		if !rollback {

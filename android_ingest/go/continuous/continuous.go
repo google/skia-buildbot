@@ -20,8 +20,9 @@ import (
 // buildids against a given branch and then updates poprepo with those new
 // buildids.
 type Process struct {
+	Repo *poprepo.PopRepo
+
 	api    *buildapi.API
-	repo   *poprepo.PopRepo
 	branch string
 	lookup *lookup.Cache
 }
@@ -39,7 +40,7 @@ func New(branch string, checkout *git.Checkout, lookupCache *lookup.Cache, clien
 	}
 	return &Process{
 		api:    api,
-		repo:   repo,
+		Repo:   repo,
 		branch: branch,
 		lookup: lookupCache,
 	}, nil
@@ -48,7 +49,7 @@ func New(branch string, checkout *git.Checkout, lookupCache *lookup.Cache, clien
 // Last returns the last buildid, its timestamp, and git hash, or a non-nil
 // error if and error occurred.
 func (c *Process) Last() (int64, int64, string, error) {
-	return c.repo.GetLast()
+	return c.Repo.GetLast()
 }
 
 // Start a Go routine that does the work.
@@ -59,7 +60,7 @@ func (c *Process) Start() {
 		failures := metrics2.GetCounter("process_failures", nil)
 		for range time.Tick(time.Minute) {
 			t.Start()
-			buildid, _, _, err := c.repo.GetLast()
+			buildid, _, _, err := c.Repo.GetLast()
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get last buildid: %s", err)
@@ -72,7 +73,7 @@ func (c *Process) Start() {
 				continue
 			}
 			for _, b := range builds {
-				if err := c.repo.Add(b.BuildId, b.TS); err != nil {
+				if err := c.Repo.Add(b.BuildId, b.TS); err != nil {
 					failures.Inc(1)
 					sklog.Errorf("Failed to add new buildid to repo: %s", err)
 					// Break since we don't want to add anymore buildids until this one
@@ -80,7 +81,7 @@ func (c *Process) Start() {
 					break
 				}
 				// Keep lookup.Cache up to date.
-				buildid, _, hash, err := c.repo.GetLast()
+				buildid, _, hash, err := c.Repo.GetLast()
 				if err != nil {
 					failures.Inc(1)
 					sklog.Errorf("Failed to lookup newly added buildid to repo: %s", err)
