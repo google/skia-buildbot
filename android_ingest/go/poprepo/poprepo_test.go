@@ -56,6 +56,12 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, int64(0), buildid)
 	assert.Equal(t, int64(0), ts)
 	assert.Len(t, hash, 40)
+	foundBuildID, err := p.LookupBuildID(hash)
+	assert.NoError(t, err)
+	assert.Equal(t, buildid, foundBuildID)
+
+	foundBuildID, err = p.LookupBuildID("notahash")
+	assert.Error(t, err)
 
 	// Add a couple more commits.
 	err = p.Add(3516196, 1479855768)
