@@ -22,6 +22,30 @@
       "revId": "16eeb1ae2239929964907020327965061880b9d1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6ffa5dd_01299907",
+        "filename": "android_ingest/go/poprepo/poprepo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-28T14:12:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "705fc930_812324c3",
+      "range": {
+        "startLine": 46,
+        "startChar": 24,
+        "endLine": 46,
+        "endChar": 47
+      },
+      "revId": "16eeb1ae2239929964907020327965061880b9d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
