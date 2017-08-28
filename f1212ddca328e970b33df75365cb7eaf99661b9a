@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "5d2de4f4_43cd34f4",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-28T12:23:00Z",
+      "side": 1,
+      "message": "Done. I assume that the API will automatically un-gzip during reading.  Are the ContentType and ContentDisposition used for in-browser downloads?  Should I add those here as well?",
+      "parentUuid": "64cb27e6_8c579c4d",
+      "range": {
+        "startLine": 47,
+        "startChar": 1,
+        "endLine": 47,
+        "endChar": 2
+      },
+      "revId": "f1212ddca328e970b33df75365cb7eaf99661b9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4bcc47c6_ae12f94c",
         "filename": "go/gcs/mass_process/utils.go",
         "patchSetId": 1
@@ -59,6 +83,30 @@
       "writtenOn": "2017-08-25T20:18:12Z",
       "side": 1,
       "message": "Need to check if w.Close() returns an error.",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 17
+      },
+      "revId": "f1212ddca328e970b33df75365cb7eaf99661b9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf80f3b6_e09ce9b4",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-28T12:23:00Z",
+      "side": 1,
+      "message": "Okay, this got confusing with three layers of io.Writer involved, so I added util.WithBufferedWriter and util.WithGzipWriter to manage the flushing/closing of those writers.  That allowed me to remove the defer altogether and just return w.Close().",
+      "parentUuid": "4bcc47c6_ae12f94c",
       "range": {
         "startLine": 48,
         "startChar": 1,
