@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d6f18acf_323ff433",
+        "filename": "swarming_logger/go/process/ingest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-28T12:27:45Z",
+      "side": 1,
+      "message": "Whoops, done.",
+      "parentUuid": "88961875_b80960d2",
+      "range": {
+        "startLine": 117,
+        "startChar": 33,
+        "endLine": 117,
+        "endChar": 35
+      },
+      "revId": "0e414dac97735a160dc629ba6efb78c679ee9de5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2bf539e5_42a44b70",
         "filename": "swarming_logger/go/process/ingest.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "4f370f41_7e92d235",
+        "filename": "swarming_logger/go/process/ingest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-28T12:27:45Z",
+      "side": 1,
+      "message": "Extended the window to -24 hours.",
+      "parentUuid": "2bf539e5_42a44b70",
+      "range": {
+        "startLine": 142,
+        "startChar": 23,
+        "endLine": 142,
+        "endChar": 26
+      },
+      "revId": "0e414dac97735a160dc629ba6efb78c679ee9de5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4b49f4aa_b23f3228",
         "filename": "swarming_logger/go/swarming_logger/main.go",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2017-08-25T20:22:30Z",
       "side": 1,
       "message": "nit: not sure what this is used for, but ISTM sometimes a context is needed in order to clean up background processes on cancel, so you might want to do this:\nctx, cancel :\u003d context.WithCancel(context.Background())\ndefer cancel()\ngcs, err :\u003d storage.NewClient(ctx, option.WithHTTPClient(c))",
+      "range": {
+        "startLine": 316,
+        "startChar": 31,
+        "endLine": 316,
+        "endChar": 51
+      },
+      "revId": "0e414dac97735a160dc629ba6efb78c679ee9de5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f5bc06a_8b8b0243",
+        "filename": "swarming_logger/go/swarming_logger/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-28T12:27:45Z",
+      "side": 1,
+      "message": "SGTM, done.  I have generally been lazy and just supplied context.Background() in a lot of places where the storage API asks for a context.",
+      "parentUuid": "4b49f4aa_b23f3228",
       "range": {
         "startLine": 316,
         "startChar": 31,
