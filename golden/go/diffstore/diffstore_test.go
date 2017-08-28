@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"net"
+	"net/http/httptest"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -35,6 +36,8 @@ const (
 
 	// PNG extension.
 	DOT_EXT = ".png"
+
+	IMAGE_URL_PREFIX = "/img/"
 )
 
 func TestMemDiffStore(t *testing.T) {
@@ -96,13 +99,28 @@ func TestNetDiffStore(t *testing.T) {
 	lis, err := net.Listen("tcp", "localhost:0")
 	assert.NoError(t, err)
 
-	// Start the server.
+	// Start the grpc server.
 	server := grpc.NewServer()
 	RegisterDiffServiceServer(server, serverImpl)
 	go func() {
 		_ = server.Serve(lis)
 	}()
 	defer server.Stop()
+
+	// Start the http server.
+	imgHandler, err := memDiffStore.ImageHandler(IMAGE_URL_PREFIX)
+	assert.NoError(t, err)
+
+	httpServer := httptest.NewServer(imgHandler)
+	defer func() { httpServer.Close() }()
+
+	// lis, err = net.Listen("tcp", "localhost:0")
+	// assert.NoError(t, err)
+	// http.Serve(lis, imgHandler)
+
+	// go func() {
+	// 	_ = http.S
+	// }
 
 	// Create the NetDiffStore.
 	addr := lis.Addr().String()
@@ -112,7 +130,7 @@ func TestNetDiffStore(t *testing.T) {
 		assert.NoError(t, conn.Close())
 	}()
 
-	netDiffStore, err := NewNetDiffStore(conn, "", codec)
+	netDiffStore, err := NewNetDiffStore(conn, httpServer.Listener.Addr().String(), codec, IMAGE_URL_PREFIX)
 	assert.NoError(t, err)
 
 	// run tests against it.
@@ -191,6 +209,16 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	ti.Stop()
 	memDiffStore.sync()
 	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
+
+	for _, digest := range digests {
+		firstImg, err := diffStore.GetImage(digest)
+		assert.NoError(t, err)
+
+		secondImg, err := memDiffStore.GetImage(digest)
+		assert.NoError(t, err)
+
+		assert.Equal(t, firstImg, secondImg)
+	}
 }
 
 func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]interface{}) {
