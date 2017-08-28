@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "125eedc8_aa065bc0",
+        "filename": "go/gcs/mass_process/reduce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-28T13:35:43Z",
+      "side": 1,
+      "message": "The problem is that we need to know how to (de)serialize the intermediate type so that we can store and retrieve from GS.  It would have to be something like:\n\ntype Serializable interface {\n    Serialize() ([]byte, error)\n    Deserialize([]byte) error\n}\n\ntype Reduction interface {\n    Decode([]byte) (Serializable, error)\n    Reduce(Serializable, Serializable) (Serializable, error)\n    Encode(Serializable) ([]byte, error)\n}\n\nOr to be even more explicit:\n\ntype Serializable interface {\n    Serialize() ([]byte, error)\n}\ntype Deserializable interface {\n    Deserialize([]byte) error\n}\n\ntype StartRepresentation interface {\n    Deserializable\n}\ntype IntermediateRepresentation interface {\n    Serializable\n    Deserializable\n}\ntype FinalRepresentation interface {\n    Serializable\n}\n\ntype Reduction interface {\n    Decode(StartRepresentation) (IntermediateRepresentation, error)\n    Reduce(IntermediateRepresentation, IntermediateRepresentation) (IntermediateRepresentation, error)\n    Encode(IntermediateRepresentation) (FinalRepresentation, error)\n}",
+      "parentUuid": "d598e1a4_7d2a5726",
+      "revId": "94c49d072af613c3093775cc89052e89a57fb782",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2108fb0b_19c4cda2",
         "filename": "go/gcs/mass_process/reduce.go",
         "patchSetId": 2
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "7e4e22fc_3a9122f1",
+        "filename": "go/gcs/mass_process/reduce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-28T13:35:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2108fb0b_19c4cda2",
+      "range": {
+        "startLine": 30,
+        "startChar": 74,
+        "endLine": 30,
+        "endChar": 81
+      },
+      "revId": "94c49d072af613c3093775cc89052e89a57fb782",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d51cb7ad_fa98653f",
         "filename": "go/gcs/mass_process/reduce.go",
         "patchSetId": 2
@@ -53,6 +95,24 @@
       "writtenOn": "2017-08-28T13:16:08Z",
       "side": 1,
       "message": "Why use bucket handles instead of just bucket names ? In the latter case it would be independent of a specific GS client library.",
+      "revId": "94c49d072af613c3093775cc89052e89a57fb782",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47816f0b_600764f5",
+        "filename": "go/gcs/mass_process/reduce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-28T13:35:43Z",
+      "side": 1,
+      "message": "IMO this is more convenient than having to pass around both an API client object and a bucket name.",
+      "parentUuid": "d51cb7ad_fa98653f",
       "revId": "94c49d072af613c3093775cc89052e89a57fb782",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
