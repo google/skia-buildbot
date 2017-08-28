@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "b7cfc478_8060a34c",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-28T16:00:01Z",
+      "side": 1,
+      "message": "IIUC, ungzipping happens within GCS, based on whether the Accept-Encoding header of the request contains gzip. More detail: https://cloud.google.com/storage/docs/transcoding\n\nFor ContentType and ContentDisposition, there\u0027s no good default. If the caller cares, it\u0027s probably best to just inline this function and modify it.",
+      "parentUuid": "5d2de4f4_43cd34f4",
+      "range": {
+        "startLine": 47,
+        "startChar": 1,
+        "endLine": 47,
+        "endChar": 2
+      },
+      "revId": "f1212ddca328e970b33df75365cb7eaf99661b9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4bcc47c6_ae12f94c",
         "filename": "go/gcs/mass_process/utils.go",
         "patchSetId": 1
