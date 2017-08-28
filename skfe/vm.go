@@ -23,7 +23,7 @@ func Prod(num int, ip string) *gce.Instance {
 
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"prod-1": Prod(1, "104.154.112.11"),
-		"prod-2": Prod(2, "104.154.112.103"),
+		"prod-1": Prod(1, "162.222.181.128"),
+		"prod-2": Prod(2, "104.197.236.174"),
 	})
 }
