@@ -13,11 +13,15 @@ BOWER_DIR=third_party/bower_components
 include ../go/depot_tools/depot_tools.mk
 include ../go/skiaversion/skiaversion.mk
 
-all: autoroll
+all: autoroll g3roll
 
 autoroll: core_js depot_tools elements_html skiaversion
 	ln -sf ../../res res/imp/res
 	go install -v ./go/autoroll
+
+.PHONY: g3roll
+g3roll: autoroll
+	go install -v ./go/g3roll
 
 testgo: depot_tools skiaversion
 	go test ./go/... -v
@@ -28,7 +32,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-release: autoroll android_master_release android_o_release angle_release catapult_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release
+release: autoroll android_master_release android_o_release angle_release catapult_release google3_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release
 
 android_master_release: autoroll
 	./build_android_master_release "$(MESSAGE)"
@@ -41,6 +45,10 @@ angle_release: autoroll
 
 catapult_release: autoroll
 	./build_catapult_release "$(MESSAGE)"
+
+.PHONY: google3_release
+google3_release: g3roll
+	./build_google3_release "$(MESSAGE)"
 
 nacl_release: autoroll
 	./build_nacl_release "$(MESSAGE)"

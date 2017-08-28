@@ -30,6 +30,12 @@
         "pulld",
       ],
     },
+    "google3-autoroll": {
+      "AppNames": [
+        "google3-autorolld",
+        "pulld",
+      ],
+    },
     "catapult-autoroll": {
       "AppNames": [
         "catapult-autorolld",
