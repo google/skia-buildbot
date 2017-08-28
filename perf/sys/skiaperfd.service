@@ -10,6 +10,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --git_repo_dir=/mnt/pd0/skiaperf/repo  \
     --config_filename=/etc/skiaperf/ingest.json5 \
     --logtostderr \
+    --commit_range_url=https://skia.googlesource.com/skia/+log/{begin}..{end} \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store
 
 Restart=always

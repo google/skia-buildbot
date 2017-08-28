@@ -142,8 +142,10 @@
       display: none;
     }
 
+    #rangelink,
     #permalink {
       color: #1f78b4;
+      margin: 1em;
     }
 
     input {
@@ -184,6 +186,7 @@
         <div>
           <button id="shortcut" on-click="_openShortcut">View on dashboard</button>
           <a id="permalink" class$="[[_hiddenClass(triage.status)]]" href$="[[_permaLink(_frame)]]">Permlink</a>
+          <a id=rangelink href="" target=_blank></a>
         </div>
         <toggle-display-sk>Word Cloud</toggle-display-sk>
         <word-cloud2-sk id=wordcloud items="[[_summary.param_summaries]]"></word-cloud2-sk>
@@ -277,6 +280,32 @@
           if (xbar != -1) {
             this.$.graph.setXBar(xbar);
           }
+
+          // Populate rangelink.
+          if (sk.perf.commit_range_url !== "") {
+            // First find the commit at step_fit, and the next previous commit that has data.
+            var prevCommit = xbar-1;
+            while (prevCommit > 0 && this._summary.centroid[prevCommit] == 1e32) {
+              prevCommit -= 1;
+            }
+            var cids = [this._frame.dataframe.header[prevCommit], this._frame.dataframe.header[xbar]];
+            // Run those through cid lookup to get the hashes.
+            sk.post("/_/cid/", JSON.stringify(cids)).then(JSON.parse).then(function(json){
+              // Create the URL.
+              var url = sk.perf.commit_range_url;
+              url = url.replace("{begin}", json[0].hash);
+              url = url.replace("{end}", json[1].hash);
+              // Now populate link, including text and href.
+              this.$.rangelink.href=url;
+              this.$.rangelink.innerText="Commits At Step";
+            }.bind(this)).catch(sk.errorMessage);
+          } else {
+            this.$.rangelink.href="";
+            this.$.rangelink.innerText="";
+          }
+        } else {
+          this.$.rangelink.href="";
+          this.$.rangelink.innerText="";
         }
       },
 
