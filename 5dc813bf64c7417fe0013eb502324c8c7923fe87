@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3dab42a_27d5c68c",
+        "filename": "autoroll/res/imp/arb-status-sk-demo.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-28T19:10:13Z",
+      "side": 0,
+      "message": "I didn\u0027t notice that all of these are \"failed\" -- is that intentional or coincidental?",
+      "range": {
+        "startLine": 88,
+        "startChar": 27,
+        "endLine": 88,
+        "endChar": 33
+      },
+      "revId": "5dc813bf64c7417fe0013eb502324c8c7923fe87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

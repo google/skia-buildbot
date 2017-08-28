@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49c3297f_b778298d",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-28T19:10:13Z",
+      "side": 1,
+      "message": "This change should be a no-op, given that our servers only run on 64-bit machines. Just wanted to be explicit that we expect a 64-bit int.",
+      "range": {
+        "startLine": 18,
+        "startChar": 21,
+        "endLine": 18,
+        "endChar": 29
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
