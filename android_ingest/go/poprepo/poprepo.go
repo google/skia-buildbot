@@ -31,6 +31,9 @@ type PopRepoI interface {
 
 	// Add a new buildid to the repo.
 	Add(buildid, ts int64) error
+
+	// LookupBuildID looks up a buildid from the git hash.
+	LookupBuildID(hash string) (int64, error)
 }
 
 // PopRepo implements PopRepoI.
@@ -81,6 +84,15 @@ func (p *PopRepo) GetLast() (int64, int64, string, error) {
 		return 0, 0, "", fmt.Errorf("Unable to retrieve git hash: %s", err)
 	}
 	return buildid, ts, hash, nil
+}
+
+func (p *PopRepo) LookupBuildID(hash string) (int64, error) {
+	commit, err := p.checkout.Details(hash)
+	if err != nil {
+		return -1, fmt.Errorf("Failed looking up buildid: %s", err)
+	}
+	parts := strings.Split(commit.Subject, "/")
+	return strconv.ParseInt(parts[len(parts)-1], 10, 64)
 }
 
 // Add a new buildid and its assocatied Unix timestamp to the repo.
