@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ee90399_4745270f",
+        "filename": "perf/sys/skiaperfd.service",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-28T20:00:14Z",
+      "side": 1,
+      "message": "Other option is to use the existing gitRepoURL flag to get the commit range and use a new boolean flag here to say whether commit ranges should be displayed (assuming that we do not want to display for all instances of perf).",
+      "revId": "5b8511d2940e31863ef8651e9b2d58024edc70b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
