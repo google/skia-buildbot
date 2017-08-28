@@ -81,6 +81,7 @@ var (
 var (
 	algo                  = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
 	configFilename        = flag.String("config_filename", "default.json5", "Configuration file in TOML format.")
+	commitRangeURL        = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
@@ -141,11 +142,12 @@ func loadTemplates() {
 // SkPerfConfig is the configuration data that will appear
 // in Javascript under the sk.perf variable.
 type SkPerfConfig struct {
-	Radius      int      `json:"radius"`       // The number of commits when doing clustering.
-	KeyOrder    []string `json:"key_order"`    // The order of the keys to appear first in query2-sk elements.
-	NumShift    int      `json:"num_shift"`    // The number of commits the shift navigation buttons should jump.
-	Interesting float32  `json:"interesting"`  // The threshold for a cluster to be interesting.
-	StepUpOnly  bool     `json:"step_up_only"` // If true then only regressions that are a step up are displayed.
+	Radius         int      `json:"radius"`           // The number of commits when doing clustering.
+	KeyOrder       []string `json:"key_order"`        // The order of the keys to appear first in query2-sk elements.
+	NumShift       int      `json:"num_shift"`        // The number of commits the shift navigation buttons should jump.
+	Interesting    float32  `json:"interesting"`      // The threshold for a cluster to be interesting.
+	StepUpOnly     bool     `json:"step_up_only"`     // If true then only regressions that are a step up are displayed.
+	CommitRangeURL string   `json:"commit_range_url"` // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
 }
 
 func templateHandler(name string) http.HandlerFunc {
@@ -155,11 +157,12 @@ func templateHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		context := SkPerfConfig{
-			Radius:      *radius,
-			KeyOrder:    strings.Split(*keyOrder, ","),
-			NumShift:    *numShift,
-			Interesting: float32(*interesting),
-			StepUpOnly:  *stepUpOnly,
+			Radius:         *radius,
+			KeyOrder:       strings.Split(*keyOrder, ","),
+			NumShift:       *numShift,
+			Interesting:    float32(*interesting),
+			StepUpOnly:     *stepUpOnly,
+			CommitRangeURL: *commitRangeURL,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
