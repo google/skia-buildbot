@@ -93,6 +93,30 @@
       "revId": "a34e8d0349f190f2ed85dc79f046314dba53e123",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c382b7b_1b5eaafb",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-29T11:39:28Z",
+      "side": 1,
+      "message": "I think only CT master uses this and it does not reuse checkouts. It cleans up the workDir after every task run.",
+      "parentUuid": "00b19b9e_8461dc00",
+      "range": {
+        "startLine": 222,
+        "startChar": 1,
+        "endLine": 222,
+        "endChar": 62
+      },
+      "revId": "a34e8d0349f190f2ed85dc79f046314dba53e123",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
