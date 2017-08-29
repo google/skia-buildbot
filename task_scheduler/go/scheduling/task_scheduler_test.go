@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
+	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -176,7 +177,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task, dims map[s
 }
 
 // Common setup for TaskScheduler tests.
-func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming.TestClient, *TaskScheduler, *mockhttpclient.URLMock, func()) {
+func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
@@ -189,7 +190,7 @@ func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming.TestClient
 	d := db.NewInMemoryDB()
 	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
-	swarmingClient := swarming.NewTestClient()
+	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
 	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
@@ -1870,7 +1871,7 @@ func (s *spyDB) PutTasks(tasks []*db.Task) error {
 	return s.DB.PutTasks(tasks)
 }
 
-func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *TaskScheduler, *swarming.TestClient, []string, func(*db.Task), func()) {
+func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*db.Task), func()) {
 	testutils.LargeTest(t)
 	testutils.SkipIfShort(t)
 
@@ -1920,7 +1921,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 	d := db.NewInMemoryDB()
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
-	swarmingClient := swarming.NewTestClient()
+	swarmingClient := swarming_testutils.NewTestClient()
 	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, workdir)
 	assert.NoError(t, err)
 	projectRepoMapping := map[string]string{
