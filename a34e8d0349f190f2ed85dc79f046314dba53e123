@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6fedee86_34711eae",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-29T11:39:16Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f7c9841f_2f762c0e",
+      "range": {
+        "startLine": 26,
+        "startChar": 29,
+        "endLine": 26,
+        "endChar": 83
+      },
+      "revId": "a34e8d0349f190f2ed85dc79f046314dba53e123",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00b19b9e_8461dc00",
         "filename": "go/swarming/swarming.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-29T04:21:23Z",
       "side": 1,
       "message": "I have very strong suspicion there are places that won\u0027t switch to the new repo URL because it seems git.NewCheckout doesn\u0027t support changing remote\u0027s URL. If I read https://skia.googlesource.com/buildbot/+/master/go/git/gitdir.go#33 correctly, \u0027newGitDir\u0027 will just discover existing \u0027client-py\u0027 git directory and will use it without changing remote.\n\nShould I bother with fixing this or you are sure that git checkouts are not reused anywhere?",
+      "range": {
+        "startLine": 222,
+        "startChar": 1,
+        "endLine": 222,
+        "endChar": 62
+      },
+      "revId": "a34e8d0349f190f2ed85dc79f046314dba53e123",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d934483_6ca61517",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-29T11:39:16Z",
+      "side": 1,
+      "message": "From what I can tell, NewSwarmingClient is used by CT utils and our run_on_swarming_bots app.  The latter is run by hand, so we can let that fail and have the human (usually Ravi or I) just delete the checkout on their machine and let it sync again.  I\u0027ll let Ravi respond about CT and whether this will cause big problems there.\n\nI\u0027m not opposed to doing a check in newGitDir to verify that we have the expected remote URL and doing a \"git remote set-url\" + \"git fetch\" + \"git reset --hard\" (for Checkout), but this is a rare case (I think this is the first time it\u0027s happened) so if it\u0027s not too terrible we could just delete checkouts and start over.",
+      "parentUuid": "00b19b9e_8461dc00",
       "range": {
         "startLine": 222,
         "startChar": 1,
