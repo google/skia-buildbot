@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/recovery"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 )
 
@@ -564,9 +565,9 @@ func main() {
 	// Initialize Swarming client.
 	var swarm swarming.ApiClient
 	if *local {
-		swarmTestClient := swarming.NewTestClient()
-		swarmTestClient.MockBots(mockSwarmingBotsForAllTasksForTesting(repos))
-		go periodicallyUpdateMockTasksForTesting(swarmTestClient)
+		swarmTestClient := testutils.NewTestClient()
+		swarmTestClient.MockBots(testutils.MockSwarmingBotsForAllTasksForTesting(repos))
+		go testutils.PeriodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
 	} else {
 		tp := httputils.NewBackOffTransport().(*httputils.BackOffTransport)

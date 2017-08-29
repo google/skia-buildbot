@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/perfclient"
 
-	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
@@ -79,9 +78,12 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake some tasks in Swarming.
-	swarm := swarming.NewTestClient()
+	swarm := swarming.NewMockApiClient()
+	defer swarm.AssertExpectations(t)
 	pc := perfclient.NewMockPerfClient()
+	defer pc.AssertExpectations(t)
 	mp := taskname.NewMockTaskNameParser()
+	defer mp.AssertExpectations(t)
 	now := time.Now()
 	lastLoad := now.Add(-time.Hour)
 
@@ -97,13 +99,10 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	t1 := makeTask("1", "my-task", cr, st, co, d, nil, 0.0, 0.0, 0.0)
 	t2 := makeTask("2", "my-task", cr.Add(time.Second), st, util.TimeZero, d, nil, 0.0, 0.0, 0.0)
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
-	swarm.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2})
+	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2}, nil)
 
 	edb, err := events.NewEventDB(path.Join(wd, "events.db"))
 	assert.NoError(t, err)
-
-	pc.On("PushToPerf", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	mp.On("ParseTaskName", mock.AnythingOfType("string")).Return(map[string]string{}, nil)
 
 	// Load Swarming tasks.
 	revisit := []string{}
@@ -117,14 +116,20 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(ev))
 
+	// datahopper will follow up on the revisit list (which is t2's id)
+	swarm.On("GetTaskMetadata", "2").Return(t2, nil)
+
 	// The second task is finished.
 	t2.TaskResult.State = swarming.TASK_STATE_COMPLETED
 	t2.TaskResult.CompletedTs = now.Add(5 * time.Minute).UTC().Format(swarming.TIMESTAMP_FORMAT)
-	swarm.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t2})
 
-	// Load Swarming tasks again.
 	lastLoad = now
 	now = now.Add(10 * time.Minute)
+
+	// This is empty because datahopper will pull in the task data from revisit
+	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
+
+	// Load Swarming tasks again.
 	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 
@@ -144,9 +149,14 @@ func TestMetrics(t *testing.T) {
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake a task in Swarming.
-	swarm := swarming.NewTestClient()
+	swarm := swarming.NewMockApiClient()
+	defer swarm.AssertExpectations(t)
 	pc := perfclient.NewMockPerfClient()
+	defer pc.AssertExpectations(t)
 	mp := taskname.NewMockTaskNameParser()
+	defer mp.AssertExpectations(t)
+	// This needs to be now, otherwise the metrics won't be aggregated
+	// due to the requirment to list the period (e.g. 24h)
 	now := time.Now()
 	lastLoad := now.Add(-time.Hour)
 
@@ -163,14 +173,11 @@ func TestMetrics(t *testing.T) {
 	t1.TaskResult.PerformanceStats.BotOverhead = 21
 	t1.TaskResult.PerformanceStats.IsolatedUpload.Duration = 13
 	t1.TaskResult.PerformanceStats.IsolatedDownload.Duration = 7
-	swarm.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1})
+	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1}, nil)
 
 	// Setup the metrics.
 	edb, em, err := setupMetrics(wd)
 	assert.NoError(t, err)
-
-	pc.On("PushToPerf", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	mp.On("ParseTaskName", mock.AnythingOfType("string")).Return(map[string]string{}, nil)
 
 	// Load the Swarming task, ensure that it got inserted.
 	revisit := []string{}
@@ -220,7 +227,8 @@ func TestPerfUpload(t *testing.T) {
 	defer testutils.RemoveAll(t, wd)
 
 	// Fake some tasks in Swarming.
-	swarm := swarming.NewTestClient()
+	swarm := swarming.NewMockApiClient()
+	defer swarm.AssertExpectations(t)
 	pc := perfclient.NewMockPerfClient()
 	defer pc.AssertExpectations(t)
 	mp := taskname.NewMockTaskNameParser()
@@ -251,7 +259,7 @@ func TestPerfUpload(t *testing.T) {
 	t3 := makeTask("3", "my-task", cr.Add(2*time.Second), st, now.Add(-time.Minute), d, nil, 0.0, 0.0, 0.0)
 	t3.TaskResult.State = swarming.TASK_STATE_BOT_DIED
 
-	swarm.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3})
+	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3}, nil)
 
 	edb, err := events.NewEventDB(path.Join(wd, "events.db"))
 	assert.NoError(t, err)
@@ -289,10 +297,14 @@ func TestPerfUpload(t *testing.T) {
 	t2.TaskResult.CompletedTs = now.Add(5 * time.Minute).UTC().Format(swarming.TIMESTAMP_FORMAT)
 	t2.TaskResult.Duration = float64(33 * time.Minute)
 	t2.TaskResult.Failure = true
-	swarm.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t2})
 
 	lastLoad = now
 	now = now.Add(10 * time.Minute)
+	// This is empty because datahopper will pull in the task data from revisit
+	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
+
+	// datahopper will follow up on the revisit list (which is t2's id)
+	swarm.On("GetTaskMetadata", "2").Return(t2, nil)
 
 	mp.On("ParseTaskName", "Perf-MyOS").Return(map[string]string{
 		"os":   "MyOS",

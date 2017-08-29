@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -274,7 +275,7 @@ func main() {
 
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assertNoError(err)
-	swarmingClient := swarming.NewTestClient()
+	swarmingClient := testutils.NewTestClient()
 	depotTools, err := depot_tools.Sync(workdir)
 	assertNoError(err)
 	urlMock := mockhttpclient.NewURLMock()
