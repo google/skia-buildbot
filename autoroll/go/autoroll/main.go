@@ -180,10 +180,8 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	mainPage := struct {
 		ProjectName string
-		ProjectUser string
 	}{
 		ProjectName: *childName,
-		ProjectUser: arb.GetUser(),
 	}
 	if err := mainTemplate.Execute(w, mainPage); err != nil {
 		sklog.Errorln("Failed to expand template:", err)

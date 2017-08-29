@@ -176,7 +176,7 @@ func (r *AutoRoller) SetMode(m, user, message string) error {
 
 // Return the roll-up status of the bot.
 func (r *AutoRoller) GetStatus(includeError bool) *AutoRollStatus {
-	return r.status.Get(includeError)
+	return r.status.Get(includeError, nil)
 }
 
 // Return minimal status information for the bot.
@@ -255,14 +255,15 @@ func (r *AutoRoller) Tick() error {
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: r.rm.CommitsNotRolled(),
 		},
-		CurrentRoll: r.recent.CurrentRoll(),
-		Error:       lastErrorStr,
-		GerritUrl:   r.gerrit.Url(0),
-		LastRoll:    r.recent.LastRoll(),
-		LastRollRev: r.rm.LastRollRev(),
-		Mode:        r.modeHistory.CurrentMode(),
-		Recent:      recent,
-		Status:      string(r.sm.Current()),
+		CurrentRoll:    r.recent.CurrentRoll(),
+		Error:          lastErrorStr,
+		FullHistoryUrl: r.gerrit.Url(0) + "/q/owner:" + r.GetUser(),
+		IssueUrlBase:   r.gerrit.Url(0) + "/c/",
+		LastRoll:       r.recent.LastRoll(),
+		LastRollRev:    r.rm.LastRollRev(),
+		Mode:           r.modeHistory.CurrentMode(),
+		Recent:         recent,
+		Status:         string(r.sm.Current()),
 	}); err != nil {
 		return err
 	}
