@@ -22,6 +22,30 @@
       "revId": "0b702d0c6bac51f8cefe53c634bc255fa5aa1526",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8f51f99_059a4de9",
+        "filename": "android_ingest/go/androidingest/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-08-29T13:36:13Z",
+      "side": 1,
+      "message": "It seems weird to break out a substring as a constant.",
+      "parentUuid": "23f7ef78_23ed0679",
+      "range": {
+        "startLine": 234,
+        "startChar": 34,
+        "endLine": 234,
+        "endChar": 78
+      },
+      "revId": "0b702d0c6bac51f8cefe53c634bc255fa5aa1526",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
