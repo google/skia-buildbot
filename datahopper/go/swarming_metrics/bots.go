@@ -87,7 +87,7 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 		}
 		m3 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_TASK, tags)
 		m3.Update(int64(now.Sub(last)))
-		newMetrics = append(newMetrics, m1)
+		newMetrics = append(newMetrics, m3)
 	}
 	return newMetrics, nil
 }
