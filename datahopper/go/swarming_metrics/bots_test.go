@@ -11,9 +11,9 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 
-	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	metrics_util "go.skia.org/infra/go/metrics2/testutils"
 )
 

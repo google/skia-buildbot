@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"

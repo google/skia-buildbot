@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
