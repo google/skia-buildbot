@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23f7ef78_23ed0679",
+        "filename": "android_ingest/go/androidingest/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-29T13:09:33Z",
+      "side": 1,
+      "message": "Make this a constant? (looks like it\u0027s  used in at least one other place)",
+      "range": {
+        "startLine": 234,
+        "startChar": 34,
+        "endLine": 234,
+        "endChar": 78
+      },
+      "revId": "0b702d0c6bac51f8cefe53c634bc255fa5aa1526",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
