@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
 	"go.skia.org/infra/go/promalertsclient"
 	"go.skia.org/infra/go/sklog"

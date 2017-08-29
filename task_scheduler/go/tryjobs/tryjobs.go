@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
+	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"

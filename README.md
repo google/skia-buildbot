@@ -33,7 +33,7 @@ Install other dependencies:
 $ sudo apt-get install python-django
 $ go get github.com/kisielk/errcheck \
   golang.org/x/tools/cmd/goimports \
-  github.com/luci/luci-go/client/cmd/isolate
+  go.chromium.org/luci/client/cmd/isolate
 $ npm install -g polylint bower
 ```
 

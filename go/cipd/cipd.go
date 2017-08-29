@@ -10,8 +10,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/luci/luci-go/cipd/client/cipd"
-	"github.com/luci/luci-go/cipd/client/cipd/common"
+	"go.chromium.org/luci/cipd/client/cipd"
+	"go.chromium.org/luci/cipd/client/cipd/common"
 	"go.skia.org/infra/go/auth"
 )
 
@@ -38,7 +38,7 @@ type Package struct {
 	Name string
 
 	// Version of the package. See the CIPD docs for valid version strings:
-	// https://godoc.org/github.com/luci/luci-go/cipd/client/cipd/common#ValidateInstanceVersion
+	// https://godoc.org/go.chromium.org/luci/cipd/client/cipd/common#ValidateInstanceVersion
 	Version string
 }
 

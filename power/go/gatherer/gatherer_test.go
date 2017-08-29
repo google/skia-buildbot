@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
+	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/promalertsclient"
 	skswarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"

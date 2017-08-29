@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
 	assert "github.com/stretchr/testify/require"
+	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"

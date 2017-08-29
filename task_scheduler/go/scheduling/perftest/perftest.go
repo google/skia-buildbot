@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"

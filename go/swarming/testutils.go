@@ -9,9 +9,10 @@ import (
 
 	"go.skia.org/infra/go/util"
 
-	"github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/satori/go.uuid"
 	"github.com/skia-dev/glog"
+
+	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 type TestClient struct {

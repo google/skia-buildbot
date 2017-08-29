@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 
-	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 func TestBusyBots(t *testing.T) {

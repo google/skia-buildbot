@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 
-	swarmingapi "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 /*
