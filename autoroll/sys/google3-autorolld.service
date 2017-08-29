@@ -1,0 +1,27 @@
+[Unit]
+Description=Skia into Google3 HEAD AutoRoll Bot
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --roll_into_google3=true \
+    --childName="Skia into Google3" \
+    --childPath="HEAD" \
+    --use_metadata=true \
+    --host=google3-roll.skia.org \
+    --logtostderr \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=https://skia-tree-status.appspot.com/current-sheriff \
+    --parent_repo="google3" \
+    --parent_branch="" \
+    --gerrit_url=""
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

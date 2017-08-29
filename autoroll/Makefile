@@ -28,7 +28,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-release: autoroll android_master_release android_o_release angle_release catapult_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release
+release: autoroll android_master_release android_o_release angle_release catapult_release google3_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release
 
 android_master_release: autoroll
 	./build_android_master_release "$(MESSAGE)"
@@ -41,6 +41,10 @@ angle_release: autoroll
 
 catapult_release: autoroll
 	./build_catapult_release "$(MESSAGE)"
+
+.PHONY: google3_release
+google3_release: autoroll
+	./build_google3_release "$(MESSAGE)"
 
 nacl_release: autoroll
 	./build_nacl_release "$(MESSAGE)"
