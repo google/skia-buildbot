@@ -16,7 +16,6 @@
 
   Properties:
     reload - How often (in seconds) to reload data.
-    rollUser - User who creates the DEPS rolls.
 
   Methods:
     None.
@@ -156,8 +155,8 @@
         <div class="tr">
           <div class="td nowrap">Full History:</div>
           <div class="td">
-            <a href$="{{_rollUserURL}}" target="_blank">
-              {{_rollUserURL}}
+            <a href$="{{fullHistoryUrl}}" target="_blank">
+              {{fullHistoryUrl}}
             </a>
           </div>
         </div>
@@ -206,7 +205,12 @@
           value: null,
           readOnly: true,
         },
-        gerritUrl: {
+        fullHistoryUrl: {
+          type: String,
+          value: "",
+          readOnly: true,
+        },
+        issueUrlBase: {
           type: String,
           value: "",
           readOnly: true,
@@ -225,14 +229,6 @@
           type: Number,
           observer: "_reloadChanged",
           value: 60,
-        },
-        rollUser: {
-          type: String,
-          value: "skia-deps-roller@chromium.org",
-        },
-        _rollUserURL: {
-          type: String,
-          computed: "_computeRollUserURL(rollUser,gerritUrl)",
         },
         initialSelectedMode: {
           type: Number,
@@ -318,17 +314,13 @@
         });
       },
 
-      _computeRollUserURL: function(rollUser) {
-        return this.gerritUrl + "/q/owner:" + rollUser;
-      },
-
       _computeShowError: function(editRights, error) {
         return editRights && error;
       },
 
       _issueURL: function(issue) {
         if (issue) {
-          return this.gerritUrl + "/c/" + issue.issue;
+          return this.issueUrlBase + issue.issue;
         }
       },
 
@@ -436,7 +428,8 @@
       _update: function(json) {
         this._setCurrentRoll(json.currentRoll);
         this._setError(json.error);
-        this._setGerritUrl(json.gerritUrl);
+        this._setFullHistoryUrl(json.fullHistoryUrl);
+        this._setIssueUrlBase(json.issueUrlBase);
         this._setLastRoll(json.lastRoll);
         this._setMode(json.mode.mode);
         this._setModeChangeBy(json.mode.user);

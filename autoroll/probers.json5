@@ -3,6 +3,7 @@
      "urls": [
        "http://android-master-autoroll:8000",
        "http://android-o-autoroll:8000",
+       "http://google3-autoroll:8000",
        "https://angle-roll.skia.org",
        "https://autoroll.skia.org",
        "https://catapult-roll.skia.org",
@@ -21,6 +22,7 @@
        "https://android-o-roll.skia.org/json/status",
        "https://angle-roll.skia.org/json/status",
        "https://autoroll.skia.org/json/status",
+       "https://google3-roll.skia.org/json/status",
        "https://catapult-roll.skia.org/json/status",
        "https://nacl-roll.skia.org/json/status",
        "https://pdfium-roll.skia.org/json/status",
