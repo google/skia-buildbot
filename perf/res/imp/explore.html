@@ -88,20 +88,12 @@
       border: white solid 2px;
     }
 
-    #tabs {
-      margin: 1em 0 0 1em;
-    }
-
     #detail {
       border: #1F78B4 2px solid;
       margin: 0;
     }
 
     #queryTab {
-      margin: 1em;
-    }
-
-    #buttons {
       margin: 1em;
     }
 
@@ -127,72 +119,91 @@
       width: 3em;
     }
 
+    #plotDiv {
+      grid-area: graph;
+    }
+
+    #buttons {
+      grid-area: buttons;
+    }
+
+    #tabs {
+      grid-area: tabs;
+    }
+
+    .container {
+      width: 100%;
+      display: inline-grid;
+      grid-template-columns: auto 20%;
+      grid-template-rows: 40% auto;
+      grid-template-areas:
+        "graph buttons"
+        "tabs tabs";
+    }
   </style>
   <template>
-    <div>
-      <div class="layout vertical">
-        <div class="layout horizontal">
-          <div id=plotDiv class="layout flex">
-            <highlightbar-sk id=highlight></highlightbar-sk>
-            <plot-simple-sk width=1024 height=256 id=plot></plot-simple-sk>
-            <div class="layout horizontal center-justified">
-              <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
-              <paper-spinner id=spinner></paper-spinner>
-              <span id=percent></span>
-            </div>
-          </div>
-          <div class="layout vertical" id=buttons>
-            <button on-click="_removeHighlighted" title="Remove all the highlighted traces.">Remove Highlighted</button>
-            <button on-click="_removeAll" title="Remove all the traces.">Remove All</button>
-            <button on-click="_highlightedOnly" title="Remove all but the highlighted traces.">Highlighted Only</button>
-            <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
-            <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
-            <button on-click="_shiftBoth" title="Expand the display [[_numShift]] commits in
-              both directions.">&lt;&lt; +[[_numShift]] &gt;&gt;</button>
-            <button on-click="_shiftLeft" title="Move 10 commits in the past.">&lt;&lt; [[_numShift]]</button>
-            <button on-click="_shiftRight" title="Move 10 commits in the future.">[[_numShift]] &gt;&gt;</button>
-            <div>
-              <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
-              <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
-            </div>
-            <paper-checkbox checked="{{_show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
-          </div>
+    <div class=container>
+      <div id=plotDiv class="layout flex">
+        <highlightbar-sk id=highlight></highlightbar-sk>
+        <plot-simple-sk width=1024 height=256 id=plot></plot-simple-sk>
+        <div class="layout horizontal center-justified">
+          <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
+          <paper-spinner id=spinner></paper-spinner>
+          <span id=percent></span>
         </div>
-        <div id=tabs class="flex">
-          <paper-tabs selected=0 id=detailtab no-bar on-iron-select="_tabSelect">
-            <paper-tab>Query</paper-tab>
-            <paper-tab>Params</paper-tab>
-            <paper-tab id=commitsTab disabled>Details</paper-tab>
-          </paper-tabs>
-          <div id=detail>
-            <div id=queryTab class="layout vertical">
-              <div class="layout horizontal">
-                <query2-sk id=query></query2-sk>
-                <div class="layout vertical" id=selections>
-                  <h3>Selections</h3>
-                  <query-summary-sk id=summary></query-summary-sk>
-                  <div>
-                    Matches: <span id=matches></span>
-                  </div>
-                  <button on-tap="_add" class=action>Plot</button>
+      </div>
+
+      <div class="layout vertical" id=buttons>
+        <button on-click="_removeHighlighted" title="Remove all the highlighted traces.">Remove Highlighted</button>
+        <button on-click="_removeAll" title="Remove all the traces.">Remove All</button>
+        <button on-click="_highlightedOnly" title="Remove all but the highlighted traces.">Highlighted Only</button>
+        <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
+        <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
+        <button on-click="_shiftBoth" title="Expand the display [[_numShift]] commits in
+          both directions.">&lt;&lt; +[[_numShift]] &gt;&gt;</button>
+        <button on-click="_shiftLeft" title="Move 10 commits in the past.">&lt;&lt; [[_numShift]]</button>
+        <button on-click="_shiftRight" title="Move 10 commits in the future.">[[_numShift]] &gt;&gt;</button>
+        <div>
+          <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
+          <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
+        </div>
+        <paper-checkbox checked="{{_show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
+      </div>
+
+      <div id=tabs class="flex">
+        <paper-tabs selected=0 id=detailtab no-bar on-iron-select="_tabSelect">
+          <paper-tab>Query</paper-tab>
+          <paper-tab>Params</paper-tab>
+          <paper-tab id=commitsTab disabled>Details</paper-tab>
+        </paper-tabs>
+        <div id=detail>
+          <div id=queryTab class="layout vertical">
+            <div class="layout horizontal">
+              <query2-sk id=query></query2-sk>
+              <div class="layout vertical" id=selections>
+                <h3>Selections</h3>
+                <query-summary-sk id=summary></query-summary-sk>
+                <div>
+                  Matches: <span id=matches></span>
                 </div>
-              </div>
-              <h3>Calculated Traces</h3>
-              <div class="layout horizontal center">
-                <paper-input-decorator floatingLabel label="Formula" flex>
-                  <textarea id="formula" rows=3 cols=80></textarea>
-                </paper-input-decorator>
-                <button on-tap="_addCalculated" class=action>Add</button>
-                <a href="/help/" target=_blank><iron-icon icon="help"></iron-icon></a>
+                <button on-tap="_add" class=action>Plot</button>
               </div>
             </div>
-            <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
-            <div id=details class="layout horizontal wrap hidden">
-              <paramset-sk id=simple_paramset clickable-values></paramset-sk>
-              <div class="layout vertical">
-                <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
-                <json-source id=jsonsource></json-source>
-              </div>
+            <h3>Calculated Traces</h3>
+            <div class="layout horizontal center">
+              <paper-input-decorator floatingLabel label="Formula" flex>
+                <textarea id="formula" rows=3 cols=80></textarea>
+              </paper-input-decorator>
+              <button on-tap="_addCalculated" class=action>Add</button>
+              <a href="/help/" target=_blank><iron-icon icon="help"></iron-icon></a>
+            </div>
+          </div>
+          <paramset-sk id=paramset class=hidden clickable-values></paramset-sk>
+          <div id=details class="layout horizontal wrap hidden">
+            <paramset-sk id=simple_paramset clickable-values></paramset-sk>
+            <div class="layout vertical">
+              <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+              <json-source id=jsonsource></json-source>
             </div>
           </div>
         </div>
@@ -603,13 +614,13 @@
     _resizeWatcher: function () {
       this.async(this._resizeWatcher.bind(this), 300);
 
-      var w = Math.round(window.getComputedStyle(this.$.plotDiv, null).getPropertyValue('width').slice(0, -2));
+      var w = window.innerWidth * 0.75;
       if (w != this.$.plot.width) {
         this.$.plot.setAttribute('width', w);
 
         // Measure again since the resize of svg might have caused a tiny change in the size of
         // the parent window.
-        w = Math.round(window.getComputedStyle(this.$.plotDiv, null).getPropertyValue('width').slice(0, -2));
+        w = window.innerWidth * 0.75;
         this.$.plot.setAttribute('width', w);
         this.$.plot.resetAxes();
       }
