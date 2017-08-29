@@ -22,6 +22,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --algo=stepfit \
     --subdomain=android-master-perf \
     --default_sparse=true \
+    --commit_range_url=https://android-master-ingest.skia.org/rr/{begin}/{end} \
     --step_up_only
 
 Restart=always
