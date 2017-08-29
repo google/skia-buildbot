@@ -226,10 +226,10 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
 		},
-		PubsubTopic:         fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
-		ServiceAccountToken: swarming.GetServiceAccountFromTaskDims(dimsMap),
-		Tags:                db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
-		User:                "skiabot@google.com",
+		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
+		ServiceAccount: swarming.GetServiceAccountFromTaskDims(dimsMap),
+		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		User:           "skiabot@google.com",
 	}, nil
 }
 
