@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "34d56b27_ae301942",
+        "filename": "autoroll/go/g3roll/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-29T13:49:40Z",
+      "side": 1,
+      "message": "I think these could be deduplicated to some extent:\nreloadTemplates\nInit\nmainHandler\nmodeJsonHandler\nstatusJsonHandler\nminiStatusJsonHandler\nmaybe autoroll_last_roll_result\n\nIs that what you had in mind?",
+      "parentUuid": "b887aa2d_50c50914",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 2
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0ccadcaa_b300b289",
         "filename": "autoroll/go/g3roll/main.go",
         "patchSetId": 4
@@ -59,6 +83,30 @@
       "writtenOn": "2017-08-29T13:06:48Z",
       "side": 1,
       "message": "Why is all this stuff changing?",
+      "range": {
+        "startLine": 10,
+        "startChar": 3,
+        "endLine": 10,
+        "endChar": 22
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fb91cb5_8dbcc415",
+        "filename": "autoroll/res/imp/arb-status-sk-demo.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-29T13:49:40Z",
+      "side": 1,
+      "message": "The previous issue numbers are from Reitveld and the links no longer work. It seemed easiest to grab the current JSON from autoroll.skia.org and pare it down. Seems like things have changed quite a bit, although I\u0027m not sure which data arb-status-sk cares about.",
+      "parentUuid": "5ec6a062_1f81224c",
       "range": {
         "startLine": 10,
         "startChar": 3,
