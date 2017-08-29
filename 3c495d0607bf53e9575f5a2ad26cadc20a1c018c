@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6873e98_16e0b969",
+        "filename": "skfe/sys/skia-nginx.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-29T17:15:40Z",
+      "side": 1,
+      "message": "Why not add this to the top of the other file. So everything that is not default nginx is there. \nThis file should be identical to the default nginx.conf (with the exception of the stream block below).",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 42,
+        "endChar": 0
+      },
+      "revId": "3c495d0607bf53e9575f5a2ad26cadc20a1c018c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
