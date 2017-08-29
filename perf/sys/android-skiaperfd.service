@@ -16,6 +16,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --dataframe_size=256 \
     --subdomain=android-perf \
     --default_sparse=true \
+    --commit_range_url=https://android-ingest.skia.org/rr/{begin}/{end} \
     --internal_only
 
 Restart=always
