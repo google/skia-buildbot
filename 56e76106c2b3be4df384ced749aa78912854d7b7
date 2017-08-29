@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "b887aa2d_50c50914",
+        "filename": "autoroll/go/g3roll/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-29T13:06:48Z",
+      "side": 1,
+      "message": "There\u0027s a lot of duplication between this file and go/autoroll/main.go.  Is there any chance we can share more code?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 2
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ccadcaa_b300b289",
+        "filename": "autoroll/go/g3roll/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-29T13:06:48Z",
+      "side": 1,
+      "message": "Maybe this should be UpdateStatus? IMO SetStatus implies that I can pass in a status object.",
+      "range": {
+        "startLine": 144,
+        "startChar": 21,
+        "endLine": 144,
+        "endChar": 30
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ec6a062_1f81224c",
+        "filename": "autoroll/res/imp/arb-status-sk-demo.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-29T13:06:48Z",
+      "side": 1,
+      "message": "Why is all this stuff changing?",
+      "range": {
+        "startLine": 10,
+        "startChar": 3,
+        "endLine": 10,
+        "endChar": 22
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "49c3297f_b778298d",
         "filename": "go/jsonutils/jsonutils.go",
         "patchSetId": 4
@@ -22,6 +91,30 @@
       "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e08738a1_6757dfc1",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-29T13:06:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "49c3297f_b778298d",
+      "range": {
+        "startLine": 18,
+        "startChar": 21,
+        "endLine": 18,
+        "endChar": 29
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
