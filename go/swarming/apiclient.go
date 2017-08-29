@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
-	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 const (

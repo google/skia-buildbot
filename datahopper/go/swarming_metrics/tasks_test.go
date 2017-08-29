@@ -17,9 +17,9 @@ import (
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/perfclient"
 
-	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 func makeTask(id, name string, created, started, completed time.Time, dims map[string]string, extraTags map[string]string, botOverhead, downloadOverhead, uploadOverhead float64) *swarming_api.SwarmingRpcsTaskRequestMetadata {

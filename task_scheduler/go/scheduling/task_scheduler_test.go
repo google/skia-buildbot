@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	buildbucket_api "github.com/luci/luci-go/common/api/buildbucket/buildbucket/v1"
-	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
+	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"

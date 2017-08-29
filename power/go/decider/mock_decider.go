@@ -1,8 +1,8 @@
 package decider
 
 import (
-	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/stretchr/testify/mock"
+	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 type MockDecider struct {

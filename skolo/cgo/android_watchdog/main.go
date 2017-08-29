@@ -24,7 +24,7 @@ import (
 	"unsafe"
 
 	"github.com/VividCortex/godaemon"
-	"github.com/luci/luci-go/common/runtime/paniccatcher"
+	"go.chromium.org/luci/common/runtime/paniccatcher"
 )
 
 var (

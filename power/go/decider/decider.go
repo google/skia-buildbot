@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/skolo/go/powercycle"

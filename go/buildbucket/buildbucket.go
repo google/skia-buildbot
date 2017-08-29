@@ -26,13 +26,13 @@ var (
 
 const (
 	// Possible values for the Build.Status field.
-	// See: https://github.com/luci/luci-go/blob/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L156
+	// See: https://chromium.googlesource.com/infra/luci/luci-go/+/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#317
 	STATUS_COMPLETED = "COMPLETED"
 	STATUS_SCHEDULED = "SCHEDULED"
 	STATUS_STARTED   = "STARTED"
 
 	// Possible values for the Build.Result field.
-	// See:https://github.com/luci/luci-go/blob/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L146
+	// See: https://chromium.googlesource.com/infra/luci/luci-go/+/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#305
 	RESULT_CANCELED = "CANCELED"
 	RESULT_FAILURE  = "FAILURE"
 	RESULT_SUCCESS  = "SUCCESS"
