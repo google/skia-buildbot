@@ -117,6 +117,30 @@
       "revId": "a34e8d0349f190f2ed85dc79f046314dba53e123",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b557ce49_e85690ca",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-29T11:41:32Z",
+      "side": 1,
+      "message": "Ah right, run_on_swarming_bots.go also uses it (as Eric mentioned). Still LGTM\n\nBTW, thanks for updating our code!",
+      "parentUuid": "8c382b7b_1b5eaafb",
+      "range": {
+        "startLine": 222,
+        "startChar": 1,
+        "endLine": 222,
+        "endChar": 62
+      },
+      "revId": "a34e8d0349f190f2ed85dc79f046314dba53e123",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
