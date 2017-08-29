@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "0cd2acb8_8bb4b4da",
+        "filename": "autoroll/go/g3roll/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-29T23:10:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "34d56b27_ae301942",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 2
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ccadcaa_b300b289",
         "filename": "autoroll/go/g3roll/main.go",
         "patchSetId": 4
@@ -69,6 +93,30 @@
       "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e370034_2d2e8aa5",
+        "filename": "autoroll/go/g3roll/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-29T23:10:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ccadcaa_b300b289",
+      "range": {
+        "startLine": 144,
+        "startChar": 21,
+        "endLine": 144,
+        "endChar": 30
+      },
+      "revId": "56e76106c2b3be4df384ced749aa78912854d7b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
