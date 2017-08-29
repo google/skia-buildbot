@@ -58,7 +58,6 @@
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
-<link rel="import" href="/res/imp/bower_components/paper-material/paper-material.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
 
@@ -123,6 +122,7 @@
 
     #status {
       padding: 0.5em 2em;
+      box-shadow: 3px 3px 3px #aaa;
     }
 
     #status.disabled .disabledMessage {
@@ -133,11 +133,7 @@
       margin: 1em;
     }
 
-    paper-material {
-      margin: 1em;
-    }
-
-    paper-material #status.hidden,
+    #status.hidden,
     #permalink.hidden {
       display: none;
     }
@@ -173,14 +169,12 @@
         </div>
         <div class="layout horizontal wrap">
           <plot-simple-sk specialevents on-trace_selected="_traceSelected" id=graph width=400 height=150></plot-simple-sk>
-          <paper-material elevation="1">
-            <div id=status class$="[[_hiddenClass(triage.status)]]">
-              <p class="disabledMessage">You must be logged in to change the status.</p>
-              <triage-sk value="{{triage.status}}"></triage-sk>
-              <paper-input value="{{triage.message}}" label="Message"></paper-input>
-              <button class="action layout self end" id=update on-click="_update">Update</button>
-            </div>
-          </paper-material>
+          <div id=status class$="[[_hiddenClass(triage.status)]]">
+            <p class="disabledMessage">You must be logged in to change the status.</p>
+            <triage-sk value="{{triage.status}}"></triage-sk>
+            <paper-input value="{{triage.message}}" label="Message"></paper-input>
+            <button class="action layout self end" id=update on-click="_update">Update</button>
+          </div>
         </div>
         <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
         <div>
