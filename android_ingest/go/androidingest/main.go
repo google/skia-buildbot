@@ -225,10 +225,12 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	beginID, err := process.Repo.LookupBuildID(begin)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed looking up Build ID.")
+		return
 	}
 	endID, err := process.Repo.LookupBuildID(end)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed looking up Build ID.")
+		return
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, *branch, endID), http.StatusFound)
