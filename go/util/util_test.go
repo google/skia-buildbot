@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -726,4 +727,56 @@ func TestTruncate(t *testing.T) {
 	assert.Equal(t, "ab...", Truncate(s, 5))
 	assert.Equal(t, s, Truncate(s, len(s)))
 	assert.Equal(t, s, Truncate(s, len(s)+1))
+}
+
+type fakeWriter struct {
+	writeFn func(p []byte) (int, error)
+}
+
+func (w *fakeWriter) Write(p []byte) (int, error) {
+	return w.writeFn(p)
+}
+
+func TestWithGzipWriter(t *testing.T) {
+	testutils.SmallTest(t)
+
+	fw := &fakeWriter{
+		writeFn: func(p []byte) (int, error) {
+			return -1, nil
+		},
+	}
+	write := func(w io.Writer, msg string) error {
+		_, err := w.Write([]byte(msg))
+		return err
+	}
+
+	// No error.
+	assert.NoError(t, WithGzipWriter(fw, func(w io.Writer) error {
+		return write(w, "hi")
+	}))
+
+	// Contained function returns an error.
+	expectErr := errors.New("nope")
+	assert.EqualError(t, WithGzipWriter(fw, func(w io.Writer) error {
+		return expectErr
+	}), expectErr.Error())
+
+	// Underlying io.Writer returns an error.
+	fw.writeFn = func(p []byte) (int, error) {
+		return -1, expectErr
+	}
+	assert.EqualError(t, WithGzipWriter(fw, func(w io.Writer) error {
+		return write(w, "hi")
+	}), expectErr.Error())
+
+	// Close() returns an error.
+	fw.writeFn = func(p []byte) (int, error) {
+		if string(p) == "hi" {
+			return -1, nil
+		}
+		return -1, expectErr
+	}
+	assert.EqualError(t, WithGzipWriter(fw, func(w io.Writer) error {
+		return write(w, "hi")
+	}), expectErr.Error())
 }
