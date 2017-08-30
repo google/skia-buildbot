@@ -4,6 +4,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"path/filepath"
@@ -57,6 +58,8 @@ func updateWebappTask() {
 	vars := admin_tasks.RecreateWebpageArchivesUpdateVars{}
 	vars.Id = *gaeTaskID
 	vars.SetCompleted(*taskCompletedSuccessfully)
+	swarmingLogsLink := fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID)
+	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 

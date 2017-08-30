@@ -6,6 +6,7 @@
 package admin_tasks
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -48,7 +49,8 @@ func ReloadTemplates(resourcesDir string) {
 type RecreatePageSetsDBTask struct {
 	task_common.CommonCols
 
-	PageSets string `db:"page_sets"`
+	PageSets     string         `db:"page_sets"`
+	SwarmingLogs sql.NullString `db:"swarming_logs"`
 }
 
 func (task RecreatePageSetsDBTask) GetTaskName() string {
@@ -90,9 +92,10 @@ func (task RecreatePageSetsDBTask) Select(query string, args ...interface{}) (in
 type RecreateWebpageArchivesDBTask struct {
 	task_common.CommonCols
 
-	PageSets    string `db:"page_sets"`
-	ChromiumRev string `db:"chromium_rev"`
-	SkiaRev     string `db:"skia_rev"`
+	PageSets     string         `db:"page_sets"`
+	ChromiumRev  string         `db:"chromium_rev"`
+	SkiaRev      string         `db:"skia_rev"`
+	SwarmingLogs sql.NullString `db:"swarming_logs"`
 }
 
 func (task RecreateWebpageArchivesDBTask) GetTaskName() string {
@@ -211,6 +214,8 @@ func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Reques
 
 type RecreatePageSetsUpdateVars struct {
 	task_common.UpdateTaskCommonVars
+
+	SwarmingLogs sql.NullString
 }
 
 func (vars *RecreatePageSetsUpdateVars) UriPath() string {
@@ -218,7 +223,13 @@ func (vars *RecreatePageSetsUpdateVars) UriPath() string {
 }
 
 func (task *RecreatePageSetsUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	return nil, nil, nil
+	clauses := []string{}
+	args := []interface{}{}
+	if task.SwarmingLogs.Valid {
+		clauses = append(clauses, "swarming_logs = ?")
+		args = append(args, task.SwarmingLogs.String)
+	}
+	return clauses, args, nil
 }
 
 func updateRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -227,6 +238,8 @@ func updateRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 type RecreateWebpageArchivesUpdateVars struct {
 	task_common.UpdateTaskCommonVars
+
+	SwarmingLogs sql.NullString
 }
 
 func (vars *RecreateWebpageArchivesUpdateVars) UriPath() string {
@@ -234,7 +247,14 @@ func (vars *RecreateWebpageArchivesUpdateVars) UriPath() string {
 }
 
 func (task *RecreateWebpageArchivesUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	return nil, nil, nil
+	clauses := []string{}
+	args := []interface{}{}
+
+	if task.SwarmingLogs.Valid {
+		clauses = append(clauses, "swarming_logs = ?")
+		args = append(args, task.SwarmingLogs.String)
+	}
+	return clauses, args, nil
 }
 
 func updateRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {

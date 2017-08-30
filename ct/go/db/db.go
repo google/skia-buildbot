@@ -373,6 +373,16 @@ var v20_down = []string{
 	`ALTER TABLE ChromiumAnalysisTasks DROP v8_patch`,
 }
 
+var v21_up = []string{
+	`ALTER TABLE RecreatePageSetsTasks ADD swarming_logs VARCHAR(255) NOT NULL DEFAULT ""`,
+	`ALTER TABLE RecreateWebpageArchivesTasks ADD swarming_logs VARCHAR(255) NOT NULL DEFAULT ""`,
+}
+
+var v21_down = []string{
+	`ALTER TABLE RecreatePageSetsTasks DROP swarming_logs`,
+	`ALTER TABLE RecreateWebpageArchivesTasks DROP swarming_logs`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
