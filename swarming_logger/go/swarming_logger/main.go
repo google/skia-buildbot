@@ -18,7 +18,10 @@ import (
 	"sync"
 	"time"
 
+	"cloud.google.com/go/storage"
+
 	logging "google.golang.org/api/logging/v2beta1"
+	"google.golang.org/api/option"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
@@ -27,6 +30,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/swarming_logger/go/process"
+	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 )
 
 const (
@@ -43,12 +48,13 @@ const (
 )
 
 var (
-	local          = flag.Bool("local", false, "Use when running locally as opposed to in production.")
-	host           = flag.String("host", "localhost", "HTTP server")
-	port           = flag.String("port", ":8000", "HTTP service port")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	swarmingServer = flag.String("swarming", swarming.SWARMING_SERVER, "Swarming server URL")
-	workdir        = flag.String("workdir", ".", "Working directory")
+	local              = flag.Bool("local", false, "Use when running locally as opposed to in production.")
+	host               = flag.String("host", "localhost", "HTTP server")
+	port               = flag.String("port", ":8000", "HTTP service port")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	swarmingServer     = flag.String("swarming", swarming.SWARMING_SERVER, "Swarming server URL")
+	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	workdir            = flag.String("workdir", ".", "Working directory")
 
 	tl *taskLogger
 )
@@ -283,7 +289,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
-	c, err := auth.NewClientWithTransport(*local, oauthCacheFile, "", tp, swarming.AUTH_SCOPE)
+	c, err := auth.NewClientWithTransport(*local, oauthCacheFile, "", tp, swarming.AUTH_SCOPE, storage.ScopeReadWrite)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -303,5 +309,16 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, swarming.PUBSUB_TOPIC_SWARMING_TASKS, PUBSUB_SUBSCRIBER_NAME); err != nil {
 		sklog.Fatal(err)
 	}
+	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	gcs, err := storage.NewClient(ctx, option.WithHTTPClient(c))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	process.IngestLogsPeriodically(context.Background(), taskDb, gcs, swarmClient)
 	runServer(serverURL)
 }

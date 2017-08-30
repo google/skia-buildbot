@@ -1,6 +1,8 @@
 package util
 
 import (
+	"bufio"
+	"compress/gzip"
 	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha256"
@@ -952,4 +954,26 @@ func WithWriteFile(file string, writeFn func(io.Writer) error) error {
 		return fmt.Errorf("Failed to rename temporary file for WithWriteFile: %s", err)
 	}
 	return nil
+}
+
+// WithBufferedWriter is a helper for wrapping an io.Writer with a bufio.Writer.
+func WithBufferedWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
+	buf := bufio.NewWriter(w)
+	if err := fn(buf); err != nil {
+		return err
+	}
+	return buf.Flush()
+}
+
+// WithGzipWriter is a helper for wrapping an io.Writer with a gzip.Writer.
+func WithGzipWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
+	gzw := gzip.NewWriter(w)
+	defer func() {
+		err2 := gzw.Close()
+		if err == nil && err2 != nil {
+			err = fmt.Errorf("Failed to close gzip.Writer: %s", err2)
+		}
+	}()
+	err = fn(gzw)
+	return
 }

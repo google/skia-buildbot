@@ -274,3 +274,17 @@ func (d *DownloadHelper) MaybeDownload(name, hash string) error {
 func (d *DownloadHelper) Close() error {
 	return d.s.Close()
 }
+
+// Write the given content to the given object in Google Storage.
+func WriteObj(o *storage.ObjectHandle, content []byte) (err error) {
+	w := o.NewWriter(context.Background())
+	w.ObjectAttrs.ContentEncoding = "gzip"
+	if err := util.WithGzipWriter(w, func(w io.Writer) error {
+		_, err := w.Write(content)
+		return err
+	}); err != nil {
+		_ = w.CloseWithError(err) // Always returns nil, according to docs.
+		return err
+	}
+	return w.Close()
+}
