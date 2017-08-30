@@ -50,7 +50,6 @@ type DBTask struct {
 	Description          string         `db:"description"`
 	ChromiumPatch        string         `db:"chromium_patch"`
 	SkiaPatch            string         `db:"skia_patch"`
-	SwarmingLogs         sql.NullString `db:"swarming_logs"`
 	Results              sql.NullString `db:"results"`
 }
 
@@ -167,8 +166,7 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 
-	Results      sql.NullString
-	SwarmingLogs sql.NullString
+	Results sql.NullString
 }
 
 func (vars *UpdateVars) UriPath() string {

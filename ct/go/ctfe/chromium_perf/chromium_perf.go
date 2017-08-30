@@ -61,7 +61,6 @@ type DBTask struct {
 	Results              sql.NullString `db:"results"`
 	NoPatchRawOutput     sql.NullString `db:"nopatch_raw_output"`
 	WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
-	SwarmingLogs         sql.NullString `db:"swarming_logs"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -219,7 +218,6 @@ type UpdateVars struct {
 	Results            sql.NullString
 	NoPatchRawOutput   sql.NullString
 	WithPatchRawOutput sql.NullString
-	SwarmingLogs       sql.NullString
 }
 
 func (vars *UpdateVars) UriPath() string {

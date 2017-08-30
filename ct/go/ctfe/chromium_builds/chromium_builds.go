@@ -66,10 +66,9 @@ func ReloadTemplates(resourcesDir string) {
 type DBTask struct {
 	task_common.CommonCols
 
-	ChromiumRev   string         `db:"chromium_rev"`
-	ChromiumRevTs sql.NullInt64  `db:"chromium_rev_ts"`
-	SkiaRev       string         `db:"skia_rev"`
-	SwarmingLogs  sql.NullString `db:"swarming_logs"`
+	ChromiumRev   string        `db:"chromium_rev"`
+	ChromiumRevTs sql.NullInt64 `db:"chromium_rev_ts"`
+	SkiaRev       string        `db:"skia_rev"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -240,8 +239,6 @@ func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
-
-	SwarmingLogs sql.NullString
 }
 
 func (vars UpdateVars) UriPath() string {

@@ -50,7 +50,6 @@ type DBTask struct {
 	Description         string         `db:"description"`
 	ScriptOutput        sql.NullString `db:"script_output"`
 	AggregatedOutput    sql.NullString `db:"aggregated_output"`
-	SwarmingLogs        sql.NullString `db:"swarming_logs"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -159,7 +158,6 @@ type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 	ScriptOutput     sql.NullString `db:"script_output"`
 	AggregatedOutput sql.NullString `db:"aggregated_output"`
-	SwarmingLogs     sql.NullString
 }
 
 func (vars *UpdateVars) UriPath() string {

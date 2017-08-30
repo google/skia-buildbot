@@ -46,13 +46,14 @@ var (
 )
 
 type CommonCols struct {
-	Id              int64         `db:"id"`
-	TsAdded         sql.NullInt64 `db:"ts_added"`
-	TsStarted       sql.NullInt64 `db:"ts_started"`
-	TsCompleted     sql.NullInt64 `db:"ts_completed"`
-	Username        string        `db:"username"`
-	Failure         sql.NullBool  `db:"failure"`
-	RepeatAfterDays int64         `db:"repeat_after_days"`
+	Id              int64          `db:"id"`
+	TsAdded         sql.NullInt64  `db:"ts_added"`
+	TsStarted       sql.NullInt64  `db:"ts_started"`
+	TsCompleted     sql.NullInt64  `db:"ts_completed"`
+	Username        string         `db:"username"`
+	Failure         sql.NullBool   `db:"failure"`
+	RepeatAfterDays int64          `db:"repeat_after_days"`
+	SwarmingLogs    sql.NullString `db:"swarming_logs"`
 }
 
 type Task interface {
@@ -311,6 +312,7 @@ type UpdateTaskCommonVars struct {
 	TsCompleted     sql.NullString
 	Failure         sql.NullBool
 	RepeatAfterDays sql.NullInt64
+	SwarmingLogs    sql.NullString
 }
 
 func (vars *UpdateTaskCommonVars) SetStarted() {
