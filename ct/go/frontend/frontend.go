@@ -121,8 +121,8 @@ func UpdateWebappTaskV2(vars task_common.UpdateTaskVars) error {
 	return nil
 }
 
-func UpdateWebappTaskSetStarted(vars task_common.UpdateTaskVars, id int64) error {
+func UpdateWebappTaskSetStarted(vars task_common.UpdateTaskVars, id int64, runID string) error {
 	vars.GetUpdateTaskCommonVars().Id = id
-	vars.GetUpdateTaskCommonVars().SetStarted()
+	vars.GetUpdateTaskCommonVars().SetStarted(runID)
 	return UpdateWebappTaskV2(vars)
 }

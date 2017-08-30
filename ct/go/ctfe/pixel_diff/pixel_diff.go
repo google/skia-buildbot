@@ -50,7 +50,6 @@ type DBTask struct {
 	Description          string         `db:"description"`
 	ChromiumPatch        string         `db:"chromium_patch"`
 	SkiaPatch            string         `db:"skia_patch"`
-	SwarmingLogs         sql.NullString `db:"swarming_logs"`
 	Results              sql.NullString `db:"results"`
 }
 
@@ -167,8 +166,7 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 
-	Results      sql.NullString
-	SwarmingLogs sql.NullString
+	Results sql.NullString
 }
 
 func (vars *UpdateVars) UriPath() string {
@@ -177,7 +175,6 @@ func (vars *UpdateVars) UriPath() string {
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "SwarmingLogs", Value: task.SwarmingLogs.String, Limit: 255},
 		{Name: "Results", Value: task.Results.String, Limit: 255},
 	}); err != nil {
 		return nil, nil, err
@@ -187,10 +184,6 @@ func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}
 	if task.Results.Valid {
 		clauses = append(clauses, "results = ?")
 		args = append(args, task.Results.String)
-	}
-	if task.SwarmingLogs.Valid {
-		clauses = append(clauses, "swarming_logs = ?")
-		args = append(args, task.SwarmingLogs.String)
 	}
 	return clauses, args, nil
 }

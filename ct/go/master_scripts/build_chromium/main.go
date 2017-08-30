@@ -3,7 +3,6 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"time"
@@ -54,8 +53,6 @@ func updateWebappTask() {
 	vars := chromium_builds.UpdateVars{}
 	vars.Id = *gaeTaskID
 	vars.SetCompleted(taskCompletedSuccessfully)
-	swarmingLogsLink := fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID)
-	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
@@ -70,7 +67,7 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_builds.UpdateVars{}, *gaeTaskID))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_builds.UpdateVars{}, *gaeTaskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Build chromium", *runID, ""))
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()

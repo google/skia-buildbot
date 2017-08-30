@@ -84,8 +84,6 @@ func updateWebappTask() {
 	if luaAggregatorOutputRemoteLink != "" {
 		vars.AggregatedOutput = sql.NullString{String: luaAggregatorOutputRemoteLink, Valid: true}
 	}
-	swarmingLogsLink := fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID)
-	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
@@ -100,7 +98,7 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *gaeTaskID))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *gaeTaskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
