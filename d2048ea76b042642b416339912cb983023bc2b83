@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2fe714b6_9b445bed",
+        "filename": "ct/go/ctfe/admin_tasks/admin_tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-30T19:21:52Z",
+      "side": 1,
+      "message": "nit: Move this to getUpdateQueryAndBinds in ct/go/ctfe/task_common/task_common.go",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 226,
+        "endChar": 2
+      },
+      "revId": "d2048ea76b042642b416339912cb983023bc2b83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "892541d4_a0f78ef3",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-30T19:21:52Z",
+      "side": 1,
+      "message": "nit: maybe pass in runId and set SwarmingLogs here?\n\nYou could then remove it from all the master scripts.",
+      "range": {
+        "startLine": 318,
+        "startChar": 0,
+        "endLine": 320,
+        "endChar": 1
+      },
+      "revId": "d2048ea76b042642b416339912cb983023bc2b83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
