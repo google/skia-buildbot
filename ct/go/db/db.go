@@ -395,6 +395,16 @@ var v22_down = []string{
 	`ALTER TABLE CaptureSkpsTasks DROP swarming_logs`,
 }
 
+var v23_up = []string{
+	`ALTER TABLE ChromiumAnalysisTasks ADD swarming_logs VARCHAR(255) NOT NULL DEFAULT ""`,
+	`ALTER TABLE ChromiumPerfTasks ADD swarming_logs VARCHAR(255) NOT NULL DEFAULT ""`,
+}
+
+var v23_down = []string{
+	`ALTER TABLE ChromiumAnalysisTasks DROP swarming_logs`,
+	`ALTER TABLE ChromiumPerfTasks DROP swarming_logs`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -508,6 +518,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v22_up,
 		MySQLDown: v22_down,
+	},
+	// version 23: Add swarming_logs to ChromiumAnalysisTasks and ChromiumPerfTasks.
+	{
+		MySQLUp:   v23_up,
+		MySQLDown: v23_down,
 	},
 }
 

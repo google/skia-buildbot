@@ -257,6 +257,10 @@
               <br/>
               <a href="{{chromiumPerfTask.WithPatchRawOutput.String}}" target="_blank">WithPatch Raw Output</a>
             </template>
+            <template is="dom-if" if="{{chromiumPerfTask.SwarmingLogs.String}}">
+              <br/>
+              <a href="{{chromiumPerfTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+            </template>
           </td>
 
           <!-- Arguments -->
