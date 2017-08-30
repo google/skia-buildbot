@@ -137,6 +137,10 @@
             <template is="dom-if" if="{{chromiumBuild.Log.String}}">
               <a href="{{chromiumBuild.Log.String}}" target="_blank">log</a>
             </template>
+            <template is="dom-if" if="{{chromiumBuild.SwarmingLogs.String}}">
+              <br/>
+              <a href="{{chromiumBuild.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+            </template>
           </td>
 
           <!-- Task Repeats -->
