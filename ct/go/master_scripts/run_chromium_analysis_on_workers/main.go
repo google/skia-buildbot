@@ -107,6 +107,8 @@ func updateWebappTask() {
 	vars.Id = *gaeTaskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.RawOutput = sql.NullString{String: outputLink, Valid: true}
+	swarmingLogsLink := fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID)
+	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 

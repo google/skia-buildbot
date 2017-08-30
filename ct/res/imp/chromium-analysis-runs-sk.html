@@ -234,6 +234,10 @@
             <template is="dom-if" if="{{chromiumAnalysisTask.RawOutput.String}}">
               <a href="{{chromiumAnalysisTask.RawOutput.String}}" target="_blank">Output</a>
             </template>
+            <template is="dom-if" if="{{chromiumAnalysisTask.SwarmingLogs.String}}">
+              <br/>
+              <a href="{{chromiumAnalysisTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+            </template>
           </td>
 
           <!-- Arguments -->
