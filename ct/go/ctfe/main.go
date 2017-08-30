@@ -248,7 +248,8 @@ func main() {
 		}
 	}
 
-	common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	common.InitWithMust("ctfe")
+	// common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)

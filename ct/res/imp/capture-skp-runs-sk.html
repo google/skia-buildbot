@@ -165,6 +165,10 @@
             <template is="dom-if" if="{{isDone(captureSkpsTask.Failure.Bool, captureSkpsTask.TsCompleted.Int64)}}">
               Done
             </template>
+            <template is="dom-if" if="{{captureSkpsTask.SwarmingLogs.String}}">
+              <br/>
+              <a href="{{captureSkpsTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+            </template>
           </td>
 
           <!-- Task Repeats -->
