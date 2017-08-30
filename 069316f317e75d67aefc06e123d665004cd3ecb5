@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "41e6fda7_a86bde77",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 747,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-30T15:15:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "709e7666_e58b5ed7",
+      "range": {
+        "startLine": 743,
+        "startChar": 0,
+        "endLine": 747,
+        "endChar": 2
+      },
+      "revId": "069316f317e75d67aefc06e123d665004cd3ecb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f2843a4d_5375923d",
         "filename": "go/util/util_test.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-30T14:24:11Z",
       "side": 1,
       "message": "I don\u0027t think this tests what you think. The first thing in the gzip stream is always 0x1f 0x8b, so \u0027if string(p) \u003d\u003d \"hi\"\u0027 will never be true.",
+      "range": {
+        "startLine": 772,
+        "startChar": 0,
+        "endLine": 781,
+        "endChar": 23
+      },
+      "revId": "069316f317e75d67aefc06e123d665004cd3ecb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92d755f1_321c5042",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 781,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-30T15:15:14Z",
+      "side": 1,
+      "message": "Err, right, it\u0027s going to be encoded.  I really don\u0027t know how to test this without testing gzip itself.  Changed to error out when it sees the experimentally-determined gzip footer (which contains a checksum) and changed the error from util.go to ensure that the failure comes from gzip.Writer.Close().",
+      "parentUuid": "f2843a4d_5375923d",
       "range": {
         "startLine": 772,
         "startChar": 0,
