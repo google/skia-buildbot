@@ -383,6 +383,21 @@ ALERT Google3AutoRoll24H
     description = "The last-landed Google3 roll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h."
   }
 
+ALERT InternalAutoRoll
+  IF autoroll_last_roll_result{instance="skia-internal-autoroll:20000"} == 0
+  FOR 10m
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "The last DEPS roll into internal_test repo failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed."
+  }
+
+ALERT InternalAutoRoll24H
+  IF liveness_last_autoroll_landed_s{instance="skia-internal-autoroll:20000"}/60/60 > 24
+  LABELS { category = "infra", severity = "warning" }
+  ANNOTATIONS {
+    description = "The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h."
+  }
+
 ALERT AutoRollLatency
   IF prober{type="latency",probename="autoroll"} > 200
   FOR 10m
