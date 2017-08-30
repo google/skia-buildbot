@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a144e8aa_8916aae2",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-30T13:45:24Z",
+      "side": 1,
+      "message": "Super-nit: IMO error messages fall under potentially sensitive info so we can probably just say \"potentially sensitive info\" here.",
+      "range": {
+        "startLine": 176,
+        "startChar": 40,
+        "endLine": 176,
+        "endChar": 87
+      },
+      "revId": "e3ca5e897f9073caa1a3fa1af1f35077f0be63b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
