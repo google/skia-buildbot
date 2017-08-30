@@ -16,6 +16,24 @@
       "revId": "4dcecd7e0f4d825963a1bb8331f9b02a8544065e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f28f8cae_86470103",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2017-08-30T20:58:09Z",
+      "side": 1,
+      "message": "I\u0027ve been working this way for a while in Skia by uploading with\n\n  git push origin @:refs/for/master\n\nIt works great.  It\u0027ll even give you a little script to setup Change-Ids autogeneration the first time you try.",
+      "parentUuid": "3c10f6e1_faa1560f",
+      "revId": "4dcecd7e0f4d825963a1bb8331f9b02a8544065e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
