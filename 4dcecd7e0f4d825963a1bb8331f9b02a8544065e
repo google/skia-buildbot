@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c10f6e1_faa1560f",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-30T20:55:28Z",
+      "side": 1,
+      "message": "We should still have these checks during commit by the CQ. I think the intention of this CL is to skip them only during \"git cl upload\".",
+      "revId": "4dcecd7e0f4d825963a1bb8331f9b02a8544065e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
