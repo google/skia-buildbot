@@ -13,7 +13,7 @@ SKIA_DIR = os.path.abspath(os.path.join(INFRABOTS_DIR, os.pardir, os.pardir))
 DEPOT_TOOLS_DIR = os.path.join(INFRABOTS_DIR, '.recipe_deps', 'depot_tools')
 if os.environ.get('CHROME_HEADLESS') == '1' and os.environ.get('DEPOT_TOOLS'):
   DEPOT_TOOLS_DIR = os.environ['DEPOT_TOOLS']
-sys.path.append(os.path.join(DEPOT_TOOLS_DIR, 'third_party', 'cq_client'))
+sys.path.append(os.path.join(DEPOT_TOOLS_DIR, 'third_party', 'cq_client', 'v1'))
 sys.path.append(os.path.join(DEPOT_TOOLS_DIR, 'third_party'))
 
 import protobuf26
