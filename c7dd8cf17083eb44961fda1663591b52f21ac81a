@@ -16,6 +16,24 @@
       "revId": "c7dd8cf17083eb44961fda1663591b52f21ac81a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36ea9fa9_3335f769",
+        "filename": "golden/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-30T13:11:38Z",
+      "side": 1,
+      "message": "I got this convention from benjaminwagner@. The benefit is that if you are ever changing the IP address it is very hard to miss that things need to be whitelisted if the comment is right next to it. However, you will very likely be the one who updates this file next so whatever you prefer works for me.",
+      "parentUuid": "fdb3b9bd_e1b76580",
+      "revId": "c7dd8cf17083eb44961fda1663591b52f21ac81a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
