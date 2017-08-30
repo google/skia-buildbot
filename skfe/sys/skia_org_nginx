@@ -375,6 +375,40 @@ server {
     return 301 https://catapult-roll.skia.org$request_uri;
 }
 
+#####   google3-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name google3-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/google3-roll.access.log;
+    error_log /var/log/nginx/google3-roll.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass https://google3-autoroll-8000-proxy.skia.org;
+    }
+
+    location /json/status {
+        proxy_pass http://google3-autoroll:8000/json/status;
+        proxy_set_header Host $host;
+    }
+    location /json/ministatus {
+        proxy_pass http://google3-autoroll:8000/json/ministatus;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name google3-roll.skia.org;
+    return 301 https://google3-roll.skia.org$request_uri;
+}
+
 #####   nacl-roll.skia.org   ###########################
 server {
     listen      443;

@@ -8,180 +8,260 @@
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script type="text/javascript">
     var fakeStatus = {
+        "currentRollRev": "3c2d09f89ae119de506722f550a6e28305d4813f",
+        "numFailed": 1,
+        "numBehind": 10,
+        "childHead": "",
         "currentRoll": {
             "closed": false,
             "commitQueue": true,
             "committed": false,
-            "issue": 1415573003,
-            "modified": "2015-10-23T15:05:33.06468Z",
+            "cqDryRun": false,
+            "created": "2017-08-28T18:01:25Z",
+            "issue": 638832,
+            "modified": "2017-08-28T18:02:24Z",
             "patchSets": [
                 1
             ],
             "result": "in progress",
-            "subject": "Roll src/third_party/skia/ 38a88e4c0..450ee8f26 (4 commits).",
+            "rollingFrom": "e94871bf8308b72ed44353956f1ff6c4ba6e7597",
+            "rollingTo": "3c2d09f89ae119de506722f550a6e28305d4813f",
+            "subject": "Roll src/third_party/skia/ e94871bf8..3c2d09f89 (10 commits)",
             "tryResults": [
                 {
-                    "builder": "trybot_name",
-                    "master": "try_master",
-                    "number": 0,
-                    "result": "FAILED",
-                    "status": "STARTED"
+                    "builder": "android_arm64_dbg_recipe",
+                    "category": "cq",
+                    "created_ts": "2017-08-28T18:03:49.65208Z",
+                    "result": "",
+                    "status": "STARTED",
+                    "url": "https://build.chromium.org/p/tryserver.chromium.android/builders/android_arm64_dbg_recipe/builds/337040"
+                },
+                {
+                    "builder": "ios-simulator-xcode-clang",
+                    "category": "cq_experimental",
+                    "created_ts": "2017-08-28T18:03:44.26696Z",
+                    "result": "SUCCESS",
+                    "status": "COMPLETED",
+                    "url": "http://build.chromium.org/p/tryserver.chromium.mac/builders/ios-simulator-xcode-clang/builds/136873"
+                },
+                {
+                    "builder": "win_optional_gpu_tests_rel",
+                    "category": "cq",
+                    "created_ts": "2017-08-28T18:03:49.65146Z",
+                    "result": "FAILURE",
+                    "status": "COMPLETED",
+                    "url": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_optional_gpu_tests_rel/builds/13936"
                 }
             ]
         },
-        "error": null,
+        "error": "",
+        "issueUrlBase": "https://chromium-review.googlesource.com/c/",
+        "fullHistoryUrl": "https://chromium-review.googlesource.com/q/owner:skia-deps-roller@chromium.org",
         "lastRoll": {
             "closed": true,
             "commitQueue": false,
             "committed": false,
-            "issue": 1422543007,
-            "modified": "2015-10-23T15:05:05.47221Z",
+            "cqDryRun": false,
+            "created": "2017-08-28T16:53:06Z",
+            "issue": 638315,
+            "modified": "2017-08-28T17:59:12Z",
             "patchSets": [
                 1
             ],
             "result": "failed",
-            "subject": "Roll src/third_party/skia/ 5a06df468..450ee8f26 (5 commits).",
+            "rollingFrom": "e94871bf8308b72ed44353956f1ff6c4ba6e7597",
+            "rollingTo": "7dda8dfb9d90f633af9a457b1c430f7cbf5536c5",
+            "subject": "Roll src/third_party/skia/ e94871bf8..7dda8dfb9 (3 commits)",
             "tryResults": []
         },
+        "lastRollRev": "e94871bf8308b72ed44353956f1ff6c4ba6e7597",
         "mode": {
-          "message": "Let's roll!",
-          "mode": "running",
-          "time": "2015-10-23T15:05:05.47221Z",
-          "user": "user@google.com",
+            "message": "Let's roll!",
+            "mode": "running",
+            "time": "2017-08-19T21:37:00.149346729Z",
+            "user": "user@google.com"
         },
         "recent": [
             {
                 "closed": false,
                 "commitQueue": true,
                 "committed": false,
-                "issue": 1415573003,
-                "modified": "2015-10-23T15:05:33.06468Z",
+                "cqDryRun": false,
+                "created": "2017-08-28T18:01:25Z",
+                "issue": 638832,
+                "modified": "2017-08-28T18:02:24Z",
                 "patchSets": [
                     1
                 ],
                 "result": "in progress",
-                "subject": "Roll src/third_party/skia/ 38a88e4c0..450ee8f26 (4 commits).",
+                "rollingFrom": "e94871bf8308b72ed44353956f1ff6c4ba6e7597",
+                "rollingTo": "3c2d09f89ae119de506722f550a6e28305d4813f",
+                "subject": "Roll src/third_party/skia/ e94871bf8..3c2d09f89 (10 commits)",
                 "tryResults": []
             },
             {
                 "closed": true,
                 "commitQueue": false,
                 "committed": false,
-                "issue": 1422543007,
-                "modified": "2015-10-23T15:05:05.47221Z",
+                "cqDryRun": false,
+                "created": "2017-08-28T16:53:06Z",
+                "issue": 638315,
+                "modified": "2017-08-28T17:59:12Z",
                 "patchSets": [
                     1
                 ],
                 "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..450ee8f26 (5 commits).",
+                "rollingFrom": "e94871bf8308b72ed44353956f1ff6c4ba6e7597",
+                "rollingTo": "7dda8dfb9d90f633af9a457b1c430f7cbf5536c5",
+                "subject": "Roll src/third_party/skia/ e94871bf8..7dda8dfb9 (3 commits)",
                 "tryResults": []
             },
             {
                 "closed": true,
-                "commitQueue": false,
-                "committed": false,
-                "issue": 1419183003,
-                "modified": "2015-10-23T15:03:40.4796Z",
+                "commitQueue": true,
+                "committed": true,
+                "cqDryRun": false,
+                "created": "2017-08-28T15:18:11Z",
+                "issue": 638490,
+                "modified": "2017-08-28T16:50:02Z",
                 "patchSets": [
-                    1
+                    1,
+                    2
                 ],
-                "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..450ee8f26 (5 commits).",
+                "result": "succeeded",
+                "rollingFrom": "26acbe8a89250a7c06f43d1668c3a0dea9da289d",
+                "rollingTo": "e94871bf8308b72ed44353956f1ff6c4ba6e7597",
+                "subject": "Roll src/third_party/skia/ 26acbe8a8..e94871bf8 (1 commit)",
                 "tryResults": []
             },
             {
                 "closed": true,
-                "commitQueue": false,
-                "committed": false,
-                "issue": 1412803005,
-                "modified": "2015-10-23T15:01:40.51842Z",
+                "commitQueue": true,
+                "committed": true,
+                "cqDryRun": false,
+                "created": "2017-08-28T10:46:01Z",
+                "issue": 637492,
+                "modified": "2017-08-28T12:09:41Z",
                 "patchSets": [
-                    1
+                    1,
+                    2
                 ],
-                "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "result": "succeeded",
+                "rollingFrom": "c5feebf2231367dda7b5d2b4a01b4546977c1ce3",
+                "rollingTo": "26acbe8a89250a7c06f43d1668c3a0dea9da289d",
+                "subject": "Roll src/third_party/skia/ c5feebf22..26acbe8a8 (1 commit)",
                 "tryResults": []
             },
             {
                 "closed": true,
-                "commitQueue": false,
-                "committed": false,
-                "issue": 1420233003,
-                "modified": "2015-10-23T14:59:56.61024Z",
+                "commitQueue": true,
+                "committed": true,
+                "cqDryRun": false,
+                "created": "2017-08-28T09:08:01Z",
+                "issue": 637570,
+                "modified": "2017-08-28T10:19:22Z",
                 "patchSets": [
-                    1
+                    1,
+                    2
                 ],
-                "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "result": "succeeded",
+                "rollingFrom": "95a34fe28a9de960ab9821c6e21fdfc3038f79c8",
+                "rollingTo": "c5feebf2231367dda7b5d2b4a01b4546977c1ce3",
+                "subject": "Roll src/third_party/skia/ 95a34fe28..c5feebf22 (1 commit)",
                 "tryResults": []
             },
             {
                 "closed": true,
-                "commitQueue": false,
-                "committed": false,
-                "issue": 1418133006,
-                "modified": "2015-10-23T14:58:29.50867Z",
+                "commitQueue": true,
+                "committed": true,
+                "cqDryRun": false,
+                "created": "2017-08-28T07:34:49Z",
+                "issue": 637065,
+                "modified": "2017-08-28T08:44:26Z",
                 "patchSets": [
-                    1
+                    1,
+                    2
                 ],
-                "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "result": "succeeded",
+                "rollingFrom": "c4e5b04f9bfc3214896cb19074c7112eb27b3940",
+                "rollingTo": "95a34fe28a9de960ab9821c6e21fdfc3038f79c8",
+                "subject": "Roll src/third_party/skia/ c4e5b04f9..95a34fe28 (1 commit)",
                 "tryResults": []
             },
             {
                 "closed": true,
-                "commitQueue": false,
-                "committed": false,
-                "issue": 1411073004,
-                "modified": "2015-10-23T14:55:28.90072Z",
+                "commitQueue": true,
+                "committed": true,
+                "cqDryRun": false,
+                "created": "2017-08-28T05:08:04Z",
+                "issue": 636528,
+                "modified": "2017-08-28T06:53:55Z",
                 "patchSets": [
-                    1
+                    1,
+                    2
                 ],
-                "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "result": "succeeded",
+                "rollingFrom": "b6ee256ae96c4445b213948da9405364efe5b912",
+                "rollingTo": "c4e5b04f9bfc3214896cb19074c7112eb27b3940",
+                "subject": "Roll src/third_party/skia/ b6ee256ae..c4e5b04f9 (1 commit)",
                 "tryResults": []
             },
             {
                 "closed": true,
-                "commitQueue": false,
-                "committed": false,
-                "issue": 1418133005,
-                "modified": "2015-10-23T14:51:29.32814Z",
+                "commitQueue": true,
+                "committed": true,
+                "cqDryRun": false,
+                "created": "2017-08-28T03:51:10Z",
+                "issue": 637243,
+                "modified": "2017-08-28T05:04:34Z",
                 "patchSets": [
-                    1
+                    1,
+                    2
                 ],
-                "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "result": "succeeded",
+                "rollingFrom": "0b5cd8fed9541ba23b86d7d026e6160b340a4064",
+                "rollingTo": "b6ee256ae96c4445b213948da9405364efe5b912",
+                "subject": "Roll src/third_party/skia/ 0b5cd8fed..b6ee256ae (1 commit)",
                 "tryResults": []
             },
             {
                 "closed": true,
-                "commitQueue": false,
-                "committed": false,
-                "issue": 1405023009,
-                "modified": "2015-10-23T14:41:21.06715Z",
+                "commitQueue": true,
+                "committed": true,
+                "cqDryRun": false,
+                "created": "2017-08-27T20:35:54Z",
+                "issue": 636855,
+                "modified": "2017-08-27T21:41:47Z",
                 "patchSets": [
-                    1
+                    1,
+                    2
                 ],
-                "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "result": "succeeded",
+                "rollingFrom": "7f810b4e1076c646b9ec7dd939ccaa1f87c659d4",
+                "rollingTo": "0b5cd8fed9541ba23b86d7d026e6160b340a4064",
+                "subject": "Roll src/third_party/skia/ 7f810b4e1..0b5cd8fed (1 commit)",
                 "tryResults": []
             },
             {
                 "closed": true,
-                "commitQueue": false,
-                "committed": false,
-                "issue": 1419013003,
-                "modified": "2015-10-23T14:26:59.94732Z",
+                "commitQueue": true,
+                "committed": true,
+                "cqDryRun": false,
+                "created": "2017-08-27T07:59:59Z",
+                "issue": 636849,
+                "modified": "2017-08-27T09:23:32Z",
                 "patchSets": [
-                    1
+                    1,
+                    2
                 ],
-                "result": "failed",
-                "subject": "Roll src/third_party/skia/ 5a06df468..33eefcd58 (3 commits).",
+                "result": "succeeded",
+                "rollingFrom": "cd25f63484badeac976b91506ce67a7dbd3c904c",
+                "rollingTo": "7f810b4e1076c646b9ec7dd939ccaa1f87c659d4",
+                "subject": "Roll src/third_party/skia/ cd25f6348..7f810b4e1 (1 commit)",
                 "tryResults": []
             }
         ],
-        "status": "in progress",
+        "status": "active",
         "validModes": [
             "running",
             "stopped",
@@ -230,7 +310,7 @@
 <body>
   <login-sk style="display:none"></login-sk>
   <h1>arb-status-sk demo</h1>
-  <arb-status-sk roll-user="skia-deps-roller"></arb-status-sk>
+  <arb-status-sk></arb-status-sk>
   <error-toast-sk></error-toast-sk>
 </body>
 </html>

@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
@@ -176,7 +178,7 @@ func (r *AutoRoller) SetMode(m, user, message string) error {
 
 // Return the roll-up status of the bot.
 func (r *AutoRoller) GetStatus(includeError bool) *AutoRollStatus {
-	return r.status.Get(includeError)
+	return r.status.Get(includeError, nil)
 }
 
 // Return minimal status information for the bot.
@@ -255,14 +257,15 @@ func (r *AutoRoller) Tick() error {
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: r.rm.CommitsNotRolled(),
 		},
-		CurrentRoll: r.recent.CurrentRoll(),
-		Error:       lastErrorStr,
-		GerritUrl:   r.gerrit.Url(0),
-		LastRoll:    r.recent.LastRoll(),
-		LastRollRev: r.rm.LastRollRev(),
-		Mode:        r.modeHistory.CurrentMode(),
-		Recent:      recent,
-		Status:      string(r.sm.Current()),
+		CurrentRoll:    r.recent.CurrentRoll(),
+		Error:          lastErrorStr,
+		FullHistoryUrl: r.gerrit.Url(0) + "/q/owner:" + r.GetUser(),
+		IssueUrlBase:   r.gerrit.Url(0) + "/c/",
+		LastRoll:       r.recent.LastRoll(),
+		LastRollRev:    r.rm.LastRollRev(),
+		Mode:           r.modeHistory.CurrentMode(),
+		Recent:         recent,
+		Status:         string(r.sm.Current()),
 	}); err != nil {
 		return err
 	}
@@ -280,3 +283,6 @@ func (r *AutoRoller) AddComment(issueNum int64, message, user string, timestamp 
 	roll.Comments = append(roll.Comments, comment.New(id, message, user))
 	return r.recent.Update(roll)
 }
+
+// Required for main.AutoRollerI. No specific HTTP handlers.
+func (r *AutoRoller) AddHandlers(*mux.Router) {}

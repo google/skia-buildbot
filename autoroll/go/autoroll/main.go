@@ -23,7 +23,9 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/webhook"
 
+	"go.skia.org/infra/autoroll/go/google3"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/common"
@@ -36,7 +38,7 @@ import (
 )
 
 var (
-	arb *roller.AutoRoller = nil
+	arb AutoRollerI = nil
 
 	mainTemplate *template.Template = nil
 )
@@ -59,10 +61,28 @@ var (
 	useMetadata     = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir         = flag.String("workdir", ".", "Directory to use for scratch work.")
 	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
+	rollIntoGoogle3 = flag.Bool("roll_into_google3", false, "Roll into Google3; do not do a Gerrit roll.")
 	useManifest     = flag.Bool("use_manifest", false, "Do a Manifest roll.")
 	gerritUrl       = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
 	preUploadSteps  = common.NewMultiStringFlag("pre_upload_step", nil, "Named steps to run before uploading roll CLs. Pre-upload steps and their names are available in https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go")
 )
+
+// AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
+type AutoRollerI interface {
+	// Start initiates the AutoRoller's loop.
+	Start(tickFrequency, repoFrequency time.Duration, ctx context.Context)
+	// AddHandlers allows the AutoRoller to respond to specific HTTP requests.
+	AddHandlers(r *mux.Router)
+	// SetMode sets the desired mode of the bot. This forces the bot to run and
+	// blocks until it finishes.
+	SetMode(m, user, message string) error
+	// SetEmails sets the list of email addresses which are copied on rolls.
+	SetEmails(e []string)
+	// Return the roll-up status of the bot.
+	GetStatus(isGoogler bool) *roller.AutoRollStatus
+	// Return minimal status information for the bot.
+	GetMiniStatus() *roller.AutoRollMiniStatus
+}
 
 func getSheriff() ([]string, error) {
 	emails, err := getSheriffHelper()
@@ -153,8 +173,8 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	// Obtain the status info. Only display error messages if the user
-	// is a logged-in Googler.
+	// Obtain the status info. Only display potentially sensitive info if the user is a logged-in
+	// Googler.
 	status := arb.GetStatus(login.IsGoogler(r))
 	if err := json.NewEncoder(w).Encode(&status); err != nil {
 		httputils.ReportError(w, r, err, "Failed to obtain status.")
@@ -180,10 +200,8 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	mainPage := struct {
 		ProjectName string
-		ProjectUser string
 	}{
 		ProjectName: *childName,
-		ProjectUser: arb.GetUser(),
 	}
 	if err := mainTemplate.Execute(w, mainPage); err != nil {
 		sklog.Errorln("Failed to expand template:", err)
@@ -201,7 +219,13 @@ func runServer() {
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	arb.AddHandlers(r)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	serverURL := "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
+	}
+	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
@@ -220,8 +244,33 @@ func main() {
 	}
 	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
+	if *rollIntoGoogle3 {
+		if *cqExtraTrybots != "" {
+			sklog.Fatalf("Can not specify --cqExtraTrybots with --roll_into_google3.")
+		}
+		if *parentBranch != "" {
+			sklog.Fatalf("Can not specify --parent_branch with --roll_into_google3.")
+		}
+		if *strategy != "" && *strategy != repo_manager.ROLL_STRATEGY_BATCH {
+			sklog.Fatalf("Can not specify --strategy with --roll_into_google3.")
+		}
+		if *rollIntoAndroid {
+			sklog.Fatalf("Can not specify --roll_into_android with --roll_into_google3.")
+		}
+		if *useManifest {
+			sklog.Fatalf("Can not specify --use_manifest with --roll_into_google3.")
+		}
+		if *gerritUrl != "" {
+			sklog.Fatalf("Can not specify --gerrit_url with --roll_into_google3.")
+		}
+		if len(*preUploadSteps) != 0 {
+			sklog.Fatalf("Can not specify --pre_upload_step with --roll_into_google3.")
+		}
+	}
+
 	if *local {
 		*useMetadata = false
+		webhook.InitRequestSaltForTesting()
 	}
 
 	user, err := user.Current()
@@ -232,6 +281,10 @@ func main() {
 	androidInternalGerritUrl := *gerritUrl
 
 	if *useMetadata {
+		if err := webhook.InitRequestSaltFromMetadata(); err != nil {
+			sklog.Fatal(err)
+		}
+
 		// If we are rolling into Android get the Gerrit Url from metadata.
 		androidInternalGerritUrl, err = metadata.ProjectGet("android_internal_gerrit_url")
 		if err != nil {
@@ -240,24 +293,28 @@ func main() {
 	}
 
 	// Create the code review API client.
-	gUrl := *gerritUrl
-	if *rollIntoAndroid {
-		if !*local {
-			// Android roller uses the gitcookie created by gcompute-tools/git-cookie-authdaemon.
-			// TODO(rmistry): Turn this on via the GCE setup script so that it exists right when the instance comes up?
-			gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
+	var g *gerrit.Gerrit
+	if *gerritUrl != "" {
+		gUrl := *gerritUrl
+		if *rollIntoAndroid {
+			if !*local {
+				// Android roller uses the gitcookie created by gcompute-tools/git-cookie-authdaemon.
+				// TODO(rmistry): Turn this on via the GCE setup script so that it exists right when the instance comes up?
+				gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
+			}
+			gUrl = androidInternalGerritUrl
+		} else {
+			if strings.Contains(*parentRepo, "skia") {
+				gUrl = gerrit.GERRIT_SKIA_URL
+			}
 		}
-		gUrl = androidInternalGerritUrl
-	} else {
-		if strings.Contains(*parentRepo, "skia") {
-			gUrl = gerrit.GERRIT_SKIA_URL
+		var err error
+		g, err = gerrit.NewGerrit(gUrl, gitcookiesPath, nil)
+		if err != nil {
+			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
+		g.TurnOnAuthenticatedGets()
 	}
-	g, err := gerrit.NewGerrit(gUrl, gitcookiesPath, nil)
-	if err != nil {
-		sklog.Fatalf("Failed to create Gerrit client: %s", err)
-	}
-	g.TurnOnAuthenticatedGets()
 
 	// Retrieve the list of extra CQ trybots.
 	// TODO(borenet): Make this editable on the web front-end.
@@ -273,7 +330,7 @@ func main() {
 
 	// Sync depot_tools.
 	var depotTools string
-	if !*rollIntoAndroid {
+	if !*rollIntoAndroid && !*rollIntoGoogle3 {
 		depotTools, err = depot_tools.Sync(*workdir)
 		if err != nil {
 			sklog.Fatal(err)
@@ -287,6 +344,8 @@ func main() {
 	}
 	if *rollIntoAndroid {
 		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps)
+	} else if *rollIntoGoogle3 {
+		arb, err = google3.NewAutoRoller(*workdir, *childBranch)
 	} else if *useManifest {
 		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
 	} else {
@@ -323,37 +382,39 @@ func main() {
 		}
 	}()
 
-	// Periodically delete old roll CLs.
-	// "git cl upload" performs some steps after the actual upload of the
-	// CL. When these steps fail, all we know is that the command failed,
-	// and since we didn't get an issue number back we have to assume that
-	// no CL was uploaded. This can leave us with orphaned roll CLs.
-	myEmail, err := g.GetUserEmail()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	go func() {
-		for range time.Tick(60 * time.Minute) {
-			issues, err := g.Search(100, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_DRAFT))
-			if err != nil {
-				sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
-				continue
-			}
-			issues2, err := g.Search(100, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_NEW))
-			if err != nil {
-				sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
-				continue
-			}
-			issues = append(issues, issues2...)
-			for _, ci := range issues {
-				if ci.Updated.Before(time.Now().Add(-168 * time.Hour)) {
-					if err := g.Abandon(ci, "Abandoning new/draft issues older than a week."); err != nil {
-						sklog.Errorf("Failed to abandon old issue %s: %s", g.Url(ci.Issue), err)
+	if g != nil {
+		// Periodically delete old roll CLs.
+		// "git cl upload" performs some steps after the actual upload of the
+		// CL. When these steps fail, all we know is that the command failed,
+		// and since we didn't get an issue number back we have to assume that
+		// no CL was uploaded. This can leave us with orphaned roll CLs.
+		myEmail, err := g.GetUserEmail()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		go func() {
+			for range time.Tick(60 * time.Minute) {
+				issues, err := g.Search(100, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_DRAFT))
+				if err != nil {
+					sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
+					continue
+				}
+				issues2, err := g.Search(100, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_NEW))
+				if err != nil {
+					sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
+					continue
+				}
+				issues = append(issues, issues2...)
+				for _, ci := range issues {
+					if ci.Updated.Before(time.Now().Add(-168 * time.Hour)) {
+						if err := g.Abandon(ci, "Abandoning new/draft issues older than a week."); err != nil {
+							sklog.Errorf("Failed to abandon old issue %s: %s", g.Url(ci.Issue), err)
+						}
 					}
 				}
 			}
-		}
-	}()
+		}()
+	}
 
 	login.SimpleInitMust(*port, *local)
 

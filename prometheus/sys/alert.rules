@@ -368,6 +368,21 @@ ALERT SkiaAutoRoll24H
     description = "The last-landed AutoRoll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h."
   }
 
+ALERT Google3AutoRoll
+  IF autoroll_last_roll_result{instance="google3-autoroll:20000"} == 0
+  FOR 10m
+  LABELS { category = "general", severity = "warning" }
+  ANNOTATIONS {
+    description = "The last Google3 roll attempt for Skia failed. https://sites.google.com/a/google.com/skia-infrastructure/docs/google3-autoroller"
+  }
+
+ALERT Google3AutoRoll24H
+  IF liveness_last_autoroll_landed_s{instance="google3-autoroll:20000"}/60/60 > 24
+  LABELS { category = "general", severity = "warning" }
+  ANNOTATIONS {
+    description = "The last-landed Google3 roll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h."
+  }
+
 ALERT AutoRollLatency
   IF prober{type="latency",probename="autoroll"} > 200
   FOR 10m

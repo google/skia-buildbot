@@ -11,16 +11,17 @@ import (
 // the AutoRoll Bot.
 type AutoRollStatus struct {
 	AutoRollMiniStatus
-	ChildHead   string                    `json:"childHead"`
-	CurrentRoll *autoroll.AutoRollIssue   `json:"currentRoll"`
-	Error       string                    `json:"error"`
-	GerritUrl   string                    `json:"gerritUrl"`
-	LastRoll    *autoroll.AutoRollIssue   `json:"lastRoll"`
-	LastRollRev string                    `json:"lastRollRev"`
-	Mode        *modes.ModeChange         `json:"mode"`
-	Recent      []*autoroll.AutoRollIssue `json:"recent"`
-	Status      string                    `json:"status"`
-	ValidModes  []string                  `json:"validModes"`
+	ChildHead      string                    `json:"childHead"`
+	CurrentRoll    *autoroll.AutoRollIssue   `json:"currentRoll"`
+	Error          string                    `json:"error"`
+	FullHistoryUrl string                    `json:"fullHistoryUrl"`
+	IssueUrlBase   string                    `json:"issueUrlBase"`
+	LastRoll       *autoroll.AutoRollIssue   `json:"lastRoll"`
+	LastRollRev    string                    `json:"lastRollRev"`
+	Mode           *modes.ModeChange         `json:"mode"`
+	Recent         []*autoroll.AutoRollIssue `json:"recent"`
+	Status         string                    `json:"status"`
+	ValidModes     []string                  `json:"validModes"`
 }
 
 // AutoRollMiniStatus is a struct which provides a minimal amount of status
@@ -48,26 +49,32 @@ type AutoRollMiniStatus struct {
 // AutoRollStatusCache is a struct used for caching roll-up status
 // information about the AutoRoll Bot.
 type AutoRollStatusCache struct {
-	currentRoll  *autoroll.AutoRollIssue
-	gerritUrl    string
-	lastError    string
-	lastRoll     *autoroll.AutoRollIssue
-	lastRollRev  string
-	numFailed    int
-	numNotRolled int
-	mode         *modes.ModeChange
-	mtx          sync.RWMutex
-	recent       []*autoroll.AutoRollIssue
-	status       string
+	currentRoll    *autoroll.AutoRollIssue
+	fullHistoryUrl string
+	issueUrlBase   string
+	lastError      string
+	lastRoll       *autoroll.AutoRollIssue
+	lastRollRev    string
+	numFailed      int
+	numNotRolled   int
+	mode           *modes.ModeChange
+	mtx            sync.RWMutex
+	recent         []*autoroll.AutoRollIssue
+	status         string
 }
 
 // Get returns the current status information.
-func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
+func (c *AutoRollStatusCache) Get(includeError bool, cleanIssue func(*autoroll.AutoRollIssue)) *AutoRollStatus {
+	if cleanIssue == nil {
+		cleanIssue = func(*autoroll.AutoRollIssue) {}
+	}
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 	recent := make([]*autoroll.AutoRollIssue, 0, len(c.recent))
 	for _, r := range c.recent {
-		recent = append(recent, r.Copy())
+		cpy := r.Copy()
+		cleanIssue(cpy)
+		recent = append(recent, cpy)
 	}
 	validModes := make([]string, len(modes.VALID_MODES))
 	copy(validModes, modes.VALID_MODES)
@@ -81,19 +88,22 @@ func (c *AutoRollStatusCache) Get(includeError bool) *AutoRollStatus {
 			NumFailedRolls:      c.numFailed,
 			NumNotRolledCommits: c.numNotRolled,
 		},
-		GerritUrl:   c.gerritUrl,
-		LastRollRev: c.lastRollRev,
-		Mode:        mode,
-		Recent:      recent,
-		Status:      c.status,
-		ValidModes:  validModes,
+		FullHistoryUrl: c.fullHistoryUrl,
+		IssueUrlBase:   c.issueUrlBase,
+		LastRollRev:    c.lastRollRev,
+		Mode:           mode,
+		Recent:         recent,
+		Status:         c.status,
+		ValidModes:     validModes,
 	}
 	if c.currentRoll != nil {
 		s.CurrentRoll = c.currentRoll.Copy()
 		s.AutoRollMiniStatus.CurrentRollRev = c.currentRoll.RollingTo
+		cleanIssue(s.CurrentRoll)
 	}
 	if c.lastRoll != nil {
 		s.LastRoll = c.lastRoll.Copy()
+		cleanIssue(s.LastRoll)
 	}
 	if c.mode != nil {
 		s.Mode = c.mode.Copy()
@@ -121,13 +131,15 @@ func (c *AutoRollStatusCache) Set(s *AutoRollStatus) error {
 	if s.LastRoll != nil {
 		c.lastRoll = s.LastRoll.Copy()
 	}
-	c.gerritUrl = s.GerritUrl
+	c.fullHistoryUrl = s.FullHistoryUrl
+	c.issueUrlBase = s.IssueUrlBase
 	c.lastRollRev = s.LastRollRev
 	c.mode = s.Mode.Copy()
 	c.numFailed = s.NumFailedRolls
 	c.numNotRolled = s.NumNotRolledCommits
 	c.recent = recent
 	c.status = s.Status
+	c.lastError = s.Error
 
 	return nil
 }

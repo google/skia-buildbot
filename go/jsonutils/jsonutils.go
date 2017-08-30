@@ -15,7 +15,7 @@ type Number int64
 // UnmarshalJSON parses data as an integer, whether data is a number or string.
 func (n *Number) UnmarshalJSON(data []byte) error {
 	data = bytes.Trim(data, `"`)
-	num, err := strconv.Atoi(string(data))
+	num, err := strconv.ParseInt(string(data), 0, 64)
 	if err == nil {
 		*n = Number(num)
 	}
