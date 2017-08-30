@@ -107,8 +107,6 @@ func updateWebappTask() {
 	vars.Id = *gaeTaskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.RawOutput = sql.NullString{String: outputLink, Valid: true}
-	swarmingLogsLink := fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID)
-	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
@@ -130,7 +128,7 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()

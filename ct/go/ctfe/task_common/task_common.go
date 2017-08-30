@@ -46,13 +46,14 @@ var (
 )
 
 type CommonCols struct {
-	Id              int64         `db:"id"`
-	TsAdded         sql.NullInt64 `db:"ts_added"`
-	TsStarted       sql.NullInt64 `db:"ts_started"`
-	TsCompleted     sql.NullInt64 `db:"ts_completed"`
-	Username        string        `db:"username"`
-	Failure         sql.NullBool  `db:"failure"`
-	RepeatAfterDays int64         `db:"repeat_after_days"`
+	Id              int64          `db:"id"`
+	TsAdded         sql.NullInt64  `db:"ts_added"`
+	TsStarted       sql.NullInt64  `db:"ts_started"`
+	TsCompleted     sql.NullInt64  `db:"ts_completed"`
+	Username        string         `db:"username"`
+	Failure         sql.NullBool   `db:"failure"`
+	RepeatAfterDays int64          `db:"repeat_after_days"`
+	SwarmingLogs    sql.NullString `db:"swarming_logs"`
 }
 
 type Task interface {
@@ -311,10 +312,13 @@ type UpdateTaskCommonVars struct {
 	TsCompleted     sql.NullString
 	Failure         sql.NullBool
 	RepeatAfterDays sql.NullInt64
+	SwarmingLogs    sql.NullString
 }
 
-func (vars *UpdateTaskCommonVars) SetStarted() {
+func (vars *UpdateTaskCommonVars) SetStarted(runID string) {
 	vars.TsStarted = sql.NullString{String: ctutil.GetCurrentTs(), Valid: true}
+	swarmingLogsLink := fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
+	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 }
 
 func (vars *UpdateTaskCommonVars) SetCompleted(success bool) {
@@ -359,6 +363,10 @@ func getUpdateQueryAndBinds(vars UpdateTaskVars, tableName string) (string, []in
 	if common.RepeatAfterDays.Valid {
 		clauses = append(clauses, "repeat_after_days = ?")
 		args = append(args, common.RepeatAfterDays)
+	}
+	if common.SwarmingLogs.Valid {
+		clauses = append(clauses, "swarming_logs = ?")
+		args = append(args, common.SwarmingLogs.String)
 	}
 	additionalClauses, additionalArgs, err := vars.GetUpdateExtraClausesAndBinds()
 	if err != nil {
