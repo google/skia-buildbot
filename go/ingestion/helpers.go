@@ -150,24 +150,23 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 }
 
 // See Source interface.
-func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
+func (g *GoogleStorageSource) Poll(startTime, endTime int64, resultCh chan<- ResultFileLocation) error {
 	dirs := gcs.GetLatestGCSDirs(startTime, endTime, g.rootDir)
-	retval := []ResultFileLocation{}
 	for _, dir := range dirs {
 		err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
 			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
 			if strings.Contains(filepath.Base(item.Name), "uploading") {
 				sklog.Warningf("Received temporary file from GS: %s", item.Name)
 			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
-				retval = append(retval, newGCSResultFileLocation(item, g.rootDir, g.storageClient))
+				resultCh <- newGCSResultFileLocation(item, g.rootDir, g.storageClient)
 			}
 		})
 
 		if err != nil {
-			return nil, fmt.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
+			return fmt.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
 		}
 	}
-	return retval, nil
+	return nil
 }
 
 // See Source interface.
@@ -267,9 +266,7 @@ func NewFileSystemSource(baseName, rootDir string) (Source, error) {
 }
 
 // See Source interface.
-func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	retval := []ResultFileLocation{}
-
+func (f *FileSystemSource) Poll(startTime, endTime int64, resultCh chan<- ResultFileLocation) error {
 	// although GetLatestGCSDirs is in the "gcs" package, there's nothing specific about
 	// its operation that makes it not re-usable here.
 	dirs := gcs.GetLatestGCSDirs(startTime, endTime, f.rootDir)
@@ -294,7 +291,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 						sklog.Errorf("Unable to create file system result: %s", err)
 						return nil
 					}
-					retval = append(retval, rf)
+					resultCh <- rf
 				}
 				return nil
 			}
@@ -309,7 +306,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 		}(dir)
 	}
 
-	return retval, nil
+	return nil
 }
 
 // See Source interface.

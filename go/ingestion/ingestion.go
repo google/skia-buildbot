@@ -43,7 +43,7 @@ var (
 type Source interface {
 	// Return a list of result files that originated between the given
 	// timestamps in milliseconds.
-	Poll(startTime, endTime int64) ([]ResultFileLocation, error)
+	Poll(startTime, endTime int64, resultCh chan<- ResultFileLocation) error
 
 	// ID returns a unique identifier for this source.
 	ID() string
@@ -80,7 +80,7 @@ type Processor interface {
 	// BatchFinished is called when the current batch is finished. This is
 	// to cover the case when ingestion is better done for the whole batch
 	// This should reset the internal state of the Processor instance.
-	BatchFinished() error
+	// BatchFinished() error
 }
 
 // Ingester is the main type that drives ingestion for a single type.
@@ -96,6 +96,7 @@ type Ingester struct {
 	statusDB       *bolt.DB
 	resultFilesDir string
 	localCache     bool
+	tokenCh        chan bool
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
@@ -135,6 +136,7 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		statusDB:       statusDB,
 		resultFilesDir: resultFilesDir,
 		localCache:     ingesterConf.LocalCache,
+		tokenCh:        make(chan bool, 200),
 	}
 	ret.setupMetrics()
 	return ret, nil
@@ -152,19 +154,19 @@ func (i *Ingester) setupMetrics() {
 func (i *Ingester) Start() {
 	pollChan, eventChan := i.getInputChannels()
 	go func(doneCh <-chan bool) {
-		var resultFiles []ResultFileLocation = nil
+		var resultFile ResultFileLocation = nil
 		var useMetrics *processMetrics
 
 		for {
 			select {
-			case resultFiles = <-pollChan:
+			case resultFile = <-pollChan:
 				useMetrics = i.pollProcessMetrics
-			case resultFiles = <-eventChan:
+			case resultFile = <-eventChan:
 				useMetrics = i.eventProcessMetrics
 			case <-doneCh:
 				return
 			}
-			i.processResults(resultFiles, useMetrics)
+			i.processResults(resultFile, useMetrics)
 		}
 	}(i.doneCh)
 }
@@ -187,9 +189,9 @@ func (q *rflQueue) clear() {
 	*q = rflQueue{}
 }
 
-func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []ResultFileLocation) {
-	pollChan := make(chan []ResultFileLocation)
-	eventChan := make(chan []ResultFileLocation)
+func (i *Ingester) getInputChannels() (<-chan ResultFileLocation, <-chan ResultFileLocation) {
+	pollChan := make(chan ResultFileLocation, 200)
+	eventChan := make(chan ResultFileLocation, 200)
 	i.doneCh = make(chan bool)
 
 	for idx, source := range i.sources {
@@ -205,22 +207,15 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 
 				sklog.Infof("Polling range: %s - %s", time.Unix(startTime, 0), time.Unix(endTime, 0))
 				// measure how long the polling takes.
-				resultFiles, err := source.Poll(startTime, endTime)
-				if err != nil {
+				if err := source.Poll(startTime, endTime, pollChan); err != nil {
 					// Indicate that there was an error in polling the source.
 					srcMetrics.pollError.Update(1)
 					sklog.Errorf("Error polling data source '%s': %s", source.ID(), err)
 					return
 				}
 
-				sklog.Infof("Sending pollChan from %s for %d files.", source.ID(), len(resultFiles))
 				// Indicate that the polling was successful.
 				srcMetrics.pollError.Update(0)
-				for len(resultFiles) > 0 {
-					chunkSize := util.MinInt(POLL_CHUNK_SIZE, len(resultFiles))
-					pollChan <- resultFiles[:chunkSize]
-					resultFiles = resultFiles[chunkSize:]
-				}
 				srcMetrics.liveness.Reset()
 				srcMetrics.pollTimer.Stop()
 			})
@@ -272,71 +267,39 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 }
 
 // processResults ingests a set of result files.
-func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
+func (i *Ingester) processResults(resultLocation ResultFileLocation, targetMetrics *processMetrics) {
+	i.tokenCh <- true
 
-	var mutex sync.Mutex // Protects access to the following vars.
-	processedMD5s := make([]string, 0, len(resultFiles))
-	var processedCounter int64 = 0
-	var ignoredCounter int64 = 0
-	var errorCounter int64 = 0
+	go func(resultLocation ResultFileLocation) {
+		defer func() {
+			<-i.tokenCh
+		}()
 
-	// time how long the overall process takes.
-	i.processTimer.Start()
-	var wg sync.WaitGroup
-	for _, resultLocation := range resultFiles {
-		if i.inProcessedFiles(resultLocation.MD5()) {
-			mutex.Lock()
-			ignoredCounter++
-			mutex.Unlock()
-			continue
+		// time how long the overall process takes.
+		i.processTimer.Start()
+		md5Hash := resultLocation.MD5()
+		if i.inProcessedFiles(md5Hash) {
+			return
 		}
-		wg.Add(1)
-		go func(resultLocation ResultFileLocation) {
-			defer wg.Done()
-			defer metrics2.NewTimer("ingestion_process_file", map[string]string{"id": i.id}).Stop()
-			err := i.processor.Process(resultLocation)
 
-			mutex.Lock()
-			defer mutex.Unlock()
+		defer metrics2.NewTimer("ingestion_process_file", map[string]string{"id": i.id}).Stop()
+		err := i.processor.Process(resultLocation)
 
-			if err != nil {
-				if err == IgnoreResultsFileErr {
-					ignoredCounter++
-				} else {
-					errorCounter++
-					sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
-				}
-				return
+		if err != nil {
+			if err != IgnoreResultsFileErr {
+				sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
 			}
+			return
+		}
 
-			if i.localCache {
-				// Write the process file to disk.
-				i.saveFileAsync(resultLocation)
-			}
+		if i.localCache {
+			// Write the process file to disk.
+			i.saveFileAsync(resultLocation)
+		}
 
-			// Gather all successfully processed MD5s
-			processedCounter++
-			processedMD5s = append(processedMD5s, resultLocation.MD5())
-		}(resultLocation)
-	}
-	wg.Wait()
-	targetMetrics.liveness.Reset()
-
-	// Update the timer and the gauges that measure how the ingestion works
-	// for the input type.
-	i.processTimer.Stop()
-	targetMetrics.totalFilesGauge.Update(int64(len(resultFiles)) + targetMetrics.totalFilesGauge.Get())
-	targetMetrics.processedGauge.Update(processedCounter + targetMetrics.processedGauge.Get())
-	targetMetrics.ignoredGauge.Update(ignoredCounter + targetMetrics.ignoredGauge.Get())
-	targetMetrics.errorGauge.Update(errorCounter + targetMetrics.errorGauge.Get())
-
-	// Notify the ingester that the batch has finished and cause it to reset its
-	// state and do any pending ingestion.
-	if err := i.processor.BatchFinished(); err != nil {
-		sklog.Errorf("Batchfinished failed: %s", err)
-	} else {
-		i.addToProcessedFiles(processedMD5s)
-	}
+		// Gather all successfully processed MD5s
+		i.addToProcessedFiles([]string{md5Hash})
+	}(resultLocation)
 }
 
 // saveFileAsync asynchronously saves the given result file to disk.

@@ -164,12 +164,16 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
 	}
 }
 
-func (m *mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
+func (m *mockSource) Poll(startTime, endTime int64, resultCh chan<- ResultFileLocation) error {
 	startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
 	endIdx := startIdx
 	for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
 	}
-	return m.data[startIdx:endIdx], nil
+	for _, retFile := range m.data[startIdx:endIdx] {
+		resultCh <- retFile
+	}
+
+	return nil
 }
 
 func (m mockSource) ID() string {
