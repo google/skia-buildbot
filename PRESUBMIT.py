@@ -9,29 +9,6 @@
 import subprocess
 
 
-SKIP_RUNS_KEYWORD = '(SkipBuildbotRuns)'
-
-
-def _RunBuildbotTests(input_api, output_api):
-  """ Run the buildbot tests and return a list of strings containing any errors.
-  """
-  results = []
-  success = True
-  try:
-    proc = subprocess.Popen(['python', 'run_unittests', '--small'],
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    success = proc.wait() == 0
-    long_text = proc.communicate()[0]
-  except Exception:
-    success = False
-    long_text = 'Failed to run the buildbot tests!'
-  if not success:
-    results.append(output_api.PresubmitPromptWarning(
-        message='One or more buildbot tests failed.',
-        long_text=long_text))
-  return results
-
-
 def _MakeFileFilter(input_api, include_extensions=None,
                     exclude_extensions=None):
   """Return a filter to pass to AffectedSourceFiles.
@@ -190,8 +167,6 @@ def CheckChange(input_api, output_api):
   results += input_api.canned_checks.CheckChangeHasNoTabs(input_api, output_api)
 
   results += _CheckBannedGoAPIs(input_api, output_api)
-
-  results += _RunBuildbotTests(input_api, output_api)
 
   return results
 
