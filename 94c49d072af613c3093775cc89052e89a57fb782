@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "b620f65e_7bc4d348",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-30T14:26:18Z",
+      "side": 1,
+      "message": "Correct, the API will handle chunking if needed. I think it uses 8MB requests.",
+      "parentUuid": "749c3075_02c57c82",
+      "range": {
+        "startLine": 50,
+        "startChar": 14,
+        "endLine": 50,
+        "endChar": 32
+      },
+      "revId": "94c49d072af613c3093775cc89052e89a57fb782",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3348aab2_e26e7a3c",
         "filename": "go/gcs/mass_process/utils.go",
         "patchSetId": 2
