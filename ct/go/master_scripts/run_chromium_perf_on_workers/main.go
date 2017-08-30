@@ -105,6 +105,8 @@ func updateWebappTask() {
 	vars.Results = sql.NullString{String: htmlOutputLink, Valid: true}
 	vars.NoPatchRawOutput = sql.NullString{String: noPatchOutputLink, Valid: true}
 	vars.WithPatchRawOutput = sql.NullString{String: withPatchOutputLink, Valid: true}
+	swarmingLogsLink := fmt.Sprintf(util.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, *runID)
+	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 

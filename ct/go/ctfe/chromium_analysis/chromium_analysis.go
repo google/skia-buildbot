@@ -59,6 +59,7 @@ type DBTask struct {
 	Platform       string         `db:"platform"`
 	RunOnGCE       bool           `db:"run_on_gce"`
 	RawOutput      sql.NullString `db:"raw_output"`
+	SwarmingLogs   sql.NullString `db:"swarming_logs"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -202,7 +203,8 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 
-	RawOutput sql.NullString
+	RawOutput    sql.NullString
+	SwarmingLogs sql.NullString
 }
 
 func (vars *UpdateVars) UriPath() string {
@@ -220,6 +222,10 @@ func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}
 	if task.RawOutput.Valid {
 		clauses = append(clauses, "raw_output = ?")
 		args = append(args, task.RawOutput.String)
+	}
+	if task.SwarmingLogs.Valid {
+		clauses = append(clauses, "swarming_logs = ?")
+		args = append(args, task.SwarmingLogs.String)
 	}
 	return clauses, args, nil
 }
