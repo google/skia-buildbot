@@ -22,6 +22,30 @@
       "revId": "e3ca5e897f9073caa1a3fa1af1f35077f0be63b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85a03aa2_1d10bb41",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-08-30T14:56:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a144e8aa_8916aae2",
+      "range": {
+        "startLine": 176,
+        "startChar": 40,
+        "endLine": 176,
+        "endChar": 87
+      },
+      "revId": "e3ca5e897f9073caa1a3fa1af1f35077f0be63b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
