@@ -142,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "749c3075_02c57c82",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-30T14:07:30Z",
+      "side": 1,
+      "message": "It was to avoid sending giant requests to GS.  Maybe any necessary buffering is handled by the GS API?  Removed.",
+      "parentUuid": "418ce445_08e1a0fa",
+      "range": {
+        "startLine": 50,
+        "startChar": 14,
+        "endLine": 50,
+        "endChar": 32
+      },
+      "revId": "94c49d072af613c3093775cc89052e89a57fb782",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3348aab2_e26e7a3c",
         "filename": "go/gcs/mass_process/utils.go",
         "patchSetId": 2
@@ -165,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "09bf006d_070d9a69",
+        "filename": "go/gcs/mass_process/utils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-30T14:07:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3348aab2_e26e7a3c",
+      "range": {
+        "startLine": 51,
+        "startChar": 21,
+        "endLine": 51,
+        "endChar": 28
+      },
+      "revId": "94c49d072af613c3093775cc89052e89a57fb782",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c190fd7c_bb1fef4d",
         "filename": "go/util/util.go",
         "patchSetId": 2
@@ -176,6 +224,24 @@
       "writtenOn": "2017-08-28T16:00:01Z",
       "side": 1,
       "message": "Thank you for adding this! Makes me feel like I\u0027m in Lisp again -- with-open-file, with-output-to-string, etc.\n\nMight be nice to add tests or just use it in task_scheduler/go/db/recovery/backups.go, since that\u0027s fairly well tested.",
+      "revId": "94c49d072af613c3093775cc89052e89a57fb782",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdebe7a1_c2162b73",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 969,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-30T14:07:30Z",
+      "side": 1,
+      "message": "I added a small test and changed backups.go to use it.  I\u0027m not sure how to fully test this without mocking out the gzip.Writer.",
+      "parentUuid": "c190fd7c_bb1fef4d",
       "revId": "94c49d072af613c3093775cc89052e89a57fb782",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
