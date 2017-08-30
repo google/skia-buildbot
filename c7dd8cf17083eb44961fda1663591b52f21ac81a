@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdb3b9bd_e1b76580",
+        "filename": "golden/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-08-30T13:07:50Z",
+      "side": 1,
+      "message": "super nit: a comment within the that parenthesis weirds me out. Could you just put it above the line or to the right of it.",
+      "revId": "c7dd8cf17083eb44961fda1663591b52f21ac81a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
