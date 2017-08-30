@@ -487,6 +487,11 @@ var migrationSteps = []database.MigrationStep{
 		MySQLUp:   v20_up,
 		MySQLDown: v20_down,
 	},
+	// version 21: Add swarming_logs to RecreatePageSetsTasks and RecreateWebpageArchivesTasks.
+	{
+		MySQLUp:   v21_up,
+		MySQLDown: v21_down,
+	},
 }
 
 // MigrationSteps returns the database migration steps.
