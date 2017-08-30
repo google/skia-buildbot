@@ -82,14 +82,6 @@ func (task DBTask) GetResultsLink() string {
 	}
 }
 
-func (task DBTask) GetSwarmingLogsLink() string {
-	if task.SwarmingLogs.Valid {
-		return task.SwarmingLogs.String
-	} else {
-		return ""
-	}
-}
-
 func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
