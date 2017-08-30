@@ -196,6 +196,10 @@
               <a href="{{luaScriptTask.AggregatedOutput.String}}"
                  target="_blank">Aggregated Output</a>
             </template>
+            <template is="dom-if" if="{{luaScriptTask.SwarmingLogs.String}}">
+              <br/>
+              <a href="{{luaScriptTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+            </template>
           </td>
 
           <!-- Task Repeats -->

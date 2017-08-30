@@ -383,6 +383,18 @@ var v21_down = []string{
 	`ALTER TABLE RecreateWebpageArchivesTasks DROP swarming_logs`,
 }
 
+var v22_up = []string{
+	`ALTER TABLE ChromiumBuildTasks ADD swarming_logs VARCHAR(255) NOT NULL DEFAULT ""`,
+	`ALTER TABLE LuaScriptTasks ADD swarming_logs VARCHAR(255) NOT NULL DEFAULT ""`,
+	`ALTER TABLE CaptureSkpsTasks ADD swarming_logs VARCHAR(255) NOT NULL DEFAULT ""`,
+}
+
+var v22_down = []string{
+	`ALTER TABLE ChromiumBuildTasks DROP swarming_logs`,
+	`ALTER TABLE LuaScriptTasks DROP swarming_logs`,
+	`ALTER TABLE CaptureSkpsTasks DROP swarming_logs`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -491,6 +503,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v21_up,
 		MySQLDown: v21_down,
+	},
+	// version 22: Add swarming_logs to ChromiumBuildTasks, LuaScriptTasks, CaptureSkpsTasks.
+	{
+		MySQLUp:   v22_up,
+		MySQLDown: v22_down,
 	},
 }
 

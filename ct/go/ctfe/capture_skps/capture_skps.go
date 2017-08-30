@@ -5,6 +5,7 @@
 package capture_skps
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -43,10 +44,11 @@ func ReloadTemplates(resourcesDir string) {
 type DBTask struct {
 	task_common.CommonCols
 
-	PageSets    string `db:"page_sets"`
-	ChromiumRev string `db:"chromium_rev"`
-	SkiaRev     string `db:"skia_rev"`
-	Description string `db:"description"`
+	PageSets     string         `db:"page_sets"`
+	ChromiumRev  string         `db:"chromium_rev"`
+	SkiaRev      string         `db:"skia_rev"`
+	Description  string         `db:"description"`
+	SwarmingLogs sql.NullString `db:"swarming_logs"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -152,6 +154,8 @@ func Validate(skpRepository DBTask) error {
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
+
+	SwarmingLogs sql.NullString
 }
 
 func (vars *UpdateVars) UriPath() string {
@@ -159,7 +163,13 @@ func (vars *UpdateVars) UriPath() string {
 }
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	return nil, nil, nil
+	clauses := []string{}
+	args := []interface{}{}
+	if task.SwarmingLogs.Valid {
+		clauses = append(clauses, "swarming_logs = ?")
+		args = append(args, task.SwarmingLogs.String)
+	}
+	return clauses, args, nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
