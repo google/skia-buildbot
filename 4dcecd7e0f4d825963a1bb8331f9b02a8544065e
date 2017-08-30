@@ -34,6 +34,24 @@
       "revId": "4dcecd7e0f4d825963a1bb8331f9b02a8544065e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d44ed9c_a98bc142",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-08-30T21:01:07Z",
+      "side": 1,
+      "message": "Hmm looks like the buildbot repo does not have a presubmit bot: https://skia.googlesource.com/buildbot/+/master/infra/branch-config/cq.cfg\nso this was not being run anyway during commit..",
+      "parentUuid": "f28f8cae_86470103",
+      "revId": "4dcecd7e0f4d825963a1bb8331f9b02a8544065e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
