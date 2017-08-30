@@ -240,33 +240,22 @@ func uploadFile(ctx context.Context, filename string, bucket *storage.BucketHand
 // upload gzips and writes the given content as the given object name to GCS.
 func upload(ctx context.Context, content io.Reader, bucket *storage.BucketHandle, objectname string, modTime time.Time) (err error) {
 	objW := bucket.Object(objectname).NewWriter(ctx)
-	defer func() {
-		// We set objW to nil when we manually close it below.
-		if objW != nil {
-			_ = objW.CloseWithError(err)
-		}
-	}()
 	basename := path.Base(objectname)
 	objW.ObjectAttrs.ContentType = "application/octet-stream"
 	objW.ObjectAttrs.ContentDisposition = fmt.Sprintf("attachment; filename=\"%s\"", basename)
 	objW.ObjectAttrs.ContentEncoding = "gzip"
-	gzW := gzip.NewWriter(objW)
-	defer func() {
-		// We set gzW to nil when we manually close it below.
-		if gzW != nil {
-			util.Close(gzW)
+	if err := util.WithGzipWriter(objW, func(gzW io.Writer) error {
+		gzW.(*gzip.Writer).Header.Name = basename
+		gzW.(*gzip.Writer).Header.ModTime = modTime.UTC()
+		if _, err = io.Copy(gzW, content); err != nil {
+			return err
 		}
-	}()
-	gzW.Header.Name = basename
-	gzW.Header.ModTime = modTime.UTC()
-	if _, err = io.Copy(gzW, content); err != nil {
+		return nil
+	}); err != nil {
+		_ = objW.CloseWithError(err)
 		return err
 	}
-	if err, gzW = gzW.Close(), nil; err != nil {
-		return err
-	}
-	err, objW = objW.Close(), nil
-	return err
+	return objW.Close()
 }
 
 // backupDB performs an immediate backup of b.db, using the given name as the
