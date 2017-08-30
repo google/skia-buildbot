@@ -79,7 +79,7 @@ func AndroidO() *gce.Instance {
 
 func Google3() *gce.Instance {
 	// Not using AutoRollBase because this server does not need auth.SCOPE_GERRIT.
-	vm := server.AddGitConfigs(server.Server20170613("google3-autoroll"), "google3-autoroll")
+	vm := server.AddGitConfigs(server.Server20170613("google3-autoroll"), "skia-autoroll")
 	vm.DataDisk.SizeGb = 64
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
