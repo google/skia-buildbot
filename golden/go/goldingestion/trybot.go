@@ -7,15 +7,14 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
-	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/gtracestore"
 )
 
 const (
@@ -77,7 +76,7 @@ func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 }
 
 // getCommitID overrides the function with the same name in goldProcessor.
-func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
+func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*gtracestore.CommitID, error) {
 	var ts time.Time
 	var ok bool
 	var err error
@@ -110,7 +109,7 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 	} else {
 		source = g.rietveldReview.Url(dmResults.Issue)
 	}
-	return &tracedb.CommitID{
+	return &gtracestore.CommitID{
 		Timestamp: ts.Unix(),
 		ID:        strconv.FormatInt(dmResults.Patchset, 10),
 		Source:    source,
@@ -179,7 +178,7 @@ func (g *goldTrybotProcessor) getRietveldPatchset(issueID int64, patchsetID int6
 }
 
 // ExtractIssueInfo returns the issue id and the patchset id for a given commitID.
-func ExtractIssueInfo(commitID *tracedb.CommitID, rietveldReview *rietveld.Rietveld, gerritReview *gerrit.Gerrit) (string, string) {
+func ExtractIssueInfo(commitID *gtracestore.CommitID, rietveldReview *rietveld.Rietveld, gerritReview *gerrit.Gerrit) (string, string) {
 	issue, ok := gerritReview.ExtractIssue(commitID.Source)
 	if ok {
 		return issue, commitID.ID

@@ -7,10 +7,9 @@ import (
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/gtracestore"
 )
 
 const (
@@ -25,24 +24,24 @@ func init() {
 
 // goldProcessor implements the ingestion.Processor interface for gold.
 type goldProcessor struct {
-	traceDB        tracedb.DB
+	traceStore     gtracestore.TraceStore
 	vcs            vcsinfo.VCS
 	extractID      extractIDFn
 	ingestionStore *IngestionStore
 }
 
-type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
+type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*gtracestore.CommitID, error)
 
 // implements the ingestion.Constructor signature.
 func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
-	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
+	traceStore, err := gtracestore.NewTraceStoreFromAddress(config.ExtraParams[CONFIG_TRACESERVICE])
 	if err != nil {
 		return nil, err
 	}
 
 	ret := &goldProcessor{
-		traceDB: traceDB,
-		vcs:     vcs,
+		traceStore: traceStore,
+		vcs:        vcs,
 	}
 	ret.extractID = ret.getCommitID
 	return ret, nil
@@ -70,20 +69,20 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	// Add the column to the trace db.
+	// Add the column to the trace store.
 	cid, err := g.extractID(commit, dmResults)
 	if err != nil {
 		return err
 	}
 
-	// Get the entries that should be added to the tracedb.
-	entries, err := dmResults.getTraceDBEntries()
+	// Get the entries that should be added to the trace store.
+	entries, err := dmResults.getTraceStoreEntries()
 	if err != nil {
 		return err
 	}
 
-	// Write the result to the tracedb.
-	err = g.traceDB.Add(cid, entries)
+	// Write the result to the trace store.
+	err = g.traceStore.Add(cid, entries)
 
 	// If there was no problem and we have an ingestion store that record that we have processed that file.
 	if (err == nil) && (g.ingestionStore != nil) {
@@ -99,8 +98,8 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 func (g *goldProcessor) BatchFinished() error { return nil }
 
 // getCommitID extracts the commitID from the given commit and dm results.
-func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
-	return &tracedb.CommitID{
+func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*gtracestore.CommitID, error) {
+	return &gtracestore.CommitID{
 		Timestamp: commit.Timestamp.Unix(),
 		ID:        commit.Hash,
 		Source:    "master",

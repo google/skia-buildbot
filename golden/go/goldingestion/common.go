@@ -43,8 +43,8 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/sklog"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/gtracestore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -163,16 +163,16 @@ func (d *DMResults) idAndParams(r *Result) (string, map[string]string) {
 	return strings.Join(values, ":"), params
 }
 
-// getTraceDBEntries returns the traceDB entries to be inserted into the data store.
-func (d *DMResults) getTraceDBEntries() (map[string]*tracedb.Entry, error) {
-	ret := make(map[string]*tracedb.Entry, len(d.Results))
+// getTraceStoreEntries returns the trace store entries to be inserted into the data store.
+func (d *DMResults) getTraceStoreEntries() (map[string]*gtracestore.Entry, error) {
+	ret := make(map[string]*gtracestore.Entry, len(d.Results))
 	for _, result := range d.Results {
 		traceId, params := d.idAndParams(result)
 		if d.ignoreResult(params) {
 			continue
 		}
 
-		ret[traceId] = &tracedb.Entry{
+		ret[traceId] = &gtracestore.Entry{
 			Params: params,
 			Value:  []byte(result.Digest),
 		}
