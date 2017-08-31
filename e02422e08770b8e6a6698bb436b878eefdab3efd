@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "18d45b74_fd6d3060",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-31T11:14:22Z",
+      "side": 1,
+      "message": "Looks like no. The threshold for the error rate alert is so low that it would probably catch any problems in practice.",
+      "parentUuid": "ad57ed29_a83d08e5",
+      "range": {
+        "startLine": 386,
+        "startChar": 6,
+        "endLine": 386,
+        "endChar": 22
+      },
+      "revId": "e02422e08770b8e6a6698bb436b878eefdab3efd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "df93657b_b48b3fd3",
         "filename": "prometheus/sys/alert.rules",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "e02422e08770b8e6a6698bb436b878eefdab3efd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c9c0aab_a776a0b9",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-08-31T11:14:22Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "df93657b_b48b3fd3",
+      "range": {
+        "startLine": 389,
+        "startChar": 23,
+        "endLine": 389,
+        "endChar": 28
+      },
+      "revId": "e02422e08770b8e6a6698bb436b878eefdab3efd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
