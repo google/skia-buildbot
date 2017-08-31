@@ -23,7 +23,7 @@ import (
 const (
 	GS_BUCKET = "skia-swarming-logs"
 	// Logs indexed by {prefix}/YYYY/MM/DD/HH/{basename}
-	GS_PATH       = "%s/%d/%d/%d/%d/%s"
+	GS_PATH       = "%s/%04d/%02d/%02d/%02d/%s"
 	GS_PREFIX_RAW = "raw"
 
 	TIME_CHUNK  = 24 * time.Hour
