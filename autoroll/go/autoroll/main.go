@@ -345,7 +345,7 @@ func main() {
 	if *rollIntoAndroid {
 		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps)
 	} else if *rollIntoGoogle3 {
-		arb, err = google3.NewAutoRoller(*workdir, *childBranch)
+		arb, err = google3.NewAutoRoller(*workdir, common.REPO_SKIA, *childBranch)
 	} else if *useManifest {
 		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
 	} else {
