@@ -16,18 +16,16 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/jsonutils"
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/state_machine"
-	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/jsonutils"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 )
 
@@ -40,13 +38,13 @@ type AutoRoller struct {
 	childBranch string
 }
 
-func NewAutoRoller(workdir string, childBranch string) (*AutoRoller, error) {
+func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(path.Join(workdir, "recent_rolls.bdb"))
 	if err != nil {
 		return nil, err
 	}
 
-	childRepo, err := git.NewRepo(common.REPO_SKIA, workdir)
+	childRepo, err := git.NewRepo(childRepoUrl, workdir)
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +60,14 @@ func NewAutoRoller(workdir string, childBranch string) (*AutoRoller, error) {
 		return nil, err
 	}
 	return a, nil
+}
+
+// Start ensures DBs are closed when ctx is canceled.
+func (a *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx context.Context) {
+	go func() {
+		<-ctx.Done()
+		util.LogErr(a.recent.Close())
+	}()
 }
 
 func (a *AutoRoller) AddHandlers(r *mux.Router) {
@@ -154,6 +160,60 @@ func (a *AutoRoller) UpdateStatus(errorMsg string) error {
 	})
 }
 
+// AddOrUpdateIssue makes issue the current issue, handling any possible discrepancies due to
+// missing previous requests. On error, returns an error safe for HTTP response.
+func (a *AutoRoller) AddOrUpdateIssue(issue *autoroll.AutoRollIssue, method string) error {
+	current := a.recent.CurrentRoll()
+
+	// If we don't get an update to close the previous roll, close it automatically to avoid the error
+	// "There is already an active roll. Cannot add another."
+	if current != nil && current.Issue != issue.Issue {
+		sklog.Warningf("Missing update to close %d. Closing automatically as failed.", current.Issue)
+		current.Closed = true
+		current.Result = autoroll.ROLL_RESULT_FAILURE
+		if err := a.recent.Update(current); err != nil {
+			sklog.Errorf("Failed to close current roll: %s", err)
+			return errors.New("Failed to close current roll.")
+		}
+		current = nil
+	}
+
+	// If we don't see a roll until it's already closed, add it first to avoid the error "Cannot
+	// insert a new roll which is already closed."
+	if method == http.MethodPut && current == nil && issue.Closed {
+		sklog.Warningf("Missing request to add %d before update marking closed. Automatically adding as in-progress.", issue.Issue)
+		addIssue := new(autoroll.AutoRollIssue)
+		*addIssue = *issue
+		addIssue.Closed = false
+		addIssue.Committed = false
+		addIssue.Result = autoroll.ROLL_RESULT_IN_PROGRESS
+		if err := a.recent.Add(addIssue); err != nil {
+			sklog.Errorf("Failed to automatically add roll: %s", err)
+			return errors.New("Failed to automatically add roll.")
+		}
+		current = a.recent.CurrentRoll()
+	}
+
+	if current == nil {
+		if method != http.MethodPost {
+			sklog.Warningf("Got %s instead of POST to add %d.", method, issue.Issue)
+		}
+		if err := a.recent.Add(issue); err != nil {
+			sklog.Errorf("Failed to add roll: %s", err)
+			return errors.New("Failed to add roll.")
+		}
+	} else {
+		if method != http.MethodPut {
+			sklog.Warningf("Got %s instead of PUT to update %d.", method, issue.Issue)
+		}
+		if err := a.recent.Update(issue); err != nil {
+			sklog.Errorf("Failed to update roll: %s", err)
+			return errors.New("Failed to update roll.")
+		}
+	}
+	return nil
+}
+
 // Roll represents a Google3 AutoRoll attempt.
 type Roll struct {
 	ChangeListNumber jsonutils.Number `json:"changeListNumber"`
@@ -171,43 +231,28 @@ type Roll struct {
 	TestSummaryUrl string         `json:"testSummaryUrl"`
 }
 
-// rollHandler parses the JSON body as a Roll and inserts/updates it into the AutoRoll DB. The
-// request must be authenticated via the protocol implemented in the webhook package. Use a POST
-// request for a new roll and a PUT request to update an existing roll.
-func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := webhook.AuthenticateRequest(r)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed authentication.")
-		return
-	}
-	roll := Roll{}
-	if err := json.Unmarshal(data, &roll); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse request.")
-		return
-	}
+// AsIssue validates the Roll and generates an AutoRollIssue representing the same information. If
+// invalid, returns an error safe for HTTP response.
+func (roll Roll) AsIssue() (*autoroll.AutoRollIssue, error) {
 	if util.TimeIsZero(time.Time(roll.Created)) || roll.RollingFrom == "" || roll.RollingTo == "" {
-		httputils.ReportError(w, r, nil, "Missing parameter.")
-		return
+		return nil, errors.New("Missing parameter.")
 	}
-	if roll.Closed && roll.Result == "" {
-		httputils.ReportError(w, r, nil, "Missing parameter: result must be set.")
-		return
+	if roll.Closed && roll.Result == autoroll.ROLL_RESULT_IN_PROGRESS {
+		return nil, errors.New("Inconsistent parameters: result must be set.")
 	}
 	if roll.Submitted && !roll.Closed {
-		httputils.ReportError(w, r, nil, "Inconsistent parameters: submitted but not closed.")
-		return
+		return nil, errors.New("Inconsistent parameters: submitted but not closed.")
 	}
 	if !util.In(roll.Result, []string{autoroll.ROLL_RESULT_DRY_RUN_FAILURE, autoroll.ROLL_RESULT_IN_PROGRESS, autoroll.ROLL_RESULT_SUCCESS, autoroll.ROLL_RESULT_FAILURE}) {
-		httputils.ReportError(w, r, nil, "Unsupported value for result.")
-		return
+		return nil, errors.New("Unsupported value for result.")
 	}
 
 	tryResults := []*autoroll.TryResult{}
 	if roll.TestSummaryUrl != "" {
 		url, err := url.Parse(roll.TestSummaryUrl)
 		if err != nil {
-			httputils.ReportError(w, r, err, "Invalid testResultsLink parameter.")
-			return
+			sklog.Warningf("Invalid Roll in request; invalid testSummaryUrl parameter %q: %s", roll.TestSummaryUrl, err)
+			return nil, errors.New("Invalid testSummaryUrl parameter.")
 		}
 		testStatus := autoroll.TRYBOT_STATUS_STARTED
 		testResult := ""
@@ -231,7 +276,7 @@ func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 	}
-	issue := autoroll.AutoRollIssue{
+	return &autoroll.AutoRollIssue{
 		Closed:      roll.Closed,
 		Committed:   roll.Submitted,
 		CommitQueue: !roll.Closed,
@@ -244,26 +289,37 @@ func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
 		RollingTo:   roll.RollingTo,
 		Subject:     roll.Subject,
 		TryResults:  tryResults,
+	}, nil
+}
+
+// rollHandler parses the JSON body as a Roll and inserts/updates it into the AutoRoll DB. The
+// request must be authenticated via the protocol implemented in the webhook package. Use a POST
+// request for a new roll and a PUT request to update an existing roll.
+func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed authentication.")
+		return
 	}
-	if r.Method == http.MethodPost {
-		if err := a.recent.Add(&issue); err != nil {
-			httputils.ReportError(w, r, err, "Failed to add roll.")
-			return
-		}
-	} else {
-		if err := a.recent.Update(&issue); err != nil {
-			httputils.ReportError(w, r, err, "Failed to update roll.")
-			return
-		}
+	roll := Roll{}
+	if err := json.Unmarshal(data, &roll); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse request.")
+		return
+	}
+	issue, err := roll.AsIssue()
+	if err != nil {
+		httputils.ReportError(w, r, nil, err.Error())
+		return
+	}
+	if err := a.AddOrUpdateIssue(issue, r.Method); err != nil {
+		httputils.ReportError(w, r, nil, err.Error())
+		return
 	}
 	if err := a.UpdateStatus(roll.ErrorMsg); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set new status.")
 		return
 	}
 }
-
-// Start is ignored for Google3 roller.
-func (a *AutoRoller) Start(time.Duration, time.Duration, context.Context) {}
 
 // SetMode is not implemented for Google3 roller.
 func (a *AutoRoller) SetMode(string, string, string) error {
