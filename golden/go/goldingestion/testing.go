@@ -17,7 +17,7 @@ import (
 // After the successful ingestion it returns the instance of running GRPC server and the server address.
 // When all tests are done it's the responsibility of the caller to call server.Stop() and remove all
 // data directories.
-func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestionFile, rootDir, rietveldReviewURL string, gerritReviewURL string) (*grpc.Server, string) {
+func RunGoldTrybotProcessor(t assert.TestingT, traceStoreDir, shareDBDir, ingestionFile, rootDir, rietveldReviewURL string, gerritReviewURL string) (*grpc.Server, string) {
 	shareDBDir, err := fileutil.EnsureDirExists(shareDBDir)
 	assert.NoError(t, err)
 
@@ -44,7 +44,7 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(testCommits)
-	server, serverAddr := ingestion.StartTraceDBTestServer(t, traceDBFile, shareDBDir)
+	server, serverAddr := ingestion.StartTraceStoreTestServer(t, traceStoreDir, shareDBDir)
 
 	ingesterConf := &sharedconfig.IngesterConfig{
 		ExtraParams: map[string]string{
@@ -62,7 +62,7 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 	processor, err := newGoldTrybotProcessor(vcs, ingesterConf, nil)
 	assert.NoError(t, err)
 	defer func() {
-		assert.NoError(t, processor.(*goldTrybotProcessor).traceDB.Close())
+		assert.NoError(t, processor.(*goldTrybotProcessor).traceStore.Close())
 		assert.NoError(t, processor.(*goldTrybotProcessor).ingestionStore.Close())
 	}()
 

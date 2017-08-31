@@ -28,7 +28,7 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
-	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/tstore"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
@@ -237,6 +237,11 @@ func main() {
 	gerritAPI, err := gerrit.NewGerrit(*gerritURL, "", httputils.NewTimeoutClient())
 	if err != nil {
 		sklog.Fatalf("Failed to create Gerrit client: %s", err)
+	}
+
+	traceStore, err := tstore.NewTraceStoreFromAddress(*traceservice)
+	if err != nil {
+		sklog.Fatalf("Failed to connect to trace store: %s", err)
 	}
 
 	// Connect to traceDB and create the builders.

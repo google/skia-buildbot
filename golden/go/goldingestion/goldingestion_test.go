@@ -10,9 +10,9 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/gtracestore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -61,7 +61,7 @@ func TestDMResults(t *testing.T) {
 	dmResults, err := ParseDMResultsFromReader(f, TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
-	entries, err := dmResults.getTraceDBEntries()
+	entries, err := dmResults.getTraceStoreEntries()
 	assert.NoError(t, err)
 	assert.Equal(t, len(TEST_ENTRIES), len(entries))
 
@@ -78,7 +78,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(TEST_COMMITS)
-	server, serverAddr := ingestion.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
+	server, serverAddr := ingestion.StartTraceStoreTestServer(t, TRACE_DB_FILENAME, "")
 	defer server.Stop()
 	defer testutils.Remove(t, TRACE_DB_FILENAME)
 
@@ -91,7 +91,7 @@ func TestGoldProcessor(t *testing.T) {
 	// Set up the processor.
 	processor, err := newGoldProcessor(vcs, ingesterConf, nil)
 	assert.NoError(t, err)
-	defer util.Close(processor.(*goldProcessor).traceDB)
+	defer util.Close(processor.(*goldProcessor).traceStore)
 
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
@@ -100,24 +100,24 @@ func TestGoldProcessor(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Steal the traceDB used by the processor to verify the results.
-	traceDB := processor.(*goldProcessor).traceDB
+	traceStore := processor.(*goldProcessor).traceStore
 
 	startTime := time.Now().Add(-time.Hour * 24 * 10)
-	commitIDs, err := traceDB.List(startTime, time.Now())
+	commitIDs, err := traceStore.List(startTime, time.Now())
 	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(filterCommitIDs(commitIDs, "master")))
 	assert.Equal(t, 0, len(filterCommitIDs(commitIDs, TEST_CODE_RIETVELDREVIEW_URL)))
 
 	assert.Equal(t, 1, len(commitIDs))
-	assert.Equal(t, &tracedb.CommitID{
+	assert.Equal(t, &gtracestore.CommitID{
 		Timestamp: TEST_COMMITS[0].Timestamp.Unix(),
 		ID:        TEST_COMMITS[0].Hash,
 		Source:    "master",
 	}, commitIDs[0])
 
 	// Get a tile and make sure we have the right number of traces.
-	tile, _, err := traceDB.TileFromCommits(commitIDs)
+	tile, _, err := traceStore.TileFromCommits(commitIDs)
 	assert.NoError(t, err)
 
 	traces := tile.Traces
@@ -133,17 +133,17 @@ func TestGoldProcessor(t *testing.T) {
 	}
 
 	assert.Equal(t, "master", commitIDs[0].Source)
-	assert.NoError(t, traceDB.Close())
+	assert.NoError(t, traceStore.Close())
 }
 
 // filterCommitIDs returns all commitIDs that have the given prefix. If the
 // prefix is an empty string it will return the input slice.
-func filterCommitIDs(commitIDs []*tracedb.CommitID, prefix string) []*tracedb.CommitID {
+func filterCommitIDs(commitIDs []*gtracestore.CommitID, prefix string) []*gtracestore.CommitID {
 	if prefix == "" {
 		return commitIDs
 	}
 
-	ret := make([]*tracedb.CommitID, 0, len(commitIDs))
+	ret := make([]*gtracestore.CommitID, 0, len(commitIDs))
 	for _, cid := range commitIDs {
 		if strings.HasPrefix(cid.Source, prefix) {
 			ret = append(ret, cid)

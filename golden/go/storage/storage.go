@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"

@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/testutils"
-	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/golden/go/gtracestore"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/types"
@@ -21,7 +21,7 @@ const (
 	// name of the input file containing test data.
 	TRYBOT_INGESTION_FILE = TEST_DATA_DIR + "/trybot-dm.json"
 
-	// temporary file used to store traceDB content.
+	// temporary file used for trace store content.
 	TRYBOT_TRACE_DB_FILE = "./trybot_test_trace.db"
 
 	// temporary directory to store sharedb content.
@@ -64,28 +64,28 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	defer testutils.Remove(t, TRYBOT_TRACE_DB_FILE)
 	defer server.Stop()
 
-	// Steal the traceDB used by the processor to verify the results.
-	traceDB, err := tracedb.NewTraceServiceDBFromAddress(serverAddress, types.GoldenTraceBuilder)
+	// Steal the trace store used by the processor to verify the results.
+	traceStore, err := gtracestore.NewTraceStoreFromAddress(serverAddress)
 	assert.NoError(t, err)
-	defer util.Close(traceDB)
+	defer util.Close(traceStore)
 
 	// The timestamp for the issue/patchset in the testfile is 1443718869.
 	startTime := time.Unix(1443718868, 0)
-	commitIDs, err := traceDB.List(startTime, time.Now())
+	commitIDs, err := traceStore.List(startTime, time.Now())
 	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(filterCommitIDs(commitIDs, TEST_CODE_RIETVELDREVIEW_URL)))
 	assert.Equal(t, 0, len(filterCommitIDs(commitIDs, "master")))
 
 	assert.Equal(t, 1, len(commitIDs))
-	assert.Equal(t, &tracedb.CommitID{
+	assert.Equal(t, &gtracestore.CommitID{
 		Timestamp: 1443718869,
 		ID:        "1",
 		Source:    TEST_CODE_RIETVELDREVIEW_URL + "/1381483003",
 	}, commitIDs[0])
 
 	// Get a tile and make sure we have the right number of traces.
-	tile, _, err := traceDB.TileFromCommits(commitIDs)
+	tile, _, err := traceStore.TileFromCommits(commitIDs)
 	assert.NoError(t, err)
 
 	traces := tile.Traces
@@ -110,8 +110,8 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	issueID, patchsetID := ExtractIssueInfo(commitIDs[0], rietveldReview, gerritReview)
 	assert.Equal(t, "1", patchsetID)
 	assert.Equal(t, "1381483003", issueID)
-	issueID, patchsetID = ExtractIssueInfo(&tracedb.CommitID{}, rietveldReview, gerritReview)
+	issueID, patchsetID = ExtractIssueInfo(&gtracestore.CommitID{}, rietveldReview, gerritReview)
 	assert.Equal(t, "", issueID)
 	assert.Equal(t, "", patchsetID)
-	assert.NoError(t, traceDB.Close())
+	assert.NoError(t, traceStore.Close())
 }
