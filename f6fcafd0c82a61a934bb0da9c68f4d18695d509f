@@ -22,6 +22,30 @@
       "revId": "f6fcafd0c82a61a934bb0da9c68f4d18695d509f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4db612f_f62f3e54",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-01T12:22:51Z",
+      "side": 1,
+      "message": "Well, in hindsight, the POST/PUT split was a mistake. I thought I would be able to follow the restrictions in RecentRolls by distinguishing between add and update requests, but I hadn\u0027t considered the possibility of unsuccessful requests or the task being preempted and killed.\n\nMaybe in the future if we decide the go server should be in control (e.g. to implement scheduling/throttling and mode changes for the G3 roller), we can revisit this.",
+      "parentUuid": "e116d5d2_1f8b1b4e",
+      "range": {
+        "startLine": 198,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 3
+      },
+      "revId": "f6fcafd0c82a61a934bb0da9c68f4d18695d509f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
