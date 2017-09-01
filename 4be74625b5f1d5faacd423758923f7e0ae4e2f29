@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "51d89ac3_4ad05e44",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-01T13:46:36Z",
+      "side": 1,
+      "message": "This needs to be removed if the separate alert below is to be removed.",
+      "range": {
+        "startLine": 577,
+        "startChar": 35,
+        "endLine": 577,
+        "endChar": 51
+      },
+      "revId": "4be74625b5f1d5faacd423758923f7e0ae4e2f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
