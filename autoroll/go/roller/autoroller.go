@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
+	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/metrics2"
@@ -270,6 +271,9 @@ func (r *AutoRoller) Tick() error {
 		return err
 	}
 	sklog.Infof("Autoroller state %s", r.sm.Current())
+	if lastRoll := r.recent.LastRoll(); lastRoll != nil && util.In(lastRoll.Result, []string{autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, autoroll.ROLL_RESULT_SUCCESS}) {
+		r.liveness.ManualReset(lastRoll.Modified)
+	}
 	return lastErr
 }
 

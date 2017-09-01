@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/jsonutils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -36,6 +37,7 @@ type AutoRoller struct {
 	status      *roller.AutoRollStatusCache
 	childRepo   *git.Repo
 	childBranch string
+	liveness    metrics2.Liveness
 }
 
 func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*AutoRoller, error) {
@@ -54,6 +56,7 @@ func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*Au
 		status:      &roller.AutoRollStatusCache{},
 		childRepo:   childRepo,
 		childBranch: childBranch,
+		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 
 	if err := a.UpdateStatus(""); err != nil {
@@ -138,7 +141,7 @@ func (a *AutoRoller) UpdateStatus(errorMsg string) error {
 		}
 		sklog.Warningf("Last roll %d; errorMsg: %s", lastRollIssue, errorMsg)
 	}
-	return a.status.Set(&roller.AutoRollStatus{
+	if err := a.status.Set(&roller.AutoRollStatus{
 		AutoRollMiniStatus: roller.AutoRollMiniStatus{
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: commitsNotRolled,
@@ -157,7 +160,13 @@ func (a *AutoRoller) UpdateStatus(errorMsg string) error {
 		},
 		Recent: recent,
 		Status: state_machine.S_NORMAL_ACTIVE,
-	})
+	}); err != nil {
+		return err
+	}
+	if lastRoll != nil && util.In(lastRoll.Result, []string{autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, autoroll.ROLL_RESULT_SUCCESS}) {
+		a.liveness.ManualReset(lastRoll.Modified)
+	}
+	return nil
 }
 
 // AddOrUpdateIssue makes issue the current issue, handling any possible discrepancies due to
