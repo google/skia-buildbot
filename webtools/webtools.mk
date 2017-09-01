@@ -27,6 +27,9 @@
 #     and uses the new command line flags. This can be removed once all projects
 #     have moved to vulcanize 1.x.
 
+# Propagate exit status if any command in a pipeline fails.
+SHELL=/bin/bash -o pipefail
+
 # Get the directory of this makefile to refer to common resources relative to this.
 WEBTOOLS_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
