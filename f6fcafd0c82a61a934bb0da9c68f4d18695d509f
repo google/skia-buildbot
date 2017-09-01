@@ -46,6 +46,30 @@
       "revId": "f6fcafd0c82a61a934bb0da9c68f4d18695d509f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b2e63366_a2bdf1be",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-01T12:27:13Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "a4db612f_f62f3e54",
+      "range": {
+        "startLine": 198,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 3
+      },
+      "revId": "f6fcafd0c82a61a934bb0da9c68f4d18695d509f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
