@@ -5,11 +5,10 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func TraceDbBase(name, ipAddress string) *gce.Instance {
+func TraceDbBase(name string) *gce.Instance {
 	vm := server.Server20170518(name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
 	vm.Metadata["owner_primary"] = "stephana"
 	vm.Metadata["owner_secondary"] = "jcgregorio"
@@ -17,7 +16,7 @@ func TraceDbBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return TraceDbBase("skia-tracedb", "104.154.112.120")
+	return TraceDbBase("skia-tracedb")
 }
 
 func main() {
