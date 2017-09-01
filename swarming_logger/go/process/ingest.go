@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/sync/syncmap"
+
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
@@ -57,7 +59,7 @@ func ingestLog(gs *storage.Client, s swarming.ApiClient, t *db.Task) error {
 }
 
 // Ingest logs for all completed tasks within the given time chunk.
-func ingestLogsChunk(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient, start, end time.Time) (map[string]error, error) {
+func ingestLogsChunk(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient, start, end time.Time, ingested *syncmap.Map) (map[string]error, error) {
 	tasks, err := taskDb.GetTasksFromDateRange(start, end)
 	if err != nil {
 		return nil, err
@@ -82,11 +84,19 @@ func ingestLogsChunk(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiCl
 		go func() {
 			defer wg.Done()
 			for t := range queue {
+				if _, ok := ingested.Load(t.Id); ok {
+					continue
+				}
 				if err := ingestLog(gcs, s, t); err != nil {
 					failMtx.Lock()
 					fails[t.Id] = err
 					failMtx.Unlock()
 					sklog.Errorf("Failed to ingest task: %s", err)
+				} else {
+					ingested.Store(t.Id, true)
+					time.AfterFunc(50*time.Hour, func() { // Slightly longer than the ingestion window.
+						ingested.Delete(t.Id)
+					})
 				}
 			}
 		}()
@@ -97,12 +107,12 @@ func ingestLogsChunk(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiCl
 }
 
 // Ingest logs for all completed tasks within a given time period.
-func IngestLogs(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient, start, end time.Time) error {
+func IngestLogs(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient, start, end time.Time, ingested *syncmap.Map) error {
 	failed := map[string]error{}
 	chunkStart := start
 	for chunkStart.Before(end) {
 		chunkEnd := chunkStart.Add(TIME_CHUNK)
-		fails, err := ingestLogsChunk(taskDb, gcs, s, chunkStart, chunkEnd)
+		fails, err := ingestLogsChunk(taskDb, gcs, s, chunkStart, chunkEnd, ingested)
 		if err != nil {
 			return err
 		}
@@ -124,10 +134,11 @@ func IngestLogs(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient,
 // Ingest logs for completed tasks periodically.
 func IngestLogsPeriodically(ctx context.Context, taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient) {
 	lv := metrics2.NewLiveness("last_successful_swarming_task_gcs_ingestion")
+	ingested := &syncmap.Map{}
 	go util.RepeatCtx(time.Hour, ctx, func() {
 		end := time.Now()
 		start := end.Add(-48 * time.Hour) // Use a big window, because we're lazy.
-		if err := IngestLogs(taskDb, gcs, s, start, end); err != nil {
+		if err := IngestLogs(taskDb, gcs, s, start, end, ingested); err != nil {
 			sklog.Errorf("Failed to ingest Swarming logs to GCS: %s", err)
 		} else {
 			lv.Reset()
@@ -140,5 +151,5 @@ func IngestLogsPeriodically(ctx context.Context, taskDb db.TaskReader, gcs *stor
 func InitialIngestLogs(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient) error {
 	start := time.Date(2016, time.September, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Now().Add(-24 * time.Hour)
-	return IngestLogs(taskDb, gcs, s, start, end)
+	return IngestLogs(taskDb, gcs, s, start, end, &syncmap.Map{})
 }
