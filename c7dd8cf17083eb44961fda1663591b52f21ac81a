@@ -34,6 +34,24 @@
       "revId": "c7dd8cf17083eb44961fda1663591b52f21ac81a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bd7c19e_76fac3b8",
+        "filename": "golden/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-01T14:24:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36ea9fa9_3335f769",
+      "revId": "c7dd8cf17083eb44961fda1663591b52f21ac81a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
