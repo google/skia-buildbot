@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	DISK_IMAGE_SKIA_PUSHABLE_BASE = "skia-pushable-base-v2017-06-13-003"
-	GS_URL_GITCOOKIES_TMPL        = "gs://skia-buildbots/artifacts/server/.gitcookies_%s"
-	GS_URL_GITCONFIG              = "gs://skia-buildbots/artifacts/server/.gitconfig"
-	GS_URL_NETRC                  = "gs://skia-buildbots/artifacts/server/.netrc"
+	DISK_IMAGE_SKIA_PUSHABLE_BASE   = "skia-pushable-base-v2017-06-13-003"
+	GS_URL_GITCOOKIES_TMPL          = "gs://skia-buildbots/artifacts/server/.gitcookies_%s"
+	GS_URL_GITCONFIG                = "gs://skia-buildbots/artifacts/server/.gitconfig"
+	GS_URL_NETRC_GIT_FETCH_READONLY = "gs://skia-buildbots/artifacts/server/.netrc_git-fetch-readonly"
 )
 
 var (
@@ -71,15 +71,24 @@ func Server20170613(name string) *gce.Instance {
 	return vm
 }
 
-// Add configuration for servers who use git.
-func AddGitConfigs(vm *gce.Instance, gitUser string) *gce.Instance {
+// Add configuration for servers who fetch from git.
+func AddGitFetchReadOnlyConfigs(vm *gce.Instance) *gce.Instance {
 	vm.GSDownloads = append(vm.GSDownloads, &gce.GSDownload{
 		Source: GS_URL_GITCONFIG,
 		Dest:   "~/.gitconfig",
 	}, &gce.GSDownload{
-		Source: GS_URL_NETRC,
+		Source: GS_URL_NETRC_GIT_FETCH_READONLY,
 		Dest:   "~/.netrc",
 		Mode:   "600",
+	})
+	return vm
+}
+
+// Add configuration for servers who commit to git.
+func AddGitCommitConfigs(vm *gce.Instance, gitUser string) *gce.Instance {
+	vm.GSDownloads = append(vm.GSDownloads, &gce.GSDownload{
+		Source: GS_URL_GITCONFIG,
+		Dest:   "~/.gitconfig",
 	}, &gce.GSDownload{
 		Source: fmt.Sprintf(GS_URL_GITCOOKIES_TMPL, gitUser),
 		Dest:   "~/.gitcookies",
