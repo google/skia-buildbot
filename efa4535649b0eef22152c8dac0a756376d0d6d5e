@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5fc454f1_2d355577",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-01T21:00:32Z",
+      "side": 1,
+      "message": "Nit: I don\u0027t think we need the whole account name represented here.  GS_URL_NETRC_READONLY is probably sufficient.",
+      "range": {
+        "startLine": 23,
+        "startChar": 14,
+        "endLine": 23,
+        "endChar": 24
+      },
+      "revId": "efa4535649b0eef22152c8dac0a756376d0d6d5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe643b2b_333847a8",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-01T21:00:32Z",
+      "side": 1,
+      "message": "IMO it\u0027d be okay to always include the read only git credentials for every server, and have the helper function for adding read+write (or internal) git credentials overwrite them when called.",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 10
+      },
+      "revId": "efa4535649b0eef22152c8dac0a756376d0d6d5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfa94a6b_01552252",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-01T21:00:32Z",
+      "side": 1,
+      "message": "Nit: What about \"AddGitCredsReadOnly\" and \"AddGitCredsReadWrite\"?",
+      "range": {
+        "startLine": 75,
+        "startChar": 5,
+        "endLine": 75,
+        "endChar": 31
+      },
+      "revId": "efa4535649b0eef22152c8dac0a756376d0d6d5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
