@@ -15,7 +15,9 @@ func GoldBase(name, ipAddress string) *gce.Instance {
 	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
 	vm.DataDisk.SizeGb = 2000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	vm.ExternalIpAddress = ipAddress
+	if ipAddress != "" {
+		vm.ExternalIpAddress = ipAddress
+	}
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_32
 	vm.Metadata["auth_white_list"] = "google.com chromium.org skia.org"
 	vm.Metadata["owner_primary"] = "stephana"
@@ -28,7 +30,8 @@ func GoldBase(name, ipAddress string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	vm := GoldBase("skia-gold-prod", "104.154.112.104")
+	// Below IP has been whitelisted in skiaperf cloud DB.
+	vm := GoldBase("skia-gold-prod", "35.194.17.199")
 	vm.Metadata["auth_white_list"] = `skia.org
 kkinnunen@nvidia.com
 mjk@nvidia.com
@@ -41,14 +44,15 @@ zakerinasab@chromium.org`
 }
 
 func Pdfium() *gce.Instance {
-	vm := GoldBase("skia-gold-pdfium", "104.154.112.106")
+	// Below IP has been whitelisted in skiaperf cloud DB.
+	vm := GoldBase("skia-gold-pdfium", "104.197.62.179")
 	vm.DataDisk.SizeGb = 500
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
 	return vm
 }
 
 func Test() *gce.Instance {
-	vm := GoldBase("skia-gold-testinstance", "104.154.112.111")
+	vm := GoldBase("skia-gold-testinstance", "104.197.226.60")
 	vm.DataDisk.SizeGb = 500
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
 	vm.Scopes = append(vm.Scopes, androidbuildinternal.AndroidbuildInternalScope)
@@ -56,7 +60,8 @@ func Test() *gce.Instance {
 }
 
 func DiffServer() *gce.Instance {
-	vm := GoldBase("skia-diffserver-prod", "104.154.123.224")
+	// DiffServer uses an ephemeral IP address.
+	vm := GoldBase("skia-diffserver-prod", "")
 	delete(vm.Metadata, "auth_white_list")
 	vm.DataDisk.SizeGb = 2000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
