@@ -11,7 +11,7 @@ import (
 )
 
 func GoldBase(name, ipAddress string) *gce.Instance {
-	vm := server.AddGitConfigs(server.Server20170613(name), "skia-gold")
+	vm := server.Server20170905(name)
 	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
 	vm.DataDisk.SizeGb = 2000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
