@@ -9,7 +9,7 @@ import (
 )
 
 func StatusBase(name string) *gce.Instance {
-	vm := server.AddGitConfigs(server.Server20170613(name), name)
+	vm := server.Server20170905(name)
 	vm.DataDisk.SizeGb = 100
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.Metadata["owner_primary"] = "borenet"
