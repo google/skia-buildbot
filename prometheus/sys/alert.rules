@@ -23,7 +23,7 @@ ALERT ProbeFailure
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     abbr = "{{ $labels.probename }} {{ $labels.url }}",
-    description = "Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{ $labels.probename }}+filename%3Aprobers.json for the endpoint URL."
+    description = "Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{ $labels.probename }}+filename%3Aprobers.json5 for the endpoint URL."
   }
 
 ALERT RebootRequired
