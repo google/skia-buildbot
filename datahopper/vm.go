@@ -6,7 +6,7 @@ import (
 )
 
 func DatahopperBase(name string) *gce.Instance {
-	vm := server.AddGitConfigs(server.Server20170613(name), "skia-datahopper2")
+	vm := server.Server20170905(name)
 	vm.DataDisk.SizeGb = 200
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.Metadata["owner_primary"] = "borenet"
