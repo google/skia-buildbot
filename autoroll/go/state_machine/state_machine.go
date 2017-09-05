@@ -182,6 +182,12 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 	b.F(F_WAIT_FOR_LAND, func() error {
 		sklog.Infof("Roll succeeded; syncing the repo until it lands.")
 		currentRoll := s.a.GetActiveRoll()
+		// If the server restarts during the loop below, we'll end up in this state
+		// even though there is no active roll.
+		if currentRoll == nil {
+			sklog.Warningf("GetActiveRoll returned nil in state %q. Continuing transition under the assumption that the roll has landed.", F_WAIT_FOR_LAND)
+			return nil
+		}
 		for {
 			sklog.Infof("Syncing, looking for %s...", currentRoll.RollingTo())
 			if err := s.a.UpdateRepos(); err != nil {
