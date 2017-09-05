@@ -193,7 +193,7 @@ func main() {
 		}
 
 		codec := diffstore.MetricMapCodec{}
-		diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr, codec)
+		diffStore, err = diffstore.NewNetDiffStore(conn, *diffServerImageAddr, codec, IMAGE_URL_PREFIX)
 		if err != nil {
 			sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 		}
