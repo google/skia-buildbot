@@ -76,11 +76,6 @@ type Processor interface {
 	// immediately or updates the internal state of the processor and writes
 	// data during the BatchFinished call.
 	Process(resultsFile ResultFileLocation) error
-
-	// BatchFinished is called when the current batch is finished. This is
-	// to cover the case when ingestion is better done for the whole batch
-	// This should reset the internal state of the Processor instance.
-	BatchFinished() error
 }
 
 // Ingester is the main type that drives ingestion for a single type.
@@ -332,11 +327,7 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 
 	// Notify the ingester that the batch has finished and cause it to reset its
 	// state and do any pending ingestion.
-	if err := i.processor.BatchFinished(); err != nil {
-		sklog.Errorf("Batchfinished failed: %s", err)
-	} else {
-		i.addToProcessedFiles(processedMD5s)
-	}
+	i.addToProcessedFiles(processedMD5s)
 }
 
 // saveFileAsync asynchronously saves the given result file to disk.
