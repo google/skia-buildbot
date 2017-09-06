@@ -1,6 +1,7 @@
 package swarming_metrics
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -13,6 +14,7 @@ const (
 	MEASUREMENT_SWARM_BOTS_LAST_SEEN   = "swarming_bots_last_seen"
 	MEASUREMENT_SWARM_BOTS_QUARANTINED = "swarming_bots_quarantined"
 	MEASUREMENT_SWARM_BOTS_LAST_TASK   = "swarming_bots_last_task"
+	MEASUREMENT_SWARM_BOTS_DEVICE_TEMP = "swarming_bots_device_temp"
 )
 
 // cleanupOldMetrics deletes old metrics, replace with new ones. This fixes the case where
@@ -88,8 +90,56 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 		m3 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_TASK, tags)
 		m3.Update(int64(now.Sub(last)))
 		newMetrics = append(newMetrics, m3)
+
+		if bot.State != "" {
+			st := botState{}
+			err := json.Unmarshal([]byte(bot.State), &st)
+			if err != nil {
+				sklog.Errorf("Malformed bot state %q: %s", bot.State, err)
+				continue
+			}
+			for zone, temp := range st.BotTemperatureMap {
+				tags["temp_zone"] = zone
+				m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
+				// Round to nearest whole number
+				m4.Update(int64(temp + 0.5))
+				newMetrics = append(newMetrics, m4)
+			}
+
+			for _, device := range st.DeviceMap {
+				if device.BatteryMap != nil {
+					if temp, ok := device.BatteryMap["temperature"]; ok {
+						tags["temp_zone"] = "battery"
+						m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
+						// Round to nearest whole number, keeping in mind that the battery
+						// temperature is given in tenths of a degree C
+						m4.Update(int64(temp+0.5) / 10)
+						newMetrics = append(newMetrics, m4)
+					}
+				}
+
+				for zone, temp := range device.DevTemperatureMap {
+					tags["temp_zone"] = zone
+					m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
+					// Round to nearest whole number
+					m4.Update(int64(temp + 0.5))
+					newMetrics = append(newMetrics, m4)
+				}
+			}
+		}
+
 	}
 	return newMetrics, nil
+}
+
+type botState struct {
+	BotTemperatureMap map[string]float32       `json:"temp"`
+	DeviceMap         map[string]androidDevice `json:"devices"`
+}
+
+type androidDevice struct {
+	BatteryMap        map[string]float32 `json:"battery"`
+	DevTemperatureMap map[string]float32 `json:"temp"`
 }
 
 // StartSwarmingBotMetrics spins up several go routines to begin reporting
