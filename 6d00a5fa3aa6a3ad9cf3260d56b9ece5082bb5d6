@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8f32c756_19e30fba",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-06T21:02:00Z",
+      "side": 1,
+      "message": "Will this zone always be different from the zone in DevTemperatureMap? Or maybe we should ignore BotTemperatureMap if DeviceMap is non-empty?",
+      "range": {
+        "startLine": 102,
+        "startChar": 24,
+        "endLine": 102,
+        "endChar": 28
+      },
+      "revId": "6d00a5fa3aa6a3ad9cf3260d56b9ece5082bb5d6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58c1b53a_38d7b2ab",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-06T21:02:00Z",
+      "side": 1,
+      "message": "Do you mean int64(temp/10+0.5)?",
+      "range": {
+        "startLine": 116,
+        "startChar": 16,
+        "endLine": 116,
+        "endChar": 36
+      },
+      "revId": "6d00a5fa3aa6a3ad9cf3260d56b9ece5082bb5d6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0aa77555_08be61af",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-06T21:02:00Z",
+      "side": 1,
+      "message": "Could this be \"battery\"? If so, we should skip it or change the temp_zone above.",
+      "range": {
+        "startLine": 122,
+        "startChar": 25,
+        "endLine": 122,
+        "endChar": 29
+      },
+      "revId": "6d00a5fa3aa6a3ad9cf3260d56b9ece5082bb5d6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

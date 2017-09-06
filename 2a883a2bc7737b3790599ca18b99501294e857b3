@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7863ed5_5f504460",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-06T21:02:00Z",
+      "side": 1,
+      "message": "Would it be better to continue?",
+      "range": {
+        "startLine": 119,
+        "startChar": 7,
+        "endLine": 119,
+        "endChar": 15
+      },
+      "revId": "2a883a2bc7737b3790599ca18b99501294e857b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "523c784f_417af307",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-06T21:02:00Z",
+      "side": 1,
+      "message": "nit: break, just in case len(st.DeviceMap) \u003e 1",
+      "range": {
+        "startLine": 133,
+        "startChar": 3,
+        "endLine": 133,
+        "endChar": 4
+      },
+      "revId": "2a883a2bc7737b3790599ca18b99501294e857b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a0f6a9d_38b92516",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-06T21:02:00Z",
+      "side": 1,
+      "message": "Maybe should be a struct?",
+      "range": {
+        "startLine": 146,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 30
+      },
+      "revId": "2a883a2bc7737b3790599ca18b99501294e857b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7fa42bc_ec56b123",
+        "filename": "datahopper/go/swarming_metrics/bots_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-06T21:02:00Z",
+      "side": 1,
+      "message": "nit: 248 would test rounding",
+      "range": {
+        "startLine": 182,
+        "startChar": 23,
+        "endLine": 182,
+        "endChar": 26
+      },
+      "revId": "2a883a2bc7737b3790599ca18b99501294e857b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
