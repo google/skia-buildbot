@@ -4,11 +4,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image"
 	"image/png"
 	"log"
 	"os"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 )
 
@@ -22,11 +24,11 @@ func main() {
 	if flag.NArg() != 2 {
 		log.Fatal("Usage: imagediff [--out filename] imagepath1.png imagepath2.png\n")
 	}
-	a, err := diff.OpenImage(flag.Arg(0))
+	a, err := readImage(flag.Arg(0))
 	if err != nil {
 		log.Fatal(err)
 	}
-	b, err := diff.OpenImage(flag.Arg(1))
+	b, err := readImage(flag.Arg(1))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,4 +49,13 @@ func main() {
 	if err := png.Encode(f, d); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func readImage(fName string) (*image.NRGBA, error) {
+	reader, err := os.Open(fName)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(reader)
+	return diff.OpenAsNRGBA(reader)
 }
