@@ -45,6 +45,10 @@ func TestShouldPowercycleBot(t *testing.T) {
 			bot:              mockBot(t, testdata.DELETED_BOT),
 			shouldPowercycle: false,
 		},
+		"BootingDevice": {
+			bot:              mockBot(t, testdata.BOOTING_DEVICE),
+			shouldPowercycle: false,
+		},
 	}
 	d := decider{
 		enabledBots: util.NewStringSet([]string{MOCK_BOT_ID}),
@@ -86,6 +90,10 @@ func TestShouldPowercycleDevice(t *testing.T) {
 		"DeletedBot": {
 			bot:              mockBot(t, testdata.DELETED_BOT),
 			shouldPowercycle: false,
+		},
+		"BootingDevice": {
+			bot:              mockBot(t, testdata.BOOTING_DEVICE),
+			shouldPowercycle: true,
 		},
 	}
 	d := decider{

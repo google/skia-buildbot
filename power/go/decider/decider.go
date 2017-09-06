@@ -97,7 +97,7 @@ func (d *decider) ShouldPowercycleDevice(bot *swarming.SwarmingRpcsBotInfo) bool
 	for _, dev := range s.Devices {
 		if status, ok := dev["state"].(string); ok && status == "too_hot" {
 			return false
-		} else if ok && status == "usb_failure" {
+		} else if ok && (status == "usb_failure" || status == "booting") {
 			return true
 		}
 		break
