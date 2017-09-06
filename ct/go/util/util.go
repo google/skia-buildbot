@@ -755,7 +755,7 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 		pageRank := fileInfo.Name()
 		for i := range headers {
 			for j := range values {
-				if headers[i] == "page" {
+				if headers[i] == "stories" {
 					values[j][i] = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
 				}
 			}
