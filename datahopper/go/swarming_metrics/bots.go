@@ -3,6 +3,7 @@ package swarming_metrics
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
@@ -127,8 +128,14 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 				for zone, temp := range device.DevTemperatureMap {
 					tags["temp_zone"] = zone
 					m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
-					// Round to nearest whole number
-					m4.Update(int64(temp + 0.5))
+					if strings.HasPrefix(zone, "tsens_tz_sensor") && temp > 200 {
+						// These sensors are sometimes in deci°C, so we devide by 10
+						m4.Update(int64(temp+5) / 10)
+					} else {
+						// Round to nearest whole number
+						m4.Update(int64(temp + 0.5))
+					}
+
 					newMetrics = append(newMetrics, m4)
 				}
 				break
