@@ -183,8 +183,9 @@ func log(depthOffset int, severity, reportName, payload string) {
 	if logger == nil {
 		logToGlog(stackDepth, severity, payload)
 	} else {
-		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
-		if severity != ALERT {
+		// Make a backup log for warnings and errors on the off-chance that they don't
+		// make it to the cloud
+		if severity == WARNING || severity == ERROR {
 			// ALERT, aka, Fatal* will be logged to glog after the call to CloudLog.
 			// If we called logToGlog with alert, it will die before reporting the fatal
 			// to CloudLog.
