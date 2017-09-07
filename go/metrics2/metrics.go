@@ -2,12 +2,12 @@
 package metrics2
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/skia-dev/glog"
 )
 
 // Timer is a struct used for measuring elapsed time. Unlike the other metrics
@@ -127,6 +127,6 @@ func InitPrometheus(port string) {
 	r := mux.NewRouter()
 	r.Handle("/metrics", promhttp.Handler())
 	go func() {
-		glog.Fatal(http.ListenAndServe(port, r))
+		log.Fatal(http.ListenAndServe(port, r))
 	}()
 }

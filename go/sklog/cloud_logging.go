@@ -2,6 +2,7 @@ package sklog
 
 import (
 	"fmt"
+	nlog "log"
 	"net/http"
 	"os"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/skia-dev/glog"
 	"golang.org/x/net/context"
 	logging "google.golang.org/api/logging/v2beta1"
 )
@@ -113,7 +113,7 @@ func PostInitCloudLogging(c *http.Client, metricsCallback MetricsCallback) error
 		sawLogWithSeverity = metricsCallback
 	}
 	url := fmt.Sprintf(CLOUD_LOGGING_URL_FORMAT, defaultReportName, logger.(*logsClient).loggingResource.Labels["name"])
-	glog.Infof(`=====================================================
+	nlog.Printf(`=====================================================
 Cloud logging configured, see %s for rest of logs. This file will only contain errors involved with cloud logging/metrics.
 =====================================================`, url)
 	// Make first cloud logging entry.
@@ -222,7 +222,7 @@ func CloudLogError(reportName string, err error) {
 // See documentation on interface.
 func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 	if payload == nil {
-		glog.Warningf("Will not log nil log to %s", reportName)
+		nlog.Printf("Will not log nil log to %s", reportName)
 		return
 	}
 	c.BatchCloudLog(reportName, payload)
@@ -231,7 +231,7 @@ func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 // See documentation on interface.
 func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 	if len(payloads) == 0 {
-		glog.Warningf("Will not log empty logs to %s", reportName)
+		nlog.Printf("Will not log empty logs to %s", reportName)
 		return
 	}
 
@@ -306,7 +306,7 @@ func splitEntry(e *logging.LogEntry) []*logging.LogEntry {
 func (c *logsClient) pushBatch() {
 	// Bail out if the cloud logging service is not finished initializing.
 	if c.service == nil {
-		glog.Infof("Logging service is still nil.")
+		nlog.Printf("Logging service is still nil.")
 		return
 	}
 
@@ -343,16 +343,16 @@ func (c *logsClient) pushBatch() {
 				Entries: batch,
 			}
 			if len(c.buffer) > 0 {
-				glog.Infof("Sending log entry batch of %d", len(batch))
+				nlog.Printf("Sending log entry batch of %d", len(batch))
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), LOG_WRITE_SECONDS*time.Second)
 			defer cancel()
 			if resp, err := c.service.Entries.Write(&request).Context(ctx).Do(); err != nil {
 				// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
-				glog.Errorf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
+				nlog.Printf("Problem writing logs \nResponse:\n%v:\n%s", spew.Sdump(resp), err)
 				return
 			} else if resp.HTTPStatusCode != http.StatusOK {
-				glog.Errorf("Response code %d", resp.HTTPStatusCode)
+				nlog.Printf("Response code %d", resp.HTTPStatusCode)
 				return
 			}
 		}(batch)
