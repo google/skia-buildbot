@@ -306,3 +306,30 @@ func NewJWTServiceAccountClient(metadataname, filename string, transport http.Ro
 		Timeout: httputils.REQUEST_TIMEOUT,
 	}), nil
 }
+
+// NewDefaultJWTServiceAccountTokenSource creates a new oauth2.TokenSource that
+// is loaded first by attempting to load JWT JSON Service Account data from GCE
+// Project Level metadata, and if that fails falls back to loading the data
+// from a local file.
+func NewDefaultJWTServiceAccountTokenSource(scopes ...string) (oauth2.TokenSource, error) {
+	var body []byte
+	jwt, err := metadata.ProjectGet(metadata.JWT_SERVICE_ACCOUNT)
+	if err != nil {
+		body, err = ioutil.ReadFile(DEFAULT_JWT_FILENAME)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't find JWT via metadata or in a local file.")
+		}
+	} else {
+		body = []byte(jwt)
+	}
+	tokenClient := &http.Client{
+		Transport: httputils.NewBackOffTransport(),
+		Timeout:   httputils.REQUEST_TIMEOUT,
+	}
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
+	jwtConfig, err := google.JWTConfigFromJSON(body, scopes...)
+	if err != nil {
+		return nil, err
+	}
+	return jwtConfig.TokenSource(ctx), nil
+}
