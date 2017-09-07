@@ -3,6 +3,8 @@ package swarming_metrics
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
@@ -16,6 +18,13 @@ const (
 	MEASUREMENT_SWARM_BOTS_LAST_TASK   = "swarming_bots_last_task"
 	MEASUREMENT_SWARM_BOTS_DEVICE_TEMP = "swarming_bots_device_temp"
 )
+
+var batteryBlacklist = []*regexp.Regexp{
+	// max77621-(cpu|gpu) are on the pixel Cs and constantly at 100. Not useful
+	regexp.MustCompile("max77621-(cpu|gpu)"),
+	// dram is on the Nexus players and goes between 0 and 2.
+	regexp.MustCompile("dram"),
+}
 
 // cleanupOldMetrics deletes old metrics, replace with new ones. This fixes the case where
 // bots are removed but their metrics hang around, or where dimensions
@@ -124,11 +133,23 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 					}
 				}
 
+			outer:
 				for zone, temp := range device.DevTemperatureMap {
+					for _, blacklisted := range batteryBlacklist {
+						if blacklisted.MatchString(zone) {
+							continue outer
+						}
+					}
 					tags["temp_zone"] = zone
 					m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
-					// Round to nearest whole number
-					m4.Update(int64(temp + 0.5))
+					if strings.HasPrefix(zone, "tsens_tz_sensor") && temp > 200 {
+						// These sensors are sometimes in deci°C, so we divide by 10
+						m4.Update(int64(temp+5) / 10)
+					} else {
+						// Round to nearest whole number
+						m4.Update(int64(temp + 0.5))
+					}
+
 					newMetrics = append(newMetrics, m4)
 				}
 				break
