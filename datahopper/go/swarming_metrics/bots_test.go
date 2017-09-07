@@ -150,3 +150,94 @@ func TestLastTaskBotMetrics(t *testing.T) {
 	assert.Equalf(t, int64(31*time.Minute), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_TASK)
 
 }
+
+func TestBotTemperatureMetrics(t *testing.T) {
+	testutils.SmallTest(t)
+
+	ms := swarming.NewMockApiClient()
+	defer ms.AssertExpectations(t)
+
+	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
+
+	ms.On("ListBotsForPool", MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
+		{
+			BotId:      "my-bot-no-temp",
+			LastSeenTs: now.Add(-3 * time.Minute).Format("2006-01-02T15:04:05"),
+			State:      `{}`,
+		},
+		{
+			BotId:      "my-bot-no-device",
+			LastSeenTs: now.Add(-2 * time.Minute).Format("2006-01-02T15:04:05"),
+			State:      `{"temp": {"thermal_zone0": 27.8,"thermal_zone1": 29.8,"thermal_zone2": 36}}`,
+		},
+		{
+			BotId:      "my-bot-device",
+			LastSeenTs: now.Add(-time.Minute).Format("2006-01-02T15:04:05"),
+			State: `{
+				"temp": {"thermal_zone0": 42.5000000000000000000000000000001},
+				"devices": {
+						"abcdefg": {
+							"battery": {
+								"power": ["USB"],
+								"temperature": 248
+							},
+							"temp": {
+								"merble": 28.789,
+								"gerble": 40.03,
+								"battery": 26
+							}
+						}
+					}
+				}`,
+		},
+	}, nil)
+
+	ms.On("ListBotTasks", mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
+		{
+			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
+		},
+	}, nil)
+
+	pc := getPromClient()
+
+	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
+	assert.NoError(t, err)
+	assert.Len(t, newMetrics, 17, "9 bot metrics + 8 temp metrics = 17 expected metrics")
+
+	expected := map[string]int64{
+		"thermal_zone0": 28,
+		"thermal_zone1": 30,
+		"thermal_zone2": 36,
+	}
+	for z, v := range expected {
+		tags := map[string]string{
+			"bot":       "my-bot-no-device",
+			"pool":      MOCK_POOL,
+			"swarming":  MOCK_SERVER,
+			"temp_zone": z,
+		}
+		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 10, 64)
+		assert.NoError(t, err)
+		assert.Equalf(t, v, int64(actual), "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
+	}
+
+	expected = map[string]int64{
+		"battery_direct": 25,
+		"merble":         29,
+		"gerble":         40,
+		"battery":        26,
+		"thermal_zone0":  43,
+	}
+	for z, v := range expected {
+		tags := map[string]string{
+			"bot":       "my-bot-device",
+			"pool":      MOCK_POOL,
+			"swarming":  MOCK_SERVER,
+			"temp_zone": z,
+		}
+		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 10, 64)
+		assert.NoError(t, err)
+		assert.Equalf(t, v, int64(actual), "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
+	}
+
+}
