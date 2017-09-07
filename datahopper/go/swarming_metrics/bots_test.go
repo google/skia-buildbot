@@ -182,9 +182,13 @@ func TestBotTemperatureMetrics(t *testing.T) {
 								"temperature": 248
 							},
 							"temp": {
-								"merble": 28.789,
+								"merble": 2878.9,
 								"gerble": 40.03,
-								"battery": 26
+								"battery": 26,
+								"tsens_tz_sensor1": 37,
+								"tsens_tz_sensor2": 412,
+								"max77621-gpu": 100,
+								"dram": 2
 							}
 						}
 					}
@@ -202,7 +206,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 17, "9 bot metrics + 8 temp metrics = 17 expected metrics")
+	assert.Len(t, newMetrics, 19, "9 bot metrics + 10 temp metrics = 19 expected metrics")
 
 	expected := map[string]int64{
 		"thermal_zone0": 28,
@@ -222,11 +226,13 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	}
 
 	expected = map[string]int64{
-		"battery_direct": 25,
-		"merble":         29,
-		"gerble":         40,
-		"battery":        26,
-		"thermal_zone0":  43,
+		"battery_direct":   25,
+		"merble":           2879,
+		"gerble":           40,
+		"battery":          26,
+		"thermal_zone0":    43,
+		"tsens_tz_sensor1": 37,
+		"tsens_tz_sensor2": 41,
 	}
 	for z, v := range expected {
 		tags := map[string]string{
