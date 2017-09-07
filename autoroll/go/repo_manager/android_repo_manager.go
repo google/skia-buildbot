@@ -374,44 +374,47 @@ https://%s.googlesource.com/%s.git/+log/%s
 Test: Presubmit checks will test this change.
 `, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"))
 
-	// If the parent branch is not master then:
-	// * Add all authors of merged changes to the email list.
-	// * Collect all bugs from b/xyz.
-	// * Collect all 'Test: ' lines.
+	// Loop through all commits:
+	// * Collect all bugs from b/xyz to add the commit message later.
+	// * Add all 'Test: ' lines to the commit message.
+	emailMap := map[string]bool{}
+	bugMap := map[string]bool{}
+	for _, c := range commits {
+		d, err := cr.Details(c)
+		if err != nil {
+			return 0, err
+		}
+		// Extract out the email if it is a Googler.
+		matches := AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)
+		if strings.HasSuffix(matches[1], "@google.com") {
+			emailMap[matches[1]] = true
+		}
+		// Extract out any bugs
+		for k, v := range ExtractBugNumbers(d.Body) {
+			bugMap[k] = v
+		}
+		// Extract out the Test lines and directly add them to the commit
+		// message.
+		for _, tl := range ExtractTestLines(d.Body) {
+			commitMsg += fmt.Sprintf("\n%s", tl)
+		}
+
+	}
+	// Create a single bug line and append it to the commit message.
+	if len(bugMap) > 0 {
+		bugs := []string{}
+		for b := range bugMap {
+			bugs = append(bugs, b)
+		}
+		commitMsg += fmt.Sprintf("\nBug: %s", strings.Join(bugs, ", "))
+	}
+
 	if r.parentBranch != "master" {
-		emailMap := map[string]bool{}
-		bugMap := map[string]bool{}
-		for _, c := range commits {
-			d, err := cr.Details(c)
-			if err != nil {
-				return 0, err
-			}
-			// Extract out the email if it is a Googler.
-			matches := AUTHOR_EMAIL_RE.FindStringSubmatch(d.Author)
-			if strings.HasSuffix(matches[1], "@google.com") {
-				emailMap[matches[1]] = true
-			}
-			// Extract out any bugs
-			for k, v := range ExtractBugNumbers(d.Body) {
-				bugMap[k] = v
-			}
-			// Extract out the Test lines and directly add them to the commit
-			// message.
-			for _, tl := range ExtractTestLines(d.Body) {
-				commitMsg += fmt.Sprintf("\n%s", tl)
-			}
-
-		}
-		// Create a single bug line and append it to the commitMsg.
-		if len(bugMap) > 0 {
-			bugs := []string{}
-			for b := range bugMap {
-				bugs = append(bugs, b)
-			}
-			commitMsg += fmt.Sprintf("\nBug: %s", strings.Join(bugs, ", "))
-		}
-
-		//
+		// If the parent branch is not master then:
+		// Add all authors of merged changes to the email list. We do not do this
+		// for the master branch because developers would get spammed due to multiple
+		// rolls a day. Release branch rolls run rarely and developers should be
+		// aware that their changes are being rolled there.
 		for e := range emailMap {
 			emails = append(emails, e)
 		}
