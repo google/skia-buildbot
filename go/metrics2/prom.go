@@ -2,6 +2,7 @@ package metrics2
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"go.skia.org/infra/go/util"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/skia-dev/glog"
 )
 
 var (
@@ -21,7 +21,7 @@ var (
 
 func clean(s string) string {
 	if invalidChar.MatchString(s) {
-		glog.Warningf("Hey, metrics string %s should not have invalid characters in it", s)
+		log.Printf("Hey, metrics string %s should not have invalid characters in it", s)
 	}
 	return invalidChar.ReplaceAllLiteralString(s, "_")
 }
@@ -199,7 +199,7 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 		)
 		err := prometheus.Register(gaugeVec)
 		if err != nil {
-			glog.Fatalf("Failed to register %q: %s", measurement, err)
+			log.Fatalf("Failed to register %q: %s", measurement, err)
 		}
 		p.int64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
@@ -208,7 +208,7 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 	labels := prometheus.Labels(cleanTags)
 	gauge, err := gaugeVec.GetMetricWith(labels)
 	if err != nil {
-		glog.Fatalf("Failed to get gauge: %s", err)
+		log.Fatalf("Failed to get gauge: %s", err)
 	}
 	ret = &promInt64{
 		delete: func() error {
@@ -261,7 +261,7 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 		)
 		err := prometheus.Register(gaugeVec)
 		if err != nil {
-			glog.Fatalf("Failed to register %q: %s", measurement, err)
+			log.Fatalf("Failed to register %q: %s", measurement, err)
 		}
 		p.float64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
@@ -270,7 +270,7 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 	labels := prometheus.Labels(cleanTags)
 	gauge, err := gaugeVec.GetMetricWith(labels)
 	if err != nil {
-		glog.Fatalf("Failed to get gauge: %s", err)
+		log.Fatalf("Failed to get gauge: %s", err)
 	}
 	ret = &promFloat64{
 		delete: func() error {
@@ -314,7 +314,7 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 		)
 		err := prometheus.Register(summaryVec)
 		if err != nil {
-			glog.Fatalf("Failed to register %q %v: %s", measurement, cleanTags, err)
+			log.Fatalf("Failed to register %q %v: %s", measurement, cleanTags, err)
 		}
 		p.float64SummaryVecs[summaryVecKey] = summaryVec
 	}
@@ -322,7 +322,7 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 
 	observer, err := summaryVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
-		glog.Fatalf("Failed to get observer: %s", err)
+		log.Fatalf("Failed to get observer: %s", err)
 	}
 	ret = &promFloat64Summary{
 		observer: observer,

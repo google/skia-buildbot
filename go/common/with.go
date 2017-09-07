@@ -3,12 +3,12 @@ package common
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"runtime"
 	"sort"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -63,12 +63,12 @@ type baseInitOpt struct{}
 
 func (b *baseInitOpt) preinit(appName string) error {
 	flag.Parse()
-	glog.Info("base preinit")
+	log.Printf("base preinit")
 	return nil
 }
 
 func (b *baseInitOpt) init(appName string) error {
-	glog.Info("base init")
+	log.Printf("base init")
 	flag.VisitAll(func(f *flag.Flag) {
 		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
@@ -105,7 +105,7 @@ func CloudLoggingJWTOpt(serviceAccountPath *string) Opt {
 }
 
 func (o *cloudLoggingInitOpt) preinit(appName string) error {
-	glog.Info("cloudlogging preinit")
+	log.Printf("cloudlogging preinit")
 	hostname, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("Could not get hostname: %s", err)
@@ -114,7 +114,7 @@ func (o *cloudLoggingInitOpt) preinit(appName string) error {
 }
 
 func (o *cloudLoggingInitOpt) init(appName string) error {
-	glog.Info("cloudlogging init")
+	log.Printf("cloudlogging init")
 	transport := &http.Transport{
 		Dial: httputils.FastDialTimeout,
 	}
@@ -153,13 +153,13 @@ func PrometheusOpt(port *string) Opt {
 }
 
 func (o *promInitOpt) preinit(appName string) error {
-	glog.Info("prom preinit")
+	log.Printf("prom preinit")
 	metrics2.InitPrometheus(*o.port)
 	return nil
 }
 
 func (o *promInitOpt) init(appName string) error {
-	glog.Info("prom init")
+	log.Printf("prom init")
 
 	// App uptime.
 	_ = metrics2.NewLiveness("uptime", nil)

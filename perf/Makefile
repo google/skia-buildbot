@@ -10,7 +10,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: skiaperf web ptracequery perf_migratedb perf_update_regressions ingest_json_validator
+build: skiaperf web ptracequery perf_migratedb perf_update_regressions ingest_json_validator sp
 
 .PHONY: validate
 validate: ingest_json_validator
@@ -22,6 +22,10 @@ validate: ingest_json_validator
 .PHONY: skiaperf
 skiaperf:
 	go install -v ./go/skiaperf
+
+.PHONY: sp
+sp:
+	go install -v ./go/sp
 
 ptracequery:
 	go install -v ./go/ptracequery

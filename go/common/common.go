@@ -4,6 +4,7 @@ package common
 
 import (
 	"flag"
+	"log"
 	"net/http"
 	"os"
 	"runtime"
@@ -14,7 +15,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -122,13 +122,12 @@ func startCloudLoggingWithClient(authClient *http.Client, logGrouping, defaultRe
 	}
 }
 
-// LogPanic, when deferred from main, logs any panics and flush the log to local disk using glog.
+// LogPanic, when deferred from main, logs any panics and flush the log to local disk using log.
 // Defer this function before any other defers.
 func LogPanic() {
 	if r := recover(); r != nil {
-		glog.Fatal(r)
+		log.Fatal(r)
 	}
-	glog.Flush()
 }
 
 // MultiString implements flag.Value, allowing it to be used as

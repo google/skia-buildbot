@@ -1,6 +1,5 @@
-// The package sklog offers a way to log using glog or Google Cloud Logging in a seemless way.
-// By default, the Module level functions (e.g. Infof, Errorln) will all log using glog.  Simply
-// call sklog.InitCloudLogging() to immediately start sending log messages to the configured
+// The package sklog offers a way to log using Google Cloud Logging in a seemless way.
+// Simply call sklog.InitCloudLogging() to immediately start sending log messages to the configured
 // Google Cloud Logging endpoint.
 
 package sklog
@@ -10,8 +9,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-
-	"github.com/skia-dev/glog"
 )
 
 const (
@@ -28,7 +25,7 @@ const (
 type MetricsCallback func(severity string)
 
 var (
-	// The module-level logger.  If this is nil, we will just log using glog.
+	// The module-level logger.
 	logger CloudLogger
 
 	// The module-level default report name.  See cloud_logging.go for more information.
@@ -50,14 +47,14 @@ var (
 	}
 )
 
-// These convenience methods will either make a Cloud Logging Entry using the current time and the
-// default report name associated with the CloudLogger or log to glog if Cloud Logging is not
-// configured.  They are a superset of the glog interface.  Info and Infoln do the same thing
-// (as do all pairs), because adding a newline to the end of a Cloud Logging Entry or a glog entry
-// means nothing as all logs are separate entries.  InfofWithDepth allow the caller to change
-// where the stacktrace starts. 0 (the default in all other calls) means to report starting at
-// the caller. 1 would mean one level above, the caller's caller.  2 would be a level above that
-// and so on.
+// These convenience methods will either make a Cloud Logging Entry using the
+// current time and the default report name associated with the CloudLogger.
+// They are a superset of the glog interface. Info and Infoln do the same thing
+// (as do all pairs), because adding a newline to the end of a Cloud Logging
+// Entry means nothing as all logs are separate entries.  InfofWithDepth allow
+// the caller to change where the stacktrace starts. 0 (the default in all
+// other calls) means to report starting at the caller. 1 would mean one level
+// above, the caller's caller.  2 would be a level above that and so on.
 func Debug(msg ...interface{}) {
 	sawLogWithSeverity(DEBUG)
 	log(0, DEBUG, defaultReportName, fmt.Sprint(msg...))
@@ -168,28 +165,18 @@ func Flush() {
 	if logger != nil {
 		logger.Flush()
 	}
-	glog.Flush()
 }
 
-// log creates a log entry.  This log entry is either sent to Cloud Logging or glog if the former is
-// not configured.  reportName is the "virtual log file" used by cloud logging.  reportName is
-// ignored by glog. Both logs include file and line information.
+// log creates a log entry.  This log entry is sent to Cloud Logging.
+// reportName is the "virtual log file" used by cloud logging. Logs include
+// file and line information.
 func log(depthOffset int, severity, reportName, payload string) {
 	// We want to start at least 3 levels up, which is where the caller called
 	// sklog.Infof (or whatever). Otherwise, we'll be including unneeded stack lines.
 	stackDepth := 3 + depthOffset
 	stacks := CallStack(5, stackDepth)
 	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)
-	if logger == nil {
-		logToGlog(stackDepth, severity, payload)
-	} else {
-		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
-		if severity != ALERT {
-			// ALERT, aka, Fatal* will be logged to glog after the call to CloudLog.
-			// If we called logToGlog with alert, it will die before reporting the fatal
-			// to CloudLog.
-			logToGlog(stackDepth, severity, payload)
-		}
+	if logger != nil {
 		stack := map[string]string{
 			"stacktrace_0": stacks[0].String(),
 			"stacktrace_1": stacks[1].String(),
@@ -203,25 +190,6 @@ func log(depthOffset int, severity, reportName, payload string) {
 			Payload:     prettyPayload,
 			ExtraLabels: stack,
 		})
-	}
-}
-
-// logToGlog creates a glog entry.  Depth is how far up the call stack to extract file information.
-// Severity and msg (message) are self explanatory.
-func logToGlog(depth int, severity string, msg interface{}) {
-	switch severity {
-	case DEBUG:
-		glog.InfoDepth(depth, msg)
-	case INFO:
-		glog.InfoDepth(depth, msg)
-	case WARNING:
-		glog.WarningDepth(depth, msg)
-	case ERROR:
-		glog.ErrorDepth(depth, msg)
-	case ALERT:
-		glog.FatalDepth(depth, msg)
-	default:
-		glog.ErrorDepth(depth, msg)
 	}
 }
 
