@@ -3,6 +3,7 @@ package diffstore
 import (
 	"bytes"
 	"fmt"
+	"image"
 	"math"
 	"net/http"
 	"path/filepath"
@@ -364,6 +365,18 @@ func (m *MemDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
 	}
 
 	return m.imgLoader.failureStore.purgeDigestFailures(digests)
+}
+
+// GetImage implements the DiffStore interface.
+func (m *MemDiffStore) GetImage(imageID string) (*image.NRGBA, error) {
+	images, err := m.imgLoader.Get(diff.PRIORITY_NOW, []string{imageID})
+	if err != nil {
+		return nil, err
+	}
+	if len(images) != 1 {
+		return nil, fmt.Errorf("Unable to retrieve image %s", imageID)
+	}
+	return images[0], nil
 }
 
 // ImageHandler implements the DiffStore interface.
