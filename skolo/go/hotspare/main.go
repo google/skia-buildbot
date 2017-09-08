@@ -39,21 +39,25 @@ var (
 	stopServingPlaybook  = flag.String("stop_serving_playbook", "", "The Ansible playbook that, when run locally, will stop serving the image.  This should be idempotent.")
 )
 
+const FORGIVENESS_THRESHOLD = 100
+
 type virtualIPManager struct {
-	Addr                string
-	Period              time.Duration
-	Timeout             time.Duration
-	Threshold           int
-	consecutiveFailures int
+	Addr                 string
+	Period               time.Duration
+	Timeout              time.Duration
+	Threshold            int
+	consecutiveFailures  int
+	consecutiveSuccesses int
 }
 
 func NewVirtualIPManager(addr string, period, timeout time.Duration, threshold int) *virtualIPManager {
 	return &virtualIPManager{
-		Addr:                addr,
-		Period:              period,
-		Timeout:             timeout,
-		Threshold:           threshold,
-		consecutiveFailures: 0,
+		Addr:                 addr,
+		Period:               period,
+		Timeout:              timeout,
+		Threshold:            threshold,
+		consecutiveFailures:  0,
+		consecutiveSuccesses: 0,
 	}
 }
 
@@ -62,12 +66,27 @@ func (v *virtualIPManager) Run() {
 		conn, err := net.DialTimeout("tcp", v.Addr, v.Timeout)
 		if err != nil {
 			sklog.Errorf("Had problem connecting to %s: %s", v.Addr, err)
+			v.consecutiveSuccesses = 0
 			v.consecutiveFailures++
 			if v.consecutiveFailures == v.Threshold {
 				bringUpVIP()
 			}
 		} else {
 			sklog.Infof("Connected successfully to %s. %v\n", v.Addr, conn.Close())
+			v.consecutiveSuccesses++
+			if v.consecutiveSuccesses >= FORGIVENESS_THRESHOLD {
+				v.consecutiveSuccesses = 0
+				if v.consecutiveFailures < v.Threshold {
+					// Forgive the occasional failures that
+					// happen, but not if we went over the
+					// threshold (and are currently serving).
+					// Occasional failures happen every so often just
+					// due to normal network flakes. We want to
+					// prevent those occasional flakes from tripping
+					// the hotspare.
+					v.consecutiveFailures = 0
+				}
+			}
 		}
 		metrics2.GetInt64Metric("skolo_hotspare_consecutive_failures", nil).Update(int64(v.consecutiveFailures))
 	}
@@ -89,6 +108,7 @@ func bringUpVIP() {
 	if err != nil {
 		sklog.Errorf("Could not bring up VIP: %s", err)
 	}
+	metrics2.GetInt64Metric("skolo_hotspare_spare_active", nil).Update(int64(1))
 }
 
 type imageSyncer struct {
@@ -195,6 +215,8 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingJWTOpt(serviceAccountPath),
 	)
+
+	metrics2.GetInt64Metric("skolo_hotspare_spare_active", nil).Update(int64(0))
 
 	lt := NewVirtualIPManager(*livenessAddr, *livenessPeriod, *livenessTimeout, *livenessThreshold)
 	go lt.Run()
