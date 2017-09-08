@@ -70,8 +70,9 @@ func main() {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
-	// Get the DiffStore that does the work loading and diffing images. .
-	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), *gsBaseDir, *cacheSize, nil, nil, nil)
+	// Get the DiffStore that does the work loading and diffing images.
+	mapper := diffstore.NewGoldDiffStoreMapper(&diff.DiffMetrics{})
+	memDiffStore, err := diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), *gsBaseDir, *cacheSize, mapper)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
