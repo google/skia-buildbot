@@ -27,6 +27,9 @@ add_header X-XSS-Protection "1; mode=block";
 # Disable content sniffing
 add_header X-Content-Type-Options nosniff;
 
+# Prevent clickjacking.
+add_header X-Frame-Options SAMEORIGIN always;
+
 #####   skia.org   ################################
 server {
     listen      443 default_server;
@@ -555,6 +558,8 @@ server {
 
     access_log /var/log/nginx/fiddle.access.log;
     error_log /var/log/nginx/fiddle.error.log error;
+
+    add_header X-Frame-Options "ALLOW-FROM https://skia.org/" always;
 
     location / {
         proxy_pass http://skia-fiddle:8000;
