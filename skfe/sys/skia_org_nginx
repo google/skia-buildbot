@@ -27,6 +27,9 @@ add_header X-XSS-Protection "1; mode=block";
 # Disable content sniffing
 add_header X-Content-Type-Options nosniff;
 
+# Prevent clickjacking.
+add_header X-Frame-Options SAMEORIGIN always;
+
 #####   skia.org   ################################
 server {
     listen      443 default_server;
