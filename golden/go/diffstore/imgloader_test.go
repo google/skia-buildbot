@@ -87,7 +87,7 @@ func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *Im
 
 	imgCacheCount, _ := getCacheCounts(10)
 	gsBuckets := []string{TEST_GCS_BUCKET_NAME, TEST_GCS_SECONDARY_BUCKET}
-	imgLoader, err := newImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GCS_IMAGE_DIR, imgCacheCount, GoldIDPathMapper{})
+	imgLoader, err := newImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GCS_IMAGE_DIR, imgCacheCount, GoldDiffStoreMapper{})
 	assert.NoError(t, err)
 	return baseDir, workingDir, tile, imgLoader
 }
@@ -108,7 +108,8 @@ func TestImageLoaderGetGSPath(t *testing.T) {
 	imgCacheCount, _ := getCacheCounts(10)
 	gsBuckets := []string{TEST_GS_BUCKET}
 
-	imgLoader, err := newImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GS_BASE_DIR, imgCacheCount, PixelDiffIDPathMapper{})
+	mapper := PixelDiffStoreMapper{}
+	imgLoader, err := newImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GS_BASE_DIR, imgCacheCount, mapper)
 	assert.NoError(t, err)
 
 	_, err = imgLoader.Get(1, []string{TEST_IMG_PATH})

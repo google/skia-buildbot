@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"net"
+	"net/http/httptest"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -35,6 +36,8 @@ const (
 
 	// PNG extension.
 	DOT_EXT = ".png"
+
+	IMAGE_URL_PREFIX = "/img/"
 )
 
 func TestMemDiffStore(t *testing.T) {
@@ -46,15 +49,19 @@ func TestMemDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil, nil, nil)
+	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
 	testDiffStore(t, tile, baseDir, diffStore, memDiffStore)
 }
 
-// Dummy Diff Function used to test MemDiffStore.DiffFn.
-func DummyDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
+type DummyDiffStoreMapper struct {
+	GoldDiffStoreMapper
+}
+
+func (d DummyDiffStoreMapper) DummyDiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
 	return 42, nil
 }
 
@@ -67,14 +74,16 @@ func TestDiffFn(t *testing.T) {
 	defer testutils.RemoveAll(t, baseDir)
 
 	// Instantiate a new MemDiffStore with the DummyDiffFn.
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, DummyDiffFn, nil, nil)
+	mapper := DummyDiffStoreMapper{GoldDiffStoreMapper: NewGoldDiffStoreMapper(&diff.DiffMetrics{}).(GoldDiffStoreMapper)}
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
+
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 	img1 := image.NewNRGBA(image.Rect(1, 2, 3, 4))
 	img2 := image.NewNRGBA(image.Rect(9, 8, 7, 6))
 
 	// Check that proper values are returned by the diff function.
-	diffMetrics, diffImg := memDiffStore.diffFn(img1, img2)
+	diffMetrics, diffImg := memDiffStore.mapper.DiffFn(img1, img2)
 	assert.Equal(t, diffMetrics, 42)
 	assert.Nil(t, diffImg)
 }
@@ -87,7 +96,8 @@ func TestNetDiffStore(t *testing.T) {
 	client, tile := getSetupAndTile(t, baseDir)
 	defer testutils.RemoveAll(t, baseDir)
 
-	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil, nil, nil)
+	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
+	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
 	assert.NoError(t, err)
 
 	// Start the server that wraps around the MemDiffStore.
@@ -96,13 +106,28 @@ func TestNetDiffStore(t *testing.T) {
 	lis, err := net.Listen("tcp", "localhost:0")
 	assert.NoError(t, err)
 
-	// Start the server.
+	// Start the grpc server.
 	server := grpc.NewServer()
 	RegisterDiffServiceServer(server, serverImpl)
 	go func() {
 		_ = server.Serve(lis)
 	}()
 	defer server.Stop()
+
+	// Start the http server.
+	imgHandler, err := memDiffStore.ImageHandler(IMAGE_URL_PREFIX)
+	assert.NoError(t, err)
+
+	httpServer := httptest.NewServer(imgHandler)
+	defer func() { httpServer.Close() }()
+
+	// lis, err = net.Listen("tcp", "localhost:0")
+	// assert.NoError(t, err)
+	// http.Serve(lis, imgHandler)
+
+	// go func() {
+	// 	_ = http.S
+	// }
 
 	// Create the NetDiffStore.
 	addr := lis.Addr().String()
@@ -112,7 +137,7 @@ func TestNetDiffStore(t *testing.T) {
 		assert.NoError(t, conn.Close())
 	}()
 
-	netDiffStore, err := NewNetDiffStore(conn, "", codec)
+	netDiffStore, err := NewNetDiffStore(conn, httpServer.Listener.Addr().String(), codec, IMAGE_URL_PREFIX)
 	assert.NoError(t, err)
 
 	// run tests against it.
@@ -191,6 +216,16 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	ti.Stop()
 	memDiffStore.sync()
 	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
+
+	for _, digest := range digests {
+		firstImg, err := diffStore.GetImage(digest)
+		assert.NoError(t, err)
+
+		secondImg, err := memDiffStore.GetImage(digest)
+		assert.NoError(t, err)
+
+		assert.Equal(t, firstImg, secondImg)
+	}
 }
 
 func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]interface{}) {
@@ -210,10 +245,10 @@ func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigest
 	}
 }
 
-func TestGoldIDPathMapper(t *testing.T) {
+func TestGoldDiffStoreMapper(t *testing.T) {
 	testutils.SmallTest(t)
 
-	mapper := GoldIDPathMapper{}
+	mapper := GoldDiffStoreMapper{}
 
 	// Test DiffID and SplitDiffID
 	expectedDiffID := TEST_GOLD_LEFT + ":" + TEST_GOLD_RIGHT
@@ -247,10 +282,10 @@ func TestGoldIDPathMapper(t *testing.T) {
 	assert.True(t, mapper.IsValidImgID(TEST_GOLD_RIGHT))
 }
 
-func TestPixelDiffIDPathMapper(t *testing.T) {
+func TestPixelDiffStoreMapper(t *testing.T) {
 	testutils.SmallTest(t)
 
-	mapper := PixelDiffIDPathMapper{}
+	mapper := PixelDiffStoreMapper{}
 	dirs := strings.Split(TEST_PIXEL_DIFF_LEFT, "/")
 
 	// Test DiffID and SplitDiffID
@@ -301,9 +336,8 @@ func TestCodec(t *testing.T) {
 	defer testutils.RemoveAll(t, baseDir)
 
 	// Instantiate a new MemDiffStore with a codec for the test struct defined above.
-	codec := util.JSONCodec(&DummyDiffMetrics{})
-	mapper := GoldIDPathMapper{}
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, nil, codec, mapper)
+	mapper := NewGoldDiffStoreMapper(&DummyDiffMetrics{})
+	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
 	assert.NoError(t, err)
 	memDiffStore := diffStore.(*MemDiffStore)
 
