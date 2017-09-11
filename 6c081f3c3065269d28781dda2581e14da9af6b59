@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "92abc035_ef331207",
+        "filename": "perf/go/alerts/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T20:17:07Z",
+      "side": 1,
+      "message": "just curious: is this cast necessary?",
+      "range": {
+        "startLine": 140,
+        "startChar": 27,
+        "endLine": 140,
+        "endChar": 31
+      },
+      "revId": "6c081f3c3065269d28781dda2581e14da9af6b59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32bf237c_52290cc4",
+        "filename": "perf/go/alerts/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T20:17:07Z",
+      "side": 1,
+      "message": "Hopefully it won\u0027t be confusing that the Config stored in DS will initially have ID \u003d\u003d INVALID_ID.",
+      "range": {
+        "startLine": 151,
+        "startChar": 3,
+        "endLine": 151,
+        "endChar": 9
+      },
+      "revId": "6c081f3c3065269d28781dda2581e14da9af6b59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c7f315a6_e1936d1c",
+        "filename": "perf/go/alerts/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T20:17:07Z",
+      "side": 1,
+      "message": "nit: Move this before return so that it also applies to SQL impl?",
+      "range": {
+        "startLine": 157,
+        "startChar": 2,
+        "endLine": 157,
+        "endChar": 29
+      },
+      "revId": "6c081f3c3065269d28781dda2581e14da9af6b59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
