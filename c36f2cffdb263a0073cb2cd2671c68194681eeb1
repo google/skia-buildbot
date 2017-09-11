@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d407bd83_35ecc55d",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T02:33:15Z",
+      "side": 1,
+      "message": "nit: Seems confusing to me that this function is basically the same as NewJWTServiceAccountClient, minus the client. Makes me wonder if there\u0027s something I\u0027m missing.",
+      "range": {
+        "startLine": 314,
+        "startChar": 5,
+        "endLine": 314,
+        "endChar": 43
+      },
+      "revId": "c36f2cffdb263a0073cb2cd2671c68194681eeb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
