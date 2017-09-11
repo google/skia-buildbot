@@ -15,6 +15,7 @@ type Kind string
 // One const for each Datastore Kind.
 const (
 	SHORTCUT Kind = "Shortcut"
+	ACTIVITY Kind = "Activity"
 )
 
 var (
@@ -35,7 +36,7 @@ func Init(project string, ns string) error {
 	if err != nil {
 		return err
 	}
-	DS, err = datastore.NewClient(context.Background(), "google.com:skia-buildbots", option.WithTokenSource(tok))
+	DS, err = datastore.NewClient(context.Background(), project, option.WithTokenSource(tok))
 	if err != nil {
 		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
 	}
@@ -48,4 +49,9 @@ func NewKey(kind Kind) *datastore.Key {
 		Kind:      string(kind),
 		Namespace: Namespace,
 	}
+}
+
+// Creates a new query of the given kind with the right namespace.
+func NewQuery(kind Kind) *datastore.Query {
+	return datastore.NewQuery(string(kind)).Namespace(Namespace)
 }
