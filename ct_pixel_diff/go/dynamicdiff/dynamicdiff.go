@@ -1,11 +1,15 @@
 package dynamicdiff
 
 import (
+	"fmt"
 	"image"
+	"path/filepath"
+	"strings"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/diffstore"
 )
 
 type DynamicDiffMetrics struct {
@@ -26,11 +30,75 @@ type DynamicDiffMetrics struct {
 	NumDynamicPixels int `json:"numDynamicPixels"`
 }
 
+// PixelDiffStoreMapper implements the IDPathMapper interface. The format
+// of an imageID is: runID/{nopatch/withpatch}/rank/URLfilename. A runID has the
+// format userID-timeStamp.
+type PixelDiffStoreMapper struct {
+	util.LRUCodec
+}
+
+func NewPixelDiffStoreMapper(diffInstance interface{}) diffstore.DiffStoreMapper {
+	return PixelDiffStoreMapper{LRUCodec: util.JSONCodec(&DynamicDiffMetrics{})}
+}
+
+func (g PixelDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
+	return DynamicContentDiffx(leftImg, rightImg)
+}
+
+// Returns a string containing the common runID, rank and URL of the two image
+// paths.
+func (p PixelDiffStoreMapper) DiffID(leftImgID, rightImgID string) string {
+	path := strings.Split(leftImgID, "/")
+	return strings.Join([]string{path[0], path[2], path[3]}, ":")
+}
+
+// Returns strings specifying the nopatch and withpatch image paths using the
+// given diffID.
+func (p PixelDiffStoreMapper) SplitDiffID(diffID string) (string, string) {
+	path := strings.Split(diffID, ":")
+	return filepath.Join(path[0], "nopatch", path[1], path[2]),
+		filepath.Join(path[0], "withpatch", path[1], path[2])
+}
+
+// Creates the local diff image filepath with the common runID and URL.
+func (p PixelDiffStoreMapper) DiffPath(leftImgID, rightImgID string) string {
+	path := strings.Split(leftImgID, "/")
+	imageName := path[0] + "/" + path[3]
+	return fmt.Sprintf("%s.%s", imageName, diffstore.IMG_EXTENSION)
+}
+
+// Appends the image extension to create the local image file path, and
+// recreates the YYYY/MM/DD/HH directories using the timestamp in the runID to
+// make the relative GS path.
+func (p PixelDiffStoreMapper) ImagePaths(imageID string) (string, string) {
+	localPath := fmt.Sprintf("%s.%s", imageID, diffstore.IMG_EXTENSION)
+	path := strings.Split(imageID, "/")
+	runID := strings.Split(path[0], "-")
+	timeStamp := runID[1]
+	datePath := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8], timeStamp[8:10])
+	gsPath := filepath.Join(datePath, localPath)
+	return localPath, gsPath
+}
+
+// Ensures that diffImgID has the proper number of components in its path. Should
+// have the format runID/URLfilename.
+func (p PixelDiffStoreMapper) IsValidDiffImgID(diffImgID string) bool {
+	path := strings.Split(diffImgID, "/")
+	return len(path) == 2
+}
+
+// Ensures that imgID has the proper number of components in its path. Should
+// have the format runID/{nopatch/withpatch}/rank/URLfilename.
+func (p PixelDiffStoreMapper) IsValidImgID(imgID string) bool {
+	path := strings.Split(imgID, "/")
+	return len(path) == 4
+}
+
 // DynamicContentDiff is a function that calculates the DiffMetrics and diff
 // image for the provided images, taking into account that pixels with dynamic
 // content are marked cyan and removing such pixels from the calculations. The
 // images are assumed to have the same dimensions.
-func DynamicContentDiff(left, right *image.NRGBA) (interface{}, *image.NRGBA) {
+func DynamicContentDiffx(left, right *image.NRGBA) (interface{}, *image.NRGBA) {
 	bounds := left.Bounds()
 	resultImg := image.NewNRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
 

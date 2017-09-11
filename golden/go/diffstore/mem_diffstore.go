@@ -3,6 +3,7 @@ package diffstore
 import (
 	"bytes"
 	"fmt"
+	"image"
 	"math"
 	"net/http"
 	"path/filepath"
@@ -41,9 +42,17 @@ const (
 	BYTES_PER_DIFF_METRIC = 100
 )
 
-// IDPathMapper is an interface that defines various functions for mapping
+// DiffStoreMapper is an interface that defines various functions for mapping
 // between IDs and storage paths.
-type IDPathMapper interface {
+type DiffStoreMapper interface {
+	// LRUCodec definese the Encode and Decode functions.
+	util.LRUCodec
+
+	// DiffFn calculates the different between two given images and returns a
+	// difference image. The type underlying interface{} is the input and output
+	// of the LRUCodec above.
+	DiffFn(*image.NRGBA, *image.NRGBA) (interface{}, *image.NRGBA)
+
 	// Takes two image IDs and returns a unique diff ID.
 	// Note: DiffID(a,b) == DiffID(b, a) should hold.
 	DiffID(leftImgID, rightImgID string) string
@@ -69,12 +78,50 @@ type IDPathMapper interface {
 	IsValidImgID(imgID string) bool
 }
 
+// // IDPathMapper is an interface that defines various functions for mapping
+// // between IDs and storage paths.
+// type IDPathMapper interface {
+// 	// Takes two image IDs and returns a unique diff ID.
+// 	// Note: DiffID(a,b) == DiffID(b, a) should hold.
+// 	DiffID(leftImgID, rightImgID string) string
+
+// 	// Inverse function of DiffID.
+// 	// SplitDiffID(DiffID(a,b)) should return (a,b) or (b,a).
+// 	SplitDiffID(diffID string) (string, string)
+
+// 	// DiffPath returns the local file path for the diff image of two images.
+// 	// This path is used to store the diff image on disk and serve it over HTTP.
+// 	DiffPath(leftImgID, rightImgID string) string
+
+// 	// ImagePaths returns the storage paths for a given image ID. The first return
+// 	// value is the local file path used to store the image on disk and serve it
+// 	// over HTTP. The second return value is the relative path for the image
+// 	// within GS_bucket/GS_basedir.
+// 	ImagePaths(imageID string) (string, string)
+
+// 	// IsValidDiffImgID returns true if the given diffImgID is in the correct format.
+// 	IsValidDiffImgID(diffImgID string) bool
+
+// 	// IsValidImgID returns true if the given imgID is in the correct format.
+// 	IsValidImgID(imgID string) bool
+// }
+
 // GoldIDPathMapper implements the IDPathMapper interface. The format of an
 // imageID is an MD5 digest.
-type GoldIDPathMapper struct{}
+type GoldDiffStoreMapper struct {
+	util.LRUCodec
+}
+
+func NewGoldDiffStoreMapper(diffInstance interface{}) DiffStoreMapper {
+	return GoldDiffStoreMapper{LRUCodec: util.JSONCodec(diffInstance)}
+}
+
+func (g GoldDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
+	return diff.DefaultDiffFn(leftImg, rightImg)
+}
 
 // Returns a sorted, colon-separated concatenation of two digests.
-func (g GoldIDPathMapper) DiffID(leftImgID, rightImgID string) string {
+func (g GoldDiffStoreMapper) DiffID(leftImgID, rightImgID string) string {
 	if rightImgID < leftImgID {
 		leftImgID, rightImgID = rightImgID, leftImgID
 	}
@@ -82,14 +129,14 @@ func (g GoldIDPathMapper) DiffID(leftImgID, rightImgID string) string {
 }
 
 // Splits two colon-separated digests and returns them.
-func (g GoldIDPathMapper) SplitDiffID(diffID string) (string, string) {
+func (g GoldDiffStoreMapper) SplitDiffID(diffID string) (string, string) {
 	images := strings.Split(diffID, ":")
 	return images[0], images[1]
 }
 
 // Compares the two digests to get the unique image name and then calls
 // TwoLevelRadixPath to create the local diff image file path.
-func (g GoldIDPathMapper) DiffPath(leftImgID, rightImgID string) string {
+func (g GoldDiffStoreMapper) DiffPath(leftImgID, rightImgID string) string {
 	var imageName string
 	if leftImgID < rightImgID {
 		imageName = fmt.Sprintf("%s-%s", leftImgID, rightImgID)
@@ -102,7 +149,7 @@ func (g GoldIDPathMapper) DiffPath(leftImgID, rightImgID string) string {
 
 // Appends the image extension to create the relative GS path, and calls
 // TwoLevelRadixPath to create the local image file path.
-func (g GoldIDPathMapper) ImagePaths(imageID string) (string, string) {
+func (g GoldDiffStoreMapper) ImagePaths(imageID string) (string, string) {
 	gsPath := fmt.Sprintf("%s.%s", imageID, IMG_EXTENSION)
 	localPath := fileutil.TwoLevelRadixPath(gsPath)
 	return localPath, gsPath
@@ -110,7 +157,7 @@ func (g GoldIDPathMapper) ImagePaths(imageID string) (string, string) {
 
 // Ensures that the diffImgID consists of two valid MD5 digests. Should have the
 // format leftDigest-rightDigest.
-func (g GoldIDPathMapper) IsValidDiffImgID(diffImgID string) bool {
+func (g GoldDiffStoreMapper) IsValidDiffImgID(diffImgID string) bool {
 	digests := strings.Split(diffImgID, "-")
 	if len(digests) != 2 {
 		return false
@@ -119,62 +166,8 @@ func (g GoldIDPathMapper) IsValidDiffImgID(diffImgID string) bool {
 }
 
 // Ensures that the imgID is a valid MD5 digest.
-func (g GoldIDPathMapper) IsValidImgID(imgID string) bool {
+func (g GoldDiffStoreMapper) IsValidImgID(imgID string) bool {
 	return validation.IsValidDigest(imgID)
-}
-
-// PixelDiffIDPathMapper implements the IDPathMapper interface. The format
-// of an imageID is: runID/{nopatch/withpatch}/rank/URLfilename. A runID has the
-// format userID-timeStamp.
-type PixelDiffIDPathMapper struct{}
-
-// Returns a string containing the common runID, rank and URL of the two image
-// paths.
-func (p PixelDiffIDPathMapper) DiffID(leftImgID, rightImgID string) string {
-	path := strings.Split(leftImgID, "/")
-	return strings.Join([]string{path[0], path[2], path[3]}, ":")
-}
-
-// Returns strings specifying the nopatch and withpatch image paths using the
-// given diffID.
-func (p PixelDiffIDPathMapper) SplitDiffID(diffID string) (string, string) {
-	path := strings.Split(diffID, ":")
-	return filepath.Join(path[0], "nopatch", path[1], path[2]),
-		filepath.Join(path[0], "withpatch", path[1], path[2])
-}
-
-// Creates the local diff image filepath with the common runID and URL.
-func (p PixelDiffIDPathMapper) DiffPath(leftImgID, rightImgID string) string {
-	path := strings.Split(leftImgID, "/")
-	imageName := path[0] + "/" + path[3]
-	return fmt.Sprintf("%s.%s", imageName, IMG_EXTENSION)
-}
-
-// Appends the image extension to create the local image file path, and
-// recreates the YYYY/MM/DD/HH directories using the timestamp in the runID to
-// make the relative GS path.
-func (p PixelDiffIDPathMapper) ImagePaths(imageID string) (string, string) {
-	localPath := fmt.Sprintf("%s.%s", imageID, IMG_EXTENSION)
-	path := strings.Split(imageID, "/")
-	runID := strings.Split(path[0], "-")
-	timeStamp := runID[1]
-	datePath := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8], timeStamp[8:10])
-	gsPath := filepath.Join(datePath, localPath)
-	return localPath, gsPath
-}
-
-// Ensures that diffImgID has the proper number of components in its path. Should
-// have the format runID/URLfilename.
-func (p PixelDiffIDPathMapper) IsValidDiffImgID(diffImgID string) bool {
-	path := strings.Split(diffImgID, "/")
-	return len(path) == 2
-}
-
-// Ensures that imgID has the proper number of components in its path. Should
-// have the format runID/{nopatch/withpatch}/rank/URLfilename.
-func (p PixelDiffIDPathMapper) IsValidImgID(imgID string) bool {
-	path := strings.Split(imgID, "/")
-	return len(path) == 4
 }
 
 // MemDiffStore implements the diff.DiffStore interface.
@@ -197,11 +190,8 @@ type MemDiffStore struct {
 	// wg is used to synchronize background operations like saving files. Used for testing.
 	wg sync.WaitGroup
 
-	// diffFn is called on two images to output diff metrics and the diff image
-	diffFn diff.DiffFn
-
-	// mapper contains various functions for creating image IDs and paths.
-	mapper IDPathMapper
+	// mapper contains various functions for creating image IDs, paths and diff metrics.
+	mapper DiffStoreMapper
 }
 
 // NewMemDiffStore returns a new instance of MemDiffStore.
@@ -211,47 +201,32 @@ type MemDiffStore struct {
 // If diffFn is not specified, the diff.DefaultDiffFn will be used. If codec is
 // not specified, a JSON codec for the diff.DiffMetrics struct will be used.
 // If mapper is not specified, GoldIDPathMapper will be used.
-func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int, diffFn diff.DiffFn, codec util.LRUCodec, mapper IDPathMapper) (diff.DiffStore, error) {
+func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string, gsImageBaseDir string, gigs int, mapper DiffStoreMapper) (diff.DiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
 	imgDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)))
-
-	// Default to GoldIDPathMapper if mapper is not specified
-	if mapper == nil {
-		mapper = GoldIDPathMapper{}
-	}
-	imgLoader, err := newImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount, mapper)
+	imgLoader, err := NewImgLoader(client, baseDir, imgDir, gsBucketNames, gsImageBaseDir, imageCacheCount, mapper)
 	if err != err {
 		return nil, err
 	}
 
-	// Default to util.JSONCodec(&diff.DiffMetrics{}) if codec not specified
-	if codec == nil {
-		codec = util.JSONCodec(&diff.DiffMetrics{})
-	}
-	mStore, err := newMetricsStore(baseDir, mapper.SplitDiffID, codec)
+	mStore, err := newMetricsStore(baseDir, mapper.SplitDiffID, mapper)
 	if err != nil {
 		return nil, err
 	}
 
-	// Default to diff.DefaultDiffFn if diffFn not specified
-	if diffFn == nil {
-		diffFn = diff.DefaultDiffFn
-	}
 	ret := &MemDiffStore{
 		baseDir:      baseDir,
 		localDiffDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
 		imgLoader:    imgLoader,
 		metricsStore: mStore,
-		diffFn:       diffFn,
 		mapper:       mapper,
 	}
 
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
 		return nil, err
 	}
-
 	return ret, nil
 }
 
@@ -366,6 +341,18 @@ func (m *MemDiffStore) PurgeDigests(digests []string, purgeGCS bool) error {
 	return m.imgLoader.failureStore.purgeDigestFailures(digests)
 }
 
+// GetImage implements the DiffStore interface.
+func (m *MemDiffStore) GetImage(imageID string) (*image.NRGBA, error) {
+	images, err := m.imgLoader.Get(diff.PRIORITY_NOW, []string{imageID})
+	if err != nil {
+		return nil, err
+	}
+	if len(images) != 1 {
+		return nil, fmt.Errorf("Unable to retrieve image %s", imageID)
+	}
+	return images[0], nil
+}
+
 // ImageHandler implements the DiffStore interface.
 func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	absPath, err := filepath.Abs(m.baseDir)
@@ -456,7 +443,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// We are guaranteed to have two images at this point.
-	diffMetrics, diffImg := d.diffFn(imgs[0], imgs[1])
+	diffMetrics, diffImg := d.mapper.DiffFn(imgs[0], imgs[1])
 
 	// Encode the result image and save it to disk. If encoding causes an error
 	// we return an error.
