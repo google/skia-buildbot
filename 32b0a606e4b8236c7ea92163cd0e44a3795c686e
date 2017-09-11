@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "ddd6757a_c9cb2c40",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-11T20:36:12Z",
+      "side": 1,
+      "message": "\"Inside of transactions, serializable isolation is enforced. \"\n\nhttps://cloud.google.com/datastore/docs/concepts/transactions#isolation_and_consistency",
+      "parentUuid": "bc15d052_d3162993",
+      "range": {
+        "startLine": 77,
+        "startChar": 11,
+        "endLine": 77,
+        "endChar": 17
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "582a5a05_722c8170",
         "filename": "perf/go/regression/db.go",
         "patchSetId": 6
