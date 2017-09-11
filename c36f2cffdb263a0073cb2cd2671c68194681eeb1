@@ -22,6 +22,30 @@
       "revId": "c36f2cffdb263a0073cb2cd2671c68194681eeb1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87ac2ea5_ee14d915",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-11T11:50:24Z",
+      "side": 1,
+      "message": "Broke out the common code.",
+      "parentUuid": "d407bd83_35ecc55d",
+      "range": {
+        "startLine": 314,
+        "startChar": 5,
+        "endLine": 314,
+        "endChar": 43
+      },
+      "revId": "c36f2cffdb263a0073cb2cd2671c68194681eeb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
