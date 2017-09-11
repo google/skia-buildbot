@@ -211,6 +211,7 @@ func Init() {
 
 	shortcut2.Init(*useCloudDatastore)
 	activitylog.Init(*useCloudDatastore)
+	regression.Init(*useCloudDatastore)
 
 	clusterAlgo, err := clustering2.ToClusterAlgo(*algo)
 	if err != nil {
