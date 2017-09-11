@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "ad798a02_c117b9bf",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T14:59:04Z",
+      "side": 1,
+      "message": "Do you think any code was relying on this transport being used for the token source?",
+      "range": {
+        "startLine": 297,
+        "startChar": 13,
+        "endLine": 297,
+        "endChar": 22
+      },
+      "revId": "c36f2cffdb263a0073cb2cd2671c68194681eeb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d407bd83_35ecc55d",
         "filename": "go/auth/auth.go",
         "patchSetId": 7

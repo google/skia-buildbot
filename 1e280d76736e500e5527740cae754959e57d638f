@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04f2ef2b_759dedb2",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T14:59:04Z",
+      "side": 1,
+      "message": "nit: unnecessary",
+      "range": {
+        "startLine": 273,
+        "startChar": 0,
+        "endLine": 278,
+        "endChar": 2
+      },
+      "revId": "1e280d76736e500e5527740cae754959e57d638f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0c21b65_c110fa6a",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T14:59:04Z",
+      "side": 1,
+      "message": "typo: tokenSource",
+      "range": {
+        "startLine": 282,
+        "startChar": 1,
+        "endLine": 282,
+        "endChar": 11
+      },
+      "revId": "1e280d76736e500e5527740cae754959e57d638f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
