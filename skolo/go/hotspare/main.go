@@ -33,27 +33,32 @@ var (
 	syncRemotePath = flag.String("sync_remote_path", "", `Where the image is stored on the remote machine.  This should include ip address.  E.g. "192.168.1.198:/opt/rpi_img/prod.img"`)
 	syncLocalPath  = flag.String("sync_local_path", "/opt/rpi_img/prod.img", "Where the image is stored on the local disk.")
 
-	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	promPort      = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	metricsPeriod = flag.Duration("metrics_period", 5*time.Second, "How often to update metrics on whether or not we are serving.")
 
 	startServingPlaybook = flag.String("start_serving_playbook", "", "The Ansible playbook that, when run locally, will start serving the image.  This should be idempotent.")
 	stopServingPlaybook  = flag.String("stop_serving_playbook", "", "The Ansible playbook that, when run locally, will stop serving the image.  This should be idempotent.")
 )
 
+const FORGIVENESS_THRESHOLD = 100
+
 type virtualIPManager struct {
-	Addr                string
-	Period              time.Duration
-	Timeout             time.Duration
-	Threshold           int
-	consecutiveFailures int
+	Addr                 string
+	Period               time.Duration
+	Timeout              time.Duration
+	Threshold            int
+	accumulatedFailures  int
+	consecutiveSuccesses int
 }
 
 func NewVirtualIPManager(addr string, period, timeout time.Duration, threshold int) *virtualIPManager {
 	return &virtualIPManager{
-		Addr:                addr,
-		Period:              period,
-		Timeout:             timeout,
-		Threshold:           threshold,
-		consecutiveFailures: 0,
+		Addr:                 addr,
+		Period:               period,
+		Timeout:              timeout,
+		Threshold:            threshold,
+		accumulatedFailures:  0,
+		consecutiveSuccesses: 0,
 	}
 }
 
@@ -62,14 +67,29 @@ func (v *virtualIPManager) Run() {
 		conn, err := net.DialTimeout("tcp", v.Addr, v.Timeout)
 		if err != nil {
 			sklog.Errorf("Had problem connecting to %s: %s", v.Addr, err)
-			v.consecutiveFailures++
-			if v.consecutiveFailures == v.Threshold {
+			v.consecutiveSuccesses = 0
+			v.accumulatedFailures++
+			if v.accumulatedFailures == v.Threshold {
 				bringUpVIP()
 			}
 		} else {
 			sklog.Infof("Connected successfully to %s. %v\n", v.Addr, conn.Close())
+			v.consecutiveSuccesses++
+			if v.consecutiveSuccesses >= FORGIVENESS_THRESHOLD {
+				v.consecutiveSuccesses = 0
+				if v.accumulatedFailures < v.Threshold {
+					// Forgive the occasional failures that
+					// happen, but not if we went over the
+					// threshold (and are currently serving).
+					// Occasional failures happen every so often just
+					// due to normal network flakes. We want to
+					// prevent those occasional flakes from tripping
+					// the hotspare.
+					v.accumulatedFailures = 0
+				}
+			}
 		}
-		metrics2.GetInt64Metric("skolo_hotspare_consecutive_failures", nil).Update(int64(v.consecutiveFailures))
+		metrics2.GetInt64Metric("skolo_hotspare_consecutive_failures", nil).Update(int64(v.accumulatedFailures))
 	}
 }
 
@@ -89,6 +109,7 @@ func bringUpVIP() {
 	if err != nil {
 		sklog.Errorf("Could not bring up VIP: %s", err)
 	}
+
 }
 
 type imageSyncer struct {
@@ -201,6 +222,16 @@ func main() {
 
 	is := NewImageSyncer(*syncPeriod, *syncRemotePath, *syncLocalPath)
 	go is.Run()
+
+	go func() {
+		for range time.Tick(*metricsPeriod) {
+			if isServing() {
+				metrics2.GetInt64Metric("skolo_hotspare_spare_active", nil).Update(int64(1))
+			} else {
+				metrics2.GetInt64Metric("skolo_hotspare_spare_active", nil).Update(int64(0))
+			}
+		}
+	}()
 
 	select {}
 }
