@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f4b7aadb_72f12dd9",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "typo Datastore",
+      "range": {
+        "startLine": 72,
+        "startChar": 62,
+        "endLine": 72,
+        "endChar": 75
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc15d052_d3162993",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "godoc says, \"Furthermore, if the transaction is set to a serializable isolation level, another transaction cannot concurrently modify the data that is read or modified by this transaction.\" However, I can\u0027t see anything in the API that would set the isolation level. Am I missing something?",
+      "range": {
+        "startLine": 77,
+        "startChar": 11,
+        "endLine": 77,
+        "endChar": 17
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "582a5a05_722c8170",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 107,
+        "startChar": 55,
+        "endLine": 107,
+        "endChar": 68
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "289cddb4_24e1ae08",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "nit: should probably use context.TODO or context.WithTimeout, several places in this file.\n\n(Should have mentioned that on previous CLs too.)",
+      "range": {
+        "startLine": 134,
+        "startChar": 18,
+        "endLine": 134,
+        "endChar": 38
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5aad0bfe_fe4df928",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "nit: mysql version does \u003c (which seems more correct)",
+      "range": {
+        "startLine": 161,
+        "startChar": 68,
+        "endLine": 161,
+        "endChar": 70
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e0ec894_7581ef22",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "Is this correct? We want all untriaged regardless of time range? Maybe update the function doc.",
+      "range": {
+        "startLine": 187,
+        "startChar": 0,
+        "endLine": 189,
+        "endChar": 3
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5bad62a_f61e2baf",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "nit: It seems like this function should just be ds.DS.RunInTransaction.",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 234,
+        "endChar": 11
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01b5c9a4_77c9a5e9",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "Do you mean err !\u003d datastore.ErrNoSuchEntity?\n\nOne more below.",
+      "range": {
+        "startLine": 265,
+        "startChar": 5,
+        "endLine": 265,
+        "endChar": 16
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eae328ae_f31f7b40",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T19:14:38Z",
+      "side": 1,
+      "message": "nit: Doesn\u0027t make sense to specify a time range with UNTRIAGED_SUBSET.",
+      "range": {
+        "startLine": 831,
+        "startChar": 10,
+        "endLine": 831,
+        "endChar": 37
+      },
+      "revId": "32b0a606e4b8236c7ea92163cd0e44a3795c686e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
