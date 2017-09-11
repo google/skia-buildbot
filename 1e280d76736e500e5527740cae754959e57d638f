@@ -45,6 +45,29 @@
       "revId": "1e280d76736e500e5527740cae754959e57d638f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd6495e5_7c54d447",
+        "filename": "perf/go/ds/ds.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T18:44:20Z",
+      "side": 1,
+      "message": "nit: datastore.ScopeDatastore",
+      "range": {
+        "startLine": 34,
+        "startChar": 57,
+        "endLine": 34,
+        "endChar": 100
+      },
+      "revId": "1e280d76736e500e5527740cae754959e57d638f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
