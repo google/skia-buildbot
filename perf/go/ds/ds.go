@@ -17,6 +17,7 @@ const (
 	SHORTCUT   Kind = "Shortcut"
 	ACTIVITY   Kind = "Activity"
 	REGRESSION Kind = "Regression"
+	ALERT      Kind = "Alert"
 )
 
 var (

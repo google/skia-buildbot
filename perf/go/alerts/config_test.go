@@ -14,7 +14,7 @@ func TestConfig(t *testing.T) {
 	a := NewConfig()
 	assert.Equal(t, "-1", a.IdAsString())
 	a.StringToId("2")
-	assert.Equal(t, 2, a.ID)
+	assert.Equal(t, int64(2), a.ID)
 	assert.Equal(t, "2", a.IdAsString())
 }
 
