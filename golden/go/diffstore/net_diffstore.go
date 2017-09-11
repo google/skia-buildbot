@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -26,10 +27,12 @@ type NetDiffStore struct {
 	// codec is used to decode the byte array received from the diff server into
 	// a diff metrics map
 	codec util.LRUCodec
+
+	remoteURLPrefix string
 }
 
 // NewNetDiffStore implements the diff.DiffStore interface via the gRPC-based DiffService.
-func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string, codec util.LRUCodec) (diff.DiffStore, error) {
+func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string, codec util.LRUCodec, remoteURLPrefix string) (diff.DiffStore, error) {
 	serviceClient := NewDiffServiceClient(conn)
 	if _, err := serviceClient.Ping(context.Background(), &Empty{}); err != nil {
 		return nil, fmt.Errorf("Could not ping over connection: %s", err)
@@ -38,7 +41,8 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string, codec
 	return &NetDiffStore{
 		serviceClient:          serviceClient,
 		diffServerImageAddress: diffServerImageAddress,
-		codec: codec,
+		codec:           codec,
+		remoteURLPrefix: strings.TrimRight(remoteURLPrefix, "/") + "/",
 	}, nil
 }
 
