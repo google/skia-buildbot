@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cdbea686_289b7b08",
+        "filename": "skolo/go/hotspare/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-11T14:41:01Z",
+      "side": 1,
+      "message": "Fixed",
+      "parentUuid": "b67ecb0e_17f4b8bb",
+      "range": {
+        "startLine": 70,
+        "startChar": 5,
+        "endLine": 70,
+        "endChar": 24
+      },
+      "revId": "4be67f698e346c3deffe4d5eb063e87b715a0c47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "42382f14_0c34647e",
         "filename": "skolo/go/hotspare/main.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "4be67f698e346c3deffe4d5eb063e87b715a0c47",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53e52f03_d3697c8d",
+        "filename": "skolo/go/hotspare/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-11T14:41:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "42382f14_0c34647e",
+      "range": {
+        "startLine": 111,
+        "startChar": 1,
+        "endLine": 111,
+        "endChar": 77
+      },
+      "revId": "4be67f698e346c3deffe4d5eb063e87b715a0c47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
