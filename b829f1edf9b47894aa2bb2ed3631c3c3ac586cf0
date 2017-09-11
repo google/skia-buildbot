@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d194bfcf_123b7bb9",
+        "filename": "perf/go/activitylog/activitylog.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T18:46:48Z",
+      "side": 1,
+      "message": "Probably want `datastore:\",noindex\"`",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 14
+      },
+      "revId": "b829f1edf9b47894aa2bb2ed3631c3c3ac586cf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
