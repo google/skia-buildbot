@@ -275,7 +275,7 @@ ALERT BotUnemployed
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
-    description = "Swarming bot {{ $labels.bot }} hasn't run a job in 72 hours. Maybe it's dimensions need changing? https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+    description = "Swarming bot {{ $labels.bot }} hasn't run a job in 72 hours. Maybe its dimensions need changing? https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
   }
 
 ALERT BotQuarantined
