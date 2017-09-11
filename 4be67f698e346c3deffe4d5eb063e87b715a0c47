@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b67ecb0e_17f4b8bb",
+        "filename": "skolo/go/hotspare/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T02:50:53Z",
+      "side": 1,
+      "message": "nit: So... this isn\u0027t actually \"consecutive\" failures, right?",
+      "range": {
+        "startLine": 70,
+        "startChar": 5,
+        "endLine": 70,
+        "endChar": 24
+      },
+      "revId": "4be67f698e346c3deffe4d5eb063e87b715a0c47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42382f14_0c34647e",
+        "filename": "skolo/go/hotspare/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T02:50:53Z",
+      "side": 1,
+      "message": "nit: seems much better to start a goroutine to set skolo_hotspare_spare_active based on isServing().",
+      "range": {
+        "startLine": 111,
+        "startChar": 1,
+        "endLine": 111,
+        "endChar": 77
+      },
+      "revId": "4be67f698e346c3deffe4d5eb063e87b715a0c47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
