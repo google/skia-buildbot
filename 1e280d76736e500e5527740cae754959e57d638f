@@ -68,6 +68,29 @@
       "revId": "1e280d76736e500e5527740cae754959e57d638f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "334432d7_e7d22aa1",
+        "filename": "perf/go/shortcut2/shortcut.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T18:46:03Z",
+      "side": 1,
+      "message": "Does this need `datastore:\",noindex\"`?",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 5
+      },
+      "revId": "1e280d76736e500e5527740cae754959e57d638f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
