@@ -561,10 +561,10 @@ ALERT BackupNotDone
   }
 
 ALERT RpiMaster
-  IF max_over_time(skolo_hotspare_consecutive_failures[10m]) > 600
+  IF skolo_hotspare_spare_active == 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "skia-rpi-master-spare has been active for more than 10 minutes. Something is probably wrong with skia-rpi-master. http://go/skolo-maintenance.",
+    description = "skia-rpi-master-spare is active. Something is possibly wrong with skia-rpi-master. http://go/skolo-maintenance.",
   }
 
 #
