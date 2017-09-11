@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "15ed9b6d_a3a9ce88",
+        "filename": "perf/go/regression/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-11T20:43:24Z",
+      "side": 1,
+      "message": "Logic seems wrong.",
+      "range": {
+        "startLine": 247,
+        "startChar": 6,
+        "endLine": 247,
+        "endChar": 38
+      },
+      "revId": "a59c68a87dbcbde384dd45c1d0ff3360b60abde2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
