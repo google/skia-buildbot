@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "86862f8e_923e7655",
+        "filename": "perf/go/alerts/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-11T20:33:38Z",
+      "side": 1,
+      "message": "Yes, otherwise Datastore complains that it is the wrong type for the query.",
+      "parentUuid": "92abc035_ef331207",
+      "range": {
+        "startLine": 140,
+        "startChar": 27,
+        "endLine": 140,
+        "endChar": 31
+      },
+      "revId": "6c081f3c3065269d28781dda2581e14da9af6b59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "32bf237c_52290cc4",
         "filename": "perf/go/alerts/db.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-09-11T20:17:07Z",
       "side": 1,
       "message": "Hopefully it won\u0027t be confusing that the Config stored in DS will initially have ID \u003d\u003d INVALID_ID.",
+      "range": {
+        "startLine": 151,
+        "startChar": 3,
+        "endLine": 151,
+        "endChar": 9
+      },
+      "revId": "6c081f3c3065269d28781dda2581e14da9af6b59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f7ea391_30399292",
+        "filename": "perf/go/alerts/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-11T20:33:38Z",
+      "side": 1,
+      "message": "Once I get rid of SQL I can update the struct to use datastore.Key, which will remove the duplication between ID and the entity key.",
+      "parentUuid": "32bf237c_52290cc4",
       "range": {
         "startLine": 151,
         "startChar": 3,
@@ -68,6 +116,30 @@
       "revId": "6c081f3c3065269d28781dda2581e14da9af6b59",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c464e56_b0c2d5a5",
+        "filename": "perf/go/alerts/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-11T20:33:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7f315a6_e1936d1c",
+      "range": {
+        "startLine": 157,
+        "startChar": 2,
+        "endLine": 157,
+        "endChar": 29
+      },
+      "revId": "6c081f3c3065269d28781dda2581e14da9af6b59",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
