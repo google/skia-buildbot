@@ -9,7 +9,7 @@ import (
 
 func Prod() *gce.Instance {
 	name := "skia-ct-pixel-diff"
-	vm := server.Server20170905(name)
+	vm := server.Server20170911(name)
 	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
 	vm.DataDisk.SizeGb = 2000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
