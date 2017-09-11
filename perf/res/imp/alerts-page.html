@@ -80,7 +80,7 @@
     <table>
       <tr>
         <th></th>
-        <th>ID</th>
+        <th>Name</th>
         <th>Query</th>
         <th>Alert</th>
         <th>Owner</th>
@@ -89,7 +89,7 @@
       <template is="dom-repeat" items="{{_alerts}}">
         <tr>
           <td><iron-icon title="Edit" icon="create" on-tap="_edit" __config="{{item}}"></iron-icon></td>
-          <td>{{item.id}}</td>
+          <td>{{item.display_name}}</td>
           <td><query-summary-sk selection="{{item.query}}"></query-summary-sk></td>
           <td>{{item.alert}}</td>
           <td>{{item.owner}}</td>

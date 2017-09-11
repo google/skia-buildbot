@@ -169,9 +169,9 @@ func TestListOnlyActive(t *testing.T) {
 	list, err := a.List(false)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(list))
-	assert.Equal(t, 2, list[0].ID)
+	assert.Equal(t, int64(2), list[0].ID)
 	assert.Equal(t, "source_type=svg", list[0].Query)
-	assert.Equal(t, 1, list[1].ID)
+	assert.Equal(t, int64(1), list[1].ID)
 	assert.Equal(t, "source_type=skp", list[1].Query)
 
 	// Make sure that all expectations were met.
