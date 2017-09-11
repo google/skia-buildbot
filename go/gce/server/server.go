@@ -18,10 +18,9 @@ import (
 )
 
 const (
-	DISK_IMAGE_SKIA_PUSHABLE_BASE = "skia-pushable-base-v2017-06-13-003"
-	GS_URL_GITCOOKIES_TMPL        = "gs://skia-buildbots/artifacts/server/.gitcookies_%s"
-	GS_URL_GITCONFIG              = "gs://skia-buildbots/artifacts/server/.gitconfig"
-	GS_URL_NETRC_READONLY         = "gs://skia-buildbots/artifacts/server/.netrc_git-fetch-readonly"
+	GS_URL_GITCOOKIES_TMPL = "gs://skia-buildbots/artifacts/server/.gitcookies_%s"
+	GS_URL_GITCONFIG       = "gs://skia-buildbots/artifacts/server/.gitconfig"
+	GS_URL_NETRC_READONLY  = "gs://skia-buildbots/artifacts/server/.netrc_git-fetch-readonly"
 )
 
 var (
@@ -35,11 +34,11 @@ var (
 )
 
 // Base config for server instances.
-func Server20170905(name string) *gce.Instance {
+func Server20170911(name string) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
-			SourceImage: DISK_IMAGE_SKIA_PUSHABLE_BASE,
+			SourceImage: "skia-pushable-base-v2017-09-11-000",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		DataDisk: &gce.Disk{
@@ -76,7 +75,8 @@ func Server20170905(name string) *gce.Instance {
 }
 
 func Server20170613(name string) *gce.Instance {
-	vm := Server20170905(name)
+	vm := Server20170911(name)
+	vm.BootDisk.SourceImage = "skia-pushable-base-v2017-06-13-003"
 	vm.GSDownloads = []*gce.GSDownload{}
 	return vm
 }

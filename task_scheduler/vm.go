@@ -10,7 +10,7 @@ import (
 )
 
 func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
-	vm := server.Server20170905(name)
+	vm := server.Server20170911(name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.ExternalIpAddress = ipAddress

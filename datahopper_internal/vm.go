@@ -7,7 +7,7 @@ import (
 )
 
 func DatahopperInternalBase(name string) *gce.Instance {
-	vm := server.Server20170905(name)
+	vm := server.Server20170911(name)
 	vm.DataDisk.SizeGb = 50
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
