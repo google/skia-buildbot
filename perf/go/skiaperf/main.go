@@ -211,6 +211,7 @@ func Init() {
 
 	shortcut2.Init(*useCloudDatastore)
 	activitylog.Init(*useCloudDatastore)
+	regression.Init(*useCloudDatastore)
 
 	clusterAlgo, err := clustering2.ToClusterAlgo(*algo)
 	if err != nil {
@@ -827,7 +828,7 @@ func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
 	rr := &RegressionRangeRequest{
 		Begin:  now.Add(-48 * time.Hour).Unix(),
 		End:    now.Unix(),
-		Subset: regression.ALL_SUBSET,
+		Subset: regression.UNTRIAGED_SUBSET,
 	}
 
 	// Query for Regressions in the range.

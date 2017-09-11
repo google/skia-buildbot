@@ -14,8 +14,9 @@ type Kind string
 
 // One const for each Datastore Kind.
 const (
-	SHORTCUT Kind = "Shortcut"
-	ACTIVITY Kind = "Activity"
+	SHORTCUT   Kind = "Shortcut"
+	ACTIVITY   Kind = "Activity"
+	REGRESSION Kind = "Regression"
 )
 
 var (
