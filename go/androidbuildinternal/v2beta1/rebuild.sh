@@ -3,7 +3,7 @@
 # Script to rebuild the androidbuildinternal.go file.
 
 # Get an updated generator.
-go get -u github.com/google/google-api-go-client/google-api-go-generator
+go get -u google.golang.org/api/google-api-go-generator
 
 # Retrieve the discovery document for the API.
 wget https://www.googleapis.com/discovery/v1/apis/androidbuildinternal/v2beta1/rest
