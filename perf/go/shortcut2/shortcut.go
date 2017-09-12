@@ -38,7 +38,7 @@ func Insert(r io.Reader) (string, error) {
 		}
 		key := ds.NewKey(ds.SHORTCUT)
 		var err error
-		key, err = ds.DS.Put(context.Background(), key, shortcut)
+		key, err = ds.DS.Put(context.TODO(), key, shortcut)
 		if err != nil {
 			return "", fmt.Errorf("Failed to store shortcut: %s", err)
 		}
@@ -70,7 +70,7 @@ func Get(id string) (*Shortcut, error) {
 		}
 		key := ds.NewKey(ds.SHORTCUT)
 		key.ID = i
-		if err := ds.DS.Get(context.Background(), key, ret); err != nil {
+		if err := ds.DS.Get(context.TODO(), key, ret); err != nil {
 			return nil, fmt.Errorf("Error retrieving shortcut from db: %s", err)
 		}
 	} else {

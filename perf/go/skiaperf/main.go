@@ -825,10 +825,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 
 func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	now := time.Now()
 	rr := &RegressionRangeRequest{
-		Begin:  now.Add(-48 * time.Hour).Unix(),
-		End:    now.Unix(),
 		Subset: regression.UNTRIAGED_SUBSET,
 	}
 

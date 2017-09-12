@@ -47,7 +47,7 @@ func Write(r *Activity) error {
 	if useCloudDatastore {
 		r.TS = time.Now().Unix()
 		key := ds.NewKey(ds.ACTIVITY)
-		if _, err := ds.DS.Put(context.Background(), key, r); err != nil {
+		if _, err := ds.DS.Put(context.TODO(), key, r); err != nil {
 			return fmt.Errorf("Failed to store activity: %s", err)
 		}
 		return nil
@@ -72,7 +72,7 @@ func GetRecent(n int) ([]*Activity, error) {
 	if useCloudDatastore {
 		ret := []*Activity{}
 		q := ds.NewQuery(ds.ACTIVITY).EventualConsistency().Limit(n).Order("-TS")
-		it := ds.DS.Run(context.Background(), q)
+		it := ds.DS.Run(context.TODO(), q)
 		for {
 			a := &Activity{}
 			k, err := it.Next(a)
