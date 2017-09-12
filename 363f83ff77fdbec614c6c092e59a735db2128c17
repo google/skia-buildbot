@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3d6c717f_2f531e28",
+        "filename": "perf/go/activitylog/activitylog_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-12T20:26:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "df42c972_8c5f5db4",
+      "revId": "363f83ff77fdbec614c6c092e59a735db2128c17",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "533f62a5_7ccf005d",
         "filename": "perf/go/alerts/db_datastore_test.go",
         "patchSetId": 9
@@ -30,6 +48,30 @@
       "writtenOn": "2017-09-12T19:31:28Z",
       "side": 1,
       "message": "Is the parameter the wrong type?",
+      "range": {
+        "startLine": 33,
+        "startChar": 9,
+        "endLine": 33,
+        "endChar": 15
+      },
+      "revId": "363f83ff77fdbec614c6c092e59a735db2128c17",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "95886659_304c4580",
+        "filename": "perf/go/alerts/db_datastore_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-12T20:26:49Z",
+      "side": 1,
+      "message": "I should fix that in a follow up CL, i.e. make everything an int64.",
+      "parentUuid": "533f62a5_7ccf005d",
       "range": {
         "startLine": 33,
         "startChar": 9,
@@ -62,6 +104,30 @@
       "revId": "363f83ff77fdbec614c6c092e59a735db2128c17",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d37617e_cc9d96a3",
+        "filename": "perf/go/regression/db_datastore_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-12T20:26:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "20102fa5_c7e5a6eb",
+      "range": {
+        "startLine": 16,
+        "startChar": 3,
+        "endLine": 16,
+        "endChar": 26
+      },
+      "revId": "363f83ff77fdbec614c6c092e59a735db2128c17",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
