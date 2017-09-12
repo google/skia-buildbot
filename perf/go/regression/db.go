@@ -69,13 +69,13 @@ type DSRegression struct {
 	Body    string `datastore:",noindex"`
 }
 
-// load_ds loads Regressions stored for the given commit from Cloud Storage.
+// load_ds loads Regressions stored for the given commit from Cloud Datastore.
 func (s *Store) load_ds(tx *datastore.Transaction, cid *cid.CommitDetail) (*Regressions, error) {
 	key := ds.NewKey(ds.REGRESSION)
 	key.Name = cid.ID()
 	dsRegression := &DSRegression{}
 	if err := tx.Get(key, dsRegression); err != nil {
-		return nil, fmt.Errorf("Failed to read from database: %s", err)
+		return nil, err
 	}
 	ret := New()
 	if err := json.Unmarshal([]byte(dsRegression.Body), ret); err != nil {
@@ -104,7 +104,7 @@ func (s *Store) store(tx *sql.Tx, cid *cid.CommitDetail, r *Regressions) error {
 	return nil
 }
 
-// store_ds stores Regressions for the given commit in Cloud Storage.
+// store_ds stores Regressions for the given commit in Cloud Datastore.
 func (s *Store) store_ds(tx *datastore.Transaction, cid *cid.CommitDetail, r *Regressions) error {
 	body, err := r.JSON()
 	if err != nil {
@@ -131,7 +131,7 @@ func (s *Store) store_ds(tx *datastore.Transaction, cid *cid.CommitDetail, r *Re
 func (s *Store) Untriaged() (int, error) {
 	if useCloudDatastore {
 		q := ds.NewQuery(ds.REGRESSION).Filter("Triaged =", false).KeysOnly()
-		it := ds.DS.Run(context.Background(), q)
+		it := ds.DS.Run(context.TODO(), q)
 		count := 0
 		for {
 			_, err := it.Next(nil)
@@ -154,15 +154,16 @@ func (s *Store) Untriaged() (int, error) {
 	}
 }
 
-// Range returns a map from cid.ID()'s to *Regressions that exist in the given time range.
+// Range returns a map from cid.ID()'s to *Regressions that exist in the given time range,
+// or for all time if subset is UNTRIAGED_SUBSET.
 func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions, error) {
 	if useCloudDatastore {
 		ret := map[string]*Regressions{}
-		q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <=", end)
+		q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
 		if subset == UNTRIAGED_SUBSET {
 			q = ds.NewQuery(ds.REGRESSION).Filter("Triaged =", false)
 		}
-		it := ds.DS.Run(context.Background(), q)
+		it := ds.DS.Run(context.TODO(), q)
 		for {
 			dsRegression := &DSRegression{}
 			key, err := it.Next(dsRegression)
@@ -215,25 +216,6 @@ func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions,
 	}
 }
 
-func indstx(f func(*datastore.Transaction) error) (err error) {
-	tx, err := ds.DS.NewTransaction(context.Background())
-	if err != nil {
-		return fmt.Errorf("Failed to start transaction: %s", err)
-	}
-	defer func() {
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				err = fmt.Errorf("Error occurred in rollback: %s while attempting to recover from %s.", rollbackErr, err)
-			}
-			return
-		}
-		_, err = tx.Commit()
-	}()
-
-	err = f(tx)
-	return err
-}
-
 // intx runs f within a database transaction.
 //
 func intx(f func(tx *sql.Tx) error) (err error) {
@@ -260,10 +242,12 @@ func intx(f func(tx *sql.Tx) error) (err error) {
 func (s *Store) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
 	if useCloudDatastore {
 		isNew := false
-		err := indstx(func(tx *datastore.Transaction) error {
+		_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
 			r, err := s.load_ds(tx, cid)
-			if err != nil {
+			if err == datastore.ErrNoSuchEntity {
 				r = New()
+			} else if err != nil {
+				return err
 			}
 			isNew = r.SetHigh(alertID, df, high)
 			return s.store_ds(tx, cid, r)
@@ -289,10 +273,12 @@ func (s *Store) SetHigh(cid *cid.CommitDetail, alertID string, df *dataframe.Fra
 func (s *Store) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
 	if useCloudDatastore {
 		isNew := false
-		err := indstx(func(tx *datastore.Transaction) error {
+		_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
 			r, err := s.load_ds(tx, cid)
-			if err != nil {
+			if err == datastore.ErrNoSuchEntity {
 				r = New()
+			} else if err != nil {
+				return err
 			}
 			isNew = r.SetLow(alertID, df, low)
 			return s.store_ds(tx, cid, r)
@@ -317,7 +303,7 @@ func (s *Store) SetLow(cid *cid.CommitDetail, alertID string, df *dataframe.Fram
 // TriageLow sets the triage status for the low cluster at the given commit and alertID.
 func (s *Store) TriageLow(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
 	if useCloudDatastore {
-		return indstx(func(tx *datastore.Transaction) error {
+		_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
 			r, err := s.load_ds(tx, cid)
 			if err != nil {
 				return fmt.Errorf("Failed to load Regressions: %s", err)
@@ -327,6 +313,7 @@ func (s *Store) TriageLow(cid *cid.CommitDetail, alertID string, tr TriageStatus
 			}
 			return s.store_ds(tx, cid, r)
 		})
+		return err
 	} else {
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
@@ -346,7 +333,7 @@ func (s *Store) TriageLow(cid *cid.CommitDetail, alertID string, tr TriageStatus
 // TriageHigh sets the triage status for the high cluster at the given commit and alertID.
 func (s *Store) TriageHigh(cid *cid.CommitDetail, alertID string, tr TriageStatus) error {
 	if useCloudDatastore {
-		return indstx(func(tx *datastore.Transaction) error {
+		_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
 			r, err := s.load_ds(tx, cid)
 			if err != nil {
 				return fmt.Errorf("Failed to load Regressions: %s", err)
@@ -356,6 +343,7 @@ func (s *Store) TriageHigh(cid *cid.CommitDetail, alertID string, tr TriageStatu
 			}
 			return s.store_ds(tx, cid, r)
 		})
+		return err
 	} else {
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
