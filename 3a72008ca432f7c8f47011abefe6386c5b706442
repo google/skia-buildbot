@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "357d1068_6d75bfa3",
+        "filename": "perf/go/dstestutil/dstestutil.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-12T19:31:28Z",
+      "side": 1,
+      "message": "nit: semi-standard for testutil packages is like go/git or go/gerrit, where there is a subdir named testutils.\nhttps://skia.googlesource.com/buildbot/+/18731aedb7e2a82df40bae8b850cb79fd06f235c/go/git/testutils\nhttps://skia.googlesource.com/buildbot/+/a599f7fb66925c5af0135bc9729c65bd55d0d4e6/go/gerrit/testutils\n\n(IMO, I would be happier if the subdir and package would be named git_testutils or gerrit_testutils so that we don\u0027t have to name the import, e.g. https://skia.googlesource.com/buildbot/+/33599f0a31c7b877c0e40b4f5afe11ad6947715f/task_scheduler/go/scheduling/task_scheduler_test.go#22 )",
+      "revId": "3a72008ca432f7c8f47011abefe6386c5b706442",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
