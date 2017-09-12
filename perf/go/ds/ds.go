@@ -45,6 +45,22 @@ func Init(project string, ns string) error {
 	return nil
 }
 
+// InitForTesting is an init to call when running tests. It doesn't do any
+// auth as it is expecting to run against the Cloud Datastore Emulator.
+// See https://cloud.google.com/datastore/docs/tools/datastore-emulator
+//
+// project - The project name, i.e. "google.com:skia-buildbots".
+// ns      - The datastore namespace to store data into.
+func InitForTesting(project string, ns string) error {
+	Namespace = ns
+	var err error
+	DS, err = datastore.NewClient(context.Background(), project)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
+	}
+	return nil
+}
+
 // Creates a new indeterminate key of the given kind.
 func NewKey(kind Kind) *datastore.Key {
 	return &datastore.Key{
