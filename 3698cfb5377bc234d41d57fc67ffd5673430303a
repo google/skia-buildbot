@@ -16,6 +16,24 @@
       "revId": "3698cfb5377bc234d41d57fc67ffd5673430303a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc85827a_03ca687c",
+        "filename": "perf/go/clustering2/clustering.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-12T15:07:16Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "97116462_494bda77",
+      "revId": "3698cfb5377bc234d41d57fc67ffd5673430303a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
