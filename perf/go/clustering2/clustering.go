@@ -282,16 +282,20 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold f
 					low.StepPoint = df.Header[sf.TurningPoint]
 					low.Centroid = vec32.Dup(trace)
 				}
-				low.Num++
-				low.Keys = append(low.Keys, key)
+				if low.Num < config.MAX_SAMPLE_TRACES_PER_CLUSTER {
+					low.Num++
+					low.Keys = append(low.Keys, key)
+				}
 			} else if sf.Status == stepfit.HIGH {
 				if high.StepFit.Status == "" {
 					high.StepFit = sf
 					high.StepPoint = df.Header[sf.TurningPoint]
 					high.Centroid = vec32.Dup(trace)
 				}
-				high.Num++
-				high.Keys = append(high.Keys, key)
+				if high.Num < config.MAX_SAMPLE_TRACES_PER_CLUSTER {
+					high.Num++
+					high.Keys = append(high.Keys, key)
+				}
 			}
 		}
 		sklog.Infof("Found LOW: %d HIGH: %d", low.Num, high.Num)
