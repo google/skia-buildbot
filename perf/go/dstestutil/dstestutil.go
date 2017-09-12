@@ -20,7 +20,8 @@ func InitDatastore(t *testing.T, kind ds.Kind) {
 Run "gcloud beta emulators datastore start --no-store-on-disk"
 and set the environment variable DATASTORE_EMULATOR_HOST to run these tests.`)
 	}
-	ds.InitForTesting("test-project", "test-namespace")
+	err := ds.InitForTesting("test-project", "test-namespace")
+	assert.NoError(t, err)
 	q := ds.NewQuery(kind).KeysOnly()
 	it := ds.DS.Run(context.TODO(), q)
 	for {

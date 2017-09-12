@@ -47,7 +47,8 @@ func TestDS(t *testing.T) {
 	cfg = NewConfig()
 	cfg.Query = "source_type=skp"
 	cfg.DisplayName = "foo"
-	a.Save(cfg)
+	err = a.Save(cfg)
+	assert.NoError(t, err)
 
 	// Confirm they are both listed when including deleted configs, and they are
 	// ordered by DisplayName.
