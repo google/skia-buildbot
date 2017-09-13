@@ -226,7 +226,6 @@ func New(git *gitinfo.GitInfo, rv *rietveld.Rietveld, gitRepoURL string) *Commit
 
 // Lookup returns a CommitDetail for each CommitID.
 func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
-	defer timer.New("cid.Lookup time").Stop()
 	now := time.Now()
 	ret := make([]*CommitDetail, len(cids), len(cids))
 	for i, cid := range cids {

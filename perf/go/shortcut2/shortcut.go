@@ -122,7 +122,8 @@ func List() (map[string]*Shortcut, error) {
 		}
 		shortcut := &Shortcut{}
 		if err := json.Unmarshal([]byte(s), shortcut); err != nil {
-			return nil, fmt.Errorf("Error decoding shortcut: %s", err)
+			sklog.Warningf("Error decoding shortcut %s: %s", id, err)
+			continue
 		}
 		ret[id] = shortcut
 	}
