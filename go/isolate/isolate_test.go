@@ -13,7 +13,6 @@ import (
 
 func TestIsolateTasks(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")

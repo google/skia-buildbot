@@ -49,7 +49,6 @@ func TestPriorityQueue(t *testing.T) {
 
 func TestReadThroughCache(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	randBytes := make([]byte, PACKAGE_SIZE)
 	_, err := rand.Read(randBytes)
