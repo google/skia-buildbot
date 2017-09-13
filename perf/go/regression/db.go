@@ -160,7 +160,15 @@ func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) 
 	if !useCloudDatastore {
 		return fmt.Errorf("Write is only usable on Cloud Datastore.")
 	}
+	i := 0
 	for cidString, reg := range regressions {
+		i += 1
+		if i%100 == 0 {
+			fmt.Printf(".")
+		}
+		if i%1000 == 0 {
+			fmt.Printf(" %d\n", i)
+		}
 		c, err := cid.FromID(cidString)
 		if err != nil {
 			return fmt.Errorf("Got an invalid cid %q: %s", cidString, err)
