@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "76a55304_89a010ca",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-13T13:14:02Z",
+      "side": 1,
+      "message": "This commented out block intentionally left around?",
+      "revId": "8af049389bc8d61c38ab4710780cc27262961751",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
