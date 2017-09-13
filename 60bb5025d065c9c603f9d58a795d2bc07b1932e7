@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1895a46_3ae08932",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-13T15:26:57Z",
+      "side": 1,
+      "message": "nit: error argument to ReportError is optional; just do this:\nhttputils.ReportError(w, r, nil, \"Task ID is required.\")",
+      "range": {
+        "startLine": 365,
+        "startChar": 0,
+        "endLine": 366,
+        "endChar": 51
+      },
+      "revId": "60bb5025d065c9c603f9d58a795d2bc07b1932e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1de2eaa_a7b0be38",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-13T15:26:57Z",
+      "side": 1,
+      "message": "nit: echoing back user input can allow XSS attacks.",
+      "range": {
+        "startLine": 373,
+        "startChar": 18,
+        "endLine": 373,
+        "endChar": 51
+      },
+      "revId": "60bb5025d065c9c603f9d58a795d2bc07b1932e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
