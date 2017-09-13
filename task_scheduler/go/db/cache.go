@@ -22,6 +22,11 @@ type TaskCache interface {
 	// GetTask returns the task with the given ID, or an error if no such task exists.
 	GetTask(string) (*Task, error)
 
+	// GetTaskMaybeExpired does the same as GetTask but tries to dig into
+	// the DB in case the Task is old enough to have scrolled out of the
+	// cache window.
+	GetTaskMaybeExpired(string) (*Task, error)
+
 	// GetTaskForCommit retrieves the task with the given name which ran at the
 	// given commit, or nil if no such task exists.
 	GetTaskForCommit(string, string, string) (*Task, error)
@@ -96,6 +101,24 @@ func (c *taskCache) GetTask(id string) (*Task, error) {
 		return t.Copy(), nil
 	}
 	return nil, ErrNotFound
+}
+
+// See documentation for TaskCache interface.
+func (c *taskCache) GetTaskMaybeExpired(id string) (*Task, error) {
+	t, err := c.GetTask(id)
+	if err == nil {
+		return t, nil
+	} else if err != ErrNotFound {
+		return nil, err
+	}
+	// Fall back to searching the DB.
+	t, err = c.db.GetTaskById(id)
+	if err != nil {
+		return nil, err
+	} else if t == nil {
+		return nil, ErrNotFound
+	}
+	return t, nil
 }
 
 // See documentation for TaskCache interface.

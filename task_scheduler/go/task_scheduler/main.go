@@ -358,6 +358,30 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jsonGetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id, ok := mux.Vars(r)["id"]
+	if !ok {
+		err := "Task ID is required."
+		httputils.ReportError(w, r, fmt.Errorf(err), err)
+		return
+	}
+
+	task, err := ts.GetTask(id)
+	if err != nil {
+		if err == db.ErrNotFound {
+			http.Error(w, fmt.Sprintf("Unknown Task %q", id), 404)
+			return
+		}
+		httputils.ReportError(w, r, err, "Error retrieving Job.")
+		return
+	}
+	if err := json.NewEncoder(w).Encode(task); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+}
+
 // jsonTaskHandler parses a Task as JSON from the request and calls
 // TaskScheduler.ValidateAnd(Add|Update)Task, returning the updated Task as
 // JSON.
@@ -453,6 +477,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/jobs/search", jsonJobSearchHandler)
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
+	r.HandleFunc("/json/task/{id}", jsonGetTaskHandler)
 	r.HandleFunc("/json/taskCandidates/search", jsonTaskCandidateSearchHandler)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
