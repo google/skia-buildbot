@@ -10,7 +10,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: skiaperf web ptracequery perf_migratedb perf_update_regressions ingest_json_validator
+build: skiaperf web ptracequery perf_migratedb perf_update_regressions ingest_json_validator migrate_ds
 
 .PHONY: validate
 validate: ingest_json_validator
@@ -28,6 +28,9 @@ ptracequery:
 
 ingest_json_validator:
 	go install -v ./go/ingest_json_validator
+
+migrate_ds:
+	go install -v ./go/migrate_ds
 
 .PHONY: web
 web: clean_webtools elements_html core_js
