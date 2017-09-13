@@ -45,7 +45,9 @@ func (a *Activity) Date() string {
 // use autoincrement ID and the current timestamp for the new record.
 func Write(r *Activity) error {
 	if useCloudDatastore {
-		r.TS = time.Now().Unix()
+		if r.TS == 0 {
+			r.TS = time.Now().Unix()
+		}
 		key := ds.NewKey(ds.ACTIVITY)
 		if _, err := ds.DS.Put(context.TODO(), key, r); err != nil {
 			return fmt.Errorf("Failed to store activity: %s", err)
