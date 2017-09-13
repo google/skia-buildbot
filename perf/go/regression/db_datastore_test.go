@@ -96,4 +96,21 @@ func TestDS(t *testing.T) {
 
 	count, err = st.Untriaged()
 	assert.Equal(t, count, 0)
+
+	lookup := func(c *cid.CommitID) (*cid.CommitDetail, error) {
+		return &cid.CommitDetail{
+			CommitID: cid.CommitID{
+				Source: "master",
+				Offset: 2,
+			},
+			Timestamp: 1479235651 + 10,
+		}, nil
+	}
+	err = st.Write(map[string]*Regressions{"master-000002": ranges["master-000001"]}, lookup)
+	assert.NoError(t, err)
+	ranges, err = st.Range(begin, end, ALL_SUBSET)
+	assert.NoError(t, err)
+	assert.Len(t, ranges, 2)
+	_, ok = ranges["master-000002"]
+	assert.True(t, ok)
 }
