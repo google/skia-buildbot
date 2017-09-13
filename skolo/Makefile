@@ -80,3 +80,17 @@ android_watchdog:
 	@echo "  [NDK_DIR]/build/tools/make_standalone_toolchain.py --arch arm --api 21 --install-dir [NDK_TOOLCHAIN]"
 	@echo "  Where [NDK_TOOLCHAIN] is anywhere you like (e.g. /opt/android_toolchains)"
 	CC="$(NDK_TOOLCHAIN)/bin/arm-linux-androideabi-clang" CXX="$(NDK_TOOLCHAIN)/bin/arm-linux-androideabi-clang++" GOOS=android GOARCH=arm GOARM=7 CGO_ENABLED=1 go build -o out/android_watchdog -v ./cgo/android_watchdog
+
+.PHONY: censustaker
+censustaker:
+	go install -v ./go/censustaker
+
+.PHONY: censustaker_release
+censustaker_release: censustaker service_account
+	./build_release_censustaker "`git log -n1 --format=%s`"
+
+.PHONY: censustaker_push
+censustaker_push: censustaker service_account
+	go install -v ../push/go/pushcli
+	./build_release_censustaker "`git log -n1 --format=%s`"
+	pushcli censustaker jumphost-rpi-01
