@@ -212,6 +212,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-prom:20004']
 
+  - job_name: 'datastore-backup'
+    static_configs:
+      - targets: ['skia-prom:20005']
+
   # Gateways
   - job_name: 'pushgateway'
     honor_labels: true
