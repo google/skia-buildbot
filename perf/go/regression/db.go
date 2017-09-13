@@ -154,6 +154,31 @@ func (s *Store) Untriaged() (int, error) {
 	}
 }
 
+type DetailLookup func(c *cid.CommitID) (*cid.CommitDetail, error)
+
+func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) error {
+	if !useCloudDatastore {
+		return fmt.Errorf("Write is only usable on Cloud Datastore.")
+	}
+	for cidString, reg := range regressions {
+		c, err := cid.FromID(cidString)
+		if err != nil {
+			return fmt.Errorf("Got an invalid cid %q: %s", cidString, err)
+		}
+		commitDetail, err := lookup(c)
+		if err != nil {
+			return fmt.Errorf("Could not find details for cid %q: %s", cidString, err)
+		}
+		_, err = ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
+			return s.store_ds(tx, commitDetail, reg)
+		})
+		if err != nil {
+			return fmt.Errorf("Could not store regressions for cid %q: %s", cidString, err)
+		}
+	}
+	return nil
+}
+
 // Range returns a map from cid.ID()'s to *Regressions that exist in the given time range,
 // or for all time if subset is UNTRIAGED_SUBSET.
 func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions, error) {
