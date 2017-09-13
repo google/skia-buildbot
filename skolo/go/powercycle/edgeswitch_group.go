@@ -1,9 +1,7 @@
 package powercycle
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,16 +9,9 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/crypto/ssh"
 )
 
-// For details about the Ubiquiti EdgeSwitch see
-// https://dl.ubnt.com/guides/edgemax/EdgeSwitch_CLI_Command_Reference_UG.pdf
-
 const (
-	// EdgeSwitch default user and password.
-	DEFAULT_USER = "ubnt"
-
 	// Number of seconds to wait between turning a port on and off again.
 	EDGE_SWITCH_DELAY = 5
 )
@@ -32,19 +23,20 @@ type EdgeSwitchConfig struct {
 	DevPortMap map[string]int `json:"ports"`   // Mapping between device name and port on the power strip.
 }
 
-// EdgeSwitchClient allows to control a single EdgeSwitch and
-// implements the DeviceGroup interface.
-type EdgeSwitchClient struct {
+// EdgeSwitchDevGroup implements the DeviceGroup interface.
+type EdgeSwitchDevGroup struct {
 	conf       *EdgeSwitchConfig
 	portDevMap map[int]string
 	devIDs     []string
+	client     *EdgeSwitchClient
 }
 
-// NewEdgeSwitchClient connects to the EdgeSwitch identified by the given
-// configuration and returns a new instane of EdgeSwitchClient.
-func NewEdgeSwitchClient(conf *EdgeSwitchConfig, connect bool) (DeviceGroup, error) {
-	ret := &EdgeSwitchClient{
-		conf: conf,
+// NewEdgeSwitchDevGroup connects to the EdgeSwitch identified by the given
+// configuration and returns a new instance of EdgeSwitchDevGroup.
+func NewEdgeSwitchDevGroup(conf *EdgeSwitchConfig, connect bool) (*EdgeSwitchDevGroup, error) {
+	ret := &EdgeSwitchDevGroup{
+		conf:   conf,
+		client: NewEdgeSwitchClient(conf.Address),
 	}
 
 	if connect {
@@ -73,12 +65,12 @@ func NewEdgeSwitchClient(conf *EdgeSwitchConfig, connect bool) (DeviceGroup, err
 }
 
 // DeviceIDs, see the DeviceGroup interface.
-func (e *EdgeSwitchClient) DeviceIDs() []string {
+func (e *EdgeSwitchDevGroup) DeviceIDs() []string {
 	return e.devIDs
 }
 
 // PowerCycle, see the DeviceGroup interface.
-func (e *EdgeSwitchClient) PowerCycle(devID string, delayOverride time.Duration) error {
+func (e *EdgeSwitchDevGroup) PowerCycle(devID string, delayOverride time.Duration) error {
 	delay := EDGE_SWITCH_DELAY * time.Second
 	if delayOverride > 0 {
 		delay = delayOverride
@@ -103,8 +95,8 @@ func (e *EdgeSwitchClient) PowerCycle(devID string, delayOverride time.Duration)
 }
 
 // PowerUsage, see the DeviceGroup interface.
-func (e *EdgeSwitchClient) PowerUsage() (*GroupPowerUsage, error) {
-	outputLines, err := e.execCmds([]string{
+func (e *EdgeSwitchDevGroup) PowerUsage() (*GroupPowerUsage, error) {
+	outputLines, err := e.client.ExecCmds([]string{
 		"show poe status all",
 	})
 	if err != nil {
@@ -169,8 +161,8 @@ func parseInt(err *error, strVal string) int {
 }
 
 // turnOffPort disables PoE at the given port.
-func (e *EdgeSwitchClient) turnOffPort(port int) error {
-	_, err := e.execCmds([]string{
+func (e *EdgeSwitchDevGroup) turnOffPort(port int) error {
+	_, err := e.client.ExecCmds([]string{
 		"configure",
 		"interface " + fmt.Sprintf("0/%d", port),
 		"poe opmode shutdown",
@@ -181,8 +173,8 @@ func (e *EdgeSwitchClient) turnOffPort(port int) error {
 }
 
 // turnOffPort enables PoE at the given port.
-func (e *EdgeSwitchClient) turnOnPort(port int) error {
-	_, err := e.execCmds([]string{
+func (e *EdgeSwitchDevGroup) turnOnPort(port int) error {
+	_, err := e.client.ExecCmds([]string{
 		"configure",
 		"interface " + fmt.Sprintf("0/%d", port),
 		"poe opmode auto",
@@ -192,98 +184,10 @@ func (e *EdgeSwitchClient) turnOnPort(port int) error {
 	return err
 }
 
-// newClient returns a new ssh client.
-func (e *EdgeSwitchClient) newClient() (*ssh.Client, error) {
-	sshConfig := &ssh.ClientConfig{
-		User:            DEFAULT_USER,
-		Auth:            []ssh.AuthMethod{ssh.Password(DEFAULT_USER)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	client, err := ssh.Dial("tcp", e.conf.Address, sshConfig)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
-}
-
-// execCmds executes a series of commands and returns the accumulated
-// output of all commands.
-func (e *EdgeSwitchClient) execCmds(cmds []string) ([]string, error) {
-	// The EdgeSwitch server doesn't like to re-use a client. So we create
-	// a new connection for every series of commands.
-	client, err := e.newClient()
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(client)
-
-	session, err := client.NewSession()
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(session)
-
-	// Set a terminal with many lines so we are not paginated.
-	if err := session.RequestPty("xterm", 80, 5000, nil); err != nil {
-		return nil, fmt.Errorf("Error: Could not retrieve pseudo terminal: %s", err)
-	}
-
-	stdinPipe, err := session.StdinPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	stdoutPipe, err := session.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := session.Shell(); err != nil {
-		return nil, err
-	}
-
-	// Switch to exec mode.
-	if _, err := stdinPipe.Write([]byte("enable\n")); err != nil {
-		return nil, err
-	}
-
-	// Execute the commands.
-	for _, cmd := range cmds {
-		sklog.Infof("Executing: %s", cmd)
-		if _, err := stdinPipe.Write([]byte(cmd + "\n")); err != nil {
-			return nil, err
-		}
-	}
-
-	// Switch out of exec mode and leave the shell.
-	if _, err := stdinPipe.Write([]byte("exit\nexit\n")); err != nil {
-		return nil, err
-	}
-
-	// Get the output and return it.
-	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, stdoutPipe); err != nil {
-		return nil, err
-	}
-
-	// Strip out empty lines and all lines with the prompt.
-	lines := strings.Split(buf.String(), "\n")
-	ret := make([]string, 0, len(lines))
-	for _, line := range lines {
-		oneLine := strings.TrimSpace(line)
-		if (oneLine == "") || (strings.HasPrefix(oneLine, "(UBNT EdgeSwitch)")) {
-			continue
-		}
-		ret = append(ret, oneLine)
-	}
-	return ret, nil
-}
-
 // ping runs a simple command to make sure the connection works.
-func (c *EdgeSwitchClient) ping() error {
+func (e *EdgeSwitchDevGroup) ping() error {
 	sklog.Infof("Executing ping.")
-	output, err := c.execCmds([]string{
+	output, err := e.client.ExecCmds([]string{
 		"show clock",
 	})
 	sklog.Infof("OUT:%s", strings.Join(output, "\n"))
