@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/ds"
 )
@@ -82,5 +83,49 @@ func Get(id string) (*Shortcut, error) {
 			return nil, fmt.Errorf("Error decoding shortcut: %s", err)
 		}
 	}
+	return ret, nil
+}
+
+func Write(id string, s *Shortcut) error {
+	if !useCloudDatastore {
+		return fmt.Errorf("Write is only usable on Cloud Datastore.")
+	}
+	i, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return fmt.Errorf("Error invalid id: %s", id)
+	}
+	key := ds.NewKey(ds.SHORTCUT)
+	key.ID = i
+	_, err = ds.DS.Put(context.Background(), key, s)
+	return err
+}
+
+func List() (map[string]*Shortcut, error) {
+	if useCloudDatastore {
+		return nil, fmt.Errorf("List is only usable on MySQL.")
+	}
+	ret := map[string]*Shortcut{}
+	var id string
+	var s string
+	rows, err := db.DB.Query(`SELECT id, traces FROM shortcuts`)
+	defer func() {
+		err := rows.Close()
+		sklog.Errorf("MySQL error from iterating rows: %s %s", err, rows.Err())
+	}()
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving shortcut from db: %s", err)
+	}
+
+	for rows.Next() {
+		if err := rows.Scan(&id, &s); err != nil {
+			return nil, fmt.Errorf("Failed to read: %s", err)
+		}
+		shortcut := &Shortcut{}
+		if err := json.Unmarshal([]byte(s), shortcut); err != nil {
+			return nil, fmt.Errorf("Error decoding shortcut: %s", err)
+		}
+		ret[id] = shortcut
+	}
+
 	return ret, nil
 }

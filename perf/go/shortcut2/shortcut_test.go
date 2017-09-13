@@ -37,4 +37,11 @@ func TestShortcut(t *testing.T) {
 	sh2, err := Get(id)
 	assert.NoError(t, err)
 	assert.Equal(t, sh, sh2)
+
+	err = Write("1234", sh)
+	assert.NoError(t, err)
+	sh3, err := Get("1234")
+	assert.NoError(t, err)
+	assert.Equal(t, sh, sh3)
+
 }
