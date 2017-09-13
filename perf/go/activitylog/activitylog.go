@@ -49,6 +49,7 @@ func Write(r *Activity) error {
 			r.TS = time.Now().Unix()
 		}
 		key := ds.NewKey(ds.ACTIVITY)
+		key.ID = r.ID
 		if _, err := ds.DS.Put(context.TODO(), key, r); err != nil {
 			return fmt.Errorf("Failed to store activity: %s", err)
 		}
