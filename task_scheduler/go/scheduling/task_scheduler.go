@@ -1558,6 +1558,11 @@ func (s *TaskScheduler) GetJob(id string) (*db.Job, error) {
 	return s.jCache.GetJobMaybeExpired(id)
 }
 
+// GetTask returns the given Task.
+func (s *TaskScheduler) GetTask(id string) (*db.Task, error) {
+	return s.tCache.GetTaskMaybeExpired(id)
+}
+
 // addTasksSingleTaskSpec computes the blamelist for each task in tasks, all of
 // which must have the same Repo and Name fields, and inserts/updates them in
 // the TaskDB. Also adjusts blamelists of existing tasks.

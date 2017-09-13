@@ -144,7 +144,7 @@ func DeviceGroupFromJson5File(path string, connect bool) (DeviceGroup, error) {
 
 	// Add the EdgeSwitch devices.
 	for _, c := range conf.EdgeSwitch {
-		es, err := NewEdgeSwitchDevGroup(c, connect)
+		es, err := NewEdgeSwitchClient(c, connect)
 		if err != nil {
 			return nil, err
 		}

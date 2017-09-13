@@ -199,7 +199,8 @@ func main() {
 		}
 		sklog.Infof("DiffStore: NetDiffStore initiated.")
 	} else {
-		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize, nil, nil, nil)
+		mapper := diffstore.NewGoldDiffStoreMapper(&diff.DiffMetrics{})
+		diffStore, err = diffstore.NewMemDiffStore(client, *imageDir, strings.Split(*gsBucketNames, ","), diffstore.DEFAULT_GCS_IMG_DIR_NAME, *cacheSize, mapper)
 		if err != nil {
 			sklog.Fatalf("Allocating local DiffStore failed: %s", err)
 		}
