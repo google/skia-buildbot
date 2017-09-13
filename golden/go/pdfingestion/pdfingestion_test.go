@@ -35,7 +35,6 @@ const (
 
 func TestPDFProcessor(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	// Get the service account client from meta data or a local config file.
 	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)

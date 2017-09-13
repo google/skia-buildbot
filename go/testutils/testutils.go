@@ -84,7 +84,7 @@ func SmallTest(t *testing.T) {
 // medium-sized test: a test (2-15 seconds) which has dependencies on external
 // databases, networks, etc.
 func MediumTest(t *testing.T) {
-	if !ShouldRun(MEDIUM_TEST) {
+	if !ShouldRun(MEDIUM_TEST) || testing.Short() {
 		t.Skip("Not running medium tests.")
 	}
 }
@@ -94,15 +94,8 @@ func MediumTest(t *testing.T) {
 // dependencies which makes it too slow or flaky to run as part of the normal
 // test suite.
 func LargeTest(t *testing.T) {
-	if !ShouldRun(LARGE_TEST) {
+	if !ShouldRun(LARGE_TEST) || testing.Short() {
 		t.Skip("Not running large tests.")
-	}
-}
-
-// SkipIfShort causes the test to be skipped when running with -short.
-func SkipIfShort(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping test with -short")
 	}
 }
 

@@ -15,7 +15,6 @@ import (
 // TestRecentRolls verifies that we correctly track mode history.
 func TestRecentRolls(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	// Create the RecentRolls.
 	tmpDir, err := ioutil.TempDir("", "test_autoroll_recent_")

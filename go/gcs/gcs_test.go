@@ -53,7 +53,6 @@ func TestGetLatestGCSDirs(t *testing.T) {
 
 func TestDownloadHelper(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")
