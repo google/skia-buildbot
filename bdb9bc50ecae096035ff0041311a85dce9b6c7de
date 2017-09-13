@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cba2fc12_f20435c9",
+        "filename": "perf/go/activitylog/activitylog.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-13T16:35:39Z",
+      "side": 1,
+      "message": "Activities can\u0027t be updated?",
+      "revId": "bdb9bc50ecae096035ff0041311a85dce9b6c7de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
