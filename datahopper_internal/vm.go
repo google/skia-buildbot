@@ -7,7 +7,8 @@ import (
 )
 
 func DatahopperInternalBase(name string) *gce.Instance {
-	vm := server.Server20170911(name)
+	// TODO(dogben): Remove SetGitCredsReadWrite when updating to Server20170912 or later.
+	vm := server.SetGitCredsReadWrite(server.Server20170613(name), "skia-internal")
 	vm.DataDisk.SizeGb = 50
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2

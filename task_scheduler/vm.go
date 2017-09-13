@@ -10,7 +10,8 @@ import (
 )
 
 func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
-	vm := server.Server20170911(name)
+	// TODO(dogben): Remove SetGitCredsReadWrite when updating to Server20170912 or later.
+	vm := server.SetGitCredsReadWrite(server.Server20170613(name), name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.ExternalIpAddress = ipAddress
