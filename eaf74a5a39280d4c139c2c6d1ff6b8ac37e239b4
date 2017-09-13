@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "efef4921_da4334d3",
+        "filename": "ds/go/datastore_backup/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-13T20:20:31Z",
+      "side": 1,
+      "message": "If this service gets into a reboot loop, these metrics will be 0 all the time.",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 55
+      },
+      "revId": "eaf74a5a39280d4c139c2c6d1ff6b8ac37e239b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ef46355_5fcda3ec",
+        "filename": "ds/go/datastore_backup/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-13T20:20:31Z",
+      "side": 1,
+      "message": "nit: datastore.ScopeDatastore",
+      "revId": "eaf74a5a39280d4c139c2c6d1ff6b8ac37e239b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
