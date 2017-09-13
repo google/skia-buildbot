@@ -53,11 +53,11 @@ type ImageLoader struct {
 	wg sync.WaitGroup
 
 	// mapper contains various functions for creating image IDs and paths.
-	mapper IDPathMapper
+	mapper DiffStoreMapper
 }
 
 // Creates a new instance of ImageLoader.
-func newImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int, mapper IDPathMapper) (*ImageLoader, error) {
+func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []string, gsImageBaseDir string, maxCacheSize int, mapper DiffStoreMapper) (*ImageLoader, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (il *ImageLoader) Warm(priority int64, images []string, synchronous bool) {
 }
 
 // sync waits until all pending go routines have terminated.
-func (il *ImageLoader) sync() {
+func (il *ImageLoader) Sync() {
 	il.wg.Wait()
 }
 

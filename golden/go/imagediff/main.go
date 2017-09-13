@@ -22,11 +22,11 @@ func main() {
 	if flag.NArg() != 2 {
 		log.Fatal("Usage: imagediff [--out filename] imagepath1.png imagepath2.png\n")
 	}
-	a, err := diff.OpenImage(flag.Arg(0))
+	a, err := diff.OpenNRGBAFromFile(flag.Arg(0))
 	if err != nil {
 		log.Fatal(err)
 	}
-	b, err := diff.OpenImage(flag.Arg(1))
+	b, err := diff.OpenNRGBAFromFile(flag.Arg(1))
 	if err != nil {
 		log.Fatal(err)
 	}

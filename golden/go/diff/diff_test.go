@@ -237,7 +237,7 @@ func assertDiffMatch(t *testing.T, expected, src1, src2 string, expectedDiffMetr
 
 // TestDiffImages tests that the diff images produced are correct.
 func TestDiffImages(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.MediumTest(t)
 	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC1, SRC1)
 	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC2, SRC2)
 	assertDiffMatch(t, EXPECTED_1_2, SRC1, SRC2)
@@ -257,11 +257,11 @@ func TestDiffImages(t *testing.T) {
 // assertDiffs asserts that the DiffMetrics reported by Diffing the two images
 // matches the expected DiffMetrics.
 func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) {
-	img1, err := OpenImage(filepath.Join(TESTDATA_DIR, d1+".png"))
+	img1, err := OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, d1+".png"))
 	if err != nil {
 		t.Fatal("Failed to open test file: ", err)
 	}
-	img2, err := OpenImage(filepath.Join(TESTDATA_DIR, d2+".png"))
+	img2, err := OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, d2+".png"))
 	if err != nil {
 		t.Fatal("Failed to open test file: ", err)
 	}
@@ -323,11 +323,11 @@ var (
 
 func loadBenchmarkImages() {
 	var err error
-	img1, err = OpenImage(filepath.Join(TESTDATA_DIR, "4029959456464745507.png"))
+	img1, err = OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, "4029959456464745507.png"))
 	if err != nil {
 		sklog.Fatal("Failed to open test file: ", err)
 	}
-	img2, err = OpenImage(filepath.Join(TESTDATA_DIR, "16465366847175223174.png"))
+	img2, err = OpenNRGBAFromFile(filepath.Join(TESTDATA_DIR, "16465366847175223174.png"))
 	if err != nil {
 		sklog.Fatal("Failed to open test file: ", err)
 	}

@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/ct_pixel_diff/go/resultstore"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/mocks"
 )
@@ -72,8 +71,8 @@ func TestPixelDiffProcessor(t *testing.T) {
 	client := mocks.GetHTTPClient(t)
 	baseDir, err := ioutil.TempDir("", TEST_BASE_DIR)
 	assert.NoError(t, err)
-	diffStore, err := diffstore.NewMemDiffStore(client, baseDir, []string{TEST_GS_BUCKET}, TEST_GS_IMAGE_DIR, 10,
-		dynamicdiff.DynamicContentDiff, util.JSONCodec(&dynamicdiff.DynamicDiffMetrics{}), diffstore.PixelDiffIDPathMapper{})
+	mapper := dynamicdiff.NewPixelDiffStoreMapper(&dynamicdiff.DynamicDiffMetrics{})
+	diffStore, err := diffstore.NewMemDiffStore(client, baseDir, []string{TEST_GS_BUCKET}, TEST_GS_IMAGE_DIR, 10, mapper)
 	assert.NoError(t, err)
 
 	// Set up the ResultStore.
