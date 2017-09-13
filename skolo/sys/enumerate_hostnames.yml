@@ -1,0 +1,14 @@
+---
+- hosts: all
+  remote_user: chrome-bot
+  tasks:
+
+    # local_action signals to ansible that the output file should be created
+    # on thehost machine (e.g. jumphost). The variables on the line input
+    # are taken from the remote machine (e.g. a given RPI).
+     - local_action:
+         module: lineinfile
+         dest: "/tmp/census_output"
+         mode: 0777
+         line: "{{ ansible_hostname }} {{ansible_default_ipv4.address}} {{ansible_default_ipv4.macaddress}}"
+         create: yes

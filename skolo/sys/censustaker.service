@@ -1,0 +1,17 @@
+[Unit]
+Description=Backs up the router config to Google Storage
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/censustaker \
+  --logtostderr \
+  --prom_port=:20003 \
+  --service_account_path=/usr/local/share/censustaker/service-account.json
+
+#Restart=always
+User=chrome-bot
+Group=chrome-bot
+
+[Install]
+WantedBy=multi-user.target
