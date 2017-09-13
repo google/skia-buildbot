@@ -34,6 +34,11 @@ func (c *cacheWrapper) GetTask(id string) (*db.Task, error) {
 }
 
 // See documentation for TaskCache interface.
+func (c *cacheWrapper) GetTaskMaybeExpired(string) (*db.Task, error) {
+	return nil, fmt.Errorf("cacheWrapper.GetTaskMaybeExpired not implemented.")
+}
+
+// See documentation for TaskCache interface.
 func (c *cacheWrapper) GetTaskForCommit(repo, commit, name string) (*db.Task, error) {
 	if t, ok := c.byCommit[commit]; ok {
 		return t, nil
