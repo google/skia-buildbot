@@ -11,7 +11,7 @@ import (
 )
 
 func AutoRollBase(name, ipAddress string) *gce.Instance {
-	vm := server.SetGitCredsReadWrite(server.Server20170911(name), name)
+	vm := server.SetGitCredsReadWrite(server.Server20170613(name), name)
 	vm.DataDisk.SizeGb = 64
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	if ipAddress != "" {
@@ -79,7 +79,7 @@ func AndroidO() *gce.Instance {
 
 func Google3() *gce.Instance {
 	// Not using AutoRollBase because this server does not need auth.SCOPE_GERRIT.
-	vm := server.Server20170911("google3-autoroll")
+	vm := server.Server20170912("google3-autoroll")
 	vm.DataDisk.SizeGb = 64
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2

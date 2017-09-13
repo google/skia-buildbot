@@ -8,7 +8,8 @@ import (
 )
 
 func PerfBase(name, ipAddress string) *gce.Instance {
-	vm := server.Server20170911(name)
+	// TODO(dogben): Remove SetGitCredsReadWrite when updating to Server20170912 or later.
+	vm := server.SetGitCredsReadWrite(server.Server20170613(name), "skia-perf")
 	vm.DataDisk.Name = fmt.Sprintf("%s-ssd-data", name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
