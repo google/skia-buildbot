@@ -30,8 +30,8 @@ func TestFailureHandling(t *testing.T) {
 	}
 	delete(validDigestSet, types.MISSING_DIGEST)
 
-	invalidDigest_1 := "invalid-digest-1"
-	invalidDigest_2 := "invalid_digest_2"
+	invalidDigest_1 := "invaliddigest1"
+	invalidDigest_2 := "invaliddigest2"
 
 	validDigests := validDigestSet.Keys()
 	mainDigest := validDigests[0]
