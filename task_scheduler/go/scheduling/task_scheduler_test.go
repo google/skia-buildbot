@@ -179,7 +179,6 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task, dims map[s
 // Common setup for TaskScheduler tests.
 func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gb, _, _ := specs_testutils.SetupTestRepo(t)
 
@@ -932,7 +931,6 @@ func TestTestednessIncrease(t *testing.T) {
 
 func TestComputeBlamelist(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	// Setup.
 	gb := git_testutils.GitInit(t)
@@ -1873,7 +1871,6 @@ func (s *spyDB) PutTasks(tasks []*db.Task) error {
 
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*db.Task), func()) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gb := git_testutils.GitInit(t)
 	workdir, err := ioutil.TempDir("", "")

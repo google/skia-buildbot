@@ -76,7 +76,6 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 // E2E_Success verifies that an islated.gen.json is created, batcharchive works,
 // triggering swarming tasks works and collecting swarming tasks works.
 func E2E_Success(t *testing.T) {
-	testutils.SkipIfShort(t)
 
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
@@ -137,7 +136,6 @@ func E2E_Success(t *testing.T) {
 // works, triggering swarming tasks works and collecting swarming tasks with one
 // failure works.
 func E2E_OneFailure(t *testing.T) {
-	testutils.SkipIfShort(t)
 
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")

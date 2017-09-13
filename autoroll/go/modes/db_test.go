@@ -40,7 +40,6 @@ func (d *testDB) cleanup(t *testing.T) {
 // TestGetModeHistory verifies that we correctly track mode history.
 func TestGetModeHistory(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	d := newTestDB(t)
 	defer d.cleanup(t)
 

@@ -20,7 +20,6 @@ func skipTestIfRequired(t *testing.T) {
 		t.Skip("Skipping test due to RUN_GERRIT_TESTS=false")
 	}
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 }
 
 func TestGerritOwnerModifiedSearch(t *testing.T) {
@@ -103,9 +102,9 @@ index c0f0a49..d5733b3 100644
 @@ -1,4 +1,5 @@
  testing
 +
-  
- 
- 
+
+
+
 `
 	assert.Equal(t, expected, patch)
 }
