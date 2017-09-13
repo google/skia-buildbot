@@ -53,7 +53,7 @@ func runChromiumPerf() error {
 	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
-		defer util.CleanTmpDir()
+		//defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Running Chromium Perf")
 	defer sklog.Flush()
@@ -77,11 +77,11 @@ func runChromiumPerf() error {
 		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Parse out the Chromium and Skia hashes.
-	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
+	//chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
-		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
+	//if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
+	//	return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+	//}
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		if err := adb.VerifyLocalDevice(); err != nil {
@@ -145,14 +145,14 @@ func runChromiumPerf() error {
 	if *chromiumBuildNoPatch != *chromiumBuildWithPatch {
 		chromiumBuilds = append(chromiumBuilds, *chromiumBuildWithPatch)
 	}
-	// Download the specified chromium builds.
-	for _, chromiumBuild := range chromiumBuilds {
-		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
-			return err
-		}
-		//Delete the chromium build to save space when we are done.
-		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
-	}
+	//// Download the specified chromium builds.
+	//for _, chromiumBuild := range chromiumBuilds {
+	//	if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
+	//		return err
+	//	}
+	//	//Delete the chromium build to save space when we are done.
+	//	//defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
+	//}
 
 	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, util.BINARY_CHROME)
 	chromiumBinaryWithPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildWithPatch, util.BINARY_CHROME)
@@ -278,8 +278,8 @@ func runChromiumPerf() error {
 		return fmt.Errorf("There were %d sequential timeouts.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
 	}
 
-	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
-	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
+	// If "--output-format=csv" is specified then merge all CSV files and upload.
+	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, gs, *startRange, true /* handleStrings */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
