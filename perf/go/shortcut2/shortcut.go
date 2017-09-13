@@ -14,7 +14,7 @@ import (
 )
 
 type Shortcut struct {
-	Keys []string `json:"keys"`
+	Keys []string `json:"keys" datastore:",noindex"`
 }
 
 var (
