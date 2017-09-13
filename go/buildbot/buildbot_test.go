@@ -142,7 +142,6 @@ func testGetBuildFromMaster(repos repograph.Map) (*Build, error) {
 // decode it into a Build object.
 func TestGetBuildFromMaster(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -166,7 +165,6 @@ func TestGetBuildFromMaster(t *testing.T) {
 // and back without losing or corrupting the data.
 func TestBuildJsonSerialization(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -191,7 +189,6 @@ func TestBuildJsonSerialization(t *testing.T) {
 // the list of commits which were newly built in a given build.
 func testFindCommitsForBuild(t *testing.T, local bool) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	httpClient = testHttpClient
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -366,7 +363,6 @@ func dbSerializeAndCompare(t *testing.T, d testDB, b1 *Build, ignoreIds bool) {
 // pull it back out without losing or corrupting the data.
 func testBuildDbSerialization(t *testing.T, local bool) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	d := clearDB(t, local)
 	defer d.Close(t)
@@ -403,7 +399,6 @@ func testBuildDbSerialization(t *testing.T, local bool) {
 // finishes.
 func testUnfinishedBuild(t *testing.T, local bool) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
 
@@ -468,7 +463,6 @@ func testUnfinishedBuild(t *testing.T, local bool) {
 // the expected result.
 func testLastProcessedBuilds(t *testing.T, local bool) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
 
@@ -574,7 +568,6 @@ func TestGetLatestBuilds(t *testing.T) {
 // testGetUningestedBuilds verifies that getUningestedBuilds works as expected.
 func testGetUningestedBuilds(t *testing.T, local bool) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
 
@@ -651,7 +644,6 @@ func testGetUningestedBuilds(t *testing.T, local bool) {
 // into the database.
 func testIngestNewBuilds(t *testing.T, local bool) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
 
@@ -748,7 +740,6 @@ func testIngestNewBuilds(t *testing.T, local bool) {
 // build numbers are strictly ascending.
 func testBuildKeyOrdering(t *testing.T, local bool) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
 
@@ -777,7 +768,6 @@ func testBuildKeyOrdering(t *testing.T, local bool) {
 // testBuilderComments ensures that we properly handle builder comments.
 func testBuilderComments(t *testing.T, local bool) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
 
@@ -849,7 +839,6 @@ func testBuilderComments(t *testing.T, local bool) {
 // testCommitComments ensures that we properly handle builder comments.
 func testCommitComments(t *testing.T, local bool) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	d := clearDB(t, local)
 	defer d.Close(t)
 

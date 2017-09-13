@@ -43,7 +43,6 @@ func TestEventBus(t *testing.T) {
 
 func TestSubTopics(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	const N_NUMBERS = 200
 	const ALL_NUMBERS_EVENT = "allNumbers"

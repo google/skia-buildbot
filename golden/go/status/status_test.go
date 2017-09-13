@@ -30,7 +30,6 @@ const (
 
 func TestStatusWatcher(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	err := gcs.DownloadTestDataFile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.NoError(t, err, "Unable to download testdata.")

@@ -44,7 +44,6 @@ func TestGerritTrybotResults(t *testing.T) {
 
 func testOneTrybotResults(t *testing.T, ingestionFile string) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	rietveldAPI := rietveld.New(TEST_CODE_RIETVELDREVIEW_URL, nil)
 	gerritAPI, err := gerrit.NewGerrit(TEST_CODE_GERRITREVIEW_URL, "", nil)

@@ -910,7 +910,6 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 
 func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 	g := git_testutils.GitInit(t)
 	defer g.Cleanup()
 

@@ -75,7 +75,6 @@ var (
 // TryJobIntegrator instance, and URLMock instance.
 func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	// Set up the test Git repo.
 	gb := git_testutils.GitInit(t)

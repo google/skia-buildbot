@@ -14,7 +14,6 @@ import (
 
 func TestGetTrybotsForCL(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	client := NewClient(httputils.NewTimeoutClient())
 	tries, err := client.GetTrybotsForCL(2347, 7, "gerrit", "https://skia-review.googlesource.com")

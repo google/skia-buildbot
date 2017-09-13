@@ -24,7 +24,6 @@ const (
 
 func TestImageLoader(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	baseDir, workingDir, tile, imageLoader := getImageLoaderAndTile(t)
 	defer testutils.RemoveAll(t, baseDir)

@@ -49,7 +49,6 @@ const (
 
 func TestCompareTests(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	const MAX_DIM = 9999999
 	var HEAD = true

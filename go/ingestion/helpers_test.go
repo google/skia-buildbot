@@ -39,7 +39,6 @@ var (
 
 func TestGoogleStorageSource(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	src, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient)
 	assert.NoError(t, err)
@@ -48,7 +47,6 @@ func TestGoogleStorageSource(t *testing.T) {
 
 func TestFileSystemResultFileLocations(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	err := gcs.DownloadTestDataArchive(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.NoError(t, err)
@@ -61,7 +59,6 @@ func TestFileSystemResultFileLocations(t *testing.T) {
 
 func TestCompareSources(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gsSource, err := NewGoogleStorageSource("gs-test-src", gcs.TEST_DATA_BUCKET, TEST_GCS_DIR, http.DefaultClient)
 	assert.NoError(t, err)

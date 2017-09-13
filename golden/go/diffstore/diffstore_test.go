@@ -38,7 +38,6 @@ const (
 
 func TestMemDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	// Get a small tile and get them cached.
 	baseDir := TEST_DATA_BASE_DIR + "-diffstore"
@@ -63,7 +62,6 @@ func (d DummyDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA
 
 func TestDiffFn(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	baseDir := TEST_DATA_BASE_DIR + "-difffn"
 	client, _ := getSetupAndTile(t, baseDir)
@@ -86,7 +84,6 @@ func TestDiffFn(t *testing.T) {
 
 func TestNetDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	baseDir := TEST_DATA_BASE_DIR + "-netdiffstore"
 	client, tile := getSetupAndTile(t, baseDir)
@@ -267,7 +264,6 @@ type DummyDiffMetrics struct {
 
 func TestCodec(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	baseDir := TEST_DATA_BASE_DIR + "-codec"
 	client, _ := getSetupAndTile(t, baseDir)

@@ -64,7 +64,6 @@ func TestCopyJobSpec(t *testing.T) {
 
 func TestTaskSpecs(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gb, c1, c2 := specs_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -126,7 +125,6 @@ func TestTaskSpecs(t *testing.T) {
 
 func TestAddedTaskSpecs(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gb, c1, c2 := specs_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -238,7 +236,6 @@ func TestAddedTaskSpecs(t *testing.T) {
 
 func TestTaskCfgCacheCleanup(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gb, c1, c2 := specs_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -403,8 +400,6 @@ func TestTasksCircularDependency(t *testing.T) {
 }
 
 func tempGitRepoSetup(t *testing.T) (*git_testutils.GitBuilder, string, string) {
-	testutils.SkipIfShort(t)
-
 	gb := git_testutils.GitInit(t)
 	gb.Add("codereview.settings", `CODE_REVIEW_SERVER: codereview.chromium.org
 PROJECT: skia`)
@@ -504,7 +499,6 @@ func TestTempGitRepoPatch(t *testing.T) {
 
 func TestTempGitRepoParallel(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gb, c1, _ := specs_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -539,7 +533,6 @@ func TestTempGitRepoParallel(t *testing.T) {
 
 func TestTempGitRepoErr(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gb, c1, _ := specs_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
@@ -606,7 +599,6 @@ func TestGetTaskSpecDAG(t *testing.T) {
 
 func TestTaskCfgCacheSerialization(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	gb, c1, c2 := specs_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()

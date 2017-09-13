@@ -14,7 +14,6 @@ import (
 //       the last hour. This is not always true.
 func SKIP_TestRietveld(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.SkipIfShort(t)
 
 	api := New("https://codereview.chromium.org", nil)
 	t_delta := time.Now().Add(-10 * 24 * time.Hour)
