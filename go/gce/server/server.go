@@ -34,11 +34,11 @@ var (
 )
 
 // Base config for server instances.
-func Server20170911(name string) *gce.Instance {
+func Server20170912(name string) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
-			SourceImage: "skia-pushable-base-v2017-09-11-000",
+			SourceImage: "skia-pushable-base-v2017-09-12-001",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		DataDisk: &gce.Disk{
@@ -75,7 +75,7 @@ func Server20170911(name string) *gce.Instance {
 }
 
 func Server20170613(name string) *gce.Instance {
-	vm := Server20170911(name)
+	vm := Server20170912(name)
 	vm.BootDisk.SourceImage = "skia-pushable-base-v2017-06-13-003"
 	vm.GSDownloads = []*gce.GSDownload{}
 	return vm

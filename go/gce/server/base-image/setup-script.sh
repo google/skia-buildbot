@@ -99,7 +99,3 @@ Unattended-Upgrade::Origins-Pattern {
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
-
-# Check the output to confirm that the config is working.
-sudo unattended-upgrades -d
-
