@@ -16,6 +16,24 @@
       "revId": "bdb9bc50ecae096035ff0041311a85dce9b6c7de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34e4f77e_c7fc37ba",
+        "filename": "perf/go/activitylog/activitylog.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-13T16:37:33Z",
+      "side": 1,
+      "message": "No, they\u0027re a write-only log of actions.",
+      "parentUuid": "cba2fc12_f20435c9",
+      "revId": "bdb9bc50ecae096035ff0041311a85dce9b6c7de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
