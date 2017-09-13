@@ -28,11 +28,11 @@ func Init(useDS bool) {
 // Activity stores information on one user action activity. This corresponds to
 // one record in the activity database table. See DESIGN.md for details.
 type Activity struct {
-	ID     int64
+	ID     int64 `datastore:",noindex"`
 	TS     int64
-	UserID string
-	Action string
-	URL    string
+	UserID string `datastore:",noindex"`
+	Action string `datastore:",noindex"`
+	URL    string `datastore:",noindex"`
 }
 
 // Date returns an RFC3339 string for the Activity's TS.
