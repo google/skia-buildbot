@@ -34,6 +34,24 @@
       "revId": "4654f335e8afc9357d158c968c7b3ad3a7bdced3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e47e9995_b7fd0da0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1561,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-13T14:07:41Z",
+      "side": 1,
+      "message": "Nope, it was an optional suggestion",
+      "parentUuid": "17a4e7f3_0f7263da",
+      "revId": "4654f335e8afc9357d158c968c7b3ad3a7bdced3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
