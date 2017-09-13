@@ -525,7 +525,9 @@ func getServiceAccount(dimensions map[string]string) string {
 // GetPathToPyFiles returns the location of CT's python scripts.
 func GetPathToPyFiles(runOnSwarming bool) string {
 	if runOnSwarming {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "src", "go.skia.org", "infra", "ct", "py")
+		//return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "src", "go.skia.org", "infra", "ct", "py")
+		_, currentFile, _, _ := runtime.Caller(0)
+		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
 	} else {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
@@ -740,7 +742,7 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 		if !fileInfo.IsDir() {
 			continue
 		}
-		outputFile := filepath.Join(localOutputDir, fileInfo.Name(), "results-pivot-table.csv")
+		outputFile := filepath.Join(localOutputDir, fileInfo.Name(), "results.csv")
 		newFile := filepath.Join(localOutputDir, fmt.Sprintf("%s.csv", fileInfo.Name()))
 		if err := os.Rename(outputFile, newFile); err != nil {
 			sklog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
@@ -755,7 +757,7 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 		pageRank := fileInfo.Name()
 		for i := range headers {
 			for j := range values {
-				if headers[i] == "page" {
+				if headers[i] == "stories" {
 					values[j][i] = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
 				}
 			}
@@ -765,7 +767,7 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 			continue
 		}
 	}
-	// Call csv_pivot_table_merger.py to merge all results into a single results CSV.
+	// Call csv_pivot_table_merger.py to merge all results into a single results CSV. See if you can merge with csv_merger.py without changes to the output?
 	pathToCsvMerger := filepath.Join(pathToPyFiles, "csv_pivot_table_merger.py")
 	outputFileName := runID + ".output"
 	args := []string{
