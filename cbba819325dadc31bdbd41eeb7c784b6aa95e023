@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d714916f_6ac3cac8",
+        "filename": "skolo/go/powercycle-cli/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-14T13:56:32Z",
+      "side": 1,
+      "message": "Why 5 seconds ? If there is a reason it should be mentioned as a comment.\n\nargs could be empty at this time. Instead of catching it with the clause below maybe exit gracefully saying that there is nothing to autofix.",
+      "revId": "cbba819325dadc31bdbd41eeb7c784b6aa95e023",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
