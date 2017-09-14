@@ -28,7 +28,8 @@ release_arm: default
 
 # You should run make release first
 push_everywhere:
-	pushcli --alsologtostderr --config_filename=../push/skiapush.conf pulld "*"
+	cd ../push; make build
+	pushcli --alsologtostderr --config_filename=../push/allskiapush.json5 pulld "*"
 
 
 .PHONY: debug
