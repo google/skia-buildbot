@@ -212,9 +212,12 @@ func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool)
 	}
 
 	gn_args := []string{"is_debug=false", "treat_warnings_as_errors=false"}
+	// Disable NaCl to speed up the build.
+	gn_args = append(gn_args, "enable_nacl=false")
+	// Produce enough debug info for stack traces but not line-by-line debugging.
+	gn_args = append(gn_args, "symbol_level=1")
 	if targetPlatform == "Android" {
 		gn_args = append(gn_args, "target_os=\"android\"")
-		gn_args = append(gn_args, "symbol_level=1")
 	}
 	if useWhitelistedFonts {
 		gn_args = append(gn_args, "skia_whitelist_serialized_typefaces=true")

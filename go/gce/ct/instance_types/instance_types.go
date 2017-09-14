@@ -18,20 +18,24 @@ const (
 )
 
 // Base config for CT GCE instances.
-func CT20170602(name string) *gce.Instance {
+func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(path.Dir(filename))
+	dataDisk := &gce.Disk{
+		Name:   fmt.Sprintf("%s-data", name),
+		SizeGb: 300,
+		Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
+	}
+	if useSSDDataDisk {
+		dataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	}
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
 			SourceImage: "skia-swarming-v3",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		DataDisk: &gce.Disk{
-			Name:   fmt.Sprintf("%s-data", name),
-			SizeGb: 300,
-			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
-		},
+		DataDisk: dataDisk,
 		GSDownloads: []*gce.GSDownload{
 			{
 				Source: GS_URL_GITCONFIG,
@@ -66,19 +70,19 @@ func CT20170602(name string) *gce.Instance {
 
 // CT GCE instances.
 func CTInstance(num int) *gce.Instance {
-	return CT20170602(fmt.Sprintf("%s%03d", CT_WORKER_PREFIX, num))
+	return CT20170602(fmt.Sprintf("%s%03d", CT_WORKER_PREFIX, num), false /* useSSDDataDisk */)
 }
 
 // CT Android Builder GCE instances.
 func CTAndroidBuilderInstance(num int) *gce.Instance {
-	vm := CT20170602(fmt.Sprintf("ct-android-builder-%03d", num))
+	vm := CT20170602(fmt.Sprintf("ct-android-builder-%03d", num), true /* useSSDDataDisk */)
 	vm.MachineType = "custom-32-70400"
 	return vm
 }
 
 // CT Linux Builder GCE instances.
 func CTLinuxBuilderInstance(num int) *gce.Instance {
-	vm := CT20170602(fmt.Sprintf("ct-linux-builder-%03d", num))
+	vm := CT20170602(fmt.Sprintf("ct-linux-builder-%03d", num), true /* useSSDDataDisk */)
 	vm.MachineType = "custom-32-70400"
 	return vm
 }
