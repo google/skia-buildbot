@@ -16,6 +16,24 @@
       "revId": "8f454d7335926417493bd0a1c621e0685f551b37",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df3054b3_5d616a1a",
+        "filename": "status/build_staging_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-14T17:20:51Z",
+      "side": 1,
+      "message": "Whoops, no, it\u0027s identical. Removed.",
+      "parentUuid": "e4b16786_4156e432",
+      "revId": "8f454d7335926417493bd0a1c621e0685f551b37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
