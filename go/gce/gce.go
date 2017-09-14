@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"google.golang.org/api/compute/v0.alpha"
+	compute "google.golang.org/api/compute/v0.alpha"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
@@ -854,7 +854,7 @@ func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 		Items: items,
 	}).Do()
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to set instance metadata: %s", err)
 	} else if op.Error != nil {
 		return fmt.Errorf("Failed to set instance metadata: %v", op.Error)
 	}
@@ -896,7 +896,7 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 		// creation. It holds the dpkg lock and it reboots the instance
 		// when finished, so we need to wait for it to complete before
 		// performing our own setup.
-		sklog.Infof("Waiting for setup on %s to complete.", vm.Name)
+		/*sklog.Infof("Waiting for setup on %s to complete.", vm.Name)
 		if _, err := g.Ssh(vm, "sleep", "300"); err != nil {
 			sklog.Infof("Setup finished on %s", vm.Name)
 		} else {
@@ -912,7 +912,7 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 
 		if err := g.WaitForInstanceReady(vm, maxWaitTime); err != nil {
 			return err
-		}
+		}*/
 	}
 
 	// Format and mount.

@@ -29,9 +29,14 @@ func StatusInternal() *gce.Instance {
 	return StatusBase("skia-status-internal")
 }
 
+func StatusStaging() *gce.Instance {
+	return StatusBase("skia-status-staging")
+}
+
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod":     StatusProd(),
 		"internal": StatusInternal(),
+		"staging":  StatusStaging(),
 	})
 }

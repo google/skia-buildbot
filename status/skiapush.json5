@@ -12,5 +12,11 @@
         "pulld",
       ],
     },
+    "skia-status-staging": {
+      "AppNames": [
+        "statusd",
+        "pulld",
+      ],
+    },
   }
 }

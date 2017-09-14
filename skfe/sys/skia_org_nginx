@@ -647,6 +647,26 @@ server {
     return 301 https://status-internal.skia.org$request_uri;
 }
 
+#####   status-staging.skia.org   ###########################
+server {
+    listen      443;
+    server_name status-staging.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/status-staging.access.log;
+    error_log /var/log/nginx/status-staging.error.log error;
+
+    location / {
+        proxy_pass http://skia-status-staging:8002;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name status-staging.skia.org;
+    return 301 https://status-staging.skia.org$request_uri;
+}
 
 #####   go.skia.org   ###########################
 server {
