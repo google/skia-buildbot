@@ -111,6 +111,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-monitoring:20000']
 
+  - job_name: 'datastore-backup'
+    static_configs:
+      - targets: ['skia-monitoring:20005']
+
   - job_name: 'push'
     static_configs:
       - targets: ['skia-push:20000']
@@ -211,10 +215,6 @@ scrape_configs:
   - job_name: 'webhook-proxy'
     static_configs:
       - targets: ['skia-prom:20004']
-
-  - job_name: 'datastore-backup'
-    static_configs:
-      - targets: ['skia-prom:20005']
 
   # Gateways
   - job_name: 'pushgateway'
