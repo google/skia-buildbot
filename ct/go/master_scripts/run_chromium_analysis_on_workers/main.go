@@ -214,10 +214,10 @@ func main() {
 		return
 	}
 
-	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
+	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	noOutputSlaves := []string{}
 	pathToPyFiles := util.GetPathToPyFiles(false)
-	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
+	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		if noOutputSlaves, err = util.MergeUploadCSVFiles(*runID, pathToPyFiles, gs, numPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 		}
