@@ -114,6 +114,9 @@ func metadataWait() {
 		// We use the default client which should never timeout.
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil || resp.StatusCode != 200 {
+			if err == nil {
+				util.Close(resp.Body)
+			}
 			sklog.Errorf("wait_for_change failed: %s", err)
 			if resp != nil {
 				sklog.Errorf("Response: %+v", *resp)
@@ -121,6 +124,7 @@ func metadataWait() {
 			time.Sleep(time.Minute)
 			continue
 		}
+		util.Close(resp.Body)
 		metadataTriggerCh <- true
 		sklog.Infof("Pull triggered via metadata.")
 	}
