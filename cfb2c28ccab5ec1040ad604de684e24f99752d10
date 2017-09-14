@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68474510_1efffba2",
+        "filename": "pulld/go/pulld/pull.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-14T16:42:25Z",
+      "side": 1,
+      "message": "1. If err !\u003d nil, then resp could be nil, which means this would panic.\n2. If err \u003d\u003d nil, need to close resp.Body even if resp.StatusCode \u003d\u003d 200.",
+      "revId": "cfb2c28ccab5ec1040ad604de684e24f99752d10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
