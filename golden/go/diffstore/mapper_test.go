@@ -82,7 +82,6 @@ func TestGoldDiffStoreMapper(t *testing.T) {
 
 func TestCodec(t *testing.T) {
 	testutils.MediumTest(t)
-	testutils.SkipIfShort(t)
 
 	baseDir := TEST_DATA_BASE_DIR + "-codec"
 	client, _ := getSetupAndTile(t, baseDir)
