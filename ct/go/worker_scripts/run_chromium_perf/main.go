@@ -278,8 +278,8 @@ func runChromiumPerf() error {
 		return fmt.Errorf("There were %d sequential timeouts.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
 	}
 
-	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
-	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
+	// If "--output-format=csv" is specified then merge all CSV files and upload.
+	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, gs, *startRange, true /* handleStrings */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}

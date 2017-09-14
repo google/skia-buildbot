@@ -1,4 +1,4 @@
-page_set,page,name,value,run_index,units
+page_set,stories,name,avg,run_index,unit
 ,,a,a1.1,0,
 ,,b,b1.1,0,
 ,,c,c1.1,0,
