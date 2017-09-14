@@ -167,14 +167,14 @@ func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, err
 
 // IsOnDisk returns true if the image that corresponds to the given imageID is in the disk cache.
 func (il *ImageLoader) IsOnDisk(imageID string) bool {
-	localRelPath, _ := il.mapper.ImagePaths(imageID)
+	localRelPath, _, _ := il.mapper.ImagePaths(imageID)
 	return fileutil.FileExists(filepath.Join(il.localImgDir, localRelPath))
 }
 
 // PurgeImages removes the images that correspond to the given images.
 func (il *ImageLoader) PurgeImages(images []string, purgeGCS bool) error {
 	for _, id := range images {
-		localRelPath, gsRelPath := il.mapper.ImagePaths(id)
+		localRelPath, bucket, gsRelPath := il.mapper.ImagePaths(id)
 		localPath := filepath.Join(il.localImgDir, localRelPath)
 		if fileutil.FileExists(localPath) {
 			if err := os.Remove(localPath); err != nil {
@@ -183,7 +183,7 @@ func (il *ImageLoader) PurgeImages(images []string, purgeGCS bool) error {
 		}
 
 		if purgeGCS {
-			il.removeImg(gsRelPath)
+			il.removeImg(bucket, gsRelPath)
 		}
 	}
 	return nil
@@ -193,7 +193,7 @@ func (il *ImageLoader) PurgeImages(images []string, purgeGCS bool) error {
 // It loads an image file either from disk or from Google storage.
 func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interface{}, error) {
 	// Check if the image is in the disk cache.
-	localRelPath, gsRelPath := il.mapper.ImagePaths(imageID)
+	localRelPath, bucket, gsRelPath := il.mapper.ImagePaths(imageID)
 	localPath := filepath.Join(il.localImgDir, localRelPath)
 	if fileutil.FileExists(localPath) {
 		img, err := loadImg(localPath)
@@ -206,7 +206,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 	}
 
 	// Download the image
-	imgBytes, err := il.downloadImg(gsRelPath)
+	imgBytes, err := il.downloadImg(bucket, gsRelPath)
 	if err != nil {
 		util.LogErr(il.failureStore.addDigestFailure(diff.NewDigestFailure(imageID, diff.HTTP)))
 		return nil, err
@@ -228,30 +228,40 @@ func (il *ImageLoader) saveImgInfoAsync(imageID string, imgBytes []byte) {
 	il.wg.Add(1)
 	go func() {
 		defer il.wg.Done()
-		localRelPath, _ := il.mapper.ImagePaths(imageID)
+		localRelPath, _, _ := il.mapper.ImagePaths(imageID)
 		if err := saveFilePath(filepath.Join(il.localImgDir, localRelPath), bytes.NewBuffer(imgBytes)); err != nil {
 			sklog.Error(err)
 		}
 	}()
 }
 
-// downloadImg retrieves the given image from Google storage.
-func (il *ImageLoader) downloadImg(gsRelPath string) ([]byte, error) {
+// downloadImg retrieves the given image from Google storage. If bucket is not empty
+// the gsPath is considered absolute within the bucket, otherwise it is relative to gsImageBaseDir.
+func (il *ImageLoader) downloadImg(bucket, gsPath string) ([]byte, error) {
+	var bucketNames []string
+	var objLocation string
+	if bucket != "" {
+		objLocation = gsPath
+		bucketNames = []string{bucket}
+	} else {
+		objLocation = filepath.Join(il.gsImageBaseDir, gsPath)
+		bucketNames = il.gsBucketNames
+	}
+
 	var err error
 	var imgData []byte
-	for _, bucketName := range il.gsBucketNames {
-		imgData, err = il.downloadImgFromBucket(gsRelPath, bucketName)
+	for _, bucketName := range bucketNames {
+		imgData, err = il.downloadImgFromBucket(objLocation, bucketName)
 		if err == nil {
 			return imgData, nil
 		}
 	}
-	return nil, fmt.Errorf("Failed finding image %s in buckets %v. Last error: %s", gsRelPath, il.gsBucketNames, err)
+	return nil, fmt.Errorf("Failed finding image %s in buckets %v. Last error: %s", gsPath, bucketNames, err)
 }
 
 // downloadImgFromBucket retrieves the given image from the given Google storage bucket.
 // It returns storage.ErrObjectNotExist if the given image does not exist in the bucket.
-func (il *ImageLoader) downloadImgFromBucket(gsRelPath, bucketName string) ([]byte, error) {
-	objLocation := filepath.Join(il.gsImageBaseDir, gsRelPath)
+func (il *ImageLoader) downloadImgFromBucket(objLocation, bucketName string) ([]byte, error) {
 	ctx := context.Background()
 
 	// Retrieve the attributes.
@@ -280,7 +290,7 @@ func (il *ImageLoader) downloadImgFromBucket(gsRelPath, bucketName string) ([]by
 
 			// Check the MD5.
 			if !bytes.Equal(md5Hash.Sum(nil), attrs.MD5) {
-				return fmt.Errorf("MD5 hash for digest %s incorrect.", gsRelPath)
+				return fmt.Errorf("MD5 hash for digest %s incorrect.", objLocation)
 			}
 
 			return nil
@@ -289,7 +299,7 @@ func (il *ImageLoader) downloadImgFromBucket(gsRelPath, bucketName string) ([]by
 		if err == nil {
 			break
 		}
-		sklog.Errorf("Error fetching file for path %s: %s", gsRelPath, err)
+		sklog.Errorf("Error fetching file for path %s: %s", objLocation, err)
 	}
 
 	if err != nil {
@@ -297,16 +307,22 @@ func (il *ImageLoader) downloadImgFromBucket(gsRelPath, bucketName string) ([]by
 		return nil, err
 	}
 
-	sklog.Infof("Done downloading image for: %s. Length: %d", gsRelPath, buf.Len())
+	sklog.Infof("Done downloading image for: %s. Length: %d", objLocation, buf.Len())
 	return buf.Bytes(), err
 }
 
 // removeImg removes the image that corresponds to the given relative path from GCS.
-func (il *ImageLoader) removeImg(gsRelPath string) {
+func (il *ImageLoader) removeImg(bucket, gsRelPath string) {
+	// If the bucket is not empty then look there otherwise use the default buckets.
+	objLocation := filepath.Join(il.gsImageBaseDir, gsRelPath)
+	bucketNames := il.gsBucketNames
+	if bucket != "" {
+		bucketNames = []string{bucket}
+	}
+
 	ctx := context.Background()
-	for _, bucketName := range il.gsBucketNames {
+	for _, bucketName := range bucketNames {
 		// Retrieve the attributes to test if the file exists.
-		objLocation := filepath.Join(il.gsImageBaseDir, gsRelPath)
 		_, err := il.storageClient.Bucket(bucketName).Object(objLocation).Attrs(ctx)
 		if err != nil {
 			// We ignore the error because it most likely indicates that the requested object

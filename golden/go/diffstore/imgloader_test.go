@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"go.skia.org/infra/golden/go/diff"
+
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/fileutil"
@@ -25,7 +27,8 @@ const (
 func TestImageLoader(t *testing.T) {
 	testutils.LargeTest(t)
 
-	baseDir, workingDir, tile, imageLoader := getImageLoaderAndTile(t)
+	mapper := GoldDiffStoreMapper{}
+	baseDir, workingDir, tile, imageLoader := getImageLoaderAndTile(t, mapper)
 	defer testutils.RemoveAll(t, baseDir)
 
 	// Iterate over the tile and get all the digests
@@ -60,6 +63,18 @@ func TestImageLoader(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = imageLoader.Get(1, []string{"some-image-that-does-not-exist-at-all-in-any-bucket"})
 	assert.Error(t, err)
+
+	// Fetch arbitrary images from GCS.
+	gcsImgID := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
+	foundImgs, err := imageLoader.Get(1, []string{gcsImgID})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(foundImgs))
+	imageLoader.Sync()
+	relLocalPath, _, _ := mapper.ImagePaths(gcsImgID)
+	localPath := filepath.Join(imageLoader.localImgDir, relLocalPath)
+	localImg, err := diff.OpenNRGBAFromFile(localPath)
+	assert.NoError(t, err)
+	assert.Equal(t, foundImgs[0], localImg)
 }
 
 // Calls TwoLevelRadixPath to create the local image file path.
@@ -68,7 +83,7 @@ func DefaultImagePath(baseDir, imageID string) string {
 	return fileutil.TwoLevelRadixPath(baseDir, imagePath)
 }
 
-func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *ImageLoader) {
+func getImageLoaderAndTile(t assert.TestingT, mapper DiffStoreMapper) (string, string, *tiling.Tile, *ImageLoader) {
 	baseDir := TEST_DATA_BASE_DIR + "-imgloader"
 	client, tile := getSetupAndTile(t, baseDir)
 
@@ -77,7 +92,7 @@ func getImageLoaderAndTile(t assert.TestingT) (string, string, *tiling.Tile, *Im
 
 	imgCacheCount, _ := getCacheCounts(10)
 	gsBuckets := []string{TEST_GCS_BUCKET_NAME, TEST_GCS_SECONDARY_BUCKET}
-	imgLoader, err := NewImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GCS_IMAGE_DIR, imgCacheCount, GoldDiffStoreMapper{})
+	imgLoader, err := NewImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GCS_IMAGE_DIR, imgCacheCount, mapper)
 	assert.NoError(t, err)
 	return baseDir, workingDir, tile, imgLoader
 }
