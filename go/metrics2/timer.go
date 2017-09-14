@@ -11,7 +11,7 @@ import (
 
 const (
 	MEASUREMENT_TIMER = "timer"
-	NAME_FUNC_TIMER   = "func-timer"
+	NAME_FUNC_TIMER   = "func_timer"
 )
 
 // timer implements Timer.
@@ -46,9 +46,11 @@ func (t *timer) Start() {
 }
 
 // Stop stops the timer and reports the elapsed time.
-func (t *timer) Stop() {
-	v := float64(time.Now().Sub(t.begin))
+func (t *timer) Stop() time.Duration {
+	dur := time.Now().Sub(t.begin)
+	v := float64(dur)
 	t.m.Observe(v)
+	return dur
 }
 
 // NewTimer creates and returns a new Timer using the default client.

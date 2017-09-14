@@ -268,7 +268,7 @@ func (d *localDB) reportActiveTx() {
 func (d *localDB) tx(name string, fn func(*bolt.Tx) error, update bool) error {
 	txId := d.startTx(name)
 	defer d.endTx(txId)
-	defer metrics2.NewTimer("db-tx-duration", map[string]string{
+	defer metrics2.NewTimer("db_tx_duration", map[string]string{
 		"database":    d.name,
 		"transaction": name,
 	}).Stop()
