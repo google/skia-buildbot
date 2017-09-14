@@ -16,6 +16,24 @@
       "revId": "825504039871864ab5ed92657f85a6d3c891c52c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "033c1794_984075d4",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-14T14:10:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9196ffff_17167852",
+      "revId": "825504039871864ab5ed92657f85a6d3c891c52c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
