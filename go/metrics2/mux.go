@@ -103,10 +103,12 @@ func (mt *muxTimer) Start() {
 	}
 }
 
-func (mt *muxTimer) Stop() {
+func (mt *muxTimer) Stop() time.Duration {
+	var d time.Duration
 	for _, t := range mt.timers {
-		t.Stop()
+		d = t.Stop()
 	}
+	return d
 }
 
 // muxLiveness implements the Liveness interface.

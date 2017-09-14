@@ -188,7 +188,7 @@ type BucketStatsMetric struct {
 }
 
 // newBucketStatsMetric initializes a BucketStatsMetric. tags should include
-// "database" and "bucket-path" but not "metric".
+// "database" and "bucket_path" but not "metric".
 func newBucketStatsMetric(c metrics2.Client, tags ...map[string]string) *BucketStatsMetric {
 	return &BucketStatsMetric{
 		BranchPageN:       c.GetInt64Metric("bolt_bucket", append(tags, map[string]string{"metric": "BranchPageCount"})...),
@@ -256,7 +256,7 @@ type DbMetric struct {
 // NewDbMetric initializes a DbMetric and starts a goroutine to periodically
 // update the sub-metrics from the given bolt.DB. Bucket stats are reported only
 // for the given buckets. tags should include "database" and should not include
-// "metric" or "bucket-path". Returns an error if the initial update fails for
+// "metric" or "bucket_path". Returns an error if the initial update fails for
 // any reason.
 func NewDbMetric(d *bolt.DB, bucketNames []string, tags ...map[string]string) (*DbMetric, error) {
 	return NewDbMetricWithClient(metrics2.GetDefaultClient(), d, bucketNames, tags...)
@@ -275,7 +275,7 @@ func NewDbMetricWithClient(c metrics2.Client, d *bolt.DB, bucketNames []string, 
 	for _, name := range bucketNames {
 		// TODO(benjaminwagner): Add support for sub-buckets, specified as a
 		// path to the sub-bucket from the root.
-		m.BucketStatsMetrics[name] = newBucketStatsMetric(c, append(tags, map[string]string{"bucket-path": name})...)
+		m.BucketStatsMetrics[name] = newBucketStatsMetric(c, append(tags, map[string]string{"bucket_path": name})...)
 	}
 	if err := m.Update(); err != nil {
 		return nil, err

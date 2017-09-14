@@ -18,7 +18,7 @@ type Timer interface {
 	Start()
 
 	// Stop stops the timer and reports the elapsed time.
-	Stop()
+	Stop() time.Duration
 }
 
 // Liveness keeps a time-since-last-successful-update metric.
