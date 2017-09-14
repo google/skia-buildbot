@@ -16,6 +16,8 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -895,7 +897,10 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 			}...)
 		}
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	t := metrics2.NewTimer("bot_update", map[string]string{
+		"patchRepo": patchRepo,
+	})
+	out, err := exec.RunCommand(&exec.Command{
 		Name: cmd[0],
 		Args: cmd[1:],
 		Dir:  tmp,
@@ -903,8 +908,14 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
 		},
 		InheritEnv: true,
-	}); err != nil {
+	})
+	dur := t.Stop()
+	if err != nil {
+		sklog.Warningf("bot_update error for %v; output: %s", rs, out)
 		return nil, err
+	}
+	if dur > 5*time.Minute {
+		sklog.Warningf("bot_update took %s for %v; output: %s", dur, rs, out)
 	}
 
 	// bot_update points the upstream to a local cache. Point back to the

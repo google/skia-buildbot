@@ -47,7 +47,7 @@ const (
 	MAX_BLAMELIST_COMMITS = 500
 
 	// Measurement name for task candidate counts by dimension set.
-	MEASUREMENT_TASK_CANDIDATE_COUNT = "task-candidate-count"
+	MEASUREMENT_TASK_CANDIDATE_COUNT = "task_candidate_count"
 
 	NUM_TOP_CANDIDATES = 50
 )
@@ -852,6 +852,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // isolateTasks sets up the given RepoState and isolates the given
 // taskCandidates.
 func (s *TaskScheduler) isolateTasks(rs db.RepoState, candidates []*taskCandidate) error {
+	defer metrics2.FuncTimer().Stop()
 	// Create and check out a temporary repo.
 	return s.taskCfgCache.TempGitRepo(rs, true, func(c *git.TempCheckout) error {
 		// Isolate the tasks.

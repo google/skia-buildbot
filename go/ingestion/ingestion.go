@@ -145,7 +145,7 @@ func (i *Ingester) setupMetrics() {
 	i.pollProcessMetrics = newProcessMetrics(i.id, "poll")
 	i.eventProcessMetrics = newProcessMetrics(i.id, "event")
 	i.srcMetrics = newSourceMetrics(i.id, i.sources)
-	i.processTimer = metrics2.NewTimer("ingestion.process", map[string]string{"id": i.id})
+	i.processTimer = metrics2.NewTimer("ingestion_process", map[string]string{"id": i.id})
 }
 
 // Start starts the ingester in a new goroutine.
