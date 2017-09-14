@@ -28,12 +28,15 @@ var (
 	powerCycle  = flag.Bool("power_cycle", true, "Powercycle the given devices.")
 	powerOutput = flag.String("power_output", "", "Continously poll power usage and write it to the given file. Press ^C to exit.")
 	sampleRate  = flag.Duration("power_sample_rate", 2*time.Second, "Time delay between capturing power usage.")
+
+	autoFix    = flag.Bool("auto_fix", false, "Fetch the list of down bots/devices from power.skia.org and reboot those.")
+	autoFixURL = flag.String("auto_fix_url", "https://power.skia.org/down_bots", "Url at which to grab the list of down bots/devices.")
 )
 
 func main() {
 	common.Init()
 	args := flag.Args()
-	if !*connect && len(args) == 0 {
+	if !*connect && !*autoFix && len(args) == 0 {
 		sklog.Info("Skipping connection test. Use --connect flag to force connection testing.")
 	} else {
 		// Force connect to be on because we will be powercycling devices. If we try to
@@ -52,6 +55,22 @@ func main() {
 			sklog.Fatal("Non-positive sample rate provided.")
 		}
 		tailPower(devGroup, *powerOutput, *sampleRate)
+	}
+
+	if *autoFix {
+		args, err = GetAutoFixCandidates(*autoFixURL)
+		if err != nil {
+			sklog.Fatalf("Could not fetch list of down bots/devices: %s", err)
+			return
+		}
+		if len(args) == 0 {
+			sklog.Errorf("Nothing to autofix.")
+			os.Exit(0)
+		}
+		// Give the human user a chance to stop it safely.
+		sklog.Infof("Will autofix %q in 5 seconds.", args)
+		sklog.Info("Use Ctrl+C to cancel if this is unwanted/wroasdfsdfsdng.")
+		time.Sleep(5 * time.Second)
 	}
 
 	// No device id given.
