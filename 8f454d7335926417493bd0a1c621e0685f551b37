@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e4b16786_4156e432",
+        "filename": "status/build_staging_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-14T17:18:43Z",
+      "side": 1,
+      "message": "is this file different from build_release?",
+      "revId": "8f454d7335926417493bd0a1c621e0685f551b37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
