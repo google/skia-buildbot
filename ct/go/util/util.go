@@ -740,7 +740,7 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 		if !fileInfo.IsDir() {
 			continue
 		}
-		outputFile := filepath.Join(localOutputDir, fileInfo.Name(), "results-pivot-table.csv")
+		outputFile := filepath.Join(localOutputDir, fileInfo.Name(), "results.csv")
 		newFile := filepath.Join(localOutputDir, fmt.Sprintf("%s.csv", fileInfo.Name()))
 		if err := os.Rename(outputFile, newFile); err != nil {
 			sklog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
@@ -755,7 +755,7 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 		pageRank := fileInfo.Name()
 		for i := range headers {
 			for j := range values {
-				if headers[i] == "page" {
+				if headers[i] == "stories" {
 					values[j][i] = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
 				}
 			}
