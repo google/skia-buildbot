@@ -11,7 +11,7 @@ import (
 
 const (
 	MEASUREMENT_TIMER = "timer"
-	NAME_FUNC_TIMER   = "func-timer"
+	NAME_FUNC_TIMER   = "func_timer"
 )
 
 // timer implements Timer.

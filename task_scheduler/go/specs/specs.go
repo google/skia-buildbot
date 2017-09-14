@@ -903,6 +903,7 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
 		},
 		InheritEnv: true,
+		Timeout:    10 * time.Minute,
 	}); err != nil {
 		return nil, err
 	}
