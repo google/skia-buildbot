@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1304ad1e_685b8b92",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-14T19:00:53Z",
+      "side": 1,
+      "message": "Does this need to stick around?",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58bd7757_702cce32",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-14T19:00:53Z",
+      "side": 1,
+      "message": "Would it be better to split this unit test into many smaller ones?  It seems as if this one test is testing many things and splitting them up could yield more readable tests.",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df991087_30b34dc1",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-14T19:00:53Z",
+      "side": 1,
+      "message": "This was removed.",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35a388bb_8cac14e0",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-14T19:00:53Z",
+      "side": 1,
+      "message": "Need testutils.SmallTest(t)",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cab40407_d2dd3b7e",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-14T19:00:53Z",
+      "side": 1,
+      "message": "It may be better to get rid of start and have n range from 0 -\u003e len(someStr)\n\nI also notice someStr has no capital letters or numbers.  Intentional?\n\nAnother alternative is to rework this test so a random string is created and encoded.",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b70dca1e_2d5bf735",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-14T19:00:53Z",
+      "side": 1,
+      "message": "testutils.SmallTest(t)",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
