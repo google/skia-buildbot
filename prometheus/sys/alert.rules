@@ -617,3 +617,21 @@ ALERT HighQPSGerritChromeLongTerm
   ANNOTATIONS {
     description = "Long-term QPS to Gerrit (Chromium) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
   }
+
+# Datastore Backup
+
+ALERT Bootloop
+  IF avg_over_time(liveness_backup_step_s[5m]) < 60
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    description = "datastore_backup appears to be in a boot loop. https://skia.googlesource.com/buildbot/%2B/master/ds/PROD.md#boot_loop"
+  }
+
+ALERT BackupNotDone
+  IF liveness_backup_success_s/60/60 > 25
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    description = "A backup of Cloud Datastore hasn't succeeded in the last 25 hours. https://skia.googlesource.com/buildbot/%2B/master/ds/PROD.md#backup_not_done"
+  }
+
+
