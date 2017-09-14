@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9196ffff_17167852",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-14T13:51:39Z",
+      "side": 1,
+      "message": "Nit: The interface should move to the top above the type that implements it and it needs a description.",
+      "revId": "825504039871864ab5ed92657f85a6d3c891c52c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
