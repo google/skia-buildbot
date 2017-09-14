@@ -284,15 +284,14 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		err := "Job ID is required."
-		httputils.ReportError(w, r, fmt.Errorf(err), err)
+		httputils.ReportError(w, r, nil, "Job ID is required.")
 		return
 	}
 
 	job, err := ts.GetJob(id)
 	if err != nil {
 		if err == db.ErrNotFound {
-			http.Error(w, fmt.Sprintf("Unknown Job %q", id), 404)
+			http.Error(w, "Unknown Job", 404)
 			return
 		}
 		httputils.ReportError(w, r, err, "Error retrieving Job.")
@@ -307,15 +306,13 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 func jsonCancelJobHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if !login.IsGoogler(r) {
-		errStr := "Cannot cancel jobs; user is not a logged-in Googler."
-		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
+		httputils.ReportError(w, r, nil, "Cannot cancel jobs; user is not a logged-in Googler.")
 		return
 	}
 
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		err := "Job ID is required."
-		httputils.ReportError(w, r, fmt.Errorf(err), err)
+		httputils.ReportError(w, r, nil, "Job ID is required.")
 		return
 	}
 
@@ -340,8 +337,7 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
-		err := "Job ID is required."
-		httputils.ReportError(w, r, fmt.Errorf(err), err)
+		httputils.ReportError(w, r, nil, "Job ID is required.")
 		return
 	}
 
@@ -354,6 +350,29 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := jobTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
+		return
+	}
+}
+
+func jsonGetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id, ok := mux.Vars(r)["id"]
+	if !ok {
+		httputils.ReportError(w, r, nil, "Task ID is required.")
+		return
+	}
+
+	task, err := ts.GetTask(id)
+	if err != nil {
+		if err == db.ErrNotFound {
+			http.Error(w, "Unknown Task", 404)
+			return
+		}
+		httputils.ReportError(w, r, err, "Error retrieving Job.")
+		return
+	}
+	if err := json.NewEncoder(w).Encode(task); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
 		return
 	}
 }
@@ -453,6 +472,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/jobs/search", jsonJobSearchHandler)
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
+	r.HandleFunc("/json/task/{id}", jsonGetTaskHandler)
 	r.HandleFunc("/json/taskCandidates/search", jsonTaskCandidateSearchHandler)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)

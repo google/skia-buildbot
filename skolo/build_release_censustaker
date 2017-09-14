@@ -1,0 +1,19 @@
+#!/bin/bash
+# Builds and uploads a debian package for censustaker.
+APPNAME=censustaker
+DESCRIPTION="Create a list of bots with switch ports, hostnames and other info"
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=755 -T ${GOPATH}/bin/censustaker     ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ./sys/ansible.cfg             ${ROOT}/usr/local/share/${APPNAME}/ansible.cfg
+${INSTALL} --mode=644 -T ./sys/enumerate_hostnames.yml ${ROOT}/usr/local/share/${APPNAME}/enumerate_hostnames.yml
+${INSTALL} --mode=644 -T ./sys/all-hosts               ${ROOT}/usr/local/share/${APPNAME}/all-hosts
+}
+
+source ../bash/release.sh
