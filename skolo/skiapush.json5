@@ -14,6 +14,7 @@
     },
     "jumphost-rpi-01": {
       "AppNames": [
+        "censustaker",
         "powercycle-rpi-01",
         "prometheus-jumphost-rpi-01",
         "pulld-not-gce",
