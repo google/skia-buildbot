@@ -63,7 +63,7 @@ func DiffServer() *gce.Instance {
 	// DiffServer uses an ephemeral IP address.
 	vm := GoldBase("skia-diffserver-prod", "")
 	delete(vm.Metadata, "auth_white_list")
-	vm.DataDisk.SizeGb = 2000
+	vm.DataDisk.SizeGb = 5000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_32
 	return vm
