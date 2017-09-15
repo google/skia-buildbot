@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d2055fce_6b77a244",
+        "filename": "skolo/go/censustaker/common/bot.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T12:37:22Z",
+      "side": 1,
+      "message": "Why a common package and not a common file ?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 14
+      },
+      "revId": "caf65c4fe5ceb04ae834e5f3b496fb308e397b32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "480ad2a5_140d02f0",
+        "filename": "skolo/go/censustaker/interfaces/edgeswitchinterfaces_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T12:37:22Z",
+      "side": 1,
+      "message": "why can\u0027t this be in a file instead of a separate package ?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 18
+      },
+      "revId": "caf65c4fe5ceb04ae834e5f3b496fb308e397b32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
