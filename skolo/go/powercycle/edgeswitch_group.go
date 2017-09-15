@@ -1,11 +1,15 @@
 package powercycle
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -20,7 +24,12 @@ const (
 // Note: We assume the device is on a trusted network.
 type EdgeSwitchConfig struct {
 	Address    string         `json:"address"` // IP address and port of the device, i.e. 192.168.1.33:22
-	DevPortMap map[string]int `json:"ports"`   // Mapping between device name and port on the power strip.
+	DevPortMap map[string]Bot `json:"bots"`    // Mapping between device name and the bot.
+}
+
+type Bot struct {
+	Address string `json:"address"`
+	Port    int    `json:"port"`
 }
 
 // EdgeSwitchDevGroup implements the DeviceGroup interface.
@@ -48,15 +57,15 @@ func NewEdgeSwitchDevGroup(conf *EdgeSwitchConfig, connect bool) (*EdgeSwitchDev
 	// Build the dev-port mappings. Ensure each device and port occur only once.
 	devIDSet := make(util.StringSet, len(conf.DevPortMap))
 	ret.portDevMap = make(map[int]string, len(conf.DevPortMap))
-	for id, port := range conf.DevPortMap {
+	for id, bot := range conf.DevPortMap {
 		if devIDSet[id] {
 			return nil, fmt.Errorf("Device '%s' occurs more than once.", id)
 		}
-		if _, ok := ret.portDevMap[port]; ok {
-			return nil, fmt.Errorf("Port '%d' specified more than once.", port)
+		if _, ok := ret.portDevMap[bot.Port]; ok {
+			return nil, fmt.Errorf("Port '%d' specified more than once.", bot.Port)
 		}
 		devIDSet[id] = true
-		ret.portDevMap[port] = id
+		ret.portDevMap[bot.Port] = id
 	}
 	ret.devIDs = devIDSet.Keys()
 	sort.Strings(ret.devIDs)
@@ -76,22 +85,66 @@ func (e *EdgeSwitchDevGroup) PowerCycle(devID string, delayOverride time.Duratio
 		delay = delayOverride
 	}
 
-	port, ok := e.conf.DevPortMap[devID]
+	bot, ok := e.conf.DevPortMap[devID]
 	if !ok {
-		return fmt.Errorf("Invalid port: %d", port)
+		return fmt.Errorf("Invalid devID: %s", devID)
+	}
+
+	if ok := SoftPowerCycle(bot.Address); ok {
+		sklog.Infof("Was able to powercycle %s via SSH", bot.Address)
+		return nil
 	}
 
 	// Turn the given port off, wait and then on again.
-	if err := TurnOffPort(e.client, port); err != nil {
+	if err := TurnOffPort(e.client, bot.Port); err != nil {
 		return err
 	}
 
 	time.Sleep(delay)
 
-	if err := TurnOnPort(e.client, port); err != nil {
+	if err := TurnOnPort(e.client, bot.Port); err != nil {
 		return err
 	}
 	return nil
+}
+
+func SoftPowerCycle(address string) bool {
+	key, err := ioutil.ReadFile("/home/chrome-bot/.ssh/id_rsa")
+	if err != nil {
+		sklog.Errorf("unable to read private key: %S", err)
+		return false
+	}
+	signer, err := ssh.ParsePrivateKey(key)
+	if err != nil {
+		sklog.Errorf("unable to parse private key: %s", err)
+		return false
+	}
+	c := &ssh.ClientConfig{
+		User: "chrome-bot",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         5 * time.Second,
+	}
+	client, err := ssh.Dial("tcp", address+":22", c)
+	if err != nil {
+		sklog.Errorf("Failed to dial: %s", err)
+		return false
+	}
+	session, err := client.NewSession()
+	if err != nil {
+		sklog.Errorf("Failed to create session: %s", err)
+		return false
+	}
+	defer session.Close()
+
+	var b bytes.Buffer
+	session.Stdout = &b
+	// This always fails because the command doesn't return after reboot.
+	_ = session.Run("sudo /sbin/reboot")
+	sklog.Infof("Soft reboot should have succeeded.  See logs: %s", b.String())
+	return true
 }
 
 // PowerUsage, see the DeviceGroup interface.
