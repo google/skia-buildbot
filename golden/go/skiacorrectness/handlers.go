@@ -1044,3 +1044,39 @@ func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sendJsonResponse(w, compareResult)
 }
+
+func jsonCTSListHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to get test run results.")
+		return
+	}
+
+	// TODO(stephana): Add real pagination if necessary.
+	offset := 0
+	size := 20
+	list, err := ctsEvaluator.List(offset, size)
+
+	if err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
+
+	sendJsonResponse(w, list)
+}
+
+func jsonCTSRunHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to get test run results.")
+		return
+	}
+
+	id := mux.Vars(r)["id"]
+	result, err := ctsEvaluator.Details(id)
+	if err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
+	sendJsonResponse(w, result)
+}

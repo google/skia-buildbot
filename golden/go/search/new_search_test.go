@@ -6,20 +6,15 @@ import (
 	"fmt"
 	"sort"
 	"testing"
-	"time"
 
 	assert "github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -62,7 +57,7 @@ func BenchmarkNewSearchAPI(b *testing.B) {
 	}
 
 	// Load the storage layer.
-	storages, exp, ixr := getStoragesAndIndexerFromTile(b, localTilePath)
+	storages, exp, ixr := GetStoragesAndIndexerFromTile(b, localTilePath)
 	fmt.Println("Tile loaded.")
 
 	api, err := NewSearchAPI(storages, ixr)
@@ -162,32 +157,4 @@ func getTargetDigests(q *Query, tile *tiling.Tile, exp *expstorage.Expectations)
 	}
 	delete(result, types.MISSING_DIGEST)
 	return result
-}
-
-func getStoragesAndIndexerFromTile(t assert.TestingT, path string) (*storage.Storage, *expstorage.Expectations, *indexer.Indexer) {
-	loadTimer := timer.New("Loading sample tile")
-	sampledState := loadSample(t, path)
-	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sampledState.Tile)
-	eventBus := eventbus.New()
-	expStore := expstorage.NewMemExpectationsStore(eventBus)
-	loadTimer.Stop()
-
-	err := expStore.AddChange(sampledState.Expectations.Tests, "testuser")
-	assert.NoError(t, err)
-
-	storages := &storage.Storage{
-		ExpectationsStore: expStore,
-		MasterTileBuilder: tileBuilder,
-		DigestStore: &mocks.MockDigestStore{
-			FirstSeen: time.Now().Unix(),
-			OkValue:   true,
-		},
-		DiffStore: mocks.NewMockDiffStore(),
-		EventBus:  eventBus,
-	}
-
-	ixr, err := indexer.New(storages, 240*time.Minute)
-	assert.NoError(t, err)
-
-	return storages, sampledState.Expectations, ixr
 }
