@@ -195,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "57102067_b475d253",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T15:27:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fda384f2_2e098c0c",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b70dca1e_2d5bf735",
         "filename": "golden/go/diffstore/mapper_test.go",
         "patchSetId": 11
