@@ -45,6 +45,30 @@
       "revId": "caf65c4fe5ceb04ae834e5f3b496fb308e397b32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e12c662_a3fd0b81",
+        "filename": "skolo/go/censustaker/interfaces/edgeswitchinterfaces_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-15T13:16:40Z",
+      "side": 1,
+      "message": "Just like with common, it very well could just be separate files.  When I first started out, I wasn\u0027t sure how much code I would need, so I split it up, just to be safe.\n\nIf you think it would be better, I can unmorph these simple packages into a bunch of separate files.",
+      "parentUuid": "480ad2a5_140d02f0",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 18
+      },
+      "revId": "caf65c4fe5ceb04ae834e5f3b496fb308e397b32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
