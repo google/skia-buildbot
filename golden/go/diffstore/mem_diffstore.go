@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/validation"
 )
 
 const (
@@ -70,80 +69,15 @@ type DiffStoreMapper interface {
 
 	// ImagePaths returns the storage paths for a given image ID. The first return
 	// value is the local file path used to store the image on disk and serve it
-	// over HTTP. The second return value is the relative path for the image
-	// within GS_bucket/GS_basedir.
-	ImagePaths(imageID string) (string, string)
+	// over HTTP. The second return value is the storage bucket and the third the
+	// path within that bucket.
+	ImagePaths(imageID string) (string, string, string)
 
 	// IsValidDiffImgID returns true if the given diffImgID is in the correct format.
 	IsValidDiffImgID(diffImgID string) bool
 
 	// IsValidImgID returns true if the given imgID is in the correct format.
 	IsValidImgID(imgID string) bool
-}
-
-// GoldIDPathMapper implements the DiffStoreMapper interface. It translates
-// between digests (image ids) and storage paths. It uses diff.DiffMetrics
-// as the Gold diff metric.
-type GoldDiffStoreMapper struct {
-	util.LRUCodec
-}
-
-// NewGoldDiffStoreMapper returns a new instance of GoldDiffStoreMapper that uses
-// a JSON coded to serialize/deserialize instances of diff.DiffMetrics.
-func NewGoldDiffStoreMapper(diffInstance interface{}) DiffStoreMapper {
-	return GoldDiffStoreMapper{LRUCodec: util.JSONCodec(diffInstance)}
-}
-
-// DiffFn implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA) (interface{}, *image.NRGBA) {
-	return diff.DefaultDiffFn(leftImg, rightImg)
-}
-
-// DiffID implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) DiffID(leftImgID, rightImgID string) string {
-	if rightImgID < leftImgID {
-		leftImgID, rightImgID = rightImgID, leftImgID
-	}
-	return leftImgID + ":" + rightImgID
-}
-
-// SplitDiffID implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) SplitDiffID(diffID string) (string, string) {
-	images := strings.Split(diffID, ":")
-	return images[0], images[1]
-}
-
-// SplitDiffID implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) DiffPath(leftImgID, rightImgID string) string {
-	var imageName string
-	if leftImgID < rightImgID {
-		imageName = fmt.Sprintf("%s-%s", leftImgID, rightImgID)
-	} else {
-		imageName = fmt.Sprintf("%s-%s", rightImgID, leftImgID)
-	}
-	imagePath := fmt.Sprintf("%s.%s", imageName, IMG_EXTENSION)
-	return fileutil.TwoLevelRadixPath(imagePath)
-}
-
-// ImagePaths implements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) ImagePaths(imageID string) (string, string) {
-	gsPath := fmt.Sprintf("%s.%s", imageID, IMG_EXTENSION)
-	localPath := fileutil.TwoLevelRadixPath(gsPath)
-	return localPath, gsPath
-}
-
-// IsValidDiffImgIDimplements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) IsValidDiffImgID(diffImgID string) bool {
-	digests := strings.Split(diffImgID, "-")
-	if len(digests) != 2 {
-		return false
-	}
-	return validation.IsValidDigest(digests[0]) && validation.IsValidDigest(digests[1])
-}
-
-// IsValidImgIDimplements the DiffStoreMapper interface.
-func (g GoldDiffStoreMapper) IsValidImgID(imgID string) bool {
-	return validation.IsValidDigest(imgID)
 }
 
 // MemDiffStore implements the diff.DiffStore interface.
@@ -352,6 +286,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 
 		// Trim the image extension to get the image ID.
 		imgID := path[idx+1 : len(path)-len(dotExt)]
+		var localRelPath string
 		if dir == DEFAULT_IMG_DIR_NAME {
 			// Validate the requested image ID.
 			if !m.mapper.IsValidImgID(imgID) {
@@ -367,17 +302,19 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 					return
 				}
 			}
+			localRelPath, _, _ = m.mapper.ImagePaths(imgID)
 		} else {
 			// Validate the requested diff image ID.
 			if !m.mapper.IsValidDiffImgID(imgID) {
 				http.NotFound(w, r)
 				return
 			}
+
+			localRelPath = m.mapper.DiffPath(m.mapper.SplitDiffID(imgID))
 		}
 
 		// Rewrite the path to include the mapper's custom local path construction
 		// format.
-		localRelPath, _ := m.mapper.ImagePaths(imgID)
 		r.URL.Path = filepath.Join(dir, localRelPath)
 
 		// Cache images for 12 hours.

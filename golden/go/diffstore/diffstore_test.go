@@ -25,13 +25,6 @@ import (
 const (
 	TEST_N_DIGESTS = 20
 
-	// Test digests for GoldIDPathMapper.
-	TEST_GOLD_LEFT  = "098f6bcd4621d373cade4e832627b4f6"
-	TEST_GOLD_RIGHT = "1660f0783f4076284bc18c5f4bdc9608"
-
-	// PNG extension.
-	DOT_EXT = ".png"
-
 	// Prefix for the image url handler.
 	IMAGE_URL_PREFIX = "/img/"
 )
@@ -201,17 +194,24 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	ti.Stop()
 	memDiffStore.sync()
 	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
+
+	// Diff against an arbitrary GCS location.
+	gcsImgID := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
+	foundDiffs = map[string]map[string]interface{}{}
+	for _, oneDigest := range digests {
+		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, []string{gcsImgID})
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(found))
+		foundDiffs[oneDigest] = found
+	}
+	testDiffs(t, baseDir, memDiffStore, digests, []string{gcsImgID}, foundDiffs)
 }
 
 func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]interface{}) {
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {
 			if left != right {
-				l, r := left, right
-				if r > l {
-					l, r = r, l
-				}
-				_, ok := result[l][r]
+				_, ok := result[left][right]
 				assert.True(t, ok, fmt.Sprintf("left: %s, right:%s", left, right))
 				diffPath := diffStore.mapper.DiffPath(left, right)
 				assert.True(t, fileutil.FileExists(filepath.Join(diffStore.localDiffDir, diffPath)), fmt.Sprintf("Could not find %s", diffPath))
@@ -220,74 +220,9 @@ func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigest
 	}
 }
 
-func TestGoldDiffStoreMapper(t *testing.T) {
-	testutils.SmallTest(t)
-
-	mapper := GoldDiffStoreMapper{}
-
-	// Test DiffID and SplitDiffID
-	expectedDiffID := TEST_GOLD_LEFT + ":" + TEST_GOLD_RIGHT
-	actualDiffID := mapper.DiffID(TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
-	actualLeft, actualRight := mapper.SplitDiffID(expectedDiffID)
-	assert.Equal(t, expectedDiffID, actualDiffID)
-	assert.Equal(t, TEST_GOLD_LEFT, actualLeft)
-	assert.Equal(t, TEST_GOLD_RIGHT, actualRight)
-
-	// Test DiffPath
-	twoLevelRadix := TEST_GOLD_LEFT[0:2] + "/" + TEST_GOLD_LEFT[2:4] + "/"
-	expectedDiffPath := twoLevelRadix + TEST_GOLD_LEFT + "-" +
-		TEST_GOLD_RIGHT + DOT_EXT
-	actualDiffPath := mapper.DiffPath(TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
-	assert.Equal(t, expectedDiffPath, actualDiffPath)
-
-	// Test ImagePaths
-	expectedLocalPath := twoLevelRadix + TEST_GOLD_LEFT + DOT_EXT
-	expectedGSPath := TEST_GOLD_LEFT + DOT_EXT
-	localPath, gsPath := mapper.ImagePaths(TEST_GOLD_LEFT)
-	assert.Equal(t, expectedLocalPath, localPath)
-	assert.Equal(t, expectedGSPath, gsPath)
-
-	// Test IsValidDiffImgID
-	// Trim the two level radix path and image extension first
-	expectedDiffImgID := expectedDiffPath[len(twoLevelRadix) : len(expectedDiffPath)-len(DOT_EXT)]
-	assert.True(t, mapper.IsValidDiffImgID(expectedDiffImgID))
-
-	// Test IsValidImgID
-	assert.True(t, mapper.IsValidImgID(TEST_GOLD_LEFT))
-	assert.True(t, mapper.IsValidImgID(TEST_GOLD_RIGHT))
-}
-
 type DummyDiffMetrics struct {
 	NumDiffPixels     int
 	PercentDiffPixels float32
-}
-
-func TestCodec(t *testing.T) {
-	testutils.MediumTest(t)
-
-	baseDir := TEST_DATA_BASE_DIR + "-codec"
-	client, _ := getSetupAndTile(t, baseDir)
-	defer testutils.RemoveAll(t, baseDir)
-
-	// Instantiate a new MemDiffStore with a codec for the test struct defined above.
-	mapper := NewGoldDiffStoreMapper(&DummyDiffMetrics{})
-	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
-	assert.NoError(t, err)
-	memDiffStore := diffStore.(*MemDiffStore)
-
-	diffID := mapper.DiffID(TEST_GOLD_LEFT, TEST_GOLD_RIGHT)
-	diffMetrics := &DummyDiffMetrics{
-		NumDiffPixels:     100,
-		PercentDiffPixels: 0.5,
-	}
-	err = memDiffStore.metricsStore.saveDiffMetrics(diffID, diffMetrics)
-	assert.NoError(t, err)
-
-	// Verify the returned diff metrics object has the same type and same contents
-	// as the object that was saved to the metricsStore.
-	metrics, err := memDiffStore.metricsStore.loadDiffMetrics(diffID)
-	assert.NoError(t, err)
-	assert.Equal(t, diffMetrics, metrics)
 }
 
 type digestsSlice [][]string
