@@ -172,6 +172,12 @@ func (m *metricsStore) fixLegacyRecord(id string) *diff.DiffMetrics {
 
 	// Write the new record to the database in the background.
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				sklog.Errorf("Recovered panic for id(%s): %s", id, r)
+			}
+		}()
+
 		if err := m.saveDiffMetrics(id, legRec.DiffMetrics); err != nil {
 			sklog.Errorf("Error writing legacy record to DB: %s", err)
 		}
@@ -185,6 +191,12 @@ func (m *metricsStore) fixLegacyRecord(id string) *diff.DiffMetrics {
 // and loads every entry, implicitly forcing a conversion to the new serialization format.
 func (m *metricsStore) convertDatabaseFromLegacy() {
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				sklog.Errorf("Recovered panic: %s", r)
+			}
+		}()
+
 		ids, err := m.listIDs()
 		if err != nil {
 			sklog.Errorf("Unable to get the database ids. Got error: %s", err)
