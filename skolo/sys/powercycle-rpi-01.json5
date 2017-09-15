@@ -18,26 +18,83 @@
   edgeswitch: {
     "edgeswitch.01": {
       address: "192.168.1.41:22",
-      ports: {
-        "skia-rpi-113": 18,
-        "skia-rpi-114": 17,
-        "skia-rpi-115": 12,
-        "skia-rpi-116": 13,
-        "skia-rpi-117": 16,
-        "skia-rpi-118": 15,
-        "skia-rpi-119": 14,
-        "skia-rpi-120": 11,
-        "skia-rpi-121": 10,
-        "skia-rpi-122": 9,
-        "skia-rpi-123": 8,
-        "skia-rpi-124": 7,
-        "skia-rpi-125": 6,
-        "skia-rpi-126": 5,
-        "skia-rpi-127": 4,
-        "skia-rpi-128": 3,
-        "skia-rpi-130": 22,
-        "skia-rpi-131": 23,
-        "skia-rpi-132": 24
+      bots: {
+        "skia-rpi-113": {
+          port: 18,
+          address: "192.168.1.213"
+        },
+        "skia-rpi-114": {
+          port: 17,
+          address: "192.168.1.214"
+        },
+        "skia-rpi-115": {
+          port: 12,
+          address: "192.168.1.215"
+        },
+        "skia-rpi-116": {
+          port: 13,
+          address: "192.168.1.216"
+        },
+        "skia-rpi-117": {
+          port: 16,
+          address: "192.168.1.217"
+        },
+        "skia-rpi-118": {
+          port: 15,
+          address: "192.168.1.218"
+        },
+        "skia-rpi-119": {
+          port: 14,
+          address: "192.168.1.219"
+        },
+        "skia-rpi-120": {
+          port: 11,
+          address: "192.168.1.220"
+        },
+        "skia-rpi-121": {
+          port: 10,
+          address: "192.168.1.221"
+        },
+        "skia-rpi-122": {
+          port: 9,
+          address: "192.168.1.222"
+        },
+        "skia-rpi-123": {
+          port: 8,
+          address: "192.168.1.223"
+        },
+        "skia-rpi-124": {
+          port: 7,
+          address: "192.168.1.224"
+        },
+        "skia-rpi-125": {
+          port: 6,
+          address: "192.168.1.225"
+        },
+        "skia-rpi-126": {
+          port: 5,
+          address: "192.168.1.226"
+        },
+        "skia-i-rpi-127": {
+          port: 4,
+          address: "192.168.1.227"
+        },
+        "skia-i-rpi-128": {
+          port: 3,
+          address: "192.168.1.228"
+        },
+        "skia-rpi-130": {
+          port: 22,
+          address: "192.168.1.230"
+        },
+        "skia-rpi-131": {
+          port: 23,
+          address: "192.168.1.231"
+        },
+        "skia-rpi-132": {
+          port: 24,
+          address: "192.168.1.232"
+        }
       }
     }
   },

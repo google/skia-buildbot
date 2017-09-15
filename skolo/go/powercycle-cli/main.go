@@ -69,7 +69,7 @@ func main() {
 		}
 		// Give the human user a chance to stop it safely.
 		sklog.Infof("Will autofix %q in 5 seconds.", args)
-		sklog.Info("Use Ctrl+C to cancel if this is unwanted/wroasdfsdfsdng.")
+		sklog.Info("Use Ctrl+C to cancel if this is unwanted/wrong.")
 		time.Sleep(5 * time.Second)
 	}
 
