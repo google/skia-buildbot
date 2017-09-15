@@ -22,4 +22,12 @@
      "mimetype": "application/json",
      "responsetest":"skfiddleJSONGood"
    },
+   "skfiddle_compile_secvio": {
+     "urls": ["https://fiddle.skia.org/_/run"],
+     "method": "POST",
+     "expected": [200],
+     "body": "{\"code\":\"void draw(SkCanvas* canvas) {fopen(\\\"/etc/passwd\\\", \\\"rw\\\");}\",\"options\":{\"width\":10,\"height\":10}}",
+     "mimetype": "application/json",
+     "responsetest":"skfiddleJSONSecViolation"
+   },
 }
