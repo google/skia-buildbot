@@ -3,6 +3,7 @@ package diffstore
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/boltutil"
@@ -34,6 +35,10 @@ type metricsStore struct {
 
 	// codec is used to encode/decode the DiffMetrics field of a metricsRec struct
 	codec util.LRUCodec
+
+	// TODO(stephana): Remove mapper field once we don't need the legacy code anymore.
+	// mapper is an instance of DiffStoreMapper.
+	mapper DiffStoreMapper
 }
 
 // metricsRec implements the boltutil.Record interface.
@@ -54,8 +59,8 @@ func (m *metricsRec) IndexValues() map[string][]string {
 }
 
 // newMetricsStore returns a new instance of metricsStore.
-func newMetricsStore(baseDir string, splitFn func(string) (string, string), codec util.LRUCodec) (*metricsStore, error) {
-	metricsRecSplitFn = splitFn
+func newMetricsStore(baseDir string, mapper DiffStoreMapper, codec util.LRUCodec) (*metricsStore, error) {
+	metricsRecSplitFn = mapper.SplitDiffID
 
 	db, err := openBoltDB(baseDir, METRICSDB_NAME+".db")
 	if err != nil {
@@ -75,8 +80,9 @@ func newMetricsStore(baseDir string, splitFn func(string) (string, string), code
 	}
 
 	return &metricsStore{
-		store: store,
-		codec: codec,
+		store:  store,
+		codec:  codec,
+		mapper: mapper,
 	}, nil
 }
 
@@ -94,7 +100,7 @@ func (m *metricsStore) loadDiffMetrics(id string) (interface{}, error) {
 	// TODO(stephana): Remove the database guard below when we don't need it anymore.
 	// get the record and check if it's a legacy entry.
 	rec := recs[0].(*metricsRec)
-	if len(rec.DiffMetrics) == 0 {
+	if (len(rec.DiffMetrics) == 0) || strings.Contains(id, ":") {
 		if diffMetrics := m.fixLegacyRecord(id); diffMetrics != nil {
 			return diffMetrics, nil
 		}
@@ -151,40 +157,77 @@ type legacyMetricsRec struct {
 }
 
 func (m *metricsStore) fixLegacyRecord(id string) *diff.DiffMetrics {
-	// Read the bytes from the db.
-	contentBytes, err := m.store.ReadRaw(id)
-	if err != nil {
-		sklog.Errorf("Error reading raw legacy record: %s", err)
-		return nil
+	// Address the case with the old separator.
+	var newRec *diff.DiffMetrics = nil
+	if strings.Contains(id, ":") {
+		recs, err := m.store.Read([]string{id})
+		if err != nil {
+			sklog.Errorf("Error reading legacy record: %s", err)
+			return nil
+		}
+
+		if recs[0].(*metricsRec).DiffMetrics != nil {
+			diffMetrics, err := m.codec.Decode(recs[0].(*metricsRec).DiffMetrics)
+			if err != nil {
+				sklog.Errorf("Error decoding diffMetrics rec: %s", err)
+				return nil
+			}
+
+			newRec = diffMetrics.(*diff.DiffMetrics)
+		}
 	}
 
-	legRec := legacyMetricsRec{}
-	if err := json.Unmarshal(contentBytes, &legRec); err != nil {
-		sklog.Errorf("Unable to decode legacy error: %s", err)
-		return nil
-	}
+	if newRec == nil {
+		// Read the bytes from the db.
+		contentBytes, err := m.store.ReadRaw(id)
+		if err != nil {
+			sklog.Errorf("Error reading raw legacy record: %s", err)
+			return nil
+		}
 
-	// Use simple heuristic to figure whether we have a record.
-	if len(legRec.DiffMetrics.MaxRGBADiffs) != 4 {
-		sklog.Errorf("Did not get a valid legacy diff metrics record.")
-		return nil
+		legRec := legacyMetricsRec{}
+		if err := json.Unmarshal(contentBytes, &legRec); err != nil {
+			sklog.Errorf("Unable to decode legacy error: %s", err)
+			return nil
+		}
+
+		// Use simple heuristic to figure whether we have a record.
+		if len(legRec.DiffMetrics.MaxRGBADiffs) != 4 {
+			sklog.Errorf("Did not get a valid legacy diff metrics record.")
+			return nil
+		}
+		newRec = legRec.DiffMetrics
 	}
+	// Regenerate the diffID to filter out the old format.
+	id = m.mapper.DiffID(m.mapper.SplitDiffID(id))
 
 	// Write the new record to the database in the background.
 	go func() {
-		if err := m.saveDiffMetrics(id, legRec.DiffMetrics); err != nil {
+		defer func() {
+			if r := recover(); r != nil {
+				sklog.Errorf("Recovered panic for id(%s): %s", id, r)
+			}
+		}()
+
+		if err := m.saveDiffMetrics(id, newRec); err != nil {
 			sklog.Errorf("Error writing legacy record to DB: %s", err)
 		}
 		sklog.Infof("Legacy database record (%s) written to the database.", id)
 	}()
 
-	return legRec.DiffMetrics
+	return newRec
 }
 
 // convertDatabaseFromLegacy iterates over the entire database in the background
 // and loads every entry, implicitly forcing a conversion to the new serialization format.
 func (m *metricsStore) convertDatabaseFromLegacy() {
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				sklog.Errorf("Recovered panic: %s", r)
+			}
+		}()
+
 		ids, err := m.listIDs()
 		if err != nil {
 			sklog.Errorf("Unable to get the database ids. Got error: %s", err)
