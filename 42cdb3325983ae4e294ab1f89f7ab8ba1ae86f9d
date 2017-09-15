@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "07440017_e5ffec8b",
+        "filename": "golden/go/diffstore/diffstore_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T13:48:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1304ad1e_685b8b92",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58bd7757_702cce32",
         "filename": "golden/go/diffstore/mapper_test.go",
         "patchSetId": 11
@@ -30,6 +48,24 @@
       "writtenOn": "2017-09-14T19:00:53Z",
       "side": 1,
       "message": "Would it be better to split this unit test into many smaller ones?  It seems as if this one test is testing many things and splitting them up could yield more readable tests.",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7a5ae17_1784aa2d",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T13:48:56Z",
+      "side": 1,
+      "message": "Done. I split it into a test for GoldDiffStoreMapper in general and the newly added support for GCS locations.",
+      "parentUuid": "58bd7757_702cce32",
       "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "6c832ecc_860a4673",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T13:48:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "df991087_30b34dc1",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "35a388bb_8cac14e0",
         "filename": "golden/go/diffstore/mapper_test.go",
         "patchSetId": 11
@@ -67,6 +121,24 @@
       "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49237141_7a8e7212",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T13:48:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "35a388bb_8cac14e0",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "fd3d5053_291be46a",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T13:48:56Z",
+      "side": 1,
+      "message": "I replaced the string with a randomly generated string drawing from this alphabet:\n\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/:+%\"\n\nThe point I wanted to test was that it could encode different length strings correctly. \nGenerating random string was more involved than this approach.",
+      "parentUuid": "cab40407_d2dd3b7e",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b70dca1e_2d5bf735",
         "filename": "golden/go/diffstore/mapper_test.go",
         "patchSetId": 11
@@ -101,6 +191,24 @@
       "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3b34c80_149ffddf",
+        "filename": "golden/go/diffstore/mapper_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-15T13:48:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b70dca1e_2d5bf735",
+      "revId": "42cdb3325983ae4e294ab1f89f7ab8ba1ae86f9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
