@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -29,6 +30,7 @@ import (
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -118,6 +120,7 @@ var (
 	maybeSecViolations  = metrics2.GetCounter("maybe_sec_container_violation", nil)
 	runs                = metrics2.GetCounter("runs", nil)
 	tryNamedLiveness    = metrics2.NewLiveness("try_named")
+	smiLiveness         = metrics2.NewLiveness("smi")
 
 	build        *buildskia.ContinuousBuilder
 	fiddleStore  *store.Store
@@ -571,6 +574,33 @@ func StartTryNamed() {
 	}()
 }
 
+func smi() {
+	output := &bytes.Buffer{}
+	runCmd := &exec.Command{
+		Name:      "nvidia-smi",
+		LogStderr: true,
+		LogStdout: true,
+		Stdout:    output,
+	}
+	defer metrics2.FuncTimer().Stop()
+	if err := exec.Run(runCmd); err != nil {
+		sklog.Errorf("nvidia-smi failed %#v: %s", *runCmd, err)
+	}
+	sklog.Infof("nvidia-smi output: %s", output.String())
+	smiLiveness.Reset()
+}
+
+// StartSMI starts a Go routine that periodically runs 'nvidia-smi' which seems
+// to knock the GPU back into a running state.
+func StartSMI() {
+	go func() {
+		smi()
+		for range time.Tick(5 * time.Minute) {
+			smi()
+		}
+	}()
+}
+
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
@@ -612,6 +642,7 @@ func main() {
 	if *tryNamed {
 		StartTryNamed()
 	}
+	StartSMI()
 
 	go func() {
 		sklog.Fatal(http.ListenAndServe("localhost:6060", nil))
