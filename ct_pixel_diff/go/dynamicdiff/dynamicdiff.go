@@ -71,14 +71,14 @@ func (p PixelDiffStoreMapper) DiffPath(leftImgID, rightImgID string) string {
 }
 
 // ImagePaths implements the diffstore.DiffStoreMapper interface.
-func (p PixelDiffStoreMapper) ImagePaths(imageID string) (string, string) {
+func (p PixelDiffStoreMapper) ImagePaths(imageID string) (string, string, string) {
 	localPath := fmt.Sprintf("%s.%s", imageID, diffstore.IMG_EXTENSION)
 	path := strings.Split(imageID, "/")
 	runID := strings.Split(path[0], "-")
 	timeStamp := runID[1]
 	datePath := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8], timeStamp[8:10])
 	gsPath := filepath.Join(datePath, localPath)
-	return localPath, gsPath
+	return localPath, "", gsPath
 }
 
 // IsValidDiffImgID implements the diffstore.DiffStoreMapper interface.

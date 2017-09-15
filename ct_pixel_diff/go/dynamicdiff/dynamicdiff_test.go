@@ -109,9 +109,10 @@ func TestPixelDiffStoreMapper(t *testing.T) {
 	// YYYY/MM/DD/HH directories
 	datePath := filepath.Join(timeStamp[0:4], timeStamp[4:6], timeStamp[6:8], timeStamp[8:10])
 	expectedGSPath := filepath.Join(datePath, expectedLocalPath)
-	localPath, gsPath := mapper.ImagePaths(TEST_PIXEL_DIFF_LEFT)
+	localPath, gsBucket, gsPath := mapper.ImagePaths(TEST_PIXEL_DIFF_LEFT)
 	assert.Equal(t, expectedLocalPath, localPath)
 	assert.Equal(t, expectedGSPath, gsPath)
+	assert.Equal(t, "", gsBucket)
 
 	// Test IsValidDiffImgID
 	// Trim the image extension first
