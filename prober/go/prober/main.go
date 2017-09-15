@@ -37,10 +37,11 @@ var (
 var (
 	// responseTesters is a mapping of names to functions that test response bodies.
 	responseTesters = map[string]types.ResponseTester{
-		"nonZeroContentLength": nonZeroContentLength,
-		"skfiddleJSONBad":      skfiddleJSONBad,
-		"skfiddleJSONGood":     skfiddleJSONGood,
-		"validJSON":            validJSON,
+		"nonZeroContentLength":     nonZeroContentLength,
+		"skfiddleJSONBad":          skfiddleJSONBad,
+		"skfiddleJSONGood":         skfiddleJSONGood,
+		"skfiddleJSONSecViolation": skfiddleJSONSecViolation,
+		"validJSON":                validJSON,
 	}
 )
 
@@ -105,6 +106,21 @@ func validJSON(r io.Reader, headers http.Header) bool {
 
 type skfiddleResp struct {
 	CompileErrors []interface{} `json:"compile_errors"`
+	RuntimeError  string        `json:"runtime_error"`
+}
+
+// skfiddleJSONSecViolation tests that the compile failed with a runtime error (which includes security violations).
+func skfiddleJSONSecViolation(r io.Reader, headers http.Header) bool {
+	dec := json5.NewDecoder(r)
+	s := skfiddleResp{
+		CompileErrors: []interface{}{},
+	}
+	if err := dec.Decode(&s); err != nil {
+		sklog.Warningf("Failed to decode skfiddle JSON: %#v %s", s, err)
+		return false
+	}
+	sklog.Infof("%#v", s)
+	return s.RuntimeError != ""
 }
 
 // skfiddleJSONGood tests that the compile completed w/o error.
@@ -118,7 +134,7 @@ func skfiddleJSONGood(r io.Reader, headers http.Header) bool {
 		return false
 	}
 	sklog.Infof("%#v", s)
-	return len(s.CompileErrors) == 0
+	return len(s.CompileErrors) == 0 && s.RuntimeError == ""
 }
 
 // skfiddleJSONBad tests that the compile completed w/error.
