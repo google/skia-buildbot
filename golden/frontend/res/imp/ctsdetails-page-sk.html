@@ -1,0 +1,83 @@
+<!-- The <ctsdetails-page-sk> custom element declaration.
+
+  An element to display the details from a single skia CTS run.
+
+  Attributes:
+    None
+
+  Methods:
+    pageSelected: This function has to be called if the page is selected by the router.
+    pageDeselected: This function has to be called if the page is deselected by the router.
+
+  Events:
+    None
+
+  Mailboxes:
+    None
+
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="cts-device-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="ctsdetails-page-sk">
+  <template>
+    <style include="shared-styles" clas>
+    </style>
+
+    <activity-sk id="activityCTSDetails" busy="{{_hideAll}}"></activity-sk>
+    <div class="detailContainer" hidden$="[[_hideAll]]">
+      <!-- HEADER -->
+      <template is="dom-repeat" items="{{_devices}}">
+        <cts-device-sk device="[[item]]"></cts-device-sk>
+      </template>
+    </div>
+    <zoom-dialog-sk></zoom-dialog-sk>
+  </template>
+
+  <script>
+    Polymer({
+      is: "ctsdetails-page-sk",
+
+      properties: {
+        _id: {
+          type: String,
+          value: ""
+        },
+        _data: {
+          type: Object,
+          value: function() { return {}; }
+        }
+      },
+
+      behaviors: [gold.ZoomTargetBehavior],
+
+      ready: function() {
+        this.listen(this, 'zoom-clicked', '_handleZoomClicked');
+      },
+
+      pageSelected: function(ctx) {
+        debugger;
+        this.set('_id', ctx.params.id);
+        this._load();
+      },
+
+      pageDeselected: function() {},
+
+      _load: function() {
+        this.$.activityCTSDetails.startSpinner("Loading ...");
+        var url = '/json/ctsresult/' + this._id;
+        sk.get(url).then(JSON.parse).then(function (json) {
+          this.set('_data', json);
+          this.$.activityCTSDetails.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+          this.$.activityCTSDetails.stopSpinner();
+        }.bind(this));
+      }
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,193 @@
+<!-- The <cts-device-sk> custom element declaration.
+
+  Displays the details about a CTS devices.
+
+  Attributes:
+    * device: Device info about one run.
+
+  Events:
+
+  Methods:
+-->
+
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../common/imp/paramset.html">
+<link rel="import" href="../common/imp/triage-sk.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="cts-device-sk">
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
+      /* circle.status0 {
+        fill:   #000000;
+        stroke: #000000;
+      }
+
+      dot-legend-sk {
+        margin-left: 5em;
+        margin-bottom: 2em;
+      }
+
+      dots-sk {
+        display: block;
+      }
+
+      .more {
+        margin-left: 3em;
+      }
+
+      .preview {
+        margin: 5px;
+        border: solid 2px lightgray;
+        display: block;
+        width: 132px;
+        height: 132px;
+      }
+
+      .preview img {
+        display: block;
+        max-width: 128px;
+        max-height: 128px;
+        width: auto;
+        height: auto;
+
+      }
+
+      .hidden * {
+        display: none;
+      }
+
+      .triageInfo,
+      .triageInfo div {
+        padding: 0.5em;
+      }
+      .untriagedImage svg {
+        margin: auto;
+      }
+
+      .digestDetailImages {
+        margin-right: 1.5em;
+      }
+
+      #warning {
+        font-weight: bold;
+        width: 5em;
+        padding: 1em;
+        color: #E7298A;
+      }
+
+      #paramsets {
+        max-width: 40em;
+        padding-left: 1em;
+        padding-right: 1em;
+      }
+
+      .noCompare {
+        padding-right: 1em;
+      }
+
+      .dotInfo {
+        display: block;
+        border: 1px solid #eeeeee;
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 1em;
+        padding: 1em;
+      }
+
+      .leftCol {
+        margin-right: 3em;
+      }
+
+      .testHeader {
+        font-size: 16px;
+        font-weight: bold;
+        margin-left: 0.5em;
+        margin-bottom: 0.5em;
+        white-space: nowrap;
+      }
+
+      #zoomButton {
+        margin-top: .5em;
+      }
+
+      .metricHead {
+        min-width: 12em;
+      } */
+
+    </style>
+    <div class="vertical layout" hidden$="[[!device]]">
+      <div class="horizontal layout">
+        <span>[[_deviceStatus]] - [[device.name]]([[device.id]]) - version [[device.versionID]] -  [[device.brand]]</span>
+      </div>
+      <div class="vertical layout">
+        <template is="dom-repeat" items="[[device.results]]">
+          <div class="horizontal layout">
+            <span>[[item._passFail]]</span><span>[[item.name]]</span><span>[[item._summary]]</span>
+          </div>
+          <div hidden$="[[_showDiff(item)]]">
+            <digest-details-sk
+              mode="diff"
+              details="[[_getDetailsRec(item)]]"
+              right="[[_item.diff]]"
+              embedded>
+            </digest-details-sk>
+          </div>
+        </template>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'cts-device-sk',
+
+      properties: {
+        device: {
+          type: Object,
+          value: function() { return {}; },
+          observer: "_deviceChanged"
+        },
+
+        _deviceStatus: {
+          type:String,
+          value: ""
+        },
+
+      },
+
+      ready: function () {
+      },
+
+      _deviceChanged: function(newDev, oldDev) {
+        var passed = true;
+        if (newDev.result) {
+          // Preprocess item
+          // // calculate results
+          for(var i=0; i < newDev.result.length; i++) {
+            var r = newDev.result[i];
+            var testPassed = (r.diff.diffs[r.closestMetric] > 0.0);
+            passed = passed && testPassed;
+            r._passFail = testPassed ? 'Pass':'Fail';
+            r._summary = 'diffvalue';
+          }
+        }
+      },
+
+      _showDiff: function(result) {
+
+      },
+
+      _getDetailsRec: function(result) {
+
+      },
+
+      _chooseDiff: function(result) {
+
+      }
+    });
+  </script>
+</dom-module>
