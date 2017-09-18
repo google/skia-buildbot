@@ -164,7 +164,7 @@ func (g *gatherer) update() {
 
 	downBots := []DownBot{}
 	for _, b := range bots {
-		if _, ok := matchingBots[b.BotId]; ok {
+		if unique, ok := matchingBots[b.BotId]; ok && unique {
 			alert := alertMap[b.BotId]
 			if g.decider.ShouldPowercycleBot(b) {
 				downBots = append(downBots, DownBot{
@@ -185,6 +185,10 @@ func (g *gatherer) update() {
 					Silenced:   alert.Silenced,
 				})
 			}
+			// Avoid reporting the same bot down more than once
+			// This happens when GetDownBots returns a dead and quarantined bot.
+			// This assumes that bot ids are unique, even across pools.
+			matchingBots[b.BotId] = false
 		}
 	}
 
