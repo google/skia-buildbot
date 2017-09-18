@@ -17,6 +17,10 @@
           Dir: "dm-json-v1"
         },
         {
+          Bucket: "skia-infra-gm-internal",
+          Dir: "dm-json-v1"
+        },
+        {
           Bucket: "chromium-skia-gm",
           Dir: "dm-json-v1"
         },
@@ -41,6 +45,10 @@
       Sources: [
         {
           Bucket: "skia-infra-gm",
+          Dir: "trybot/dm-json-v1"
+        },
+        {
+          Bucket: "skia-infra-gm-internal",
           Dir: "trybot/dm-json-v1"
         },
         {

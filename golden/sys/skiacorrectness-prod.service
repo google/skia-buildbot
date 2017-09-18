@@ -18,7 +18,6 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --db_host=173.194.104.24  \
     --db_name=skiacorrectness  \
     --redirect_url=https://gold.skia.org/oauth2callback/  \
-    --gs_buckets=skia-infra-gm,chromium-skia-gm   \
     --n_commits=100   \
     --cache_size=20 \
     --resources_dir=/usr/local/share/skiacorrectness/frontend \
