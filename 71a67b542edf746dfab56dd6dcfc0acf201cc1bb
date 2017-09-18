@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5814391_f78eb80d",
+        "filename": "skolo/go/powercycle/edgeswitch_group.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-18T13:04:53Z",
+      "side": 1,
+      "message": "Wasn\u0027t the goal of the other effort to learn the IP addresses automatically ? It looks like now they have to be duplicated in config file.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 1
+      },
+      "revId": "71a67b542edf746dfab56dd6dcfc0acf201cc1bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
