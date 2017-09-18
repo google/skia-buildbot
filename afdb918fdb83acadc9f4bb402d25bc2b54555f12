@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "91b33165_0eba541e",
+        "filename": "skolo/build_release_censustaker",
+        "patchSetId": 11
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-18T14:36:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "841ad5c5_21a027bb",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 0
+      },
+      "revId": "afdb918fdb83acadc9f4bb402d25bc2b54555f12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2c132cc7_6b74a9c1",
         "filename": "skolo/go/censustaker/edgeswitchinterfaces.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "afdb918fdb83acadc9f4bb402d25bc2b54555f12",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bb1e70f_26254aad",
+        "filename": "skolo/go/censustaker/edgeswitchinterfaces.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-18T14:36:22Z",
+      "side": 1,
+      "message": "Ack, as we chatted in person, it would be nice to have an eye on consolidating these in the future.",
+      "parentUuid": "2c132cc7_6b74a9c1",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 1
+      },
+      "revId": "afdb918fdb83acadc9f4bb402d25bc2b54555f12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
