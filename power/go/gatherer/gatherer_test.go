@@ -21,6 +21,7 @@ var cycleTests = map[string]func(t *testing.T, mi, me *skswarming.MockApiClient,
 	"OneMissingBot":       testOneMissingBot,
 	"OneSilencedBot":      testOneSilencedBot,
 	"ThreeMissingDevices": testThreeMissingDevices,
+	"TestDuplicateBots":   testDuplicateBots,
 }
 
 // To cut down on the boilerplate of setting up the various mocks and asserting expectations, we (ab)use Go's ability to have "subtests". This allows us to make our test functions take the mocks as input and for us to assert the expectations after it completes. The asserting of the expectations after the test is why we cannot easily have just a setup function that all the tests call to make the mocks. Additionally, the use of package level variables for the mocks is not thread-safe if tests are run in parallel.
@@ -191,6 +192,39 @@ func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma 
 	assert.Equal(t, "2017-05-04T11:35:00Z", bots[0].Since.Format(time.RFC3339))
 	assert.Equal(t, "2017-05-04T11:49:00Z", bots[1].Since.Format(time.RFC3339))
 	assert.Equal(t, "2017-05-04T10:55:00Z", bots[2].Since.Format(time.RFC3339))
+}
+
+func testDuplicateBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider) {
+	mi.On("ListDownBots", mock.AnythingOfType("string")).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PRIVATE))
+	// ListDownBots will return a dead and quarantined bot twice. We need to dedupe it.
+	b := []*swarming.SwarmingRpcsBotInfo{
+		testdata.MockBotAndId(t, testdata.DEAD_AND_QUARANTINED, "skia-rpi-113"),
+		testdata.MockBotAndId(t, testdata.DEAD_AND_QUARANTINED, "skia-rpi-113"),
+	}
+	me.On("ListDownBots", mock.AnythingOfType("string")).Return(b, nil).Once()
+	// return nothing for rest of the pools
+	me.On("ListDownBots", mock.AnythingOfType("string")).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PUBLIC) - 1)
+
+	ma.On("GetAlerts", mock.AnythingOfType("func(promalertsclient.Alert) bool")).Return([]promalertsclient.Alert{
+		mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-113", 30*time.Minute),
+	}, nil).Once()
+
+	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
+
+	hostMap := map[string]string{
+		"skia-rpi-113": "jumphost-rpi-01",
+	}
+
+	g := NewPollingGatherer(me, mi, ma, md, hostMap, 0).(*gatherer)
+	g.update()
+
+	bots := g.DownBots()
+	assert.Len(t, bots, 1, "There should be 1 bot to reboot.")
+	assert.Equal(t, "skia-rpi-113", bots[0].BotID, "That bot should be skia-rpi-113")
+	assert.Equal(t, "jumphost-rpi-01", bots[0].HostID)
+	assert.Equal(t, STATUS_HOST_MISSING, bots[0].Status)
+	assert.Equal(t, "2017-05-04T11:30:00Z", bots[0].Since.Format(time.RFC3339))
+	assert.False(t, bots[0].Silenced, "Bot should be silenced")
 }
 
 func mockAPIAlert(alertname, bot string, ago time.Duration) promalertsclient.Alert {
