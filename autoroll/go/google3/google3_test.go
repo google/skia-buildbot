@@ -79,7 +79,7 @@ func TestStatus(t *testing.T) {
 	closeIssue(issue1, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(issue1, http.MethodPut))
 
-	assert.NoError(t, a.UpdateStatus(""))
+	assert.NoError(t, a.UpdateStatus("", true))
 	status := a.GetStatus(true)
 	assert.Equal(t, 0, status.NumFailedRolls)
 	assert.Equal(t, 2, status.NumNotRolledCommits)
@@ -101,7 +101,7 @@ func TestStatus(t *testing.T) {
 	assert.NoError(t, a.AddOrUpdateIssue(issue4, http.MethodPost))
 
 	recent := []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}
-	assert.NoError(t, a.UpdateStatus("error message"))
+	assert.NoError(t, a.UpdateStatus("error message", false))
 	status = a.GetStatus(true)
 	assert.Equal(t, 2, status.NumFailedRolls)
 	assert.Equal(t, 2, status.NumNotRolledCommits)
@@ -109,6 +109,11 @@ func TestStatus(t *testing.T) {
 	testutils.AssertDeepEqual(t, issue4, status.CurrentRoll)
 	testutils.AssertDeepEqual(t, issue3, status.LastRoll)
 	testutils.AssertDeepEqual(t, recent, status.Recent)
+
+	// Test preserving error.
+	assert.NoError(t, a.UpdateStatus("", true))
+	status = a.GetStatus(true)
+	assert.Equal(t, "error message", status.Error)
 
 	// Test that sensitive data is cleared.
 	for _, i := range recent {
@@ -138,7 +143,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	issue2 := makeIssue(2, commits[1])
 	closeIssue(issue2, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(issue2, http.MethodPut))
-	assert.NoError(t, a.UpdateStatus(""))
+	assert.NoError(t, a.UpdateStatus("", true))
 	testutils.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.GetStatus(true).Recent)
 
 	// Test adding a two issues without closing the first one.
@@ -146,7 +151,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	assert.NoError(t, a.AddOrUpdateIssue(issue3, http.MethodPost))
 	issue4 := makeIssue(4, commits[2])
 	assert.NoError(t, a.AddOrUpdateIssue(issue4, http.MethodPost))
-	assert.NoError(t, a.UpdateStatus(""))
+	assert.NoError(t, a.UpdateStatus("", true))
 	issue3.Closed = true
 	issue3.Result = autoroll.ROLL_RESULT_FAILURE
 	testutils.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}, a.GetStatus(true).Recent)
@@ -155,7 +160,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	issue5 := makeIssue(5, commits[2])
 	closeIssue(issue5, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(issue5, http.MethodPut))
-	assert.NoError(t, a.UpdateStatus(""))
+	assert.NoError(t, a.UpdateStatus("", true))
 	issue4.Closed = true
 	issue4.Result = autoroll.ROLL_RESULT_FAILURE
 	testutils.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue5, issue4, issue3, issue2, issue1}, a.GetStatus(true).Recent)

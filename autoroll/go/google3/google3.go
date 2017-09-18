@@ -48,6 +48,7 @@ func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*Au
 
 	childRepo, err := git.NewRepo(childRepoUrl, workdir)
 	if err != nil {
+		util.LogErr(recent.Close())
 		return nil, err
 	}
 
@@ -59,7 +60,13 @@ func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*Au
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 
-	if err := a.UpdateStatus(""); err != nil {
+	if err := a.childRepo.Update(); err != nil {
+		util.LogErr(recent.Close())
+		return nil, err
+	}
+
+	if err := a.UpdateStatus("", true); err != nil {
+		util.LogErr(recent.Close())
 		return nil, err
 	}
 	return a, nil
@@ -71,6 +78,13 @@ func (a *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx conte
 		<-ctx.Done()
 		util.LogErr(a.recent.Close())
 	}()
+	go util.RepeatCtx(repoFrequency, ctx, func() {
+		if err := a.childRepo.Update(); err != nil {
+			sklog.Error(err)
+			return
+		}
+		util.LogErr(a.UpdateStatus("", true))
+	})
 }
 
 func (a *AutoRoller) AddHandlers(r *mux.Router) {
@@ -97,8 +111,8 @@ func (a *AutoRoller) GetMiniStatus() *roller.AutoRollMiniStatus {
 	return a.status.GetMini()
 }
 
-// UpdateStatus based on RecentRolls. The errorMsg will be lost after the next update.
-func (a *AutoRoller) UpdateStatus(errorMsg string) error {
+// UpdateStatus based on RecentRolls. errorMsg will be set unless preserveLastError is true.
+func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error {
 	recent := a.recent.GetRecentRolls()
 	numFailures := 0
 	lastSuccessRev := ""
@@ -119,9 +133,6 @@ func (a *AutoRoller) UpdateStatus(errorMsg string) error {
 
 	commitsNotRolled := 0
 	if lastSuccessRev != "" {
-		if err := a.childRepo.Update(); err != nil {
-			return err
-		}
 		headRev, err := a.childRepo.RevParse(a.childBranch)
 		if err != nil {
 			return err
@@ -133,14 +144,17 @@ func (a *AutoRoller) UpdateStatus(errorMsg string) error {
 		commitsNotRolled = len(revs)
 	}
 
-	sklog.Infof("Updating status (%d)", commitsNotRolled)
-	if errorMsg != "" {
+	if preserveLastError {
+		errorMsg = a.status.Get(true, nil).Error
+	} else if errorMsg != "" {
 		var lastRollIssue int64 = 0
 		if lastRoll != nil {
 			lastRollIssue = lastRoll.Issue
 		}
 		sklog.Warningf("Last roll %d; errorMsg: %s", lastRollIssue, errorMsg)
 	}
+
+	sklog.Infof("Updating status (%d)", commitsNotRolled)
 	if err := a.status.Set(&roller.AutoRollStatus{
 		AutoRollMiniStatus: roller.AutoRollMiniStatus{
 			NumFailedRolls:      numFailures,
@@ -324,7 +338,7 @@ func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, err.Error())
 		return
 	}
-	if err := a.UpdateStatus(roll.ErrorMsg); err != nil {
+	if err := a.UpdateStatus(roll.ErrorMsg, false); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set new status.")
 		return
 	}
