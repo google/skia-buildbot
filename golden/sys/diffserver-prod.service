@@ -12,8 +12,9 @@ ExecStart=/usr/local/bin/diffserver-prod \
     --image_port=:8001 \
     --logtostderr \
     --prom_port=":20000" \
-    --gs_buckets=skia-infra-gm,chromium-skia-gm   \
-    --cache_size=20
+    --gs_buckets=skia-infra-gm,skia-infra-gm-internal,chromium-skia-gm \
+    --cache_size=20 \
+    --force_login
 
 Restart=always
 User=default
