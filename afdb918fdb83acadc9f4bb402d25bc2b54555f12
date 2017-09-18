@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "841ad5c5_21a027bb",
+        "filename": "skolo/build_release_censustaker",
+        "patchSetId": 11
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-18T13:45:06Z",
+      "side": 1,
+      "message": "Could this be combined with powercycle-cli? Instead of releasing individual CLIs could we just bundle them into a suite of tools that are installed together. In the long run we might want to prefix the names with e.g. \u0027sk-\u0027 or \u0027skolo-\u0027 so that if we hit tab after the prefix we see instantly what\u0027s available on the bot.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 0
+      },
+      "revId": "afdb918fdb83acadc9f4bb402d25bc2b54555f12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2c132cc7_6b74a9c1",
         "filename": "skolo/go/censustaker/edgeswitchinterfaces.go",
         "patchSetId": 11
