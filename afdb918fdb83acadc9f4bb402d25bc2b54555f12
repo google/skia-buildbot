@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2c132cc7_6b74a9c1",
+        "filename": "skolo/go/censustaker/edgeswitchinterfaces.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-18T13:30:28Z",
+      "side": 1,
+      "message": "The interface here and in ansiblebot don\u0027t really abstract out anything, they seem to primary placeholders to make testing easier. \nThat\u0027s a valid use case, but they should still serve the purpose of an interface and \nabstract away device details. \n\nIMO it\u0027s time to structure this differently, i.e. \n- have a package devices that define interfaces for devices and (maybe) device groups\n- have a package for each device type we have: edgeswitch, arduino, mpower, ansible?\n  This should also support to instantiate devices from a config file \n- have command line programs like powercycle, consensustaker that use the device interface",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 1
+      },
+      "revId": "afdb918fdb83acadc9f4bb402d25bc2b54555f12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
