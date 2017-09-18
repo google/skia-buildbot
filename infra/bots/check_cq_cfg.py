@@ -37,6 +37,9 @@ def main():
   # Ensure that everything in cq.cfg is in tasks.json.
   missing = []
   for b in cfg.verifiers.try_job.buckets:
+    if b.name == 'skia.swarmbucket':
+       # The Presubmit bot does not have to be in tasks.json.
+       continue
     if b.name.startswith('skia'):
       for builder in b.builders:
         if not jobs.get(builder.name):
