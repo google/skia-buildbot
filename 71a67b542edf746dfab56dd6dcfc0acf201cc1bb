@@ -22,6 +22,30 @@
       "revId": "71a67b542edf746dfab56dd6dcfc0acf201cc1bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee133a2d_9487af78",
+        "filename": "skolo/go/powercycle/edgeswitch_group.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-18T13:08:16Z",
+      "side": 1,
+      "message": "Yes, the censustaker learns the ip addresses automatically and would produce this config file.  The method the censustaker uses is far too slow to run before a powercycle - it takes about 2 minutes for the ansible thing to run on the entire subnet.\n\nAn alternative to listing them in the config file would be to have the censustaker spit out a /etc/hosts file and then this logic just uses the hostname.",
+      "parentUuid": "c5814391_f78eb80d",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 1
+      },
+      "revId": "71a67b542edf746dfab56dd6dcfc0acf201cc1bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
