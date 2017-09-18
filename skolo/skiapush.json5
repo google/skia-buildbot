@@ -14,7 +14,7 @@
     },
     "jumphost-rpi-01": {
       "AppNames": [
-        "powercycle-rpi-01",
+        "trooper-tools-rpi-01",
         "prometheus-jumphost-rpi-01",
         "pulld-not-gce",
         "router-backup",
@@ -22,7 +22,7 @@
     },
     "jumphost-linux-01": {
       "AppNames": [
-        "powercycle-linux-01",
+        "trooper-tools-linux-01",
         "prometheus-jumphost-linux-01",
         "pulld-not-gce",
         "router-backup",
