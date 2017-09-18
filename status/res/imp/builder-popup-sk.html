@@ -14,7 +14,6 @@
 
   Properties:
     builder: The details for a builder.
-    buildbot_url_prefix: Prefix of the buildbot URL.
     repo: The name (not the URL) of the repository of the commit.
 
   Note:
@@ -35,14 +34,8 @@
       }
     </style>
     <h3>
-      <a href$="[[_makeBuilderURL(buildbot_url_prefix,builder)]]" target="_blank">[[builder.builder]]</a>
+      <a href$="[[_makeBuilderURL(builder)]]" target="_blank">[[builder.builder]]</a>
     </h3>
-    <table>
-      <tr>
-        <td>Master:</td>
-        <td><a href$="[[_makeBuildMasterURL(buildbot_url_prefix,builder)]]" target="_blank">[[builder.master]]</a></td>
-      </tr>
-    </table>
     <hr/>
     <comments-sk
         comments="{{builder.comments}}"
@@ -62,10 +55,6 @@
       properties: {
         builder: {
           type: Object,
-        },
-        buildbot_url_prefix: {
-          type: String,
-          value: "https://build.chromium.org/p",
         },
         repo: {
           type: String,
@@ -87,17 +76,13 @@
         },
       },
 
-      _makeBuilderURL: function(buildbotUrlPrefix, builder) {
+      _makeBuilderURL: function(builder) {
         if (builder.url) {
           return builder.url;
-        } else {
-          return buildbotUrlPrefix + "builders/"+builder.builder;
         }
+        return "";
       },
 
-      _makeBuildMasterURL: function(buildbotUrlPrefix, builder) {
-        return buildbotUrlPrefix;
-      },
       _makeAddCommentURL: function (builder, repo) {
         return "/json/"+repo+"/builders/"+builder.builder+"/comments";
       },

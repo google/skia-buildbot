@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
-	"sort"
 	"sync"
 	"time"
 
@@ -539,27 +538,15 @@ func (c *BTCache) getLastNCommits(r *repograph.Graph, n int) ([]*vcsinfo.LongCom
 		}
 		commit = p[0]
 	}
-
-	// Now find all commits newer than the current commit.
-	start := commit.Timestamp
-	commits := make([]*repograph.Commit, 0, 2*n)
-	if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
-		if !c.Timestamp.Before(start) {
-			commits = append(commits, c)
-			return true, nil
-		}
-		return false, nil
-	}); err != nil {
+	commits, err := r.GetCommitsNewerThan(commit.Timestamp)
+	if err != nil {
 		return nil, err
 	}
-
-	// Sort the commits by timestamp, most recent first.
-	sort.Sort(repograph.CommitSlice(commits))
 
 	// Return the most-recent N commits.
 	rv := make([]*vcsinfo.LongCommit, 0, len(commits))
 	for _, c := range commits {
-		rv = append(rv, c.LongCommit)
+		rv = append(rv, c)
 		if len(rv) >= n {
 			break
 		}

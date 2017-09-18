@@ -519,7 +519,7 @@
               build.classList.add(build_details[d.commit.hash][d.builder].colorClass);
               build.title = d.builder + ", #"+details.number;
               addIronIcon(d3.select(build), "communication:chat", "tiny", function(){
-                return details.comments.length > 0 &&
+                return details.comments && details.comments.length > 0 &&
                     (build.classList.contains(CLASS_BUILD_SINGLE)
                   || build.classList.contains(CLASS_BUILD_TOP));
               });
@@ -539,7 +539,6 @@
         if (details) {
           var buildInfo = document.createElement("build-popup-sk");
           buildInfo.build = details;
-          buildInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(details, this.logged_in);
           buildInfo.repo = this.repo;
           buildInfo.repo_base = this.repo_base;
           buildInfo.commit_details = this.commits_map;
@@ -555,10 +554,6 @@
         if (builder) {
           var builderInfo = document.createElement("builder-popup-sk");
           builderInfo.builder = this.builders[builder];
-          for (var buildNum in this.builds[builder]) {
-            builderInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(this.builds[builder][buildNum], this.logged_in);
-            break;
-          }
           builderInfo.repo = this.repo;
           this._openDialog(builderInfo);
         }
@@ -585,8 +580,6 @@
         this.$.infoDialog.innerHTML = '';
         this.$.infoDialog.appendChild(child);
         child.show();
-
-        console.log("show");
       },
     });
   })()

@@ -27,19 +27,22 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/franken"
+	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
-	DEFAULT_COMMITS_TO_LOAD = 50
+	DEFAULT_COMMITS_TO_LOAD = 35
+	MAX_COMMITS_TO_LOAD     = 100
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
 
@@ -48,12 +51,11 @@ const (
 )
 
 var (
-	buildCache       *franken.BTCache         = nil
-	buildDb          buildbot.DB              = nil
-	capacityClient   *capacity.CapacityClient = nil
-	capacityTemplate *template.Template       = nil
-	commitsTemplate  *template.Template       = nil
-	tasksPerCommit   *tasksPerCommitCache     = nil
+	buildCache       *franken.BTCache              = nil
+	capacityTemplate *template.Template            = nil
+	commitsTemplate  *template.Template            = nil
+	iCache           *incremental.IncrementalCache = nil
+	tasksPerCommit   *tasksPerCommitCache          = nil
 )
 
 // flags
@@ -110,17 +112,16 @@ func userHasEditRights(r *http.Request) bool {
 	return strings.HasSuffix(login.LoggedInAs(r), "@google.com")
 }
 
-func getIntParam(name string, r *http.Request) (*int, error) {
+func getIntParam(name string, r *http.Request) (*int64, error) {
 	raw, ok := r.URL.Query()[name]
 	if !ok {
 		return nil, nil
 	}
-	v64, err := strconv.ParseInt(raw[0], 10, 32)
+	v, err := strconv.ParseInt(raw[0], 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid integer value for parameter %q", name)
 	}
-	v32 := int(v64)
-	return &v32, nil
+	return &v, nil
 }
 
 // repoUrlToName returns a short repo nickname given a full repo URL.
@@ -168,46 +169,56 @@ func getRepoNames() []string {
 	return repoNames
 }
 
-// commitsJsonHandler writes information about a range of commits into the
-// ResponseWriter. The information takes the form of a JSON-encoded CommitsData
-// object.
-func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("commitsJsonHandler").Stop()
+func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "application/json")
-	commitsToLoad := DEFAULT_COMMITS_TO_LOAD
-	n, err := getIntParam("n", r)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
-		return
-	}
-	if n != nil {
-		commitsToLoad = *n
-	}
-	// Prevent server overload.
-	if commitsToLoad > franken.MAX_COMMITS_TO_LOAD {
-		commitsToLoad = franken.MAX_COMMITS_TO_LOAD
-	}
-	if commitsToLoad < 0 {
-		commitsToLoad = DEFAULT_COMMITS_TO_LOAD
-	}
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}
-	bc, err := buildCache.GetLastN(repoUrl, commitsToLoad, login.IsGoogler(r))
+	from, err := getIntParam("from", r)
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"from\": %s", err))
 		return
 	}
-	rv := struct {
-		*franken.CommitsData
-		TaskSchedulerUrl string `json:"task_scheduler_url"`
-	}{
-		CommitsData:      bc,
-		TaskSchedulerUrl: *taskSchedulerUrl,
+	to, err := getIntParam("to", r)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"to\": %s", err))
+		return
 	}
-	if err := json.NewEncoder(w).Encode(rv); err != nil {
+	n, err := getIntParam("n", r)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"n\": %s", err))
+		return
+	}
+	numCommits := DEFAULT_COMMITS_TO_LOAD
+	if n != nil {
+		numCommits = int(*n)
+		if numCommits > MAX_COMMITS_TO_LOAD {
+			numCommits = MAX_COMMITS_TO_LOAD
+		}
+	}
+	var update *incremental.Update
+	if from != nil {
+		fromTime := time.Unix(0, (*from)*util.MILLIS_TO_NANOS)
+		if to != nil {
+			sklog.Infof("from and to provided")
+			toTime := time.Unix(0, (*to)*util.MILLIS_TO_NANOS)
+			update, err = iCache.GetRange(repoUrl, fromTime, toTime, numCommits)
+		} else {
+			sklog.Infof("from but not to provided")
+			update, err = iCache.Get(repoUrl, fromTime, numCommits)
+		}
+	} else {
+		sklog.Infof("No from time provided")
+		update, err = iCache.GetAll(repoUrl, numCommits)
+	}
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to retrieve updates: %s", err))
+		return
+	}
+	if err := json.NewEncoder(w).Encode(update); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
 		return
 	}
@@ -459,15 +470,6 @@ func capacityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("capacityStatsHandler").Stop()
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(capacityClient.CapacityMetrics()); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
-		return
-	}
-}
-
 // buildProgressHandler returns the number of finished builds at the given
 // commit, compared to that of an older commit.
 func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -531,8 +533,6 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", defaultRedirectHandler)
 	r.HandleFunc("/repo/{repo}", statusHandler)
-	r.HandleFunc("/capacity", capacityHandler)
-	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
@@ -546,9 +546,9 @@ func runServer(serverURL string) {
 	builders.HandleFunc("/comments", addBuilderCommentHandler).Methods("POST")
 	builders.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuilderCommentHandler).Methods("DELETE")
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
-	commits.HandleFunc("/", commitsJsonHandler)
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{commentId:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
+	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
@@ -566,7 +566,7 @@ func main() {
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Unable to get Skia version: %s", err)
 	}
 	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
@@ -584,13 +584,13 @@ func main() {
 	if *testing {
 		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"))
 		if err != nil {
-			sklog.Fatal(err)
+			sklog.Fatalf("Failed to create local task DB: %s", err)
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
 		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl)
 		if err != nil {
-			sklog.Fatal(err)
+			sklog.Fatalf("Failed to create remote task DB: %s", err)
 		}
 	}
 
@@ -599,14 +599,14 @@ func main() {
 	// Check out source code.
 	reposDir := path.Join(*workdir, "repos")
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to create repos dir: %s", err)
 	}
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
 	}
 	repos, err = repograph.NewMap(*repoUrls, reposDir)
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to create repo map: %s", err)
 	}
 	sklog.Info("Checkout complete")
 
@@ -616,15 +616,16 @@ func main() {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
 
-	// Create the build cache.
-	bc, err := franken.NewBTCache(repos, taskDb, *swarmingUrl, *taskSchedulerUrl)
+	// Create the IncrementalCache.
+	w, err := window.New(time.Minute, MAX_COMMITS_TO_LOAD, repos)
 	if err != nil {
-		sklog.Fatalf("Failed to create build cache: %s", err)
+		sklog.Fatalf("Failed to create time window: %s", err)
 	}
-	buildCache = bc
-
-	capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
-	capacityClient.StartLoading(*capacityRecalculateInterval)
+	iCache, err = incremental.NewIncrementalCache(taskDb, w, repos, MAX_COMMITS_TO_LOAD)
+	if err != nil {
+		sklog.Fatalf("Failed to create IncrementalCache: %s", err)
+	}
+	iCache.UpdateLoop(context.Background())
 
 	// Run the server.
 	runServer(serverURL)
