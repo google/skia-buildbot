@@ -46,6 +46,30 @@
       "revId": "71a67b542edf746dfab56dd6dcfc0acf201cc1bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b42cc3bd_7b25f7df",
+        "filename": "skolo/go/powercycle/edgeswitch_group.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-18T19:28:00Z",
+      "side": 1,
+      "message": "That would be better IMO. The hostname is the piece of information that ties everything together. We usually don\u0027t want to restart a specific device but rather the device attached to a  specific host.",
+      "parentUuid": "ee133a2d_9487af78",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 1
+      },
+      "revId": "71a67b542edf746dfab56dd6dcfc0acf201cc1bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
