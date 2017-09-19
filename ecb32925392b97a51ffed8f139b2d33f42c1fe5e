@@ -46,6 +46,30 @@
       "revId": "ecb32925392b97a51ffed8f139b2d33f42c1fe5e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed7b546c_c041930b",
+        "filename": "tracedb/sys/gold.json5",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-19T11:03:56Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "47d403b3_0b560257",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 10
+      },
+      "revId": "ecb32925392b97a51ffed8f139b2d33f42c1fe5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
