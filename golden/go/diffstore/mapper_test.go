@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -62,7 +63,9 @@ func TestGCSSupport(t *testing.T) {
 	// Test for GCS paths.
 	gcsImgID1 := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
 	diffID := mapper.DiffID(gcsImgID1, TEST_GOLD_LEFT)
-	assert.Equal(t, diffID, mapper.DiffID(TEST_GOLD_LEFT, gcsImgID1))
+	diffIDReverse := mapper.DiffID(TEST_GOLD_LEFT, gcsImgID1)
+	assert.Equal(t, diffID, diffIDReverse)
+	assert.True(t, strings.HasPrefix(diffID, GS_PREFIX))
 
 	id1, id2 := mapper.SplitDiffID(diffID)
 	if id1 > id2 {
