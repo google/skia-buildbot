@@ -18,6 +18,12 @@
         "skiacorrectness-pdfium",
       ],
     },
+    "skia-gold-stage": {
+      "AppNames": [
+        "pulld",
+        "skiacorrectness-stage",
+      ],
+    },
     "skia-tracedb": {
       "AppNames": [
         "pulld",
