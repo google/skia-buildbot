@@ -60,11 +60,22 @@ func DiffServer() *gce.Instance {
 	return vm
 }
 
+func DiffServerStage() *gce.Instance {
+	// DiffServer2 uses an ephemeral IP address.
+	vm := GoldBase("skia-diffserver-stage", "")
+	delete(vm.Metadata, "auth_white_list")
+	vm.DataDisk.SizeGb = 5000
+	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
+	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_32
+	return vm
+}
+
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"prod":       Prod(),
-		"pdfium":     Pdfium(),
-		"stage":      Stage(),
-		"diffserver": DiffServer(),
+		"prod":            Prod(),
+		"pdfium":          Pdfium(),
+		"stage":           Stage(),
+		"diffserver":      DiffServer(),
+		"diffserverstage": DiffServerStage(),
 	})
 }
