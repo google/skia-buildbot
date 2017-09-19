@@ -50,14 +50,14 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash, pathToPyFiles string, applyPatches, uploadSingleBuild bool) (string, string, error) {
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
 	// Determine which fetch target to use.
-	var fetchTarget string
-	if targetPlatform == "Android" {
-		fetchTarget = "android"
-	} else if targetPlatform == "Linux" {
-		fetchTarget = "chromium"
-	} else {
-		return "", "", fmt.Errorf("Unrecognized target_platform %s", targetPlatform)
-	}
+	//var fetchTarget string
+	//if targetPlatform == "Android" {
+	//	fetchTarget = "android"
+	//} else if targetPlatform == "Linux" {
+	//	fetchTarget = "chromium"
+	//} else {
+	//	return "", "", fmt.Errorf("Unrecognized target_platform %s", targetPlatform)
+	//}
 	util.MkdirAll(chromiumBuildDir, 0700)
 
 	// Find which Chromium commit hash should be used.
@@ -77,31 +77,31 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 		}
 	}
 
-	// Run chromium sync command using the above commit hashes.
-	// Construct path to the sync_skia_in_chrome python script.
-	syncArgs := []string{
-		filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
-		"--destination=" + chromiumBuildDir,
-		"--fetch_target=" + fetchTarget,
-		"--chrome_revision=" + chromiumHash,
-		"--skia_revision=" + skiaHash,
-	}
-	err = ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil, nil)
-	if err != nil {
-		sklog.Warning("There was an error. Deleting base directory and trying again.")
-		util.RemoveAll(chromiumBuildDir)
-		util.MkdirAll(chromiumBuildDir, 0700)
-		err := ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil,
-			nil)
-		if err != nil {
-			return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
-		}
-	}
+	//// Run chromium sync command using the above commit hashes.
+	//// Construct path to the sync_skia_in_chrome python script.
+	//syncArgs := []string{
+	//	filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
+	//	"--destination=" + chromiumBuildDir,
+	//	"--fetch_target=" + fetchTarget,
+	//	"--chrome_revision=" + chromiumHash,
+	//	"--skia_revision=" + skiaHash,
+	//}
+	//err = ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil, nil)
+	//if err != nil {
+	//	sklog.Warning("There was an error. Deleting base directory and trying again.")
+	//	util.RemoveAll(chromiumBuildDir)
+	//	util.MkdirAll(chromiumBuildDir, 0700)
+	//	err := ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil,
+	//		nil)
+	//	if err != nil {
+	//		return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
+	//	}
+	//}
 
-	// Make sure we are starting from a clean slate.
-	if err := ResetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
-		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
-	}
+	//// Make sure we are starting from a clean slate.
+	//if err := ResetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
+	//	return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
+	//}
 	googleStorageDirName := ChromiumBuildDir(chromiumHash, skiaHash, runID)
 	if applyPatches {
 		if err := applyRepoPatches(filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
@@ -124,7 +124,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 		return "", "", fmt.Errorf("Could not create GCS object: %s", err)
 	}
 	if err := uploadChromiumBuild(filepath.Join(chromiumBuildDir, "src", "out", "Release"), filepath.Join(CHROMIUM_BUILDS_DIR_NAME, googleStorageDirName), targetPlatform, gs); err != nil {
-		return "", "", fmt.Errorf("There was an error uploaded the chromium build dir %s: %s", filepath.Join(chromiumBuildDir, "src", "out", "Release"), err)
+		return "", "", fmt.Errorf("There was an error uploading the chromium build dir %s: %s", filepath.Join(chromiumBuildDir, "src", "out", "Release"), err)
 	}
 
 	// Create and upload another chromium build if the uploadSingleBuild flag is false. This build
@@ -197,10 +197,17 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 		}
 		defer util.Rename(objTmpDir, objDir)
 	}
-	return gs.UploadDir(localUploadDir, gsDir, true)
+
+	zipFilePath := filepath.Join(ChromiumBuildsDir, CHROMIUM_BUILD_ZIP_NAME)
+	defer util.Remove(zipFilePath)
+	if err := util.ZipIt(localUploadDir, zipFilePath); err != nil {
+		return fmt.Errorf("Error when zipping %s to %s: %s", localUploadDir, zipFilePath, err)
+	}
+	return gs.UploadFile(CHROMIUM_BUILD_ZIP_NAME, ChromiumBuildsDir, gsDir)
 }
 
 func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool) error {
+	return nil
 	if err := os.Chdir(filepath.Join(chromiumDir, "src")); err != nil {
 		return fmt.Errorf("Could not chdir to %s/src: %s", chromiumDir, err)
 	}
