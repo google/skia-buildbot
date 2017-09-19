@@ -15,7 +15,7 @@
     "skia-diffserver-stage": {
       "AppNames": [
         "pulld",
-        "diffserver-prod",
+        "diffserver-stage",
       ],
     },
     "skia-gold-pdfium": {
