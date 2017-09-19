@@ -22,6 +22,30 @@
       "revId": "b9c1f725866969f37b6baef665f50acab943b646",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ed4a39e_1580650c",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 3
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-19T19:29:07Z",
+      "side": 1,
+      "message": "Yes. This is actually irrelevant since it\u0027s not used by the bots. I just kept it so stage contains the same URLs as prod.",
+      "parentUuid": "3eee4a64_0cf9c21b",
+      "range": {
+        "startLine": 232,
+        "startChar": 78,
+        "endLine": 232,
+        "endChar": 82
+      },
+      "revId": "b9c1f725866969f37b6baef665f50acab943b646",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
