@@ -48,6 +48,13 @@ func (g GoldDiffStoreMapper) DiffID(leftImgID, rightImgID string) string {
 // SplitDiffID implements the DiffStoreMapper interface.
 func (g GoldDiffStoreMapper) SplitDiffID(diffID string) (string, string) {
 	imageIDs := strings.Split(diffID, DIFF_IMG_SEPARATOR)
+
+	// TODO(stephana): Remove this legacy handling code as soon as it has converted the
+	// database in production.
+	if strings.Contains(diffID, ":") {
+		imageIDs = strings.Split(diffID, ":")
+	}
+
 	return imageIDs[0], imageIDs[1]
 }
 
