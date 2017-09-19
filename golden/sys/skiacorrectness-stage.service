@@ -24,8 +24,8 @@ ExecStart=/usr/local/bin/skiacorrectness-stage  \
     --prom_port=:20001 \
     --hash_file_bucket=skia-infra-gm \
     --hash_file_path=hash_files/gold-stage-hashes.txt \
-    --diff_server_grpc=skia-diffserver-prod:8000 \
-    --diff_server_http=skia-diffserver-prod:8001 \
+    --diff_server_grpc=skia-diffserver-prod2:8000 \
+    --diff_server_http=skia-diffserver-prod2:8001 \
     --force_login
 
 Restart=always
