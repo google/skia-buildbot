@@ -13,6 +13,7 @@ import sys
 import shell_utils
 
 
+# TODO[]: testing presubmit failure
 def IsSKPValid(path_to_skp, path_to_skpinfo):
   """Calls the skpinfo binary to see if the specified SKP is valid."""
   skp_info_cmd = [path_to_skpinfo, '-i', path_to_skp]
