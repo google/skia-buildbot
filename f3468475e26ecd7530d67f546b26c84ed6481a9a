@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54657b3c_524f032b",
+        "filename": "golden/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-19T12:25:33Z",
+      "side": 1,
+      "message": "Are we should we no longer need skia.org here? (just checking)",
+      "range": {
+        "startLine": 35,
+        "startChar": 35,
+        "endLine": 35,
+        "endChar": 45
+      },
+      "revId": "f3468475e26ecd7530d67f546b26c84ed6481a9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b0f2d66_c7ba8a97",
+        "filename": "golden/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-19T12:25:33Z",
+      "side": 1,
+      "message": "I created a new external IP called skia-gold-stage: 35.202.197.94\nCan you use that one instead.\n\nShould I delete the old skia-gold-testinstance IP now?",
+      "range": {
+        "startLine": 48,
+        "startChar": 35,
+        "endLine": 48,
+        "endChar": 50
+      },
+      "revId": "f3468475e26ecd7530d67f546b26c84ed6481a9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
