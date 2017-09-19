@@ -121,7 +121,7 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 		return nil, err
 	}
 
-	mStore, err := newMetricsStore(baseDir, mapper.SplitDiffID, mapper)
+	mStore, err := newMetricsStore(baseDir, mapper, mapper)
 	if err != nil {
 		return nil, err
 	}
