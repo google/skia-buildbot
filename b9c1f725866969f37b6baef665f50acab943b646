@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3eee4a64_0cf9c21b",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 3
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-19T18:58:32Z",
+      "side": 1,
+      "message": "is gold-prod-hashes.txt right? because in the service file you have gold-stage-hashes.txt",
+      "range": {
+        "startLine": 232,
+        "startChar": 78,
+        "endLine": 232,
+        "endChar": 82
+      },
+      "revId": "b9c1f725866969f37b6baef665f50acab943b646",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
