@@ -5,7 +5,6 @@ import (
 	"path"
 	"runtime"
 
-	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -33,14 +32,7 @@ func GoldBase(name, ipAddress string) *gce.Instance {
 func Prod() *gce.Instance {
 	// Below IP has been whitelisted in skiaperf cloud DB.
 	vm := GoldBase("skia-gold-prod", "35.194.17.199")
-	vm.Metadata["auth_white_list"] = `skia.org
-kkinnunen@nvidia.com
-mjk@nvidia.com
-vbuzinov@nvidia.com
-martina.kollarova@intel.com
-this.is.harry.stern@gmail.com
-dvonbeck@gmail.com
-zakerinasab@chromium.org`
+	vm.Metadata["auth_white_list"] = "google.com"
 	return vm
 }
 
@@ -52,11 +44,9 @@ func Pdfium() *gce.Instance {
 	return vm
 }
 
-func Test() *gce.Instance {
-	vm := GoldBase("skia-gold-testinstance", "104.197.226.60")
-	vm.DataDisk.SizeGb = 500
-	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
-	vm.Scopes = append(vm.Scopes, androidbuildinternal.AndroidbuildInternalScope)
+func Stage() *gce.Instance {
+	vm := GoldBase("skia-gold-stage", "35.202.197.94")
+	vm.Metadata["auth_white_list"] = "google.com"
 	return vm
 }
 
@@ -72,9 +62,9 @@ func DiffServer() *gce.Instance {
 
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"prod":         Prod(),
-		"pdfium":       Pdfium(),
-		"testinstance": Test(),
-		"diffserver":   DiffServer(),
+		"prod":       Prod(),
+		"pdfium":     Pdfium(),
+		"stage":      Stage(),
+		"diffserver": DiffServer(),
 	})
 }
