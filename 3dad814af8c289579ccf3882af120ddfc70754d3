@@ -16,6 +16,24 @@
       "revId": "3dad814af8c289579ccf3882af120ddfc70754d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd734295_4e79e790",
+        "filename": "golden/go/diffstore/mapper.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-19T13:35:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "93383be8_798909cb",
+      "revId": "3dad814af8c289579ccf3882af120ddfc70754d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
