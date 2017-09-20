@@ -1,29 +1,31 @@
 <script>
-  window.SkiaBehaviors = window.SkiaBehaviors || {};
-  SkiaBehaviors.StatusPopup = {
-    show: function(){
-      // If we are on a small screen (e.g. mobile), make the popup
-      // take up more space than on a desktop.
-      if (document.documentElement.clientWidth < 600) {
-        this.style["height"] = "70vh";
-        this.style["width"] = "70vw";
-        this.style["top"] = "15vh";
-        this.style["left"] = "15vw";
-      }
-      var popup = this;
-      // Stop propegation of any taps on the popup, so they don't make
-      // it go away
-      popup.addEventListener("tap", function(e){
-        e.stopPropagation();
-      });
-      // If the user taps anywhere else, remove the popup.
-      var hide = function(e){
-        popup.style["display"] = "none";
-        document.body.removeEventListener("tap", hide);
-      };
-      document.body.addEventListener("tap", hide);
-    },
-  };
+  window.SkiaBehaviors = window.SkiaBehaviors || function() {
+    var bh = {};
+    bh.StatusPopup = {
+      show: function() {
+        // If we are on a small screen (e.g. mobile), make the popup
+        // take up more space than on a desktop.
+        if (document.documentElement.clientWidth < 600) {
+          this.style["height"] = "70vh";
+          this.style["width"] = "70vw";
+          this.style["top"] = "15vh";
+          this.style["left"] = "15vw";
+        }
+        // Stop propegation of any taps on the popup, so they don't make
+        // it go away
+        this.addEventListener("tap", function(e){
+          e.stopPropagation();
+        });
+        // If the user taps anywhere else, remove the popup.
+        document.body.addEventListener("tap", this.hide.bind(this));
+      },
+      hide: function() {
+        this.style["display"] = "none";
+        document.body.removeEventListener("tap", this.hide);
+      },
+    };
+    return bh;
+  }();
 </script>
 
 <dom-module id="status-popup">
