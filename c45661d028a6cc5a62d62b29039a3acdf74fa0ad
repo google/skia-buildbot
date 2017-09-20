@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e0732b65_770b979d",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T18:29:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9cc41f0c_dd217f24",
+      "range": {
+        "startLine": 11,
+        "startChar": 56,
+        "endLine": 11,
+        "endChar": 72
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc6edc03_b9c674d6",
         "filename": "go/util/zip.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "aedcd384_a4bd653d",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T18:29:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc6edc03_b9c674d6",
+      "range": {
+        "startLine": 18,
+        "startChar": 3,
+        "endLine": 18,
+        "endChar": 13
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00986ff2_fc509c2b",
         "filename": "go/util/zip.go",
         "patchSetId": 4
@@ -62,6 +110,24 @@
       "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8c56872_56b9cc68",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T18:29:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00986ff2_fc509c2b",
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "30b1b8cf_5d0e7f62",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T18:29:43Z",
+      "side": 1,
+      "message": "I did a crappy job moving things around. Done.",
+      "parentUuid": "a65af1e6_cf9de175",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 3
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "994c8ed3_b389db9e",
         "filename": "go/util/zip.go",
         "patchSetId": 4
@@ -108,6 +198,30 @@
       "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3e11d3d_a1292e03",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T18:29:43Z",
+      "side": 1,
+      "message": "Works for me. Done.",
+      "parentUuid": "994c8ed3_b389db9e",
+      "range": {
+        "startLine": 53,
+        "startChar": 5,
+        "endLine": 53,
+        "endChar": 15
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "790e6386_ddd36add",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T18:29:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a24e229_48b7c958",
+      "range": {
+        "startLine": 116,
+        "startChar": 3,
+        "endLine": 116,
+        "endChar": 13
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "39aaafb9_33531f30",
         "filename": "go/util/zip.go",
         "patchSetId": 4
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "a42809ea_406c1976",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T18:29:43Z",
+      "side": 1,
+      "message": "How about this?",
+      "parentUuid": "39aaafb9_33531f30",
+      "range": {
+        "startLine": 122,
+        "startChar": 1,
+        "endLine": 122,
+        "endChar": 3
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fed20b10_7ddf6d24",
         "filename": "go/util/zip.go",
         "patchSetId": 4
@@ -177,6 +339,30 @@
       "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3db5f6e5_88705c00",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T18:29:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fed20b10_7ddf6d24",
+      "range": {
+        "startLine": 125,
+        "startChar": 2,
+        "endLine": 125,
+        "endChar": 8
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
