@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d59766f_2170a2b9",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "This is a confusing struct.  Add a comment saying what maps to what?",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81b13730_e2c95b8e",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "nit: Add fmt.Errorf(\"\") to add a bit of context to the errors.  It may make diagnosing them easier.",
+      "range": {
+        "startLine": 26,
+        "startChar": 19,
+        "endLine": 26,
+        "endChar": 22
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d377910_4f051f7e",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "Should this be a flag that\u0027s passed in?",
+      "range": {
+        "startLine": 254,
+        "startChar": 19,
+        "endLine": 254,
+        "endChar": 33
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6d3ce82_b2232542",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "I seem to recall max commits used to be 200.  Any reason for the change?",
+      "range": {
+        "startLine": 44,
+        "startChar": 27,
+        "endLine": 44,
+        "endChar": 30
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "597621f5_7a741156",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "TIL: You can put something outside the range of [0, 999999999] in here.",
+      "range": {
+        "startLine": 205,
+        "startChar": 27,
+        "endLine": 205,
+        "endChar": 55
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "29adf352_fb6449ee",
+        "filename": "status/res/imp/builder-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "Tabs vs spaces?",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "844f6d0b_a50d9622",
+        "filename": "status/res/imp/commit-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "Tabs vs spaces?",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8442ca9_4a85ede2",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 531,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "Do you want to fix builder -\u003e taskSpec here or in a different CL?",
+      "range": {
+        "startLine": 531,
+        "startChar": 56,
+        "endLine": 531,
+        "endChar": 63
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ded6def_f58915a3",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 746,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T18:50:20Z",
+      "side": 1,
+      "message": "!build.status",
+      "range": {
+        "startLine": 746,
+        "startChar": 18,
+        "endLine": 746,
+        "endChar": 36
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
