@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0063981f_f7e22875",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "That feels strange but done.",
+      "parentUuid": "2469e169_806a9b8f",
+      "range": {
+        "startLine": 12,
+        "startChar": 11,
+        "endLine": 12,
+        "endChar": 27
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "758a9981_9f373320",
         "filename": "go/util/zip.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-09-20T15:13:03Z",
       "side": 1,
       "message": "nit: if zip has many files, this might eat up memory. (It looks like there is a pool of decompressors, where f.Open() grabs from this pool and rc.Close() releases back to the pool.)\n\nEric has started doing a lispy thing like:\nfunc withZipFileReader(f *zip.File, fn func(rc io.ReadCloser) error) error {\n  rc, err :\u003d f.Open()\n  if err !\u003d nil {\n    return err\n  }\n  if err :\u003d fn(rc); err !\u003d nil {\n    return err\n  }\n  return rc.Close();\n}\n\nOr maybe this would be better:\n\nfunc forZipFile(r *zip.ReadCloser, fn func(f *zip.File, rc io.ReadCloser) error) error {\n  for _, f :\u003d range r.File {\n    rc, err :\u003d f.Open()\n    if err !\u003d nil {\n      return err\n    }\n    if err :\u003d fn(f, rc); err !\u003d nil {\n      return err\n    }\n    if err :\u003d rc.Close(); err !\u003d nil {\n      return err\n    }\n  }\n  return nil\n}",
+      "range": {
+        "startLine": 24,
+        "startChar": 2,
+        "endLine": 24,
+        "endChar": 17
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3a67652_0b230a1a",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "I was hoping not to have to change this function much since it was just copy pasted from repo.go. But maybe that\u0027s ok as long as all tests pass. Done.",
+      "parentUuid": "758a9981_9f373320",
       "range": {
         "startLine": 24,
         "startChar": 2,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "cadd08ac_1e3f3825",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "I think that is OK. I documented it now.",
+      "parentUuid": "a89f9575_3668f463",
+      "range": {
+        "startLine": 28,
+        "startChar": 13,
+        "endLine": 28,
+        "endChar": 24
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "177c99dc_96cdd5de",
         "filename": "go/util/zip.go",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff000f13_11a1ef8a",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "177c99dc_96cdd5de",
+      "range": {
+        "startLine": 36,
+        "startChar": 3,
+        "endLine": 36,
+        "endChar": 17
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "ce250a31_117bb9c5",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e3d8da0_3cf5217b",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 18
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a20bd404_7a884507",
         "filename": "go/util/zip.go",
         "patchSetId": 3
@@ -137,6 +257,30 @@
       "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e28bf6a_b4d563e5",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a20bd404_7a884507",
+      "range": {
+        "startLine": 54,
+        "startChar": 1,
+        "endLine": 54,
+        "endChar": 22
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "b0be141e_47208740",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e3b4d72_fba9bb70",
+      "range": {
+        "startLine": 57,
+        "startChar": 1,
+        "endLine": 57,
+        "endChar": 22
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e4f90901_1cd174d2",
         "filename": "go/util/zip.go",
         "patchSetId": 3
@@ -183,6 +351,30 @@
       "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c4ac575_2563db4f",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Probably will not. Added a comment.",
+      "parentUuid": "e4f90901_1cd174d2",
+      "range": {
+        "startLine": 69,
+        "startChar": 16,
+        "endLine": 69,
+        "endChar": 68
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "0264276f_d3cd1051",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae25a14f_395aa721",
+      "range": {
+        "startLine": 16,
+        "startChar": 8,
+        "endLine": 16,
+        "endChar": 11
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ecad50a7_32091d4c",
         "filename": "go/util/zip_test.go",
         "patchSetId": 3
@@ -229,6 +445,30 @@
       "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70c33ad0_ef3d6a93",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ecad50a7_32091d4c",
+      "range": {
+        "startLine": 19,
+        "startChar": 1,
+        "endLine": 19,
+        "endChar": 9
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "8751729f_783c8c0c",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f9358b42_8d092bdf",
+      "range": {
+        "startLine": 34,
+        "startChar": 7,
+        "endLine": 34,
+        "endChar": 27
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c152c0f_5166866d",
         "filename": "go/util/zip_test.go",
         "patchSetId": 3
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "ae16ca9d_4ae14959",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c152c0f_5166866d",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 18
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2032c4fd_a6b81f98",
         "filename": "go/util/zip_test.go",
         "patchSetId": 3
@@ -298,6 +586,30 @@
       "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c38ec20_9575cda1",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-20T17:22:37Z",
+      "side": 1,
+      "message": "Not sure why I had that. Done.",
+      "parentUuid": "2032c4fd_a6b81f98",
+      "range": {
+        "startLine": 55,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 36
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
