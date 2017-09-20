@@ -1,0 +1,18 @@
+[
+  {
+    "deviceCount": 1, 
+    "failCount": 0, 
+    "id": "testrun-1504793111030", 
+    "metaDataFile": "testruns/2017/09/07/testrun-1504793111030/meta.json", 
+    "passCount": 0, 
+    "ts": 1504793111030
+  }, 
+  {
+    "deviceCount": 1, 
+    "failCount": 0, 
+    "id": "testrun-1504793111030", 
+    "metaDataFile": "testruns/2017/09/07/testrun-1504793111030/meta.json", 
+    "passCount": 0, 
+    "ts": 1504793111030
+  }
+]

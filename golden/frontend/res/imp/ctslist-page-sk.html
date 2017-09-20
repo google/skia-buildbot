@@ -1,0 +1,137 @@
+<!--
+  The <ctslist-page-sk> custom element declaration.
+
+  Attributes:
+    None
+
+  Methods:
+    pageSelected(ctx) - Called by the router when the view becomes visible.
+          ctx is the context provided in the route dispatch of page.js.
+
+    pageDeselected - Called by the router when the view is no longer visible.
+
+  Events:
+    None
+
+  Mailboxes:
+    None
+
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-icons/image-icons.html">
+
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="ctslist-page-sk">
+  <template>
+    <style include="shared-styles">
+        /* .nameHeader,
+        .issueHeader,
+        .dateTimeHeader,
+        .subjectHeader,
+        .patchsetHeader {
+          font-weight: bold;
+        }
+
+        .nameHeader,
+        .nameValue {
+          width: 8em;
+        }
+
+        .dateTimeHeader,
+        .dateTimeValue {
+          width: 12em;
+        }
+
+        .subjectHeader,
+        .subjectValue {
+          min-width: 15em;
+          max-width: 35em;
+        }
+
+        .issueHeader,
+        .issueValue {
+          width: 6em;
+        }
+
+        .patchsetHeader,
+        .patchsetValue {
+          width: 7em;
+        }
+
+        .headerContainer {
+          padding-top: 2em;
+        }
+
+        tr.rowEntry:hover td {background:#DDDDDD} */
+    </style>
+
+    <activity-sk id="activityCTSList" busy="{{_hideAll}}"></activity-sk>
+    <div hidden$="{{_hideAll}}">
+      <table class="headerContainer">
+        <thead>
+          <tr>
+            <td class="issueHeader">Date</td>
+            <td class="patchsetHeader">Id</td>
+            <td class="nameHeader">#Device-Version</td>
+            <td class="dateTimeHeader">#Passed</td>
+            <td class="dateTimeHeader">#Failed</td>
+            <td class="dateTimeHeader">Result</td>
+          </tr>
+          <template is="dom-repeat" items="{{_ctsRunEntries}}">
+            <tr class="rowEntry">
+              <td class="dateValue">[[_humanDate(item.ts)]]</td>
+              <td class="idValue"><a title="See the run details." href$="[[_ctsRunURL(item.id)]]">{{item.id}}</a></td>
+              <td class="countValue">[[item.deviceCount]]</td>
+              <td class="countValue">[[item.failCount]]</td>
+              <td class="countValue">[[item.passCount]]</td>
+              <td class="resultValue">[[_passFailValue(item)]]</td>
+            </tr>
+          </template>
+        </thead>
+      </table>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: "ctslist-page-sk",
+
+      pageSelected: function(ctx) {
+        this._load();
+      },
+
+      pageDeselected: function() {
+        // This function is called by the router in gold-app-sk for all top level views.
+      },
+
+      // Load the listing.
+      _load: function() {
+        this.$.activityCTSList.startSpinner("Loading ...");
+        sk.get("/json/ctsresult").then(JSON.parse).then(function (json) {
+          this._ctsRunEntries = json;
+          this.$.activityCTSList.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+          this.$.activityCTSList.stopSpinner();
+        }.bind(this));
+      },
+
+      _humanDate: function (timeStampMS) {
+        return sk.human.localeTime(new Date(timeStampMS));
+      },
+
+      _ctsRunURL: function(id) {
+        return '/ctsresult/' + id;
+      },
+
+      _passFailValue: function(item) {
+        return (item.deviceCount == item.passCount) ? 'Pass' : 'Fail';
+      }
+    });
+  </script>
+</dom-module>
