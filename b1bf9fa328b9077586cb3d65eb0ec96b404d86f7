@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f60f2cdd_86c70074",
+        "filename": "golden/sys/skiacorrectness-stage.service",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-20T12:07:40Z",
+      "side": 1,
+      "message": "Where does this come from?  Can it be the hostname instead?",
+      "range": {
+        "startLine": 18,
+        "startChar": 14,
+        "endLine": 18,
+        "endChar": 28
+      },
+      "revId": "b1bf9fa328b9077586cb3d65eb0ec96b404d86f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
