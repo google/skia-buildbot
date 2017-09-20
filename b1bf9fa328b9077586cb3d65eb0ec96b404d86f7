@@ -22,6 +22,30 @@
       "revId": "b1bf9fa328b9077586cb3d65eb0ec96b404d86f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f583698_05b278e3",
+        "filename": "golden/sys/skiacorrectness-stage.service",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-20T19:35:19Z",
+      "side": 1,
+      "message": "no, to my knowledge we cannot address sql instances with hostnames.",
+      "parentUuid": "f60f2cdd_86c70074",
+      "range": {
+        "startLine": 18,
+        "startChar": 14,
+        "endLine": 18,
+        "endChar": 28
+      },
+      "revId": "b1bf9fa328b9077586cb3d65eb0ec96b404d86f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
