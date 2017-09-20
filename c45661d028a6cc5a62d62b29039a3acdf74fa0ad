@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9cc41f0c_dd217f24",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T17:56:12Z",
+      "side": 1,
+      "message": "nit: Sorry, this should be io.Reader, since fn should *not* call Close.",
+      "range": {
+        "startLine": 11,
+        "startChar": 56,
+        "endLine": 11,
+        "endChar": 72
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc6edc03_b9c674d6",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T17:56:12Z",
+      "side": 1,
+      "message": "Oops, need Close(rc) here.",
+      "range": {
+        "startLine": 18,
+        "startChar": 3,
+        "endLine": 18,
+        "endChar": 13
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00986ff2_fc509c2b",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T17:56:12Z",
+      "side": 1,
+      "message": "Possibly obvious, but maybe say dest could be partially populated even if this returns an error.",
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a65af1e6_cf9de175",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T17:56:12Z",
+      "side": 1,
+      "message": "???",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 3
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "994c8ed3_b389db9e",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T17:56:12Z",
+      "side": 1,
+      "message": "Close(f)\n\nAlternatively, if you think all the files will fit in memory, this might be simpler:\ncontents, err :\u003d ioutil.ReadAll(rc)\nif err !\u003d nil {\n  return err\n}\nreturn ioutil.WriteFile(path, contents, f.Mode())",
+      "range": {
+        "startLine": 53,
+        "startChar": 5,
+        "endLine": 53,
+        "endChar": 15
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a24e229_48b7c958",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T17:56:12Z",
+      "side": 1,
+      "message": "Close(file)",
+      "range": {
+        "startLine": 116,
+        "startChar": 3,
+        "endLine": 116,
+        "endChar": 13
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39aaafb9_33531f30",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T17:56:12Z",
+      "side": 1,
+      "message": "nit: OK as is, but if filepath.Walk returns an error, it will get lost if archive.Close() or zipfile.Close() returns an error.",
+      "range": {
+        "startLine": 122,
+        "startChar": 1,
+        "endLine": 122,
+        "endChar": 3
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fed20b10_7ddf6d24",
+        "filename": "go/util/zip.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T17:56:12Z",
+      "side": 1,
+      "message": "Close(zipfile)",
+      "range": {
+        "startLine": 125,
+        "startChar": 2,
+        "endLine": 125,
+        "endChar": 8
+      },
+      "revId": "c45661d028a6cc5a62d62b29039a3acdf74fa0ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
