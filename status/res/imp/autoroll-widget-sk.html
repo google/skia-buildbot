@@ -79,7 +79,7 @@
     },
 
     reload: function() {
-      console.log("Loading " + this.name + " AutoRoll data...");
+      console.log("Loading " + this.roller.name + " AutoRoll data...");
       sk.get(this.roller.url + "/json/ministatus").then(JSON.parse).then(function(s) {
         if (!s || s.numFailed === undefined || s.numBehind === undefined || s.mode === undefined) {
           sk.errorMessage("autoroll-widget-sk got an invalid response from the server: " + s);
