@@ -208,6 +208,13 @@ func (gs *GcsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 	if err := gs.downloadRemoteDir(localDir, gsDir); err != nil {
 		return fmt.Errorf("Error downloading %s into %s: %s", gsDir, localDir, err)
 	}
+
+	// Unzip the build.
+	zipFilePath := filepath.Join(localDir, CHROMIUM_BUILD_ZIP_NAME)
+	if err := util.UnZip(localDir, zipFilePath); err != nil {
+		return fmt.Errorf("Error when unzipping %s: %s", zipFilePath, err)
+	}
+
 	// Downloaded chrome binary needs to be set as an executable.
 	util.LogErr(os.Chmod(filepath.Join(localDir, "chrome"), 0777))
 

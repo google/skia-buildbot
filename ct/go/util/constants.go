@@ -30,6 +30,7 @@ const (
 	CHROMIUM_PERF_TASKS_DIR_NAME     = "chromium_perf_runs"
 	CHROMIUM_ANALYSIS_TASKS_DIR_NAME = "chromium_analysis_runs"
 	FIX_ARCHIVE_TASKS_DIR_NAME       = "fix_archive_runs"
+	CHROMIUM_BUILD_ZIP_NAME          = "chromium_build.zip"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4

@@ -124,7 +124,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 		return "", "", fmt.Errorf("Could not create GCS object: %s", err)
 	}
 	if err := uploadChromiumBuild(filepath.Join(chromiumBuildDir, "src", "out", "Release"), filepath.Join(CHROMIUM_BUILDS_DIR_NAME, googleStorageDirName), targetPlatform, gs); err != nil {
-		return "", "", fmt.Errorf("There was an error uploaded the chromium build dir %s: %s", filepath.Join(chromiumBuildDir, "src", "out", "Release"), err)
+		return "", "", fmt.Errorf("There was an error uploading the chromium build dir %s: %s", filepath.Join(chromiumBuildDir, "src", "out", "Release"), err)
 	}
 
 	// Create and upload another chromium build if the uploadSingleBuild flag is false. This build
@@ -197,7 +197,13 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 		}
 		defer util.Rename(objTmpDir, objDir)
 	}
-	return gs.UploadDir(localUploadDir, gsDir, true)
+
+	zipFilePath := filepath.Join(ChromiumBuildsDir, CHROMIUM_BUILD_ZIP_NAME)
+	defer util.Remove(zipFilePath)
+	if err := util.ZipIt(zipFilePath, localUploadDir); err != nil {
+		return fmt.Errorf("Error when zipping %s to %s: %s", localUploadDir, zipFilePath, err)
+	}
+	return gs.UploadFile(CHROMIUM_BUILD_ZIP_NAME, ChromiumBuildsDir, gsDir)
 }
 
 func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool) error {
