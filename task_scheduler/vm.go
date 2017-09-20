@@ -12,7 +12,7 @@ import (
 func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 	// TODO(dogben): Remove SetGitCredsReadWrite when updating to Server20170912 or later.
 	vm := server.SetGitCredsReadWrite(server.Server20170613(name), name)
-	vm.DataDisk.SizeGb = 1000
+	vm.DataDisk.SizeGb = 200
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "borenet"
@@ -28,7 +28,9 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 }
 
 func TaskSchedulerProd() *gce.Instance {
-	return TaskSchedulerBase("skia-task-scheduler", "35.202.175.145" /* Whitelisted in swarming, isolate and buildbucket servers */)
+	vm := TaskSchedulerBase("skia-task-scheduler", "35.202.175.145" /* Whitelisted in swarming, isolate and buildbucket servers */)
+	vm.DataDisk.SizeGb = 500
+	return vm
 }
 
 func TaskSchedulerInternal() *gce.Instance {
