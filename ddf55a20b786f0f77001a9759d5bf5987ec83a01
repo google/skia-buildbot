@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "06bca87b_665371d4",
+        "filename": "status/go/franken/cache.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T20:52:37Z",
+      "side": 0,
+      "message": "Yay!",
+      "revId": "ddf55a20b786f0f77001a9759d5bf5987ec83a01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
