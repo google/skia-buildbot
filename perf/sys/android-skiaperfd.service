@@ -12,7 +12,8 @@ ExecStart=/usr/local/bin/skiaperf  \
     --logtostderr \
     --config_filename=/etc/skiaperf/ingest.json5 \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store \
-    --db_name=android_master_skia \
+    --use_cloud_datastore \
+    --namespace=perf-android \
     --dataframe_size=256 \
     --subdomain=android-perf \
     --default_sparse=true \
