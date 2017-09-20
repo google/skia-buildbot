@@ -234,7 +234,7 @@ server {
 
     # Serve images directly from the diff server.
     location /img/ {
-      proxy_pass http://skia-diffserver-prod:8001;
+      proxy_pass http://skia-diffserver-stage:8001;
       proxy_set_header Host $host;
     }
 
