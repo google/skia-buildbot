@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2469e169_806a9b8f",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "uber-nit: For better or worse, Go tends to have args in the order dest, src, e.g. copy, io.Copy. Same for ZipIt.",
+      "range": {
+        "startLine": 12,
+        "startChar": 11,
+        "endLine": 12,
+        "endChar": 27
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "758a9981_9f373320",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "nit: if zip has many files, this might eat up memory. (It looks like there is a pool of decompressors, where f.Open() grabs from this pool and rc.Close() releases back to the pool.)\n\nEric has started doing a lispy thing like:\nfunc withZipFileReader(f *zip.File, fn func(rc io.ReadCloser) error) error {\n  rc, err :\u003d f.Open()\n  if err !\u003d nil {\n    return err\n  }\n  if err :\u003d fn(rc); err !\u003d nil {\n    return err\n  }\n  return rc.Close();\n}\n\nOr maybe this would be better:\n\nfunc forZipFile(r *zip.ReadCloser, fn func(f *zip.File, rc io.ReadCloser) error) error {\n  for _, f :\u003d range r.File {\n    rc, err :\u003d f.Open()\n    if err !\u003d nil {\n      return err\n    }\n    if err :\u003d fn(f, rc); err !\u003d nil {\n      return err\n    }\n    if err :\u003d rc.Close(); err !\u003d nil {\n      return err\n    }\n  }\n  return nil\n}",
+      "range": {
+        "startLine": 24,
+        "startChar": 2,
+        "endLine": 24,
+        "endChar": 17
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a89f9575_3668f463",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "Is it OK for the dest parent directory to be created with the mode of the first directory in the zip?",
+      "range": {
+        "startLine": 28,
+        "startChar": 13,
+        "endLine": 28,
+        "endChar": 24
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "177c99dc_96cdd5de",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "nit: when writing, we shouldn\u0027t ignore errors from f.Close()",
+      "range": {
+        "startLine": 36,
+        "startChar": 3,
+        "endLine": 36,
+        "endChar": 17
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e3d8da0_3cf5217b",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "nit: if _, err :\u003d io.Copy(f, rc); err !\u003d nil {",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 18
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a20bd404_7a884507",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "nit: when writing we shouldn\u0027t ignore errors from zipfile.Close()",
+      "range": {
+        "startLine": 54,
+        "startChar": 1,
+        "endLine": 54,
+        "endChar": 22
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e3b4d72_fba9bb70",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 57,
+        "startChar": 1,
+        "endLine": 57,
+        "endChar": 22
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4f90901_1cd174d2",
+        "filename": "go/util/zip.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "nit: filepath.Rel\n\nDoes this work reliably when source has symlinks or \"..\"?",
+      "range": {
+        "startLine": 69,
+        "startChar": 16,
+        "endLine": 69,
+        "endChar": 68
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae25a14f_395aa721",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "nit: assert.NoError\n\nseveral instances in this file",
+      "range": {
+        "startLine": 16,
+        "startChar": 8,
+        "endLine": 16,
+        "endChar": 11
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecad50a7_32091d4c",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "nit:\nassert.NoError(t, f.Close())\nreturn f.Name()",
+      "range": {
+        "startLine": 19,
+        "startChar": 1,
+        "endLine": 19,
+        "endChar": 9
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9358b42_8d092bdf",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "nit: testutils.RemoveAll(t, targetDir)\n\nx2",
+      "range": {
+        "startLine": 34,
+        "startChar": 7,
+        "endLine": 34,
+        "endChar": 27
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c152c0f_5166866d",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "Code seems to support empty subdirs. Might be nice to test that.",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 18
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2032c4fd_a6b81f98",
+        "filename": "go/util/zip_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-20T15:13:03Z",
+      "side": 1,
+      "message": "Can never be true, given previous assert.",
+      "range": {
+        "startLine": 55,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 36
+      },
+      "revId": "dfa264661d438c6eb57d1ccc368afd82052ef38e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
