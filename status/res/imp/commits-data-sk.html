@@ -40,8 +40,11 @@
     num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of an issue number that was relanded to the commit that relands it
     reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it
+    swarming_url: String, the URL of the Swarming server.
+    task_scheduler_url: String, the URL of the Task Scheduler.
 
   Methods:
+    forceReload: Force the commits-data-sk to reload its data from the server.
     forceUpdate: Force the commits-data-sk to re-evaluate its data. Useful for
         when Polymer does not automatically trigger updates, eg. for complex objects.
 
@@ -55,28 +58,12 @@
 
 <dom-module id="commits-data-sk">
   <template>
-    <iron-ajax id="data"
-      loading="{{_activeAJAX}}"
-      auto url="{{_computeURL(repo)}}"
-      handle-as="json"
-      params="[[_params]]"
-      timeout="60000"
-      last-response="{{_data}}">
-    </iron-ajax>
-
     <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
   </template>
 
   <script>
     (function() {
     var VALID_BUILDER_CATEGORIES = ["Build", "Housekeeper", "Infra", "Perf", "Test", "Upload"];
-
-    var BUILDBOT_RESULT_SUCCESS = 0;
-    var BUILDBOT_RESULT_WARNINGS = 1;
-    var BUILDBOT_RESULT_FAILURE = 2;
-    var BUILDBOT_RESULT_SKIPPED = 3;
-    var BUILDBOT_RESULT_EXCEPTION = 4;
-    var BUILDBOT_RESULT_CANCELLED = 5;
 
     var FILTER_ALL = "all";
     var FILTER_INTERESTING = "interesting";
@@ -204,40 +191,17 @@
 
     function getBuildColorClass(build) {
       // These styles are from the styles-sk module.
-      if (!build.finished) {
+      if (build.status == "" || build.status == "RUNNING") {
         return "bg-inprogress";
-      } else if (build.results == BUILDBOT_RESULT_SUCCESS ||
-                 build.results == BUILDBOT_RESULT_WARNINGS ||
-                 build.results == BUILDBOT_RESULT_SKIPPED) {
+      } else if (build.status == "SUCCESS") {
         return "bg-success";
-      } else if (build.results == BUILDBOT_RESULT_FAILURE) {
+      } else if (build.status == "FAILURE") {
         return "bg-failure";
-      } else if (build.results == BUILDBOT_RESULT_EXCEPTION ||
-                 build.results == BUILDBOT_RESULT_CANCELLED) {
+      } else if (build.status == "MISHAP") {
         return "bg-exception";
       }
       console.log("Unknown color for build "+build);
       return "bg-inprogress";
-    }
-
-    function maybeSetBuildUrls(build) {
-      for (var i = 0; i < build.properties.length; i++) {
-        if (build.properties[i][0] == "taskURL") {
-          build.url = build.properties[i][1];
-        }
-        if (build.properties[i][0] == "taskRetryURL") {
-          build.retryUrl = build.properties[i][1];
-        }
-        if (build.properties[i][0] == "taskSpecTasklistURL") {
-          build.dashboardBuilderUrl = build.properties[i][1];
-        }
-        if (build.properties[i][0] == "botTasklistURL") {
-          build.dashboardSlaveUrl = build.properties[i][1];
-        }
-        if (build.properties[i][0] == "botDetailURL") {
-          build.slaveHostUrl = build.properties[i][1];
-        }
-      }
     }
 
     Polymer({
@@ -348,6 +312,10 @@
           },
           notify:true,
         },
+        swarming_url: {
+          type: String,
+          notify: true,
+        },
         task_scheduler_url: {
           type: String,
           notify: true,
@@ -369,30 +337,32 @@
           type: Boolean,
           value: false,
         },
-        _params: {
-          type: String,
-          computed: "_getUrlParams(commits_to_load)",
-        },
         _data: {
           type: Object,
           value: function() {
-            return {};
+            return {
+              branch_heads: [],
+              builders: {}, // Comments
+              commitComments: {},
+              commits: [],
+              builds: {},
+              taskComments: {},
+              tasks: {},
+              taskSpecComments: {},
+            };
           },
           observer:"",
+        },
+        _last_load_ts: {
+          type: Number,
+          value: 0,
         },
       },
 
       observers: [
-        "_parseData(_data, roll_statuses.*)",
+        "_reload(repo)",
+        "_processData(_data.*, roll_statuses.*)",
       ],
-
-      _computeURL: function(repo) {
-        return "/json/"+repo+"/commits/";
-      },
-
-      _getUrlParams: function(commits_to_load) {
-        return {"n":commits_to_load};
-      },
 
       _or: function(a,b) {
         return a || b;
@@ -411,31 +381,132 @@
       },
 
       _reload: function() {
-        this.$.data.generateRequest();
+        var url = "/json/" + this.repo + "/incremental";
+        if (this._last_load_ts) {
+          url += "?from=" + this._last_load_ts;
+        }
+        var ts = Date.now();
+        this.set("_activeAJAX", true);
+        sk.get(url).then(JSON.parse).then(function(json) {
+          console.log("Got from server:");
+          console.log(json);
+
+          // Clear out the existing data if necessary.
+          if (json.start_over) {
+            this._data = {
+              branch_heads: [],
+              builders: {}, // Comments
+              commitComments: {},
+              commits: [],
+              builds: {},
+              taskComments: {},
+              tasks: {},
+              taskSpecComments: {},
+            };
+          }
+
+          // Mix the new data into the existing.
+          if (!json.commits) {
+            json.commits = [];
+          }
+          var sliceIdx = this._data.commits.length - json.commits.length;
+          console.log("Have " + this._data.commits.length + " commits; new data contains " + json.commits.length + " commits; sliceIdx=" + sliceIdx);
+          var keep = this._data.commits.slice(0, sliceIdx);
+          var remove = this._data.commits.slice(sliceIdx, this._data.commits.length);
+          this._data.commits = json.commits.concat(keep);
+          console.log("Keeping " + keep.length + " commits, now have " + this._data.commits.length);
+
+          // Replace the branch heads if they've changed.
+          if (json.branch_heads) {
+            this._data.branch_heads = json.branch_heads;
+          }
+
+          // Add new tasks, replace modified ones.
+          if (json.tasks) {
+            for (var i = 0; i < json.tasks.length; i++) {
+              var task = json.tasks[i];
+              this._data.tasks[task.id] = task;
+            }
+          }
+
+          // Remove too-old tasks.
+          for (var i = 0; i < remove.length; i++) {
+            var commit = remove[i];
+            for (var id in this._data.tasks) {
+              if (this._data.tasks[id].revision == commit) {
+                delete this._data.tasks[id];
+              }
+            }
+          }
+
+          // Map commits to tasks.
+          for (var id in this._data.tasks) {
+            var task = this._data.tasks[id];
+            if (task.commits) {
+              for (var j = 0; j < task.commits.length; j++) {
+                var commit = task.commits[j];
+                var tasksForCommit = this._data.builds[commit];
+                if (!tasksForCommit) {
+                  tasksForCommit = {};
+                  this._data.builds[commit] = tasksForCommit;
+                }
+                tasksForCommit[task.name] = task;
+              }
+            }
+          }
+
+          if (json.swarming_url) {
+            this.set("swarming_url", json.swarming_url);
+            console.log("Setting swarming_url: " + this.swarming_url + " / " + json.swarming_url);
+          }
+          if (json.task_scheduler_url) {
+            this.set("task_scheduler_url", json.task_scheduler_url);
+            console.log("Setting task_scheduler_url: " + this.task_scheduler_url + " / " + json.task_scheduler_url);
+          }
+
+          // TODO(borenet): Comments.
+          if (json.commit_comments) {
+            this._data.commitComments = json.commit_comments;
+          }
+          if (json.task_comments) {
+            this._data.taskComments = json.task_comments;
+          }
+          if (json.task_spec_comments) {
+            this._data.taskSpecComments = json.task_spec_comments;
+          }
+
+          // Update the last-load timestamp.
+          this._last_load_ts = ts;
+          this.set("_activeAJAX", false);
+          this._processData(this._data);
+        }.bind(this));
       },
 
-      _parseData: function(data) {
-        if (!data || !data.commits) {
-          console.log("Nothing to parse");
+      _processData: function(data) {
+        if (!data || !data.commits || data.commits.length == 0) {
           return;
         }
         this.set("_filtering", true);
-        console.time("processData");
+        console.time("_processData");
         for (var i = 0; i < data.commits.length; i++) {
-          data.commits[i].comments = data.comments[data.commits[i].hash] || [];
+          data.commits[i].comments = data.commitComments[data.commits[i].hash] || [];
         }
-        this.lastLoaded = new Date().toLocaleTimeString();
-        this.task_scheduler_url = data.task_scheduler_url;
 
         var commits = data.commits;
 
         // Prepare build data.
-        console.log("Preparing build data.");
         var builds = {};
         var builders = {};
         var build_details = this.build_details;
-        for (var k in data.builds) {
-          build_details[k] = data.builds[k];
+        for (var commit in data.builds) {
+          build_details[commit] = data.builds[commit];
+          for (var builder in build_details[commit]) {
+            var task = build_details[commit][builder];
+            task.comments = [];
+            if (data.taskComments[commit] && data.taskComments[commit][builder]) {
+              task.comments = data.taskComments[commit][builder];
+            }
+          }
         }
 
         for (var i = 0; i < commits.length; i++) {
@@ -459,41 +530,38 @@
                                  commit.comments.length > 0 &&
                                  commit.comments[commit.comments.length-1].ignoreFailure;
 
-
           commit.displayClass = {};
+          if (!build_details[commit.hash]) {
+            build_details[commit.hash] = {};
+          }
           for (var builder in build_details[commit.hash]) {
             var build = build_details[commit.hash][builder];
             build.colorClass = getBuildColorClass(build);
-            maybeSetBuildUrls(build);
 
             if (!builds[builder]) {
               // This is the first time we've seen this builder.
               builds[builder] = {};
               var builderDetails = {
-                  "comments": data.builders[builder] || [],
+                  "comments": data.taskSpecComments[builder] || [],
                   "builder": builder,
-                  "master": build.master,
                   // We're traveling backward in time, so the first build we
                   // find for a given builder is its most recent.
                   "colorClass": build.colorClass,
                   "flaky": false,
                   "ignoreFailure": false,
               };
-              if (build.dashboardBuilderUrl) {
-                builderDetails.url = build.dashboardBuilderUrl
-              }
               var split = builder.split("-");
               if (split.length >= 2 && VALID_BUILDER_CATEGORIES.indexOf(split[0]) != -1) {
                   builderDetails.category = split[0];
                   builderDetails.subcategory = split[1];
               }
-              if (builderDetails.comments.length > 0) {
+              if (builderDetails.comments && builderDetails.comments.length > 0) {
                 builderDetails.flaky = !!builderDetails.comments[builderDetails.comments.length-1].flaky;
                 builderDetails.ignoreFailure = !!builderDetails.comments[builderDetails.comments.length-1].ignoreFailure
               }
               builders[builder] = builderDetails;
             }
-            builds[builder][build.number] = build;
+            builds[builder][build.id] = build;
             // Figure out the display class to use.
             var classes = [CLASS_BUILD_SINGLE];
             if (i > 0) {
@@ -518,7 +586,7 @@
                   prevDetails = build_details[prevCommit.hash] || {};
                   var prevBuild = prevDetails[builder];
                   // Only continue drawing if it's actually the same build
-                  if (prevBuild && prevBuild.number == build.number) {
+                  if (prevBuild && prevBuild.id == build.id) {
                     classes = [CLASS_BUILD_BOTTOM, CLASS_DASHED_TOP];
 
                     if (prevCommit.displayClass[builder].indexOf(CLASS_BUILD_SINGLE) >= 0) {
@@ -532,7 +600,7 @@
               } else if (prevDetails) {
                 var prevBuild = prevDetails[builder];
                 // Only continue drawing if it's actually the same build
-                if (prevBuild && prevBuild.number == build.number) {
+                if (prevBuild && prevBuild.id == build.id) {
                   classes = [CLASS_BUILD_BOTTOM];
                   var prevClasses = prevCommit.displayClass[builder];
                   if (prevClasses.indexOf(CLASS_BUILD_SINGLE) >= 0) {
@@ -549,7 +617,7 @@
           }
         }
         this._makeCommitsMap(commits);
-        this.builds = builds;
+        this.set("builds", builds);
         this.set("build_details", build_details);
         this.set("builders", builders);
         this._filterBuilders();
@@ -612,8 +680,7 @@
           time_points[last.hash] = TIME_POINTS[timeIdx];
         }
 
-        console.log("Prepared build data.");
-        console.timeEnd("processData");
+        console.timeEnd("_processData");
         this.set("_filtering", false);
 
         // Actually draw the commits.
@@ -622,11 +689,11 @@
         console.timeEnd("totalLoadTime");
       },
 
-      // Filter out green bots unless "showAllBuilders" is checked.
+      // Apply the desired filter to the tasks.
       _filterBuilders: function() {
         console.time("filterBuilders");
         var filteredBuilders = [];
-        var selected = this.filter;
+        var selected = this.filter || FILTER_ALL;
         if (selected == FILTER_ALL) {
           for (var builder in this.builders) {
             filteredBuilders.push(builder);
@@ -637,7 +704,7 @@
             var succeeded = false;
             for (var buildNum in this.builds[builder]) {
               var build = this.builds[builder][buildNum];
-              if (!build.finished) {
+              if (build.status == "" || build.status == "RUNNING") {
                 continue;
               }
               // If interesting or "failing w/o comment" is selected, compute ignoreFailure
@@ -654,7 +721,7 @@
                 }
               }
 
-              if (build.results == BUILDBOT_RESULT_SUCCESS) {
+              if (build.status == "SUCCESS") {
                 succeeded = true;
               } else {
                 failed = true;
@@ -670,7 +737,7 @@
                   break;
                 }
               } else if (selected == FILTER_FAIL_NO_COMMENT) {
-                if (build.results != BUILDBOT_RESULT_SUCCESS && this.builders[builder].comments.length == 0) {
+                if (build.status != "SUCCESS" && (!this.builders[builder].comments || this.builders[builder].comments.length == 0)) {
                   if (!build.comments || build.comments.length == 0) {
                     filteredBuilders.push(builder);
                     break;
@@ -681,13 +748,13 @@
           }
         } else if (selected == FILTER_COMMENTS) {
           for (var builder in this.builders) {
-            if (this.builders[builder].comments.length > 0) {
+            if (this.builders[builder].comments && this.builders[builder].comments.length > 0) {
               filteredBuilders.push(builder);
               continue;
             }
             for (var buildNum in this.builds[builder]) {
               var build = this.builds[builder][buildNum];
-              if (!build.finished) {
+              if (build.status == "" || build.status == "RUNNING") {
                 continue;
               }
               if (build.comments && build.comments.length > 0) {
@@ -746,7 +813,7 @@
           if (builderName != "Google3-Autoroller") {
             for (var buildNum in this.builds[builderName]) {
               var build = this.builds[builderName][buildNum];
-              if (build.results === BUILDBOT_RESULT_EXCEPTION) {
+              if (build.status == "MISHAP") {
                 // TODO(borenet): This is a bit of a hack.
                 // Jobs are named after build, test, or perf tasks, but not
                 // uploads. If this is an upload, trim the prefix.
@@ -754,7 +821,7 @@
                 if (jobName.startsWith("Upload-")) {
                   jobName = jobName.substring("Upload-".length);
                 }
-                purpleBuilds.push({"name": jobName, "commit": build.got_revision});
+                purpleBuilds.push({"name": jobName, "commit": build.revision});
               }
             }
           }
@@ -783,8 +850,12 @@
         }.bind(this), 400);
       },
 
+      forceReload: function() {
+        this._reload();
+      },
+
       forceUpdate: function() {
-        this._parseData(this._data, this.roller_statuses);
+        this._processData(this._data, this.roller_statuses);
       },
     });
     })();
