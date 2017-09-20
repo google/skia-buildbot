@@ -1,8 +1,6 @@
 package util
 
 import (
-	"archive/zip"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,43 +8,6 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 )
-
-// unzip unzips the file given in src into the 'dest' directory.
-func unzip(src, dest string) error {
-	r, err := zip.OpenReader(src)
-	if err != nil {
-		return err
-	}
-	defer Close(r)
-
-	for _, f := range r.File {
-		rc, err := f.Open()
-		if err != nil {
-			return err
-		}
-		defer Close(rc)
-
-		path := filepath.Join(dest, f.Name)
-		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(path, f.Mode()); err != nil {
-				return err
-			}
-		} else {
-			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-			if err != nil {
-				return err
-			}
-			defer Close(f)
-
-			_, err = io.Copy(f, rc)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 // TempRepo is used to setup and teardown a temporary repo for unit testing.
 type TempRepo struct {
@@ -62,7 +23,7 @@ func NewTempRepoFrom(zipfile string) *TempRepo {
 	if err != nil {
 		sklog.Fatalln("Failed to create testing Git repo:", err)
 	}
-	if err := unzip(zipfile, tmpdir); err != nil {
+	if err := UnZip(tmpdir, zipfile); err != nil {
 		sklog.Fatalln("Failed to unzip testing Git repo:", err)
 	}
 	return &TempRepo{Dir: tmpdir}
