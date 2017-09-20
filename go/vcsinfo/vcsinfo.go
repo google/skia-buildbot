@@ -1,6 +1,8 @@
 package vcsinfo
 
-import "time"
+import (
+	"time"
+)
 
 // IndexCommit is information about a commit that includes the offset from
 // the first commit.
@@ -25,6 +27,14 @@ type LongCommit struct {
 	Timestamp time.Time       `json:"timestamp"`
 	Branches  map[string]bool `json:"-"`
 }
+
+// LongCommitSlice represents a slice of LongCommit objects used for sorting
+// commits by timestamp, most recent first.
+type LongCommitSlice []*LongCommit
+
+func (s LongCommitSlice) Len() int           { return len(s) }
+func (s LongCommitSlice) Less(i, j int) bool { return s[i].Timestamp.After(s[j].Timestamp) }
+func (s LongCommitSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 // VCS is a generic interface to the information contained in a version
 // control system.

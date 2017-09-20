@@ -34,6 +34,8 @@
     repo: String, the current repo.  Used to direct comments to the right place.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
     reverted_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
+    swarming_url: String, the URL of the Swarming server.
+    task_scheduler_url: String, the URL of the Task Scheduler.
 
     // outputs
     commit_label: String, "author" or "subject", which indicates what info should be displayed about a commit.
@@ -182,6 +184,7 @@
           repo="[[repo]]"
           repo_base="[[repo_base]]"
           reverted_map="[[reverted_map]]"
+          swarming_url="[[swarming_url]]"
           time_points="[[time_points]]"
 
           drawing="{{drawing}}">
@@ -251,6 +254,9 @@
         },
         reverted_map: {
           type: Object,
+        },
+        swarming_url: {
+          type: String,
         },
         task_scheduler_url: {
           type: String,
