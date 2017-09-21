@@ -125,12 +125,6 @@ func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error
 		}
 	}
 
-	lastRoll := a.recent.LastRoll()
-	lastRollRev := ""
-	if lastRoll != nil {
-		lastRollRev = lastRoll.RollingTo
-	}
-
 	commitsNotRolled := 0
 	if lastSuccessRev != "" {
 		headRev, err := a.childRepo.RevParse(a.childBranch)
@@ -143,6 +137,8 @@ func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error
 		}
 		commitsNotRolled = len(revs)
 	}
+
+	lastRoll := a.recent.LastRoll()
 
 	if preserveLastError {
 		errorMsg = a.status.Get(true, nil).Error
@@ -165,7 +161,7 @@ func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error
 		FullHistoryUrl: "https://goto.google.com/skia-autoroll-history",
 		IssueUrlBase:   "https://goto.google.com/skia-autoroll-cl/",
 		LastRoll:       lastRoll,
-		LastRollRev:    lastRollRev,
+		LastRollRev:    lastSuccessRev,
 		Mode: &modes.ModeChange{
 			Message: "https://sites.google.com/a/google.com/skia-infrastructure/docs/google3-autoroller",
 			Mode:    modes.MODE_RUNNING,
