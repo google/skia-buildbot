@@ -2373,6 +2373,30 @@
     },
     {
       "key": {
+        "uuid": "0a9da59d_40976836",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T17:52:07Z",
+      "side": 1,
+      "message": "IMO just return immediately if _activeAJAX is true. We\u0027ll probably pick up the new comment anyway, or if not, it\u0027ll show up after a minute.",
+      "parentUuid": "b3fd2a68_91f13818",
+      "range": {
+        "startLine": 382,
+        "startChar": 6,
+        "endLine": 382,
+        "endChar": 13
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "953e5c96_535a1b30",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
