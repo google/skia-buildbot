@@ -39,6 +39,30 @@
       "revId": "ddf55a20b786f0f77001a9759d5bf5987ec83a01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da303d79_2784e200",
+        "filename": "status/res/imp/build-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 0,
+      "message": "I was trying to trim the amount of data we send.  The Swarming bot was only used here, and it\u0027s one extra click to go from the task page to the bot page.  I can add it back if you want, but it\u0027d increase the data size by 10-15%",
+      "parentUuid": "77ef9557_6e7d84cb",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 111,
+        "endChar": 20
+      },
+      "revId": "ddf55a20b786f0f77001a9759d5bf5987ec83a01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a013e861_31055127",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Agreed, I will definitely not push the changes until the demos are working again.  The problem is that this CL would\u0027ve gotten much bigger with the demo fixes, since that requires an overhaul of how we provide data to the demos.",
+      "parentUuid": "b0b7453f_6e9e1e9c",
+      "range": {
+        "startLine": 17,
+        "startChar": 2,
+        "endLine": 17,
+        "endChar": 64
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ac2b3e9e_10f87ffe",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "6feda751_cbd80ad5",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac2b3e9e_10f87ffe",
+      "range": {
+        "startLine": 422,
+        "startChar": 22,
+        "endLine": 422,
+        "endChar": 32
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b50ed20_440dfa7c",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 6
@@ -59,6 +107,30 @@
       "writtenOn": "2017-09-20T20:52:37Z",
       "side": 1,
       "message": "This is not true for skia_internal: https://skia.googlesource.com/skia_internal/+/master\n\nMaybe better to do RecurseAllBranches and insert into a heap? Or run \u0027git log -n 1 --skip\u003d\u003cn-1\u003e --format\u003dformat:%ct\u0027 for each branch head?",
+      "range": {
+        "startLine": 447,
+        "startChar": 40,
+        "endLine": 448,
+        "endChar": 33
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "297a32d1_e2050998",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "This isn\u0027t an assumption that will affect accuracy, just efficiency.  Personally I\u0027m okay loading more commits than necessary in that one case rather than implementing a more-complicated solution, but if you feel differently we can look at another way of doing it.",
+      "parentUuid": "2b50ed20_440dfa7c",
       "range": {
         "startLine": 447,
         "startChar": 40,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "a9b47e52_4f074b5a",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Good point, done.  And since I\u0027m creating a new backing array of the same size, this isn\u0027t helping at all.",
+      "parentUuid": "fd018f76_2126a775",
+      "range": {
+        "startLine": 464,
+        "startChar": 0,
+        "endLine": 471,
+        "endChar": 15
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0d59766f_2170a2b9",
         "filename": "status/go/incremental/comments.go",
         "patchSetId": 6
@@ -105,6 +201,24 @@
       "writtenOn": "2017-09-20T18:50:20Z",
       "side": 1,
       "message": "This is a confusing struct.  Add a comment saying what maps to what?",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67e731a6_c9edfe60",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "I copied the comments from db.RepoComments.",
+      "parentUuid": "0d59766f_2170a2b9",
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "8bfaace0_084bd0b4",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Personally, I think the number of comments and rate of change in comments are low enough to just pass the whole set around every time it changes.",
+      "parentUuid": "07126272_259ff9d5",
+      "range": {
+        "startLine": 121,
+        "startChar": 24,
+        "endLine": 121,
+        "endChar": 48
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6c4d0915_950ec930",
         "filename": "status/go/incremental/comments.go",
         "patchSetId": 6
@@ -145,6 +283,30 @@
       "writtenOn": "2017-09-21T02:13:26Z",
       "side": 1,
       "message": "Currently none of the DB impls pays attention to the time cutoff passed to GetCommentsForRepos. If they did, this test would fail anytime a comment expires from the window. Is that intended?",
+      "range": {
+        "startLine": 131,
+        "startChar": 6,
+        "endLine": 131,
+        "endChar": 82
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e96437f6_ad9196e9",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Yes, that\u0027s intended.  Unlike with tasks, we can\u0027t just pass the newly-added comments to the client, since we may have removed comments as well.  I played with implementing lists of added and removed comments, but given the relatively low volume of comments it was far simpler to just pass the full set of comments every time it changed.  That said, the volume of comments is far higher than it could be, because of the time cutoff not having an effect :)",
+      "parentUuid": "6c4d0915_950ec930",
       "range": {
         "startLine": 131,
         "startChar": 6,
@@ -204,6 +366,30 @@
     },
     {
       "key": {
+        "uuid": "1df0108c_03047689",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Added a constructor.",
+      "parentUuid": "fb20a8ef_b1571bba",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "81b13730_e2c95b8e",
         "filename": "status/go/incremental/commits.go",
         "patchSetId": 6
@@ -227,6 +413,30 @@
     },
     {
       "key": {
+        "uuid": "1b33c474_c3efdf7c",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81b13730_e2c95b8e",
+      "range": {
+        "startLine": 26,
+        "startChar": 19,
+        "endLine": 26,
+        "endChar": 22
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "95961812_0fd8dba3",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -238,6 +448,24 @@
       "writtenOn": "2017-09-21T02:13:26Z",
       "side": 1,
       "message": "This package has no unit tests. Would be nice to add some.",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de9caad9_d786c977",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "95961812_0fd8dba3",
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -267,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "69cdfd48_60c50167",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71ce27a8_b3a3685a",
+      "range": {
+        "startLine": 63,
+        "startChar": 18,
+        "endLine": 63,
+        "endChar": 38
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60dda537_b0b777cb",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -287,6 +539,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fcaa933_456b811e",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60dda537_b0b777cb",
+      "range": {
+        "startLine": 67,
+        "startChar": 61,
+        "endLine": 68,
+        "endChar": 24
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -313,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "7d040283_9680e059",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "740239cc_4cc20e2d",
+      "range": {
+        "startLine": 93,
+        "startChar": 7,
+        "endLine": 93,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56a2b439_03a5fe1c",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -333,6 +633,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b57cc8b_76707cf8",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56a2b439_03a5fe1c",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -359,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "8902bf63_64e14320",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "373ba68f_4a43b164",
+      "range": {
+        "startLine": 113,
+        "startChar": 7,
+        "endLine": 113,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58601b1b_c35b35a8",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -382,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "2db2ed61_f64e8c2d",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58601b1b_c35b35a8",
+      "range": {
+        "startLine": 144,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 14
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "782152b8_067fbe82",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -393,6 +765,30 @@
       "writtenOn": "2017-09-21T02:13:26Z",
       "side": 1,
       "message": "Assuming only Get is used and GetRange isn\u0027t needed (see comment in status/go/status/main.go):\n\nWhen a new Update is created, why not pre-merge it into all previous Updates, rather than doing the merging for every client request?\n\n(Then you could also pre-generate and cache the JSON of each Update. But maybe do that in another CL.)",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 172,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbf6ecca_cb3a2e64",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "I don\u0027t think I understand.  Wouldn\u0027t that cause the client to receive all of the updates at each request?  Ie. not incremental updates?",
+      "parentUuid": "782152b8_067fbe82",
       "range": {
         "startLine": 115,
         "startChar": 0,
@@ -428,6 +824,30 @@
     },
     {
       "key": {
+        "uuid": "3999e8b2_3397b976",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "399bcc40_b50e8e01",
+      "range": {
+        "startLine": 179,
+        "startChar": 7,
+        "endLine": 179,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2a0f0b3_f276f4d3",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -439,6 +859,30 @@
       "writtenOn": "2017-09-21T02:13:26Z",
       "side": 1,
       "message": "Maybe this is OK as Infof, assuming it doesn\u0027t happen too frequently.",
+      "range": {
+        "startLine": 185,
+        "startChar": 7,
+        "endLine": 185,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f75bba8_f4fae0bd",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Just removed it.",
+      "parentUuid": "e2a0f0b3_f276f4d3",
       "range": {
         "startLine": 185,
         "startChar": 7,
@@ -474,6 +918,30 @@
     },
     {
       "key": {
+        "uuid": "273e9ca1_a6dd3038",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3b7a834_a11696fe",
+      "range": {
+        "startLine": 191,
+        "startChar": 7,
+        "endLine": 191,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a8ae6db6_c428a9e9",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -494,6 +962,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48d13360_4d9be0f5",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8ae6db6_c428a9e9",
+      "range": {
+        "startLine": 210,
+        "startChar": 1,
+        "endLine": 210,
+        "endChar": 28
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -520,6 +1012,30 @@
     },
     {
       "key": {
+        "uuid": "a6d897b7_16faf19f",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d377910_4f051f7e",
+      "range": {
+        "startLine": 254,
+        "startChar": 19,
+        "endLine": 254,
+        "endChar": 33
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f04f365_ea05090c",
         "filename": "status/go/incremental/tasks.go",
         "patchSetId": 6
@@ -543,6 +1059,30 @@
     },
     {
       "key": {
+        "uuid": "aa2e8b3b_8854b177",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f04f365_ea05090c",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "258e5cfd_9e1f183c",
         "filename": "status/go/incremental/tasks.go",
         "patchSetId": 6
@@ -554,6 +1094,24 @@
       "writtenOn": "2017-09-21T02:13:26Z",
       "side": 1,
       "message": "You are including fake tasks here, but ignoring t.Properties[\"url\"]. That doesn\u0027t seem like it will work well.",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b27b84d6_7e19bd11",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "IMO the answer is to stop using fake tasks.  We have an indicator for the G3 roller now, so we shouldn\u0027t need the fake tasks for it.  Are there other sources of fake tasks I\u0027ve forgotten?",
+      "parentUuid": "258e5cfd_9e1f183c",
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -583,6 +1141,30 @@
     },
     {
       "key": {
+        "uuid": "29cce5ce_b91f6839",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bfa57bfe_06dba173",
+      "range": {
+        "startLine": 36,
+        "startChar": 63,
+        "endLine": 37,
+        "endChar": 23
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d1b1aef4_3df290ef",
         "filename": "status/go/incremental/tasks.go",
         "patchSetId": 6
@@ -594,6 +1176,30 @@
       "writtenOn": "2017-09-21T02:13:26Z",
       "side": 1,
       "message": "Maybe I\u0027m missing something, but I don\u0027t see how this solves the problem.\n\nMoreover, it will result in tasks created after \"now\" to be included in the return value.\n\nSimplest solution would be remove the \"now\" parameter and just use time.Now().",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 39
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c623d4c_d76e1f0c",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Whoops, yeah.  Okay, removed the parameter and used the current time.  That\u0027ll cause us to possibly re-report some tasks, but that\u0027s better than missing tasks.",
+      "parentUuid": "d1b1aef4_3df290ef",
       "range": {
         "startLine": 50,
         "startChar": 0,
@@ -629,6 +1235,30 @@
     },
     {
       "key": {
+        "uuid": "9aadae15_591e96d5",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "I could\u0027ve sworn it was 100.  I don\u0027t have a problem with it being 200, aside from probably 20 seconds of extra startup time, but we could start saving the incremental cache to disk if that becomes a real problem.",
+      "parentUuid": "d6d3ce82_b2232542",
+      "range": {
+        "startLine": 44,
+        "startChar": 27,
+        "endLine": 44,
+        "endChar": 30
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "18059b31_2eaa53ac",
         "filename": "status/go/status/main.go",
         "patchSetId": 6
@@ -652,6 +1282,30 @@
     },
     {
       "key": {
+        "uuid": "72dfce41_14fda0e3",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Yep.",
+      "parentUuid": "18059b31_2eaa53ac",
+      "range": {
+        "startLine": 116,
+        "startChar": 5,
+        "endLine": 116,
+        "endChar": 16
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ebb5e293_f7d822f8",
         "filename": "status/go/status/main.go",
         "patchSetId": 6
@@ -663,6 +1317,30 @@
       "writtenOn": "2017-09-21T02:13:26Z",
       "side": 1,
       "message": "This param doesn\u0027t seem to be used by the client, and could simplify things if it were removed.",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca85b74d_66a1e096",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "It\u0027s used in my next CL to obtain slices of data to use for the demo page.",
+      "parentUuid": "ebb5e293_f7d822f8",
       "range": {
         "startLine": 186,
         "startChar": 0,
@@ -715,6 +1393,24 @@
     },
     {
       "key": {
+        "uuid": "512e8ba9_2aa7eae0",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f6650df8_719e3a12",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd6b48d3_c7da463a",
         "filename": "status/go/status/main.go",
         "patchSetId": 6
@@ -738,6 +1434,30 @@
     },
     {
       "key": {
+        "uuid": "fcb9e827_2bf21108",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "I don\u0027t have a problem with that, aside from the fact that it\u0027s working now :P  How would we avoid redefining comment types?  We can\u0027t use a time.Time for the comment timestamp because we lose some data on the Javascript side and can no longer get back the exact nanosecond timestamp we need to identify the comment.  I guess we could avoid that by always truncating comment timestamps to milliseconds?",
+      "parentUuid": "cd6b48d3_c7da463a",
+      "range": {
+        "startLine": 228,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 0
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5cfec168_4c2b73f9",
         "filename": "status/res/imp/build-popup-sk.html",
         "patchSetId": 6
@@ -749,6 +1469,30 @@
       "writtenOn": "2017-09-20T20:52:37Z",
       "side": 1,
       "message": "nit: personally, I think this is not useful and distracts from the useful info.",
+      "range": {
+        "startLine": 74,
+        "startChar": 40,
+        "endLine": 74,
+        "endChar": 81
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e807cc7e_a66d3bbc",
+        "filename": "status/res/imp/build-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Aaaaaaand it\u0027s gone.",
+      "parentUuid": "5cfec168_4c2b73f9",
       "range": {
         "startLine": 74,
         "startChar": 40,
@@ -807,6 +1551,54 @@
     },
     {
       "key": {
+        "uuid": "d088d383_2c32e0cd",
+        "filename": "status/res/imp/builder-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "29adf352_fb6449ee",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5e88298e_f9e14393",
+        "filename": "status/res/imp/builder-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa658eed_dc0d56d9",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "844f6d0b_a50d9622",
         "filename": "status/res/imp/commit-popup-sk.html",
         "patchSetId": 6
@@ -850,6 +1642,54 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99475517_54b2809d",
+        "filename": "status/res/imp/commit-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "844f6d0b_a50d9622",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79195493_5c0d785d",
+        "filename": "status/res/imp/commit-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e8f3bdbd_f6fc94c1",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -900,6 +1740,30 @@
     },
     {
       "key": {
+        "uuid": "49695713_5d5e468c",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "I think it\u0027s okay to assume that all Swarming tasks from the same repo use the same Swarming server.  FTR the Task Scheduler makes that assumption.  For the links, I don\u0027t think it should be too hard to add the Milo links back on the relevant popups.",
+      "parentUuid": "ab611c74_c79f12a4",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 57
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2efdaa43_546907b7",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -920,6 +1784,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf140e58_c3cdd04a",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2efdaa43_546907b7",
+      "range": {
+        "startLine": 194,
+        "startChar": 48,
+        "endLine": 194,
+        "endChar": 57
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -969,6 +1857,54 @@
     },
     {
       "key": {
+        "uuid": "2233c031_ab0d2de0",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Under what circumstances?  We have the periodic reload on a 1-minute timer, plus any forced reloads due to added/removed comments.  I don\u0027t think we\u0027ll produce incorrect results due to JS being single-threaded, so the only concern would be wasted effort reloading twice in a row, which should give us an empty response on the second attempt.",
+      "parentUuid": "bdde34b1_63a5849a",
+      "range": {
+        "startLine": 382,
+        "startChar": 6,
+        "endLine": 382,
+        "endChar": 13
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c05f908c_730be496",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Or: update, load, load_new_data?",
+      "parentUuid": "3e55911e_0151de52",
+      "range": {
+        "startLine": 382,
+        "startChar": 6,
+        "endLine": 382,
+        "endChar": 27
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "953e5c96_535a1b30",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -980,6 +1916,30 @@
       "writtenOn": "2017-09-20T20:52:37Z",
       "side": 1,
       "message": "Can this be negative? In particular, if json.start_over, won\u0027t this._data.commits.length be zero and json.commits.length be non-zero? Is it possible for this to be negative if json.start_over is false?",
+      "range": {
+        "startLine": 407,
+        "startChar": 25,
+        "endLine": 407,
+        "endChar": 72
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "656bcd07_c8e1da9b",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Yep, it\u0027s negative on initial load and doesn\u0027t seem to cause any problems.",
+      "parentUuid": "953e5c96_535a1b30",
       "range": {
         "startLine": 407,
         "startChar": 25,
@@ -1015,6 +1975,30 @@
     },
     {
       "key": {
+        "uuid": "497f572d_2dec4d59",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "I did it here just in case the server sent more tasks than we care about.",
+      "parentUuid": "7913fef0_750a27aa",
+      "range": {
+        "startLine": 425,
+        "startChar": 0,
+        "endLine": 433,
+        "endChar": 11
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e5cca091_2f005a41",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -1035,6 +2019,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "319ea301_b6c4165b",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e5cca091_2f005a41",
+      "range": {
+        "startLine": 471,
+        "startChar": 20,
+        "endLine": 471,
+        "endChar": 21
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1061,6 +2069,30 @@
     },
     {
       "key": {
+        "uuid": "2627fd0b_8ac16cec",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 531,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Next CL.",
+      "parentUuid": "f8442ca9_4a85ede2",
+      "range": {
+        "startLine": 531,
+        "startChar": 56,
+        "endLine": 531,
+        "endChar": 63
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1c70dbdd_f04617c8",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -1072,6 +2104,30 @@
       "writtenOn": "2017-09-20T20:52:37Z",
       "side": 1,
       "message": "nit: Isn\u0027t the default FILTER_INTERESTING?",
+      "range": {
+        "startLine": 685,
+        "startChar": 38,
+        "endLine": 685,
+        "endChar": 48
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f5859ee_0d3fb1f7",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 685,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Whoops, yep.",
+      "parentUuid": "1c70dbdd_f04617c8",
       "range": {
         "startLine": 685,
         "startChar": 38,
@@ -1131,6 +2187,30 @@
     },
     {
       "key": {
+        "uuid": "b59ad441_d9448c9e",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 746,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5185bbc_528ffad1",
+      "range": {
+        "startLine": 746,
+        "startChar": 18,
+        "endLine": 746,
+        "endChar": 36
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6d230351_89426090",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -1142,6 +2222,30 @@
       "writtenOn": "2017-09-20T20:52:37Z",
       "side": 1,
       "message": "uber-nit: maybe just rename _reload to reload. I don\u0027t see what\u0027s being \"forced\" in this case.",
+      "range": {
+        "startLine": 842,
+        "startChar": 0,
+        "endLine": 845,
+        "endChar": 0
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2abcc5c5_9c4b2c6c",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Since _reload is called automatically on a timer, calling it manually \"forces\" a reload right now, rather than waiting for the timer.  I like this nomenclature since it makes it clear that this isn\u0027t something that should be called all the time.",
+      "parentUuid": "6d230351_89426090",
       "range": {
         "startLine": 842,
         "startChar": 0,
@@ -1171,6 +2275,24 @@
     },
     {
       "key": {
+        "uuid": "ca4329e8_2be05343",
+        "filename": "status/res/imp/commits-table-d3-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "See other",
+      "parentUuid": "b4ebf75c_c5812c49",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9bb9cb57_38a2678d",
         "filename": "status/res/imp/commits-table-d3-sk.html",
         "patchSetId": 6
@@ -1194,6 +2316,30 @@
     },
     {
       "key": {
+        "uuid": "4ae87b55_3b36da7f",
+        "filename": "status/res/imp/commits-table-d3-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9bb9cb57_38a2678d",
+      "range": {
+        "startLine": 308,
+        "startChar": 60,
+        "endLine": 308,
+        "endChar": 73
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "64ddad29_91060b4b",
         "filename": "status/res/imp/commits-table-sk.html",
         "patchSetId": 6
@@ -1205,6 +2351,24 @@
       "writtenOn": "2017-09-20T20:52:37Z",
       "side": 1,
       "message": "ditto",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57503863_848d931a",
+        "filename": "status/res/imp/commits-table-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "See other",
+      "parentUuid": "64ddad29_91060b4b",
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -1234,6 +2398,30 @@
     },
     {
       "key": {
+        "uuid": "93c5096c_5e5fddb2",
+        "filename": "status/res/imp/status-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "The build(er) and commit popups fire the \"reload\" event when a comment is added or removed, which we listen for and force the data object to pull down any new data at that time, so that the new/removed comments are reflected on the page.",
+      "parentUuid": "bc76da55_4b5b81c9",
+      "range": {
+        "startLine": 362,
+        "startChar": 0,
+        "endLine": 364,
+        "endChar": 6
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47800a8c_0eb9ab01",
         "filename": "status/res/js/status_utils.js",
         "patchSetId": 6
@@ -1245,6 +2433,30 @@
       "writtenOn": "2017-09-20T20:52:37Z",
       "side": 1,
       "message": "Delete?",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 34
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "289cee48_3f5f4f67",
+        "filename": "status/res/js/status_utils.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T15:18:59Z",
+      "side": 1,
+      "message": "Next CL.",
+      "parentUuid": "47800a8c_0eb9ab01",
       "range": {
         "startLine": 5,
         "startChar": 0,
