@@ -32,6 +32,18 @@ testgo: skiaversion
 release: all
 	./build_release "$(MESSAGE)"
 
+push: all
+	./build_release "`git log -n1 --format=%s`"
+	pushcli statusd skia-status
+
+push_internal: all
+	./build_internal_release "`git log -n1 --format=%s`"
+	pushcli status-internal skia-status-internal
+
+push_staging: all
+	./build_release "`git log -n1 --format=%s`"
+	pushcli statusd skia-status-staging
+
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html

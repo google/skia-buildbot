@@ -583,6 +583,9 @@
 
       // handleclick converts the click's offsetY (Y location relative to the tapped canvas) into index
       handleclick: function(e) {
+        if (!this._linkMap) {
+          return;
+        }
         var y = (e && e.offsetY) || 1;
         var commitIdx = Math.floor(y / commitY);
 
@@ -593,6 +596,9 @@
       },
 
       handlemouseover: function(e) {
+        if (!this._linkMap) {
+          return;
+        }
         var commitIdx = Math.floor(e.offsetY / commitY);
         var link = this._linkMap[commitIdx];
         if (link){
