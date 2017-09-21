@@ -10,10 +10,20 @@
 
   <script>
     function openDialog() {
-      $$$('confirm-dialog-sk').open('Proceed with taking over the world?').then(function() {
-        alert('Brain');
+    $$$('confirm-dialog-sk').open('Proceed with taking over the world?').then(function() {
+        var start = new Date().getTime();
+    while (new Date().getTime() < start + 1000);
+    var node = document.createElement('div');
+    var textnode = document.createTextNode('Brain');
+    node.appendChild(textnode);
+        $$$('#output').appendChild(node);
       }, function() {
-        alert('Pinky');
+        var start = new Date().getTime();
+    while (new Date().getTime() < start + 1000);
+    var node = document.createElement('div');
+    var textnode = document.createTextNode('Pinky');
+    node.appendChild(textnode);
+        $$$('#output').appendChild(node);
       });
     }
   </script>
@@ -21,6 +31,7 @@
 <body>
   <confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
 
-  <paper-button onClick="openDialog();">Open Dialog</paper-button>
+  <paper-button raised onClick="openDialog();">Open Dialog</paper-button>
+  <div id="output"></div>
 </body>
 </html>

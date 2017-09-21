@@ -42,11 +42,7 @@
   </style>
   <template>
 
-    <paper-dialog heading="Confirmation" id="confirm_dialog">
-      <div>Proceed with deleting task?</div>
-      <paper-button id="delete_dismiss">Cancel</paper-button>
-      <paper-button id="delete_confirm" autofocus>OK</paper-button>
-    </paper-dialog>
+    <confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
 
     <h2>Tasks in the Queue</h2>
 
@@ -144,10 +140,6 @@
                   ];
          }
        },
-       deleteIndex: {
-         type: Number,
-         value: -1,
-       },
      },
 
      ready: function() {
@@ -164,16 +156,10 @@
        this.$.queue.addEventListener('click', function(e) {
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
          if (button != null && button.dataset.type == "delete") {
-           this.deleteIndex = button.dataset.index;
-           this.$.confirm_dialog.open();
+           var index = button.dataset.index;
+           this.$.confirm_dialog.open("Proceed with deleting task?")
+               .then(this.deleteTask.bind(this, index));
          }
-       }.bind(this));
-       this.$.delete_dismiss.addEventListener('click', function(e) {
-         this.deleteIndex = -1;
-         this.$.confirm_dialog.close();
-       }.bind(this));
-       this.$.delete_confirm.addEventListener('click', function(e) {
-         this.deleteTask();
        }.bind(this));
      },
 
@@ -234,8 +220,8 @@
        this.pendingTasks.sort(function(a, b){return a["TsAdded"]["Int64"] - b["TsAdded"]["Int64"]});
      },
 
-     deleteTask: function() {
-       var pendingTask = this.pendingTasks[this.deleteIndex];
+     deleteTask: function(deleteIndex) {
+       var pendingTask = this.pendingTasks[deleteIndex];
        var params = {};
        params["id"] = pendingTask.Id;
        sk.post(pendingTask.DeleteURL, JSON.stringify(params)).then(function() {
@@ -243,7 +229,6 @@
          $$$("#confirm_toast").show();
        }.bind(this)).catch(sk.errorMessage).then(function() {
          this.reload();
-         this.$.confirm_dialog.close();
        }.bind(this));
      },
 
