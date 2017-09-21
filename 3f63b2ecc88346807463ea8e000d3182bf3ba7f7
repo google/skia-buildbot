@@ -963,6 +963,30 @@
     },
     {
       "key": {
+        "uuid": "3e8401f6_d7c471b2",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T17:36:30Z",
+      "side": 1,
+      "message": "To sum up: I misunderstood your comment initially, and this is a good idea.  I am planning use GetRange in a future CL so that I can grab slices of updates for the UI demo.  However, I could do that by setting a script to \"record\" the updates it receives as it pretends to be a Status client.  It\u0027d take longer but this is a good optimization.  I\u0027ll save it for a future CL though.",
+      "parentUuid": "c587337f_59a38d2f",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 172,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "399bcc40_b50e8e01",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -1487,6 +1511,30 @@
     },
     {
       "key": {
+        "uuid": "2d2f039b_fff4881f",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T17:36:30Z",
+      "side": 1,
+      "message": "Generally I\u0027d like to be able to go back indefinitely, but without a limit on the task specs to return or defining the window as a range rather than the last N commits, I don\u0027t think it\u0027s manageable due to data size.",
+      "parentUuid": "7a8124a7_f7ccdf1e",
+      "range": {
+        "startLine": 44,
+        "startChar": 27,
+        "endLine": 44,
+        "endChar": 30
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "18059b31_2eaa53ac",
         "filename": "status/go/status/main.go",
         "patchSetId": 6
@@ -1746,6 +1794,30 @@
       "side": 1,
       "message": "Yeah, let\u0027s leave as-is. Maybe nice to clean up, but nicer to have something working.\n\nThe time.Time is a string in JS, isn\u0027t it?",
       "parentUuid": "fcb9e827_2bf21108",
+      "range": {
+        "startLine": 228,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 0
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e78226b1_6ff393b7",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T17:36:30Z",
+      "side": 1,
+      "message": "Yes, it gets turned into a string when we encode the JSON.  Then in our JS code we use it as a Date.  I don\u0027t know how Date is stored internally.",
+      "parentUuid": "dc9455b1_d25f122d",
       "range": {
         "startLine": 228,
         "startChar": 0,
@@ -2277,6 +2349,30 @@
     },
     {
       "key": {
+        "uuid": "b3fd2a68_91f13818",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T17:36:30Z",
+      "side": 1,
+      "message": "Oh, I see now.  Yeah, that\u0027s a problem.  IIUC, the Polymer debounce method only works if we know that the full reload cycle will finish within a specified time period.  I think the right thing to do is determine whether _activeAJAX is true and if so, make a note that a reload was requested.  When _reload finishes, it can check whether another reload was requested and run again.  WDYT?",
+      "parentUuid": "3d508003_fd3281ed",
+      "range": {
+        "startLine": 382,
+        "startChar": 6,
+        "endLine": 382,
+        "endChar": 13
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "953e5c96_535a1b30",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -2336,6 +2432,30 @@
       "side": 1,
       "message": "If you make changes for commits_to_load, take another look at this logic.",
       "parentUuid": "656bcd07_c8e1da9b",
+      "range": {
+        "startLine": 407,
+        "startChar": 25,
+        "endLine": 407,
+        "endChar": 72
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81d31aeb_1d78b7d6",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-21T17:36:30Z",
+      "side": 1,
+      "message": "Yeah, I just realized that I\u0027m not handling dynamic changes to commits_to_load at all.",
+      "parentUuid": "08e65743_d3cc2dae",
       "range": {
         "startLine": 407,
         "startChar": 25,
