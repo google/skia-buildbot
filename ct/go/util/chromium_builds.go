@@ -170,6 +170,7 @@ func getChromiumHash() (string, error) {
 }
 
 func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil) error {
+	util.MkdirAll(ChromiumBuildsDir, 0755)
 	localUploadDir := localOutDir
 	if targetPlatform == "Android" {
 		localUploadDir = filepath.Join(localUploadDir, "apks")
@@ -177,7 +178,6 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 		// Temporarily move the not needed large "gen" and "obj" directories so
 		// that they do not get uploaded to Google Storage. Move them back after
 		// the method completes.
-		util.MkdirAll(ChromiumBuildsDir, 0755)
 
 		genDir := filepath.Join(localOutDir, "gen")
 		genTmpDir := filepath.Join(ChromiumBuildsDir, "gen")
