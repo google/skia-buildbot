@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "c060472f_d3ade55f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "297a32d1_e2050998",
+      "range": {
+        "startLine": 447,
+        "startChar": 40,
+        "endLine": 448,
+        "endChar": 33
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd018f76_2126a775",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 6
@@ -187,6 +211,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d8275e9_ae4f5de1",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a9b47e52_4f074b5a",
+      "range": {
+        "startLine": 464,
+        "startChar": 0,
+        "endLine": 471,
+        "endChar": 15
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -272,6 +320,30 @@
     },
     {
       "key": {
+        "uuid": "ffe1a3b5_adc834be",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8bfaace0_084bd0b4",
+      "range": {
+        "startLine": 121,
+        "startChar": 24,
+        "endLine": 121,
+        "endChar": 48
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6c4d0915_950ec930",
         "filename": "status/go/incremental/comments.go",
         "patchSetId": 6
@@ -316,6 +388,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70cb61ea_0efeb4e0",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e96437f6_ad9196e9",
+      "range": {
+        "startLine": 131,
+        "startChar": 6,
+        "endLine": 131,
+        "endChar": 82
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -387,6 +483,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a4c698e_eaa0869b",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1df0108c_03047689",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -469,6 +589,24 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5edb0286_4d431e98",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "de9caad9_d786c977",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -801,6 +939,30 @@
     },
     {
       "key": {
+        "uuid": "c587337f_59a38d2f",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Discussed at lunch.",
+      "parentUuid": "fbf6ecca_cb3a2e64",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 172,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "399bcc40_b50e8e01",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -892,6 +1054,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d1f6303_f8441c0c",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6f75bba8_f4fae0bd",
+      "range": {
+        "startLine": 185,
+        "startChar": 7,
+        "endLine": 185,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1118,6 +1304,24 @@
     },
     {
       "key": {
+        "uuid": "6663d7b3_31a73353",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Nope. But they\u0027re still being created at the moment...",
+      "parentUuid": "b27b84d6_7e19bd11",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bfa57bfe_06dba173",
         "filename": "status/go/incremental/tasks.go",
         "patchSetId": 6
@@ -1259,6 +1463,30 @@
     },
     {
       "key": {
+        "uuid": "7a8124a7_f7ccdf1e",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Huh, I thought it was 500. When I\u0027m sheriff or trooper, I occasionally extend the window to the maximum number of commits. I could probably search via Swarming though.",
+      "parentUuid": "9aadae15_591e96d5",
+      "range": {
+        "startLine": 44,
+        "startChar": 27,
+        "endLine": 44,
+        "endChar": 30
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "18059b31_2eaa53ac",
         "filename": "status/go/status/main.go",
         "patchSetId": 6
@@ -1306,6 +1534,30 @@
     },
     {
       "key": {
+        "uuid": "f6276986_c512fc97",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "72dfce41_14fda0e3",
+      "range": {
+        "startLine": 116,
+        "startChar": 5,
+        "endLine": 116,
+        "endChar": 16
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebb5e293_f7d822f8",
         "filename": "status/go/status/main.go",
         "patchSetId": 6
@@ -1350,6 +1602,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "529354ed_869e2835",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ca85b74d_66a1e096",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1458,6 +1734,30 @@
     },
     {
       "key": {
+        "uuid": "dc9455b1_d25f122d",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Yeah, let\u0027s leave as-is. Maybe nice to clean up, but nicer to have something working.\n\nThe time.Time is a string in JS, isn\u0027t it?",
+      "parentUuid": "fcb9e827_2bf21108",
+      "range": {
+        "startLine": 228,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 0
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5cfec168_4c2b73f9",
         "filename": "status/res/imp/build-popup-sk.html",
         "patchSetId": 6
@@ -1502,6 +1802,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92fd5b51_53209adf",
+        "filename": "status/res/imp/build-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e807cc7e_a66d3bbc",
+      "range": {
+        "startLine": 74,
+        "startChar": 40,
+        "endLine": 74,
+        "endChar": 81
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1905,6 +2229,54 @@
     },
     {
       "key": {
+        "uuid": "42f97e58_bb9e8bb4",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Any of those, or updateData or incrementalUpdate sound good.",
+      "parentUuid": "c05f908c_730be496",
+      "range": {
+        "startLine": 382,
+        "startChar": 6,
+        "endLine": 382,
+        "endChar": 27
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d508003_fd3281ed",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "JS is single threaded, but this._last_load_ts is set in a promise callback, so there aren\u0027t really any guarantees on which JS code runs before the callback executes.\n\nIf I add a comment at around the same time that the timer triggers a reload, ISTM that things will get messed up, e.g. this._data.commits will contain duplicates of any new commits returned in the JSON.",
+      "parentUuid": "2233c031_ab0d2de0",
+      "range": {
+        "startLine": 382,
+        "startChar": 6,
+        "endLine": 382,
+        "endChar": 13
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "953e5c96_535a1b30",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -1952,6 +2324,30 @@
     },
     {
       "key": {
+        "uuid": "08e65743_d3cc2dae",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "If you make changes for commits_to_load, take another look at this logic.",
+      "parentUuid": "656bcd07_c8e1da9b",
+      "range": {
+        "startLine": 407,
+        "startChar": 25,
+        "endLine": 407,
+        "endChar": 72
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7913fef0_750a27aa",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -1996,6 +2392,30 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "414d8bd9_34d0d8b8",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "497f572d_2dec4d59",
+      "range": {
+        "startLine": 425,
+        "startChar": 0,
+        "endLine": 433,
+        "endChar": 11
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -2140,6 +2560,30 @@
     },
     {
       "key": {
+        "uuid": "16638a3f_d6b6561b",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 685,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3f5859ee_0d3fb1f7",
+      "range": {
+        "startLine": 685,
+        "startChar": 38,
+        "endLine": 685,
+        "endChar": 48
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ded6def_f58915a3",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
@@ -2258,6 +2702,30 @@
     },
     {
       "key": {
+        "uuid": "39098e26_adc14735",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2abcc5c5_9c4b2c6c",
+      "range": {
+        "startLine": 842,
+        "startChar": 0,
+        "endLine": 845,
+        "endChar": 0
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b4ebf75c_c5812c49",
         "filename": "status/res/imp/commits-table-d3-sk.html",
         "patchSetId": 6
@@ -2290,6 +2758,24 @@
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40ed5dda_2ca06141",
+        "filename": "status/res/imp/commits-table-d3-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ca4329e8_2be05343",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -2410,6 +2896,30 @@
       "side": 1,
       "message": "The build(er) and commit popups fire the \"reload\" event when a comment is added or removed, which we listen for and force the data object to pull down any new data at that time, so that the new/removed comments are reflected on the page.",
       "parentUuid": "bc76da55_4b5b81c9",
+      "range": {
+        "startLine": 362,
+        "startChar": 0,
+        "endLine": 364,
+        "endChar": 6
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "82663bba_1f6666e8",
+        "filename": "status/res/imp/status-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T16:58:42Z",
+      "side": 1,
+      "message": "Sorry, I got confused.",
+      "parentUuid": "93c5096c_5e5fddb2",
       "range": {
         "startLine": 362,
         "startChar": 0,
