@@ -36,11 +36,7 @@
   </style>
   <template>
 
-    <paper-dialog heading="Confirmation" id="confirm_dialog">
-      <div>Proceed with queueing task?</div>
-      <paper-button id="task_dismiss">Cancel</paper-button>
-      <paper-button id="task_confirm" autofocus>OK</paper-button>
-    </paper-dialog>
+    <confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
 
     <table class="options panel">
       <tr>
@@ -107,12 +103,6 @@
       this.$.submit_task.addEventListener('click', function(e) {
         that.validateTask();
       });
-      this.$.task_dismiss.addEventListener('click', function(e) {
-        that.dismissTask();
-      });
-      this.$.task_confirm.addEventListener('click', function(e) {
-        that.queueTask();
-      });
       this.$.view_history.addEventListener('click', function(e) {
         that.gotoRunsHistory();
       });
@@ -149,12 +139,11 @@
       if (ctfe.moreThanOneActiveTask($$$("drawer-sk").sizeOfUserQueue)) {
         return;
       }
-      this.$.confirm_dialog.open()
-    },
-
-    dismissTask: function() {
-      sk.errorMessage("Did not queue");
-      this.$.confirm_dialog.close()
+      this.$.confirm_dialog.open("Proceed with queueing task?")
+        .then(this.queueTask.bind(this))
+        .catch(function() {
+          sk.errorMessage("Did not queue");
+        })
     },
 
     queueTask: function() {
