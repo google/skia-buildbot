@@ -180,6 +180,30 @@
     },
     {
       "key": {
+        "uuid": "fb20a8ef_b1571bba",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:24:27Z",
+      "side": 1,
+      "message": "(OTOH, if this were in the same file as its only use, I almost certainly wouldn\u0027t have made this comment, so \u003cshrug\u003e.)",
+      "parentUuid": "b99eba72_e2dd6d60",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "81b13730_e2c95b8e",
         "filename": "status/go/incremental/commits.go",
         "patchSetId": 6
