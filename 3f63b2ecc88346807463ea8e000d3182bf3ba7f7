@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "b0b7453f_6e9e1e9c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "I\u0027m happy that you split up this CL, but I find that the demo pages reveal many of my bugs. It would be nice to get those working before pushing these changes.",
+      "range": {
+        "startLine": 17,
+        "startChar": 2,
+        "endLine": 17,
+        "endChar": 64
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ac2b3e9e_10f87ffe",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 6
@@ -88,6 +111,75 @@
     },
     {
       "key": {
+        "uuid": "07126272_259ff9d5",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "Would it make sense to add StartTrackingCommentChanges() and friends to db.CommentDB? Might (or might not) be useful outside of Status.",
+      "range": {
+        "startLine": 121,
+        "startChar": 24,
+        "endLine": 121,
+        "endChar": 48
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c4d0915_950ec930",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "Currently none of the DB impls pays attention to the time cutoff passed to GetCommentsForRepos. If they did, this test would fail anytime a comment expires from the window. Is that intended?",
+      "range": {
+        "startLine": 131,
+        "startChar": 6,
+        "endLine": 131,
+        "endChar": 82
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b99eba72_e2dd6d60",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "nit: Generally I would assume that a struct without a \"new\" function can be used without initialization. However, it seems that repos must be initialized before this can be used.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "81b13730_e2c95b8e",
         "filename": "status/go/incremental/commits.go",
         "patchSetId": 6
@@ -111,6 +203,276 @@
     },
     {
       "key": {
+        "uuid": "95961812_0fd8dba3",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "This package has no unit tests. Would be nice to add some.",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71ce27a8_b3a3685a",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "nit: doc map key is repoUrl",
+      "range": {
+        "startLine": 63,
+        "startChar": 18,
+        "endLine": 63,
+        "endChar": 38
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60dda537_b0b777cb",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "No longer true?",
+      "range": {
+        "startLine": 67,
+        "startChar": 61,
+        "endLine": 68,
+        "endChar": 24
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "740239cc_4cc20e2d",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "Debugf (or remove)",
+      "range": {
+        "startLine": 93,
+        "startChar": 7,
+        "endLine": 93,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56a2b439_03a5fe1c",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "373ba68f_4a43b164",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 113,
+        "startChar": 7,
+        "endLine": 113,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58601b1b_c35b35a8",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 144,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 14
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "782152b8_067fbe82",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "Assuming only Get is used and GetRange isn\u0027t needed (see comment in status/go/status/main.go):\n\nWhen a new Update is created, why not pre-merge it into all previous Updates, rather than doing the merging for every client request?\n\n(Then you could also pre-generate and cache the JSON of each Update. But maybe do that in another CL.)",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 172,
+        "endChar": 2
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "399bcc40_b50e8e01",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 179,
+        "startChar": 7,
+        "endLine": 179,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2a0f0b3_f276f4d3",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "Maybe this is OK as Infof, assuming it doesn\u0027t happen too frequently.",
+      "range": {
+        "startLine": 185,
+        "startChar": 7,
+        "endLine": 185,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3b7a834_a11696fe",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 191,
+        "startChar": 7,
+        "endLine": 191,
+        "endChar": 12
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8ae6db6_c428a9e9",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "done?",
+      "range": {
+        "startLine": 210,
+        "startChar": 1,
+        "endLine": 210,
+        "endChar": 28
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4d377910_4f051f7e",
         "filename": "status/go/incremental/incremental.go",
         "patchSetId": 6
@@ -127,6 +489,92 @@
         "startChar": 19,
         "endLine": 254,
         "endChar": 33
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f04f365_ea05090c",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "nit: similar to commitsCache, no \"new\" function but db must be initialized.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 1
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "258e5cfd_9e1f183c",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "You are including fake tasks here, but ignoring t.Properties[\"url\"]. That doesn\u0027t seem like it will work well.",
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfa57bfe_06dba173",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "nit: doc the second return value",
+      "range": {
+        "startLine": 36,
+        "startChar": 63,
+        "endLine": 37,
+        "endChar": 23
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1b1aef4_3df290ef",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "Maybe I\u0027m missing something, but I don\u0027t see how this solves the problem.\n\nMoreover, it will result in tasks created after \"now\" to be included in the return value.\n\nSimplest solution would be remove the \"now\" parameter and just use time.Now().",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 39
       },
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -173,6 +621,29 @@
         "startChar": 5,
         "endLine": 116,
         "endChar": 16
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebb5e293_f7d822f8",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "This param doesn\u0027t seem to be used by the client, and could simplify things if it were removed.",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 2
       },
       "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -369,6 +840,30 @@
       "writtenOn": "2017-09-20T20:52:37Z",
       "side": 1,
       "message": "I\u0027m slightly wary of assuming a single swarming server and task scheduler for all tasks.\n\nAlso, would be nice to link to Milo for non-Googlers vs. Swarming details for Googlers.\n\nGood enough for now, but maybe something to keep in mind.",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 57
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab611c74_c79f12a4",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 1,
+      "message": "Ah, I forgot that I had added the Milo links after Greg made that request. I guess we can see if anyone complains that they can\u0027t look at the task logs from their personal laptop anymore.",
+      "parentUuid": "4b46e12c_2333a420",
       "range": {
         "startLine": 43,
         "startChar": 4,

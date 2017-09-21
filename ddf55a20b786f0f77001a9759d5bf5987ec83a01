@@ -16,6 +16,29 @@
       "revId": "ddf55a20b786f0f77001a9759d5bf5987ec83a01",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77ef9557_6e7d84cb",
+        "filename": "status/res/imp/build-popup-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-21T02:13:26Z",
+      "side": 0,
+      "message": "Personally, I found this useful to quickly see if a failure occurred only on a particular bot. I suppose it\u0027s not too much harder to look at the tasklist on swarming.",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 111,
+        "endChar": 20
+      },
+      "revId": "ddf55a20b786f0f77001a9759d5bf5987ec83a01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
