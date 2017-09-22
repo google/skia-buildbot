@@ -36,6 +36,7 @@
     repo: String, the current repo.  Used to direct comments to the right place.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
     reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it.
+    swarming_url: String, the URL of the Swarming server.
 
   Methods:
     None.
@@ -143,6 +144,9 @@
         },
         reverted_map: {
           type: Object,
+        },
+        swarming_url: {
+          type: String,
         },
         time_points: {
           type: Object,
@@ -270,14 +274,27 @@
         newCommits
           .insert("div")
           .classed("flex", true);
+        newCommits
+          .insert("span")
+          .classed("commit-comment", true);
+        newCommits
+          .insert("span")
+          .classed("commit-ignore", true);
+        newCommits
+          .insert("span")
+          .classed("commit-revert", true);
+        newCommits
+          .insert("span")
+          .classed("commit-reland", true);
+
         // On the other side, conditionally draw iron icons for comments, relands, reverts.
-        this._addIronIcon(newCommits, "communication:chat", "tiny", function(commit){
+        this._addIronIcon(newCommits.select(".commit-comment"), "communication:chat", "tiny", function(commit){
           return commit.comments && commit.comments.length > 0;
         });
-        this._addIronIcon(newCommits, "icons:block", "tiny", function(commit){
+        this._addIronIcon(newCommits.select(".commit-ignore"), "icons:block", "tiny", function(commit){
             return commit.ignoreFailure;
         });
-        var reverts = this._addIronIcon(newCommits, "icons:undo", "tiny fg-failure", function(commit){
+        var reverts = this._addIronIcon(newCommits.select(".commit-revert"), "icons:undo", "tiny fg-failure", function(commit){
           var reverterCommit = reverted_map[commit.issue];
           return (reverterCommit !== undefined && reverterCommit.timestamp > commit.timestamp);
         });
@@ -288,7 +305,7 @@
         reverts.on("mouseleave", function(commit){
           d3.selectAll(".commit.bg-failure").classed("bg-failure", false);
         })
-        var relands = this._addIronIcon(newCommits, "icons:redo","tiny fg-success", function(commit){
+        var relands = this._addIronIcon(newCommits.select(".commit-reland"), "icons:redo", "tiny fg-success", function(commit){
           var relanderCommit = relanded_map[commit.issue];
           return (relanderCommit !== undefined && relanderCommit.timestamp > commit.timestamp);
         });
@@ -305,7 +322,6 @@
       // returns all icons that were added.
       _addIronIcon: function(selection, icon, classes, shouldAddIcon) {
         return selection
-          .insert("span")
           .html(function(commit){
             // The Polymer templates will pick this up and make it a real iron-icon element.
             // However, if you try to do .insert("iron-icon")... that does not work.
@@ -427,20 +443,29 @@
               d3.event.stopPropagation();
               openBuilderDialog(d.builder);
             });
+          titles
+            .insert("span")
+            .classed("taskspec-comment", true);
+          titles
+            .insert("span")
+            .classed("taskspec-ignore", true);
+          titles
+            .insert("span")
+            .classed("taskspec-flaky", true);
 
-          addIronIcon(titles, "icons:block", "tiny", function(d){
+          addIronIcon(data.selectAll(".taskspec-ignore"), "icons:block", "tiny", function(d){
             return builders[d.builder].ignoreFailure;
           });
-          addIronIcon(titles, "image:texture", "tiny", function(d){
+          addIronIcon(data.selectAll(".taskspec-flaky"), "image:texture", "tiny", function(d){
             return builders[d.builder].flaky;
           });
-          addIronIcon(titles, "communication:chat", "tiny", function(d){
+          addIronIcon(data.selectAll(".taskspec-comment"), "communication:chat", "tiny", function(d){
             return builders[d.builder].comments && builders[d.builder].comments.length > 0;
           });
 
           newBuilders
-          .insert("div")
-          .classed("builder-spacer", true);
+            .insert("div")
+            .classed("builder-spacer", true);
 
           // Set the height so that flexing doesn't throw off the multi column alignment.
           newBuilders
@@ -479,7 +504,7 @@
               return d.category + d.subcategory + d.builder + d.commit.hash;
             });
           data.exit().remove();
-          data
+          var newBuilds = data
             .enter()
             .insert("div")
             .classed("build",true)
@@ -489,13 +514,13 @@
               d3.event.stopPropagation();
               openBuildDialog(d);
             });
+          newBuilds
+            .insert("span")
+            .classed("task-comment", true);
           data.order();
           // Style the inside div.
           data.each(function(d){
             var build = this.children[0];
-            // Clear any icons already drawn in the child.
-            build.innerHTML = "";
-
             // Remove any previously-set classes.
             var removeClasses = [];
             for (var i = 0; i < build.classList.length; i++) {
@@ -518,8 +543,8 @@
               // Add the new class.
               build.classList.add(build_details[d.commit.hash][d.builder].colorClass);
               build.title = d.builder + ", #"+details.number;
-              addIronIcon(d3.select(build), "communication:chat", "tiny", function(){
-                return details.comments.length > 0 &&
+              addIronIcon(d3.select(build).select(".task-comment"), "communication:chat", "tiny", function(){
+                return details.comments && details.comments.length > 0 &&
                     (build.classList.contains(CLASS_BUILD_SINGLE)
                   || build.classList.contains(CLASS_BUILD_TOP));
               });
@@ -539,11 +564,11 @@
         if (details) {
           var buildInfo = document.createElement("build-popup-sk");
           buildInfo.build = details;
-          buildInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(details, this.logged_in);
           buildInfo.repo = this.repo;
           buildInfo.repo_base = this.repo_base;
           buildInfo.commit_details = this.commits_map;
           buildInfo.parent = this;
+          buildInfo.swarming_url = this.swarming_url;
           this._openDialog(buildInfo);
         }
       },
@@ -555,11 +580,8 @@
         if (builder) {
           var builderInfo = document.createElement("builder-popup-sk");
           builderInfo.builder = this.builders[builder];
-          for (var buildNum in this.builds[builder]) {
-            builderInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(this.builds[builder][buildNum], this.logged_in);
-            break;
-          }
           builderInfo.repo = this.repo;
+          builderInfo.swarming_url = this.swarming_url;
           this._openDialog(builderInfo);
         }
       },
@@ -585,8 +607,6 @@
         this.$.infoDialog.innerHTML = '';
         this.$.infoDialog.appendChild(child);
         child.show();
-
-        console.log("show");
       },
     });
   })()

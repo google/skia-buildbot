@@ -259,12 +259,14 @@
             repo="[[repo]]"
             repo_base="[[repo_base]]"
             reverted_map="[[reverted_map]]"
+            swarming_url="[[swarming_url]]"
             task_scheduler_url="[[task_scheduler_url]]"
             time_points="[[time_points]]"
             commit_label="{{label}}"
             drawing="{{drawing}}"
             filter="{{filter}}"
-            search="{{search}}">
+            search="{{search}}"
+            on-reload="_forceUpdate">
         </commits-table-sk>
 
         <commits-data-sk id="data"
@@ -287,6 +289,7 @@
             purple_builds="{{purple_builds}}"
             relanded_map="{{relanded_map}}"
             reverted_map="{{reverted_map}}"
+            swarming_url="{{swarming_url}}"
             task_scheduler_url="{{task_scheduler_url}}"
             time_points="{{time_points}}">
         </commits-data-sk>
@@ -356,6 +359,10 @@
       },
     },
 
+    _forceUpdate: function() {
+      this.$.data.forceUpdate();
+    },
+
     _isGoogler: function(email) {
       return sk.isGoogler(email);
     },
@@ -411,7 +418,7 @@
     },
 
     _handleAutoRollUpdate: function() {
-      this.$.data.forceUpdate();
+      this.$.data.forceReProcess();
     },
   });
   </script>

@@ -14,8 +14,8 @@
 
   Properties:
     builder: The details for a builder.
-    buildbot_url_prefix: Prefix of the buildbot URL.
     repo: The name (not the URL) of the repository of the commit.
+    swarming_url: The URL of the Swarming server.
 
   Note:
     The unobfuscate-status-page extension relies on the name and contents of
@@ -35,14 +35,8 @@
       }
     </style>
     <h3>
-      <a href$="[[_makeBuilderURL(buildbot_url_prefix,builder)]]" target="_blank">[[builder.builder]]</a>
+      <a href$="[[swarming_url]]/tasklist?f=sk_name%3A[[builder.builder]]" target="_blank">[[builder.builder]]</a>
     </h3>
-    <table>
-      <tr>
-        <td>Master:</td>
-        <td><a href$="[[_makeBuildMasterURL(buildbot_url_prefix,builder)]]" target="_blank">[[builder.master]]</a></td>
-      </tr>
-    </table>
     <hr/>
     <comments-sk
         comments="{{builder.comments}}"
@@ -63,12 +57,12 @@
         builder: {
           type: Object,
         },
-        buildbot_url_prefix: {
-          type: String,
-          value: "https://build.chromium.org/p",
-        },
         repo: {
           type: String,
+        },
+        swarming_url: {
+          type: String,
+          value: "",
         },
 
         // private
@@ -87,24 +81,13 @@
         },
       },
 
-      _makeBuilderURL: function(buildbotUrlPrefix, builder) {
-        if (builder.url) {
-          return builder.url;
-        } else {
-          return buildbotUrlPrefix + "builders/"+builder.builder;
-        }
-      },
-
-      _makeBuildMasterURL: function(buildbotUrlPrefix, builder) {
-        return buildbotUrlPrefix;
-      },
       _makeAddCommentURL: function (builder, repo) {
-        return "/json/"+repo+"/builders/"+builder.builder+"/comments";
+        return "/json/"+repo+"/taskSpecs/"+builder.builder+"/comments";
       },
 
       _commentAdded: function() {
-        // reload page
-        window.location.href = window.location.href;
+        this.fire("reload", {});
+        this.hide();
       },
     });
   </script>

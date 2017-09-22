@@ -9,8 +9,11 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sort"
 	"sync"
+	"time"
 
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git"
@@ -155,7 +158,7 @@ func New(repo *git.Repo) (*Graph, error) {
 		var r gobGraph
 		if err := gob.NewDecoder(f).Decode(&r); err != nil {
 			util.Close(f)
-			return nil, err
+			return nil, fmt.Errorf("Failed to read Graph cache file %s: %s", cacheFile, err)
 		}
 		util.Close(f)
 		rv.commits = r.Commits
@@ -176,7 +179,7 @@ func New(repo *git.Repo) (*Graph, error) {
 func NewGraph(repoUrl, workdir string) (*Graph, error) {
 	repo, err := git.NewRepo(repoUrl, workdir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create git repo: %s", err)
 	}
 	return New(repo)
 }
@@ -332,6 +335,40 @@ func (r *Graph) Branches() []string {
 	return rv
 }
 
+// BranchHeads returns the set of branch heads from the repo.
+func (r *Graph) BranchHeads() []*gitinfo.GitBranch {
+	branches := r.Branches()
+	branchHeads := make([]*gitinfo.GitBranch, 0, len(branches))
+	for _, b := range branches {
+		branchHeads = append(branchHeads, &gitinfo.GitBranch{
+			Name: b,
+			Head: r.Get(b).Hash,
+		})
+	}
+	return branchHeads
+}
+
+// GetNewCommits returns the new commits in the repo, given a previous set of
+// branch heads.
+func (r *Graph) GetNewCommits(oldBranchHeads []*gitinfo.GitBranch) ([]*vcsinfo.LongCommit, error) {
+	visited := make(map[string]bool, len(oldBranchHeads))
+	for _, branch := range oldBranchHeads {
+		visited[branch.Head] = true
+	}
+	newCommits := []*vcsinfo.LongCommit{}
+	if err := r.RecurseAllBranches(func(c *Commit) (bool, error) {
+		if visited[c.Hash] {
+			return false, nil
+		}
+		newCommits = append(newCommits, c.LongCommit)
+		visited[c.Hash] = true
+		return true, nil
+	}); err != nil {
+		return nil, err
+	}
+	return newCommits, nil
+}
+
 // Get returns a Commit object for the given ref, if such a commit exists. This
 // function does not understand complex ref types (eg. HEAD~3); only branch
 // names and full commit hashes are accepted.
@@ -380,6 +417,54 @@ func (r *Graph) RecurseAllBranches(f func(*Commit) (bool, error)) error {
 		}
 	}
 	return nil
+}
+
+// Return any commits at or after the given timestamp.
+func (r *Graph) GetCommitsNewerThan(ts time.Time) ([]*vcsinfo.LongCommit, error) {
+	commits := []*Commit{}
+	if err := r.RecurseAllBranches(func(c *Commit) (bool, error) {
+		if !c.Timestamp.Before(ts) {
+			commits = append(commits, c)
+			return true, nil
+		}
+		return false, nil
+	}); err != nil {
+		return nil, err
+	}
+
+	// Sort the commits by timestamp, most recent first.
+	sort.Sort(CommitSlice(commits))
+
+	rv := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		rv = append(rv, c.LongCommit)
+	}
+	return rv, nil
+}
+
+// GetLastNCommits returns the last N commits in the repo.
+func (r *Graph) GetLastNCommits(n int) ([]*vcsinfo.LongCommit, error) {
+	// Find the last Nth commit on master, which we assume has far more
+	// commits than any other branch.
+	commit := r.Get("master")
+	for i := 0; i < n-1; i++ {
+		p := commit.GetParents()
+		if len(p) < 1 {
+			// Cut short if we've hit the beginning of history.
+			break
+		}
+		commit = p[0]
+	}
+	commits, err := r.GetCommitsNewerThan(commit.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the most-recent N commits.
+	if n > len(commits) {
+		n = len(commits)
+	}
+	return commits[:n], nil
 }
 
 // Map is a convenience type for dealing with multiple Graphs for different
