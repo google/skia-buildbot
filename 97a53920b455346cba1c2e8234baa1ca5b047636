@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "091dda69_ffec0b00",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "Ugh, right.  It gets a lot more likely if the comment repo starts to respect the \"since\" timestamp.  I can probably use an empty slice here to differentiate from nil, but \"omitempty\" in the JSON encoder would probably make it disappear.  I guess we could remove that and always send [] or null in the JSON?",
+      "parentUuid": "9e6f531d_16e0875c",
+      "range": {
+        "startLine": 148,
+        "startChar": 86,
+        "endLine": 148,
+        "endChar": 112
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ccde763_f3f87da0",
         "filename": "status/go/incremental/incremental_test.go",
         "patchSetId": 8
@@ -45,6 +69,30 @@
       "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af09e333_84aa956b",
+        "filename": "status/go/incremental/incremental_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ccde763_f3f87da0",
+      "range": {
+        "startLine": 22,
+        "startChar": 14,
+        "endLine": 24,
+        "endChar": 3
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5bf3e4d1_6a8c09d1",
+        "filename": "status/go/incremental/incremental_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1586be7_fe1991fa",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 2
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4331a4c7_cb6cd223",
         "filename": "status/go/incremental/incremental_test.go",
         "patchSetId": 8
@@ -82,6 +154,30 @@
       "writtenOn": "2017-09-22T18:29:31Z",
       "side": 1,
       "message": "Is adding a commit on a new branch interesting?",
+      "range": {
+        "startLine": 200,
+        "startChar": 4,
+        "endLine": 200,
+        "endChar": 20
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02708754_59fe4740",
+        "filename": "status/go/incremental/incremental_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "I don\u0027t really think so; as long as repograph.Graph does the right thing, it\u0027ll show up in the list of new comments.",
+      "parentUuid": "4331a4c7_cb6cd223",
       "range": {
         "startLine": 200,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "f2a8b412_1bb1be03",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aba76880_b6119b06",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 85
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b7492e6_3164d551",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 8
@@ -128,6 +248,30 @@
       "writtenOn": "2017-09-22T18:29:31Z",
       "side": 1,
       "message": "indentation",
+      "range": {
+        "startLine": 420,
+        "startChar": 0,
+        "endLine": 420,
+        "endChar": 3
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a63530d0_ef1a2367",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "Removed this line",
+      "parentUuid": "5b7492e6_3164d551",
       "range": {
         "startLine": 420,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "3c6d4c8e_7ddea7a2",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "Removed this line.",
+      "parentUuid": "2e49a0cb_d4f4cdc5",
+      "range": {
+        "startLine": 430,
+        "startChar": 0,
+        "endLine": 430,
+        "endChar": 3
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f61cf4d0_18742481",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 8
@@ -174,6 +342,30 @@
       "writtenOn": "2017-09-22T18:29:31Z",
       "side": 1,
       "message": "indentation",
+      "range": {
+        "startLine": 449,
+        "startChar": 0,
+        "endLine": 449,
+        "endChar": 2
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "433a3d1e_11dc75ab",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "Removed this line.",
+      "parentUuid": "f61cf4d0_18742481",
       "range": {
         "startLine": 449,
         "startChar": 0,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "93b6a6e3_94f1788d",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "No, this._data isn\u0027t actually used for display; the other attributes of commits-data-sk are set during _processData, and those are used for display.  Still took the suggestion.",
+      "parentUuid": "170b7de7_e7b3dcc6",
+      "range": {
+        "startLine": 454,
+        "startChar": 0,
+        "endLine": 457,
+        "endChar": 9
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "92fadc59_9e614942",
         "filename": "status/res/imp/status-sk.html",
         "patchSetId": 8
@@ -220,6 +436,30 @@
       "writtenOn": "2017-09-22T18:29:31Z",
       "side": 1,
       "message": "nit: Could we change reload to update here also?",
+      "range": {
+        "startLine": 269,
+        "startChar": 12,
+        "endLine": 269,
+        "endChar": 35
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0c59d04_b4212a08",
+        "filename": "status/res/imp/status-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T18:48:34Z",
+      "side": 1,
+      "message": "Changed _forceReload to _forceUpdate but didn\u0027t change the event name, as I want to avoid merge conflicts with the next CL.",
+      "parentUuid": "92fadc59_9e614942",
       "range": {
         "startLine": 269,
         "startChar": 12,
