@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "6c843546_c24c8934",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T19:20:08Z",
+      "side": 1,
+      "message": "https://bugs.chromium.org/p/skia/issues/detail?id\u003d7063",
+      "parentUuid": "cb2aea67_6d58fd08",
+      "range": {
+        "startLine": 148,
+        "startChar": 86,
+        "endLine": 148,
+        "endChar": 112
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ccde763_f3f87da0",
         "filename": "status/go/incremental/incremental_test.go",
         "patchSetId": 8
