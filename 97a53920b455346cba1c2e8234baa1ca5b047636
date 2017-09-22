@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9e6f531d_16e0875c",
+        "filename": "status/go/incremental/comments.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "This made me realize: if we have one comment and it gets deleted, we have no way to tell the client. Unlikely to happen for the Skia repo, but might happen esp. for TaskSpecComments in other repos.",
+      "range": {
+        "startLine": 148,
+        "startChar": 86,
+        "endLine": 148,
+        "endChar": 112
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ccde763_f3f87da0",
+        "filename": "status/go/incremental/incremental_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "nit: \u0026db.CommentBox{}\n\n(See doc on CommentBox.)",
+      "range": {
+        "startLine": 22,
+        "startChar": 14,
+        "endLine": 24,
+        "endChar": 3
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1586be7_fe1991fa",
+        "filename": "status/go/incremental/incremental_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "nit: gb.Cleanup()",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 2
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4331a4c7_cb6cd223",
+        "filename": "status/go/incremental/incremental_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "Is adding a commit on a new branch interesting?",
+      "range": {
+        "startLine": 200,
+        "startChar": 4,
+        "endLine": 200,
+        "endChar": 20
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aba76880_b6119b06",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "nit: Renamed.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 85
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b7492e6_3164d551",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "indentation",
+      "range": {
+        "startLine": 420,
+        "startChar": 0,
+        "endLine": 420,
+        "endChar": 3
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e49a0cb_d4f4cdc5",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "indentation",
+      "range": {
+        "startLine": 430,
+        "startChar": 0,
+        "endLine": 430,
+        "endChar": 3
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f61cf4d0_18742481",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "indentation",
+      "range": {
+        "startLine": 449,
+        "startChar": 0,
+        "endLine": 449,
+        "endChar": 2
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "170b7de7_e7b3dcc6",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "Does this cause flashing? Why not below?\nif (json.start_over || fromScratch) {\n  this._clearData();\n}",
+      "range": {
+        "startLine": 454,
+        "startChar": 0,
+        "endLine": 457,
+        "endChar": 9
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92fadc59_9e614942",
+        "filename": "status/res/imp/status-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-22T18:29:31Z",
+      "side": 1,
+      "message": "nit: Could we change reload to update here also?",
+      "range": {
+        "startLine": 269,
+        "startChar": 12,
+        "endLine": 269,
+        "endChar": 35
+      },
+      "revId": "97a53920b455346cba1c2e8234baa1ca5b047636",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
