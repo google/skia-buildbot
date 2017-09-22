@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "75824112_cea5a4c1",
+        "filename": "status/go/incremental/tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T17:06:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c999691d_22ba79d2",
+      "range": {
+        "startLine": 57,
+        "startChar": 2,
+        "endLine": 57,
+        "endChar": 24
+      },
+      "revId": "def26bc4b15e0c3fb4a2d720512cb6cf3662742d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "269c2163_2680db8b",
         "filename": "status/res/imp/build-popup-sk.html",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "0d9e0623_5c1d4c15",
+        "filename": "status/res/imp/build-popup-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T17:06:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "269c2163_2680db8b",
+      "range": {
+        "startLine": 102,
+        "startChar": 32,
+        "endLine": 102,
+        "endChar": 33
+      },
+      "revId": "def26bc4b15e0c3fb4a2d720512cb6cf3662742d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc0534c5_25e30fba",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 7
@@ -59,6 +107,30 @@
       "writtenOn": "2017-09-21T16:58:42Z",
       "side": 1,
       "message": "This seems to be ignored.",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 226,
+        "endChar": 10
+      },
+      "revId": "def26bc4b15e0c3fb4a2d720512cb6cf3662742d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "904d7c52_fd2452a3",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T17:06:40Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "fc0534c5_25e30fba",
       "range": {
         "startLine": 223,
         "startChar": 0,

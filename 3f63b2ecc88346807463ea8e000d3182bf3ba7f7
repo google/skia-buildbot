@@ -2397,6 +2397,54 @@
     },
     {
       "key": {
+        "uuid": "f00651af_c55a6cc4",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T17:06:40Z",
+      "side": 1,
+      "message": "Chose \"update\" for brevity.",
+      "parentUuid": "42f97e58_bb9e8bb4",
+      "range": {
+        "startLine": 382,
+        "startChar": 6,
+        "endLine": 382,
+        "endChar": 27
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d59119d1_70c71db9",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-22T17:06:40Z",
+      "side": 1,
+      "message": "I went with the thing I suggested, it\u0027s not too complicated.  I think not having a comment show up immediately will confuse users.",
+      "parentUuid": "0a9da59d_40976836",
+      "range": {
+        "startLine": 382,
+        "startChar": 6,
+        "endLine": 382,
+        "endChar": 13
+      },
+      "revId": "3f63b2ecc88346807463ea8e000d3182bf3ba7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "953e5c96_535a1b30",
         "filename": "status/res/imp/commits-data-sk.html",
         "patchSetId": 6
