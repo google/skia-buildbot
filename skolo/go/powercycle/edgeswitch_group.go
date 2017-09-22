@@ -1,11 +1,15 @@
 package powercycle
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -78,7 +82,14 @@ func (e *EdgeSwitchDevGroup) PowerCycle(devID string, delayOverride time.Duratio
 
 	port, ok := e.conf.DevPortMap[devID]
 	if !ok {
-		return fmt.Errorf("Invalid port: %d", port)
+		return fmt.Errorf("Invalid devID: %s", devID)
+	}
+
+	// We rely on a dns lookup for the bot id ("e.g. skia-rpi-001") for this to work.
+	// The router or the host can have it in /etc/host.
+	if ok := SoftPowerCycle(devID); ok {
+		sklog.Infof("Was able to powercycle %s via SSH", devID)
+		return nil
 	}
 
 	// Turn the given port off, wait and then on again.
@@ -92,6 +103,49 @@ func (e *EdgeSwitchDevGroup) PowerCycle(devID string, delayOverride time.Duratio
 		return err
 	}
 	return nil
+}
+
+// SoftPowerCycle attempts to SSH into the machine using the
+// jumphost's private/public key and reboot it. This should
+// help the jarring behavior seen when a bot is hard-rebooted
+// frequently.
+func SoftPowerCycle(address string) bool {
+	key, err := ioutil.ReadFile("/home/chrome-bot/.ssh/id_rsa")
+	if err != nil {
+		sklog.Errorf("unable to read private key: %s", err)
+		return false
+	}
+	signer, err := ssh.ParsePrivateKey(key)
+	if err != nil {
+		sklog.Errorf("unable to parse private key: %s", err)
+		return false
+	}
+	c := &ssh.ClientConfig{
+		User: "chrome-bot",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         5 * time.Second,
+	}
+	client, err := ssh.Dial("tcp", address+":22", c)
+	if err != nil {
+		sklog.Errorf("Failed to dial: %s", err)
+		return false
+	}
+	session, err := client.NewSession()
+	if err != nil {
+		sklog.Errorf("Failed to create session: %s", err)
+		return false
+	}
+	defer session.Close()
+
+	var b bytes.Buffer
+	session.Stdout = &b
+	// This always fails because the command doesn't return after reboot.
+	_ = session.Run("sudo /sbin/reboot")
+	sklog.Infof("Soft reboot should have succeeded.  See logs: %s", b.String())
+	return true
 }
 
 // PowerUsage, see the DeviceGroup interface.
