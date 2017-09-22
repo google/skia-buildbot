@@ -2,7 +2,7 @@ Prober
 ======
 
 Prober monitors the uptime of our servers and pumps the results of those probes
-into InfluxDB.
+into Prometheus.
 
 
 ### Prober ###

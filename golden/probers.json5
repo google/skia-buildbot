@@ -1,6 +1,6 @@
 {
    "skiagold": {
-     "urls": ["https://gold.skia.org"],
+     "urls": ["http://skia-gold-prod:8001"],
      "method": "GET",
      "expected": [200],
      "body": "",
