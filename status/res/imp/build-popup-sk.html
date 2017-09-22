@@ -25,8 +25,6 @@
         number:      Number indicating the build number of this build.
         results:     Number indicating the result status code of the build.
 
-    buildbot_url_prefix: Prefix of the buildbot URL.
-
     commit_details: Object whose keys are commit hashes and values are objects with the following attributes:
         shortAuthor:  String, shortened version of the commit author.
         shortHash:    String, shortened version of the commit hash.
@@ -34,6 +32,7 @@
 
     repo: The name (not the URL) of the repository of the commit.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
+    swarming_url: URL of the Swarming server.
 
   Methods:
     None.
@@ -71,8 +70,8 @@
     <div class="horizontal layout wrap">
       <div class="flex">
         <h3>
-          <a target="_blank" href$="{{_makeBuildURL(build, buildbot_url_prefix)}}">
-            <span>{{build.builder}}</span> #<span>{{build.number}}</span> <iron-icon icon="launch"></iron-icon>
+          <a target="_blank" href$="[[swarming_url]]/task?id=[[build.swarming_task_id]]">
+            <span>{{build.name}}</span><iron-icon icon="launch"></iron-icon>
           </a>
         </h3>
       </div>
@@ -94,24 +93,16 @@
           <td>Failed steps:</td>
           <td>
             <template is="dom-repeat" items="{{build.failedSteps}}" as="step">
-              <a target="_blank" href$="{{_makeBuildStepLogURL(build, buildbot_url_prefix, step)}}">{{step}}</a><br>
+              {{step}}<br>
             </template>
           </td>
         </tr>
       </template>
       <tr>
-        <td>Other Tasks Like This</td>
+        <td>Other Tasks Like This:</td>
         <td>
-          <a target="_blank" rel="noopener" href$="{{_makeDashboardBuilderURL(build)}}">
-            <span>{{build.builder}}</span>
-          </a>
-        </td>
-      </tr>
-      <tr>
-        <td>Bot</td>
-        <td>
-          <a target="_blank" rel="noopener" href$="{{_makeSlaveHostURL(build)}}">
-            [[build.buildslave]]
+          <a target="_blank" rel="noopener" href$="[[swarming_url]]/tasklist?f=sk_name%3A[[build.name]]">
+            <span>view on Swarming</span>
           </a>
         </td>
       </tr>
@@ -147,11 +138,6 @@
           value: function() { return {}; },
         },
 
-        buildbot_url_prefix: {
-          type: String,
-          value: "",
-        },
-
         commit_details: {
           type: Object,
           value: function() { return {}; },
@@ -165,31 +151,23 @@
         repo_base: {
           type: String,
           value: "",
-        }
+        },
+
+        swarming_url: {
+          type: String,
+          value: "",
+        },
       },
 
       _commentAdded: function() {
-        window.location.href = window.location.href;
-      },
-      _makeBuildURL: function(build, buildbot_url_prefix) {
-        if (build.url) {
-          return build.url;
-        } else {
-          return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number;
-        }
+        this.fire("reload", {});
+        this.hide();
       },
       _buildResultStyle: function(build) {
-        return 'color: ' + build.color;
+        return build.colorClass;
       },
       _hasFailedSteps: function(build) {
         return build.failedSteps && build.failedSteps.length > 0;
-      },
-      _makeDashboardBuilderURL: function(build) {
-        if (build.dashboardBuilderUrl) {
-          return build.dashboardBuilderUrl;
-        } else {
-          return '';
-        }
       },
       _makeSlaveHostURL: function(build) {
         if (build.slaveHostUrl) {
@@ -199,16 +177,13 @@
         }
       },
       _makeAddCommentURL: function(build, repo) {
-        return '/json/' + repo + '/builds/' + build.master + '/' + build.builder + '/' + build.number + '/comments';
-      },
-      _makeBuildStepLogURL: function(build, buildbot_url_prefix, step) {
-        return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number + '/steps/' + step + '/logs/stdio';
+        return "/json/tasks/" + build.id + "/comments";
       },
       _makeCommitURL: function(c, repo_base) {
         return repo_base + c;
       },
       _buildResultString: function(build) {
-        return build.finished ? build.results == 0 ? 'success' : build.results == 1 ? 'success' : build.results == 3 ? 'success' : build.results == 2 ? 'failed' : build.results == 4 ? 'exception' : 'exception' : 'running';
+        return build.status;
       },
       _commitHash: function(c, commit_details) {
         return commit_details[c] ? commit_details[c].shortHash : "";
