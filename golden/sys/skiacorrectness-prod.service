@@ -13,6 +13,7 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --trace_service=skia-tracedb:9090 \
     --git_repo_dir=${DATA_DIR}/gold/skia \
     --image_dir=${DATA_DIR}/imageStore  \
+    --internal_port=:19000 \
     --storage_dir=${DATA_DIR}/datastore  \
     --resources_dir=${RESOURCE_DIR}  \
     --db_host=173.194.104.24  \
