@@ -72,6 +72,70 @@ func GetOldestPendingTask() (task_common.Task, error) {
 	return oldestTask, nil
 }
 
+// rmistry: This is failing!!
+// GetRunningTasks returns the oldest pending task of any type.
+func GetRunningTasks() ([]task_common.Task, error) {
+	runningTasks := []task_common.Task{} // rmistry: First thing to do is to use this!
+	for _, task := range task_types.Prototypes() {
+		// rmistry: This needs to learn how to return multiple results!!
+		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NOT NULL AND ts_completed IS NULL ORDER BY ts_added;", task.TableName())
+
+		// This was an attempt but it does not seem to be working!
+		data, err := task.Select(query, []string{})
+		if err != nil {
+			return nil, fmt.Errorf("Failed to query DB: %v", err)
+		}
+		tasks := task_common.AsTaskSlice(data)
+		for _, t := range tasks {
+			fmt.Println("XXXXXXXXXXXXXXXx")
+			fmt.Println(t.GetCommonCols().Id)
+		}
+
+		//if err := db.DB.Get(runningTasks, query); err == sql.ErrNoRows {
+		//	continue
+		//} else if err != nil {
+		//	return nil, fmt.Errorf("Failed to query DB: %v", err)
+		//}
+		////runningTasks = append(runningTasks, task)
+		//fmt.Println(runningTasks)
+	}
+	return runningTasks, nil
+}
+
+// TODO(rmistry):
+// Rename the task handler thingyh and make it a POST.
+// Email the people
+// Need to delete more than one task from a task! how do I do that??
+func TerminateRunningTasks() error {
+	runningTasks, err := GetRunningTasks()
+	if err != nil {
+		return fmt.Errorf("Could not get list of running tasks: %s", err)
+	}
+	for _, task := range runningTasks {
+		updateVars := task.GetUpdateTaskVars()
+		commonUpdateVars := updateVars.GetUpdateTaskCommonVars()
+		commonUpdateVars.Id = task.GetCommonCols().Id
+		commonUpdateVars.SetCompleted(false)
+		if err := task_common.UpdateTask(updateVars, task.TableName()); err != nil {
+			return fmt.Errorf("Failed to update %T task: %s", updateVars, err)
+		}
+
+		//if successful := updateVars.GetUpdateTaskCommonVars().SetCompleted(false); !successful {
+		//	return fmt.Errorf("Failed to update %T task: %s", updateVars, err)
+		//}
+
+		//updateVars.SetCompleted()
+
+		//updateVars.GetUpdateTaskCommonVars().Failure = sql.NullBool{Bool: true, Valid: true}
+		// rmistry: How do I *delete* a task??
+		//if err := task_common.UpdateTask(updateVars, task.TableName()); err != nil {
+		//	return fmt.Errorf("Failed to update %T task: %s", updateVars, err)
+		//}
+		// rmistry: gather requestor emails so that you can notify them after deleting tasks!
+	}
+	return nil
+}
+
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
 // should be non-nil when serialized as JSON.
 type oldestPendingTask struct {
@@ -172,6 +236,43 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		if data == nil {
+			httputils.ReportError(w, r, err, "Failed to read update request")
+			return
+		}
+		if !ctfeutil.UserHasAdminRights(r) {
+			httputils.ReportError(w, r, err, "Failed authentication")
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := TerminateRunningTasks(); err != nil {
+		httputils.ReportError(w, r, err, "Failed to terminate running tasks")
+		return
+	}
+	//runningTasks, err := GetRunningTasks()
+	//if err != nil {
+	//	httputils.ReportError(w, r, err, "Failed to get oldest pending task")
+	//	return
+	//}
+
+	//fmt.Println(runningTasks)
+	// rmistry
+	// how do I do nothing? if error then report it else do nothing.
+	return
+	/*
+		if err := EncodeTask(w, oldestTask); err != nil {
+			httputils.ReportError(w, r, err,
+				fmt.Sprintf("Failed to encode JSON for %#v", oldestTask))
+			return
+		}
+	*/
+}
+
 // GetPendingTaskCount returns the total number of pending tasks of all types. On error, the first
 // return value will be -1 and the second return value will be non-nil.
 func GetPendingTaskCount() (int64, error) {
@@ -202,6 +303,8 @@ func AddHandlers(r *mux.Router) {
 	// Task Queue handlers.
 	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PENDING_TASKS_URI, "GET", pendingTasksView)
 
-	// Do not add force login handler for getOldestPendingTaskHandler. It uses webhooks for authentication.
+	// Do not add force login handler for getOldestPendingTaskHandler and getRunningTasksHandler,
+	// they uses webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.GET_RUNNING_TASKS_URI, getRunningTasksHandler).Methods("GET")
 }

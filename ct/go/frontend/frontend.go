@@ -39,6 +39,7 @@ var (
 	ChromiumBuildTasksWebapp                 string
 	UpdateChromiumBuildTasksWebapp           string
 	GetOldestPendingTaskWebapp               string
+	GetRunningTasksWebapp                    string
 )
 
 var httpClient = httputils.NewTimeoutClient()
@@ -74,6 +75,7 @@ func initUrls(webapp_root string) {
 	ChromiumBuildTasksWebapp = webapp_root + ctfeutil.CHROMIUM_BUILD_URI
 	UpdateChromiumBuildTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
 	GetOldestPendingTaskWebapp = webapp_root + ctfeutil.GET_OLDEST_PENDING_TASK_URI
+	GetRunningTasksWebapp = webapp_root + ctfeutil.GET_RUNNING_TASKS_URI
 }
 
 // Common functions
@@ -92,6 +94,24 @@ func GetOldestPendingTaskV2() (task_common.Task, error) {
 	if resp.StatusCode != 200 {
 		response, _ := ioutil.ReadAll(resp.Body)
 		return nil, fmt.Errorf("GET %s returned %d: %s", GetOldestPendingTaskWebapp, resp.StatusCode, response)
+	}
+	return pending_tasks.DecodeTask(resp.Body)
+}
+
+func GetRunningTasks() (task_common.Task, error) {
+	req, err := webhook.NewRequest("GET", GetRunningTasksWebapp, []byte{})
+	if err != nil {
+		return nil, fmt.Errorf("Could not create HTTP request: %s", err)
+	}
+	client := httputils.NewTimeoutClient()
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer skutil.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		response, _ := ioutil.ReadAll(resp.Body)
+		return nil, fmt.Errorf("GET %s returned %d: %s", GetRunningTasksWebapp, resp.StatusCode, response)
 	}
 	return pending_tasks.DecodeTask(resp.Body)
 }

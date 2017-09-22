@@ -414,6 +414,9 @@ func UpdateTask(vars UpdateTaskVars, tableName string) error {
 		return fmt.Errorf("Failed to marshal %T update: %v", vars, err)
 	}
 	result, err := db.DB.Exec(query, binds...)
+	fmt.Println("DEBUGGING")
+	fmt.Println(query)
+	fmt.Println(binds)
 	if err != nil {
 		return fmt.Errorf("Failed to update using %T: %v", vars, err)
 	}
