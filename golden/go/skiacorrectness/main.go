@@ -61,6 +61,7 @@ var (
 	hashFileBucket      = flag.String("hash_file_bucket", "", "Bucket where the file with the known list of hashes should be written.")
 	hashFilePath        = flag.String("hash_file_path", "", "Path of the file with know hashes.")
 	imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
 	issueTrackerKey     = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
 	local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile          = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
@@ -378,19 +379,28 @@ func main() {
 		}
 	})
 
-	// Add the necessary middleware and have the router handle all requests.
-	// By structuring the middleware this way we only log requests that are
-	// authenticated.
-	rootHandler := httputils.LoggingGzipRequestResponse(router)
+	// set up a router that logs for all URLs except the status endpoint.
+	appRouter := mux.NewRouter()
+	appRouter.HandleFunc("/json/trstatus", jsonStatusHandler)
+
+	// Wrap all other routes in in logging middleware.
+	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(router))
+
+	// Set up the external handler to enforce authentication if necessary.
+	externalHandler := http.Handler(appRouter)
 	if *forceLogin {
-		rootHandler = login.ForceAuth(rootHandler, OAUTH2_CALLBACK_PATH)
+		externalHandler = login.ForceAuth(appRouter, OAUTH2_CALLBACK_PATH)
 	}
 
-	// The jsonStatusHandler is being polled, so we exclude it from logging.
-	http.HandleFunc("/json/trstatus", jsonStatusHandler)
-	http.Handle("/", rootHandler)
+	// Start the internal server on the internal port if requested.
+	if *internalPort != "" {
+		go func() {
+			sklog.Infoln("Internal server on  http://127.0.0.1" + *internalPort)
+			sklog.Fatal(http.ListenAndServe(*internalPort, appRouter))
+		}()
+	}
 
 	// Start the server
 	sklog.Infoln("Serving on http://127.0.0.1" + *port)
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
 }
