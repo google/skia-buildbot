@@ -15,6 +15,7 @@ ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --default_corpus=pdfium \
     --git_repo_dir=${DATA_DIR}/gold/pdfium_repo \
     --image_dir=${DATA_DIR}/imageStore  \
+    --internal_port=:19000 \
     --storage_dir=${DATA_DIR}/datastore  \
     --resources_dir=${RESOURCE_DIR}  \
     --db_host=173.194.104.24  \
