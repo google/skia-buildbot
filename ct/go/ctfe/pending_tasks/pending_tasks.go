@@ -72,6 +72,28 @@ func GetOldestPendingTask() (task_common.Task, error) {
 	return oldestTask, nil
 }
 
+// rmistry: This is failing!!
+// GetRunningTasks returns the oldest pending task of any type.
+func GetRunningTasks() (task_common.Task, error) {
+	// runningTasks := []task_common.Task{} // rmistry: First thing to do is to use this.
+	var oldestTask task_common.Task
+	for _, task := range task_types.Prototypes() {
+		// rmistry: This needs to learn how to return multiple results!!
+		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NOT NULL AND ts_completed IS NULL ORDER BY ts_added;", task.TableName())
+		if err := db.DB.Get(task, query); err == sql.ErrNoRows {
+			continue
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to query DB: %v", err)
+		}
+		if oldestTask == nil {
+			oldestTask = task
+		} else if oldestTask.GetCommonCols().TsAdded.Int64 > task.GetCommonCols().TsAdded.Int64 {
+			oldestTask = task
+		}
+	}
+	return oldestTask, nil
+}
+
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
 // should be non-nil when serialized as JSON.
 type oldestPendingTask struct {
@@ -172,6 +194,33 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		if data == nil {
+			httputils.ReportError(w, r, err, "Failed to read update request")
+			return
+		}
+		if !ctfeutil.UserHasAdminRights(r) {
+			httputils.ReportError(w, r, err, "Failed authentication")
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	oldestTask, err := GetRunningTasks()
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get oldest pending task")
+		return
+	}
+
+	if err := EncodeTask(w, oldestTask); err != nil {
+		httputils.ReportError(w, r, err,
+			fmt.Sprintf("Failed to encode JSON for %#v", oldestTask))
+		return
+	}
+}
+
 // GetPendingTaskCount returns the total number of pending tasks of all types. On error, the first
 // return value will be -1 and the second return value will be non-nil.
 func GetPendingTaskCount() (int64, error) {
@@ -202,6 +251,8 @@ func AddHandlers(r *mux.Router) {
 	// Task Queue handlers.
 	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PENDING_TASKS_URI, "GET", pendingTasksView)
 
-	// Do not add force login handler for getOldestPendingTaskHandler. It uses webhooks for authentication.
+	// Do not add force login handler for getOldestPendingTaskHandler and getRunningTasksHandler,
+	// they uses webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.GET_RUNNING_TASKS_URI, getRunningTasksHandler).Methods("GET")
 }
