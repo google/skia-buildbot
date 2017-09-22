@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	MANIFEST_FILE_NAME = "userspace"
+	// TODO(rmistry): Make this configurable.
+	MANIFEST_FILE_NAME = "skia"
 )
 
 var (
