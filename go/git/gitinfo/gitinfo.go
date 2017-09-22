@@ -2,6 +2,8 @@
 package gitinfo
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -19,9 +21,15 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-// commitLineRe matches one line of commit log and captures hash, author and
-// subject groups.
-var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
+var (
+	// DefaultSkiaDEPSRegexp is the default regular expression to extract the
+	// commit hash from a deps file.
+	DefaultSkiaDEPSRegexp = regexp.MustCompile("^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$")
+
+	// commitLineRe matches one line of commit log and captures hash, author and
+	// subject groups.
+	commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
+)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
@@ -648,6 +656,42 @@ func (g *GitInfo) NumCommits() int {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	return len(g.hashes)
+}
+
+// IsCommit returns true if the provided hash is a commit in the repo.
+func (g *GitInfo) IsCommit(sha string) bool {
+	if sha == "" {
+		return false
+	}
+
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	output, err := exec.RunCwd(g.dir, "git", "cat-file", "-t", sha)
+	if err != nil {
+		return false
+	}
+	return strings.TrimSpace(output) == "commit"
+}
+
+func ExtractCommitFromDEPS(g *GitInfo, sha string, parseDEPSRegexp *regexp.Regexp) string {
+	if !g.IsCommit(sha) {
+		return ""
+	}
+
+	content, err := g.GetFile("DEPS", sha)
+	if err != nil {
+		return ""
+	}
+
+	scanner := bufio.NewScanner(bytes.NewBuffer([]byte(content)))
+	for scanner.Scan() {
+		line := scanner.Text()
+		result := parseDEPSRegexp.FindStringSubmatch(line)
+		if len(result) == 2 {
+			return result[1]
+		}
+	}
+	return ""
 }
 
 // RepoMap is a struct used for managing multiple Git repositories.
