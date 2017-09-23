@@ -1,6 +1,7 @@
 package goldingestion
 
 import (
+	"fmt"
 	"net/http"
 
 	"go.skia.org/infra/go/sklog"
@@ -34,7 +35,7 @@ type goldProcessor struct {
 type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
 
 // implements the ingestion.Constructor signature.
-func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
+func newGoldProcessor(vcs vcsinfo.VCS, secondaries []vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
 	if err != nil {
 		return nil, err
@@ -60,7 +61,27 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
-	commit, err := g.vcs.Details(dmResults.GitHash, true)
+	var commit *vcsinfo.LongCommit = nil
+
+	targetCommit := dmResults.GitHash
+	if !vcsinfo.IsCommit(targetCommit) {
+		if len(g.secondaryRepos) == 0 {
+			return fmt.Errorf("Error commit %s is not in repository and no secondary repos defined.", dmResults.GitHash)
+		}
+
+		for _, secondary := range g.secondaryRepos {
+			if secondary.IsCommit(targetCommit) {
+				if foundCommit := secondary.TranslateDEPSHash(targetCommit); foundCommit != "" {
+					if !vcsInfo.IsCommit(foundCommit) {
+						sklog.Errrorf("Found invalid commit %s in dependent repo %s. Not contained in primary repo %s", foundCommit, secondary, g.vcs.Url())
+					}
+				}
+			}
+		}
+
+	}
+
+	commit, err = g.vcs.Details(dmResults.GitHash, true)
 	if err != nil {
 		return err
 	}

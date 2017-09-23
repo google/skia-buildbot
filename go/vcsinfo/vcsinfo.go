@@ -54,4 +54,6 @@ type VCS interface {
 	// ByIndex returns a LongCommit describing the commit
 	// at position N, as ordered in the current branch.
 	ByIndex(N int) (*LongCommit, error)
+
+	IsCommit(sha string) bool
 }
