@@ -2,6 +2,8 @@
 package gitinfo
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -19,9 +21,11 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-// commitLineRe matches one line of commit log and captures hash, author and
-// subject groups.
-var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
+var (
+	// commitLineRe matches one line of commit log and captures hash, author and
+	// subject groups.
+	commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
+)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
@@ -648,6 +652,42 @@ func (g *GitInfo) NumCommits() int {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	return len(g.hashes)
+}
+
+// IsCommit returns true if the provided hash is a commit in the repo.
+func (g *GitInfo) IsCommit(sha string) bool {
+	if sha == "" {
+		return false
+	}
+
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	output, err := exec.RunCwd(g.dir, "git", "cat-file", "-t", sha)
+	if err != nil {
+		return false
+	}
+	return strings.TrimSpace(output) == "commit"
+}
+
+func (g *GitInfo) GetDEPSCommit(commitHash string, extractRegEx *regexp.Regexp) string {
+	if !g.IsCommit(commitHash) {
+		return ""
+	}
+
+	content, err := g.GetFile("DEPS", commitHash)
+	if err != nil {
+		return ""
+	}
+
+	scanner := bufio.NewScanner(bytes.NewBuffer([]byte(content)))
+	for scanner.Scan() {
+		line := scanner.Text()
+		result := extractRegEx.FindStringSubmatch(line)
+		if len(result) == 2 {
+			return result[1]
+		}
+	}
+	return ""
 }
 
 // RepoMap is a struct used for managing multiple Git repositories.

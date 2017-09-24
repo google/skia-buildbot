@@ -129,7 +129,7 @@ func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options) (strin
 //
 // Returns the timestamp of the git commit in UTC.
 func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
-	g, err := gitinfo.NewGitInfo(filepath.Join(fiddleRoot, "versions", gitHash), false, false)
+	g, err := gitinfo.NewGitInfo(filepath.Join(fiddleRoot, "versions", gitHash), false, false, "")
 	if err != nil {
 		return time.Time{}, fmt.Errorf("Failed to create gitinfo: %s", err)
 	}
