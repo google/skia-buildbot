@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
+	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/webhook"
 )
@@ -70,6 +71,47 @@ func GetOldestPendingTask() (task_common.Task, error) {
 		}
 	}
 	return oldestTask, nil
+}
+
+// GetRunningTasks returns all running tasks from all task types.
+func GetRunningTasks() ([]task_common.Task, error) {
+	runningTasks := []task_common.Task{}
+	for _, task := range task_types.Prototypes() {
+		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NOT NULL AND ts_completed IS NULL ORDER BY ts_added;", task.TableName())
+		data, err := task.Select(query)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to query DB: %v", err)
+		}
+		runningTasks = append(runningTasks, task_common.AsTaskSlice(data)...)
+	}
+	return runningTasks, nil
+}
+
+func TerminateRunningTasks() error {
+	runningTasks, err := GetRunningTasks()
+	if err != nil {
+		return fmt.Errorf("Could not get list of running tasks: %s", err)
+	}
+	runningTasksOwners := []string{}
+	for _, task := range runningTasks {
+		updateVars := task.GetUpdateTaskVars()
+		commonUpdateVars := updateVars.GetUpdateTaskCommonVars()
+		commonUpdateVars.Id = task.GetCommonCols().Id
+		commonUpdateVars.SetCompleted(false)
+		if err := task_common.UpdateTask(updateVars, task.TableName()); err != nil {
+			return fmt.Errorf("Failed to update %T task: %s", updateVars, err)
+		}
+		runningTasksOwners = append(runningTasksOwners, task.GetCommonCols().Username)
+	}
+	// Email all owners + admins.
+	if len(runningTasksOwners) > 0 {
+		emailRecipients := append(runningTasksOwners, ctutil.CtAdmins...)
+		if err := ctutil.SendTasksTerminatedEmail(emailRecipients); err != nil {
+			return fmt.Errorf("Failed to send task termination email: %s", err)
+		}
+	}
+
+	return nil
 }
 
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
@@ -172,6 +214,26 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getTerminateRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		if data == nil {
+			httputils.ReportError(w, r, err, "Failed to read update request")
+			return
+		}
+		if !ctfeutil.UserHasAdminRights(r) {
+			httputils.ReportError(w, r, err, "Failed authentication")
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := TerminateRunningTasks(); err != nil {
+		httputils.ReportError(w, r, err, "Failed to terminate running tasks")
+		return
+	}
+}
+
 // GetPendingTaskCount returns the total number of pending tasks of all types. On error, the first
 // return value will be -1 and the second return value will be non-nil.
 func GetPendingTaskCount() (int64, error) {
@@ -202,6 +264,8 @@ func AddHandlers(r *mux.Router) {
 	// Task Queue handlers.
 	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PENDING_TASKS_URI, "GET", pendingTasksView)
 
-	// Do not add force login handler for getOldestPendingTaskHandler. It uses webhooks for authentication.
+	// Do not add force login handler for getOldestPendingTaskHandler and
+	// getTerminateRunningTasksHandler, they use webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.TERMINATE_RUNNING_TASKS_URI, getTerminateRunningTasksHandler).Methods("POST")
 }

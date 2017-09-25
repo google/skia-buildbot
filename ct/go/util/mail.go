@@ -16,13 +16,15 @@ import (
 var (
 	emailClientId     string
 	emailClientSecret string
+	emailTokenPath    string
 )
 
-func MailInit() {
+func MailInit(tokenPath string) {
+	emailTokenPath = tokenPath
 	emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
 	emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
 	cachedGMailToken := metadata.Must(metadata.ProjectGet(GMAIL_CACHED_TOKEN))
-	if err := ioutil.WriteFile(EmailTokenPath, []byte(cachedGMailToken), os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(emailTokenPath, []byte(cachedGMailToken), os.ModePerm); err != nil {
 		sklog.Fatalf("Failed to cache token: %s", err)
 	}
 }
@@ -39,7 +41,7 @@ func ParseEmails(emails string) []string {
 
 // SendEmail sends an email with the specified header and body to the recipients.
 func SendEmail(recipients []string, subject, body string) error {
-	gmail, err := email.NewGMail(emailClientId, emailClientSecret, EmailTokenPath)
+	gmail, err := email.NewGMail(emailClientId, emailClientSecret, emailTokenPath)
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
@@ -55,7 +57,7 @@ func SendEmail(recipients []string, subject, body string) error {
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func SendEmailWithMarkup(recipients []string, subject, body, markup string) error {
-	gmail, err := email.NewGMail(emailClientId, emailClientSecret, EmailTokenPath)
+	gmail, err := email.NewGMail(emailClientId, emailClientSecret, emailTokenPath)
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
@@ -95,6 +97,23 @@ func SendTaskStartEmail(recipients []string, taskName, runID, description string
 	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, swarmingLogsLink)
 	if err := SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		return fmt.Errorf("Error while sending task start email: %s", err)
+	}
+	return nil
+}
+
+// SendTasksTerminatedEmail informs the recipients that their CT tasks were terminated and that
+// they should reschedule.
+func SendTasksTerminatedEmail(recipients []string) error {
+	emailSubject := fmt.Sprintf("Cluster telemetry tasks were terminated (%s)", GetCurrentTs())
+	body := `
+	The Cluster telemetry server had to be restarted due to a maintenance issue.<br/>
+	This caused all running tasks to be terminated.<br/><br/>
+	Please reschedule your tasks. You can redo your tasks by clicking on the redo icon in the 'Runs History' page on http://ct.skia.org.<br/><br/>
+	Sorry for the inconvenience!
+	`
+
+	if err := SendEmail(recipients, emailSubject, body); err != nil {
+		return fmt.Errorf("Error while sending tasks termination email: %s", err)
 	}
 	return nil
 }
