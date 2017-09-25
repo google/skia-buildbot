@@ -60,7 +60,7 @@ func setup(t *testing.T) (string, *IncrementalCache, repograph.Map, db.DB, *git_
 }
 
 func update(t *testing.T, repo string, c *IncrementalCache, ts time.Time) (*Update, time.Time) {
-	assert.NoError(t, c.Update())
+	assert.NoError(t, c.Update(false))
 	now := time.Now()
 	u, err := c.Get(repo, ts, 100)
 	assert.NoError(t, err)
@@ -210,9 +210,8 @@ func TestIncrementalCache(t *testing.T) {
 	assert.Equal(t, "", u.TaskSchedulerUrl)
 	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
-	// This will cause the update to error and force the cache to reload from scratch.
-	cache.tasks.db.StopTrackingModifiedTasks(cache.tasks.queryId)
-	assert.NoError(t, cache.Update())
+	// This will cause the cache to reload from scratch.
+	assert.NoError(t, cache.Update(true))
 	// Expect the update to contain ALL of the information we've seen so
 	// far, even though we're requesting the most recent.
 	u, ts = update(t, repoUrl, cache, ts)

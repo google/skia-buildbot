@@ -262,7 +262,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to add comment: %s", err))
 		return
 	}
-	if err := iCache.Update(); err != nil {
+	if err := iCache.Update(false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -303,7 +303,7 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
-	if err := iCache.Update(); err != nil {
+	if err := iCache.Update(false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -351,7 +351,7 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task spec comment: %v", err))
 		return
 	}
-	if err := iCache.Update(); err != nil {
+	if err := iCache.Update(false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -388,7 +388,7 @@ func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
-	if err := iCache.Update(); err != nil {
+	if err := iCache.Update(false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -429,7 +429,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
 		return
 	}
-	if err := iCache.Update(); err != nil {
+	if err := iCache.Update(false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -462,7 +462,7 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
 		return
 	}
-	if err := iCache.Update(); err != nil {
+	if err := iCache.Update(false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}

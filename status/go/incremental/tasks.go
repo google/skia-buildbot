@@ -43,11 +43,11 @@ func mapTasks(tasks []*db.Task) map[string][]*Task {
 	return rv
 }
 
-// reset (re)establishes connection to the remote database and returns all tasks
+// Reset (re)establishes connection to the remote database and returns all tasks
 // in the desired range. The boolean return value is the "startOver" indicator
 // as returned by Update(), included here for convenience so that Update() can
-// just "return c.reset(...)".  Assumes the caller holds a lock.
-func (c *taskCache) reset(w *window.Window) (map[string][]*Task, bool, error) {
+// just "return c.Reset(...)".  Assumes the caller holds a lock.
+func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 	sklog.Infof("Resetting DB connection.")
 	c.queryId = ""
 	queryId, err := c.db.StartTrackingModifiedTasks()
@@ -71,12 +71,12 @@ func (c *taskCache) Update(w *window.Window) (map[string][]*Task, bool, error) {
 	if c.queryId == "" {
 		// Initial update, or if we failed to reconnect after a previous
 		// lost connection.
-		return c.reset(w)
+		return c.Reset(w)
 	}
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	if db.IsUnknownId(err) {
 		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
-		return c.reset(w)
+		return c.Reset(w)
 	} else if err != nil {
 		return nil, false, err
 	}
