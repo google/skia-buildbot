@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f73d4841_f35d3eba",
+        "filename": "datahopper/go/bot_metrics/bot_metrics.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T17:40:44Z",
+      "side": 1,
+      "message": "nit: remove",
+      "range": {
+        "startLine": 278,
+        "startChar": 4,
+        "endLine": 278,
+        "endChar": 30
+      },
+      "revId": "601eadd5f25bf4cd3a3608a2f7b8a0efc5f1b520",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

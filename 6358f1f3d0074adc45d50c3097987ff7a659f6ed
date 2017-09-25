@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5082b593_5e31585e",
+        "filename": "datahopper_internal/db_example.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T17:40:44Z",
+      "side": 0,
+      "message": "nice :-)",
+      "revId": "6358f1f3d0074adc45d50c3097987ff7a659f6ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6e437548_d105b1b3",
+        "filename": "datahopper_internal/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T17:40:44Z",
+      "side": 0,
+      "message": "Remember to run this before deleting.",
+      "revId": "6358f1f3d0074adc45d50c3097987ff7a659f6ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
