@@ -28,9 +28,6 @@
 
 <dom-module id="capture-skp-runs-sk">
   <style>
-    paper-dialog {
-      min-width: 200px;
-    }
     table.runshistory {
       border-spacing: 0px;
     }
@@ -56,18 +53,7 @@
   </style>
   <template>
 
-    <paper-dialog heading="Confirmation" id="delete_dialog">
-      <div>Proceed with deleting task?</div>
-      <div>{{deleteNote(captureSkpsTasks, deleteIndex)}}</div>
-      <paper-button id="delete_dismiss">Cancel</paper-button>
-      <paper-button id="delete_confirm" autofocus>OK</paper-button>
-    </paper-dialog>
-
-    <paper-dialog heading="Confirmation" id="redo_dialog">
-      <div>Reschedule this task?</div>
-      <paper-button id="redo_dismiss">Cancel</paper-button>
-      <paper-button id="redo_confirm" autofocus>OK</paper-button>
-    </paper-dialog>
+    <confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
 
     <h2><template is="dom-if" if="{{constrainByUser}}">My </template>Capture SkPicture Runs</h2>
     <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
@@ -225,14 +211,6 @@
          type: Object,
          value: function() { return null; },
        },
-       deleteIndex: {
-         type: Number,
-         value: -1,
-       },
-       redoIndex: {
-         type: Number,
-         value: -1,
-       },
      },
 
      ready: function() {
@@ -243,27 +221,16 @@
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
          if (button != null) {
            if (button.dataset.type == "delete") {
-             that.deleteIndex = button.dataset.index;
-             that.$.delete_dialog.open();
+             var index = button.dataset.index;
+             var note = that.deleteNote(that.captureSkpsTasks, index);
+             that.$.confirm_dialog.open("Proceed with deleting task?" + note)
+               .then(that.deleteTask.bind(that, index));
            } else if (button.dataset.type == "redo") {
-             that.redoIndex = button.dataset.index;
-             that.$.redo_dialog.open();
+             var index = button.dataset.index;
+             that.$.confirm_dialog.open("Reschedule this task?")
+               .then(that.redoTask.bind(that, index));
            }
          }
-       });
-       this.$.delete_dismiss.addEventListener('click', function(e) {
-         that.deleteIndex = -1;
-         that.$.delete_dialog.close();
-       });
-       this.$.delete_confirm.addEventListener('click', function(e) {
-         that.deleteTask();
-       });
-       this.$.redo_dismiss.addEventListener('click', function(e) {
-         that.redoIndex = -1;
-         that.$.redo_dialog.close();
-       });
-       this.$.redo_confirm.addEventListener('click', function(e) {
-         that.redoTask();
        });
        this.reload();
      },
@@ -282,7 +249,6 @@
        var queryStr = "?" + sk.query.fromObject(queryParams);
        var that = this;
        sk.post('/_/get_capture_skp_tasks' + queryStr).then(JSON.parse).then(function(json) {
-         that.deleteIndex = -1;
          that.captureSkpsTasks = json.data;
          that.pagination = json.pagination;
          for (var i = 0; i < that.captureSkpsTasks.length; i++) {
@@ -321,15 +287,15 @@
        if (deleteIndex >= 0 &&
            captureSkpsTasks[deleteIndex].TsCompleted.Valid &&
            !captureSkpsTasks[deleteIndex].Failure.Bool) {
-         return "Note: This SKP repository will no longer be available for running Lua Scripts.";
+         return " Note: This SKP repository will no longer be available for running Lua Scripts.";
        } else {
          return "";
        }
      },
 
-     deleteTask: function() {
+     deleteTask: function(deleteIndex) {
        var params = {};
-       params["id"] = this.captureSkpsTasks[this.deleteIndex].Id;
+       params["id"] = this.captureSkpsTasks[deleteIndex].Id;
        sk.post("/_/delete_capture_skps_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Deleted task " + params["id"];
          $$$("#confirm_toast").show();
@@ -339,9 +305,9 @@
        }.bind(this));
      },
 
-     redoTask: function() {
+     redoTask: function(redoIndex) {
        var params = {};
-       params["id"] = this.captureSkpsTasks[this.redoIndex].Id;
+       params["id"] = this.captureSkpsTasks[redoIndex].Id;
        sk.post("/_/redo_capture_skps_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Resubmitted task " + params["id"];
          $$$("#confirm_toast").show();
