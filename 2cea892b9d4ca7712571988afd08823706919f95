@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "2ce8a838_132ed62f",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-25T15:29:20Z",
+      "side": 1,
+      "message": "This should just be:\n\n_, err :\u003d g.FullHash(sha)\nreturn err \u003d\u003d nil",
+      "range": {
+        "startLine": 656,
+        "startChar": 0,
+        "endLine": 656,
+        "endChar": 45
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6517fb31_d50ef6b7",
         "filename": "go/git/gitinfo/gitinfo.go",
         "patchSetId": 12
@@ -35,6 +58,29 @@
         "startChar": 19,
         "endLine": 672,
         "endChar": 21
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7834de49_6ff19af6",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 674,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-25T15:29:20Z",
+      "side": 1,
+      "message": "1. Can we assume that all DEPS files we care about use the same format and therefore not have to pass in the regexp?  That\u0027d make this a lot simpler to use.  Or at least add the default regexp as a public \"constant\".\n2. Can we make this independent of GitInfo?  I\u0027d like to use this in Status but don\u0027t want to add all of the overhead of GitInfo.",
+      "range": {
+        "startLine": 674,
+        "startChar": 0,
+        "endLine": 674,
+        "endChar": 88
       },
       "revId": "2cea892b9d4ca7712571988afd08823706919f95",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
