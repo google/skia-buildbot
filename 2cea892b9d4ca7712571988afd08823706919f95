@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "74736d51_a44f0685",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-25T17:37:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ce8a838_132ed62f",
+      "range": {
+        "startLine": 656,
+        "startChar": 0,
+        "endLine": 656,
+        "endChar": 45
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6517fb31_d50ef6b7",
         "filename": "go/git/gitinfo/gitinfo.go",
         "patchSetId": 12
@@ -118,6 +142,30 @@
       "writtenOn": "2017-09-25T15:29:20Z",
       "side": 1,
       "message": "1. Can we assume that all DEPS files we care about use the same format and therefore not have to pass in the regexp?  That\u0027d make this a lot simpler to use.  Or at least add the default regexp as a public \"constant\".\n2. Can we make this independent of GitInfo?  I\u0027d like to use this in Status but don\u0027t want to add all of the overhead of GitInfo.",
+      "range": {
+        "startLine": 674,
+        "startChar": 0,
+        "endLine": 674,
+        "endChar": 88
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67a4eb7a_135c14d3",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 674,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-25T17:37:33Z",
+      "side": 1,
+      "message": "1.) I have seen these two cases so far (and there are probably more): \n\n  \u0027skia_revision\u0027: \u0027f3b4e16c36a6c789fc129aa3bd15c34b44ee8743\u0027,\n  \u0027https://chromium.googlesource.com/skia/@5cf7b6175ecf2c469bc6fedb815ba68f748f02d2\u0027\n\n\nI will add those two as constants, just to make it simpler. \n2.) The other packages in go/git... look like alternatives to GitInfo and I didn\u0027t see a good place to put it. If it\u0027s just a function to parse the DEPS file, the caller has to deal with the problem of extracting the DEPS file. \nI could leave the function in GitInfo, but move parsing the DEPS file to git_common and then\nyou call it there. Alternatively we could just duplicate this in the other git related packages or somehow consolidate our Git handling.",
+      "parentUuid": "7834de49_6ff19af6",
       "range": {
         "startLine": 674,
         "startChar": 0,
