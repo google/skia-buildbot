@@ -43,7 +43,7 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 	}
 
 	// Set up mock VCS and run a servcer with the given data directory.
-	vcs := ingestion.MockVCS(testCommits)
+	vcs := ingestion.MockVCS(testCommits, nil)
 	server, serverAddr := ingestion.StartTraceDBTestServer(t, traceDBFile, shareDBDir)
 
 	ingesterConf := &sharedconfig.IngesterConfig{

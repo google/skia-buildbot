@@ -100,6 +100,7 @@ func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error)        { return ni
 func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
+func (m *mockVcs) GetFile(fileName, commitHash string) (string, error) { return "", nil }
 
 func TestCalcCidsSparse(t *testing.T) {
 	testutils.SmallTest(t)
