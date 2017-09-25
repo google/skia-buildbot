@@ -3,6 +3,7 @@ package gitinfo
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -62,27 +63,31 @@ func TestFrom(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The two commits in the repo have timestamps of:
+	// The first two commits in the repo have timestamps of:
 	// 1406721715 and 1406721642.
 	testCases := []struct {
 		ts     int64
 		length int
 	}{
 		{
-			ts:     1406721715,
+			ts:     1506056642,
 			length: 0,
 		},
 		{
-			ts:     1406721714,
+			ts:     1406721715,
 			length: 1,
+		},
+		{
+			ts:     1406721714,
+			length: 2,
 		},
 		{
 			ts:     1406721642,
-			length: 1,
+			length: 2,
 		},
 		{
 			ts:     1406721641,
-			length: 2,
+			length: 3,
 		},
 	}
 	for _, tc := range testCases {
@@ -113,21 +118,19 @@ func TestLastN(t *testing.T) {
 		},
 		{
 			n:      1,
-			values: []string{"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18"},
+			values: []string{"4ede5bf7c9cc9eccbea0e7c088e47ab8b70aa9a8"},
 		},
 		{
 			n:      2,
-			values: []string{"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18"},
+			values: []string{"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "4ede5bf7c9cc9eccbea0e7c088e47ab8b70aa9a8"},
 		},
 		{
 			n:      5,
-			values: []string{"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18"},
+			values: []string{"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "4ede5bf7c9cc9eccbea0e7c088e47ab8b70aa9a8"},
 		},
 	}
 	for _, tc := range testCases {
-		if got, want := r.LastN(tc.n), tc.values; !util.SSliceEqual(got, want) {
-			t.Errorf("For N: %d Hashes returned is wrong: Got %#v Want %#v", tc.n, got, want)
-		}
+		assert.Equal(t, tc.values, r.LastN(tc.n), fmt.Sprintf("For N: %d Hashes returned is wrong", tc.n))
 	}
 }
 
@@ -170,6 +173,11 @@ func TestLastNIndex(t *testing.T) {
 		Index:     1,
 		Timestamp: time.Unix(1406721715, 0).UTC(),
 	}
+	c3 := &vcsinfo.IndexCommit{
+		Hash:      "4ede5bf7c9cc9eccbea0e7c088e47ab8b70aa9a8",
+		Index:     2,
+		Timestamp: time.Unix(1506056642, 0).UTC(),
+	}
 	testCases := []struct {
 		n        int
 		expected []*vcsinfo.IndexCommit
@@ -180,15 +188,15 @@ func TestLastNIndex(t *testing.T) {
 		},
 		{
 			n:        1,
-			expected: []*vcsinfo.IndexCommit{c2},
+			expected: []*vcsinfo.IndexCommit{c3},
 		},
 		{
 			n:        2,
-			expected: []*vcsinfo.IndexCommit{c1, c2},
+			expected: []*vcsinfo.IndexCommit{c2, c3},
 		},
 		{
 			n:        5,
-			expected: []*vcsinfo.IndexCommit{c1, c2},
+			expected: []*vcsinfo.IndexCommit{c1, c2, c3},
 		},
 	}
 	for _, tc := range testCases {
@@ -310,11 +318,13 @@ Author: Joe Gregorio <jcgregorio@google.com>
 Date:   Wed Jul 30 08:00:42 2014 -0400
 
     First "checkin"
-    
+????
     With quotes.
 
 README.txt
 `
+	// Hack aroudn editor that removes trailing spaces.
+	want = strings.Replace(want, "????", "    ", -1)
 
 	if got != want {
 		t.Errorf("Log failed: \nGot  %q \nWant %q", got, want)
@@ -495,7 +505,7 @@ func TestNumCommits(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got, want := r.NumCommits(), 2; got != want {
+	if got, want := r.NumCommits(), 3; got != want {
 		t.Errorf("NumCommit wrong number: Got %v Want %v", got, want)
 	}
 }
@@ -511,6 +521,7 @@ func TestRevList(t *testing.T) {
 	}
 
 	revs := []string{
+		"4ede5bf7c9cc9eccbea0e7c088e47ab8b70aa9a8",
 		"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
 		"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
 	}
@@ -528,11 +539,11 @@ func TestRevList(t *testing.T) {
 		},
 		{
 			Input:    []string{"7a669cf..8652a6d"},
-			Expected: revs[1:],
+			Expected: revs[2:],
 		},
 		{
 			Input:    []string{"8652a6d", "^7a669cf"},
-			Expected: revs[1:],
+			Expected: revs[2:],
 		},
 		{
 			Input:    []string{"8652a6d..7a669cf"},
@@ -569,6 +580,7 @@ func TestBranchInfo(t *testing.T) {
 		"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
 		"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
 		"3f5a807d432ac232a952bbf223bc6952e4b49b2c",
+		"4ede5bf7c9cc9eccbea0e7c088e47ab8b70aa9a8",
 	}
 	found := r.From(time.Unix(1406721641, 0))
 	assert.Equal(t, commits, found)
@@ -623,6 +635,27 @@ func TestSetBranch(t *testing.T) {
 	assert.NoError(t, err)
 
 	commits := r.LastN(10)
-	assert.Equal(t, 3, len(commits))
+	assert.Equal(t, 4, len(commits))
 	assert.Equal(t, "3f5a807d432ac232a952bbf223bc6952e4b49b2c", commits[2])
+}
+
+func TestExtractDEPS(t *testing.T) {
+	testutils.MediumTest(t)
+
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	assert.NoError(t, err)
+	extractRegEx, err := regexp.Compile("^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$")
+	assert.NoError(t, err)
+
+	// Check for a valid git hash that has a DEPS file.
+	assert.Equal(t, "f4b9bf7d9e688f1afedcf4a960a31582ddb56f4a", r.GetDEPSCommit("4ede5bf7c9cc9eccbea0e7c088e47ab8b70aa9a8", extractRegEx))
+
+	// Check an invalid git hash.
+	assert.Equal(t, "", r.GetDEPSCommit("invalid-sha-example", extractRegEx))
+
+	// Check a valid git hash that has no DEPS file.
+	assert.Equal(t, "", r.GetDEPSCommit("8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", extractRegEx))
 }
