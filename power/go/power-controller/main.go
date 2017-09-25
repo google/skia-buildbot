@@ -22,6 +22,7 @@ import (
 	skswarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/power/go/decider"
 	"go.skia.org/infra/power/go/gatherer"
+	"go.skia.org/infra/power/go/recorder"
 )
 
 const (
@@ -154,7 +155,7 @@ func setupGatherer() error {
 		return fmt.Errorf("Could not initialize down bot decider: %s", err)
 	}
 
-	downBots = gatherer.NewPollingGatherer(es, is, ac, d, hostMap, *updatePeriod)
+	downBots = gatherer.NewPollingGatherer(es, is, ac, d, recorder.NewCloudLoggingRecorder(), hostMap, *updatePeriod)
 
 	return nil
 }

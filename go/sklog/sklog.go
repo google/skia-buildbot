@@ -171,6 +171,14 @@ func Flush() {
 	glog.Flush()
 }
 
+// CustomLog allows any clients to write a LogPayload to a report with a
+// custom group name (e.g. "log file name"). This is the simplist way for
+// an app to send logs to somewhere other than the default report name
+// (typically based on the app-name).
+func CustomLog(reportName string, payload *LogPayload) {
+	logger.CloudLog(reportName, payload)
+}
+
 // log creates a log entry.  This log entry is either sent to Cloud Logging or glog if the former is
 // not configured.  reportName is the "virtual log file" used by cloud logging.  reportName is
 // ignored by glog. Both logs include file and line information.
