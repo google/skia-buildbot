@@ -1,6 +1,9 @@
 package vcsinfo
 
-import "time"
+import (
+	"regexp"
+	"time"
+)
 
 // IndexCommit is information about a commit that includes the offset from
 // the first commit.
@@ -54,4 +57,8 @@ type VCS interface {
 	// ByIndex returns a LongCommit describing the commit
 	// at position N, as ordered in the current branch.
 	ByIndex(N int) (*LongCommit, error)
+
+	IsCommit(sha string) bool
+
+	GetDEPSCommit(commitHash string, extractRegEx *regexp.Regexp) string
 }
