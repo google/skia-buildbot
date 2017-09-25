@@ -85,6 +85,8 @@ func AsTaskSlice(selectResult interface{}) []Task {
 	for i := 0; i < sliceLen; i++ {
 		result[i] = sliceValue.Index(i).Addr().Interface().(Task)
 	}
+	fmt.Println("IN AS TASKSLISCE")
+	fmt.Println(result)
 	return result
 }
 
@@ -414,6 +416,9 @@ func UpdateTask(vars UpdateTaskVars, tableName string) error {
 		return fmt.Errorf("Failed to marshal %T update: %v", vars, err)
 	}
 	result, err := db.DB.Exec(query, binds...)
+	fmt.Println("DEBUGGING")
+	fmt.Println(query)
+	fmt.Println(binds)
 	if err != nil {
 		return fmt.Errorf("Failed to update using %T: %v", vars, err)
 	}

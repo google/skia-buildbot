@@ -114,6 +114,9 @@ func (task DBTask) TableName() string {
 
 func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
 	result := []DBTask{}
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	fmt.Println(query)
+	fmt.Println(args)
 	err := db.DB.Select(&result, query, args...)
 	return result, err
 }
