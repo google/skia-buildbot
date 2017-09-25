@@ -2,6 +2,8 @@
 package gitinfo
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -648,6 +650,41 @@ func (g *GitInfo) NumCommits() int {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	return len(g.hashes)
+}
+
+// IsCommit returns true if the gitHash is a commit in the repo.
+func (g *GitInfo) IsCommit(sha string) bool {
+	_, err := g.FullHash(sha)
+	return err == nil
+}
+
+// GetDEPSCommit translates from commit in the current repo to a commit in a
+// dependent repo. It applies the given regular expression to each line of the
+// the DEPS file. If there is a match it will assume that the group defined
+// in the regular expression is the target commit. e.g.:
+// If the DEPS file contains a line like this:
+//        'skia_revision' : 'b71f5ea0a429bda6c27aaa85a760495030dcc8c6',
+// then this regular expression would extract the right commit as a group:
+//        "^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$"
+func (g *GitInfo) GetDEPSCommit(commitHash string, extractRegEx *regexp.Regexp) string {
+	if !g.IsCommit(commitHash) {
+		return ""
+	}
+
+	content, err := g.GetFile("DEPS", commitHash)
+	if err != nil {
+		return ""
+	}
+
+	scanner := bufio.NewScanner(bytes.NewBuffer([]byte(content)))
+	for scanner.Scan() {
+		line := scanner.Text()
+		result := extractRegEx.FindStringSubmatch(line)
+		if len(result) == 2 {
+			return result[1]
+		}
+	}
+	return ""
 }
 
 // RepoMap is a struct used for managing multiple Git repositories.

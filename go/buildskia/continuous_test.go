@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -87,6 +88,9 @@ func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 		return nil, fmt.Errorf("Not found")
 	}
 }
+
+func (m *mockVcs) IsCommit(gitHash string) bool                              { return true }
+func (m *mockVcs) GetDEPSCommit(gitHash string, regEx *regexp.Regexp) string { return "" }
 
 func TestDecimate(t *testing.T) {
 	testutils.SmallTest(t)
