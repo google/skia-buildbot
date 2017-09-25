@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c39fee51_d7f6fa4d",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-25T17:58:37Z",
+      "side": 1,
+      "message": "This will occasionally take multiple minutes.  It seems better to do it in the background rather than on the critical path.",
+      "range": {
+        "startLine": 112,
+        "startChar": 2,
+        "endLine": 112,
+        "endChar": 60
+      },
+      "revId": "3e00bac699b2f0a7b0611b1a408d1198170a0e72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

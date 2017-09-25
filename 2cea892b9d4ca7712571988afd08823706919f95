@@ -178,6 +178,30 @@
     },
     {
       "key": {
+        "uuid": "c373f9fa_f4324cb4",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 674,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-25T17:58:37Z",
+      "side": 1,
+      "message": "1. Yeah, unfortunately there are a lot of possibilities, though the real-world DEPS files should be fairly consistent (we could force them to be).  The parsing function could also keep a list of regexes and try them all until it finds a match.\n\n2. go/depot_tools is probably a good place for DEPS file parsing.  GitDir already has a GetFile method which mirrors the one GitInfo has, so any of the derivatives of GitDir (git.Repo, git.Checkout, repograph.Graph, etc) should be able to use it, and then we can pass the result to the DEPS parser.",
+      "parentUuid": "67a4eb7a_135c14d3",
+      "range": {
+        "startLine": 674,
+        "startChar": 0,
+        "endLine": 674,
+        "endChar": 88
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "62eb98c1_86dd7da8",
         "filename": "golden/go/goldingestion/goldingestion.go",
         "patchSetId": 12
