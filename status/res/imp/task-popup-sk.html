@@ -1,0 +1,180 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <task-popup-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/task-popup-sk.html" rel="import" />
+
+  Usage:
+
+    <task-popup-sk></task-popup-sk>
+
+  Properties:
+    task - Object representing the details for a task. Expect these attributes:
+        name:     String, name of the task.
+        color:    String, color to be used for task result display.
+        comments: Array of comment objects.
+        commits:  Array of strings indicating which commits were part of the task.
+        status:   String indicating the result status of the task.
+
+    commit_details: Object whose keys are commit hashes and values are objects with the following attributes:
+        shortAuthor:  String, shortened version of the commit author.
+        shortHash:    String, shortened version of the commit hash.
+        shortSubject: String, shortened version of the commit subject.
+
+    repo: The name (not the URL) of the repository of the commit.
+    repo_base: The base URL for commits. Commit hashes will be appended to this.
+    swarming_url: URL of the Swarming server.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/common/imp/comments-sk.html">
+<link rel="import" href="/res/common/imp/styles-sk.html">
+<link rel="import" href="status-popup.html">
+<dom-module id="task-popup-sk">
+  <style is="custom-style" include="status-popup iron-flex styles-sk">
+    a {
+      color: inherit;
+    }
+    paper-button[raised].colored {
+      background: #D95F02;
+      color: #fff;
+      font-size: 1.0em;
+      padding:5px;
+      border-radius: 3px;
+    }
+    .retry {
+      color: inherit;
+      background-color: inherit;
+      text-decoration:none;
+    }
+  </style>
+  <template>
+    <div class="horizontal layout wrap">
+      <div class="flex">
+        <h3>
+          <a target="_blank" href$="[[swarming_url]]/task?id=[[task.swarming_task_id]]">
+            <span>{{task.name}}</span><iron-icon icon="launch"></iron-icon>
+          </a>
+        </h3>
+      </div>
+      <div>
+        <a href$="[[_retryUrl(task)]]" target="_blank" class="retry">
+          <paper-button raised class="colored" role="button">Re-run Job</paper-button>
+        </a>
+      </div>
+    </div>
+    <table>
+      <tr>
+        <td>Status:</td>
+        <td class$="[[_taskResultClass(task)]]">[[_taskResultString(task)]]</td>
+      </tr>
+      <tr>
+        <td>Other Tasks Like This:</td>
+        <td>
+          <a target="_blank" rel="noopener" href$="[[swarming_url]]/tasklist?f=sk_name%3A[[task.name]]">
+            <span>view on Swarming</span>
+          </a>
+        </td>
+      </tr>
+    </table>
+    <hr/>
+    <h3>Blamelist</h3>
+    <table>
+      <template is="dom-repeat" items="[[task.commits]]" as="c">
+        <tr>
+          <td><a href$="[[_makeCommitURL(c, repo_base)]]">[[_commitHash(c, commit_details)]]</a></td>
+          <td>[[_commitAuthor(c, commit_details)]]</td>
+          <td>[[_commitSubject(c, commit_details)]]</td>
+        </tr>
+      </template>
+    </table>
+    <hr/>
+    <comments-sk
+        comments="{{task.comments}}"
+        add_comment_url="[[_makeAddCommentURL(task, repo)]]"
+        on-submit="_commentAdded"
+        allow_add_comment
+        allow_delete_comment
+        collapsible>
+    </comments-sk>
+  </template>
+  <script>
+    Polymer({
+      is: 'task-popup-sk',
+      behaviors: [SkiaBehaviors.StatusPopup],
+      properties: {
+        task: {
+          type: Object,
+          value: function() { return {}; },
+        },
+        commit_details: {
+          type: Object,
+          value: function() { return {}; },
+        },
+        repo: {
+          type: String,
+          value: "",
+        },
+        repo_base: {
+          type: String,
+          value: "",
+        },
+        swarming_url: {
+          type: String,
+          value: "",
+        },
+        task_scheduler_url: {
+          type: String,
+          value: "",
+        },
+      },
+
+      _commentAdded: function() {
+        this.hide();
+        this.fire("reload", {});
+      },
+      _commitHash: function(c, commit_details) {
+        return commit_details[c] ? commit_details[c].shortHash : "";
+      },
+      _commitAuthor: function(c, commit_details) {
+        return commit_details[c] ? commit_details[c].shortAuthor : "";
+      },
+      _commitSubject: function(c, commit_details) {
+        return commit_details[c] ? commit_details[c].shortSubject : "";
+      },
+      _makeAddCommentURL: function(task, repo) {
+        return "/json/tasks/" + task.id + "/comments";
+      },
+      _makeCommitURL: function(c, repo_base) {
+        return repo_base + c;
+      },
+      _retryUrl: function(task) {
+        if (!task || !task.name) {
+          return "";
+        }
+        var job = task.name;
+        var uploadPrefix = "Upload-"
+        if (job.indexOf(uploadPrefix) == 0) {
+          job = job.substring(uploadPrefix.length);
+        }
+        return this.task_scheduler_url + "/trigger?submit=true&job=" + job + "@" + task.revision;
+      },
+      _taskResultClass: function(task) {
+        return task.colorClass;
+      },
+      _taskResultString: function(task) {
+        return task.status;
+      },
+    });
+  </script>
+</dom-module>

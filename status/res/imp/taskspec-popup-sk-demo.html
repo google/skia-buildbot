@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>commit-popup-sk demo</title>
+  <title>taskspec-popup-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -12,6 +12,7 @@
     server.autoRespond = true;
 
     var comments = [{
+      flaky: false,
       id: "0",
       ignoreFailure: true,
       message: "Example Comment",
@@ -19,24 +20,17 @@
       user: "you@google.com",
     }];
     var repo = "skia";
-    var commit = {
-      author: "you@google.com",
-      comments: comments,
-      hash: "abcd1234",
-      subject: "My Awesome Commit",
-      body: "Change some random stuff.",
-      timestamp: "Sun Sep 24 2017 10:50:06 GMT-0400 (EDT)",
-    };
+    var swarming_url = "https://chromium-swarm.appspot.com";
+    var taskSpecName = "Build-Mac-Clang-x86_64-Debug";
 
     function update(request, newComments) {
       var popup = document.getElementById("popup");
-      popup.set("commit.comments", newComments);
+      popup.set("task_spec.comments", newComments);
       comments = newComments;
       return request.respond(200, {});
     }
 
-    server.respondWith("POST", "/json/"+repo+"/commits/"+commit.hash+"/comments", function(request) {
-      console.log("process comment");
+    server.respondWith("POST", "/json/"+repo+"/taskSpecs/"+taskSpecName+"/comments", function(request) {
       var comment = JSON.parse(request.requestBody);
       comment.id = "" + comments.length;
       comment.message = comment.comment;
@@ -49,7 +43,7 @@
       }
       return update(request, newComments);
     });
-    var deleteCommentUrl = new RegExp("\/json\/" + repo + "\/commits\/" + commit.hash + "\/comments\/\\d+");
+    var deleteCommentUrl = new RegExp("\/json\/" + repo + "\/taskSpecs\/" + taskSpecName + "\/comments\/\\d+");
     server.respondWith("DELETE", deleteCommentUrl, function(request) {
       var split = request.url.split("/");
       var commentId = parseInt(split[split.length-1]);
@@ -71,18 +65,22 @@
       }
     };
   </script>
-  <link rel=import href="commit-popup-sk.html">
+  <link rel=import href="taskspec-popup-sk.html">
 </head>
 <body>
-  <h1>commit-popup-sk demo</h1>
-  <commit-popup-sk id="popup"></commit-popup-sk>
+  <h1>taskspec-popup-sk demo</h1>
+  <taskspec-popup-sk id="popup"></taskspec-popup-sk>
   <script type="text/javascript">
     var popup = document.getElementById("popup");
     popup.addEventListener("reload", function() {
       popup.show();
     });
-    popup.commit = commit;
     popup.repo = repo;
+    popup.swarming_url = swarming_url;
+    popup.set("task_spec", {
+      name: taskSpecName,
+      comments: comments,
+    });
     popup.show();
   </script>
 </body>
