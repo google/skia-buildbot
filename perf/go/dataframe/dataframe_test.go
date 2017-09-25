@@ -2,6 +2,7 @@ package dataframe
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -50,6 +51,9 @@ func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
 func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
+
+func (m *mockVcs) IsCommit(gitHash string) bool                                     { return true }
+func (m *mockVcs) GetDEPSCommit(gitHash string, extractRegex *regexp.Regexp) string { return "" }
 
 type mockPTraceStore struct {
 	traceSet  ptracestore.TraceSet
