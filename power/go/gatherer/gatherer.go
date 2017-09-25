@@ -16,6 +16,7 @@ import (
 	skswarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/power/go/decider"
+	"go.skia.org/infra/power/go/recorder"
 )
 
 const (
@@ -57,17 +58,19 @@ type gatherer struct {
 	alerts    promalertsclient.APIClient
 	decider   decider.Decider
 	hostMap   map[string]string // maps bot id -> jumphost name
+	recorder  recorder.Recorder
 }
 
 // NewPollingGatherer returns a Gatherer created with the given utilities. all the passed in
 // clients should be properly authenticated.
-func NewPollingGatherer(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider, hostMap map[string]string, period time.Duration) Gatherer {
+func NewPollingGatherer(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider, recorder recorder.Recorder, hostMap map[string]string, period time.Duration) Gatherer {
 	g := &gatherer{
 		iSwarming: internal,
 		eSwarming: external,
 		alerts:    alerts,
 		decider:   decider,
 		hostMap:   hostMap,
+		recorder:  recorder,
 	}
 	if period > 0 {
 		go func() {
@@ -196,6 +199,36 @@ func (g *gatherer) update() {
 	sort.Slice(downBots, func(i, j int) bool {
 		return downBots[i].BotID < downBots[j].BotID
 	})
+
+	// Enumerate the bots that are new since last time and those that were
+	// here and are now fixed.
+	prevStrings := []string{}
+	for _, b := range g.downBots {
+		if b.Status == STATUS_HOST_MISSING {
+			prevStrings = append(prevStrings, b.BotID)
+		} else {
+			prevStrings = append(prevStrings, b.BotID+"-device")
+		}
+	}
+	currStrings := []string{}
+	for _, b := range downBots {
+		if b.Status == STATUS_HOST_MISSING {
+			currStrings = append(currStrings, b.BotID)
+		} else {
+			currStrings = append(currStrings, b.BotID+"-device")
+		}
+	}
+	prev := util.NewStringSet(prevStrings)
+	curr := util.NewStringSet(currStrings)
+
+	fixed := prev.Complement(curr).Keys()
+	broke := curr.Complement(prev).Keys()
+
+	sort.Strings(fixed)
+	sort.Strings(broke)
+	g.recorder.NewlyFixedBots(fixed)
+	g.recorder.NewlyDownBots(broke)
+
 	g.set(downBots)
 	sklog.Infof("Done, found %d bots", len(downBots))
 }
