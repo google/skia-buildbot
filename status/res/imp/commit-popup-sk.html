@@ -104,8 +104,8 @@
       },
 
       commentAdded: function() {
-        this.fire("reload", {});
         this.hide();
+        this.fire("reload", {});
       },
 
       _humanize: function(dateStr) {

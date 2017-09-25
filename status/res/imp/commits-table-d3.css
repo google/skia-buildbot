@@ -95,21 +95,21 @@ commits-table-d3-sk .subcategory-title {
   border-right: 1px solid black;
 }
 
-commits-table-d3-sk .builders {
+commits-table-d3-sk .task-specs {
   display:flex;
   flex-direction:row;
   flex: 1 1 auto;
   align-items: flex-start;
 }
 
-commits-table-d3-sk .builder {
+commits-table-d3-sk .task-spec {
   flex: 1 1 auto;
   display:flex;
   flex-direction: column;
   min-width:20px;
 }
 
-commits-table-d3-sk .builder-title {
+commits-table-d3-sk .task-spec-title {
   background-color:white;
   border-radius:5px;
   border: 1px solid black;
@@ -120,38 +120,38 @@ commits-table-d3-sk .builder-title {
   justify-content: center;
 }
 
-commits-table-d3-sk .builder-spacer {
-  height: 12px;  /*Tweak this to align the commits and the builds */
+commits-table-d3-sk .task-spec-spacer {
+  height: 12px;  /*Tweak this to align the commits and the tasks */
 }
 
-commits-table-d3-sk .builds {
+commits-table-d3-sk .tasks {
   display:flex;
   flex-direction:column;
   flex: 1 1 auto;
 }
 
-commits-table-d3-sk .build {
+commits-table-d3-sk .task {
   height: 20px;
   /* Basically disable flexing so we can control the sizes.*/
   flex: 0 0 auto;
 }
 
-commits-table-d3-sk .build:nth-child(even) {
+commits-table-d3-sk .task:nth-child(even) {
   background-color: #FFF;
 }
 
-commits-table-d3-sk .build:nth-child(odd) {
+commits-table-d3-sk .task:nth-child(odd) {
   background-color: #EFEFEF;
 }
 
-commits-table-d3-sk .build > div {
+commits-table-d3-sk .task > div {
   border-style: solid;
   border-color: grey;
   border-width: 0;
   text-align: center;
 }
 
-commits-table-d3-sk div.build_single {
+commits-table-d3-sk div.task_single {
   border-width: 1px;
   border-radius: 3px;
   margin: 1px 0px 1px 1px;
@@ -159,7 +159,7 @@ commits-table-d3-sk div.build_single {
   cursor: pointer;
 }
 
-commits-table-d3-sk div.build_middle {
+commits-table-d3-sk div.task_middle {
   border-width: 0px 1px;
   border-radius: 0px;
   margin: 0px 0px 0px 1px;
@@ -167,7 +167,7 @@ commits-table-d3-sk div.build_middle {
   cursor: pointer;
 }
 
-commits-table-d3-sk div.build_top {
+commits-table-d3-sk div.task_top {
   border-width: 1px 1px 0px 1px;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
@@ -176,7 +176,7 @@ commits-table-d3-sk div.build_top {
   cursor: pointer;
 }
 
-commits-table-d3-sk div.build_bottom {
+commits-table-d3-sk div.task_bottom {
   border-width: 0px 1px 1px 1px;
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
@@ -201,20 +201,20 @@ commits-table-d3-sk div.dashed_bottom {
   border-bottom-color: black;
 }
 
-commits-table-d3-sk .dashed_bottom.build_top {
+commits-table-d3-sk .dashed_bottom.task_top {
   height: 16px;
   margin-bottom: 1px;
 }
 
-commits-table-d3-sk .dashed_top.build_bottom {
+commits-table-d3-sk .dashed_top.task_bottom {
   height: 16px;
   margin-top: 1px;
 }
 
-commits-table-d3-sk .dashed_bottom.build_middle {
+commits-table-d3-sk .dashed_bottom.task_middle {
   height: 19px;
 }
 
-commits-table-d3-sk .dashed_top.build_middle {
+commits-table-d3-sk .dashed_top.task_middle {
   height: 19px;
 }
