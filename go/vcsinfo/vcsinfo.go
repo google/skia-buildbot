@@ -1,6 +1,7 @@
 package vcsinfo
 
 import (
+	"regexp"
 	"time"
 )
 
@@ -64,4 +65,13 @@ type VCS interface {
 	// ByIndex returns a LongCommit describing the commit
 	// at position N, as ordered in the current branch.
 	ByIndex(N int) (*LongCommit, error)
+
+	// IsCommit returns true if the gitHash is a commit in the repo. 
+	IsCommit(commitHash string) bool
+
+	// GetDEPSCommit translates from commit in the current repo to a commit in a 
+	// dependent repo. It uses 'extractRegEx' to extract match the DEPS file line by 
+	// line until a match. 'extractRegEx' is expected to have exactly one group that
+	// maps to the target commit. 
+	GetDEPSCommit(commitHash string, extractRegEx *regexp.Regexp) string
 }
