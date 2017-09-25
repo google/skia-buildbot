@@ -92,6 +92,7 @@ const (
 
 	PENDING_TASKS_URI           = "queue/"
 	GET_OLDEST_PENDING_TASK_URI = "_/get_oldest_pending_task"
+	TERMINATE_RUNNING_TASKS_URI = "_/terminate_running_tasks"
 
 	PAGE_SETS_PARAMETERS_POST_URI = "_/page_sets/"
 	CL_DATA_POST_URI              = "_/cl_data"
