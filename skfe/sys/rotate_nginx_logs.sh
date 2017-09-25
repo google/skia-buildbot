@@ -4,7 +4,7 @@
 # nginx to re-open the log.
 
 LOG_DIR="/var/log/nginx"
-NGINX_PID="/var/run/nginx.pid"
+NGINX_PID="/run/nginx.pid"
 rm -f $LOG_DIR/*.log.1
 rename 's/.log$/.log.1/' *
 kill -USR1 `cat $NGINX_PID`
