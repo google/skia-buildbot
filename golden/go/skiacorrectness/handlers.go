@@ -801,6 +801,15 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jsonTestKnowledgeHandler(w http.ResponseWriter, r *http.Request) {
+	knowledgeBytes := ctsEvaluator.KnowledgeZip()
+	if knowledgeBytes != nil {
+		// handle error
+	}
+
+	// Copy the content of the reader to the output stream.
+}
+
 // includeSummary returns true if the given summary matches the query flags.
 func includeSummary(s *summary.Summary, q *search.Query) bool {
 	return ((s.Pos > 0) && (q.Pos)) ||
@@ -1043,4 +1052,40 @@ func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJsonResponse(w, compareResult)
+}
+
+func jsonCTSListHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to get test run results.")
+		return
+	}
+
+	// TODO(stephana): Add real pagination if necessary.
+	offset := 0
+	size := 20
+	list, err := ctsEvaluator.List(offset, size)
+
+	if err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
+
+	sendJsonResponse(w, list)
+}
+
+func jsonCTSRunHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to get test run results.")
+		return
+	}
+
+	id := mux.Vars(r)["id"]
+	result, err := ctsEvaluator.Details(id)
+	if err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
+	sendJsonResponse(w, result)
 }

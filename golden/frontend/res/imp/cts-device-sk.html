@@ -1,0 +1,202 @@
+<!-- The <cts-device-sk> custom element declaration.
+
+  Displays the details about a CTS devices.
+
+  Attributes:
+    * device: Device info about one run.
+
+  Events:
+
+  Methods:
+-->
+
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<link rel="import" href="../common/imp/paramset.html">
+<link rel="import" href="../common/imp/triage-sk.html">
+
+<link rel="import" href="digest-details-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="cts-device-sk">
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
+      .diffContainer {
+        padding: 1em;
+      }
+
+      .passed {
+        background-color: #117733;
+        color: white;
+      }
+
+      .failed {
+        background-color: #D95F02;
+        color: white;
+      }
+
+      .passed.headerEntry {
+        color: #117733;
+        background-color: white;
+      }
+
+      .failed.headerEntry {
+        color: #D95F02;
+        background-color: white;
+      }
+
+      .headerEntry,
+      .resultRowEntry {
+        padding-left: 0.3em;
+        padding-right: 0.3em;
+      }
+
+      .headerEntry {
+        margin-left: 1em;
+        margin-right: 0;
+      }
+
+      .testField {
+        font-weight: bold;
+        font-style: italic;
+        padding-left: 1em;
+        padding-right: 1em;
+      }
+
+      .testDetailContainer {
+        margin: 0.5em 0 0.5em 2em;
+      }
+
+      .devName {
+        font-weight: bold;
+      }
+
+    </style>
+    <div class="vertical layout" hidden$="[[!_showResult]]">
+      <div class="horizontal layout headerContainer">
+        <a on-tap="_toggleDevDetails"><iron-icon icon="[[_toggleIcon(_showDevDetails)]]"></iron-icon></a>
+        <span class$="[[_devStatus]] headerEntry">[[_devStatus]] ([[_passCount]]/[[_testCount]])</span>
+        <span class="headerEntry devName">[[device.name]] ([[device.id]])</span>
+        <span class="headerEntry">Version [[device.versionID]] -  [[device.brand]]</span>
+      </div>
+      <div hidden$="[[!_showDevDetails]]" class="vertical layout testDetailContainer">
+        <template is="dom-repeat" items="[[_results]]">
+          <div class="horizontal layout">
+            <span class$="[[item._passFail]] resultRowEntry">[[item._passFail]]</span>
+            <span class="resultRowEntry testField">[[item.name]]</span>
+            <span class="resultRowEntry">[[item._summary]]</span>
+          </div>
+          <div class="diffContainer">
+            <digest-details-sk
+              mode="diff"
+              details="[[_getDetailsRec(item)]]"
+              right="[[item._smallestDiff]]"
+              metric="combined"
+              embedded>
+            </digest-details-sk>
+          </div>
+        </template>
+      </div>
+    </div>
+  </template>
+  <script>
+    (function() {
+      var USE_METRIC = gold.METRIC_COMBINED;
+
+      Polymer({
+        is: 'cts-device-sk',
+
+        properties: {
+          device: {
+            type: Object,
+            value: function() { return {}; },
+            observer: "_deviceChanged"
+          },
+        },
+
+        _deviceChanged: function(newDev, oldDev) {
+          if (newDev.results) {
+            this.set('_showResult', false);
+            this.set('_showDevDetails', false);
+
+            var passed = true;
+            var passCount = 0;
+            var rLen = newDev.results.length;
+
+            // Iterate through all tests and calculate passes.
+            for(var i=0; i < rLen; i++) {
+              var r = newDev.results[i];
+              var smallest = this._getSmallestDiff(r.diffs);
+
+              var testPassed = (smallest.diffs[USE_METRIC] === 0.0);
+              passed = passed && testPassed;
+
+              passCount += (testPassed) ? 1 : 0;
+              r._passed = testPassed;
+              r._passFail = this._passFailStr(testPassed);
+              r._summary = this._diffSummary(smallest);
+              r._smallestDiff = smallest;
+            }
+
+            this.set('_testCount', rLen );
+            this.set('_passCount', passCount);
+            this.set('_devStatus', this._passFailStr(passCount == rLen));
+            this.set('_results', newDev.results);
+            this.set('_showResult', true);
+          }
+        },
+
+        _passFailStr: function(pass) {
+          return (pass) ? 'passed' : 'failed';
+        },
+
+        _getSmallestDiff: function(diffs) {
+          if (!diffs || (diffs.length===0)) {
+            return null;
+          }
+
+          var minDiff = diffs[0];
+          for(var i=1; i < diffs.length; i++) {
+            if (diffs[i].diffs[gold.METRIC_COMBINED] < minDiff.diffs[gold.METRIC_COMBINED]) {
+              minDiff = diffs[i];
+            }
+          }
+          return minDiff;
+        },
+
+        _diffSummary: function(diff) {
+          if (!diff) {
+            return "";
+          }
+
+          return diff.diffs[gold.METRIC_COMBINED].toFixed(4) + " " +
+                 diff.diffs[gold.METRIC_PERCENT].toFixed(4) + "% " +
+                 diff.diffs[gold.METRIC_PIXEL].toFixed(0) + "px";
+        },
+
+        _showDiff: function(result) {
+          return !result._passed;
+        },
+
+        _getDetailsRec: function(result) {
+          return {
+            test: result.name,
+            digest: result.imgID,
+            status: null,
+            paramset: null
+          };
+        },
+
+        _toggleIcon: function(show) {
+          return (show) ? 'remove-circle-outline' : 'add-circle-outline';
+        },
+
+        _toggleDevDetails: function(prop) {
+          this.set('_showDevDetails', !this._showDevDetails);
+        }
+      });
+    })();
+  </script>
+</dom-module>
