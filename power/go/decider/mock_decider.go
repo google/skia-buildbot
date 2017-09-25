@@ -17,12 +17,24 @@ func NewMockDecider() *MockDecider {
 
 func (m *MockDecider) ShouldPowercycleBot(bot *swarming.SwarmingRpcsBotInfo) bool {
 	args := m.Called(bot)
-	return args.Bool(0)
+	r0 := false
+	if rf, ok := args.Get(0).(func(*swarming.SwarmingRpcsBotInfo) bool); ok {
+		r0 = rf(bot)
+	} else {
+		r0 = args.Bool(0)
+	}
+	return r0
 }
 
 func (m *MockDecider) ShouldPowercycleDevice(bot *swarming.SwarmingRpcsBotInfo) bool {
 	args := m.Called(bot)
-	return args.Bool(0)
+	r0 := false
+	if rf, ok := args.Get(0).(func(*swarming.SwarmingRpcsBotInfo) bool); ok {
+		r0 = rf(bot)
+	} else {
+		r0 = args.Bool(0)
+	}
+	return r0
 }
 
 // Ensure MockDecider fulfills Decider
