@@ -16,6 +16,7 @@ import (
 	skswarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/power/go/decider"
+	"go.skia.org/infra/power/go/recorder"
 )
 
 const (
@@ -57,17 +58,19 @@ type gatherer struct {
 	alerts    promalertsclient.APIClient
 	decider   decider.Decider
 	hostMap   map[string]string // maps bot id -> jumphost name
+	recorder  recorder.Recorder
 }
 
 // NewPollingGatherer returns a Gatherer created with the given utilities. all the passed in
 // clients should be properly authenticated.
-func NewPollingGatherer(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider, hostMap map[string]string, period time.Duration) Gatherer {
+func NewPollingGatherer(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider, recorder recorder.Recorder, hostMap map[string]string, period time.Duration) Gatherer {
 	g := &gatherer{
 		iSwarming: internal,
 		eSwarming: external,
 		alerts:    alerts,
 		decider:   decider,
 		hostMap:   hostMap,
+		recorder:  recorder,
 	}
 	if period > 0 {
 		go func() {
@@ -196,6 +199,40 @@ func (g *gatherer) update() {
 	sort.Slice(downBots, func(i, j int) bool {
 		return downBots[i].BotID < downBots[j].BotID
 	})
+
+	fixed, broke := g.identifyChangedBots(downBots)
+
+	g.recorder.NewlyFixedBots(fixed)
+	g.recorder.NewlyDownBots(broke)
+
 	g.set(downBots)
 	sklog.Infof("Done, found %d bots", len(downBots))
+}
+
+// identifyChangedBots enumerates the bots that are new since last time and those
+//  that were listed and are now fixed.
+func (g *gatherer) identifyChangedBots(currentDownBots []DownBot) (fixed []string, broke []string) {
+	getName := func(b DownBot) string {
+		if b.Status == STATUS_HOST_MISSING {
+			return b.BotID
+		} else {
+			return b.BotID + "-device"
+		}
+	}
+	prev := util.StringSet{}
+	for _, b := range g.downBots {
+		prev[getName(b)] = true
+	}
+	curr := util.StringSet{}
+	for _, b := range currentDownBots {
+		curr[getName(b)] = true
+	}
+
+	fixed = prev.Complement(curr).Keys()
+	broke = curr.Complement(prev).Keys()
+
+	sort.Strings(fixed)
+	sort.Strings(broke)
+
+	return fixed, broke
 }
