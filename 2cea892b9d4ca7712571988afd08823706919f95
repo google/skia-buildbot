@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "c397071d_255d8720",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-25T17:10:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6517fb31_d50ef6b7",
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "37340fb3_49570432",
         "filename": "go/git/gitinfo/gitinfo.go",
         "patchSetId": 12
@@ -62,6 +80,30 @@
       "revId": "2cea892b9d4ca7712571988afd08823706919f95",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fed41bdc_eeeb5086",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 672,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-25T17:10:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37340fb3_49570432",
+      "range": {
+        "startLine": 671,
+        "startChar": 19,
+        "endLine": 672,
+        "endChar": 21
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +153,30 @@
     },
     {
       "key": {
+        "uuid": "12cd4bf6_0f589f2d",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-25T17:10:23Z",
+      "side": 1,
+      "message": "This is an \"off-line\" process, so it\u0027s not as time critical and updates in short succession will just result in no-ops (with some networking overhead). \nThat said I could move the secondary repo into the Ingester itself and then the update would run at the same frequency as the primary.",
+      "parentUuid": "62eb98c1_86dd7da8",
+      "range": {
+        "startLine": 112,
+        "startChar": 27,
+        "endLine": 112,
+        "endChar": 33
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d515c646_6b82fe8a",
         "filename": "golden/go/goldingestion/goldingestion.go",
         "patchSetId": 12
@@ -122,6 +188,30 @@
       "writtenOn": "2017-09-25T15:11:20Z",
       "side": 1,
       "message": "Should this be in an else?  If not, can you add a comment explaining why this \"fallthrough\" is intentional?",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 13
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6e73e1b_592899e4",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-25T17:10:23Z",
+      "side": 1,
+      "message": "Done. \nGood catch. Added return and will add a test before this lands.",
+      "parentUuid": "d515c646_6b82fe8a",
       "range": {
         "startLine": 120,
         "startChar": 3,
