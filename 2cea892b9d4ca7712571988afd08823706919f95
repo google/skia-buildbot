@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6517fb31_d50ef6b7",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-25T15:11:20Z",
+      "side": 1,
+      "message": "Add a comment explaining what this command is doing.",
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37340fb3_49570432",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 672,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-25T15:11:20Z",
+      "side": 1,
+      "message": "This sentence is hard for me to parse.",
+      "range": {
+        "startLine": 671,
+        "startChar": 19,
+        "endLine": 672,
+        "endChar": 21
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62eb98c1_86dd7da8",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-25T15:11:20Z",
+      "side": 1,
+      "message": "Wouldn\u0027t it be really slow to to call Update for every process call that makes it to this point?",
+      "range": {
+        "startLine": 112,
+        "startChar": 27,
+        "endLine": 112,
+        "endChar": 33
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d515c646_6b82fe8a",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-25T15:11:20Z",
+      "side": 1,
+      "message": "Should this be in an else?  If not, can you add a comment explaining why this \"fallthrough\" is intentional?",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 13
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
