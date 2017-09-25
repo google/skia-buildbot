@@ -1,0 +1,297 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd3c9f37_7886dfe7",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit indentation",
+      "range": {
+        "startLine": 176,
+        "startChar": 3,
+        "endLine": 176,
+        "endChar": 4
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "587228a8_2eb72bc5",
+        "filename": "power/go/gatherer/gatherer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit: make helper function",
+      "range": {
+        "startLine": 205,
+        "startChar": 0,
+        "endLine": 212,
+        "endChar": 2
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50100cdb_894055f8",
+        "filename": "power/go/gatherer/gatherer.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit: any reason not to populate the StringSet directly in the loop above?",
+      "range": {
+        "startLine": 221,
+        "startChar": 1,
+        "endLine": 221,
+        "endChar": 39
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07d855f3_6bb8a1e0",
+        "filename": "power/go/gatherer/gatherer_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit: Consider replacing AnythingOfType with Anything where it means the same thing (i.e. where the parameter is not interface-typed).",
+      "range": {
+        "startLine": 55,
+        "startChar": 25,
+        "endLine": 55,
+        "endChar": 56
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9cd9019_6b94228e",
+        "filename": "power/go/gatherer/gatherer_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit: seems slightly less confusing to move this into loop before continue",
+      "range": {
+        "startLine": 261,
+        "startChar": 0,
+        "endLine": 261,
+        "endChar": 104
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eaa8ff9d_b62e20e0",
+        "filename": "power/go/recorder/mock_recorder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "Is this sentence explaining why this returns MockRecorder rather than Recorder? The way it\u0027s phrased makes it sound like why *MockRecorder rather than MockRecorder.",
+      "range": {
+        "startLine": 11,
+        "startChar": 75,
+        "endLine": 11,
+        "endChar": 86
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5190ca18_0f665c06",
+        "filename": "power/go/recorder/recorder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "I assume this is difficult to unit-test.",
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "60d7b3df_4bc26271",
+        "filename": "power/go/recorder/recorder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit: \"Recorder records which bots the power-controller has noticed are down and which it has noticed are fixed.\"",
+      "range": {
+        "startLine": 9,
+        "startChar": 3,
+        "endLine": 10,
+        "endChar": 59
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e372c8d_77991dc2",
+        "filename": "power/go/recorder/recorder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit: remove -- obviously not true for MockRecorder, and should be decided by the impl",
+      "range": {
+        "startLine": 10,
+        "startChar": 60,
+        "endLine": 11,
+        "endChar": 58
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e15e06c_4c0be175",
+        "filename": "power/go/recorder/recorder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit: \"NewlyDownBots records a set of bot names that are freshly down.\"",
+      "range": {
+        "startLine": 13,
+        "startChar": 4,
+        "endLine": 14,
+        "endChar": 21
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98a1cdcb_135a26e5",
+        "filename": "power/go/recorder/recorder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "Any implementation that is expected to persist could fail. The methods of this interface ought to return error to indicate failure.\n\nYou might consider changing this interface so that gatherer doesn\u0027t need to worry as much about handling errors. If you send this interface deltas, any failure means that the caller has to keep track of current and previous deltas for the next call. If this interface had just CurrentlyDownBots(bots []string), then it\u0027s up to the implementation to handle failures if it only wants to store deltas, or alternatively the implementation could store the entire list at each call. Either way, the caller doesn\u0027t need to keep any state about what the Recorder has already processed successfully.",
+      "range": {
+        "startLine": 15,
+        "startChar": 1,
+        "endLine": 15,
+        "endChar": 29
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ba45c4a_e52f70dc",
+        "filename": "power/go/recorder/recorder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "nit: ditto",
+      "range": {
+        "startLine": 16,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 21
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f54c9c7_44e4007c",
+        "filename": "power/go/recorder/recorder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T15:34:24Z",
+      "side": 1,
+      "message": "(You probably already know this, but...) FYI, pretty sure that sorting the strings before calling NewlyDownBots in gatherer.update() will have no effect because GCL will randomly order logs with the same timestamp.",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 18
+      },
+      "revId": "b17d81ebf7c8aceb9bb9fd7ef44837a5b9f711a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
