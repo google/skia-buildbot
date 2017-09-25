@@ -109,7 +109,9 @@
         }
         console.log("Loaded " + this.roller.name + " AutoRoll data.");
         this.fire("update");
-      }.bind(this)).catch(sk.errorMessage);
+      }.bind(this)).catch(function(msg) {
+        sk.errorMessage("Failed to load autoroll data: " + msg);
+      });
     },
   });
   </script>
