@@ -177,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "8d8b8cb8_17bc9ae0",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-25T17:16:39Z",
+      "side": 1,
+      "message": "It\u0027s probably best to update the two repos at the same time.",
+      "parentUuid": "12cd4bf6_0f589f2d",
+      "range": {
+        "startLine": 112,
+        "startChar": 27,
+        "endLine": 112,
+        "endChar": 33
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d515c646_6b82fe8a",
         "filename": "golden/go/goldingestion/goldingestion.go",
         "patchSetId": 12
