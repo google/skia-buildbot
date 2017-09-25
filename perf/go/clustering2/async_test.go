@@ -1,6 +1,7 @@
 package clustering2
 
 import (
+	"regexp"
 	"testing"
 	"time"
 
@@ -100,6 +101,8 @@ func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error)        { return ni
 func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
+func (m *mockVcs) IsCommit(gitHash string) bool                                     { return true }
+func (m *mockVcs) GetDEPSCommit(gitHash string, extractRegex *regexp.Regexp) string { return "" }
 
 func TestCalcCidsSparse(t *testing.T) {
 	testutils.SmallTest(t)

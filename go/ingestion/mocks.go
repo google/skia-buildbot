@@ -3,6 +3,7 @@ package ingestion
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"sort"
 	"time"
 
@@ -49,6 +50,14 @@ func (m mockVCS) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, er
 
 func (m mockVCS) ByIndex(N int) (*vcsinfo.LongCommit, error) {
 	return nil, nil
+}
+
+func (m mockVCS) IsCommit(sha string) bool {
+	return true
+}
+
+func (m mockVCS) GetDEPSCommit(commitHash string, extractRegEx *regexp.Regexp) string {
+	return ""
 }
 
 // StartTestTraceDBServer starts up a traceDB server for testing. It stores its
