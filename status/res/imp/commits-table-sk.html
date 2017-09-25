@@ -6,8 +6,8 @@
 
     <commits-table-sk>
 
-  This element renders the status table.  It includes a UI to filter the table by builder group
-  (e.g. Interesting, Comments, etc), a UI to type in a search term to filter the builders by, and
+  This element renders the status table.  It includes a UI to filter the table by task spec group
+  (e.g. Interesting, Comments, etc), a UI to type in a search term to filter the task specs by, and
   a way to change if the author name or commit subject should be displayed.  It is important
   to note that the filtering of the data does not happen here, it happens in commits-data-sk.
 
@@ -21,15 +21,15 @@
 
   Properties:
     // inputs
-    build_details: Object, a map of commit hash to an object that has the build results by builder.
-    builders: Object, a map of the builder names to an object that has, among other things, category, subcategory, comments and master.
-    builds: Object, a map of the builder names to an object that maps build numbers to build results.
-    categories: Object, a map of the builder categories to an object that has the subcategories and the colspan (total number of included builders).
-    category_list: Array<String>, an array of the builder category names.
+    task_details: Object, a map of commit hash to an object that has the task results by task spec.
+    task_specs: Object, a map of the task spec names to an object that has, among other things, category, subcategory, comments and master.
+    tasks: Object, a map of the task spec names to an object that maps task numbers to task results.
+    categories: Object, a map of the task spec categories to an object that has the subcategories and the colspan (total number of included task specs).
+    category_list: Array<String>, an array of the task spec category names.
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
-    logged_in: Boolean, if the links should be for internal or external buildbot pages.
-    num_builders: Number, the number of builders with data, after filtering.
+    logged_in: Boolean, if the links should be for internal or external pages.
+    num_task_specs: Number, the number of task specs with data, after filtering.
     relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
     repo: String, the current repo.  Used to direct comments to the right place.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
@@ -40,7 +40,7 @@
     // outputs
     commit_label: String, "author" or "subject", which indicates what info should be displayed about a commit.
     drawing: Boolean, if the table is being drawn.
-    filter: String, the builder filter to be used.
+    filter: String, the task spec filter to be used.
     search: String, the string to be used if filter is "search".
 
   Methods:
@@ -77,7 +77,7 @@
         display:inline-block;
       }
 
-      #builderTextFilter {
+      #taskSpecTextFilter {
         max-width:144px;
         display:inline-block;
         --paper-input-container-label: {
@@ -86,11 +86,11 @@
       }
 
       /* Depending on if the subject or author is being shown, we may need more or less space.*/
-      #buildbotSelector.near {
+      #filterSelector.near {
         margin-left: 40px;
       }
 
-      #buildbotSelector.far {
+      #filterSelector.far {
         margin-left: 380px;
       }
 
@@ -128,7 +128,7 @@
             </template>
           </paper-radio-group>
 
-          <paper-radio-group id="buildbotSelector" class$="{{_getLeftAlign(commit_label)}} horizontal layout center" selected="{{filter}}">
+          <paper-radio-group id="filterSelector" class$="{{_getLeftAlign(commit_label)}} horizontal layout center" selected="{{filter}}">
             <template is="dom-repeat" items="{{_short_filters}}" as="filter">
               <paper-radio-button name="{{filter}}">{{_getPrettyFilterLabel(filter)}}</paper-radio-button>
               <div class="tooltip" title$="{{_getPrettyFilterText(filter)}}">
@@ -138,9 +138,9 @@
             <paper-radio-button name="search"></paper-radio-button>
           </paper-radio-group>
           <paper-input
-              id="builderTextFilter"
+              id="taskSpecTextFilter"
               value="{{search}}"
-              label="Filter builder"
+              label="Filter task spec"
               on-change="_setFilterToSearch"
               no-label-float>
           </paper-input>
@@ -153,7 +153,7 @@
               Trigger a Job
             </paper-button>
           </a>
-          <paper-button raised on-click="_retryPurpleBuilds">
+          <paper-button raised on-click="_retryPurpleTasks">
             <iron-icon icon="icons:autorenew"></iron-icon>
             Re-Run Purple Jobs
           </paper-button>
@@ -170,21 +170,22 @@
       </div>
 
       <commits-table-d3-sk
-          builders="[[builders]]"
-          builds="[[builds]]"
+          task_specs="[[task_specs]]"
+          tasks="[[tasks]]"
           categories="[[categories]]"
           category_list="[[category_list]]"
-          build_details="[[build_details]]"
+          task_details="[[task_details]]"
           commit_label="[[commit_label]]"
           commits="[[commits]]"
           commits_map="[[commits_map]]"
           logged_in="[[logged_in]]"
-          num_builders="[[num_builders]]"
+          num_task_specs="[[num_task_specs]]"
           relanded_map="[[relanded_map]]"
           repo="[[repo]]"
           repo_base="[[repo_base]]"
           reverted_map="[[reverted_map]]"
           swarming_url="[[swarming_url]]"
+          task_scheduler_url="[[task_scheduler_url]]"
           time_points="[[time_points]]"
 
           drawing="{{drawing}}">
@@ -213,7 +214,7 @@
 
       properties: {
         // inputs from data source to render.
-        builders: {
+        task_specs: {
           type: Object,
         },
         categories: {
@@ -222,10 +223,10 @@
         category_list: {
           type: Array,
         },
-        build_details: {
+        task_details: {
           type: Object,
         },
-        builds: {
+        tasks: {
           type: Object,
         },
         commits: {
@@ -237,10 +238,10 @@
         logged_in: {
           type: Boolean,
         },
-        num_builders: {
+        num_task_specs: {
           type: Number,
         },
-        purple_builds: {
+        purple_tasks: {
           type: Array,
         },
         relanded_map: {
@@ -324,11 +325,11 @@
         return this.task_scheduler_url + "/trigger";
       },
 
-      _retryPurpleBuilds: function() {
-        var msg = "This will trigger " + this.purple_builds.length + " jobs. Proceed?";
+      _retryPurpleTasks: function() {
+        var msg = "This will trigger " + this.purple_tasks.length + " jobs. Proceed?";
         $$$('confirm-dialog-sk').open(msg).then(function() {
           var url = this.task_scheduler_url + "/json/trigger";
-          var body = JSON.stringify(this.purple_builds);
+          var body = JSON.stringify(this.purple_tasks);
           sk.post(url, body, null, true).then(JSON.parse).then(function(jobIds) {
             this.set("_triggered_jobs", jobIds);
             this.$.triggered_jobs_dialog.open();

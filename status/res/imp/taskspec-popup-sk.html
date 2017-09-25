@@ -2,18 +2,18 @@
   This in an HTML Import-able file that contains the definition
   of the following elements:
 
-    <builder-popup-sk>
+    <taskspec-popup-sk>
 
   To use this file import it:
 
-    <link href="/res/imp/builder-popup-sk.html" rel="import" />
+    <link href="/res/imp/taskspec-popup-sk.html" rel="import" />
 
   Usage:
 
-    <builder-popup-sk></builder-popup-sk>
+    <taskspec-popup-sk></taskspec-popup-sk>
 
   Properties:
-    builder: The details for a builder.
+    task_spec: The details for a task spec.
     repo: The name (not the URL) of the repository of the commit.
     swarming_url: The URL of the Swarming server.
 
@@ -23,7 +23,7 @@
 -->
 <link rel="import" href="/res/common/imp/comments-sk.html">
 <link rel="import" href="status-popup.html">
-<dom-module id="builder-popup-sk">
+<dom-module id="taskspec-popup-sk">
   <template>
     <style is="custom-style" include="status-popup">
       a {
@@ -35,12 +35,12 @@
       }
     </style>
     <h3>
-      <a href$="[[swarming_url]]/tasklist?f=sk_name%3A[[builder.builder]]" target="_blank">[[builder.builder]]</a>
+      <a href$="[[swarming_url]]/tasklist?f=sk_name%3A[[task_spec.name]]" target="_blank">[[task_spec.name]]</a>
     </h3>
     <hr/>
     <comments-sk
-        comments="{{builder.comments}}"
-        add_comment_url="[[_makeAddCommentURL(builder,repo)]]"
+        comments="{{task_spec.comments}}"
+        add_comment_url="[[_makeAddCommentURL(task_spec,repo)]]"
         on-submit="_commentAdded"
         extra_fields="[[_extra_fields]]"
         allow_add_comment
@@ -50,11 +50,11 @@
   </template>
   <script>
     Polymer({
-      is: "builder-popup-sk",
+      is: "taskspec-popup-sk",
       behaviors: [SkiaBehaviors.StatusPopup],
 
       properties: {
-        builder: {
+        task_spec: {
           type: Object,
         },
         repo: {
@@ -81,13 +81,13 @@
         },
       },
 
-      _makeAddCommentURL: function (builder, repo) {
-        return "/json/"+repo+"/taskSpecs/"+builder.builder+"/comments";
+      _makeAddCommentURL: function (task_spec, repo) {
+        return "/json/"+repo+"/taskSpecs/"+task_spec.name+"/comments";
       },
 
       _commentAdded: function() {
-        this.fire("reload", {});
         this.hide();
+        this.fire("reload", {});
       },
     });
   </script>

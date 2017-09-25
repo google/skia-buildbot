@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>commit-popup-sk demo</title>
+  <title>task-popup-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -13,30 +13,24 @@
 
     var comments = [{
       id: "0",
-      ignoreFailure: true,
       message: "Example Comment",
       time: "Mon Sep 25 2017 07:50:06 GMT-0400 (EDT)",
       user: "you@google.com",
     }];
     var repo = "skia";
-    var commit = {
-      author: "you@google.com",
-      comments: comments,
-      hash: "abcd1234",
-      subject: "My Awesome Commit",
-      body: "Change some random stuff.",
-      timestamp: "Sun Sep 24 2017 10:50:06 GMT-0400 (EDT)",
-    };
+    var swarming_url = "https://chromium-swarm.appspot.com";
+    var task_scheduler_url = "https://fake-task-scheduler.skia.org";
+    var taskSpecName = "Build-Mac-Clang-x86_64-Debug";
+    var taskId = "dummy123";
 
     function update(request, newComments) {
       var popup = document.getElementById("popup");
-      popup.set("commit.comments", newComments);
+      popup.set("task.comments", newComments);
       comments = newComments;
       return request.respond(200, {});
     }
 
-    server.respondWith("POST", "/json/"+repo+"/commits/"+commit.hash+"/comments", function(request) {
-      console.log("process comment");
+    server.respondWith("POST", "/json/tasks/"+taskId+"/comments", function(request) {
       var comment = JSON.parse(request.requestBody);
       comment.id = "" + comments.length;
       comment.message = comment.comment;
@@ -49,10 +43,10 @@
       }
       return update(request, newComments);
     });
-    var deleteCommentUrl = new RegExp("\/json\/" + repo + "\/commits\/" + commit.hash + "\/comments\/\\d+");
+    var deleteCommentUrl = new RegExp("\/json\/tasks\/" + taskId + "\/comments\/\\d+");
     server.respondWith("DELETE", deleteCommentUrl, function(request) {
       var split = request.url.split("/");
-      var commentId = parseInt(split[split.length-1]);
+      var commentId = split[split.length-1];
       var newComments = [];
       for (var i = 0; i < comments.length; i++) {
         if (comments[i].id != commentId) {
@@ -71,18 +65,37 @@
       }
     };
   </script>
-  <link rel=import href="commit-popup-sk.html">
+  <link rel=import href="task-popup-sk.html">
 </head>
 <body>
-  <h1>commit-popup-sk demo</h1>
-  <commit-popup-sk id="popup"></commit-popup-sk>
+  <h1>task-popup-sk demo</h1>
+  <task-popup-sk id="popup"></task-popup-sk>
   <script type="text/javascript">
     var popup = document.getElementById("popup");
     popup.addEventListener("reload", function() {
       popup.show();
     });
-    popup.commit = commit;
+    popup.commit_details = {
+      "abc123": {
+        shortHash: "abc123",
+        shortAuthor: "you@google.com",
+        shortSubject: "dummy commit",
+      },
+    };
     popup.repo = repo;
+    popup.repo_base = "https://skia.googlesource.com/dummy";
+    popup.swarming_url = swarming_url;
+    popup.task_scheduler_url = task_scheduler_url;
+    popup.set("task", {
+      name: taskSpecName,
+      colorClass: "bg-success",
+      comments: comments,
+      commits: ["abc123"],
+      id: taskId,
+      revision: "abc123",
+      swarming_task_id: "fake123",
+      status: "SUCCESS",
+    });
     popup.show();
   </script>
 </body>
