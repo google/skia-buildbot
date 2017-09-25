@@ -60,6 +60,7 @@ type IncrementalCache struct {
 	swarmingUrl      string
 	taskSchedulerUrl string
 	tasks            *taskCache
+	updateMtx        sync.Mutex
 	// Updates, keyed by repo and sorted ascending by timestamp.
 	updates map[string][]*Update
 	w       *window.Window
@@ -76,7 +77,7 @@ func NewIncrementalCache(d db.RemoteDB, w *window.Window, repos repograph.Map, n
 		tasks:            newTaskCache(d),
 		w:                w,
 	}
-	return c, c.Update()
+	return c, c.Update(true)
 }
 
 // getUpdatesInRange is a helper function which retrieves all Update objects
@@ -177,10 +178,15 @@ func (c *IncrementalCache) GetAll(repo string, maxCommits int) (*Update, error) 
 }
 
 // Update obtains new data and stores it internally keyed by the current time.
-func (c *IncrementalCache) Update() error {
+func (c *IncrementalCache) Update(reset bool) error {
+	c.updateMtx.Lock()
+	defer c.updateMtx.Unlock()
 	now := time.Now().UTC()
 	if err := c.w.Update(); err != nil {
 		return err
+	}
+	if reset {
+		c.comments.Reset()
 	}
 	comments, err := c.comments.Update(c.w)
 	if err != nil {
@@ -188,7 +194,14 @@ func (c *IncrementalCache) Update() error {
 	}
 	// TODO(borenet): If anything below here fails, the new tasks will be
 	// lost forever!
-	newTasks, startOver, err := c.tasks.Update(c.w)
+	var newTasks map[string][]*Task
+	var startOver bool
+	if reset {
+		// Reset() always returns true for startOver.
+		newTasks, startOver, err = c.tasks.Reset(c.w)
+	} else {
+		newTasks, startOver, err = c.tasks.Update(c.w)
+	}
 	if err != nil {
 		return err
 	}
@@ -196,7 +209,7 @@ func (c *IncrementalCache) Update() error {
 	if err != nil {
 		return err
 	}
-	if startOver {
+	if startOver && !reset {
 		c.comments.Reset()
 		comments, err = c.comments.Update(c.w)
 		if err != nil {
@@ -242,14 +255,24 @@ func (c *IncrementalCache) Update() error {
 	return nil
 }
 
-// UpdateLoop runs c.Update() in a loop.
+// UpdateLoop runs c.Update() in a loop. Automatically resets the cache every
+// 24 hours.
 func (c *IncrementalCache) UpdateLoop(frequency time.Duration, ctx context.Context) {
 	lv := metrics2.NewLiveness("last_successful_incremental_cache_update")
+	lastReset := time.Now()
 	go util.RepeatCtx(frequency, ctx, func() {
-		if err := c.Update(); err != nil {
+		reset := false
+		now := time.Now()
+		if now.Sub(lastReset) > 24*time.Hour {
+			reset = true
+		}
+		if err := c.Update(reset); err != nil {
 			sklog.Errorf("Failed to update incremental cache: %s", err)
 		} else {
 			lv.Reset()
+			if reset {
+				lastReset = now
+			}
 		}
 	})
 }
