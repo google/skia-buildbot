@@ -496,6 +496,12 @@ func main() {
 	}
 	healthyGauge := metrics2.GetInt64Metric("healthy")
 
+	// Terminate all tasks which were in running state when the poller was restarted.
+	// See skbug.com/7062.
+	if err := frontend.TerminateRunningTasks(); err != nil {
+		sklog.Fatalf("Could not terminate running tasks: %s", err)
+	}
+
 	// Run immediately, since pollTick will not fire until after pollInterval.
 	pollAndExecOnce(autoscaler)
 	for range time.Tick(*pollInterval) {
