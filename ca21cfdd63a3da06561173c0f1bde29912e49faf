@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c2f7b9aa_fa7167dc",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-25T21:04:59Z",
+      "side": 1,
+      "message": "FWIW, since the poller is now running in GCE, we should just put these handlers on a different port that isn\u0027t accessible to skfe and stop using webhook.",
+      "range": {
+        "startLine": 267,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 104
+      },
+      "revId": "ca21cfdd63a3da06561173c0f1bde29912e49faf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
