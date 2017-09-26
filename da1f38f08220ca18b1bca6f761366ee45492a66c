@@ -16,6 +16,23 @@
       "revId": "da1f38f08220ca18b1bca6f761366ee45492a66c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fb2d424_09350758",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 758,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-26T23:43:23Z",
+      "side": 1,
+      "message": "Should I also metric.Delete()?",
+      "revId": "da1f38f08220ca18b1bca6f761366ee45492a66c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
