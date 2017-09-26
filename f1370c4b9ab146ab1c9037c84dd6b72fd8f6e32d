@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d6800038_f7c5a641",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T13:05:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32dc9785_63de7bb3",
+      "range": {
+        "startLine": 63,
+        "startChar": 1,
+        "endLine": 63,
+        "endChar": 20
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f09dfd9e_d62b8f91",
         "filename": "go/depot_tools/depot_tools.go",
         "patchSetId": 18
@@ -45,6 +69,30 @@
       "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b01311c_ebf24bc7",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T13:05:47Z",
+      "side": 1,
+      "message": "Done\nI made it a requirement that \"skia\" be right before the \u0027@\u0027\nThese won\u0027t fit all but they\u0027ll fix many and can also be used as a starting point.",
+      "parentUuid": "f09dfd9e_d62b8f91",
+      "range": {
+        "startLine": 67,
+        "startChar": 23,
+        "endLine": 67,
+        "endChar": 60
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fd8f8f74_05a75c49",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T13:05:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ea16d8c_8dc711af",
+      "range": {
+        "startLine": 78,
+        "startChar": 46,
+        "endLine": 78,
+        "endChar": 52
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b51a1283_7db4f983",
         "filename": "go/depot_tools/depot_tools.go",
         "patchSetId": 18
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1fe02b4d_b50bd0ff",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T13:05:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b51a1283_7db4f983",
+      "range": {
+        "startLine": 106,
+        "startChar": 8,
+        "endLine": 106,
+        "endChar": 10
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "809830bd_c3422fca",
         "filename": "golden/go/goldingestion/goldingestion.go",
         "patchSetId": 18
@@ -105,6 +201,30 @@
       "writtenOn": "2017-09-26T11:38:20Z",
       "side": 1,
       "message": "IIRC Details does a \"git log\" call with a lot of information and parsing.  Couldn\u0027t we just do some variant of rev-parse here?  Ie. gitinfo.FullHash or gitdir.RevParse?",
+      "range": {
+        "startLine": 184,
+        "startChar": 13,
+        "endLine": 184,
+        "endChar": 43
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da713ed7_21bc9682",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T13:05:47Z",
+      "side": 1,
+      "message": "Details calls are cached, so most of the times this is faster. I am also hesitant to add more to the VCS interface since it requires touching a lot of places since there are a log of mocks around for that. Something we should fix as well. \nSo the cost of this is much smaller than it seems.",
+      "parentUuid": "809830bd_c3422fca",
       "range": {
         "startLine": 184,
         "startChar": 13,
