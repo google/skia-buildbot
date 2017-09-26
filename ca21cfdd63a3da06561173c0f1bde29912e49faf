@@ -22,6 +22,30 @@
       "revId": "ca21cfdd63a3da06561173c0f1bde29912e49faf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f42950b_c78cb3a7",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-26T14:59:34Z",
+      "side": 1,
+      "message": "Agreed. Made a note of this.",
+      "parentUuid": "c2f7b9aa_fa7167dc",
+      "range": {
+        "startLine": 267,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 104
+      },
+      "revId": "ca21cfdd63a3da06561173c0f1bde29912e49faf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
