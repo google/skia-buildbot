@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "32dc9785_63de7bb3",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-26T11:38:20Z",
+      "side": 1,
+      "message": "Nit: This variable name should indicate that it\u0027s for parsing DEPS files.  Something like DepsRevRegExSkiaVar and DepsRevRegExSkiaURL maybe?  As a general note, my personal preference for constants is to name them by least specific descriptor first, so that related constants have the same prefix.",
+      "range": {
+        "startLine": 63,
+        "startChar": 1,
+        "endLine": 63,
+        "endChar": 20
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f09dfd9e_d62b8f91",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-26T11:38:20Z",
+      "side": 1,
+      "message": "This will also match https://skia.googlesource.com/buildbot, or anything on that host.  Maybe it should be https://.*\\.googlesource.com/skia.*  ?",
+      "range": {
+        "startLine": 67,
+        "startChar": 23,
+        "endLine": 67,
+        "endChar": 60
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ea16d8c_8dc711af",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-26T11:38:20Z",
+      "side": 1,
+      "message": "I understand wanting to accept the error as a parameter for convenience, but IMO we should either not accept it, or we should return it if it\u0027s not nil, so that the caller has to handle any error from reading the file.",
+      "range": {
+        "startLine": 78,
+        "startChar": 46,
+        "endLine": 78,
+        "endChar": 52
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b51a1283_7db4f983",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-26T11:38:20Z",
+      "side": 1,
+      "message": "IMO this should be an error.",
+      "range": {
+        "startLine": 106,
+        "startChar": 8,
+        "endLine": 106,
+        "endChar": 10
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "809830bd_c3422fca",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-26T11:38:20Z",
+      "side": 1,
+      "message": "IIRC Details does a \"git log\" call with a lot of information and parsing.  Couldn\u0027t we just do some variant of rev-parse here?  Ie. gitinfo.FullHash or gitdir.RevParse?",
+      "range": {
+        "startLine": 184,
+        "startChar": 13,
+        "endLine": 184,
+        "endChar": 43
+      },
+      "revId": "f1370c4b9ab146ab1c9037c84dd6b72fd8f6e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
