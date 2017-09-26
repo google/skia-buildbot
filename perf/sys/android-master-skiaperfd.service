@@ -15,7 +15,7 @@ ExecStart=/usr/local/bin/skiaperf  \
     --use_cloud_datastore \
     --namespace=perf-androidmaster \
     --dataframe_size=256 \
-    --num_continuous=200 \
+    --num_continuous=500 \
     --num_shift=50 \
     --radius=11 \
     --interesting=25 \
