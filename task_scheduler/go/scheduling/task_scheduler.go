@@ -74,13 +74,15 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	bl            *blacklist.Blacklist
-	busyBots      *busyBots
-	db            db.DB
-	depotToolsDir string
-	isolate       *isolate.Client
-	jCache        db.JobCache
-	lastScheduled time.Time // protected by queueMtx.
+	bl                  *blacklist.Blacklist
+	busyBots            *busyBots
+	candidateMetrics    map[string]metrics2.Int64Metric
+	candidateMetricsMtx sync.Mutex
+	db                  db.DB
+	depotToolsDir       string
+	isolate             *isolate.Client
+	jCache              db.JobCache
+	lastScheduled       time.Time // protected by queueMtx.
 
 	// TODO(benjaminwagner): newTasks probably belongs in the TaskCfgCache.
 	newTasks    map[db.RepoState]util.StringSet
@@ -140,6 +142,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 	s := &TaskScheduler{
 		bl:               bl,
 		busyBots:         newBusyBots(),
+		candidateMetrics: map[string]metrics2.Int64Metric{},
 		db:               d,
 		depotToolsDir:    depotTools,
 		isolate:          isolateClient,
@@ -738,8 +741,22 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 		}
 	}
 	// Report the data.
+	s.candidateMetricsMtx.Lock()
+	defer s.candidateMetricsMtx.Unlock()
 	for k, count := range counts {
-		metrics2.GetInt64Metric(MEASUREMENT_TASK_CANDIDATE_COUNT, flatten(dimensions[k])).Update(count)
+		metric, ok := s.candidateMetrics[k]
+		if !ok {
+			metric = metrics2.GetInt64Metric(MEASUREMENT_TASK_CANDIDATE_COUNT, flatten(dimensions[k]))
+			s.candidateMetrics[k] = metric
+		}
+		metric.Update(count)
+	}
+	for k, metric := range s.candidateMetrics {
+		_, ok := counts[k]
+		if !ok {
+			metric.Update(0)
+			delete(s.candidateMetrics, k)
+		}
 	}
 }
 
