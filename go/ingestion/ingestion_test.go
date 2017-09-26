@@ -191,7 +191,7 @@ func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
 		})
 		t += inc
 	}
-	return MockVCS(commits)
+	return MockVCS(commits, nil)
 }
 
 func TestRflQueue(t *testing.T) {

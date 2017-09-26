@@ -75,7 +75,7 @@ func TestFromIssue(t *testing.T) {
 
 func TestFromHash(t *testing.T) {
 	testutils.SmallTest(t)
-	vcs := ingestion.MockVCS(TEST_COMMITS)
+	vcs := ingestion.MockVCS(TEST_COMMITS, nil)
 	commitID, err := FromHash(vcs, "fe4a4029a080bc955e9588d05a6cd9eb490845d4")
 	assert.NoError(t, err)
 

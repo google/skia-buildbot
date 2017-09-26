@@ -51,6 +51,8 @@ func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
 
+func (m *mockVcs) GetFile(fileName, commitHash string) (string, error) { return "", nil }
+
 type mockPTraceStore struct {
 	traceSet  ptracestore.TraceSet
 	matchFail bool
