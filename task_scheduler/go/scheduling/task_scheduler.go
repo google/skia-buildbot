@@ -74,13 +74,15 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	bl            *blacklist.Blacklist
-	busyBots      *busyBots
-	db            db.DB
-	depotToolsDir string
-	isolate       *isolate.Client
-	jCache        db.JobCache
-	lastScheduled time.Time // protected by queueMtx.
+	bl                      *blacklist.Blacklist
+	busyBots                *busyBots
+	lastCandidateMetrics    map[string]metrics2.Int64Metric
+	lastCandidateMetricsMtx sync.Mutex
+	db                      db.DB
+	depotToolsDir           string
+	isolate                 *isolate.Client
+	jCache                  db.JobCache
+	lastScheduled           time.Time // protected by queueMtx.
 
 	// TODO(benjaminwagner): newTasks probably belongs in the TaskCfgCache.
 	newTasks    map[db.RepoState]util.StringSet
@@ -738,8 +740,22 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 		}
 	}
 	// Report the data.
+	s.lastCandidateMetricsMtx.Lock()
+	defer s.lastCandidateMetricsMtx.Unlock()
 	for k, count := range counts {
-		metrics2.GetInt64Metric(MEASUREMENT_TASK_CANDIDATE_COUNT, flatten(dimensions[k])).Update(count)
+		metric, ok := s.lastCandidateMetrics[k]
+		if !ok {
+			metric = metrics2.GetInt64Metric(MEASUREMENT_TASK_CANDIDATE_COUNT, flatten(dimensions[k]))
+			s.lastCandidateMetrics[k] = metric
+		}
+		metric.Update(count)
+	}
+	for k, metric := range s.lastCandidateMetrics {
+		_, ok := counts[k]
+		if !ok {
+			metric.Update(0)
+			delete(s.lastCandidateMetrics, k)
+		}
 	}
 }
 
