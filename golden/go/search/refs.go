@@ -49,7 +49,7 @@ func NewRefDiffer(exp *expstorage.Expectations, diffStore diff.DiffStore, idx *i
 // metric. 'match' is the list of parameters that need to match between
 // the digests that are compared, i.e. this allows to restrict comparison
 // of gamma correct images to other digests that are also gamma correct.
-func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest string, params paramtools.ParamSet, traces map[string]*types.GoldenTrace, includeIgnores bool) (string, map[string]*SRDiffDigest) {
+func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest string, params paramtools.ParamSet, includeIgnores bool) (string, map[string]*SRDiffDigest) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
 		return "", nil
@@ -93,6 +93,7 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest stri
 func (r *RefDiffer) getDigestsWithLabel(test string, match []string, params paramtools.ParamSet, paramsByDigest map[string]paramtools.ParamSet, unavailable map[string]*diff.DigestFailure, targetLabel types.Label) []string {
 	ret := []string{}
 	for d, digestParams := range paramsByDigest {
+		sklog.Infof("Params: %v      %v", digestParams, params == nil)
 		if _, ok := unavailable[d]; !ok && (r.exp.Classification(test, d) == targetLabel) && paramSetsMatch(match, params, digestParams) {
 			ret = append(ret, d)
 		}
@@ -129,8 +130,13 @@ func (r *RefDiffer) getClosestDiff(metric, digest string, compDigests []string) 
 }
 
 // paramSetsMatch returns true if the two param sets have matching
-// values for the parameters listed in 'match'.
+// values for the parameters listed in 'match'. If one of the is nil
+// there is always a match.
 func paramSetsMatch(match []string, p1, p2 paramtools.ParamSet) bool {
+	if (p1 == nil) || (p2 == nil) {
+		return true
+	}
+
 	for _, paramKey := range match {
 		vals1, ok1 := p1[paramKey]
 		vals2, ok2 := p2[paramKey]

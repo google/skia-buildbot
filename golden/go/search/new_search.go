@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"sort"
 	"sync"
 
@@ -162,22 +161,26 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 		}
 	}
 
-	// Make sure we have at least one trace.
-	if len(oneInter.traces) == 0 {
-		return nil, fmt.Errorf("Unknown test and digest.")
-	}
-
 	// TODO(stephana): Make the metric, match and ignores parameters for the comparison.
+
+	// If there are no traces or params then set them to nil to signal there are none.
+	hasTraces := len(oneInter.traces) > 0
+	if !hasTraces {
+		oneInter.traces = nil
+		oneInter.params = nil
+	}
 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := map[string]map[string]*srIntermediate{test: {digest: oneInter}}
-	ret := s.getReferenceDiffs(diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, true, inter, exp, idx)
+	ret := s.getReferenceDiffs(diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, inter, exp, idx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get the params and traces.
-	s.addParamsAndTraces(ret, inter, exp, idx)
+	if hasTraces {
+		// Get the params and traces.
+		s.addParamsAndTraces(ret, inter, exp, idx)
+	}
 
 	return &SRDigestDetails{
 		Digest:  ret[0],
@@ -276,7 +279,7 @@ func (s *SearchAPI) getReferenceDiffs(metric string, match []string, includeIgno
 	for _, testDigests := range inter {
 		for _, interValue := range testDigests {
 			go func(i *srIntermediate, index int) {
-				closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, i.test, i.digest, i.params, i.traces, includeIgnores)
+				closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, i.test, i.digest, i.params, includeIgnores)
 				retDigests[index] = &SRDigest{
 					Test:       i.test,
 					Digest:     i.digest,
