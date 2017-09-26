@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"net/url"
-	"os"
 	"testing"
 	"time"
 
@@ -19,7 +18,6 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -162,7 +160,7 @@ func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string) 
 	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
-	sample := loadSample(t, TEST_DATA_PATH)
+	sample := LoadSample(t, TEST_DATA_PATH)
 
 	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
 	eventBus := eventbus.New()
@@ -186,16 +184,6 @@ func getStoragesIndexTile(t *testing.T, bucket, storagePath, outputPath string) 
 	idx := ixr.GetIndex()
 	tile := idx.GetTile(false)
 	return storages, idx, tile, ixr
-}
-
-func loadSample(t assert.TestingT, fileName string) *serialize.Sample {
-	file, err := os.Open(fileName)
-	assert.NoError(t, err)
-
-	sample, err := serialize.DeserializeSample(file)
-	assert.NoError(t, err)
-
-	return sample
 }
 
 // testNameSet collects all test names and the set of digests for

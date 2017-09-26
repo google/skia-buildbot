@@ -193,3 +193,16 @@ func TestParamSetCopy(t *testing.T) {
 
 	assert.Equal(t, ParamSet{}, ParamSet{}.Copy())
 }
+
+func TestMatches(t *testing.T) {
+	testutils.SmallTest(t)
+
+	p := ParamSet{
+		"foo": []string{"bar", "baz"},
+		"qux": []string{"quux"},
+	}
+
+	assert.True(t, p.Matches(map[string]string{"foo": "bar"}))
+	assert.True(t, p.Matches(map[string]string{"foo": "baz", "qux": "quux"}))
+	assert.False(t, p.Matches(map[string]string{"foo": "baz", "qux": "baz"}))
+}

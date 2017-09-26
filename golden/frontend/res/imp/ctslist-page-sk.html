@@ -1,0 +1,149 @@
+<!--
+  The <ctslist-page-sk> custom element declaration.
+
+  Attributes:
+    None
+
+  Methods:
+    pageSelected(ctx) - Called by the router when the view becomes visible.
+          ctx is the context provided in the route dispatch of page.js.
+
+    pageDeselected - Called by the router when the view is no longer visible.
+
+  Events:
+    None
+
+  Mailboxes:
+    None
+
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-icons/image-icons.html">
+
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="ctslist-page-sk">
+  <template>
+    <style include="shared-styles">
+      .pageContainer {
+        padding: 2em;
+      }
+
+      .headerField {
+        font-weight: bold;
+        padding-bottom: 1em;
+      }
+
+      .dateTimeCol {
+        width: 15em;
+        text-align: left;
+      }
+
+      .idCol {
+        width: 15em;
+        text-align: left;
+      }
+
+      .numCol {
+        width: 10em;
+        text-align: right;
+      }
+
+      .resultCol {
+        width: 7em;
+        text-align: right;
+      }
+
+      .resultRow:hover {
+        background-color: #CCCCCC;
+      }
+
+      .resultRow > td {
+        padding: .5em;
+        margin: .5em;
+      }
+
+      .passed {
+        color: #117733;
+        background-color: white;
+        font-weight: bold;
+      }
+
+      .failed {
+        color: #D95F02;
+        background-color: white;
+        font-weight: bold;
+      }
+    </style>
+
+    <div class="pageContainer">
+      <activity-sk id="activityCTSList" busy="{{_hideAll}}"></activity-sk>
+      <div hidden$="{{_hideAll}}" class="headerContainer">
+        <table>
+          <thead>
+            <tr>
+              <td class="dateTimeCol headerField">Date</td>
+              <td class="idCol headerField">Id</td>
+              <td class="numCol headerField">#Device-Version</td>
+              <td class="numCol headerField">#Passed</td>
+              <td class="numCol headerField">#Failed</td>
+              <td class="resultCol headerField">Result</td>
+            </tr>
+            <template is="dom-repeat" items="{{_ctsRunEntries}}">
+              <tr class="resultRow">
+                <td class="dateTimeCol">[[_humanDate(item.ts)]]</td>
+                <td class="idCol"><a title="See the run details." href$="[[_ctsRunURL(item.id)]]">{{item.id}}</a></td>
+                <td class="numCol">[[item.deviceCount]]</td>
+                <td class="numCol">[[item.failCount]]</td>
+                <td class="numCol">[[item.passCount]]</td>
+                <td class$="[[_passFailValue(item)]] resultCol">[[_passFailValue(item)]]</td>
+              </tr>
+            </template>
+          </thead>
+        </table>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: "ctslist-page-sk",
+
+      pageSelected: function(ctx) {
+        this._load();
+      },
+
+      pageDeselected: function() {
+        // This function is called by the router in gold-app-sk for all top level views.
+      },
+
+      // Load the listing.
+      _load: function() {
+        this.$.activityCTSList.startSpinner("Loading ...");
+        sk.get("/json/ctsresult").then(JSON.parse).then(function (json) {
+          this._ctsRunEntries = json;
+          this.$.activityCTSList.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+          this.$.activityCTSList.stopSpinner();
+        }.bind(this));
+      },
+
+      _humanDate: function (timeStampMS) {
+        return sk.human.localeTime(new Date(timeStampMS));
+      },
+
+      _ctsRunURL: function(id) {
+        return '/ctsresult/' + id;
+      },
+
+      _passFailValue: function(item) {
+        return (item.deviceCount == item.passCount) ? 'passed' : 'failed';
+      }
+    });
+  </script>
+</dom-module>
