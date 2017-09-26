@@ -4,9 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -402,33 +405,56 @@ func (s *SQLExpectationsStore) SetCanonicalTraceIDs(traceIDs map[string]string) 
 // Wraps around an ExpectationsStore and caches the expectations using
 // MemExpecationsStore.
 type CachingExpectationStore struct {
-	store    ExpectationsStore
-	cache    ExpectationsStore
-	eventBus *eventbus.EventBus
-	refresh  bool
+	store        ExpectationsStore
+	cache        ExpectationsStore
+	eventBus     *eventbus.EventBus
+	refresh      bool
+	refreshMutex sync.Mutex
 }
 
 func NewCachingExpectationStore(store ExpectationsStore, eventBus *eventbus.EventBus) ExpectationsStore {
-	return &CachingExpectationStore{
+	ret := &CachingExpectationStore{
 		store:    store,
 		cache:    NewMemExpectationsStore(nil),
 		eventBus: eventBus,
 		refresh:  true,
 	}
+
+	// Start a background thread to refresh the expectations every minute.
+	// This is important when we run multiple instances of Gold.
+	go func() {
+		for range time.Tick(time.Minute) {
+			ret.refreshMutex.Lock()
+			ret.refresh = true
+			ret.refreshMutex.Unlock()
+			if _, err := ret.Get(); err != nil {
+				sklog.Errorf("Error refreshing cached expectations: %s", err)
+			}
+		}
+	}()
+	return ret
 }
 
 // See ExpectationsStore interface.
-func (c *CachingExpectationStore) Get() (exp *Expectations, err error) {
-	if c.refresh {
-		c.refresh = false
-		tempExp, err := c.store.Get()
-		if err != nil {
-			return nil, err
+func (c *CachingExpectationStore) Get() (*Expectations, error) {
+	err := func() error {
+		c.refreshMutex.Lock()
+		defer c.refreshMutex.Unlock()
+		if c.refresh {
+			c.refresh = false
+			tempExp, err := c.store.Get()
+			if err != nil {
+				return err
+			}
+			return c.cache.AddChange(tempExp.Tests, "")
 		}
-		if err = c.cache.AddChange(tempExp.Tests, ""); err != nil {
-			return nil, err
-		}
+		return nil
+	}()
+
+	if err != nil {
+		return nil, err
 	}
+
 	return c.cache.Get()
 }
 
