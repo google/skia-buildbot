@@ -53,7 +53,7 @@ func TestPerfTrace(t *testing.T) {
 			},
 		},
 	}
-	vcs := ingestion.MockVCS(vcsCommits)
+	vcs := ingestion.MockVCS(vcsCommits, nil)
 
 	builder := NewBranchTileBuilder(nil, vcs, rietveldReview, gerritReview, nil).(*tileBuilder)
 
@@ -154,7 +154,7 @@ func TestTileFromCommits(t *testing.T) {
 			},
 		},
 	}
-	vcs := ingestion.MockVCS(vcsCommits)
+	vcs := ingestion.MockVCS(vcsCommits, nil)
 
 	entries := map[string]*Entry{
 		"key:8888:android": {

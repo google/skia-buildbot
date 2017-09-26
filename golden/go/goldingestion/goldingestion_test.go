@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/depot_tools"
+
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
@@ -19,6 +21,15 @@ import (
 const (
 	// name of the input file containing test data.
 	TEST_INGESTION_FILE = "testdata/dm.json"
+
+	// Same information as the ingestio file above but through a secondary repository.
+	TEST_SECONDARY_FILE = "testdata/dm-secondary.json"
+
+	// Ingestion file that contains a commit that is neither in the primary nor the secondary repo.
+	TEST_SECONDARY_FILE_INVALID = "testdata/dm-secondary-invalid.json"
+
+	// Ingestion file that contains a valid commit but does not have a valid commit in the primary.
+	TEST_SECONDARY_FILE_NO_DEPS = "testdata/dm-secondary-missing-deps.json"
 
 	// temporary file used to store traceDB content.
 	TRACE_DB_FILENAME = "./test_trace.db"
@@ -50,6 +61,31 @@ var (
 			Branches:  map[string]bool{"master": true},
 		},
 	}
+
+	// Commits in the secondary input files.
+	VALID_COMMIT   = "500920e65ced121bf72e690b31316e8bce606b4c"
+	INVALID_COMMIT = "789e59b3592bc07288aa13c3dc10422c684a8bd3"
+	NO_DEPS_COMMIT = "94252352a0dc5e2fcca754548018029562de0fb1"
+
+	SECONDARY_TEST_COMMITS = []*vcsinfo.LongCommit{
+		{ShortCommit: &vcsinfo.ShortCommit{Hash: VALID_COMMIT, Subject: "Really big code change"}},
+		{ShortCommit: &vcsinfo.ShortCommit{Hash: NO_DEPS_COMMIT, Subject: "Small code change without DEPS"}},
+	}
+
+	SECONDARY_DEPS_FILE_MAP = map[string]string{
+		VALID_COMMIT: `
+		# the commit queue can handle CLs rolling Skia
+		# and whatever else without interference from each other.
+		'skia_revision': '02cb37309c01506e2552e931efa9c04a569ed266',
+		# Three lines of non-changing comments so that
+		# the commit queue can handle CLs rolling Skia
+		`,
+		NO_DEPS_COMMIT: `
+		# and whatever else without interference from each other.
+		'skia_revision': '86a1022463a21fc779321c1db029fc3fdb6da2d6',
+		# Three lines of non-changing comments so that
+		`,
+	}
 )
 
 // Tests parsing and processing of a single file.
@@ -77,7 +113,7 @@ func TestGoldProcessor(t *testing.T) {
 	testutils.MediumTest(t)
 
 	// Set up mock VCS and run a servcer with the given data directory.
-	vcs := ingestion.MockVCS(TEST_COMMITS)
+	vcs := ingestion.MockVCS(TEST_COMMITS, nil)
 	server, serverAddr := ingestion.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
 	defer server.Stop()
 	defer testutils.Remove(t, TRACE_DB_FILENAME)
@@ -93,10 +129,31 @@ func TestGoldProcessor(t *testing.T) {
 	assert.NoError(t, err)
 	defer util.Close(processor.(*goldProcessor).traceDB)
 
+	_ = testProcessor(t, processor, TEST_INGESTION_FILE)
+
+	// Fail when there is not secondary repo defined.
+	err = testProcessor(t, processor, TEST_SECONDARY_FILE)
+	assert.True(t, strings.HasPrefix(err.Error(), "Error commit "))
+
+	// Inject a secondary repo and test its use.
+	processor.(*goldProcessor).secondaryVCS = ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP)
+	processor.(*goldProcessor).secondaryDepsExtractor = depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx)
+
+	_ = testProcessor(t, processor, TEST_SECONDARY_FILE)
+	err = testProcessor(t, processor, TEST_SECONDARY_FILE_INVALID)
+	assert.True(t, strings.HasPrefix(err.Error(), "Unable to extract DEPS file"))
+	err = testProcessor(t, processor, TEST_SECONDARY_FILE_NO_DEPS)
+	assert.True(t, strings.HasPrefix(err.Error(), "Found invalid commit "))
+}
+
+func testProcessor(t *testing.T, processor ingestion.Processor, testFileName string) error {
 	// Load the example file and process it.
-	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
+	fsResult, err := ingestion.FileSystemResult(testFileName, "./")
 	assert.NoError(t, err)
 	err = processor.Process(fsResult)
+	if err != nil {
+		return err
+	}
 	assert.NoError(t, err)
 
 	// Steal the traceDB used by the processor to verify the results.
@@ -134,6 +191,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	assert.Equal(t, "master", commitIDs[0].Source)
 	assert.NoError(t, traceDB.Close())
+	return nil
 }
 
 // filterCommitIDs returns all commitIDs that have the given prefix. If the
