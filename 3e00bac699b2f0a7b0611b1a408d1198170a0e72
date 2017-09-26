@@ -22,6 +22,30 @@
       "revId": "3e00bac699b2f0a7b0611b1a408d1198170a0e72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32ab2ea7_a0b814c2",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T01:10:57Z",
+      "side": 1,
+      "message": "See other comment about moving it to the ingestion package.",
+      "parentUuid": "c39fee51_d7f6fa4d",
+      "range": {
+        "startLine": 112,
+        "startChar": 2,
+        "endLine": 112,
+        "endChar": 60
+      },
+      "revId": "3e00bac699b2f0a7b0611b1a408d1198170a0e72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

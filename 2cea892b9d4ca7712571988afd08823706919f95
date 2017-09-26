@@ -202,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "3415f332_947cb774",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 674,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T01:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c373f9fa_f4324cb4",
+      "range": {
+        "startLine": 674,
+        "startChar": 0,
+        "endLine": 674,
+        "endChar": 88
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "62eb98c1_86dd7da8",
         "filename": "golden/go/goldingestion/goldingestion.go",
         "patchSetId": 12
@@ -273,6 +297,30 @@
     },
     {
       "key": {
+        "uuid": "6dde1b3c_41ddaf23",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T01:10:57Z",
+      "side": 1,
+      "message": "I agree, but I decided to keep the Update here for the time being. I added a todo to move it to the ingestion package, which will require some refactoring and affect several packages that rely on the ingestion package.",
+      "parentUuid": "8d8b8cb8_17bc9ae0",
+      "range": {
+        "startLine": 112,
+        "startChar": 27,
+        "endLine": 112,
+        "endChar": 33
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d515c646_6b82fe8a",
         "filename": "golden/go/goldingestion/goldingestion.go",
         "patchSetId": 12
@@ -308,6 +356,30 @@
       "side": 1,
       "message": "Done. \nGood catch. Added return and will add a test before this lands.",
       "parentUuid": "d515c646_6b82fe8a",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 13
+      },
+      "revId": "2cea892b9d4ca7712571988afd08823706919f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b4bead2_c0233551",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-26T01:10:57Z",
+      "side": 1,
+      "message": "Added tests.",
+      "parentUuid": "e6e73e1b_592899e4",
       "range": {
         "startLine": 120,
         "startChar": 3,
