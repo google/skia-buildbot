@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "32be6bd4_0fe7c9cb",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-27T12:28:12Z",
+      "side": 1,
+      "message": "Delete because no longer used anywhere?",
+      "revId": "550a27f388593e568217ca036566408b7f6f2998",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
