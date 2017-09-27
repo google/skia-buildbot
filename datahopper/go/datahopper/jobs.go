@@ -66,6 +66,7 @@ func (j *jobEventDB) Range(stream string, start, end time.Time) ([]*events.Event
 
 // update updates the cached jobs in the jobEventDB.
 func (j *jobEventDB) update() error {
+	defer metrics2.FuncTimer().Stop()
 	j.mtx.Lock()
 	defer j.mtx.Unlock()
 	now := time.Now()
@@ -74,6 +75,7 @@ func (j *jobEventDB) update() error {
 	if err != nil {
 		return err
 	}
+	sklog.Debugf("jobEventDB.update: Processing %d jobs for time range %s to %s.", len(jobs), now.Add(-longestPeriod), now)
 	cached := map[string][]*events.Event{}
 	for _, job := range jobs {
 		if !job.Done() {
@@ -113,6 +115,10 @@ func addAggregates(s *events.EventStream) error {
 	for _, period := range TIME_PERIODS {
 		// Average Job duration.
 		if err := s.AggregateMetric(map[string]string{"metric": "avg-duration"}, period, func(ev []*events.Event) (float64, error) {
+			if len(ev) > 0 {
+				// ev should be ordered by timestamp
+				sklog.Debugf("Calculating avg-duration for %s for %d jobs since %s.", ev[0].Stream, len(ev), ev[0].Timestamp)
+			}
 			count := 0
 			total := time.Duration(0)
 			for _, e := range ev {
@@ -136,6 +142,10 @@ func addAggregates(s *events.EventStream) error {
 
 		// Job failure rate.
 		if err := s.AggregateMetric(map[string]string{"metric": "failure-rate"}, period, func(ev []*events.Event) (float64, error) {
+			if len(ev) > 0 {
+				// ev should be ordered by timestamp
+				sklog.Debugf("Calculating failure-rate for %s for %d jobs since %s.", ev[0].Stream, len(ev), ev[0].Timestamp)
+			}
 			count := 0
 			fails := 0
 			for _, e := range ev {
@@ -158,6 +168,10 @@ func addAggregates(s *events.EventStream) error {
 
 		// Job mishap rate.
 		if err := s.AggregateMetric(map[string]string{"metric": "mishap-rate"}, period, func(ev []*events.Event) (float64, error) {
+			if len(ev) > 0 {
+				// ev should be ordered by timestamp
+				sklog.Debugf("Calculating mishap-rate for %s for %d jobs since %s.", ev[0].Stream, len(ev), ev[0].Timestamp)
+			}
 			count := 0
 			mishap := 0
 			for _, e := range ev {
@@ -192,7 +206,7 @@ func StartJobMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
 		db:      db,
 		metrics: map[string]bool{},
 	}
-	em, err := events.NewEventMetrics(edb, "job-metrics")
+	em, err := events.NewEventMetrics(edb, "job_metrics")
 	if err != nil {
 		return err
 	}

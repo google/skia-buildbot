@@ -476,7 +476,7 @@ func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) erro
 	if err != nil {
 		return fmt.Errorf("Failed to create EventDB: %s", err)
 	}
-	em, err := events.NewEventMetrics(edb, "time-to-bot-coverage")
+	em, err := events.NewEventMetrics(edb, "time_to_bot_coverage")
 	if err != nil {
 		return fmt.Errorf("Failed to create EventMetrics: %s", err)
 	}
