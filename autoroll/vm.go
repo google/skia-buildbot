@@ -46,6 +46,10 @@ func Catapult() *gce.Instance {
 	return AutoRollBase("catapult-autoroll", "" /* Use ephemeral IP */)
 }
 
+func DepotTools_Chromium() *gce.Instance {
+	return AutoRollBase("depot-tools-chromium-autoroll", "" /* Use ephemeral IP */)
+}
+
 func NaCl() *gce.Instance {
 	return AutoRollBase("nacl-autoroll", "" /* Use ephemeral IP */)
 }
@@ -90,15 +94,16 @@ func Google3() *gce.Instance {
 
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"skia":           Skia(),
-		"skia-internal":  SkiaInternal(),
-		"angle":          Angle(),
-		"catapult":       Catapult(),
-		"google3":        Google3(),
-		"nacl":           NaCl(),
-		"pdfium":         PDFium(),
-		"fuchsia":        Fuchsia(),
-		"android-master": AndroidMaster(),
-		"android-o":      AndroidO(),
+		"skia":                 Skia(),
+		"skia-internal":        SkiaInternal(),
+		"angle":                Angle(),
+		"catapult":             Catapult(),
+		"depot-tools-chromium": DepotTools_Chromium(),
+		"google3":              Google3(),
+		"nacl":                 NaCl(),
+		"pdfium":               PDFium(),
+		"fuchsia":              Fuchsia(),
+		"android-master":       AndroidMaster(),
+		"android-o":            AndroidO(),
 	})
 }

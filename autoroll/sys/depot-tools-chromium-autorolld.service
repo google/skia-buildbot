@@ -1,0 +1,23 @@
+[Unit]
+Description=AutoRoll Bot
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --use_metadata=true \
+    --host=depot-tools-chromium-roll.skia.org \
+    --logtostderr \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --childName=Depot Tools \
+    --childPath=src/third_party/depot_tools \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=phajdan@google.com
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

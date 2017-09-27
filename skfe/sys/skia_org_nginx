@@ -411,6 +411,27 @@ server {
     return 301 https://catapult-roll.skia.org$request_uri;
 }
 
+#####   depot-tools-chromium-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name depot-tools-chromium-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/depot-tools-chromium-roll.access.log;
+    error_log /var/log/nginx/depot-tools-chromium-roll.error.log error;
+
+    location / {
+        proxy_pass http://depot-tools-chromium-autoroll:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name depot-tools-chromium-roll.skia.org;
+    return 301 https://depot-tools-chromium-roll.skia.org$request_uri;
+}
+
 #####   google3-roll.skia.org   ###########################
 server {
     listen      443;

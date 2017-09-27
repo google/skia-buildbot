@@ -42,6 +42,12 @@
         "pulld",
       ],
     },
+    "depot-tools-chromium-autoroll": {
+      "AppNames": [
+        "depot-tools-chromium-autorolld",
+        "pulld",
+      ],
+    },
     "nacl-autoroll": {
       "AppNames": [
         "nacl-autorolld",
