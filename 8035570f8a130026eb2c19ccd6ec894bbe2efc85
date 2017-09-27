@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "660f5518_41342abb",
+        "filename": "autoroll/sys/depot-tools-chromium-autorolld.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-27T14:14:53Z",
+      "side": 1,
+      "message": "Note that Gerrit might return an error because of the google.com account not showing up on chromium-review (probably because it is linked). This will be easy to fix when/if it happens though.",
+      "parentUuid": "ded15cf8_e73a0a10",
+      "range": {
+        "startLine": 16,
+        "startChar": 14,
+        "endLine": 16,
+        "endChar": 32
+      },
+      "revId": "8035570f8a130026eb2c19ccd6ec894bbe2efc85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "157b7d3f_3feb5fbf",
         "filename": "skfe/sys/skia_org_nginx",
         "patchSetId": 1
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "That\u0027s what I did, except that I allow either to contain a dash.  IMO depottools-chromium-roll is much worse in terms of readability and the one character it saves is not worth it.",
       "parentUuid": "157b7d3f_3feb5fbf",
+      "range": {
+        "startLine": 414,
+        "startChar": 8,
+        "endLine": 414,
+        "endChar": 33
+      },
+      "revId": "8035570f8a130026eb2c19ccd6ec894bbe2efc85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06021559_01405a69",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-27T14:14:53Z",
+      "side": 1,
+      "message": "To me I prefer not having any dashes because it makes it easier to tell without any ambiguity what the source and target are. But what you have works for me too.",
+      "parentUuid": "bbaa5758_f93b29f8",
       "range": {
         "startLine": 414,
         "startChar": 8,
