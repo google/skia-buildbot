@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cef137f1_67f09bf1",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-27T21:11:56Z",
+      "side": 1,
+      "message": "Previously different EventMetrics were sharing the same liveness metric.",
+      "revId": "ceddda7b2e869b1e6be0f8515a1c6d7295d65924",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
