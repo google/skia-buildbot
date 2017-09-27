@@ -22,6 +22,30 @@
       "revId": "195ece6c8797da4fa42cf9a3ec66184a28baa92a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a1f17244_aa2e283f",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-27T19:41:41Z",
+      "side": 0,
+      "message": "Yeah... I got into a copy/paste frenzy.",
+      "parentUuid": "57179c0b_ad110d6e",
+      "range": {
+        "startLine": 14,
+        "startChar": 7,
+        "endLine": 14,
+        "endChar": 34
+      },
+      "revId": "195ece6c8797da4fa42cf9a3ec66184a28baa92a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

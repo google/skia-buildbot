@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7be7956a_a83d0bf4",
+        "filename": "go/gce/server/base-image/setup-script.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-27T19:41:41Z",
+      "side": 1,
+      "message": "Do I need to remove this as well?",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 2
+      },
+      "revId": "e165fcb06a0d9e0396fc7025d30f0b782bdcfe6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
