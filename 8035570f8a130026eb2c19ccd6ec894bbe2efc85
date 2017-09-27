@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b05eb1d8_ccfeaf22",
+        "filename": "autoroll/sys/depot-tools-chromium-autorolld.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-27T13:58:12Z",
+      "side": 1,
+      "message": "Pretty sure you meant google.com and not google.org\n\nAlso, I think this should be phajdan@chromium.org\nI do not see his google.com account show up on chromium-review.",
+      "range": {
+        "startLine": 16,
+        "startChar": 14,
+        "endLine": 16,
+        "endChar": 32
+      },
+      "revId": "8035570f8a130026eb2c19ccd6ec894bbe2efc85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "157b7d3f_3feb5fbf",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-27T13:58:12Z",
+      "side": 1,
+      "message": "What if the convention was ${source}-${target}-roll\nso this will be depottools-chromium-roll\n\nnot many sources will have 2 words in it.\n\nandroid-master-roll -\u003e androidmaster-skia-roll\nandroid-o-roll -\u003e androido-skia-roll\n\nThat will make roller URLs easier to guess.\n\ndepot-tools-chromium-roll works too. Just wondering if we can do better.",
+      "range": {
+        "startLine": 414,
+        "startChar": 8,
+        "endLine": 414,
+        "endChar": 33
+      },
+      "revId": "8035570f8a130026eb2c19ccd6ec894bbe2efc85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
