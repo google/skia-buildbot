@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a68e69fe_81ead885",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-27T11:11:43Z",
+      "side": 1,
+      "message": "I don\u0027t think so, but it\u0027s not hurting anything.",
+      "parentUuid": "8b26c276_09cf8c2c",
+      "revId": "da1f38f08220ca18b1bca6f761366ee45492a66c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9fb2d424_09350758",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2017-09-26T23:43:23Z",
       "side": 1,
       "message": "Should I also metric.Delete()?",
+      "revId": "da1f38f08220ca18b1bca6f761366ee45492a66c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f43d9b9f_1accb8bc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 758,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-27T11:11:43Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s really needed in this case.  The downside is that when we delete tasks they\u0027ll continue to show up in metrics until the scheduler is restarted.  But at least the data will be continuous for tasks which are regularly \"caught up\".",
+      "parentUuid": "9fb2d424_09350758",
       "revId": "da1f38f08220ca18b1bca6f761366ee45492a66c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
