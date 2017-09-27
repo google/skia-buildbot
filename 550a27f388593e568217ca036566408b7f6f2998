@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "3e833a26_80b5546b",
+        "filename": "go/gce/server/base-image/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-27T16:32:02Z",
+      "side": 1,
+      "message": "Does this change it to testing ?  If so we should remove this.",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 2
+      },
+      "revId": "550a27f388593e568217ca036566408b7f6f2998",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "21ba3a46_092dea53",
         "filename": "go/gce/server/server.go",
         "patchSetId": 2
