@@ -118,7 +118,9 @@ func NewEventMetrics(db EventDB, measurement string) (*EventMetrics, error) {
 
 // Start initiates the EventMetrics goroutines.
 func (m *EventMetrics) Start(ctx context.Context) {
-	lv := metrics2.NewLiveness("last_successful_event_metrics_update")
+	lv := metrics2.NewLiveness("last_successful_event_metrics_update", map[string]string{
+		"measurement": m.measurement,
+	})
 	go util.RepeatCtx(time.Minute, ctx, func() {
 		if err := m.updateMetrics(time.Now()); err != nil {
 			sklog.Errorf("Failed to update event metrics: %s", err)

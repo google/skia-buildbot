@@ -239,6 +239,38 @@ ALERT DatahopperErrorRate
     description = "The error rate for datahopper is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper"
   }
 
+ALERT JobMetricsLiveness
+  IF liveness_last_successful_job_metrics_update_s/60 > 30
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Job metrics update is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to update job metrics for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#job_metrics"
+  }
+
+ALERT BotCoverageMetricsLiveness
+  IF liveness_last_successful_bot_coverage_metrics_s/60 > 60
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Bot coverage metrics update is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to update bot coverage metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#bot_coverage_metrics"
+  }
+
+ALERT SwarmingTaskMetricsLiveness
+  IF liveness_last_successful_swarming_task_metrics_s/60 > 60
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Swarming task metrics update is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to update swarming task metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#swarming_task_metrics"
+  }
+
+ALERT EventMetricsLiveness
+  IF liveness_last_successful_event_metrics_update_s/60 > 30
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Event metrics update is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to update event metrics for {{ $labels.measurement }} for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#event_metrics"
+  }
+
 # Swarming
 
 ALERT BotMissing
