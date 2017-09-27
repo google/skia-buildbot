@@ -850,9 +850,20 @@ func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 			Value: v,
 		})
 	}
-	op, err := g.s.Instances.SetMetadata(g.project, g.zone, vm.Name, &compute.Metadata{
+	// Retrieve the existing instance metadata fingerprint, which is
+	// required in order to update the metadata.
+	inst, err := g.s.Instances.Get(g.project, g.zone, vm.Name).Do()
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve instance before setting metadata: %s", err)
+	}
+	m := &compute.Metadata{
 		Items: items,
-	}).Do()
+	}
+	if inst.Metadata != nil {
+		m.Fingerprint = inst.Metadata.Fingerprint
+	}
+	// Set the metadata.
+	op, err := g.s.Instances.SetMetadata(g.project, g.zone, vm.Name, m).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to set instance metadata: %s", err)
 	} else if op.Error != nil {
