@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bdd4f73_3c1895d9",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 861,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-27T12:41:17Z",
+      "side": 1,
+      "message": "Can you add a comment explaining why this needs to be done?",
+      "revId": "1685ccabc1a8c69c148fd289c75fc179f7b459c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
