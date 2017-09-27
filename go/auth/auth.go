@@ -19,6 +19,7 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	oauth2_api "google.golang.org/api/oauth2/v2"
 )
 
 const (
@@ -334,4 +335,12 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 // from a local file.
 func NewDefaultJWTServiceAccountTokenSource(scopes ...string) (oauth2.TokenSource, error) {
 	return NewJWTServiceAccountTokenSource("", "", scopes...)
+}
+
+func ValidateBearerToken(token string) (*oauth2_api.Tokeninfo, error) {
+	c, err := oauth2_api.New(httputils.NewTimeoutClient())
+	if err != nil {
+		return nil, fmt.Errorf("could not make oauth2 api client: %s", err)
+	}
+	return c.Tokeninfo().AccessToken(token).Do()
 }
