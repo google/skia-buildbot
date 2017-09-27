@@ -21,6 +21,8 @@ var (
 
 	store *storage.Service
 
+	allPackages map[string]*packages.Package
+
 	failedInstallCounter = metrics2.GetCounter("pulld_failed_install", nil)
 )
 
@@ -89,6 +91,12 @@ func step(client *http.Client, store *storage.Service, hostname string) {
 			os.Exit(0)
 		}
 	}
+	if len(newPackages) > 0 {
+		allPackages, err = packages.AllAvailableByPackageName(store)
+		if err != nil {
+			sklog.Errorf("Failed to update the list of all packages: %s", err)
+		}
+	}
 }
 
 // containsPull returns true if the list of installed packages contains the 'pull' package.
@@ -146,6 +154,11 @@ func pullInit(serviceAccountPath string) {
 	store, err = storage.New(client)
 	if err != nil {
 		sklog.Fatalf("Failed to create storage service client: %s", err)
+	}
+
+	allPackages, err = packages.AllAvailableByPackageName(store)
+	if err != nil {
+		sklog.Fatalf("Failed to retrieve a list of all packages: %s", err)
 	}
 
 	if *onGCE {
