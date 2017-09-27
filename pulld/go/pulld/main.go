@@ -197,10 +197,6 @@ func filterUnits(units []*systemd.UnitStatus) []*systemd.UnitStatus {
 	if err != nil {
 		return units
 	}
-	allPackages, err := packages.AllAvailableByPackageName(store)
-	if err != nil {
-		return units
-	}
 	allServices := map[string]bool{}
 	for _, p := range installedPackages {
 		for _, name := range allPackages[p].Services {
