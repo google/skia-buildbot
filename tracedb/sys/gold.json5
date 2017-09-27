@@ -1,6 +1,9 @@
 {
   GitRepoDir: "/mnt/pd0/gold/skiarepo",             // Directory location for the Skia repo.
   GitRepoURL: "https://skia.googlesource.com/skia", // URL location for the repo.
+  SecondaryRepoURL: "https://skia.googlesource.com/internal_test",
+  SecondaryRepoDir: "/mnt/pd0/gold/internal_test",
+  SecondaryRegEx: "^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$",
 
   Ingesters: {
     // Gold ingester
@@ -24,15 +27,9 @@
           Bucket: "chromium-skia-gm",
           Dir: "dm-json-v1"
         },
-        {
-          Bucket: "skia-infra-gm",
-          Dir: "pdf/dm-json-v1"
-        }
       ],
       ExtraParams: {
         TraceService: "localhost:9090",
-        SecondaryRepoURL: "https://skia.googlesource.com/internal_test",
-        SecondaryRegEx: "^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$",
       }
     },
 
@@ -62,8 +59,6 @@
         TraceService: "localhost:9090",
         RietveldCodeReviewURL: "https://codereview.chromium.org",
         GerritCodeReviewURL: "https://skia-review.googlesource.com",
-        SecondaryRepoURL: "https://skia.googlesource.com/internal_test",
-        SecondaryRegEx: "^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$",
       }
     }
   }
