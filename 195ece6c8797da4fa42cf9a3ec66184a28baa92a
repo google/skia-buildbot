@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "57179c0b_ad110d6e",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-27T13:53:43Z",
+      "side": 0,
+      "message": "Pretty sure you need to keep this.",
+      "range": {
+        "startLine": 14,
+        "startChar": 7,
+        "endLine": 14,
+        "endChar": 34
+      },
+      "revId": "195ece6c8797da4fa42cf9a3ec66184a28baa92a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
