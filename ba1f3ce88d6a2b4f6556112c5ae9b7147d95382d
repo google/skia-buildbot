@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5384dd76_948d7116",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:07:09Z",
+      "side": 1,
+      "message": "payload.Severity",
+      "range": {
+        "startLine": 183,
+        "startChar": 15,
+        "endLine": 183,
+        "endChar": 30
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd27db26_3ed3f1f1",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:07:09Z",
+      "side": 1,
+      "message": "nit: remove",
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcf6717a_bb241924",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:07:09Z",
+      "side": 1,
+      "message": "nit: Why not move all of this to ValidateBearerToken?",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 2
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d13048a7_573fecdc",
+        "filename": "skolo/go/powercycle-cli/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:07:09Z",
+      "side": 1,
+      "message": "I don\u0027t understand the reason for the daemon. Why not just add flags service_account_path and power_server here, with reasonable defaults that will work if I\u0027m logged in to the jumphost as chrome-bot? E.g.\n\tserviceAccountPath \u003d flag.String(\"service_account_path\", \"/home/chrome-bot/skia-buildbots-service-account.json\", \"Path to the service account.\")\n\tpowerServer        \u003d flag.String(\"power_server\", \"https://power.skia.org\", \"\")",
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
