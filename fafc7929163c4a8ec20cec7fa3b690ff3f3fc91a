@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "33a2a2ba_527f72f5",
+        "filename": "golden/go/goldingestion/goldingestion.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T16:19:35Z",
+      "side": 1,
+      "message": "Why do we need branch info?  It\u0027s not obvious to me if we use it.",
+      "range": {
+        "startLine": 162,
+        "startChar": 37,
+        "endLine": 162,
+        "endChar": 41
+      },
+      "revId": "fafc7929163c4a8ec20cec7fa3b690ff3f3fc91a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e559954f_880d92d7",
+        "filename": "golden/go/goldingestion/trybot.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T16:19:35Z",
+      "side": 1,
+      "message": "I would strongly recommend not panicking deep in the code as it can lead to abrupt (and possibly hard to debug) stoppages.  Was this just a temporary thing to test to make sure all the callsites were done properly?",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 44,
+        "endChar": 7
+      },
+      "revId": "fafc7929163c4a8ec20cec7fa3b690ff3f3fc91a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
