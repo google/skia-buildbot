@@ -90,6 +90,19 @@ type ChangeInfo struct {
 	Status          string                 `json:"status"`
 }
 
+// The RelatedChangesInfo entity contains information about related changes.
+type RelatedChangesInfo struct {
+	Changes []*RelatedChangeAndCommitInfo `json:"changes"`
+}
+
+// RelatedChangeAndCommitInfo entity contains information about a related change and commit.
+type RelatedChangeAndCommitInfo struct {
+	ChangeId string `json:"change_id"`
+	Issue    int64  `json:"_change_number"`
+	Revision int64  `json:"_revision_number"`
+	Status   string `json:"status"`
+}
+
 // IsClosed returns true iff the issue corresponding to the ChangeInfo is
 // abandoned or merged.
 func (c ChangeInfo) IsClosed() bool {
@@ -596,6 +609,43 @@ func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
 		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
 	}
 	return nil
+}
+
+// GetDependencies returns a slice of all dependencies around the specified change. See
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-related-changes
+func (g *Gerrit) GetDependencies(changeNum int64, revision int) ([]*RelatedChangeAndCommitInfo, error) {
+	data := RelatedChangesInfo{}
+	err := g.get(fmt.Sprintf("/changes/%d/revisions/%d/related", changeNum, revision), &data)
+	if err != nil {
+		return nil, err
+	}
+	return data.Changes, nil
+}
+
+// HasOpenDependency returns true if there is an active direct dependency of the specified change.
+func (g *Gerrit) HasOpenDependency(changeNum int64, revision int) (bool, error) {
+	dependencies, err := g.GetDependencies(changeNum, revision)
+	if err != nil {
+		return false, err
+	}
+	// Find the target change num in the chain of dependencies.
+	targetChangeIdx := 0
+	for idx, relatedChange := range dependencies {
+		if relatedChange.Issue == changeNum {
+			targetChangeIdx = idx
+			break
+		}
+	}
+	// See if the target change has an open dependency.
+	if len(dependencies) > targetChangeIdx+1 {
+		// The next change will be the direct dependency.
+		dependency := dependencies[targetChangeIdx+1]
+		if dependency.Status != CHANGE_STATUS_ABANDONED && dependency.Status != CHANGE_STATUS_MERGED {
+			// If the dependency is not closed then it is an active dependency.
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // Search returns a slice of Issues which fit the given criteria.
