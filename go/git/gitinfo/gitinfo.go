@@ -121,7 +121,10 @@ func (g *GitInfo) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 // Caller is responsible for locking the mutex.
 func (g *GitInfo) details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	if c, ok := g.detailsCache[hash]; ok {
-		return c, nil
+		// Return the cached value if the branchInfo request matches.
+		if !includeBranchInfo || (len(c.Branches) > 0) {
+			return c, nil
+		}
 	}
 	output, err := exec.RunCwd(g.dir, "git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", hash)
 	if err != nil {
