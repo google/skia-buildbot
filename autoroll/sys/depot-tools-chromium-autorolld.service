@@ -10,7 +10,7 @@ ExecStart=/usr/local/bin/autoroll \
     --host=depot-tools-chromium-roll.skia.org \
     --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --childName=Depot Tools \
+    --childName="Depot Tools" \
     --childPath=src/third_party/depot_tools \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=phajdan@google.com
