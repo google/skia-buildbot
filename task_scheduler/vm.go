@@ -33,7 +33,8 @@ func TaskSchedulerProd() *gce.Instance {
 }
 
 func TaskSchedulerInternal() *gce.Instance {
-	return TaskSchedulerBase("skia-task-scheduler-internal", "35.184.167.88" /* Whitelisted in swarming, isolate and buildbucket servers */)
+	vm := TaskSchedulerBase("skia-task-scheduler-internal", "35.184.167.88" /* Whitelisted in swarming, isolate and buildbucket servers */)
+	return server.SetGitCredsReadOnlyInternal(vm)
 }
 
 func main() {
