@@ -18,10 +18,10 @@
 
     server.respondWith("GET", "/json/details", function(request) {
       var ret = {
-        digest: testdata.fiveSearchResults.digests[0], 
+        digest: testdata.fiveSearchResults.digests[0],
         commits: testdata.fiveSearchResults.commits
-      }; 
-      request.respond(200, {"Content-Type":"application/json"}, 
+      };
+      request.respond(200, {"Content-Type":"application/json"},
         JSON.stringify(ret));
     });
 
@@ -32,9 +32,33 @@
 </head>
 <body>
   <h2>detail-page-sk demo</h2>
+
+  <dom-module id="main-document-element">
+    <template>
+        <detail-page-sk id="firstDetailsPage"></detail-page-sk>
+        <br><br><br><br><br><br>
+        <h2>Details when there is are no traces</h2>
+        <detail-page-sk id="secondDetailsPage"></detail-page-sk>
+    </template>
+
+    <script>
+      HTMLImports.whenReady(function () {
+        Polymer({
+          is: 'main-document-element',
+
+          properties: {
+          },
+
+          ready: function() {
+          },
+        });
+      });
+    </script>
+  </dom-module>
+
+  <!-- Instantite the element defined above -->
+  <main-document-element></main-document-element>
+
   <detail-page-sk></detail-page-sk>
-  <script type="text/javascript" charset="utf-8">
-      $$$('detail-page-sk').pageSelected();
-  </script>
 </body>
 </html>
