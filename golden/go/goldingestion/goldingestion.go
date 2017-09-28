@@ -3,13 +3,8 @@ package goldingestion
 import (
 	"fmt"
 	"net/http"
-	"path"
-	"path/filepath"
-	"strings"
 
 	"go.skia.org/infra/go/depot_tools"
-
-	"go.skia.org/infra/go/git/gitinfo"
 
 	"go.skia.org/infra/go/sklog"
 
@@ -52,30 +47,17 @@ type goldProcessor struct {
 type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
 
 // implements the ingestion.Constructor signature.
-func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
+func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, secondaryVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) (ingestion.Processor, error) {
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
 	if err != nil {
 		return nil, err
-	}
-
-	// Determine the secondary repo and the corresponding regular expression.
-	var secondaryVCS vcsinfo.VCS = nil
-	var secondaryDepsExtractor depot_tools.DEPSExtractor
-
-	if secondaryURL := config.ExtraParams[CONFIG_SECONDARY_REPO]; secondaryURL != "" {
-		secondaryDepsExtractor = depot_tools.NewRegExDEPSExtractor(config.ExtraParams[CONFIG_SECONDARY_REG_EX])
-
-		secondaryRepoDir := filepath.Join(config.StatusDir, strings.TrimSuffix(path.Base(secondaryURL), ".git"))
-		if secondaryVCS, err = gitinfo.CloneOrUpdate(secondaryURL, secondaryRepoDir, false); err != nil {
-			return nil, err
-		}
 	}
 
 	ret := &goldProcessor{
 		traceDB:                traceDB,
 		vcs:                    vcs,
 		secondaryVCS:           secondaryVCS,
-		secondaryDepsExtractor: secondaryDepsExtractor,
+		secondaryDepsExtractor: extractor,
 	}
 	ret.extractID = ret.getCommitID
 	return ret, nil
@@ -108,7 +90,7 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	}
 
 	if !commit.Branches["master"] {
-		sklog.Warningf("Commit %s is not in master branch.", commit.Hash)
+		sklog.Warningf("Commit %s is not in master branch. Got branches: %v", commit.Hash, commit.Branches)
 		return ingestion.IgnoreResultsFileErr
 	}
 
@@ -159,11 +141,6 @@ func (g *goldProcessor) getCanonicalCommitHash(targetHash string) (string, error
 			return "", fmt.Errorf("Error commit %s is not in repository and no secondary repo defined.", targetHash)
 		}
 
-		// TODO(stephana): Move this out and init the ingestion package to avoid performance overhead.
-		if err := g.secondaryVCS.Update(true, false); err != nil {
-			return "", fmt.Errorf("Error updating secondary repo while trying to resolve commit %s: %s", targetHash, err)
-		}
-
 		// Extract the commit.
 		foundCommit, err := g.secondaryDepsExtractor.ExtractCommit(g.secondaryVCS.GetFile("DEPS", targetHash))
 		if foundCommit == "" {
@@ -174,6 +151,7 @@ func (g *goldProcessor) getCanonicalCommitHash(targetHash string) (string, error
 		if !isCommit(g.vcs, foundCommit) {
 			return "", fmt.Errorf("Found invalid commit %s in secondary repo at commit %s. Not contained in primary repo.", foundCommit, targetHash)
 		}
+		sklog.Infof("Commit translation: %s -> %s", targetHash, foundCommit)
 		targetHash = foundCommit
 	}
 	return targetHash, nil
@@ -181,6 +159,6 @@ func (g *goldProcessor) getCanonicalCommitHash(targetHash string) (string, error
 
 // isCommit returns true if the given commit is in vcs.
 func isCommit(vcs vcsinfo.VCS, commitHash string) bool {
-	ret, err := vcs.Details(commitHash, false)
+	ret, err := vcs.Details(commitHash, true)
 	return (err == nil) && (ret != nil)
 }
