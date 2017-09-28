@@ -159,6 +159,6 @@ func (g *goldProcessor) getCanonicalCommitHash(targetHash string) (string, error
 
 // isCommit returns true if the given commit is in vcs.
 func isCommit(vcs vcsinfo.VCS, commitHash string) bool {
-	ret, err := vcs.Details(commitHash, true)
+	ret, err := vcs.Details(commitHash, false)
 	return (err == nil) && (ret != nil)
 }
