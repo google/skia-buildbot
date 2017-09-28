@@ -16,6 +16,24 @@
       "revId": "ceddda7b2e869b1e6be0f8515a1c6d7295d65924",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5d01f5aa_e4695d07",
+        "filename": "go/metrics2/events/events.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-28T13:44:45Z",
+      "side": 1,
+      "message": "Good catch, thanks.",
+      "parentUuid": "cef137f1_67f09bf1",
+      "revId": "ceddda7b2e869b1e6be0f8515a1c6d7295d65924",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
