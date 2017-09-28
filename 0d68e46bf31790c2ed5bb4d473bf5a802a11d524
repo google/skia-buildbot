@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3e48f6f3_1f4dbaf5",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:24:18Z",
+      "side": 1,
+      "message": "Did you mean to commit this? Seems to be causing problems for creating new instances.",
+      "revId": "0d68e46bf31790c2ed5bb4d473bf5a802a11d524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
