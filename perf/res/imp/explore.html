@@ -434,6 +434,9 @@
 
     // Reload all the queries/formulas on the given time range.
     _rangeChangeImpl: function(begin, end) {
+      if (!this.state) {
+        return
+      }
       this.state.begin = begin;
       this.state.end = end;
       if (this.state.formulas.length == 0 && this.state.queries.length == 0 && this.state.keys == "") {
