@@ -22,6 +22,21 @@ func skipTestIfRequired(t *testing.T) {
 	testutils.LargeTest(t)
 }
 
+func TestHasOpenDependency(t *testing.T) {
+	skipTestIfRequired(t)
+
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	assert.NoError(t, err)
+
+	dep, err := api.HasOpenDependency(52160, 1)
+	assert.NoError(t, err)
+	assert.False(t, dep)
+
+	dep2, err := api.HasOpenDependency(52123, 1)
+	assert.NoError(t, err)
+	assert.True(t, dep2)
+}
+
 func TestGerritOwnerModifiedSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
