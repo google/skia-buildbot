@@ -729,6 +729,9 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		latestPatchsetID := strconv.Itoa(len(change.Patchsets))
+
+		// Check to see if the change has any open dependencies.
+
 		detail = clDetail{
 			Issue:         cl,
 			Subject:       change.Subject,
