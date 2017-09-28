@@ -142,7 +142,11 @@
               this.clData = json;
               var patch = this.clData[this.patchType + "_patch"];
               if (!patch) {
-                this.clData = {error: "This is not a " + this.patchType + " CL."};
+                console.log("Entering the error here");
+                this.clData = {error: {response: "This is not a " + this.patchType + " CL."}};
+                console.log(this.clData);
+                console.log(this.clData.error);
+                console.log(this.clData.error.response);
               } else {
                 this.patch = patch;
               }
@@ -175,13 +179,20 @@
       },
 
       formatClError: function(clData) {
+        console.log("formatClError");
+        console.log(clData);
         if (clData && clData.error) {
-          return clData.error
+          console.log(clData.error);
+          console.log(clData.error.response);
+          console.log(clData.error.response.response);
+          return clData.error.response;
         }
         return "";
       },
 
       formatClDescription: function(clData) {
+        console.log("In formatClDescription");
+        console.log(clData);
         if (clData && !clData.error) {
           return this.clUrl(clData) + " (" + clData.subject + ")";
         }
