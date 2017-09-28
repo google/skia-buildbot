@@ -22,6 +22,30 @@
       "revId": "37c8945229e964d9e9bba36eb0478722032e8f43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14be1d93_4e52ea43",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-28T19:25:27Z",
+      "side": 0,
+      "message": "The default configuration already adds ~/.gitconfig, from the same location, so there\u0027s no reason to remove and re-add it.",
+      "parentUuid": "e3bbae35_3439ea63",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 2
+      },
+      "revId": "37c8945229e964d9e9bba36eb0478722032e8f43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
