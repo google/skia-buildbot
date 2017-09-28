@@ -79,6 +79,93 @@
       "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "458677c5_ef63553c",
+        "filename": "skolo/go/powercycle-cli/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:19:57Z",
+      "side": 1,
+      "message": "Discussed -- daemon will become useful in future CLs.",
+      "parentUuid": "d13048a7_573fecdc",
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "341afc9c_209bb880",
+        "filename": "skolo/go/powercycle-daemon/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:19:57Z",
+      "side": 1,
+      "message": "nit: already limited to POST below.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 2
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87d448f0_232e126c",
+        "filename": "skolo/go/powercycle-daemon/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:19:57Z",
+      "side": 1,
+      "message": "resp could be nil if err !\u003d nil",
+      "range": {
+        "startLine": 35,
+        "startChar": 2,
+        "endLine": 36,
+        "endChar": 64
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9837e46_a35a3790",
+        "filename": "skolo/go/powercycle-daemon/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T15:19:57Z",
+      "side": 1,
+      "message": "nit: wouldn\u0027t it make sense for this path to be the same as the path on power.skia.org?",
+      "range": {
+        "startLine": 67,
+        "startChar": 15,
+        "endLine": 67,
+        "endChar": 33
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
