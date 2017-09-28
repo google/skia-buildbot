@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6edfdf07_24ba5b2b",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-09-28T19:11:40Z",
+      "side": 1,
+      "message": "Wrong location for import.",
+      "revId": "37c8945229e964d9e9bba36eb0478722032e8f43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
