@@ -422,6 +422,29 @@
       "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "456f0eaa_5807f783",
+        "filename": "skolo/go/powercycle-daemon/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-28T19:28:51Z",
+      "side": 1,
+      "message": "confused -- did you want this to be limited to POST or not?",
+      "range": {
+        "startLine": 67,
+        "startChar": 54,
+        "endLine": 67,
+        "endChar": 70
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
