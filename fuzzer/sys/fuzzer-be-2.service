@@ -6,17 +6,17 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/fuzzer-be \
   --logtostderr \
-  --skia_root=/mnt/ssd0/skia-be \
+  --skia_root=/mnt/pd0/skia-be \
   --clang_path=/usr/bin/clang \
   --clang_p_p_path=/usr/bin/clang++ \
-  --depot_tools_path=/mnt/ssd0/depot_tools \
-  --afl_root=/mnt/ssd0/afl \
-  --afl_output_path=/mnt/ssd0/fuzzes/afl-out \
-  --fuzz_samples=/mnt/ssd0/fuzzes/samples \
-  --generator_working_dir=/mnt/ssd0/generator-wd \
-  --aggregator_working_dir=/mnt/ssd0/aggregator-wd \
-  --executable_cache_path=/mnt/ssd0/executable_cache \
-  --fuzz_path=/mnt/ssd0/fuzzes \
+  --depot_tools_path=/mnt/pd0/depot_tools \
+  --afl_root=/mnt/pd0/afl \
+  --afl_output_path=/mnt/pd0/fuzzes/afl-out \
+  --fuzz_samples=/mnt/pd0/fuzzes/samples \
+  --generator_working_dir=/mnt/pd0/generator-wd \
+  --aggregator_working_dir=/mnt/pd0/aggregator-wd \
+  --executable_cache_path=/mnt/pd0/executable_cache \
+  --fuzz_path=/mnt/pd0/fuzzes \
   --status_period=10s \
   --architecture=linux_x64 \
   --binary_fuzz_processes=8 \
