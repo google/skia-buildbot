@@ -53,7 +53,7 @@ func TestPerfTrybotProcessor(t *testing.T) {
 	m.Mock("https://chromium-cq-status.appspot.com/v2/patch-summary/codereview.chromium.org/2320153002/840001", mockhttpclient.MockGetDialogue([]byte("{}")))
 
 	ingesterConf := &sharedconfig.IngesterConfig{}
-	processor, err := newPerfTrybotProcessor(nil, ingesterConf, nil)
+	processor, err := newPerfTrybotProcessor(nil, ingesterConf, nil, nil, nil)
 	assert.NoError(t, err)
 
 	processor.(*perfTrybotProcessor).review = rietveld.New("https://codereview.chromium.org", m.Client())
