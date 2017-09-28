@@ -257,6 +257,9 @@
       },
 
       _rangeChange: function(e) {
+        if (!this.state) {
+          return
+        }
         this.set('state.begin', e.detail.begin);
         this.set('state.end', e.detail.end);
         this._updateRange();
