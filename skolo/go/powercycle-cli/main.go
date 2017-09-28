@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -10,6 +12,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/skolo/go/powercycle"
@@ -31,6 +34,8 @@ var (
 
 	autoFix    = flag.Bool("auto_fix", false, "Fetch the list of down bots/devices from power.skia.org and reboot those.")
 	autoFixURL = flag.String("auto_fix_url", "https://power.skia.org/down_bots", "Url at which to grab the list of down bots/devices.")
+
+	daemonURL = flag.String("daemon_url", "http://localhost:9210/powercycled_bots", "The (probably localhost) URL at which the powercycle daemon is located.")
 )
 
 func main() {
@@ -93,10 +98,12 @@ func main() {
 		if err := devGroup.PowerCycle(deviceID, time.Duration(*delay)*time.Second); err != nil {
 			sklog.Fatalf("Unable to power cycle device %s. Got error: %s", deviceID, err)
 		}
-
-		sklog.Infof("Power cycle successful. All done.")
-		sklog.Flush()
 	}
+	if err := reportToDaemon(args); err != nil {
+		sklog.Fatalf("Could not report powercyling through daemon: %s", err)
+	}
+	sklog.Infof("Power cycle successful. All done.")
+	sklog.Flush()
 }
 
 // listDevices prints out the devices it know about. This implies that
@@ -184,4 +191,23 @@ func tailPower(devGroup powercycle.DeviceGroup, outputPath string, sampleRate ti
 			}
 		}
 	}
+}
+
+func reportToDaemon(bots []string) error {
+	if *daemonURL == "" {
+		sklog.Warning("Skipping daemon reporting because --daemon_url is blank")
+		return nil
+	}
+	c := httputils.NewTimeoutClient()
+	body := bytes.Buffer{}
+	toReport := struct {
+		PowercycledBots []string `json:"powercycled_bots"`
+	}{
+		PowercycledBots: bots,
+	}
+	if err := json.NewEncoder(&body).Encode(toReport); err != nil {
+		return fmt.Errorf("Problem encoding json: %s", err)
+	}
+	_, err := c.Post(*daemonURL, "application/json", &body)
+	return err
 }

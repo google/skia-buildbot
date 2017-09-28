@@ -23,6 +23,10 @@ scrape_configs:
     static_configs:
       - targets: ['192.168.1.98:20003']
 
+  - job_name: 'powercycle-daemon'
+    static_configs:
+      - targets: ['localhost:20004']
+
   # Prometheus self monitoring.
   - job_name: 'prometheus'
     static_configs:

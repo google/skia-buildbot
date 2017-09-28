@@ -202,7 +202,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 
 // ReadAndClose reads the content of a ReadCloser (e.g. http Response), and returns it as a string.
 // If the response was nil or there was a problem, it will return empty string.  The reader,
-//if non-null, will be closed by this function.
+// if non-null, will be closed by this function.
 func ReadAndClose(r io.ReadCloser) string {
 	if r != nil {
 		defer util.Close(r)
