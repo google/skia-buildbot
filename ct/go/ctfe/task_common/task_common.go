@@ -728,6 +728,18 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, "Failed to get issue properties from Gerrit")
 			return
 		}
+
+		// Check to see if the change has any open dependencies.
+		activeDep, err := g.HasOpenDependency(cl, len(change.Patchsets))
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to get related changes from Gerrit")
+			return
+		}
+		if activeDep {
+			httputils.ReportError(w, r, err, fmt.Sprintf("This CL has an open dependency. Please squash your changes into a single CL."))
+			return
+		}
+
 		latestPatchsetID := strconv.Itoa(len(change.Patchsets))
 		detail = clDetail{
 			Issue:         cl,
