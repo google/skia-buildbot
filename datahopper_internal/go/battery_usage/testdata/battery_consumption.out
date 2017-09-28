@@ -1,0 +1,34 @@
+# Comments don't exist in real data, but help humans read the test inputs
+#
+# Each line is in the format of
+# timestamp(truncated to second)[space]current being consumed (in amps)[space] voltage dropped across terminals
+# timestamps appear to be evenly spaced across time based on measuring frequency.
+# This sample is at 10 hz. N = 10
+# The first < N samples could started at 3.5 seconds, or whatever, so there aren't a full 10 of them.
+1500000000 0.800000 -4.000000
+1500000000 0.800000 -4.100000
+1500000000 0.800000 -4.000000
+1500000000 0.800000 -4.100000
+# Let's pretend our test starts now.  In reality, we need to wait ~10 seconds for the screen to turn off.
+1500000001 0.200000 -3.900000
+1500000001 0.200000 -3.900000
+1500000001 0.200000 -3.900000
+1500000001 0.200000 -3.900000
+1500000001 0.500000 -3.950000
+1500000001 0.500000 -3.950000
+1500000001 0.500000 -3.950000
+1500000001 0.500000 -3.900000
+1500000001 0.500000 -3.900000
+1500000001 0.500000 -3.900000
+#
+1500000002 0.500000 -3.900000
+1500000002 0.500000 -3.900000
+1500000002 0.500000 -3.900000
+# pretend 1st test ends
+1500000002 0.100000 -3.900000
+1500000002 0.100000 -3.900000
+1500000002 0.100000 -3.900000
+1500000002 0.100000 -3.900000
+1500000002 0.100000 -3.900000
+1500000002 0.100000 -3.900000
+1500000002 0.100000 -3.900000
