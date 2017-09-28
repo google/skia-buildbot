@@ -104,6 +104,7 @@ func TestParseASANSingle(t *testing.T) {
 			FullStackFrame("third_party/externals/piex/src/", "piex.cc", "piex::GetPreviewData", 68),
 			FullStackFrame("fuzz/", "fuzz.cpp", "fuzz_img", 119),
 			FullStackFrame("fuzz/", "fuzz.cpp", "main", 53),
+			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_start", common.UNKNOWN_LINE),
 		},
 	}
 
@@ -128,6 +129,7 @@ func TestParseASANDouble(t *testing.T) {
 			FullStackFrame("src/core/", "SkPicture.cpp", "SkPicture::CreateFromStream", 154),
 			FullStackFrame("fuzz/", "fuzz.cpp", "fuzz_skp", 143),
 			FullStackFrame("fuzz/", "fuzz.cpp", "main", 54),
+			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_start", common.UNKNOWN_LINE),
 		},
 	}
 
@@ -573,6 +575,51 @@ func TestParseGCSPackage_BadAllocNoCrash(t *testing.T) {
 	expectedRelease := StackTrace{
 		Frames: []StackTraceFrame{
 			FullStackFrame("src/core/", "SkPictureData.cpp", "SkPictureData::parseStreamTag", 377),
+		},
+	}
+	if !reflect.DeepEqual(expectedRelease, result.Release.StackTrace) {
+		t.Errorf("Expected Release to be %#v\nbut was %#v", expectedRelease, result.Release.StackTrace)
+	}
+}
+
+func TestParseGCSPackage_AssemblyCrash(t *testing.T) {
+	testutils.SmallTest(t)
+	// The crash was in a line of assembly code, which lacks file information
+	g := GCSPackage{
+		Debug: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("11bad_debug.asan")),
+			Dump:   testutils.MustReadFile(stacktrace("11bad_debug.dump")),
+			StdErr: testutils.MustReadFile(stacktrace("11bad_debug.err")),
+		},
+		Release: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("11bad_release.asan")),
+			Dump:   testutils.MustReadFile(stacktrace("11bad_release.dump")),
+			StdErr: testutils.MustReadFile(stacktrace("11bad_release.err")),
+		},
+		FuzzCategory:     "skpicture",
+		FuzzArchitecture: "mock_arm8",
+	}
+
+	result := ParseGCSPackage(g)
+	expectedDebugFlags := ClangCrashed | ASANCrashed
+	expectedReleaseFlags := ClangCrashed | ASANCrashed
+	if result.Debug.Flags != expectedDebugFlags {
+		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	}
+	if result.Release.Flags != expectedReleaseFlags {
+		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	}
+	expectedDebug := StackTrace{
+		Frames: []StackTraceFrame{
+			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_sk_evenly_spaced_gradient_sse2", common.UNKNOWN_LINE),
+		},
+	}
+	if !reflect.DeepEqual(expectedDebug, result.Debug.StackTrace) {
+		t.Errorf("Expected Debug to be %#v\nbut was %#v", expectedDebug, result.Debug.StackTrace)
+	}
+	expectedRelease := StackTrace{
+		Frames: []StackTraceFrame{
+			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_sk_evenly_spaced_gradient_sse2", common.UNKNOWN_LINE),
 		},
 	}
 	if !reflect.DeepEqual(expectedRelease, result.Release.StackTrace) {
