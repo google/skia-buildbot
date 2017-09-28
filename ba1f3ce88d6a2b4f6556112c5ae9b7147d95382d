@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "420747dc_1efc6178",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:21:58Z",
+      "side": 1,
+      "message": "Was actually in patch set that I forgot to upload before review. \n\nXD",
+      "parentUuid": "b5f48852_74ccfeef",
+      "range": {
+        "startLine": 340,
+        "startChar": 0,
+        "endLine": 340,
+        "endChar": 71
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5384dd76_948d7116",
         "filename": "go/sklog/sklog.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3130571c_25dc9cde",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:21:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5384dd76_948d7116",
+      "range": {
+        "startLine": 183,
+        "startChar": 15,
+        "endLine": 183,
+        "endChar": 30
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd27db26_3ed3f1f1",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 1
@@ -62,6 +110,24 @@
       "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49993964_a43678ad",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:21:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd27db26_3ed3f1f1",
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -85,6 +151,30 @@
       "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da4a453d_183bef3d",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:21:58Z",
+      "side": 1,
+      "message": "Done.  Added some here, and some in powercycle-daemon.  There are also some in https://docs.google.com/document/d/15sb7RN_S3ctw06xQoNG7c3Owu-DS2jPPDaWAdQIkPLw/edit#heading\u003dh.5tfvnwhj8emd which will probably be a Design.md at some point.",
+      "parentUuid": "ec1902db_8c844a6b",
+      "range": {
+        "startLine": 142,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 69
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -132,6 +222,30 @@
       "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5fa2194_79e85024",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:21:58Z",
+      "side": 1,
+      "message": "I prefer to keep ValidateBearerToken deal with one responsibility : is this token valid?  I added a bit more docs here.",
+      "parentUuid": "62c38c40_a7091359",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 2
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -193,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "c8febb95_e24cef2a",
+        "filename": "skolo/go/powercycle-daemon/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:21:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "341afc9c_209bb880",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 2
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "87d448f0_232e126c",
         "filename": "skolo/go/powercycle-daemon/main.go",
         "patchSetId": 1
@@ -216,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "6ea9cb79_644a8956",
+        "filename": "skolo/go/powercycle-daemon/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:21:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87d448f0_232e126c",
+      "range": {
+        "startLine": 35,
+        "startChar": 2,
+        "endLine": 36,
+        "endChar": 64
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e9837e46_a35a3790",
         "filename": "skolo/go/powercycle-daemon/main.go",
         "patchSetId": 1
@@ -236,6 +398,30 @@
       "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88da2b66_af87980e",
+        "filename": "skolo/go/powercycle-daemon/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:21:58Z",
+      "side": 1,
+      "message": "Yes, since it\u0027s basically forwarding it.",
+      "parentUuid": "e9837e46_a35a3790",
+      "range": {
+        "startLine": 67,
+        "startChar": 15,
+        "endLine": 67,
+        "endChar": 33
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
