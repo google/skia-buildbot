@@ -10,7 +10,7 @@ import (
 )
 
 func CtBase(name, ipAddress string) *gce.Instance {
-	vm := server.Server20170613(name)
+	vm := server.Server20170928(name)
 	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "rmistry"
 	vm.Metadata["owner_secondary"] = "benjaminwagner"

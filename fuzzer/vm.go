@@ -5,7 +5,7 @@ import (
 	"path"
 	"runtime"
 
-	"google.golang.org/api/logging/v2"
+	logging "google.golang.org/api/logging/v2"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
@@ -13,7 +13,7 @@ import (
 )
 
 func FuzzerBase(name string) *gce.Instance {
-	vm := server.Server20170613(name)
+	vm := server.Server20170928(name)
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.DataDisk.SizeGb = 375
 	vm.DataDisk.Type = gce.DISK_TYPE_LOCAL_SSD

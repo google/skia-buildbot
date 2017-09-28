@@ -6,7 +6,7 @@ import (
 )
 
 func TraceDbBase(name string) *gce.Instance {
-	vm := server.Server20170518(name)
+	vm := server.Server20170928(name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16

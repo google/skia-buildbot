@@ -6,7 +6,7 @@ import (
 )
 
 func CqWatcherBase(name string) *gce.Instance {
-	vm := server.Server20170613(name)
+	vm := server.Server20170928(name)
 	vm.DataDisk = nil
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_2
 	vm.Metadata["owner_primary"] = "rmistry"

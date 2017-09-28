@@ -6,7 +6,7 @@ import (
 )
 
 func SwarmingLoggerBase(name string) *gce.Instance {
-	vm := server.Server20170613(name)
+	vm := server.Server20170928(name)
 	vm.DataDisk.SizeGb = 100
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.Metadata["owner_primary"] = "borenet"
