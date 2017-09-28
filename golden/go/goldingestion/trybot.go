@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/gerrit"
@@ -38,8 +39,8 @@ type goldTrybotProcessor struct {
 	cacheMutex sync.Mutex
 }
 
-func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
-	processor, err := newGoldProcessor(vcs, config, client)
+func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, secondaryVCS vcsinfo.VCS, ex depot_tools.DEPSExtractor) (ingestion.Processor, error) {
+	processor, err := newGoldProcessor(vcs, config, client, secondaryVCS, ex)
 	if err != nil {
 		return nil, err
 	}

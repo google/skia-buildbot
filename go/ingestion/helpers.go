@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 
+	"go.skia.org/infra/go/depot_tools"
+
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
@@ -33,7 +35,9 @@ const MAX_URI_GET_TRIES = 4
 //   vcs is an instance that might be shared across multiple ingesters.
 //   config is ususally parsed from a JSON5 file.
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
-type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (Processor, error)
+//   secondaryVCS is a secondary repo that is assumed to have vcs as a dependency.
+//   ex is an extractor to extract commits from the DEPS file of the secondary repo.
+type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, secondaryVCS vcsinfo.VCS, ex depot_tools.DEPSExtractor) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -65,6 +69,16 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 		return nil, err
 	}
 
+	// Instantiate the secondary repo if one was specified.
+	var secondaryVCS vcsinfo.VCS
+	var extractor depot_tools.DEPSExtractor
+	if config.SecondaryRepoURL != "" {
+		if secondaryVCS, err = gitinfo.CloneOrUpdate(config.SecondaryRepoURL, config.SecondaryRepoDir, true); err != nil {
+			return nil, err
+		}
+		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)
+	}
+
 	// Set up the Google storage client.
 	if client == nil {
 		client = httputils.NewBackOffClient()
@@ -88,13 +102,13 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(vcs, ingesterConf, client)
+		processor, err := processorConstructor(vcs, ingesterConf, client, secondaryVCS, extractor)
 		if err != nil {
 			return nil, err
 		}
 
 		// create the ingester and add it to the result.
-		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor)
+		ingester, err := NewIngester(id, ingesterConf, vcs, secondaryVCS, sources, processor)
 		if err != nil {
 			return nil, err
 		}

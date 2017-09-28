@@ -209,11 +209,11 @@ func CacheTile(tile *tiling.Tile, path string) error {
 // If the path does not exist, it will not return an error, but
 // the returned tile will be nil.
 func LoadCachedTile(path string) (*tiling.Tile, error) {
-	defer timer.New("Loading cached tile").Stop()
 	if !fileutil.FileExists(path) {
 		return nil, nil
 	}
 
+	defer timer.New("Loading cached tile").Stop()
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err

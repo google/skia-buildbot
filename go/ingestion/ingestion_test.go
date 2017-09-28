@@ -71,7 +71,7 @@ func testIngester(t *testing.T, statusDir string) {
 	}
 
 	// Instantiate ingester and start it.
-	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor)
+	ingester, err := NewIngester("test-ingester", conf, vcs, nil, sources, processor)
 	assert.NoError(t, err)
 	ingester.Start()
 
@@ -222,7 +222,7 @@ func TestIngesterNilVcs(t *testing.T) {
 	}
 
 	// Instantiate ingester and call getCommitRangeOfInterest.
-	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil)
+	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil, nil)
 	start, end, err := ingester.getCommitRangeOfInterest()
 	assert.NoError(t, err)
 

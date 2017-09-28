@@ -138,7 +138,7 @@ func main() {
 	}
 
 	// Initialize the ingester.
-	ingester, err := ingestion.NewIngester(INGESTER_ID, ingesterConfig, nil, sources, processor)
+	ingester, err := ingestion.NewIngester(INGESTER_ID, ingesterConfig, nil, nil, sources, processor)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize Ingester: %s", err)
 	}

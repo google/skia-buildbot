@@ -25,9 +25,12 @@ type IngesterConfig struct {
 
 // Config is a struct to configure multiple ingesters.
 type Config struct {
-	GitRepoDir string // Directory location for the repo.
-	GitRepoURL string // Git URL of the repo.
-	Ingesters  map[string]*IngesterConfig
+	GitRepoDir       string // Directory location for the repo.
+	GitRepoURL       string // Git URL of the repo.
+	SecondaryRepoURL string // URL of the secondary repo that has above as a dependency.
+	SecondaryRepoDir string // Directory location for the secondary repo.
+	SecondaryRegEx   string // Regular expression to extract the commit hash from the DEPS file.
+	Ingesters        map[string]*IngesterConfig
 }
 
 // ConfigFromTomlFile parses a TOML file into a Config struct.

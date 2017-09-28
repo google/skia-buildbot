@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/pdf"
@@ -63,7 +64,7 @@ type pdfProcessor struct {
 }
 
 // newPDFProcessor implements the ingestion.Constructor signature.
-func newPDFProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
+func newPDFProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, secondaryVCS vcsinfo.VCS, ex depot_tools.DEPSExtractor) (ingestion.Processor, error) {
 	// Parse the parameters right into the pdfProcessor instance.
 	ret := &pdfProcessor{}
 	err := combineErrors(
