@@ -176,7 +176,12 @@ func Flush() {
 // an app to send logs to somewhere other than the default report name
 // (typically based on the app-name).
 func CustomLog(reportName string, payload *LogPayload) {
-	logger.CloudLog(reportName, payload)
+	if logger != nil {
+		logger.CloudLog(reportName, payload)
+	} else {
+		// must be local or not initialized
+		logToGlog(3, payload.Severity, payload.Payload)
+	}
 }
 
 // log creates a log entry.  This log entry is either sent to Cloud Logging or glog if the former is

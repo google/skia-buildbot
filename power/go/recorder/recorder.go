@@ -15,6 +15,9 @@ type Recorder interface {
 	// NewlyFixedBots records a set of bot names that are freshly fixed. This
 	// is intended to act like a listener, thus clients should handle any errors.
 	NewlyFixedBots(bots []string)
+	// PowercycledBots records a set of bot names that were powercycled by the
+	// specified user.
+	PowercycledBots(user string, bots []string)
 }
 
 const CLOUD_LOGGING_GROUPING = "history"
@@ -58,6 +61,18 @@ func (r *gclRecorder) NewlyFixedBots(bots []string) {
 			Time:     now,
 			Severity: sklog.INFO,
 			Payload:  "New Fixed Bot: " + bot,
+		})
+	}
+}
+
+// PowercycledBots fulfills the Recorder interface
+func (r *gclRecorder) PowercycledBots(user string, bots []string) {
+	now := time.Now()
+	for _, bot := range bots {
+		sklog.CustomLog(CLOUD_LOGGING_GROUPING, &sklog.LogPayload{
+			Time:     now,
+			Severity: sklog.INFO,
+			Payload:  user + " powercycled Bot: " + bot,
 		})
 	}
 }

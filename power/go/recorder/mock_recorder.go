@@ -23,5 +23,9 @@ func (m *MockRecorder) NewlyFixedBots(bots []string) {
 	m.Called(bots)
 }
 
+func (m *MockRecorder) PowercycledBots(user string, bots []string) {
+	m.Called(user, bots)
+}
+
 // Ensure MockRecorder fulfills Recorder
 var _ Recorder = (*MockRecorder)(nil)
