@@ -142,7 +142,7 @@
               this.clData = json;
               var patch = this.clData[this.patchType + "_patch"];
               if (!patch) {
-                this.clData = {error: "This is not a " + this.patchType + " CL."};
+                this.clData = {error: {response: "This is not a " + this.patchType + " CL."}};
               } else {
                 this.patch = patch;
               }
@@ -176,7 +176,7 @@
 
       formatClError: function(clData) {
         if (clData && clData.error) {
-          return clData.error
+          return clData.error.response;
         }
         return "";
       },
