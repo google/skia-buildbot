@@ -372,6 +372,7 @@ https://%s.googlesource.com/%s.git/+log/%s
 
 
 Test: Presubmit checks will test this change.
+Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 `, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"))
 
 	// Loop through all commits:
