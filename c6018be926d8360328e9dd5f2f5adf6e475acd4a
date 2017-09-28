@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e41ce2f0_5c91d340",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-28T18:08:10Z",
+      "side": 1,
+      "message": "Aside: There are a lot of roller type specific flags here now and they will keep increasing. There should be a way to divide them up and keep only flags which are relevant to the roller type.",
+      "revId": "c6018be926d8360328e9dd5f2f5adf6e475acd4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
