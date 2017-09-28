@@ -93,16 +93,15 @@
     }
   </style>
   <template>
-    <h2>Range</h2>
+    <h2>Commit</h2>
+    <h3>Appears in Data Range</h3>
     <div class="layout horizontal">
       <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
       <paper-spinner id=spinner></paper-spinner>
     </div>
+    <h3>Commit</h3>
     <div>
-      <div>
-        <label for="commit">Commit</label>
-        <commit-detail-picker-sk on-commit-selected="_commitSelected" id=commit></commit-picker-sk>
-      </div>
+      <commit-detail-picker-sk on-commit-selected="_commitSelected" id=commit></commit-picker-sk>
     </div>
 
     <h2>Algorithm</h2>
