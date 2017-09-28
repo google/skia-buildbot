@@ -16,6 +16,24 @@
       "revId": "37c8945229e964d9e9bba36eb0478722032e8f43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8fdc3e6_d2207768",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-28T19:23:56Z",
+      "side": 1,
+      "message": "Ack\nWill be fixed in separate CL.",
+      "parentUuid": "6edfdf07_24ba5b2b",
+      "revId": "37c8945229e964d9e9bba36eb0478722032e8f43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
