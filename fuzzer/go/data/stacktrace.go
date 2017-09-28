@@ -121,6 +121,8 @@ func catchsegvFunctionName(s string) string {
 // \4 is the line number
 var asanStackTraceLine = regexp.MustCompile(`in (?P<function>[a-zA-Z0-9_:]+).*(?:\.\./)+(?P<package>(?:\w+/)+)(?P<file>.+?):(?P<line>\d+)`)
 
+var asanAssemblyStackTraceLine = regexp.MustCompile(`in (?P<function>[a-zA-Z0-9_:]+) \(`)
+
 // parseCatchsegvStackTrace takes the output of an AddressSanitizer crash, and returns the parsed
 // StackTrace, if it is able to find one.  If the result is not symbolized, this will return
 // an empty StackTrace.
@@ -149,6 +151,10 @@ func parseASANStackTrace(contents string) StackTrace {
 			// match[0] is the entire matched portion, [1] is the function name [2] is the
 			// "package", [3] is the file name, [4] is the line number
 			newFrame := FullStackFrame(match[2], match[3], match[1], common.SafeAtoi(match[4]))
+			frames = append(frames, newFrame)
+		} else if match := asanAssemblyStackTraceLine.FindStringSubmatch(line); match != nil {
+			// match[1] is the function name.
+			newFrame := FullStackFrame("", common.ASSEMBLY_CODE_FILE, match[1], common.UNKNOWN_LINE)
 			frames = append(frames, newFrame)
 		}
 	}
