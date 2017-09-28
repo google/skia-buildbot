@@ -1,14 +1,13 @@
 package main
 
 import (
-	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
+	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
 
 func DatahopperInternalBase(name string) *gce.Instance {
-	// TODO(dogben): Remove SetGitCredsReadWrite when updating to Server20170912 or later.
-	vm := server.SetGitCredsReadWrite(server.Server20170613(name), "skia-internal")
+	vm := server.Server20170928(name)
 	vm.DataDisk.SizeGb = 50
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2

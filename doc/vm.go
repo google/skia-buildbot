@@ -8,7 +8,7 @@ import (
 )
 
 func DocBase(name string) *gce.Instance {
-	vm := server.Server20170613(name) // TODO(borenet): Needs git configs.
+	vm := server.Server20170928(name)
 	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
 	vm.DataDisk.SizeGb = 1000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD

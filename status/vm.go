@@ -9,8 +9,7 @@ import (
 )
 
 func StatusBase(name string) *gce.Instance {
-	// TODO(dogben): Remove SetGitCredsReadWrite when updating to Server20170912 or later.
-	vm := server.SetGitCredsReadWrite(server.Server20170613(name), name)
+	vm := server.Server20170928(name)
 	vm.DataDisk.SizeGb = 100
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.Metadata["owner_primary"] = "borenet"

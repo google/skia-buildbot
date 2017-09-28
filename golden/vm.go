@@ -10,8 +10,7 @@ import (
 )
 
 func GoldBase(name, ipAddress string) *gce.Instance {
-	// TODO(dogben): Remove SetGitCredsReadWrite when updating to Server20170912 or later.
-	vm := server.SetGitCredsReadWrite(server.Server20170613(name), "skia-gold")
+	vm := server.Server20170928(name)
 	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
 	vm.DataDisk.SizeGb = 2000
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD

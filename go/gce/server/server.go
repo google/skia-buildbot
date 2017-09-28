@@ -34,11 +34,11 @@ var (
 )
 
 // Base config for server instances.
-func Server20170912(name string) *gce.Instance {
+func Server20170928(name string) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
-			SourceImage: "skia-pushable-base-v2017-09-12-001",
+			SourceImage: "skia-pushable-base-v2017-09-28-000",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		DataDisk: &gce.Disk{
@@ -72,20 +72,6 @@ func Server20170912(name string) *gce.Instance {
 		Tags: []string{"http-server", "https-server"},
 		User: gce.USER_DEFAULT,
 	}
-}
-
-func Server20170613(name string) *gce.Instance {
-	vm := Server20170912(name)
-	vm.BootDisk.SourceImage = "skia-pushable-base-v2017-06-13-003"
-	vm.GSDownloads = []*gce.GSDownload{}
-	return vm
-}
-
-func Server20170518(name string) *gce.Instance {
-	vm := Server20170613(name)
-	vm.BootDisk.SourceSnapshot = gce.DISK_SNAPSHOT_SYSTEMD_PUSHABLE_BASE
-	vm.BootDisk.SourceImage = ""
-	return vm
 }
 
 // Set configuration for servers who commit to git.
