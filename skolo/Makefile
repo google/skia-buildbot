@@ -58,6 +58,7 @@ cloudlogger_release: service_account
 .PHONY: trooper_tools
 trooper_tools:
 	go install -v ./go/powercycle-cli
+	go install -v ./go/powercycle-daemon
 	go install -v ./go/censustaker
 
 .PHONY: trooper_tools_release

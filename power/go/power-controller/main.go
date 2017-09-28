@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -20,6 +21,7 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	skswarming "go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/power/go/decider"
 	"go.skia.org/infra/power/go/gatherer"
 	"go.skia.org/infra/power/go/recorder"
@@ -31,6 +33,7 @@ const (
 )
 
 var downBots gatherer.Gatherer = nil
+var fixRecorder recorder.Recorder = nil
 
 var (
 	// web server params
@@ -46,6 +49,7 @@ var (
 
 	powercycleConfigs = common.NewMultiStringFlag("powercycle_config", nil, "JSON5 file with powercycle bot/device configuration. Same as used for powercycle.")
 	updatePeriod      = flag.Duration("update_period", time.Minute, "How often to update the list of down bots.")
+	authorizedEmails  = common.NewMultiStringFlag("authorized_email", nil, "Email addresses of users who are authorized to post to this web service.")
 )
 
 func main() {
@@ -86,6 +90,7 @@ func main() {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/down_bots", downBotsHandler)
+	r.HandleFunc("/powercycled_bots", powercycledBotsHandler)
 
 	rootHandler := httputils.LoggingGzipRequestResponse(r)
 
@@ -134,6 +139,42 @@ func downBotsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// powercycledBotsHandler is the way that the powercycle daemons can talk
+// to the server and report that they have powercycled.
+func powercycledBotsHandler(w http.ResponseWriter, r *http.Request) {
+	a := r.Header.Get("Authorization")
+	if a == "" {
+		http.Error(w, "Missing Authorization Header", 403)
+		return
+	}
+	// Check Authentication, i.e. the claimed POST actually comes from
+	// the entity it says it is from and has not expired..
+	ti, err := auth.ValidateBearerToken(strings.TrimPrefix(a, "Bearer "))
+	if err != nil {
+		sklog.Errorf("Could not auth: %s", err)
+		http.Error(w, "Invalid Authentication", 403)
+		return
+	}
+	// We know the token is valid, make sure the bearer of the token is
+	// on the whitelist of entities who we allow to post.
+	if !util.In(ti.Email, *authorizedEmails) {
+		http.Error(w, "Not on authorized whitelist", 403)
+		return
+	}
+
+	var input struct {
+		PowercycledBots []string `json:"powercycled_bots"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		return
+	}
+	sklog.Infof("%s reported they powercycled %q", ti.Email, input.PowercycledBots)
+	fixRecorder.PowercycledBots(ti.Email, input.PowercycledBots)
+	w.WriteHeader(http.StatusAccepted)
+}
+
 func setupGatherer() error {
 	oauthCacheFile := path.Join(*resourcesDir, "google_storage_token.data")
 	authedClient, err := auth.NewClient(*local, oauthCacheFile, skswarming.AUTH_SCOPE)
@@ -155,7 +196,8 @@ func setupGatherer() error {
 		return fmt.Errorf("Could not initialize down bot decider: %s", err)
 	}
 
-	downBots = gatherer.NewPollingGatherer(es, is, ac, d, recorder.NewCloudLoggingRecorder(), hostMap, *updatePeriod)
+	fixRecorder = recorder.NewCloudLoggingRecorder()
+	downBots = gatherer.NewPollingGatherer(es, is, ac, d, fixRecorder, hostMap, *updatePeriod)
 
 	return nil
 }

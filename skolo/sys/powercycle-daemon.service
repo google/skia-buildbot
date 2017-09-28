@@ -1,0 +1,17 @@
+[Unit]
+Description=A long running daemon that allows powercycle to talk to power.skia.org
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/powercycle-daemon \
+  --logtostderr \
+  --service_account_path=/usr/local/share/trooper_tools/service-account.json
+
+Restart=always
+User=chrome-bot
+Group=chrome-bot
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
