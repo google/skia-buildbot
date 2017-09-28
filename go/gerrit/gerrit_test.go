@@ -1,9 +1,9 @@
 package gerrit
 
 import (
-	"fmt"
+	//"fmt"
 	"testing"
-	"time"
+	//"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
@@ -20,6 +20,21 @@ func skipTestIfRequired(t *testing.T) {
 		t.Skip("Skipping test due to RUN_GERRIT_TESTS=false")
 	}
 	testutils.LargeTest(t)
+}
+
+func TestGetDependencies(t *testing.T) {
+	skipTestIfRequired(t)
+
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	assert.NoError(t, err)
+
+	dep, err := api.HasOpenDependency(52160, 1)
+	assert.NoError(t, err)
+	assert.False(t, dep)
+
+	dep2, err := api.HasOpenDependency(52123, 1)
+	assert.NoError(t, err)
+	assert.True(t, dep2)
 }
 
 func TestGerritOwnerModifiedSearch(t *testing.T) {
@@ -102,9 +117,7 @@ index c0f0a49..d5733b3 100644
 @@ -1,4 +1,5 @@
  testing
 +
-  
- 
- 
+
 `
 	assert.Equal(t, expected, patch)
 }
