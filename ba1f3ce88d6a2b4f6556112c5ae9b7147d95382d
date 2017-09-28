@@ -445,6 +445,30 @@
       "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7dbd2aef_2caa85e5",
+        "filename": "skolo/go/powercycle-daemon/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-09-28T19:31:01Z",
+      "side": 1,
+      "message": "I\u0027m confused too.  Yes, I wanted that.",
+      "parentUuid": "456f0eaa_5807f783",
+      "range": {
+        "startLine": 67,
+        "startChar": 54,
+        "endLine": 67,
+        "endChar": 70
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
