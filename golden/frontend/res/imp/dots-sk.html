@@ -99,7 +99,7 @@
       },
 
       setValue: function(value) {
-        if (value.tileSize === 0) {
+        if (!value || (value.tileSize === 0)) {
           return;
         }
 

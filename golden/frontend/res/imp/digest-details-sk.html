@@ -171,7 +171,7 @@
           <div class="flex self-start testHeader" hidden$="[[embedded]]">Test: [[details.test]]</div>
 
           <!-- Links to Grid and Cluster. -->
-          <div id="links" hidden$="[[embedded]]">
+          <div id="links" hidden$="_hideLinks(details, embedded)">
             <span><a href$="[[_cmpUrl(details.test)]]"><iron-icon icon="apps"></iron-icon></a></span>
             <span><a href$="[[_clusterUrl(details.test)]]"><iron-icon icon="radio-button-unchecked"></iron-icon></a></span>
           </div>
@@ -448,7 +448,7 @@
         this._right = null;
         this._diff = null;
         this._rightParamTitle = '';
-        if (!detailsView && this.details.closestRef) {
+        if (this.details.closestRef && this.details.closestRef !== '') {
           this._negIsClosest = (this.details.closestRef === gold.REF_NEG);
           this._right = this.details.refDiffs[this.details.closestRef];
           this._diff = this._right;
@@ -474,9 +474,14 @@
       },
 
       _setProperties: function() {
+        var paramSets = [];
+        var paramTitles = [];
         this._leftParamTitle = this._abbrev(this.details.digest);
-        var paramSets = [this.details.paramset];
-        var paramTitles = [this._leftParamTitle];
+        if (this.details.paramset) {
+          paramSets.push(this.details.paramset);
+          paramTitles.push(this._leftParamTitle);
+        }
+
         if (this._right) {
           this.set('_diffImgHref', gold.diffImgHref(this._right.digest, this.details.digest));
 
@@ -493,7 +498,10 @@
         if (this._diff) {
           this.set('_diff', this._diff);
         }
-        this.$.paramsets.setParamSets(paramSets, paramTitles);
+
+        if (paramSets.length > 0) {
+          this.$.paramsets.setParamSets(paramSets, paramTitles);
+        }
       },
 
       _abbrev: function(str) {
@@ -548,6 +556,10 @@
         return _negIsClosest ? 'Negative' : 'Positive';
       },
 
+      _hideLinks: function(details, isEmbedded) {
+        return isEmbedded || !details.paramset || !detail.traces;
+      },
+
       _cmpUrl: function (test) {
         if (!test) {
           return '';
@@ -585,7 +597,7 @@
 
       _getRefQuery: function(test) {
         var qObj = {name: [test]};
-        var corpus = this.details && this.details.paramset['source_type'];
+        var corpus = this.details && this.details.paramset && this.details.paramset['source_type'];
         if (corpus) {
           qObj['source_type'] = corpus;
         }
