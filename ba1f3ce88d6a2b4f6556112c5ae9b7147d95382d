@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "b5f48852_74ccfeef",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-28T16:20:50Z",
+      "side": 1,
+      "message": "Needs documentation, i.e. why/how this is used.",
+      "range": {
+        "startLine": 340,
+        "startChar": 0,
+        "endLine": 340,
+        "endChar": 71
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5384dd76_948d7116",
         "filename": "go/sklog/sklog.go",
         "patchSetId": 1
@@ -42,6 +65,29 @@
     },
     {
       "key": {
+        "uuid": "ec1902db_8c844a6b",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-28T16:20:50Z",
+      "side": 1,
+      "message": "Needs documentation especially about how it relates to the protocol of talking to the daemon.",
+      "range": {
+        "startLine": 142,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 69
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fcf6717a_bb241924",
         "filename": "power/go/power-controller/main.go",
         "patchSetId": 1
@@ -53,6 +99,30 @@
       "writtenOn": "2017-09-28T15:07:09Z",
       "side": 1,
       "message": "nit: Why not move all of this to ValidateBearerToken?",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 2
+      },
+      "revId": "ba1f3ce88d6a2b4f6556112c5ae9b7147d95382d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62c38c40_a7091359",
+        "filename": "power/go/power-controller/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-09-28T16:20:50Z",
+      "side": 1,
+      "message": "I think it needs to be clearer that the bearer token deals with authentication while the check of the email address is authorization. But IMO is preferable to keep that apart.",
+      "parentUuid": "fcf6717a_bb241924",
       "range": {
         "startLine": 143,
         "startChar": 0,
