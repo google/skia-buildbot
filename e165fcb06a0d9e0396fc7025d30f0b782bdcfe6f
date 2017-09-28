@@ -46,6 +46,30 @@
       "revId": "e165fcb06a0d9e0396fc7025d30f0b782bdcfe6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59ba740b_2fe7f8bf",
+        "filename": "go/gce/server/base-image/setup-script.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-28T12:17:11Z",
+      "side": 1,
+      "message": "Shrug. Changed as suggested.",
+      "parentUuid": "ef1cb64e_745da244",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 2
+      },
+      "revId": "e165fcb06a0d9e0396fc7025d30f0b782bdcfe6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
