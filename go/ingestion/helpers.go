@@ -12,9 +12,11 @@ import (
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/go/depot_tools"
-
 	"cloud.google.com/go/storage"
+	"golang.org/x/net/context"
+	"google.golang.org/api/option"
+
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -23,8 +25,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"golang.org/x/net/context"
-	"google.golang.org/api/option"
 )
 
 // Limit the number of times the ingester tries to get a file before giving up.
