@@ -28,7 +28,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool) (RepoManager, error) = newDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -42,12 +42,13 @@ type issueJson struct {
 // depsRepoManager is a struct used by DEPs AutoRoller for managing checkouts.
 type depsRepoManager struct {
 	*depotToolsRepoManager
-	rollDep string
+	includeLog bool
+	rollDep    string
 }
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string) (RepoManager, error) {
+func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -91,7 +92,8 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 			parentDir:   parentDir,
 			parentRepo:  parentRepo,
 		},
-		rollDep: rollDep,
+		includeLog: includeLog,
+		rollDep:    rollDep,
 	}
 
 	// TODO(borenet): This update can be extremely expensive. Consider
@@ -204,6 +206,9 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 	args := []string{dr.childPath, "--roll-to", to}
 	if len(bugs) > 0 {
 		args = append(args, "--bug", strings.Join(bugs, ","))
+	}
+	if !dr.includeLog {
+		args = append(args, "--no-log")
 	}
 	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(&exec.Command{

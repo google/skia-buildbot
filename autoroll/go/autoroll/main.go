@@ -51,6 +51,7 @@ var (
 	cqExtraTrybots  = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
 	host            = flag.String("host", "localhost", "HTTP service host")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	noLog           = flag.Bool("no_log", false, "If true, roll CLs do not include a git log (DEPS rollers only).")
 	parentRepo      = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
 	parentBranch    = flag.String("parent_branch", "master", "Branch of the parent repo we want to roll into.")
 	port            = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
@@ -349,7 +350,7 @@ func main() {
 	} else if *useManifest {
 		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
+		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog)
 	}
 	if err != nil {
 		sklog.Fatal(err)

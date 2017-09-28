@@ -93,8 +93,8 @@ func NewAndroidAutoRoller(workdir, parentBranch, childPath, childBranch, cqExtra
 }
 
 // NewDEPSAutoRoller returns an AutoRoller instance which rolls using DEPS.
-func NewDEPSAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy repo_manager.NextRollStrategy, preUploadSteps []string) (*AutoRoller, error) {
-	rm, err := repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy, preUploadSteps)
+func NewDEPSAutoRoller(workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy repo_manager.NextRollStrategy, preUploadSteps []string, includeLog bool) (*AutoRoller, error) {
+	rm, err := repo_manager.NewDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy, preUploadSteps, includeLog)
 	if err != nil {
 		return nil, err
 	}
