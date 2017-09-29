@@ -225,6 +225,24 @@
     },
     {
       "key": {
+        "uuid": "39b96722_6f1cafa6",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-29T14:06:12Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "14b9d0e6_ef24c18d",
+      "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26ce6f1b_40957373",
         "filename": "go/workerpool/workerpool.go",
         "patchSetId": 3
@@ -257,6 +275,24 @@
       "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05604563_01d78989",
+        "filename": "go/workerpool/workerpool.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-29T14:06:12Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4ec3918f_697ec951",
+      "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a31b6ce_fd69b3fd",
+        "filename": "go/gce/cmd/run_on_vms/run_on_vms.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-29T14:06:12Z",
+      "side": 1,
+      "message": "This could still be concurrent with the read below.\n\nThe easiest way to fix this would be:\nzoneResults :\u003d map[string]*result{}\nresults[zone] \u003d zoneResults\n\nThen use zoneResults rather than results[z] below.\n\n(Sorry, I should have made that suggestion earlier.)",
+      "range": {
+        "startLine": 66,
+        "startChar": 2,
+        "endLine": 66,
+        "endChar": 38
+      },
+      "revId": "a483cc28ea149e2e0b62baeb73ab3ce265cd9a07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a292bc2b_86ac44d0",
+        "filename": "go/workerpool/workerpool.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-29T14:06:12Z",
+      "side": 1,
+      "message": "nit: This seems to add a lot of complexity. Why wouldn\u0027t the client just call New instead of Reset?",
+      "revId": "a483cc28ea149e2e0b62baeb73ab3ce265cd9a07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
