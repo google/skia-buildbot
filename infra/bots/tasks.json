@@ -37,7 +37,7 @@
         "pool:Skia",
         "os:Debian-9.1",
         "gpu:none",
-        "cpu:x86-64-avx2"
+        "cpu:x86-64-Haswell_GCE"
       ],
       "extra_args": [
         "--workdir",
@@ -70,7 +70,7 @@
         "pool:Skia",
         "os:Debian-9.1",
         "gpu:none",
-        "cpu:x86-64-avx2"
+        "cpu:x86-64-Haswell_GCE"
       ],
       "extra_args": [
         "--workdir",
@@ -103,7 +103,7 @@
         "pool:Skia",
         "os:Debian-9.1",
         "gpu:none",
-        "cpu:x86-64-avx2"
+        "cpu:x86-64-Haswell_GCE"
       ],
       "extra_args": [
         "--workdir",
