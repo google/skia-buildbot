@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c015ce11_33e6d1e2",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-29T18:48:27Z",
+      "side": 1,
+      "message": "Why not src-internal-chromium-autoroll ?",
+      "range": {
+        "startLine": 66,
+        "startChar": 26,
+        "endLine": 66,
+        "endChar": 34
+      },
+      "revId": "ad74c355d2427cb80faf1ad5dcdc5804d5319059",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
