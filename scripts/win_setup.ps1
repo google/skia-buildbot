@@ -33,6 +33,9 @@ Function banner($title) {
   log ""
 }
 
+try
+{
+
 # Create helpers.
 $webclient = New-Object System.Net.WebClient
 $shell = new-object -com shell.application
@@ -52,7 +55,20 @@ $fileName = "$downloadDir\vcredist_x86.exe"
 if (!(Test-Path ($fileName))) {
   $url = ("http://download.microsoft.com/download/1/1/1/" +
           "1116b75a-9ec3-481a-a3c8-1777b5381140/vcredist_x86.exe")
-  $webclient.DownloadFile($url, $fileName)
+  # Retry 5 times
+  for ($i=1; $i -le 5; $i++) {
+    try
+    {
+      $webclient.DownloadFile($url, $fileName)
+      break
+    }
+    catch
+    {
+      log "Error downloading file from ${url}: $($_.Exception.GetType().FullName)"
+      log "$($_.Exception.Message)"
+    }
+    Start-Sleep -s 10
+  }
   cmd /c $fileName /q
 }
 
@@ -97,3 +113,12 @@ $acl.SetOwner([System.Security.Principal.NTAccount] $username)
 Set-Acl $bot_dir $acl
 
 banner "The setup script completed"
+
+}
+catch
+{
+
+log "Caught an exception: $($_.Exception.GetType().FullName)"
+log "$($_.Exception.Message)"
+
+}
