@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e7a647b6_74b09d65",
+        "filename": "autoroll/build_src_internal_release",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-29T20:01:34Z",
+      "side": 1,
+      "message": "This file will have to be renamed too.",
+      "revId": "7f224421f2cd30246c5ca32e54767a9930949b93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6523328_42836f7b",
+        "filename": "autoroll/sys/src-internal-autorolld.service",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-29T20:01:34Z",
+      "side": 1,
+      "message": "and this file",
+      "revId": "7f224421f2cd30246c5ca32e54767a9930949b93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
