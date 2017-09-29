@@ -34,6 +34,24 @@
       "revId": "c6018be926d8360328e9dd5f2f5adf6e475acd4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "854d88b8_661ffe29",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-09-29T13:21:58Z",
+      "side": 1,
+      "message": "Having separate binaries for each roller type would let them have their own specific flags with a list of common flags. They would all call into the common code.",
+      "parentUuid": "956f1179_ec532614",
+      "revId": "c6018be926d8360328e9dd5f2f5adf6e475acd4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
