@@ -16,7 +16,9 @@ func TraceDbBase(name string) *gce.Instance {
 }
 
 func Prod() *gce.Instance {
-	return TraceDbBase("skia-tracedb")
+	vm := TraceDbBase("skia-tracedb")
+	server.SetGitCredsReadOnlyInternal(vm)
+	return vm
 }
 
 func main() {

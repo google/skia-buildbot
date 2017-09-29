@@ -26,7 +26,7 @@ func StatusProd() *gce.Instance {
 }
 
 func StatusInternal() *gce.Instance {
-	return StatusBase("skia-status-internal")
+	return server.SetGitCredsReadOnlyInternal(StatusBase("skia-status-internal"))
 }
 
 func StatusStaging() *gce.Instance {
