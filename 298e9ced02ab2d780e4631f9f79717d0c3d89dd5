@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7db9c225_7063bbeb",
+        "filename": "go/gce/cmd/run_on_vms/run_on_vms.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T13:50:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ad6704b_6f78dd1a",
+      "range": {
+        "startLine": 26,
+        "startChar": 49,
+        "endLine": 26,
+        "endChar": 65
+      },
+      "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83e46931_180aea24",
         "filename": "go/gce/cmd/run_on_vms/run_on_vms.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "887e798d_63c94b6b",
+        "filename": "go/gce/cmd/run_on_vms/run_on_vms.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T13:50:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83e46931_180aea24",
+      "range": {
+        "startLine": 88,
+        "startChar": 4,
+        "endLine": 88,
+        "endChar": 14
+      },
+      "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2a65d464_b79e33c0",
         "filename": "go/gce/cmd/run_on_vms/run_on_vms.go",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2017-09-28T20:21:35Z",
       "side": 1,
       "message": "This seems a bit dicey, but it will probably work. My guess is that you could pass the command as a single argument to ssh and it would also work.",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 101,
+        "endChar": 36
+      },
+      "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "caaa4f51_7546ff49",
+        "filename": "go/gce/cmd/run_on_vms/run_on_vms.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T13:50:10Z",
+      "side": 1,
+      "message": "My experience with command line quoting has made me wary of doing that kind of thing.  Switched to strings.Fields, which should at least prevent problems as a result of accidentally using multiple spaces, etc.",
+      "parentUuid": "2a65d464_b79e33c0",
       "range": {
         "startLine": 101,
         "startChar": 8,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "543102d9_e93be3b6",
+        "filename": "go/gce/cmd/run_on_vms/run_on_vms.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T13:50:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4384124c_d13a65ea",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 2
+      },
+      "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fcc4fe60_304dd67a",
         "filename": "go/gce/gce.go",
         "patchSetId": 3
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "14b9d0e6_ef24c18d",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T13:50:10Z",
+      "side": 1,
+      "message": "Removed.  I commented it out because it was super spammy when running a command on hundreds of instances.",
+      "parentUuid": "fcc4fe60_304dd67a",
+      "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "26ce6f1b_40957373",
         "filename": "go/workerpool/workerpool.go",
         "patchSetId": 3
@@ -122,6 +236,24 @@
       "writtenOn": "2017-09-28T20:21:35Z",
       "side": 1,
       "message": "nit: unit tests",
+      "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ec3918f_697ec951",
+        "filename": "go/workerpool/workerpool.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T13:50:10Z",
+      "side": 1,
+      "message": "Done. Also added ability to reset the pool so that it can be reused.",
+      "parentUuid": "26ce6f1b_40957373",
       "revId": "298e9ced02ab2d780e4631f9f79717d0c3d89dd5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
