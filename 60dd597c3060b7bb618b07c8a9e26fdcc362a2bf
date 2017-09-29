@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fb1a679d_1b8c87c6",
+        "filename": "scripts/win_setup.ps1",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T16:32:24Z",
+      "side": 1,
+      "message": "@rmistry: Didn\u0027t we have this at some point?",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 1
+      },
+      "revId": "60dd597c3060b7bb618b07c8a9e26fdcc362a2bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
