@@ -94,6 +94,30 @@
       "revId": "60dd597c3060b7bb618b07c8a9e26fdcc362a2bf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c78574ff_adfdc1a4",
+        "filename": "scripts/win_setup.ps1",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-29T17:12:39Z",
+      "side": 1,
+      "message": "It worked for me -- it wrote the exception to C:\\gce_setup.log so that I at least had a clue what went wrong. ¯\\_(ツ)_/¯",
+      "parentUuid": "bd68a815_675d3a36",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 1
+      },
+      "revId": "60dd597c3060b7bb618b07c8a9e26fdcc362a2bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
