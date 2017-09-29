@@ -97,7 +97,8 @@ const (
 )
 
 var (
-	VALID_OS = []string{OS_LINUX, OS_WINDOWS}
+	VALID_OS    = []string{OS_LINUX, OS_WINDOWS}
+	VALID_ZONES = []string{ZONE_CENTRAL1_B, ZONE_CENTRAL1_C, ZONE_EAST1_D}
 )
 
 // GCloud is a struct used for creating disks and instances in GCE.
@@ -137,6 +138,11 @@ func NewGCloudWithClient(zone, workdir string, httpClient *http.Client) (*GCloud
 		workdir: workdir,
 		zone:    zone,
 	}, nil
+}
+
+// Service returns the underlying compute.Service instance.
+func (g *GCloud) Service() *compute.Service {
+	return g.s
 }
 
 // Disk is a struct describing a disk resource in GCE.
@@ -670,7 +676,6 @@ func (g *GCloud) Ssh(vm *Instance, cmd ...string) (string, error) {
 	command = append(command, args...)
 	command = append(command, fmt.Sprintf("%s@%s", vm.User, vm.ExternalIpAddress))
 	command = append(command, cmd...)
-	sklog.Infof("Running %s", strings.Join(command, " "))
 	return exec.RunCwd(".", command...)
 }
 
