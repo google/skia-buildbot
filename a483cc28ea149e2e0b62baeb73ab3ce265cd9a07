@@ -99,6 +99,24 @@
       "revId": "a483cc28ea149e2e0b62baeb73ab3ce265cd9a07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "09c6365d_d8aab358",
+        "filename": "go/workerpool/workerpool.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T14:26:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f76d55c_188678e7",
+      "revId": "a483cc28ea149e2e0b62baeb73ab3ce265cd9a07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
