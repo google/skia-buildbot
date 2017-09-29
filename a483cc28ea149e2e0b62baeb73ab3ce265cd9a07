@@ -81,6 +81,24 @@
       "revId": "a483cc28ea149e2e0b62baeb73ab3ce265cd9a07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f76d55c_188678e7",
+        "filename": "go/workerpool/workerpool.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-09-29T14:21:45Z",
+      "side": 1,
+      "message": "\"KISS\"\n\nMy expectation is the opposite. I would expect WorkerPool to be similar to sync.WaitGroup, which can only be used once.",
+      "parentUuid": "c115a0a0_f6df427d",
+      "revId": "a483cc28ea149e2e0b62baeb73ab3ce265cd9a07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
