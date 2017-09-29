@@ -66,5 +66,11 @@
         "pulld",
       ],
     },
+    "src-internal-chromium-autoroll": {
+      "AppNames": [
+        "src-internal-chromium-autorolld",
+        "pulld",
+      ],
+    },
   }
 }
