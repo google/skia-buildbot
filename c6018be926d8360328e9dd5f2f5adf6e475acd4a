@@ -16,6 +16,24 @@
       "revId": "c6018be926d8360328e9dd5f2f5adf6e475acd4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "956f1179_ec532614",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-09-29T11:19:24Z",
+      "side": 1,
+      "message": "Yeah.  I do like that we don\u0027t have config files for each of the rollers, and that the configuration can be done entirely through command-line flags.  The flip side is that we have to plumb all of these flags through to the correct places.  Maybe some kind of composable config file would be better, eg. it contains general options plus a section for the repo manager with options specific to the type of repo manager?",
+      "parentUuid": "e41ce2f0_5c91d340",
+      "revId": "c6018be926d8360328e9dd5f2f5adf6e475acd4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
