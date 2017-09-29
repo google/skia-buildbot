@@ -79,7 +79,9 @@
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.neg}}" disabled={{disabled}}>Negative</paper-toggle-button>
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.unt}}" disabled={{disabled}}>Untriaged</paper-toggle-button>
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.head}}" disabled={{disabled}}>Head</paper-toggle-button>
-        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
+        <template is="dom-if" if="[[_loginRequired]]">
+          <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
+        </div>
 
         <div class="buttonContainer">
           <paper-button id="searchButton" class$="topControl" raised disabled="[[disabled]]"
@@ -121,6 +123,11 @@
           beta: {
             type: Boolean,
             value: false
+          },
+
+          _loginRequired: {
+            type: Boolean,
+            value: function() { return sk.app_config.isPublic; }
           }
         },
 
@@ -129,6 +136,7 @@
         ],
 
         ready: function() {
+          debugger;
           this.listen(this.$.searchButton, 'tap', '_handleSearchButton');
           this.listen(this.$.filterButton, 'tap', '_handleFilterButton');
           this.listen(this.$.queryDialog, 'edit', '_handleQueryEdit');
@@ -196,7 +204,9 @@
 
         _splitAmp: function(qStr, orientation) {
           return sk.query.splitAmp(qStr, (orientation === 'horizontal') ? ', ':' \n');
-        }
+        },
+
+
 
       });
   </script>
