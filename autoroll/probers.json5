@@ -11,7 +11,8 @@
        "https://depot-tools-chromium-roll.skia.org",
        "https://nacl-roll.skia.org",
        "https://pdfium-roll.skia.org",
-       "https://fuchsia-roll.skia.org"
+       "https://fuchsia-roll.skia.org",
+       "https://src-internal-chromium-roll.skia.org",
      ],
      "method": "GET",
      "expected": [200],
@@ -30,7 +31,8 @@
        "https://catapult-roll.skia.org/json/status",
        "https://nacl-roll.skia.org/json/status",
        "https://pdfium-roll.skia.org/json/status",
-       "https://fuchsia-roll.skia.org/json/status"
+       "https://fuchsia-roll.skia.org/json/status",
+       "https://src-internal-chromium-roll.skia.org/json/status",
      ],
      "method": "GET",
      "expected": [200],

@@ -62,6 +62,10 @@ func Fuchsia() *gce.Instance {
 	return AutoRollBase("fuchsia-autoroll", "" /* Use ephemeral IP */)
 }
 
+func SrcInternal_Chromium() *gce.Instance {
+	return AutoRollBase("src-internal-chromium-autoroll", "" /* Use ephemeral IP */)
+}
+
 func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
 	vm.DataDisk.SizeGb = 512
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
@@ -94,16 +98,17 @@ func Google3() *gce.Instance {
 
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"skia":                 Skia(),
-		"skia-internal":        SkiaInternal(),
-		"angle":                Angle(),
-		"catapult":             Catapult(),
-		"depot-tools-chromium": DepotTools_Chromium(),
-		"google3":              Google3(),
-		"nacl":                 NaCl(),
-		"pdfium":               PDFium(),
-		"fuchsia":              Fuchsia(),
-		"android-master":       AndroidMaster(),
-		"android-o":            AndroidO(),
+		"skia":                  Skia(),
+		"skia-internal":         SkiaInternal(),
+		"angle":                 Angle(),
+		"catapult":              Catapult(),
+		"depot-tools-chromium":  DepotTools_Chromium(),
+		"google3":               Google3(),
+		"nacl":                  NaCl(),
+		"pdfium":                PDFium(),
+		"fuchsia":               Fuchsia(),
+		"android-master":        AndroidMaster(),
+		"android-o":             AndroidO(),
+		"src-internal-chromium": SrcInternal_Chromium(),
 	})
 }

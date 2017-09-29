@@ -24,6 +24,7 @@ scrape_configs:
       - targets: ['nacl-autoroll:20000']
       - targets: ['pdfium-autoroll:20000']
       - targets: ['fuchsia-autoroll:20000']
+      - targets: ['src-internal-chromium-autoroll:20000']
 
   - job_name: 'collectd'
     static_configs:
@@ -196,6 +197,7 @@ scrape_configs:
       - targets: ['skia-task-scheduler-internal:11000']
       - targets: ['skia-task-scheduler:11000']
       - targets: ['skia-tracedb:11000']
+      - targets: ['src-internal-chromium-autoroll:11000']
 
   # Prometheus self monitoring.
   - job_name: 'prometheus'
