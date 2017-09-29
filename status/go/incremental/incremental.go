@@ -181,7 +181,6 @@ func (c *IncrementalCache) GetAll(repo string, maxCommits int) (*Update, error) 
 func (c *IncrementalCache) Update(reset bool) error {
 	c.updateMtx.Lock()
 	defer c.updateMtx.Unlock()
-	now := time.Now().UTC()
 	if err := c.w.Update(); err != nil {
 		return err
 	}
@@ -240,7 +239,6 @@ func (c *IncrementalCache) Update(reset bool) error {
 				TaskComments:     rc.TaskComments,
 				Tasks:            tasks,
 				TaskSpecComments: rc.TaskSpecComments,
-				Timestamp:        now,
 			}
 		}
 	}
@@ -249,7 +247,10 @@ func (c *IncrementalCache) Update(reset bool) error {
 	if startOver {
 		c.updates = map[string][]*Update{}
 	}
+	// Intentionally waited to set timestamps until we locked the cache.
+	ts := time.Now().UTC()
 	for repo, u := range updates {
+		u.Timestamp = ts
 		c.updates[repo] = append(c.updates[repo], u)
 	}
 	return nil
