@@ -174,7 +174,9 @@ func (m *EventMetrics) AggregateMetric(stream string, tags map[string]string, pe
 		}
 		mx.tags[k] = v
 	}
+	sklog.Debugf("EventMetrics.mtx.Lock")
 	m.mtx.Lock()
+	defer sklog.Debugf("EventMetrics.mtx.Unlock")
 	defer m.mtx.Unlock()
 	byPeriod, ok := m.metrics[stream]
 	if !ok {
@@ -218,7 +220,9 @@ func (m *EventMetrics) DynamicMetric(stream string, tags map[string]string, peri
 		}
 		mx.tags[k] = v
 	}
+	sklog.Debugf("EventMetrics.mtx.Lock")
 	m.mtx.Lock()
+	defer sklog.Debugf("EventMetrics.mtx.Unlock")
 	defer m.mtx.Unlock()
 	byPeriod, ok := m.dynamicMetrics[stream]
 	if !ok {
@@ -273,7 +277,9 @@ func (m *EventMetrics) updateDynamicMetric(ev []*Event, mx *dynamicMetric) (map[
 // updateMetrics recalculates values for all metrics using the given value for
 // the current time.
 func (m *EventMetrics) updateMetrics(now time.Time) error {
+	sklog.Debugf("EventMetrics.mtx.Lock")
 	m.mtx.Lock()
+	defer sklog.Debugf("EventMetrics.mtx.Unlock")
 	defer m.mtx.Unlock()
 	errs := []error{}
 	for stream, byPeriod := range m.metrics {
@@ -333,7 +339,9 @@ func (m *EventMetrics) UpdateMetrics() error {
 
 // LogMetrics logs the current values for all metrics.
 func (m *EventMetrics) LogMetrics() {
+	sklog.Debugf("EventMetrics.mtx.Lock")
 	m.mtx.Lock()
+	defer sklog.Debugf("EventMetrics.mtx.Unlock")
 	defer m.mtx.Unlock()
 	sklog.Infof("Current event metrics values:")
 	for _, byPeriod := range m.metrics {
@@ -348,7 +356,9 @@ func (m *EventMetrics) LogMetrics() {
 
 // GetEventStream returns an EventStream instance.
 func (m *EventMetrics) GetEventStream(name string) *EventStream {
+	sklog.Debugf("EventMetrics.mtx.Lock")
 	m.mtx.Lock()
+	defer sklog.Debugf("EventMetrics.mtx.Unlock")
 	defer m.mtx.Unlock()
 	return &EventStream{
 		name: name,

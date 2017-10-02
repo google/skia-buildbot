@@ -53,7 +53,9 @@ func (j *jobEventDB) Insert(*events.Event) error {
 
 // See docs for events.EventDB interface.
 func (j *jobEventDB) Range(stream string, start, end time.Time) ([]*events.Event, error) {
+	sklog.Debugf("jobEventDB.mtx.Lock")
 	j.mtx.Lock()
+	defer sklog.Debugf("jobEventDB.mtx.Unlock")
 	defer j.mtx.Unlock()
 	rv := make([]*events.Event, 0, len(j.cached[stream]))
 	for _, ev := range j.cached[stream] {
@@ -67,7 +69,9 @@ func (j *jobEventDB) Range(stream string, start, end time.Time) ([]*events.Event
 // update updates the cached jobs in the jobEventDB.
 func (j *jobEventDB) update() error {
 	defer metrics2.FuncTimer().Stop()
+	sklog.Debugf("jobEventDB.mtx.Lock")
 	j.mtx.Lock()
+	defer sklog.Debugf("jobEventDB.mtx.Unlock")
 	defer j.mtx.Unlock()
 	now := time.Now()
 	longestPeriod := TIME_PERIODS[len(TIME_PERIODS)-1]
@@ -99,6 +103,7 @@ func (j *jobEventDB) update() error {
 		// we added that, we could diff the jobs before and after and
 		// remove metrics for those we don't see in the window.
 		if !j.metrics[job.Name] {
+			sklog.Debugf("jobEventDB.update: Adding new EventStream for %s.", job.Name)
 			s := j.em.GetEventStream(job.Name)
 			if err := addAggregates(s); err != nil {
 				return err
@@ -106,6 +111,7 @@ func (j *jobEventDB) update() error {
 			j.metrics[job.Name] = true
 		}
 	}
+	sklog.Debugf("jobEventDB.update: Finished processing %d jobs for time range %s to %s.", len(jobs), now.Add(-longestPeriod), now)
 	j.cached = cached
 	return nil
 }
