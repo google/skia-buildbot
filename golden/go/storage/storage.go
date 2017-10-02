@@ -5,8 +5,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
+
+	"github.com/flynn/json5"
 
 	"google.golang.org/api/option"
 
@@ -14,6 +17,7 @@ import (
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -46,11 +50,42 @@ type Storage struct {
 	// 0 or smaller all commits in the last tile will be considered.
 	NCommits int
 
+	quiteListQuery paramtools.ParamSet
+
 	// Internal variables used to cache trimmed tiles.
 	lastTrimmedTile        *tiling.Tile
 	lastTrimmedIgnoredTile *tiling.Tile
 	lastIgnoreRev          int64
 	mutex                  sync.Mutex
+	whiteListQuery         paramtools.ParamSet
+}
+
+func (s *Storage) LoadWhiteList(fName string) error {
+	if fName == "" {
+		return fmt.Errorf("No white list file provided.")
+	}
+
+	f, err := os.Open(fName)
+	if err != nil {
+		return err
+	}
+	defer util.Close(f)
+
+	if err := json5.NewDecoder(f).Decode(&s.whiteListQuery); err != nil {
+		return err
+	}
+
+	// Make sure the whitelist is not empty.
+	empty := true
+	for _, values := range s.whiteListQuery {
+		if empty = len(values) == 0; !empty {
+			break
+		}
+	}
+	if empty {
+		return fmt.Errorf("Whitelist in %s cannot be empty.", fName)
+	}
+	return nil
 }
 
 // GetTileStreamNow is a utility function that reads tiles in the given
