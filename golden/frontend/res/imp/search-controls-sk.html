@@ -79,7 +79,9 @@
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.neg}}" disabled={{disabled}}>Negative</paper-toggle-button>
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.unt}}" disabled={{disabled}}>Untriaged</paper-toggle-button>
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.head}}" disabled={{disabled}}>Head</paper-toggle-button>
-        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
+        <template is="dom-if" if="[[_loginRequired]]">
+          <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
+        </template>
 
         <div class="buttonContainer">
           <paper-button id="searchButton" class$="topControl" raised disabled="[[disabled]]"
@@ -88,7 +90,8 @@
         <!-- TODO(stephana): Enable filter button when backend is ready -->
         <div class="buttonContainer" hidden$="{{!beta}}">
           <paper-button id="filterButton" class$="topControl" raised disabled="[[disabled]]"
-                        title="Metrics Filter"><iron-icon icon="icons:filter-list"></iron-icon></paper-button>
+                        title="Metrics Filter"><iron-icon icon="icons:filter-list"></iron-icon>
+          </paper-button>
         </div>
         <div class$="[[orientation]] currSelection">
           [[_splitAmp(state.query, orientation)]]
@@ -121,6 +124,11 @@
           beta: {
             type: Boolean,
             value: false
+          },
+
+          _loginRequired: {
+            type: Boolean,
+            value: function() { return !sk.app_config.isPublic; }
           }
         },
 
