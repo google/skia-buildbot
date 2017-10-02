@@ -6,6 +6,12 @@
         "skiacorrectness-prod",
       ],
     },
+    "skia-gold-public": {
+      "AppNames": [
+        "pulld",
+        "skiacorrectness-public",
+      ],
+    },
     "skia-diffserver-prod": {
       "AppNames": [
         "pulld",

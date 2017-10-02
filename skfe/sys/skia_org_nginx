@@ -221,6 +221,35 @@ server {
     return 301 https://gold.skia.org$request_uri;
 }
 
+#####   public-gold.skia.org   ###########################
+server {
+    listen      443;
+    server_name public-gold.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/public-gold.access.log combined_proxy;
+    error_log /var/log/nginx/public-gold.error.log error;
+
+    client_max_body_size 100M;
+
+    # Serve images directly from the diff server.
+    location /img/ {
+      proxy_pass http://skia-diffserver-prod:8001;
+      proxy_set_header Host $host;
+    }
+
+    location / {
+        proxy_pass http://skia-gold-public:8001;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name public-gold.skia.org;
+    return 301 https://public-gold.skia.org$request_uri;
+}
+
 #####   gold-stage.skia.org   ###########################
 server {
     listen      443;

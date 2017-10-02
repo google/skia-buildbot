@@ -2,7 +2,7 @@
 
 set -x -e
 
-ALL_IDS="prod pdfium stage"
+ALL_IDS="prod public pdfium stage"
 print_usage() {
     echo "Usage: $0 MESSAGE INSTANCE_ID"
     echo "     MESSAGE     is the message to be included in the release package."
@@ -27,6 +27,7 @@ fi
 for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   APPNAME=skiacorrectness-$INSTANCE_ID
   SERVICE_FILE="./sys/$APPNAME.service"
+  WHITELIST_FILE="./sys/$APPNAME-whitelist.json5"
   if [ ! -f ${SERVICE_FILE} ]; then
       print_usage
   fi
@@ -47,6 +48,11 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
 
   ${INSTALL}     --mode=755 -T ${GOPATH}/bin/correctness_migratedb ${ROOT}/usr/local/bin/correctness_migratedb
   ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skiacorrectness       ${ROOT}/usr/local/bin/${APPNAME}
+
+  # If the whitelist file exists, package it.
+  if [ ! -f ${WHITELIST_FILE} ]; then
+      ${INSTALL} --mode=644 -T $WHITELIST_FILE                     ${ROOT}/usr/local/share/skiacorrectness/${APPNAME}-whitelist.json5
+  fi
 
   ${INSTALL_DIR} --mode=755                                        ${ROOT}/usr/local/share/skiacorrectness/frontend/res/img
   ${INSTALL}     --mode=644 ./frontend/res/img/favicon.ico         ${ROOT}/usr/local/share/skiacorrectness/frontend/res/img/favicon.ico

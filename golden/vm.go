@@ -12,7 +12,7 @@ import (
 func GoldBase(name, ipAddress string) *gce.Instance {
 	vm := server.Server20170928(name)
 	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
-	vm.DataDisk.SizeGb = 2000
+	vm.DataDisk.SizeGb = 100
 	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	if ipAddress != "" {
 		vm.ExternalIpAddress = ipAddress
@@ -49,6 +49,22 @@ func Stage() *gce.Instance {
 	return vm
 }
 
+func Public() *gce.Instance {
+	vm := GoldBase("skia-gold-public", "35.188.34.16")
+	vm.Metadata["auth_white_list"] = `google.com
+chromium.org
+skia.org
+kkinnunen@nvidia.com
+mjk@nvidia.com
+vbuzinov@nvidia.com
+martina.kollarova@intel.com
+this.is.harry.stern@gmail.com
+dvonbeck@gmail.com
+zakerinasab@chromium.org
+afar.lin@imgtec.com`
+	return vm
+}
+
 func DiffServer() *gce.Instance {
 	// DiffServer uses an ephemeral IP address.
 	vm := GoldBase("skia-diffserver-prod", "")
@@ -72,6 +88,7 @@ func DiffServerStage() *gce.Instance {
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod":            Prod(),
+		"public":          Public(),
 		"pdfium":          Pdfium(),
 		"stage":           Stage(),
 		"diffserver":      DiffServer(),

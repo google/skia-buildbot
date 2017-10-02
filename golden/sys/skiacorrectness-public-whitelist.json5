@@ -1,0 +1,55 @@
+// Query that defines which traces are included in the tile processed by a
+// Gold instance. Format:
+//    {
+//     param_1: ["value_1", "value_2"],
+//     param_2: ["val1", "val2", "val3"],
+//    }
+//
+// This will include traces where:
+//      param_1 IN ["value_1", "value_2"] AND
+//      param_2 IN ["val1", "val2", "val3"]
+//
+{
+ model: [
+   "AlphaR2",
+   "AndroidOne",
+   "Chromebook_303C12",
+   "Chromebook_513C24_K01",
+   "Chromebook_C100p",
+   "Chromebook_CB5_311",
+   "Chromebook_CB5_312T",
+   "GCE",
+   "GalaxyS6",
+   "GalaxyS7_G930A",
+   "GalaxyS7_G930FD",
+   "Golo",
+   "MacMini7.1",
+   "MotoG4",
+   "NUC5PPYH",
+   "NUC5i7RYH",
+   "NUC6i5SYK",
+   "NUC6i7KYK",
+   "NUC7i5BNK",
+   "NUCD34010WYKH",
+   "NUCDE3815TYKHE",
+   "NVIDIA_Shield",
+   "Nexus10",
+   "Nexus5",
+   "Nexus6p",
+   "Nexus7",
+   "NexusPlayer",
+   "PixelC",
+   "PixelXL",
+   "ShuttleA",
+   "ShuttleB",
+   "ShuttleC",
+   "ZBOX",
+   "iPadPro",
+   "iPhone6",
+   "iPhone7",
+ ],
+ cpu_or_gpu: [
+   "CPU",
+   "GPU",
+ ],
+}
