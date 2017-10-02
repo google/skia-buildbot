@@ -1,0 +1,24 @@
+[Unit]
+Description=AutoRoll Bot
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --use_metadata=true \
+    --host=webrtc-chromium-roll.skia.org \
+    --logtostderr \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --childName=WebRTC \
+    --childPath=src/third_party/webrtc \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=ehmaldonado@google.com \
+    --cqExtraTrybots=master.tryserver.chromium.linux:linux_chromium_archive_rel_ng;master.tryserver.chromium.mac:mac_chromium_archive_rel_ng
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

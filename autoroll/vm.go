@@ -66,6 +66,10 @@ func SrcInternal_Chromium() *gce.Instance {
 	return AutoRollBase("src-internal-chromium-autoroll", "" /* Use ephemeral IP */)
 }
 
+func WebRTC_Chromium() *gce.Instance {
+	return AutoRollBase("webrtc-chromium-autoroll", "" /* Use ephemeral IP */)
+}
+
 func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
 	vm.DataDisk.SizeGb = 512
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
@@ -110,5 +114,6 @@ func main() {
 		"android-master":        AndroidMaster(),
 		"android-o":             AndroidO(),
 		"src-internal-chromium": SrcInternal_Chromium(),
+		"webrtc-chromium":       WebRTC_Chromium(),
 	})
 }

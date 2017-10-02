@@ -72,5 +72,11 @@
         "pulld",
       ],
     },
+    "webrtc-chromium-autoroll": {
+      "AppNames": [
+        "webrtc-chromium-autorolld",
+        "pulld",
+      ],
+    },
   }
 }
