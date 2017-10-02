@@ -554,6 +554,27 @@ server {
     return 301 https://src-internal-chromium-roll.skia.org$request_uri;
 }
 
+#####   webrtc-chromium-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name webrtc-chromium-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/webrtc-chromium-roll.access.log;
+    error_log /var/log/nginx/webrtc-chromium-roll.error.log error;
+
+    location / {
+        proxy_pass http://webrtc-chromium-autoroll:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name webrtc-chromium-roll.skia.org;
+    return 301 https://webrtc-chromium-roll.skia.org$request_uri;
+}
+
 #####   mon.skia.org   ###########################
 server {
     listen      443;
