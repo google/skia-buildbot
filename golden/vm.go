@@ -35,6 +35,14 @@ func Prod() *gce.Instance {
 	return vm
 }
 
+func Test() *gce.Instance {
+	// Below IP has been whitelisted in skiaperf cloud DB.
+	vm := GoldBase("test-ingestion-stephana", "")
+	vm.DataDisk.SizeGb = 10000
+	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_64
+	return vm
+}
+
 func Pdfium() *gce.Instance {
 	// Below IP has been whitelisted in skiaperf cloud DB.
 	vm := GoldBase("skia-gold-pdfium", "104.197.62.179")
@@ -76,5 +84,6 @@ func main() {
 		"stage":           Stage(),
 		"diffserver":      DiffServer(),
 		"diffserverstage": DiffServerStage(),
+		"test":            Test(),
 	})
 }

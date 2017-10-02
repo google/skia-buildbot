@@ -42,6 +42,7 @@ const (
 	MACHINE_TYPE_HIGHMEM_2   = "n1-highmem-2"
 	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
 	MACHINE_TYPE_HIGHMEM_32  = "n1-highmem-32"
+	MACHINE_TYPE_HIGHMEM_64  = "n1-highmem-64"
 	MACHINE_TYPE_STANDARD_1  = "n1-standard-1"
 	MACHINE_TYPE_STANDARD_2  = "n1-standard-2"
 	MACHINE_TYPE_STANDARD_4  = "n1-standard-4"
