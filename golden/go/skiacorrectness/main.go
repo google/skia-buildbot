@@ -381,7 +381,7 @@ func main() {
 
 	// set up a router that logs for all URLs except the status endpoint.
 	appRouter := mux.NewRouter()
-	appRouter.HandleFunc("/json/trstatus", jsonStatusHandler)
+	appRouter.HandleFunc("/json/trstatus", httputils.CorsHandler(jsonStatusHandler))
 
 	// Wrap all other routes in in logging middleware.
 	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(router))
