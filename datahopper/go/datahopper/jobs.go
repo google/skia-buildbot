@@ -32,7 +32,7 @@ type jobEventDB struct {
 	cached  map[string][]*events.Event
 	db      db.JobReader
 	em      *events.EventMetrics
-	metrics map[string]bool
+	metrics map[string]bool // Only update() may read/write this map.
 	mtx     sync.Mutex
 }
 
@@ -64,16 +64,15 @@ func (j *jobEventDB) Range(stream string, start, end time.Time) ([]*events.Event
 	return rv, nil
 }
 
-// update updates the cached jobs in the jobEventDB.
+// update updates the cached jobs in the jobEventDB. Only a single thread may
+// call this method, but it can be called concurrently with other methods.
 func (j *jobEventDB) update() error {
 	defer metrics2.FuncTimer().Stop()
-	j.mtx.Lock()
-	defer j.mtx.Unlock()
 	now := time.Now()
 	longestPeriod := TIME_PERIODS[len(TIME_PERIODS)-1]
 	jobs, err := j.db.GetJobsFromDateRange(now.Add(-longestPeriod), now)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to load jobs from %s to %s: %s", now.Add(-longestPeriod), now, err)
 	}
 	sklog.Debugf("jobEventDB.update: Processing %d jobs for time range %s to %s.", len(jobs), now.Add(-longestPeriod), now)
 	cached := map[string][]*events.Event{}
@@ -83,7 +82,7 @@ func (j *jobEventDB) update() error {
 		}
 		var buf bytes.Buffer
 		if err := gob.NewEncoder(&buf).Encode(job); err != nil {
-			return err
+			return fmt.Errorf("Failed to encode %#v to GOB: %s", job, err)
 		}
 		ev := &events.Event{
 			Stream:    job.Name,
@@ -106,6 +105,8 @@ func (j *jobEventDB) update() error {
 			j.metrics[job.Name] = true
 		}
 	}
+	j.mtx.Lock()
+	defer j.mtx.Unlock()
 	j.cached = cached
 	return nil
 }
