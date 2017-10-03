@@ -148,12 +148,12 @@ func (dr *depsRepoManager) getLastRollRev() (string, error) {
 		if strings.HasPrefix(s, dr.childPath) {
 			subs := strings.Split(s, "@")
 			if len(subs) != 2 {
-				return "", fmt.Errorf("Failed to parse output of `gclient revinfo`:\n\n%s\n", output)
+				return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (wrong number of entries for %s):\n\n%s\n", dr.childPath, output)
 			}
 			return subs[1], nil
 		}
 	}
-	return "", fmt.Errorf("Failed to parse output of `gclient revinfo`:\n\n%s\n", output)
+	return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (no entry for %s):\n\n%s\n", dr.childPath, output)
 }
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
