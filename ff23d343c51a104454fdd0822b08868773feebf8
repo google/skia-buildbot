@@ -22,6 +22,30 @@
       "revId": "ff23d343c51a104454fdd0822b08868773feebf8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8f1dd20_0241d404",
+        "filename": "autoroll/sys/src-internal-chromium-autorolld.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-04T18:50:50Z",
+      "side": 1,
+      "message": "Good catch. Done.",
+      "parentUuid": "88057878_fe67e7d8",
+      "range": {
+        "startLine": 18,
+        "startChar": 22,
+        "endLine": 18,
+        "endChar": 28
+      },
+      "revId": "ff23d343c51a104454fdd0822b08868773feebf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
