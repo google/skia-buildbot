@@ -28,7 +28,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool, []string) (RepoManager, error) = newDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -48,7 +48,7 @@ type depsRepoManager struct {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool) (RepoManager, error) {
+func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool, depsCustomVars []string) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -87,10 +87,11 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 				user:           user,
 				workdir:        wd,
 			},
-			depot_tools: depot_tools,
-			gclient:     gclient,
-			parentDir:   parentDir,
-			parentRepo:  parentRepo,
+			depot_tools:    depot_tools,
+			depsCustomVars: depsCustomVars,
+			gclient:        gclient,
+			parentDir:      parentDir,
+			parentRepo:     parentRepo,
 		},
 		includeLog: includeLog,
 		rollDep:    rollDep,
