@@ -111,11 +111,11 @@ func startCloudLoggingWithClient(authClient *http.Client, logGrouping, defaultRe
 	// be in metrics at all.
 	initSeverities := []string{sklog.INFO, sklog.WARNING, sklog.ERROR}
 	for _, severity := range initSeverities {
-		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_source": defaultReport}).Reset()
+		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_group": logGrouping, "log_source": defaultReport}).Reset()
 	}
 
 	metricsCallback := func(severity string) {
-		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_source": defaultReport}).Inc(1)
+		metrics2.GetCounter("num_log_lines", map[string]string{"level": severity, "log_group": logGrouping, "log_source": defaultReport}).Inc(1)
 	}
 	if err := sklog.InitCloudLogging(authClient, logGrouping, defaultReport, metricsCallback); err != nil {
 		sklog.Fatal(err)

@@ -85,6 +85,7 @@ func (b *baseInitOpt) order() int {
 
 // cloudLoggingInitOpt implements Opt for cloud logging.
 type cloudLoggingInitOpt struct {
+	logGrouping        string
 	serviceAccountPath *string
 }
 
@@ -110,6 +111,7 @@ func (o *cloudLoggingInitOpt) preinit(appName string) error {
 	if err != nil {
 		return fmt.Errorf("Could not get hostname: %s", err)
 	}
+	o.logGrouping = hostname
 	return sklog.PreInitCloudLogging(hostname, appName)
 }
 
@@ -128,7 +130,7 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 	}
 	metricLookup := map[string]metrics2.Counter{}
 	for _, sev := range sklog.AllSeverities {
-		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev, "log_source": appName})
+		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev, "log_group": o.logGrouping, "log_source": appName})
 	}
 	metricsCallback := func(severity string) {
 		metricLookup[severity].Inc(1)
