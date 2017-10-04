@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "88057878_fe67e7d8",
+        "filename": "autoroll/sys/src-internal-chromium-autorolld.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-04T18:48:40Z",
+      "side": 1,
+      "message": "Change this like the other roller?",
+      "range": {
+        "startLine": 18,
+        "startChar": 22,
+        "endLine": 18,
+        "endChar": 28
+      },
+      "revId": "ff23d343c51a104454fdd0822b08868773feebf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
