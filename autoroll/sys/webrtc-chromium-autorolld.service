@@ -10,6 +10,7 @@ ExecStart=/usr/local/bin/autoroll \
     --host=webrtc-chromium-roll.skia.org \
     --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
+    --child_branch=lkgr \
     --childName=WebRTC \
     --childPath=src/third_party/webrtc \
     --resources_dir=/usr/local/share/autoroll/ \
