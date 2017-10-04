@@ -191,8 +191,6 @@ func (c *IncrementalCache) Update(reset bool) error {
 	if err != nil {
 		return err
 	}
-	// TODO(borenet): If anything below here fails, the new tasks will be
-	// lost forever!
 	var newTasks map[string][]*Task
 	var startOver bool
 	if reset {
@@ -204,15 +202,25 @@ func (c *IncrementalCache) Update(reset bool) error {
 	if err != nil {
 		return err
 	}
+	// Because of the way the tasks cache works, if any step below c.tasks.Update()
+	// fails and we return an error without adding newTasks to an Update object,
+	// we will lose the contents of newTasks forever. Therefore, any failure below
+	// needs careful handling. In particular, we force c.tasks and c.comments to
+	// load from scratch on the next call to Update().
+	onError := func(e error) error {
+		c.tasks.ResetNextTime()
+		c.comments.Reset()
+		return e
+	}
 	branchHeads, commits, err := c.commits.Update(c.w, startOver, c.numCommits)
 	if err != nil {
-		return err
+		return onError(err)
 	}
 	if startOver && !reset {
 		c.comments.Reset()
 		comments, err = c.comments.Update(c.w)
 		if err != nil {
-			return err
+			return onError(err)
 		}
 	}
 	updates := map[string]*Update{}

@@ -82,3 +82,11 @@ func (c *taskCache) Update(w *window.Window) (map[string][]*Task, bool, error) {
 	}
 	return mapTasks(newTasks), false, nil
 }
+
+// ResetNextTime forces the taskCache to Reset() on the next call to Update().
+func (c *taskCache) ResetNextTime() {
+	if c.queryId != "" {
+		c.db.StopTrackingModifiedTasks(c.queryId)
+		c.queryId = ""
+	}
+}
