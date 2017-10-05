@@ -110,7 +110,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	g := setupFakeGerrit(t, wd)
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -149,7 +149,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	s, err := GetNextRollStrategy(strategy, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil)
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -186,7 +186,7 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil)
 	assert.NoError(t, err)
 
 	ran := false
@@ -215,7 +215,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
 
-		rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, includeLog)
+		rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, includeLog, nil)
 		assert.NoError(t, err)
 
 		// Create a roll.
@@ -235,4 +235,45 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 
 	test(true)
 	test(false)
+}
+
+// Verify that we properly utilize DEPS custom vars.
+func TestDEPSRepoManagerCustomVars(t *testing.T) {
+	testutils.LargeTest(t)
+
+	wd, _, _, parent, mockRun, cleanup := setup(t)
+	defer cleanup()
+
+	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+	assert.NoError(t, err)
+	g := setupFakeGerrit(t, wd)
+	customVars := []string{
+		"a=b",
+		"c=d",
+	}
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, customVars)
+	assert.NoError(t, err)
+
+	// Create a roll.
+	_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	assert.NoError(t, err)
+
+	// Ensure that --no-log is present or not, according to includeLog.
+	found1 := false
+	found2 := false
+	for _, c := range mockRun.Commands() {
+		if c.Name == "gclient" && c.Args[0] == "config" {
+			for idx, arg := range c.Args {
+				if arg == "--custom-var" {
+					if c.Args[idx+1] == customVars[0] {
+						found1 = true
+					} else if c.Args[idx+1] == customVars[1] {
+						found2 = true
+					}
+				}
+			}
+		}
+	}
+	assert.True(t, found1)
+	assert.True(t, found2)
 }
