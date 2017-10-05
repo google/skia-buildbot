@@ -205,6 +205,11 @@ server {
       proxy_set_header Host $host;
     }
 
+    location /json/trstatus {
+        proxy_pass http://skia-gold-prod:19000;
+        proxy_set_header Host $host;
+    }
+
     location / {
         proxy_pass http://skia-gold-prod:8001;
         proxy_set_header Host $host;
