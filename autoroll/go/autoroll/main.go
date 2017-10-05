@@ -49,6 +49,7 @@ var (
 	childPath       = flag.String("childPath", "src/third_party/skia", "Path within parent repo of the project to roll.")
 	childBranch     = flag.String("child_branch", "master", "Branch of the project we want to roll.")
 	cqExtraTrybots  = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
+	depsCustomVars  = common.NewMultiStringFlag("deps_custom_var", nil, "Custom vars to pass to gclient, in the form \"key=value\"")
 	host            = flag.String("host", "localhost", "HTTP service host")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	noLog           = flag.Bool("no_log", false, "If true, roll CLs do not include a git log (DEPS rollers only).")
@@ -350,7 +351,7 @@ func main() {
 	} else if *useManifest {
 		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog)
+		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars)
 	}
 	if err != nil {
 		sklog.Fatal(err)
