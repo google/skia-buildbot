@@ -188,6 +188,36 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	}, nil
 }
 
+type FilterResult struct {
+	Digest string
+	Label  types.Label
+}
+
+// Filter return the digests that match the query but does not comparisons.
+func (s *SearchAPI) Filters(q *Query) (map[string][]*FilterResult, error) {
+	exp, err := s.storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+	idx := s.ixr.GetIndex()
+
+	// Get all digests that map the query.
+	inter, err := s.filterTile(q, idx)
+	ret := make(map[string][]*FilterResult, len(inter))
+	for testName, digests := range inter {
+		fResult := make([]*FilterResult, 0, len(digests))
+		for digest := range digests {
+			fResult = append(fResult, &FilterResult{
+				Digest: digest,
+				Label:  exp.Classification(testName, digest),
+			})
+		}
+		ret[testName] = fResult
+	}
+
+	return ret, nil
+}
+
 // srIntermediate is the intermediate representation of a single digest
 // found by the search. It is used to avoid multiple passes through the tile
 // by accumulating the parameters that generated a specific digest and by
