@@ -98,7 +98,6 @@ func TestParseQueryLarge(t *testing.T) {
 
 	// Accept as long as 10% of all queries are wrong.
 	errFraction := float64(wrongQueries) / float64(len(queries))
-	fmt.Printf("\n\nWrong Queries: %d / %d\n", wrongQueries, len(queries))
 	assert.True(t, errFraction < 0.1, fmt.Sprintf("Fraction of wrong queries is too high: %f > %f", errFraction, 0.1))
 }
 
