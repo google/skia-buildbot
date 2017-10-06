@@ -50,7 +50,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skiacorrectness       ${ROOT}/usr/local/bin/${APPNAME}
 
   # If the whitelist file exists, package it.
-  if [ ! -f ${WHITELIST_FILE} ]; then
+  if [ -f ${WHITELIST_FILE} ]; then
       ${INSTALL} --mode=644 -T $WHITELIST_FILE                     ${ROOT}/usr/local/share/skiacorrectness/${APPNAME}-whitelist.json5
   fi
 
