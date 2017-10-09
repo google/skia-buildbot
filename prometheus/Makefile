@@ -7,9 +7,9 @@ build:
 
 prom:
 	-mkdir -p tmp
-	curl -L https://github.com/prometheus/prometheus/releases/download/v1.5.2/prometheus-1.5.2.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
-	cp ./tmp/prometheus-1.5.2.linux-amd64/prometheus ./tmp/prometheus
-	cp ./tmp/prometheus-1.5.2.linux-amd64/prometheus ./tmp/promtool
+	curl -L https://github.com/prometheus/prometheus/releases/download/v1.8.0/prometheus-1.8.0.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
+	cp ./tmp/prometheus-1.8.0.linux-amd64/prometheus ./tmp/prometheus
+	cp ./tmp/prometheus-1.8.0.linux-amd64/prometheus ./tmp/promtool
 
 testgo:
 	go test -v ./...
@@ -52,8 +52,8 @@ push_graphite_exporter: graphite_exporter
 
 alertmanager:
 	-mkdir -p tmp
-	curl -L https://github.com/prometheus/alertmanager/releases/download/v0.5.1/alertmanager-0.5.1.linux-amd64.tar.gz  | tar zxC ./tmp --overwrite -f -
-	cp ./tmp/alertmanager-0.5.1.linux-amd64/alertmanager ./tmp/alertmanager
+	curl -L https://github.com/prometheus/alertmanager/releases/download/v0.9.1/alertmanager-0.9.1.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
+	cp ./tmp/alertmanager-0.9.1.linux-amd64/alertmanager ./tmp/alertmanager
 
 pushgateway:
 	-mkdir -p tmp
