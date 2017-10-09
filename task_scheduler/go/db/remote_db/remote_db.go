@@ -87,10 +87,13 @@ type client struct {
 
 // NewClient returns a db.RemoteDB that connects to the server created by
 // NewServer. serverRoot should end with a slash.
-func NewClient(serverRoot string) (db.RemoteDB, error) {
+func NewClient(serverRoot string, httpClient *http.Client) (db.RemoteDB, error) {
+	if httpClient == nil {
+		httpClient = httputils.NewTimeoutClient()
+	}
 	return &client{
 		serverRoot: serverRoot,
-		client:     httputils.NewTimeoutClient(),
+		client:     httpClient,
 	}, nil
 }
 
