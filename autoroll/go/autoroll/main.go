@@ -91,7 +91,8 @@ func getSheriff() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if strings.Contains(*parentRepo, "chromium") {
+	// TODO(borenet): Do we need this any more?
+	if strings.Contains(*parentRepo, "chromium") && *childName != "WebRTC" {
 		for i, s := range emails {
 			emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
 		}
