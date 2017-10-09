@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07537394_ffa5996d",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-09T16:46:24Z",
+      "side": 1,
+      "message": "nit: Might need to reset Stdin.",
+      "range": {
+        "startLine": 104,
+        "startChar": 27,
+        "endLine": 104,
+        "endChar": 38
+      },
+      "revId": "9851638b382690c940d35ded5c3fa0ae2c079d33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
