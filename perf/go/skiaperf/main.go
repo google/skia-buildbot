@@ -792,7 +792,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	link := fmt.Sprintf("%s/t/?begin=%d&end=%d", r.Header.Get("Origin"), detail[0].Timestamp, detail[0].Timestamp+1)
+	link := fmt.Sprintf("%s/t/?begin=%d&end=%d&subset=all", r.Header.Get("Origin"), detail[0].Timestamp, detail[0].Timestamp+1)
 	a := &activitylog.Activity{
 		UserID: login.LoggedInAs(r),
 		Action: fmt.Sprintf("Perf Triage: %q %q %q %q", tr.Alert.Query, detail[0].URL, tr.Triage.Status, tr.Triage.Message),
