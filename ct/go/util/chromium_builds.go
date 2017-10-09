@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
@@ -86,14 +87,23 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 		"--chrome_revision=" + chromiumHash,
 		"--skia_revision=" + skiaHash,
 	}
-	err = ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil, nil)
-	if err != nil {
+	syncCommand := &exec.Command{
+		Name: "python",
+		Args: syncArgs,
+		// The below is to bypass the blocking Android license agreement that shows
+		// up sometimes for Android CT builds.
+		Stdin:     strings.NewReader("y"),
+		Timeout:   SYNC_SKIA_IN_CHROME_TIMEOUT,
+		LogStdout: true,
+		LogStderr: true,
+	}
+	if _, err = exec.RunCommand(syncCommand); err != nil {
 		sklog.Warning("There was an error. Deleting base directory and trying again.")
 		util.RemoveAll(chromiumBuildDir)
 		util.MkdirAll(chromiumBuildDir, 0700)
-		err := ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil,
-			nil)
-		if err != nil {
+		// Resetting stdin.
+		syncCommand.Stdin = strings.NewReader("y")
+		if _, err = exec.RunCommand(syncCommand); err != nil {
 			return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 		}
 	}
