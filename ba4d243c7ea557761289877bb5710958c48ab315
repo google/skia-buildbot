@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ea9bea6_4f8d119c",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-10T20:12:14Z",
+      "side": 1,
+      "message": "Don\u0027t you want 1-grams also?",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 66
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bed4fe3d_ce01b2c7",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-10T20:12:14Z",
+      "side": 1,
+      "message": "Doesn\u0027t this return (0, tokens[1]), (1, tokens[2]), ... when you want (1, tokens[1]), ...?",
+      "range": {
+        "startLine": 38,
+        "startChar": 18,
+        "endLine": 38,
+        "endChar": 39
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36f8f0cc_fed6990c",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-10T20:12:14Z",
+      "side": 1,
+      "message": "Is this always single-threaded/single-process?",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 33
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
