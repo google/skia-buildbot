@@ -19,10 +19,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-
-	logging "google.golang.org/api/logging/v2beta1"
-	"google.golang.org/api/option"
-
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -32,6 +28,8 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/swarming_logger/go/process"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
+	logging "google.golang.org/api/logging/v2"
+	"google.golang.org/api/option"
 )
 
 const (
