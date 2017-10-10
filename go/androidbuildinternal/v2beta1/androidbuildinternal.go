@@ -9,6 +9,7 @@ package androidbuildinternal // import "go.skia.org/infra/go/androidbuildinterna
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +19,6 @@ import (
 	"strconv"
 	"strings"
 
-	context "golang.org/x/net/context"
 	ctxhttp "golang.org/x/net/context/ctxhttp"
 	gensupport "google.golang.org/api/gensupport"
 	googleapi "google.golang.org/api/googleapi"
