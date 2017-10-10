@@ -1,13 +1,13 @@
 package gcs
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 )
 

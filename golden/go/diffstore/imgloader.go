@@ -2,6 +2,7 @@ package diffstore
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"errors"
 	"fmt"
@@ -18,7 +19,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

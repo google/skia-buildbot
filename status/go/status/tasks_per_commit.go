@@ -1,13 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"

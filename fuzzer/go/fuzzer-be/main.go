@@ -5,6 +5,7 @@ Runs the backend portions of the fuzzer.  This includes the generator and aggreg
 */
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -28,7 +29,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sklog"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 
