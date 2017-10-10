@@ -23,8 +23,13 @@
     return "<span class='left-padded'><input type='text' id='comment_input" + alertId + "' value=''></span>"
   }
 
-  function getSilenceSVG(alertId) {
-    return "<svg id='silence" + alertId + "' class='left-padded'><path d='M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12.5 8H11v6l4.75 2.85.75-1.23-4-2.37V8zM12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z'><title>Silence with comment</title></path></svg>"
+  function get1HourSilenceImg(alertId) {
+    // return "<img class='left-padded' id='1hsilence" + alertId + "' src='1hour.png'/> <img class='left-padded' id='1dsilence" + alertId + "' src='1day.png'/>"
+    return "<a class='left-padded' id='1hsilence" + alertId + "'>1h silence</a> <a class='left-padded' id='1dsilence" + alertId + "'>1d silence</a>"
+  }
+
+  function get1DaySilenceImg(alertId) {
+    return "<img class='left-padded' id='silence" + alertId + "' src='1day.png'/>"
   }
 
   var bugRegex = new RegExp(".*Swarming bot (.*) is (quarantined|missing).*");
@@ -36,8 +41,8 @@
     return `<a href='${bugTemplate}' target='_blank' rel='noopener' class=auto-bug><svg id='file-bug'><path d='M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z'><title>File a Chrome Infra bug</title></path></svg></a>`
   }
 
-  function handleActionEvent(alertId, labels) {
-    var oneHourInFuture = new Date(Date.now() + (60*60*1000));
+  function handleActionEvent(alertId, labels, silenceTime) {
+    var oneHourInFuture = new Date(Date.now() + silenceTime);
     var commentText = document.getElementById("comment_input" + alertId).value;
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open("POST", "https://promalerts.skia.org/api/v1/silences", true);
@@ -102,6 +107,15 @@
           var numActiveAlerts = 0;
           // Put alertGroups alphabetically for easier scanning.
           alertGroups.sort(function(a,b) {
+            console.log(a.labels.alertname);
+            console.log(b.labels.alertname);
+            console.log(a.labels.alertname === b.labels.alertname);
+            if (a.labels.alertname == b.labels.alertname) {
+              console.log("IN HERE");
+              console.log(a.labels.annotations.description);
+              console.log(b.labels.annotations.description);
+              return a.labels.annotations.description.localeCompare(b.labels.annotations.description);
+            }
             return a.labels.alertname.localeCompare(b.labels.alertname);
           });
 
@@ -112,12 +126,23 @@
               return;
             }
             alertGroup.blocks.forEach(function(block) {
+
+              // Sort alerts in each group alphabetically for easier scanning
+              // and consistent display.
+              block.alerts.sort(function(a,b) {
+                return a.annotations.description.localeCompare(b.annotations.description);
+              });
+
               block.alerts.forEach(function(al) {
 
+                console.log('here here');
+                console.log(al);
+                console.log(al.labels.alertname);
+                console.log(al.labels.bot);
                 if (al.labels.category !== "infra") {
                   return;
                 }
-                if (al.silenced) {
+                if (al.status.state == "suppressed") {
                   numSilencedAlerts++;
                   return
                 }
@@ -128,18 +153,18 @@
                 var row = table.insertRow(-1);
                 row.className = "alerts-row-name"
                 var label = row.insertCell(-1);
-                label.innerHTML = groupName + getCommentInputField(alertId) + getSilenceSVG(alertId);
+                label.innerHTML = groupName + getCommentInputField(alertId) +
+                                  get1HourSilenceImg(alertId);
                 var match = bugRegex.exec(al.annotations.description);
                 if (match && goloRegex.exec(match[1])) {
                   // match[1] is the bot id
                   label.innerHTML += getFileBugSVG(match[1]);
                 }
-                // Add click listeners for all support actions.
-                var actions = ["silence"]
-                actions.forEach(function(action) {
-                  document.getElementById(action + alertId).addEventListener(
-                      "click", handleActionEvent.bind(this, alertId, al.labels));
-                });
+                // Add click listeners for the silences.
+                document.getElementById("1hsilence" + alertId).addEventListener(
+                    "click", handleActionEvent.bind(this, alertId, al.labels, 60*60*1000));
+                document.getElementById("1dsilence" + alertId).addEventListener(
+                    "click", handleActionEvent.bind(this, alertId, al.labels, 24*60*60*1000));
 
                 // Display the alert message.
                 var row = table.insertRow(-1);
