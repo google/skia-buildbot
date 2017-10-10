@@ -1,17 +1,15 @@
 package swarming
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
-
-	"golang.org/x/net/context"
-
 	"cloud.google.com/go/pubsub"
+	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 )

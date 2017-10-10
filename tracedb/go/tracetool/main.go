@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"crypto/md5"
 	"flag"
 	"fmt"
@@ -17,7 +18,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

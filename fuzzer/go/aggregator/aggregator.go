@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -27,7 +28,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/net/context"
 )
 
 // Aggregator is a key part of the fuzzing operation
