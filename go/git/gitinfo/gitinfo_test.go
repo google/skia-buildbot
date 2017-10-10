@@ -310,7 +310,7 @@ Author: Joe Gregorio <jcgregorio@google.com>
 Date:   Wed Jul 30 08:00:42 2014 -0400
 
     First "checkin"
-    
+
     With quotes.
 
 README.txt
@@ -625,4 +625,21 @@ func TestSetBranch(t *testing.T) {
 	commits := r.LastN(10)
 	assert.Equal(t, 3, len(commits))
 	assert.Equal(t, "3f5a807d432ac232a952bbf223bc6952e4b49b2c", commits[2])
+}
+
+func TestGetDetailsAgain(t *testing.T) {
+	localRepoDir := "./pdfium_repo"
+	r, err := CloneOrUpdate("https://pdfium.googlesource.com/pdfium", localRepoDir, true)
+	assert.NoError(t, err)
+	defer util.RemoveAll(localRepoDir)
+
+	commit, err := r.Details("26d87f53b5c1e7169455fdaf8e2305e3b9fcbb54", false)
+	assert.NoError(t, err)
+	assert.NotNil(t, commit)
+
+	commit, err = r.Details("26d87f53b5c1e7169455fdaf8e2305e3b9fcbb54", true)
+	assert.NoError(t, err)
+
+	assert.Equal(t, map[string]bool{"master": true}, commit.Branches)
+	assert.True(t, strings.Contains(commit.Author, "hnakashima@chromium.org"))
 }

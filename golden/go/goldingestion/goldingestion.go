@@ -89,6 +89,7 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
+	sklog.Infof("Got branches: %v", commit.Branches)
 	if !commit.Branches["master"] {
 		sklog.Warningf("Commit %s is not in master branch. Got branches: %v", commit.Hash, commit.Branches)
 		return ingestion.IgnoreResultsFileErr
