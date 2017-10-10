@@ -11,7 +11,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/skia-dev/glog"
 	"golang.org/x/net/context"
-	logging "google.golang.org/api/logging/v2beta1"
+	logging "google.golang.org/api/logging/v2"
 )
 
 // This file acts as a wrapper around the Cloud API. Any thing a user wants to send to Cloud

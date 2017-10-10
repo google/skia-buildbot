@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/logmetrics/go/config"
 	"golang.org/x/net/context"
-	"google.golang.org/api/logging/v2beta1"
+	"google.golang.org/api/logging/v2"
 )
 
 // flags
