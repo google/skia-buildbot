@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -13,8 +14,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
