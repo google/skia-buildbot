@@ -5,7 +5,6 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/power-controller \
-  --logtostderr \
   --log_dir="" \
   --resources_dir=/usr/local/share/power-controller/ \
   --powercycle_config=/etc/powercycle/powercycle-rpi-01.json5 \
