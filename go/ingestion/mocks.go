@@ -9,14 +9,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/sharedb"
 	"go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 type mockVCS struct {
-	commits     []*vcsinfo.LongCommit
-	depsFileMap map[string]string
+	commits            []*vcsinfo.LongCommit
+	depsFileMap        map[string]string
+	secondaryVCS       vcsinfo.VCS
+	secondaryExtractor depot_tools.DEPSExtractor
 }
 
 // MockVCS returns an instance of VCS that returns the commits passed as
@@ -59,6 +62,19 @@ func (m mockVCS) ByIndex(N int) (*vcsinfo.LongCommit, error) {
 
 func (m mockVCS) GetFile(fileName, commitHash string) (string, error) {
 	return m.depsFileMap[commitHash], nil
+}
+
+func (m mockVCS) ResolveCommit(commitHash string) (string, error) {
+	foundCommit, err := m.secondaryExtractor.ExtractCommit(m.secondaryVCS.GetFile("DEPS", commitHash))
+	if err != nil {
+		return "", err
+	}
+	return foundCommit, nil
+}
+
+func (m mockVCS) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
+	m.secondaryVCS = secVCS
+	m.secondaryExtractor = extractor
 }
 
 // StartTestTraceDBServer starts up a traceDB server for testing. It stores its

@@ -125,7 +125,7 @@ func TestGoldProcessor(t *testing.T) {
 	}
 
 	// Set up the processor.
-	processor, err := newGoldProcessor(vcs, ingesterConf, nil, nil, nil)
+	processor, err := newGoldProcessor(vcs, ingesterConf, nil)
 	assert.NoError(t, err)
 	defer util.Close(processor.(*goldProcessor).traceDB)
 
@@ -136,8 +136,7 @@ func TestGoldProcessor(t *testing.T) {
 	assert.True(t, strings.HasPrefix(err.Error(), "Error commit "))
 
 	// Inject a secondary repo and test its use.
-	processor.(*goldProcessor).secondaryVCS = ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP)
-	processor.(*goldProcessor).secondaryDepsExtractor = depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx)
+	vcs.(*ingestion.MockVCS).SetSecondaryRepo(ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP), depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx))
 
 	_ = testProcessor(t, processor, TEST_SECONDARY_FILE)
 	err = testProcessor(t, processor, TEST_SECONDARY_FILE_INVALID)
