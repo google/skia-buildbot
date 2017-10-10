@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
-	"golang.org/x/net/context"
 )
 
 // FuzzerGCSClient is the interface for all fuzzer-specific Google Cloud Storage (GCS)
