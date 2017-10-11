@@ -37,7 +37,7 @@ const MAX_URI_GET_TRIES = 4
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   secondaryVCS is a secondary repo that is assumed to have vcs as a dependency.
 //   ex is an extractor to extract commits from the DEPS file of the secondary repo.
-type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, secondaryVCS vcsinfo.VCS, ex depot_tools.DEPSExtractor) (Processor, error)
+type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -77,6 +77,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 			return nil, err
 		}
 		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)
+		vcs.(*gitinfo.GitInfo).SetSecondaryRepo(secondaryVCS, extractor)
 	}
 
 	// Set up the Google storage client.
@@ -102,13 +103,13 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(vcs, ingesterConf, client, secondaryVCS, extractor)
+		processor, err := processorConstructor(vcs, ingesterConf, client)
 		if err != nil {
 			return nil, err
 		}
 
 		// create the ingester and add it to the result.
-		ingester, err := NewIngester(id, ingesterConf, vcs, secondaryVCS, sources, processor)
+		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor)
 		if err != nil {
 			return nil, err
 		}
