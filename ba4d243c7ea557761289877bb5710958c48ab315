@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "330eba92_65b419ac",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T19:49:15Z",
+      "side": 1,
+      "message": "Good point. Added the set of tokens.",
+      "parentUuid": "d564de7a_e56cbf7d",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 66
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bed4fe3d_ce01b2c7",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 7
@@ -179,6 +203,30 @@
       "writtenOn": "2017-10-11T19:03:11Z",
       "side": 1,
       "message": "Do you want a set rather than a list?",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 39,
+        "endChar": 35
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c86297a3_d386f47a",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T19:49:15Z",
+      "side": 1,
+      "message": "Yerp.",
+      "parentUuid": "cda45722_c2c9ff9e",
       "range": {
         "startLine": 39,
         "startChar": 4,
