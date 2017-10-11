@@ -55,6 +55,7 @@ var (
 	noLog           = flag.Bool("no_log", false, "If true, roll CLs do not include a git log (DEPS rollers only).")
 	parentRepo      = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
 	parentBranch    = flag.String("parent_branch", "master", "Branch of the parent repo we want to roll into.")
+	parentWaterfall = flag.String("parent_waterfall", "", "Waterfall URL of the parent repo.")
 	port            = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir    = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
@@ -178,8 +179,15 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Obtain the status info. Only display potentially sensitive info if the user is a logged-in
 	// Googler.
-	status := arb.GetStatus(login.IsGoogler(r))
-	if err := json.NewEncoder(w).Encode(&status); err != nil {
+	type status struct {
+		*roller.AutoRollStatus
+		ParentWaterfall string `json:"parentWaterfall"`
+	}
+	st := status{
+		AutoRollStatus:  arb.GetStatus(login.IsGoogler(r)),
+		ParentWaterfall: *parentWaterfall,
+	}
+	if err := json.NewEncoder(w).Encode(&st); err != nil {
 		httputils.ReportError(w, r, err, "Failed to obtain status.")
 		return
 	}

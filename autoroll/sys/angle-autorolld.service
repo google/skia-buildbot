@@ -13,6 +13,7 @@ ExecStart=/usr/local/bin/autoroll \
     --childName=ANGLE \
     --childPath=skia/third_party/externals/angle2 \
     --parent_repo=https://skia.googlesource.com/skia.git \
+    --parent_waterfall=https://status.skia.org \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=https://skia-tree-status.appspot.com/current-sheriff \
     --cqExtraTrybots=skia.primary:Perf-Win10-MSVC-AlphaR2-GPU-RadeonR9M470X-x86_64-Debug-ANGLE,Perf-Win10-MSVC-Golo-GPU-QuadroP400-x86_64-Debug-ANGLE,Perf-Win10-MSVC-NUC5i7RYH-GPU-IntelIris6100-x86_64-Debug-ANGLE,Perf-Win10-MSVC-NUC6i5SYK-GPU-IntelIris540-x86_64-Debug-ANGLE,Perf-Win10-MSVC-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-ANGLE,Perf-Win10-MSVC-ShuttleC-GPU-GTX960-x86_64-Debug-ANGLE,Test-Win10-MSVC-AlphaR2-GPU-RadeonR9M470X-x86_64-Debug-ANGLE,Test-Win10-MSVC-Golo-GPU-QuadroP400-x86_64-Debug-ANGLE,Test-Win10-MSVC-NUC5i7RYH-GPU-IntelIris6100-x86_64-Debug-ANGLE,Test-Win10-MSVC-NUC6i5SYK-GPU-IntelIris540-x86_64-Debug-ANGLE,Test-Win10-MSVC-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-ANGLE,Test-Win10-MSVC-ShuttleC-GPU-GTX960-x86_64-Debug-ANGLE,Build-Debian9-GCC-x86_64-Release-ANGLE
