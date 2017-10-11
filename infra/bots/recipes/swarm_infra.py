@@ -153,6 +153,12 @@ def RunSteps(api):
   # More prerequisites.
   with api.context(cwd=infra_dir, env=env):
     api.step(
+        'install npm',
+        cmd=['sudo', 'npm', 'i', '-g', 'npm'])
+    api.step(
+        'install bower',
+        cmd=['sudo', 'npm', 'i', '-g', 'bower'])
+    api.step(
         'install goimports',
         cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'])
     api.step(
