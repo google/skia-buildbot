@@ -12,6 +12,7 @@ ExecStart=/usr/local/bin/autoroll \
     --childName="Skia Internal" \
     --childPath=skia \
     --parent_repo=https://skia.googlesource.com/internal_test.git \
+    --parent_waterfall=https://status-internal.skia.org/ \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=borenet@google.com \
     --strategy=single \

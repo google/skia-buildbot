@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
     --host=pdfium-roll.skia.org \
     --logtostderr \
+    --parentWaterfall=https://build.chromium.org \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=PDFium \
     --childPath=src/third_party/pdfium \

@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
     --host=nacl-roll.skia.org \
     --logtostderr \
+    --parentWaterfall=https://build.chromium.org \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=NaCl \
     --childPath=src/native_client \

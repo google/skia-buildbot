@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
     --host=depot-tools-chromium-roll.skia.org \
     --logtostderr \
+    --parentWaterfall=https://build.chromium.org \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName="Depot Tools" \
     --childPath=src/third_party/depot_tools \
