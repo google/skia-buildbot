@@ -125,7 +125,7 @@ func TestGoldProcessor(t *testing.T) {
 	}
 
 	// Set up the processor.
-	processor, err := newGoldProcessor(vcs, ingesterConf, nil, nil, nil)
+	processor, err := newGoldProcessor(vcs, ingesterConf, nil)
 	assert.NoError(t, err)
 	defer util.Close(processor.(*goldProcessor).traceDB)
 
@@ -133,17 +133,18 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Fail when there is not secondary repo defined.
 	err = testProcessor(t, processor, TEST_SECONDARY_FILE)
-	assert.True(t, strings.HasPrefix(err.Error(), "Error commit "))
+	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit"))
 
 	// Inject a secondary repo and test its use.
-	processor.(*goldProcessor).secondaryVCS = ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP)
-	processor.(*goldProcessor).secondaryDepsExtractor = depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx)
+	secVCS := ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP)
+	extractor := depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx)
+	vcs.(ingestion.MockVCSImpl).SetSecondaryRepo(secVCS, extractor)
 
 	_ = testProcessor(t, processor, TEST_SECONDARY_FILE)
 	err = testProcessor(t, processor, TEST_SECONDARY_FILE_INVALID)
-	assert.True(t, strings.HasPrefix(err.Error(), "Unable to extract DEPS file"))
+	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit "))
 	err = testProcessor(t, processor, TEST_SECONDARY_FILE_NO_DEPS)
-	assert.True(t, strings.HasPrefix(err.Error(), "Found invalid commit "))
+	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit "))
 }
 
 func testProcessor(t *testing.T, processor ingestion.Processor, testFileName string) error {

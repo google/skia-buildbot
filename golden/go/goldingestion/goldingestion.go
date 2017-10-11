@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.skia.org/infra/go/depot_tools"
-
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/ingestion"
@@ -36,28 +34,24 @@ func init() {
 
 // goldProcessor implements the ingestion.Processor interface for gold.
 type goldProcessor struct {
-	traceDB                tracedb.DB
-	vcs                    vcsinfo.VCS
-	extractID              extractIDFn
-	ingestionStore         *IngestionStore
-	secondaryVCS           vcsinfo.VCS
-	secondaryDepsExtractor depot_tools.DEPSExtractor
+	traceDB        tracedb.DB
+	vcs            vcsinfo.VCS
+	extractID      extractIDFn
+	ingestionStore *IngestionStore
 }
 
 type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
 
 // implements the ingestion.Constructor signature.
-func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, secondaryVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) (ingestion.Processor, error) {
+func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
 	if err != nil {
 		return nil, err
 	}
 
 	ret := &goldProcessor{
-		traceDB:                traceDB,
-		vcs:                    vcs,
-		secondaryVCS:           secondaryVCS,
-		secondaryDepsExtractor: extractor,
+		traceDB: traceDB,
+		vcs:     vcs,
 	}
 	ret.extractID = ret.getCommitID
 	return ret, nil
@@ -137,14 +131,14 @@ func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMRes
 func (g *goldProcessor) getCanonicalCommitHash(targetHash string) (string, error) {
 	// If it is not in the primary repo.
 	if !isCommit(g.vcs, targetHash) {
-		if g.secondaryVCS == nil {
-			return "", fmt.Errorf("Error commit %s is not in repository and no secondary repo defined.", targetHash)
+		// Extract the commit.
+		foundCommit, err := g.vcs.ResolveCommit(targetHash)
+		if err != nil {
+			return "", fmt.Errorf("Unable to resolve commit %s in secondary repo. Got err: %s", targetHash, err)
 		}
 
-		// Extract the commit.
-		foundCommit, err := g.secondaryDepsExtractor.ExtractCommit(g.secondaryVCS.GetFile("DEPS", targetHash))
 		if foundCommit == "" {
-			return "", fmt.Errorf("Unable to extract DEPS file for commit %s in secondary repo. Got err: %s", targetHash, err)
+			return "", fmt.Errorf("Unable to resolve commit %s in secondary repo.", targetHash)
 		}
 
 		// Check if the found commit is actually in the primary repository.

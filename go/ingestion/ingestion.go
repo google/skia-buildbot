@@ -117,7 +117,7 @@ type Ingester struct {
 // NewIngester creates a new ingester with the given id and configuration around
 // the supplied vcs (version control system), input sources and Processor instance.
 // secondaryVCS specifies a repo that has vcs as a dependency. It can be nil.
-func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, secondaryVCS vcsinfo.VCS, sources []Source, processor Processor) (*Ingester, error) {
+func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor) (*Ingester, error) {
 	statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(ingesterConf.StatusDir, ingesterID)))
 	dbName := filepath.Join(statusDir, fmt.Sprintf("%s-status.db", ingesterID))
 	statusDB, err := bolt.Open(dbName, 0600, &bolt.Options{Timeout: 1 * time.Second})
@@ -129,7 +129,6 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 	ret := &Ingester{
 		id:             ingesterID,
 		vcs:            vcs,
-		secondaryVCS:   secondaryVCS,
 		nCommits:       ingesterConf.NCommits,
 		minDuration:    time.Duration(ingesterConf.MinDays) * time.Hour * 24,
 		runEvery:       ingesterConf.RunEvery.Duration,
