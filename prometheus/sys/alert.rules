@@ -220,16 +220,6 @@ ALERT NamedFiddles
     description = "See https://fiddle.skia.org/f/ and https://skia.googlesource.com/buildbot/%2B/master/fiddle/PROD.md#named_fail"
   }
 
-# datahopper_internal
-
-ALERT TooManyGoRoutines
-  IF go_goroutines{instance="skia-internal:20000",job="datahopper_internal"} > 100
-  FOR 2m
-  LABELS { category = "infra", severity = "warning"}
-  ANNOTATIONS {
-    description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}."
-  }
-
 # Datahopper
 
 ALERT DatahopperErrorRate

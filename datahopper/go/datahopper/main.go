@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/datahopper/go/bot_metrics"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
@@ -31,8 +30,6 @@ import (
 
 // flags
 var (
-	grpcPort           = flag.String("grpc_port", ":8000", "Port on which to run the buildbot data gRPC server.")
-	httpPort           = flag.String("http_port", ":8001", "Port on which to run the HTTP server.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
@@ -112,15 +109,6 @@ func main() {
 	}
 
 	// Data generation goroutines.
-	db, err := buildbot.NewLocalDB(path.Join(w, "buildbot.db"))
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
-	// Run a server for the buildbot data.
-	if _, err := buildbot.RunBuildServer(*grpcPort, db); err != nil {
-		sklog.Fatal(err)
-	}
 
 	// Swarming bots.
 	swarmingClients := map[string]swarming.ApiClient{
@@ -158,46 +146,15 @@ func main() {
 		}
 	}()
 
-	// Time since last successful backup.
-	go func() {
-		lv := metrics2.NewLiveness("last_buildbot_db_backup", nil)
-		setLastBackupTime := func() error {
-			last := time.Time{}
-			if err := gcs.AllFilesInDir(gsClient, "skia-buildbots", "db_backup", func(item *storage.ObjectAttrs) {
-				if item.Updated.After(last) {
-					last = item.Updated
-				}
-			}); err != nil {
-				return err
-			}
-			lv.ManualReset(last)
-			sklog.Infof("Last DB backup was %s.", last)
-			return nil
-		}
-		if err := setLastBackupTime(); err != nil {
-			sklog.Fatal(err)
-		}
-		for range time.Tick(10 * time.Minute) {
-			if err := setLastBackupTime(); err != nil {
-				sklog.Errorf("Failed to get last DB backup time: %s", err)
-			}
-		}
-	}()
-
 	// Jobs metrics.
 	if err := StartJobMetrics(*taskSchedulerDbUrl, context.Background()); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if err := bot_metrics.Start(*taskSchedulerDbUrl, *workdir, nil, context.Background()); err != nil {
+	if err := bot_metrics.Start(*taskSchedulerDbUrl, *workdir, context.Background()); err != nil {
 		sklog.Fatal(err)
 	}
-
-	// Run a backup server.
-	go func() {
-		sklog.Fatal(buildbot.RunBackupServer(db, *httpPort))
-	}()
 
 	// Wait while the above goroutines generate data.
 	select {}

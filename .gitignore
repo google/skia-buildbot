@@ -44,7 +44,6 @@ prometheus/sys/absent.rules
 **/res/vul/
 **/res/js/core-debug.js
 **/res/js/core.js
-datahopper_internal/google_storage_token.dat
 fuzzer/res/css/fuzzer.css
 fuzzer/third_party
 perf/bqtoken.data

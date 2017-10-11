@@ -15,7 +15,6 @@ import (
 	"golang.org/x/net/context"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -1594,7 +1593,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(tasks []*db.Task) error {
 		return fmt.Errorf("No such repo: %s", repoName)
 	}
 
-	commitsBuf := make([]*repograph.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 	updatedTasks := map[string]*db.Task{}
 	for _, task := range tasks {
 		if task.Repo != repoName || task.Name != taskName {
