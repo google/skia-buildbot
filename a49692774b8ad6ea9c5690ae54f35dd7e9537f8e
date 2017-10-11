@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "b1aabebd_652f9e98",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T18:52:24Z",
+      "side": 1,
+      "message": "Changed to \"Parent Repo Build Status\"",
+      "parentUuid": "aedb5788_a884c3c5",
+      "range": {
+        "startLine": 58,
+        "startChar": 39,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "a49692774b8ad6ea9c5690ae54f35dd7e9537f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9ca91023_2c82af2e",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 1
