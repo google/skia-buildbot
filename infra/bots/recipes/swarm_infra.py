@@ -89,8 +89,8 @@ def git_checkout(api, url, dest, ref=None):
     git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL)
 
     # Re-checkout master, since bot_update detaches us. We already set master
-    # to the correct commit, and any applied patch should not have been committed,
-    # so this should be safe.
+    # to the correct commit, and any applied patch should not have been
+    # committed, so this should be safe.
     git(api, 'checkout', 'master')
 
     # "git status" just to sanity check.
@@ -152,6 +152,12 @@ def RunSteps(api):
 
   # More prerequisites.
   with api.context(cwd=infra_dir, env=env):
+    api.step(
+        'install npm',
+        cmd=['sudo', 'npm', 'i', '-g', 'npm@5.4.2'])
+    api.step(
+        'install bower',
+        cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
     api.step(
         'install goimports',
         cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'])
