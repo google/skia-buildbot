@@ -181,7 +181,7 @@ func (g *GitInfo) Checkout(ref string) error {
 // TODO(stephana): Speed up this method, there are either better ways to do this
 // in git or the results can be cached.
 func (g *GitInfo) getBranchesForCommit(hash string) (map[string]bool, error) {
-	output, err := exec.RunCwd(g.dir, "git", "branch", "--list", "--contains", hash)
+	output, err := exec.RunCwd(g.dir, "git", "branch", "--all", "--list", "--contains", hash)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get branches for commit %s: %s", hash, err)
 	}
