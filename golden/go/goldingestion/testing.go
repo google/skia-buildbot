@@ -59,7 +59,7 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 	defer func() { assert.NoError(t, ingestionStore.Close()) }()
 
 	// Set up the processor.
-	processor, err := newGoldTrybotProcessor(vcs, ingesterConf, nil, nil, nil)
+	processor, err := newGoldTrybotProcessor(vcs, ingesterConf, nil)
 	assert.NoError(t, err)
 	defer func() {
 		assert.NoError(t, processor.(*goldTrybotProcessor).traceDB.Close())
