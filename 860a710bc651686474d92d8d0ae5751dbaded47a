@@ -22,6 +22,30 @@
       "revId": "860a710bc651686474d92d8d0ae5751dbaded47a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45d5386b_6c1f2cc4",
+        "filename": "chromeextensions/skia-trooper/popup.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-11T14:23:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b5e5ace_dadb9cc4",
+      "range": {
+        "startLine": 134,
+        "startChar": 36,
+        "endLine": 134,
+        "endChar": 37
+      },
+      "revId": "860a710bc651686474d92d8d0ae5751dbaded47a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
