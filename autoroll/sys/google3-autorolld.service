@@ -17,6 +17,7 @@ ExecStart=/usr/local/bin/autoroll \
     --sheriff=https://skia-tree-status.appspot.com/current-sheriff \
     --parent_repo="google3" \
     --parent_branch="" \
+    --parent_waterfall="https://goto.google.com/skia-testing-status" \
     --gerrit_url=""
 Restart=always
 User=default

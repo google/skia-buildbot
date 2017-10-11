@@ -16,6 +16,7 @@ ExecStart=/usr/local/bin/autoroll \
     --sheriff=https://skia-tree-status.appspot.com/current-robocop \
     --roll_into_android=true \
     --parent_repo=android \
+    --parent_waterfall=https://android-build.googleplex.com/builds/branches/git_oc-mr1-dev/grid \
     --child_branch=android/o-mr1-release \
     --parent_branch=oc-mr1-dev
 Restart=always
