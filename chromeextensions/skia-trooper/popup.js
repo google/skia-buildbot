@@ -20,25 +20,32 @@
   }
 
   function getCommentInputField(alertId) {
-    return "<span class='left-padded'><input type='text' id='comment_input" + alertId + "' value=''></span>"
+    return "<span><input type='text' id='comment_input" + alertId + "' value=''></span>"
   }
 
-  function getSilenceSVG(alertId) {
-    return "<svg id='silence" + alertId + "' class='left-padded'><path d='M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12.5 8H11v6l4.75 2.85.75-1.23-4-2.37V8zM12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z'><title>Silence with comment</title></path></svg>"
+  function getSilenceRadio(alertId, displayName, value) {
+    return "<input type='radio' name='duration" + alertId + "' id='duration" +
+           alertId + "' value='" + value + "'>" + displayName;
+  }
+
+  function getSilenceButton(alertId) {
+    return "<span class='left-padded'/><button type='button' id='button" + alertId + "'>Silence</button>";
   }
 
   var bugRegex = new RegExp(".*Swarming bot (.*) is (quarantined|missing).*");
 
-  var goloRegex = new RegExp(".*(a3|a4|m3|m5)");
+  var goloRegex = new RegExp(".*(a9|m3|m5)");
 
   function getFileBugSVG(id) {
-    var bugTemplate = `https://bugs.chromium.org/p/chromium/issues/entry?summary=[Device%20Restart]%20for%20${id}&description=Please%20Reboot%20${id}&components=Infra%3ELabs&labels=Pri-2,Infra-Troopers,Restrict-View-Google`
+    var bugTemplate = `https://bugs.chromium.org/p/chromium/issues/entry?summary=[Machine%20Restart]%20for%20${id}&description=Please%20Reboot%20${id}&components=Infra%3ELabs&labels=Pri-2,Restrict-View-Google`
     return `<a href='${bugTemplate}' target='_blank' rel='noopener' class=auto-bug><svg id='file-bug'><path d='M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z'><title>File a Chrome Infra bug</title></path></svg></a>`
   }
 
   function handleActionEvent(alertId, labels) {
-    var oneHourInFuture = new Date(Date.now() + (60*60*1000));
     var commentText = document.getElementById("comment_input" + alertId).value;
+    var duration = parseInt(document.querySelector('input[name="duration' + alertId + '"]:checked').value);
+    var endTime = new Date(Date.now() + duration);
+
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open("POST", "https://promalerts.skia.org/api/v1/silences", true);
     xmlHttp.onload = function(e) {
@@ -56,7 +63,7 @@
       var matcher = {name: key, value: labels[key], type: 0}
       matchers.push(matcher);
     }
-    var body = JSON.stringify({matchers: matchers, endsAt: oneHourInFuture, comment: commentText, createdBy: loggedInAs()});
+    var body = JSON.stringify({matchers: matchers, endsAt: endTime, comment: commentText, createdBy: loggedInAs()});
     xmlHttp.send(body);
   }
 
@@ -112,12 +119,19 @@
               return;
             }
             alertGroup.blocks.forEach(function(block) {
+
+              // Sort alerts in each group alphabetically for easier scanning
+              // and consistent display.
+              block.alerts.sort(function(a,b) {
+                return a.annotations.description.localeCompare(b.annotations.description);
+              });
+
               block.alerts.forEach(function(al) {
 
                 if (al.labels.category !== "infra") {
                   return;
                 }
-                if (al.silenced) {
+                if (al.status.state === "suppressed") {
                   numSilencedAlerts++;
                   return
                 }
@@ -128,24 +142,31 @@
                 var row = table.insertRow(-1);
                 row.className = "alerts-row-name"
                 var label = row.insertCell(-1);
-                label.innerHTML = groupName + getCommentInputField(alertId) + getSilenceSVG(alertId);
+                label.innerHTML = groupName;
                 var match = bugRegex.exec(al.annotations.description);
                 if (match && goloRegex.exec(match[1])) {
                   // match[1] is the bot id
                   label.innerHTML += getFileBugSVG(match[1]);
                 }
-                // Add click listeners for all support actions.
-                var actions = ["silence"]
-                actions.forEach(function(action) {
-                  document.getElementById(action + alertId).addEventListener(
-                      "click", handleActionEvent.bind(this, alertId, al.labels));
-                });
 
                 // Display the alert message.
                 var row = table.insertRow(-1);
                 row.className = "alerts-row-msg"
                 var label = row.insertCell(-1);
                 label.innerHTML = linkify(al.annotations.description);
+
+                // Add section for silences.
+                var row = table.insertRow(-1);
+                row.className = "alerts-row-silence"
+                var label = row.insertCell(-1);
+                label.innerHTML = getCommentInputField(alertId) +
+                                  getSilenceRadio(alertId, "1h", 1*60*60*1000) +
+                                  getSilenceRadio(alertId, "2h", 2*60*60*1000) +
+                                  getSilenceRadio(alertId, "24h", 24*60*60*1000) +
+                                  getSilenceButton(alertId);
+                // Add click listener for the silence button.
+                document.getElementById("button" + alertId).addEventListener(
+                    "click", handleActionEvent.bind(this, alertId, al.labels));
 
               });
             });
