@@ -3,7 +3,6 @@ package ptraceingest
 import (
 	"net/http"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/ingestion"
@@ -35,7 +34,7 @@ type perfTrybotProcessor struct {
 }
 
 // newPerfTrybotProcessor implements the ingestion.Constructor signature.
-func newPerfTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, secondaryVCS vcsinfo.VCS, ex depot_tools.DEPSExtractor) (ingestion.Processor, error) {
+func newPerfTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	return &perfTrybotProcessor{
 		store:  ptracestore.Default,
 		review: rietveld.New(cid.CODE_REVIEW_URL, client),

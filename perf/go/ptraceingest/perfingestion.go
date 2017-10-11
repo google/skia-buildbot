@@ -3,7 +3,6 @@ package ptraceingest
 import (
 	"net/http"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/vcsinfo"
@@ -28,7 +27,7 @@ type perfProcessor struct {
 //
 // Note that ptracestore.Init() needs to be called before starting ingestion so
 // that ptracestore.Default is set correctly.
-func newPerfProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, secondaryVCS vcsinfo.VCS, ex depot_tools.DEPSExtractor) (ingestion.Processor, error) {
+func newPerfProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	return &perfProcessor{
 		store: ptracestore.Default,
 		vcs:   vcs,
