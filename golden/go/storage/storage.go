@@ -5,8 +5,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 	"sync"
 	"time"
+
+	"github.com/flynn/json5"
 
 	"google.golang.org/api/option"
 
@@ -14,6 +18,7 @@ import (
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -46,11 +51,45 @@ type Storage struct {
 	// 0 or smaller all commits in the last tile will be considered.
 	NCommits int
 
+	quiteListQuery paramtools.ParamSet
+
 	// Internal variables used to cache trimmed tiles.
 	lastTrimmedTile        *tiling.Tile
 	lastTrimmedIgnoredTile *tiling.Tile
 	lastIgnoreRev          int64
 	mutex                  sync.Mutex
+	whiteListQuery         url.Values
+}
+
+// LoadWhiteList loads the given JSON5 file that defines that query to
+// whitelist traces. If the given path is emtpy or the file cannot be parsed
+// an error will be returned.
+func (s *Storage) LoadWhiteList(fName string) error {
+	if fName == "" {
+		return fmt.Errorf("No white list file provided.")
+	}
+
+	f, err := os.Open(fName)
+	if err != nil {
+		return fmt.Errorf("Unable open file %s. Got error: %s", fName, err)
+	}
+	defer util.Close(f)
+
+	if err := json5.NewDecoder(f).Decode(&s.whiteListQuery); err != nil {
+		return err
+	}
+
+	// Make sure the whitelist is not empty.
+	empty := true
+	for _, values := range s.whiteListQuery {
+		if empty = len(values) == 0; !empty {
+			break
+		}
+	}
+	if empty {
+		return fmt.Errorf("Whitelist in %s cannot be empty.", fName)
+	}
+	return nil
 }
 
 // GetTileStreamNow is a utility function that reads tiles in the given
@@ -105,7 +144,7 @@ Loop:
 // do not change.
 func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
 	// Retieve the most recent tile.
-	tile := s.MasterTileBuilder.GetTile()
+	tile := s.getWhiteListedTile(s.MasterTileBuilder.GetTile())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -204,7 +243,38 @@ func (s *Storage) GetTileFromTimeRange(begin, end time.Time) (*tiling.Tile, erro
 	if err != nil {
 		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
 	}
-	return s.BranchTileBuilder.CachedTileFromCommits(tracedb.ShortFromLong(commitIDs))
+
+	tile, err := s.BranchTileBuilder.CachedTileFromCommits(tracedb.ShortFromLong(commitIDs))
+	if err != nil {
+		return nil, err
+	}
+	return s.getWhiteListedTile(tile), nil
+}
+
+// getWhiteListedTile creates a new tile from the given tile that contains
+// only traces that match the whitelist that was loaded earlier.
+func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
+	if s.whiteListQuery == nil {
+		return tile
+	}
+
+	// filter tile.
+	ret := &tiling.Tile{
+		Traces:  make(map[string]tiling.Trace, len(tile.Traces)),
+		Commits: tile.Commits,
+	}
+
+	// Iterate over the tile and copy the whitelisted traces over.
+	// Build the paramset in the process.
+	paramSet := paramtools.ParamSet{}
+	for traceID, trace := range tile.Traces {
+		if tiling.Matches(trace, s.whiteListQuery) {
+			ret.Traces[traceID] = trace
+			paramSet.AddParams(trace.Params())
+		}
+	}
+	ret.ParamSet = paramSet
+	return ret
 }
 
 // GStorageClient provides read/write to Google storage for one-off

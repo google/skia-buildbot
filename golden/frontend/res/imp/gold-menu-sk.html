@@ -17,7 +17,9 @@
 <dom-module id="gold-menu-sk">
   <template>
       <menu-item-sk icon="icons:view-day" label="By Blame" url="/"></menu-item-sk>
-      <menu-item-sk icon="icons:label" label="Ignores" url="/ignores"></menu-item-sk>
+      <template is="dom-if" if="[[_loginRequired]]">
+        <menu-item-sk icon="icons:label" label="Ignores" url="/ignores"></menu-item-sk>
+      </template>
       <menu-item-sk icon="icons:list" label="By Test" url="/list"></menu-item-sk>
       <menu-item-sk icon="hardware:computer" label="Trybot" url="/trybot"></menu-item-sk>
       <menu-item-sk icon="notification:sync-problem" label="Failures" url="/failures"></menu-item-sk>
@@ -27,6 +29,15 @@
       <menu-item-sk icon="folder" label="Code" url="https://github.com/google/skia-buildbot/tree/master/golden"></menu-item-sk>
   </template>
   <script>
-    Polymer({is: "gold-menu-sk"});
+    Polymer({
+      is: "gold-menu-sk",
+
+      properties: {
+        _loginRequired: {
+          type: Boolean,
+          value: function() { return !sk.app_config.isPublic; }
+        }
+      }
+    });
   </script>
 </dom-module>

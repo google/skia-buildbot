@@ -56,7 +56,7 @@ var (
 	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
-	forceLogin          = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
+	forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
 	gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
 	hashFileBucket      = flag.String("hash_file_bucket", "", "Bucket where the file with the known list of hashes should be written.")
 	hashFilePath        = flag.String("hash_file_path", "", "Path of the file with know hashes.")
@@ -69,6 +69,7 @@ var (
 	noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 	port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 	promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	pubWhiteList        = flag.String("public_whitelist", "", "File name of a JSON5 file that contains a query with the traces to white list. This is required if force_login is false.")
 	redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 	resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 	rietveldURL         = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
@@ -277,6 +278,13 @@ func main() {
 		GStorageClient:    gsClient,
 	}
 
+	// Check if this is public instance. If so make sure there is a white list.
+	if !*forceLogin {
+		if err := storages.LoadWhiteList(*pubWhiteList); err != nil {
+			sklog.Fatalf("Empty or invalid white list file. A non-empty white list must be provided if force_login=false.")
+		}
+	}
+
 	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
 	storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute))
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
@@ -332,10 +340,6 @@ func main() {
 	router.HandleFunc("/json/legacysearch", jsonLegacySearchHandler).Methods("GET")
 	router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
 	router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
-	router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
-	router.HandleFunc("/json/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
-	router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
-	router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
 	router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
 	router.HandleFunc("/json/clusterdiff", jsonClusterDiffHandler).Methods("GET")
 	router.HandleFunc("/json/cmp", jsonCompareTestHandler).Methods("POST")
@@ -345,9 +349,15 @@ func main() {
 	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
 	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
-
-	// New endpoints
 	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
+
+	// Only expose these endpoints if login is enforced across the app.
+	if *forceLogin {
+		router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
+		router.HandleFunc("/json/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
+		router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
+		router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
+	}
 
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"
@@ -359,11 +369,13 @@ func main() {
 		DefaultCorpus   string `json:"defaultCorpus"`
 		ShowBotProgress bool   `json:"showBotProgress"`
 		Title           string `json:"title"`
+		IsPublic        bool   `json:"isPublic"`
 	}{
 		BaseRepoURL:     *gitRepoURL,
 		DefaultCorpus:   *defaultCorpus,
 		ShowBotProgress: *showBotProgress,
 		Title:           *appTitle,
+		IsPublic:        !*forceLogin,
 	}
 
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
