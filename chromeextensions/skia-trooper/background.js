@@ -21,7 +21,7 @@ function updateIcon() {
             if (al.labels.category != "infra") {
               return;
             }
-            if (al.silenced) {
+            if (al.status.state === "suppressed") {
               return;
             }
             numActiveInfraAlerts++;
