@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "aedb5788_a884c3c5",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-11T18:22:22Z",
+      "side": 1,
+      "message": "The actual variable name does not really matter, it\u0027s the \"Parent Repo Waterfall\" text in the UI that could be confusing for devs/teams who do not have experience with buildbot (aka the lucky people).",
+      "parentUuid": "196d2034_3f8f7185",
+      "range": {
+        "startLine": 58,
+        "startChar": 39,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "a49692774b8ad6ea9c5690ae54f35dd7e9537f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9ca91023_2c82af2e",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 1
