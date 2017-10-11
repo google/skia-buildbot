@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b7f08fd_5786917b",
+        "filename": "golden/go/expstorage/sqlexpstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-11T18:36:27Z",
+      "side": 1,
+      "message": "Why is the function wrapper necessary here?  It\u0027s not clear to me.",
+      "range": {
+        "startLine": 440,
+        "startChar": 8,
+        "endLine": 440,
+        "endChar": 15
+      },
+      "revId": "a2ca9f617187b0d835dccc2c3d3bf6cc5d25aabd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c530da47_8d60d2d4",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-11T18:36:27Z",
+      "side": 1,
+      "message": "Consider augmenting these errors with fmt.Errorf()",
+      "range": {
+        "startLine": 74,
+        "startChar": 9,
+        "endLine": 74,
+        "endChar": 12
+      },
+      "revId": "a2ca9f617187b0d835dccc2c3d3bf6cc5d25aabd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
