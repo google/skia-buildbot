@@ -1,6 +1,7 @@
 package pdfingestion
 
 import (
+	"context"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -15,7 +16,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/goldingestion"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 )
 

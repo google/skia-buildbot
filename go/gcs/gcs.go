@@ -2,6 +2,7 @@
 package gcs
 
 import (
+	"context"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -18,7 +19,6 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
 )
 
