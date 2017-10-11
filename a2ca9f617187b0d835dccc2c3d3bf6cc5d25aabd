@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "aaa23d11_220132e0",
+        "filename": "golden/go/expstorage/sqlexpstore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-11T20:00:13Z",
+      "side": 1,
+      "message": "Because I need to make sure that the lock is released on all paths we leave the function and also when I reach the final c.cache.Get() statement.\nBy putting it into a closure and using deferred it\u0027s guaranteed.",
+      "parentUuid": "1b7f08fd_5786917b",
+      "range": {
+        "startLine": 440,
+        "startChar": 8,
+        "endLine": 440,
+        "endChar": 15
+      },
+      "revId": "a2ca9f617187b0d835dccc2c3d3bf6cc5d25aabd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c530da47_8d60d2d4",
         "filename": "golden/go/storage/storage.go",
         "patchSetId": 10
@@ -45,6 +69,30 @@
       "revId": "a2ca9f617187b0d835dccc2c3d3bf6cc5d25aabd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29f9ead8_33026500",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-11T20:00:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c530da47_8d60d2d4",
+      "range": {
+        "startLine": 74,
+        "startChar": 9,
+        "endLine": 74,
+        "endChar": 12
+      },
+      "revId": "a2ca9f617187b0d835dccc2c3d3bf6cc5d25aabd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
