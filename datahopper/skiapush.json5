@@ -2,7 +2,6 @@
   "Servers": {
     "skia-datahopper2": {
       "AppNames": [
-        "buildbot-db-backup",
         "datahopperd",
         "pulld",
       ],
@@ -16,12 +15,6 @@
     "skia-datahopper-test2": {
       "AppNames": [
         "datahopperd",
-        "pulld",
-      ],
-    },
-    "skia-internal": {
-      "AppNames": [
-        "datahopper-internald",
         "pulld",
       ],
     },
