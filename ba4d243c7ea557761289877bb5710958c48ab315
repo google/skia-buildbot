@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "99718a40_ef45d276",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T18:38:10Z",
+      "side": 1,
+      "message": "I don\u0027t know!  My plan was to start with 2-grams and see where that gets me.  My concern with individual tokens is that we\u0027d be relying on the simple presence or absence of a given token, as opposed to the token in its context.",
+      "parentUuid": "4ea9bea6_4f8d119c",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 66
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bed4fe3d_ce01b2c7",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e3f55e98_37002b16",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T18:38:10Z",
+      "side": 1,
+      "message": "Whoops, good catch.",
+      "parentUuid": "bed4fe3d_ce01b2c7",
+      "range": {
+        "startLine": 38,
+        "startChar": 18,
+        "endLine": 38,
+        "endChar": 39
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "36f8f0cc_fed6990c",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 7
@@ -59,6 +107,30 @@
       "writtenOn": "2017-10-10T20:12:14Z",
       "side": 1,
       "message": "Is this always single-threaded/single-process?",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 33
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "742bceb5_d41bedb2",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T18:38:10Z",
+      "side": 1,
+      "message": "It gets farmed out to the cluster.  Each machine gets a copy of this script and runs the functions as specified in the RDDs.  So on a given machine, yes, IIUC this should be a single thread.",
+      "parentUuid": "36f8f0cc_fed6990c",
       "range": {
         "startLine": 58,
         "startChar": 0,
