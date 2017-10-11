@@ -7,7 +7,7 @@
      "mimetype": ""
    },
    "skiastatus_json": {
-     "urls": ["https://status.skia.org/json/skia/commits/"],
+     "urls": ["https://status.skia.org/json/skia/incremental"],
      "method": "GET",
      "expected": [200],
      "body": "",
