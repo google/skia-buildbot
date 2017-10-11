@@ -67,4 +67,8 @@ type VCS interface {
 
 	// GetFile returns the content of the given file at the given commit.
 	GetFile(fileName, commitHash string) (string, error)
+
+	// ResolveCommit will resolve the given commit against a secondary repo if one
+	// was defined with the VCS.
+	ResolveCommit(commitHash string) (string, error)
 }

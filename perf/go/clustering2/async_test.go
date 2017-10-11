@@ -86,8 +86,7 @@ func TestCalcCidsNotSparse(t *testing.T) {
 	assert.Equal(t, "master-002003", cids[6].ID())
 }
 
-type mockVcs struct {
-}
+type mockVcs struct{}
 
 func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	return []*vcsinfo.IndexCommit{&vcsinfo.IndexCommit{Index: 2005}}
@@ -101,6 +100,7 @@ func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 	return nil, nil
 }
 func (m *mockVcs) GetFile(fileName, commitHash string) (string, error) { return "", nil }
+func (m *mockVcs) ResolveCommit(commitHash string) (string, error)     { return "", nil }
 
 func TestCalcCidsSparse(t *testing.T) {
 	testutils.SmallTest(t)
