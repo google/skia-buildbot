@@ -8,6 +8,7 @@ After=mnt-pd0.mount network-online.target
 ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
     --host=src-internal-chromium-roll.skia.org \
+    --parentWaterfall=https://build.chromium.org \
     --logtostderr \
     --no_log \
     --workdir=/mnt/pd0/autoroll_workdir \

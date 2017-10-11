@@ -64,6 +64,14 @@
     </div>
     <div id="statusDisplay">
       <div class="table">
+        <template is="dom-if" if="{{_exists(parentWaterfall)}}">
+          <div class="tr">
+            <div class="td nowrap">Parent Repo Build Status</div>
+            <div class="td nowrap unknown">
+              <span class="big"><a href$="{{parentWaterfall}}" target="_blank">{{parentWaterfall}}</a></span>
+            </div>
+          </div>
+        </template>
         <div class="tr">
           <div class="td nowrap">Current Mode:</div>
           <div class="td nowrap unknown">
@@ -238,6 +246,11 @@
         modeButtons: {
           type: Array,
           value: function() { return []; },
+          readOnly: true,
+        },
+        parentWaterfall: {
+          type: String,
+          value: null,
           readOnly: true,
         },
         validModes: {
@@ -434,6 +447,7 @@
         this._setMode(json.mode.mode);
         this._setModeChangeBy(json.mode.user);
         this._setModeChangeMsg(json.mode.message);
+        this._setParentWaterfall(json.parentWaterfall);
         this._setRecent(json.recent);
         this._setInitialSelectedMode(json.validModes.indexOf(json.mode).toString());
         this._setStatus(json.status);
