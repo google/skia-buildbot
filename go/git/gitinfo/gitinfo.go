@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/depot_tools"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -25,11 +27,13 @@ var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
-	dir          string
-	hashes       []string
-	timestamps   map[string]time.Time           // The git hash is the key.
-	detailsCache map[string]*vcsinfo.LongCommit // The git hash is the key.
-	firstCommit  string
+	dir                string
+	hashes             []string
+	timestamps         map[string]time.Time           // The git hash is the key.
+	detailsCache       map[string]*vcsinfo.LongCommit // The git hash is the key.
+	firstCommit        string
+	secondaryVCS       vcsinfo.VCS
+	secondaryExtractor depot_tools.DEPSExtractor
 
 	// Any access to hashes or timestamps must be protected.
 	mutex sync.Mutex
@@ -468,6 +472,19 @@ func (g *GitInfo) IsAncestor(a, b string) bool {
 		return false
 	}
 	return true
+}
+
+func (g *GitInfo) ResolveCommit(commitHash string) (string, error) {
+	foundCommit, err := g.secondaryExtractor.ExtractCommit(g.secondaryVCS.GetFile("DEPS", commitHash))
+	if err != nil {
+		return "", err
+	}
+	return foundCommit, nil
+}
+
+func (g *GitInfo) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
+	g.secondaryVCS = secVCS
+	g.secondaryExtractor = extractor
 }
 
 // gitHash represents information on a single Git commit.
