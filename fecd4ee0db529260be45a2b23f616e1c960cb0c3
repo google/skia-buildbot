@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "df419563_e4ac9620",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-11T19:38:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19d3244f_621a0eee",
+      "revId": "fecd4ee0db529260be45a2b23f616e1c960cb0c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3164578_aad6ca59",
         "filename": "go/vcsinfo/vcsinfo.go",
         "patchSetId": 7
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "a34dcb49_8ad9b4fa",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-11T19:38:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3164578_aad6ca59",
+      "range": {
+        "startLine": 71,
+        "startChar": 48,
+        "endLine": 71,
+        "endChar": 54
+      },
+      "revId": "fecd4ee0db529260be45a2b23f616e1c960cb0c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c08f928b_95963ee1",
         "filename": "perf/go/clustering2/async_test.go",
         "patchSetId": 7
@@ -53,6 +95,30 @@
       "writtenOn": "2017-10-11T18:42:55Z",
       "side": 1,
       "message": "This CL is probably the wrong place for it, but we may consider pulling this mockVCS out into a shared class and avoid the duplication.  Maybe even converting it using testify/mock so it\u0027s a bit smarter as well.",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 21
+      },
+      "revId": "fecd4ee0db529260be45a2b23f616e1c960cb0c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b76e55c9_1e34cfd9",
+        "filename": "perf/go/clustering2/async_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-11T19:38:04Z",
+      "side": 1,
+      "message": "Agreed. I added a bug for cleaning up the mock implementations of vcsinfo.VCS that we have.\nThis will be fixed in a subsequent CL.",
+      "parentUuid": "c08f928b_95963ee1",
       "range": {
         "startLine": 89,
         "startChar": 0,
