@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "196d2034_3f8f7185",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T18:11:44Z",
+      "side": 1,
+      "message": "I dunno.  Maybe it\u0027s because everyone is used to Buildbot, but that\u0027s what Mike called it this morning, that\u0027s what the Fuchsia infra people are calling it, and from what I can tell that\u0027s what most of Chrome calls it.",
+      "parentUuid": "e515a49f_65d09526",
+      "range": {
+        "startLine": 58,
+        "startChar": 39,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "a49692774b8ad6ea9c5690ae54f35dd7e9537f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9ca91023_2c82af2e",
         "filename": "autoroll/res/imp/arb-status-sk.html",
         "patchSetId": 1
@@ -39,6 +63,24 @@
       "revId": "a49692774b8ad6ea9c5690ae54f35dd7e9537f8e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93af4392_545d821d",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T18:11:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ca91023_2c82af2e",
+      "revId": "a49692774b8ad6ea9c5690ae54f35dd7e9537f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
