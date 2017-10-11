@@ -62,7 +62,7 @@ func TestPDFProcessor(t *testing.T) {
 			CONFIG_PDF_CACHEDIR:         cacheDir,
 		},
 	}
-	processor, err := newPDFProcessor(nil, ingesterConf, client, nil, nil)
+	processor, err := newPDFProcessor(nil, ingesterConf, client)
 	assert.NoError(t, err)
 
 	// Load the example file and process it.
