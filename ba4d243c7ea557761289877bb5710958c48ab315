@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "d564de7a_e56cbf7d",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-11T19:03:11Z",
+      "side": 1,
+      "message": "The input data would be twice as large. However, my understanding is that you will be using one-hot encoding for the N-grams. That means that the number of columns needed for 2-grams is O(n^2), but for 1-grams it\u0027s O(n), which (in theory) will be negligible in comparison.",
+      "parentUuid": "777d6251_63e60c6e",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 66
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bed4fe3d_ce01b2c7",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 7
@@ -137,6 +161,29 @@
         "startChar": 18,
         "endLine": 38,
         "endChar": 39
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cda45722_c2c9ff9e",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-11T19:03:11Z",
+      "side": 1,
+      "message": "Do you want a set rather than a list?",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 39,
+        "endChar": 35
       },
       "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
