@@ -8,7 +8,7 @@
     gold: {
       RunEvery: "5m",
       NCommits: 75,
-      MinDays: 3,
+      MinDays: 20,
       StatusDir: "/mnt/pd0/pdfium_gold/ingest_status",
       MetricName: "pdfium-gold-ingest",
       LocalCache: false,
@@ -27,7 +27,7 @@
     "gold-trybot": {
       RunEvery: "5m",
       NCommits: 10,
-      MinDays: 7,
+      MinDays: 20,
       StatusDir: "/mnt/pd0/pdfium_gold/ingest_status",
       MetricName: "pdfium-gold-ingest-trybot",
       LocalCache: false,
