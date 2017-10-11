@@ -542,11 +542,12 @@
               task.classList.add(d.displayClass[i]);
             }
 
+            task.title = d.taskSpec + " @ " + d.commit.shortHash;
+
             var details = task_details[d.commit.hash] && task_details[d.commit.hash][d.taskSpec];
             if (details) {
               // Add the new class.
               task.classList.add(task_details[d.commit.hash][d.taskSpec].colorClass);
-              task.title = d.taskSpec + ", #"+details.id;
               addIronIcon(d3.select(task).select(".task-comment"), "communication:chat", "tiny", function(){
                 return details.comments && details.comments.length > 0 &&
                     (task.classList.contains(CLASS_TASK_SINGLE)
