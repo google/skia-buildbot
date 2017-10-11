@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "777d6251_63e60c6e",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-11T18:48:25Z",
+      "side": 1,
+      "message": "Right, but the cost is roughly 2x the number of input columns, which will dramatically increase run time and increase the amount of training data we need.  Do you think it would be more useful than 2-grams?  I\u0027m guessing that eventually we\u0027ll land somewhere between 3-and-5-grams.",
+      "parentUuid": "6536f0e9_a7f7f8c8",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 66
+      },
+      "revId": "ba4d243c7ea557761289877bb5710958c48ab315",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bed4fe3d_ce01b2c7",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 7
