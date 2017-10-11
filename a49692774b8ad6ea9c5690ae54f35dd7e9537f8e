@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e515a49f_65d09526",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-11T17:59:16Z",
+      "side": 1,
+      "message": "Not sure if waterfall is a good name here. Seems very buildboty.\ntree_status / build_health / something else?",
+      "range": {
+        "startLine": 58,
+        "startChar": 39,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "a49692774b8ad6ea9c5690ae54f35dd7e9537f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ca91023_2c82af2e",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-11T17:59:16Z",
+      "side": 1,
+      "message": "Not every parent repo is going to have a link here. It is fortunate that fuchsia had a link but I doubt flutter will (at least initially).\nSo should we make displaying this tr conditional on if a non empty value has been provided?",
+      "revId": "a49692774b8ad6ea9c5690ae54f35dd7e9537f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
