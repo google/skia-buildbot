@@ -89,6 +89,7 @@ func (s *Storage) LoadWhiteList(fName string) error {
 	if empty {
 		return fmt.Errorf("Whitelist in %s cannot be empty.", fName)
 	}
+	sklog.Infof("Whitelist loaded from %s", fName)
 	return nil
 }
 
@@ -274,6 +275,7 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 		}
 	}
 	ret.ParamSet = paramSet
+	sklog.Infof("Whitelisted %d of %d traces.", len(ret.Traces), len(tile.Traces))
 	return ret
 }
 
