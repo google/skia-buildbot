@@ -22,26 +22,24 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/capacity"
-	"go.skia.org/infra/status/go/incremental"
+	"go.skia.org/infra/status/go/franken"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
-	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
-	DEFAULT_COMMITS_TO_LOAD = 35
-	MAX_COMMITS_TO_LOAD     = 100
+	DEFAULT_COMMITS_TO_LOAD = 50
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
 
@@ -50,13 +48,12 @@ const (
 )
 
 var (
-	capacityClient   *capacity.CapacityClient      = nil
-	capacityTemplate *template.Template            = nil
-	commitsTemplate  *template.Template            = nil
-	iCache           *incremental.IncrementalCache = nil
-	taskDb           db.RemoteDB                   = nil
-	tasksPerCommit   *tasksPerCommitCache          = nil
-	tCache           db.TaskCache                  = nil
+	buildCache       *franken.BTCache         = nil
+	buildDb          buildbot.DB              = nil
+	capacityClient   *capacity.CapacityClient = nil
+	capacityTemplate *template.Template       = nil
+	commitsTemplate  *template.Template       = nil
+	tasksPerCommit   *tasksPerCommitCache     = nil
 )
 
 // flags
@@ -113,16 +110,17 @@ func userHasEditRights(r *http.Request) bool {
 	return strings.HasSuffix(login.LoggedInAs(r), "@google.com")
 }
 
-func getIntParam(name string, r *http.Request) (*int64, error) {
+func getIntParam(name string, r *http.Request) (*int, error) {
 	raw, ok := r.URL.Query()[name]
 	if !ok {
 		return nil, nil
 	}
-	v, err := strconv.ParseInt(raw[0], 10, 64)
+	v64, err := strconv.ParseInt(raw[0], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid integer value for parameter %q", name)
 	}
-	return &v, nil
+	v32 := int(v64)
+	return &v32, nil
 }
 
 // repoUrlToName returns a short repo nickname given a full repo URL.
@@ -170,75 +168,71 @@ func getRepoNames() []string {
 	return repoNames
 }
 
-func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
+// commitsJsonHandler writes information about a range of commits into the
+// ResponseWriter. The information takes the form of a JSON-encoded CommitsData
+// object.
+func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("commitsJsonHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
+	commitsToLoad := DEFAULT_COMMITS_TO_LOAD
+	n, err := getIntParam("n", r)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
+		return
+	}
+	if n != nil {
+		commitsToLoad = *n
+	}
+	// Prevent server overload.
+	if commitsToLoad > franken.MAX_COMMITS_TO_LOAD {
+		commitsToLoad = franken.MAX_COMMITS_TO_LOAD
+	}
+	if commitsToLoad < 0 {
+		commitsToLoad = DEFAULT_COMMITS_TO_LOAD
+	}
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}
-	from, err := getIntParam("from", r)
+	bc, err := buildCache.GetLastN(repoUrl, commitsToLoad, login.IsGoogler(r))
 	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"from\": %s", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
 		return
 	}
-	to, err := getIntParam("to", r)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"to\": %s", err))
-		return
+	rv := struct {
+		*franken.CommitsData
+		TaskSchedulerUrl string `json:"task_scheduler_url"`
+	}{
+		CommitsData:      bc,
+		TaskSchedulerUrl: *taskSchedulerUrl,
 	}
-	n, err := getIntParam("n", r)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter for \"n\": %s", err))
-		return
-	}
-	numCommits := DEFAULT_COMMITS_TO_LOAD
-	if n != nil {
-		numCommits = int(*n)
-		if numCommits > MAX_COMMITS_TO_LOAD {
-			numCommits = MAX_COMMITS_TO_LOAD
-		}
-	}
-	var update *incremental.Update
-	if from != nil {
-		fromTime := time.Unix(0, (*from)*util.MILLIS_TO_NANOS)
-		if to != nil {
-			toTime := time.Unix(0, (*to)*util.MILLIS_TO_NANOS)
-			update, err = iCache.GetRange(repoUrl, fromTime, toTime, numCommits)
-		} else {
-			update, err = iCache.Get(repoUrl, fromTime, numCommits)
-		}
-	} else {
-		update, err = iCache.GetAll(repoUrl, numCommits)
-	}
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to retrieve updates: %s", err))
-		return
-	}
-	if err := json.NewEncoder(w).Encode(update); err != nil {
+	if err := json.NewEncoder(w).Encode(rv); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
 		return
 	}
 }
 
-func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("addTaskCommentHandler").Stop()
-	defer util.Close(r.Body)
+func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("addBuildCommentHandler").Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-
-	id, ok := mux.Vars(r)["id"]
+	master, ok := mux.Vars(r)["master"]
 	if !ok {
-		httputils.ReportError(w, r, fmt.Errorf("No task ID given!"), "No task ID given!")
+		httputils.ReportError(w, r, fmt.Errorf("No build master given!"), "No build master given!")
 		return
 	}
-	task, err := taskDb.GetTaskById(id)
+	builder, ok := mux.Vars(r)["builder"]
+	if !ok {
+		httputils.ReportError(w, r, fmt.Errorf("No builder given!"), "No builder given!")
+		return
+	}
+	number, err := strconv.ParseInt(mux.Vars(r)["number"], 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to obtain task details.")
+		httputils.ReportError(w, r, err, fmt.Sprintf("No valid build number given: %v", err))
 		return
 	}
 
@@ -246,86 +240,62 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Comment string `json:"comment"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %s", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
-	c := db.TaskComment{
-		Repo:      task.Repo,
-		Revision:  task.Revision,
-		Name:      task.Name,
-		Timestamp: time.Now().UTC(),
-		TaskId:    task.Id,
+	defer util.Close(r.Body)
+	c := buildbot.BuildComment{
 		User:      login.LoggedInAs(r),
+		Timestamp: time.Now().UTC(),
 		Message:   comment.Comment,
 	}
-	if err := taskDb.PutTaskComment(&c); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to add comment: %s", err))
-		return
-	}
-	if err := iCache.Update(false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
+	if err := buildCache.AddBuildComment(master, builder, int(number), &c); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
 }
 
-func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("deleteTaskCommentHandler").Stop()
+func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("deleteBuildCommentHandler").Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-
-	id, ok := mux.Vars(r)["id"]
+	master, ok := mux.Vars(r)["master"]
 	if !ok {
-		httputils.ReportError(w, r, fmt.Errorf("No task ID given!"), "No task ID given!")
+		httputils.ReportError(w, r, fmt.Errorf("No build master given!"), "No build master given!")
 		return
 	}
-	task, err := taskDb.GetTaskById(id)
+	builder, ok := mux.Vars(r)["builder"]
+	if !ok {
+		httputils.ReportError(w, r, fmt.Errorf("No builder given!"), "No builder given!")
+		return
+	}
+	number, err := strconv.ParseInt(mux.Vars(r)["number"], 10, 64)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to obtain task details.")
+		httputils.ReportError(w, r, err, fmt.Sprintf("No valid build number given: %v", err))
 		return
 	}
-	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
+	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	c := &db.TaskComment{
-		Repo:      task.Repo,
-		Revision:  task.Revision,
-		Name:      task.Name,
-		Timestamp: time.Unix(0, timestamp),
-		TaskId:    task.Id,
-	}
-
-	if err := taskDb.DeleteTaskComment(c); err != nil {
+	if err := buildCache.DeleteBuildComment(master, builder, int(number), commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
-		return
-	}
-	if err := iCache.Update(false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
 }
 
-func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("addTaskSpecCommentHandler").Stop()
+func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("addBuilderCommentHandler").Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	taskSpec, ok := mux.Vars(r)["taskSpec"]
-	if !ok {
-		httputils.ReportError(w, r, nil, "No taskSpec provided!")
-		return
-	}
-	_, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
-		return
-	}
+	builder := mux.Vars(r)["builder"]
 
 	comment := struct {
 		Comment       string `json:"comment"`
@@ -338,58 +308,35 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 
-	c := db.TaskSpecComment{
-		Repo:          repoUrl,
-		Name:          taskSpec,
-		Timestamp:     time.Now().UTC(),
+	c := buildbot.BuilderComment{
+		Builder:       builder,
 		User:          login.LoggedInAs(r),
+		Timestamp:     time.Now().UTC(),
 		Flaky:         comment.Flaky,
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
 	}
-	if err := taskDb.PutTaskSpecComment(&c); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task spec comment: %v", err))
-		return
-	}
-	if err := iCache.Update(false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
+	if err := buildCache.AddBuilderComment(builder, &c); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add builder comment: %v", err))
 		return
 	}
 }
 
-func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("deleteTaskSpecCommentHandler").Stop()
+func deleteBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("deleteBuilderCommentHandler").Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	taskSpec, ok := mux.Vars(r)["taskSpec"]
-	if !ok {
-		httputils.ReportError(w, r, nil, "No taskSpec provided!")
-		return
-	}
-	_, repoUrl, err := getRepo(r)
+	builder := mux.Vars(r)["builder"]
+	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid timestamp: %v", err))
-		return
-	}
-	c := db.TaskSpecComment{
-		Repo:      repoUrl,
-		Name:      taskSpec,
-		Timestamp: time.Unix(0, timestamp),
-	}
-	if err := taskDb.DeleteTaskSpecComment(&c); err != nil {
+	if err := buildCache.DeleteBuilderComment(builder, commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
-		return
-	}
-	if err := iCache.Update(false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
 }
@@ -417,20 +364,15 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 
-	c := db.CommitComment{
-		Repo:          repoUrl,
-		Revision:      commit,
-		Timestamp:     time.Now().UTC(),
+	c := buildbot.CommitComment{
+		Commit:        commit,
 		User:          login.LoggedInAs(r),
+		Timestamp:     time.Now().UTC(),
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
 	}
-	if err := taskDb.PutCommitComment(&c); err != nil {
+	if err := buildCache.AddCommitComment(repoUrl, &c); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
-		return
-	}
-	if err := iCache.Update(false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
 }
@@ -448,22 +390,13 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	commit := mux.Vars(r)["commit"]
-	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
+	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	c := db.CommitComment{
-		Repo:      repoUrl,
-		Revision:  commit,
-		Timestamp: time.Unix(0, timestamp),
-	}
-	if err := taskDb.DeleteCommitComment(&c); err != nil {
+	if err := buildCache.DeleteCommitComment(repoUrl, commit, commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
-		return
-	}
-	if err := iCache.Update(false); err != nil {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
 }
@@ -553,17 +486,15 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, err.Error())
 		return
 	}
-	tasks, err := tCache.GetTasksForCommits(repoUrl, []string{hash})
+	builds, err := buildCache.GetBuildsForCommit(repoUrl, hash, login.IsGoogler(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
 	}
 	finished := 0
-	for _, byCommit := range tasks {
-		for _, t := range byCommit {
-			if t.Done() {
-				finished++
-			}
+	for _, b := range builds {
+		if b.Finished {
+			finished++
 		}
 	}
 	tasksForCommit, err := tasksPerCommit.Get(db.RepoState{
@@ -608,23 +539,25 @@ func runServer(serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	taskComments := r.PathPrefix("/json/tasks/{id}").Subrouter()
-	taskComments.HandleFunc("/comments", addTaskCommentHandler).Methods("POST")
-	taskComments.HandleFunc("/comments/{timestamp:[0-9]+}", deleteTaskCommentHandler).Methods("DELETE")
-	taskSpecs := r.PathPrefix("/json/{repo}/taskSpecs/{taskSpec}").Subrouter()
-	taskSpecs.HandleFunc("/comments", addTaskSpecCommentHandler).Methods("POST")
-	taskSpecs.HandleFunc("/comments/{timestamp:[0-9]+}", deleteTaskSpecCommentHandler).Methods("DELETE")
+	builds := r.PathPrefix("/json/{repo}/builds/{master}/{builder}/{number:[0-9]+}").Subrouter()
+	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
+	builds.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuildCommentHandler).Methods("DELETE")
+	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
+	builders.HandleFunc("/comments", addBuilderCommentHandler).Methods("POST")
+	builders.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuilderCommentHandler).Methods("DELETE")
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
+	commits.HandleFunc("/", commitsJsonHandler)
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
-	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
-	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
+	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{commentId:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
+	defer common.LogPanic()
 	// Setup flags.
+
 	common.InitWithMust(
 		"status",
 		common.PrometheusOpt(promPort),
@@ -633,7 +566,7 @@ func main() {
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
-		sklog.Fatalf("Unable to get Skia version: %s", err)
+		sklog.Fatal(err)
 	}
 	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
@@ -647,16 +580,17 @@ func main() {
 	}
 
 	// Create remote Tasks DB.
+	var taskDb db.RemoteDB
 	if *testing {
 		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"))
 		if err != nil {
-			sklog.Fatalf("Failed to create local task DB: %s", err)
+			sklog.Fatal(err)
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
 		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl)
 		if err != nil {
-			sklog.Fatalf("Failed to create remote task DB: %s", err)
+			sklog.Fatal(err)
 		}
 	}
 
@@ -665,14 +599,14 @@ func main() {
 	// Check out source code.
 	reposDir := path.Join(*workdir, "repos")
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
-		sklog.Fatalf("Failed to create repos dir: %s", err)
+		sklog.Fatal(err)
 	}
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
 	}
 	repos, err = repograph.NewMap(*repoUrls, reposDir)
 	if err != nil {
-		sklog.Fatalf("Failed to create repo map: %s", err)
+		sklog.Fatal(err)
 	}
 	sklog.Info("Checkout complete")
 
@@ -682,33 +616,14 @@ func main() {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
 
-	// Create the IncrementalCache.
-	w, err := window.New(time.Minute, MAX_COMMITS_TO_LOAD, repos)
+	// Create the build cache.
+	bc, err := franken.NewBTCache(repos, taskDb, *swarmingUrl, *taskSchedulerUrl)
 	if err != nil {
-		sklog.Fatalf("Failed to create time window: %s", err)
+		sklog.Fatalf("Failed to create build cache: %s", err)
 	}
-	iCache, err = incremental.NewIncrementalCache(taskDb, w, repos, MAX_COMMITS_TO_LOAD, *swarmingUrl, *taskSchedulerUrl)
-	if err != nil {
-		sklog.Fatalf("Failed to create IncrementalCache: %s", err)
-	}
-	iCache.UpdateLoop(60*time.Second, context.Background())
+	buildCache = bc
 
-	// Create a regular task cache.
-	tCache, err = db.NewTaskCache(taskDb, w)
-	if err != nil {
-		sklog.Fatalf("Failed to create TaskCache: %s", err)
-	}
-	lvTaskCache := metrics2.NewLiveness("status_task_cache")
-	go util.RepeatCtx(60*time.Second, context.Background(), func() {
-		if err := tCache.Update(); err != nil {
-			sklog.Errorf("Failed to update TaskCache: %s", err)
-		} else {
-			lvTaskCache.Reset()
-		}
-	})
-
-	// Capacity stats.
-	capacityClient = capacity.New(tasksPerCommit.tcc, tCache, repos)
+	capacityClient = capacity.New(tasksPerCommit.tcc, bc.GetTaskCache(), repos)
 	capacityClient.StartLoading(*capacityRecalculateInterval)
 
 	// Run the server.

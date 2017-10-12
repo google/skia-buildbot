@@ -6,7 +6,7 @@
 
   This uses d3 to draw the commit table.  Unlike previous versions which used a table and basically
   drew the table row by row, this implementation draws it column by column.  Because filtering
-  happens on a task spec (column) basis, drawing it column by column results in simpler code.
+  happens on a builder (column) basis, drawing it column by column results in simpler code.
 
   D3 is much much faster than Polymer for this type of data visualization, although this element
   still offers a Polymer interface.  If any of the inputs change, the table will be redrawn.
@@ -21,23 +21,21 @@
 
   Properties:
     // inputs
-    task_details: Object, a map of commit hash to an object that has the task results by task spec.
-    task_specs: Object, a map of the task spec names to an object that has, among other things, category,
-        subcategory, and comments.
-    tasks: Object, a map of the task spec names to an object that maps task IDs to task results.
-    categories: Object, a map of the task spec categories to an object that has the subcategories and
-        the colspan (total number of included task specs).
-    category_list: Array<String>, an array of the task spec category names.
+    build_details: Object, a map of commit hash to an object that has the build results by builder.
+    builders: Object, a map of the builder names to an object that has, among other things, category,
+        subcategory, comments and master.
+    builds: Object, a map of the builder names to an object that maps build numbers to build results.
+    categories: Object, a map of the builder categories to an object that has the subcategories and
+        the colspan (total number of included builders).
+    category_list: Array<String>, an array of the builder category names.
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
-    logged_in: Boolean, if the links should be for internal or external pages.
-    num_task_specs: Number, the number of task specs with data, after filtering.
+    logged_in: Boolean, if the links should be for internal or external buildbot pages.
+    num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of an issue number that was relanded to the commit that relands it.
     repo: String, the current repo.  Used to direct comments to the right place.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
     reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it.
-    swarming_url: String, the URL of the Swarming server.
-    task_scheduler_url: String, the URL of the Task Scheduler.
 
   Methods:
     None.
@@ -55,8 +53,8 @@
 
 <link rel="import" href="/res/common/imp/styles-sk.html">
 
-<link rel="import" href="task-popup-sk.html">
-<link rel="import" href="taskspec-popup-sk.html">
+<link rel="import" href="build-popup-sk.html">
+<link rel="import" href="builder-popup-sk.html">
 <link rel="import" href="commit-popup-sk.html">
 
 <link rel="stylesheet" href="commits-table-d3.css">
@@ -67,7 +65,7 @@
         min-height: 780px;
         min-width: 50px;
       }
-      #tasks {
+      #builds {
         border: 1px solid blue;
         min-height: 400px;
       }
@@ -102,18 +100,18 @@
   </template>
   <script>
   (function(){
-    var TASK_HEIGHT = 20;
+    var BUILD_HEIGHT = 20;
     Polymer({
       is: 'commits-table-d3-sk',
       properties: {
         // inputs from data source to render.
-        task_specs: {
+        builders: {
           type: Object,
         },
-        task_details: {
+        build_details: {
           type: Object,
         },
-        tasks: {
+        builds: {
           type: Object,
         },
         categories: {
@@ -146,14 +144,8 @@
         reverted_map: {
           type: Object,
         },
-        swarming_url: {
-          type: String,
-        },
         time_points: {
           type: Object,
-        },
-        task_scheduler_url: {
-          type: String,
         },
 
         // outputs
@@ -164,7 +156,7 @@
         }
       },
       observers: [
-        "redraw(task_specs, task_details, categories, category_list, commit_label, commits, commits_map, relanded_map, repo, reverted_map, time_points)",
+        "redraw(builders, build_details, categories, category_list, commit_label, commits, commits_map, relanded_map, repo, reverted_map, time_points)",
       ],
 
       ready: function() {
@@ -192,9 +184,9 @@
 
         this._drawSubCategories(this.categories);
 
-        this._drawTaskSpecColumns(this.categories, this.task_specs, this.commits.length);
+        this._drawBuilderColumns(this.categories, this.builders, this.commits.length);
 
-        this._drawTasks(this.commits, this.task_details);
+        this._drawBuilds(this.commits, this.build_details);
         console.timeEnd("d3 rendering");
         this.set("drawing", false);
       },
@@ -278,27 +270,14 @@
         newCommits
           .insert("div")
           .classed("flex", true);
-        newCommits
-          .insert("span")
-          .classed("commit-comment", true);
-        newCommits
-          .insert("span")
-          .classed("commit-ignore", true);
-        newCommits
-          .insert("span")
-          .classed("commit-revert", true);
-        newCommits
-          .insert("span")
-          .classed("commit-reland", true);
-
         // On the other side, conditionally draw iron icons for comments, relands, reverts.
-        this._addIronIcon(newCommits.select(".commit-comment"), "communication:chat", "tiny", function(commit){
+        this._addIronIcon(newCommits, "communication:chat", "tiny", function(commit){
           return commit.comments && commit.comments.length > 0;
         });
-        this._addIronIcon(newCommits.select(".commit-ignore"), "icons:block", "tiny", function(commit){
+        this._addIronIcon(newCommits, "icons:block", "tiny", function(commit){
             return commit.ignoreFailure;
         });
-        var reverts = this._addIronIcon(newCommits.select(".commit-revert"), "icons:undo", "tiny fg-failure", function(commit){
+        var reverts = this._addIronIcon(newCommits, "icons:undo", "tiny fg-failure", function(commit){
           var reverterCommit = reverted_map[commit.issue];
           return (reverterCommit !== undefined && reverterCommit.timestamp > commit.timestamp);
         });
@@ -309,7 +288,7 @@
         reverts.on("mouseleave", function(commit){
           d3.selectAll(".commit.bg-failure").classed("bg-failure", false);
         })
-        var relands = this._addIronIcon(newCommits.select(".commit-reland"), "icons:redo", "tiny fg-success", function(commit){
+        var relands = this._addIronIcon(newCommits, "icons:redo","tiny fg-success", function(commit){
           var relanderCommit = relanded_map[commit.issue];
           return (relanderCommit !== undefined && relanderCommit.timestamp > commit.timestamp);
         });
@@ -326,6 +305,7 @@
       // returns all icons that were added.
       _addIronIcon: function(selection, icon, classes, shouldAddIcon) {
         return selection
+          .insert("span")
           .html(function(commit){
             // The Polymer templates will pick this up and make it a real iron-icon element.
             // However, if you try to do .insert("iron-icon")... that does not work.
@@ -350,7 +330,7 @@
         data
           .style("flex-grow", function(category){
             // This keeps the rows about as evenly sized as possible.
-            // colspan is the total number of task specs in this category.
+            // colspan is the total number of builders in this category.
             return categories[category].colspan;
           });
 
@@ -393,7 +373,7 @@
           data
             .style("flex-grow", function(d){
               // This keeps the rows about as evenly sized as possible.
-              return categories[d.category].subcategories[d.subcategory].task_specs.length;
+              return categories[d.category].subcategories[d.subcategory].builders.length;
             });
           subcategories
             .insert("div")
@@ -401,194 +381,186 @@
             .text(function(d){
               return d.subcategory;
             });
-          // .task-specs will hold all of the .task-spec elements.
+          // .builders will hold all of the .builder elements.
           subcategories
             .insert("div")
-            .classed("task-specs", true);
+            .classed("builders", true);
         });
       },
 
-      // draw all of the task spec columns, including the header box with the flaky, ignore_failure,
+      // draw all of the builder columns, including the header box with the flaky, ignore_failure,
       // and comment icons
-      _drawTaskSpecColumns: function(categories, taskSpecs, num_commits) {
+      _drawBuilderColumns: function(categories, builders, num_commits) {
         var addIronIcon = this._addIronIcon.bind(this);
-        var openTaskSpecDialog = this._openTaskSpecDialog.bind(this);
-        d3.select(this.$.table).selectAll(".task-specs").each(function(d){
+        var openBuilderDialog = this._openBuilderDialog.bind(this);
+        d3.select(this.$.table).selectAll(".builders").each(function(d){
           if (!categories[d.category].subcategories[d.subcategory]) {
             return;
           }
-          var list = categories[d.category].subcategories[d.subcategory].task_specs.map(function(taskSpec){
+          var list = categories[d.category].subcategories[d.subcategory].builders.map(function(builder){
             return {
               "category": d.category,
               "subcategory": d.subcategory,
-              "taskSpec": taskSpec,
+              "builder": builder,
             };
           });
 
           var data = d3.select(this)
-            .selectAll(".task-spec")
+            .selectAll(".builder")
             .data(list, function(d) {
-              return d.category + d.subcategory + d.taskSpec;
+              return d.category + d.subcategory + d.builder;
             });
           data.exit().remove();
-          var newTaskSpecs = data
+          var newBuilders = data
             .enter()
             .insert("div")
-            .classed("task-spec", true);
+            .classed("builder", true);
           data.order();
-          var titles = newTaskSpecs
+          var titles = newBuilders
             .insert("div")
-            .classed("task-spec-title", true)
+            .classed("builder-title", true)
             .attr("title", function(d){
-              return d.taskSpec;
+              return d.builder;
             })
             .on("tap", function(d){
               // Stop the propogation so we don't immediately hide the popup we show.
               d3.event.stopPropagation();
-              openTaskSpecDialog(d.taskSpec);
+              openBuilderDialog(d.builder);
             });
-          titles
-            .insert("span")
-            .classed("taskspec-comment", true);
-          titles
-            .insert("span")
-            .classed("taskspec-ignore", true);
-          titles
-            .insert("span")
-            .classed("taskspec-flaky", true);
 
-          addIronIcon(data.selectAll(".taskspec-ignore"), "icons:block", "tiny", function(d){
-            return taskSpecs[d.taskSpec].ignoreFailure;
+          addIronIcon(titles, "icons:block", "tiny", function(d){
+            return builders[d.builder].ignoreFailure;
           });
-          addIronIcon(data.selectAll(".taskspec-flaky"), "image:texture", "tiny", function(d){
-            return taskSpecs[d.taskSpec].flaky;
+          addIronIcon(titles, "image:texture", "tiny", function(d){
+            return builders[d.builder].flaky;
           });
-          addIronIcon(data.selectAll(".taskspec-comment"), "communication:chat", "tiny", function(d){
-            return taskSpecs[d.taskSpec].comments && taskSpecs[d.taskSpec].comments.length > 0;
+          addIronIcon(titles, "communication:chat", "tiny", function(d){
+            return builders[d.builder].comments && builders[d.builder].comments.length > 0;
           });
 
-          newTaskSpecs
-            .insert("div")
-            .classed("task-spec-spacer", true);
+          newBuilders
+          .insert("div")
+          .classed("builder-spacer", true);
 
           // Set the height so that flexing doesn't throw off the multi column alignment.
-          newTaskSpecs
+          newBuilders
             .insert("div")
-            .classed("tasks", true)
+            .classed("builds", true)
             .style("max-height", function(){
-              return (TASK_HEIGHT * num_commits) + "px";
+              return (BUILD_HEIGHT * num_commits) + "px";
             });
             // .style("min-height", function(){
-            //   return (TASK_HEIGHT * num_commits) + "px";
+            //   return (BUILD_HEIGHT * num_commits) + "px";
             // });
         });
       },
 
-      // Draws the task divs.  We forego flexbox helping us align these.  First, we create a task
-      // div (which is a fixed height) in side of it create a div with the various task classes to
+      // Draws the build divs.  We forego flexbox helping us align these.  First, we create a build
+      // div (which is a fixed height) in side of it create a div with the various build classes to
       // set the heights/widths/margins etc.  This is easier to line up with the adjacent columns
       // and allows for more consistent zooming behavior.
-      _drawTasks: function(commits, task_details) {
-        var openTaskDialog = this._openTaskDialog.bind(this);
+      _drawBuilds: function(commits, build_details) {
+        var openBuildDialog = this._openBuildDialog.bind(this);
         var addIronIcon = this._addIronIcon.bind(this);
 
-        d3.select(this.$.table).selectAll(".tasks").each(function(d){
+        d3.select(this.$.table).selectAll(".builds").each(function(d){
           var list = commits.map(function(commit) {
             return {
               "category": d.category,
               "subcategory": d.subcategory,
-              "taskSpec": d.taskSpec,
+              "builder": d.builder,
               "commit": commit,
-              "displayClass": commit.displayClass[d.taskSpec] || [],
+              "displayClass": commit.displayClass[d.builder] || [],
             };
           });
           var data = d3.select(this)
-            .selectAll(".task")
+            .selectAll(".build")
             .data(list, function(d) {
-              return d.category + d.subcategory + d.taskSpec + d.commit.hash;
+              return d.category + d.subcategory + d.builder + d.commit.hash;
             });
           data.exit().remove();
-          var newTasks = data
+          data
             .enter()
             .insert("div")
-            .classed("task",true)
+            .classed("build",true)
             .insert("div")
             .on("tap", function(d){
               // Stop the propogation so we don't immediately hide the popup we show.
               d3.event.stopPropagation();
-              openTaskDialog(d);
+              openBuildDialog(d);
             });
-          newTasks
-            .insert("span")
-            .classed("task-comment", true);
           data.order();
           // Style the inside div.
           data.each(function(d){
-            var task = this.children[0];
+            var build = this.children[0];
+            // Clear any icons already drawn in the child.
+            build.innerHTML = "";
+
             // Remove any previously-set classes.
             var removeClasses = [];
-            for (var i = 0; i < task.classList.length; i++) {
-              var c = task.classList.item(i);
-              if (c.indexOf("bg-") === 0 || c.indexOf("task_") === 0) {
+            for (var i = 0; i < build.classList.length; i++) {
+              var c = build.classList.item(i);
+              if (c.indexOf("bg-") === 0 || c.indexOf("build_") === 0) {
                 removeClasses.push(c);
               }
             }
             removeClasses.forEach(function(c) {
-              task.classList.remove(c);
+              build.classList.remove(c);
             });
 
-            // Add task display class.
+            // Add build display class.
             for (var i = 0; i < d.displayClass.length; i++) {
-              task.classList.add(d.displayClass[i]);
+              build.classList.add(d.displayClass[i]);
             }
 
-            task.title = d.taskSpec + " @ " + d.commit.shortHash;
-
-            var details = task_details[d.commit.hash] && task_details[d.commit.hash][d.taskSpec];
+            var details = build_details[d.commit.hash] && build_details[d.commit.hash][d.builder];
             if (details) {
               // Add the new class.
-              task.classList.add(task_details[d.commit.hash][d.taskSpec].colorClass);
-              addIronIcon(d3.select(task).select(".task-comment"), "communication:chat", "tiny", function(){
-                return details.comments && details.comments.length > 0 &&
-                    (task.classList.contains(CLASS_TASK_SINGLE)
-                  || task.classList.contains(CLASS_TASK_TOP));
+              build.classList.add(build_details[d.commit.hash][d.builder].colorClass);
+              build.title = d.builder + ", #"+details.number;
+              addIronIcon(d3.select(build), "communication:chat", "tiny", function(){
+                return details.comments.length > 0 &&
+                    (build.classList.contains(CLASS_BUILD_SINGLE)
+                  || build.classList.contains(CLASS_BUILD_TOP));
               });
             } else {
-              task.style["background-color"] = "";
-              task.title = "";
+              build.style["background-color"] = "";
+              build.title = "";
             }
           });
         });
       },
 
-      _openTaskDialog: function(task) {
+      _openBuildDialog: function(build) {
         if (this._infoPopupOpen()) {
           return;
         }
-        var details = this.task_details[task.commit.hash][task.taskSpec];
+        var details = this.build_details[build.commit.hash][build.builder];
         if (details) {
-          var taskInfo = document.createElement("task-popup-sk");
-          taskInfo.task = details;
-          taskInfo.repo = this.repo;
-          taskInfo.repo_base = this.repo_base;
-          taskInfo.commit_details = this.commits_map;
-          taskInfo.parent = this;
-          taskInfo.swarming_url = this.swarming_url;
-          taskInfo.task_scheduler_url = this.task_scheduler_url;
-          this._openDialog(taskInfo);
+          var buildInfo = document.createElement("build-popup-sk");
+          buildInfo.build = details;
+          buildInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(details, this.logged_in);
+          buildInfo.repo = this.repo;
+          buildInfo.repo_base = this.repo_base;
+          buildInfo.commit_details = this.commits_map;
+          buildInfo.parent = this;
+          this._openDialog(buildInfo);
         }
       },
 
-      _openTaskSpecDialog: function(taskSpec) {
+      _openBuilderDialog: function(builder) {
         if (this._infoPopupOpen()) {
           return;
         }
-        if (taskSpec) {
-          var taskSpecInfo = document.createElement("taskspec-popup-sk");
-          taskSpecInfo.task_spec = this.task_specs[taskSpec];
-          taskSpecInfo.repo = this.repo;
-          taskSpecInfo.swarming_url = this.swarming_url;
-          this._openDialog(taskSpecInfo);
+        if (builder) {
+          var builderInfo = document.createElement("builder-popup-sk");
+          builderInfo.builder = this.builders[builder];
+          for (var buildNum in this.builds[builder]) {
+            builderInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(this.builds[builder][buildNum], this.logged_in);
+            break;
+          }
+          builderInfo.repo = this.repo;
+          this._openDialog(builderInfo);
         }
       },
 
@@ -613,6 +585,8 @@
         this.$.infoDialog.innerHTML = '';
         this.$.infoDialog.appendChild(child);
         child.show();
+
+        console.log("show");
       },
     });
   })()

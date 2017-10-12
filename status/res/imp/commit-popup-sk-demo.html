@@ -6,62 +6,7 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <script src="/res/imp/sinon-1.17.2.js"></script>
   <script type="text/javascript">
-    var server = sinon.fakeServer.create();
-    server.autoRespond = true;
-
-    var comments = [{
-      id: "0",
-      ignoreFailure: true,
-      message: "Example Comment",
-      time: "Mon Sep 25 2017 07:50:06 GMT-0400 (EDT)",
-      user: "you@google.com",
-    }];
-    var repo = "skia";
-    var commit = {
-      author: "you@google.com",
-      comments: comments,
-      hash: "abcd1234",
-      subject: "My Awesome Commit",
-      body: "Change some random stuff.",
-      timestamp: "Sun Sep 24 2017 10:50:06 GMT-0400 (EDT)",
-    };
-
-    function update(request, newComments) {
-      var popup = document.getElementById("popup");
-      popup.set("commit.comments", newComments);
-      comments = newComments;
-      return request.respond(200, {});
-    }
-
-    server.respondWith("POST", "/json/"+repo+"/commits/"+commit.hash+"/comments", function(request) {
-      console.log("process comment");
-      var comment = JSON.parse(request.requestBody);
-      comment.id = "" + comments.length;
-      comment.message = comment.comment;
-      comment.time = new Date().toString();
-      comment.user = "you@google.com";
-      comments.push(comment);
-      var newComments = [];
-      for (var i = 0; i < comments.length; i++) {
-        newComments.push(comments[i]);
-      }
-      return update(request, newComments);
-    });
-    var deleteCommentUrl = new RegExp("\/json\/" + repo + "\/commits\/" + commit.hash + "\/comments\/\\d+");
-    server.respondWith("DELETE", deleteCommentUrl, function(request) {
-      var split = request.url.split("/");
-      var commentId = parseInt(split[split.length-1]);
-      var newComments = [];
-      for (var i = 0; i < comments.length; i++) {
-        if (comments[i].id != commentId) {
-          newComments.push(comments[i]);
-        }
-      }
-      return update(request, newComments);
-    });
-
     // Mock out login to fake that a user is logged in
     sk.Login = {
       then: function(f){
@@ -70,20 +15,21 @@
         });
       }
     };
+
+    // Mock out sk.post() to pretend to support adding comments.
+    sk.post = function(url, body) {
+      return new Promise(function (resolve, reject) {
+        resolve("Added the comment.");
+      });
+    }
   </script>
   <link rel=import href="commit-popup-sk.html">
 </head>
 <body>
   <h1>commit-popup-sk demo</h1>
-  <commit-popup-sk id="popup"></commit-popup-sk>
-  <script type="text/javascript">
-    var popup = document.getElementById("popup");
-    popup.addEventListener("reload", function() {
-      popup.show();
-    });
-    popup.commit = commit;
-    popup.repo = repo;
-    popup.show();
-  </script>
+  <commit-popup-sk
+      commit='{"hash":"f5d4746ad73ef5eabc927d3d988bb9ee97c77921","author":"herb (herb@google.com)","subject":"Fix asserts found in SampleApp and update the tests with additional interesting numbers.<script>alert(\"XSS IS FUN\")</script>","parent":["4534562f7600e036fd7561df1fe04dc5e58a58fc"],"body":"<div style=\"background-color:orange;\">XSS test</div> BUG=skia:\nGOLD_TRYBOT_URL= https://gold.skia.org/search2?unt=true\u0026query=source_type%3Dgm\u0026master=false\u0026issue=1717743004\n\nReview URL: https://codereview.chromium.org/1717743004\n","timestamp":"2016-02-19T16:54:12-08:00","issue":"123456789"}'
+      repo="skia">
+  </commit-popup-sk>
 </body>
 </html>

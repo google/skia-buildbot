@@ -20,6 +20,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
@@ -191,10 +192,21 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 	})
 }
 
+// buildResultToTaskStatus maps a build result code to a task status code.
+func buildResultToTaskStatus(res int) db.TaskStatus {
+	return map[int]db.TaskStatus{
+		buildbot.BUILDBOT_SUCCESS:   db.TASK_STATUS_SUCCESS,
+		buildbot.BUILDBOT_WARNINGS:  db.TASK_STATUS_SUCCESS,
+		buildbot.BUILDBOT_FAILURE:   db.TASK_STATUS_FAILURE,
+		buildbot.BUILDBOT_SKIPPED:   db.TASK_STATUS_MISHAP,
+		buildbot.BUILDBOT_EXCEPTION: db.TASK_STATUS_MISHAP,
+	}[res]
+}
+
 // cycle runs ingestion of task data, maps each task to the commits it covered
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
-func cycle(taskDb db.RemoteDB, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
+func cycle(taskDb db.RemoteDB, buildDb buildbot.DB, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
 	if err := repos.Update(); err != nil {
 		return err
 	}
@@ -232,6 +244,32 @@ func cycle(taskDb db.RemoteDB, repos repograph.Map, tcc *specs.TaskCfgCache, edb
 		tasks, err := taskDb.GetTasksFromDateRange(periodStart, periodEnd)
 		if err != nil {
 			return err
+		}
+		// Convert Buildbot builds to Tasks and merge them into the list.
+		if buildDb != nil {
+			builds, err := buildDb.GetBuildsFromDateRange(periodStart, periodEnd)
+			if err != nil {
+				return err
+			}
+			for _, b := range builds {
+				if strings.HasSuffix(b.Builder, "-Trybot") {
+					continue
+				}
+				t := &db.Task{
+					Created:  b.Started,
+					Finished: b.Finished,
+					Id:       "buildbot-id",
+					Status:   buildResultToTaskStatus(b.Results),
+					TaskKey: db.TaskKey{
+						Name: b.Builder,
+						RepoState: db.RepoState{
+							Repo:     b.Repository,
+							Revision: b.GotRevision,
+						},
+					},
+				}
+				tasks = append(tasks, t)
+			}
 		}
 
 		// For each task, find all commits first covered by the task
@@ -311,6 +349,27 @@ func cycle(taskDb db.RemoteDB, repos repograph.Map, tcc *specs.TaskCfgCache, edb
 					if _, ok := cfg.Tasks[t.Name]; !ok {
 						return false, nil
 					}
+				} else {
+					builds, err := buildDb.GetBuildsForCommits([]string{commit.Hash}, nil)
+					if err != nil {
+						return false, err
+					}
+					found := false
+					numTasks := 0
+					for _, b := range builds[commit.Hash] {
+						if b.Builder == t.Name {
+							found = true
+						}
+						if !ignoreTask(b.Builder) {
+							numTasks++
+						}
+					}
+					if cData.NumTasks < 0 {
+						cData.NumTasks = numTasks
+					}
+					if !found {
+						return false, nil
+					}
 				}
 
 				d := t.Finished.Sub(commit.Timestamp)
@@ -386,7 +445,7 @@ func writeTs(workdir string, ts time.Time) error {
 }
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
-func Start(dbUrl, workdir string, ctx context.Context) error {
+func Start(dbUrl, workdir string, buildDb buildbot.DB, ctx context.Context) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return err
@@ -439,7 +498,7 @@ func Start(dbUrl, workdir string, ctx context.Context) error {
 	}
 	go util.RepeatCtx(10*time.Minute, ctx, func() {
 		now := time.Now()
-		if err := cycle(taskDb, repos, tcc, edb, em, lastFinished, now, workdir); err != nil {
+		if err := cycle(taskDb, buildDb, repos, tcc, edb, em, lastFinished, now, workdir); err != nil {
 			sklog.Errorf("Failed to obtain avg time to X%% bot coverage metrics: %s", err)
 		} else {
 			lastFinished = now

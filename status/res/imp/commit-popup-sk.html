@@ -104,8 +104,8 @@
       },
 
       commentAdded: function() {
-        this.hide();
-        this.fire("reload", {});
+        // reload page
+        window.location.href = window.location.href;
       },
 
       _humanize: function(dateStr) {
