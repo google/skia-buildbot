@@ -52,10 +52,13 @@ If you add any critical TODOs while you're coding, file a blocking bug for the i
   under load.
 - Test on browsers that your users will be using, at least Chrome on desktop and
   ideally Chrome on Android.
-- Write VM create and delete scripts, using `compute_engine_scripts/ctfe` as a
-  template. Find a free IP address at
-  [Google Developers Console > Networking > External IP addresses](https://console.cloud.google.com/project/31977622648/addresses/list)
-  to use for your instance. Create your instance.
+- Write VM create and delete program, `vm.go`, using an existing `vm.go` as a
+  template. Unless you need a fixed IP address, for MySQL whitelisting for
+  example, you should use a dynamic IP address. Find a free IP address at
+  [Google Developers Console > Networking > External IP
+  addresses](https://console.cloud.google.com/project/31977622648/addresses/list)
+  to use for your instance.
+- Create your instance.
 - Write a `build_release` script following the instructions in
   `bash/release.sh`. Write a `.service` file, passing at least these arguments
   to your binary (the `host` flag is not necessary if you do not use the login
@@ -63,17 +66,18 @@ If you add any critical TODOs while you're coding, file a blocking bug for the i
 ```
 --logtostderr
 ```
-- Add your server to `push/skiapush.conf` and include `pulld`, and
-  the name given to your package in your `build_release` script. Commit the
-  change, build a new `push` release, push `pushd`, run your build_release
-  script, and push any out-of-date packages to your instance.
+- Add a push description file, `skiapush.json5` in your application directory
+  and include `pulld`, and the name given to your package in your
+  `build_release` script. Commit the change, build a new `push` release, push
+  `pushd`, run your build_release script, and push any out-of-date packages to
+  your instance.
 - Add metrics endpoints to `prometheus/sys/prometheus.yml` for both the app
   and `pulld` if this is a new server instance.
 - Add configuration for your service's domain name to
   `skfe/sys/skia_org_nginx`. Commit the change, build a new `skfe` release, and
   push `skfe-config` to `skfe-1` and `-2`. Your service is now live on the
   Internet.
-- Add prober rules to `prober/probers.json`.
+- Add prober rules to `probers.json` in your application directory.
 
     - Ideally, probe all public HTML pages and all nullipotent JSON endpoints.
       You can write functions in `prober/go/prober/main.go` to check the
