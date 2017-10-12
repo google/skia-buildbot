@@ -278,11 +278,16 @@ func main() {
 		GStorageClient:    gsClient,
 	}
 
-	// Check if this is public instance. If so make sure there is a white list.
-	if !*forceLogin {
+	// Load the whitelist if there is one.
+	if *pubWhiteList != "" {
 		if err := storages.LoadWhiteList(*pubWhiteList); err != nil {
 			sklog.Fatalf("Empty or invalid white list file. A non-empty white list must be provided if force_login=false.")
 		}
+	}
+
+	// Check if this is public instance. If so make sure there is a white list.
+	if !*forceLogin && (*pubWhiteList == "") {
+		sklog.Fatalf("Empty whitelist file. A non-empty white list must be provided if force_login=false.")
 	}
 
 	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
