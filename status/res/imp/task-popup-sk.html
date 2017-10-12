@@ -68,7 +68,7 @@
         </h3>
       </div>
       <div>
-        <a href$="[[_retryUrl(task)]]" target="_blank" class="retry">
+        <a href$="[[_retryUrl(task_scheduler_url, task)]]" target="_blank" class="retry">
           <paper-button raised class="colored" role="button">Re-run Job</paper-button>
         </a>
       </div>
@@ -158,8 +158,8 @@
       _makeCommitURL: function(c, repo_base) {
         return repo_base + c;
       },
-      _retryUrl: function(task) {
-        if (!task || !task.name) {
+      _retryUrl: function(task_scheduler_url, task) {
+        if (!task || !task.name || !task_scheduler_url) {
           return "";
         }
         var job = task.name;
