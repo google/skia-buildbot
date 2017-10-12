@@ -502,7 +502,12 @@ func oneStep() {
 	count := int64(0)
 	allInstalled := packageInfo.AllInstalled()
 	allAvailable := packageInfo.AllAvailable()
-	for _, installed := range allInstalled {
+	for serverName, installed := range allInstalled {
+		// Don't warn about dirty packages on staging instances.
+		if strings.HasSuffix(serverName, "-stage") {
+			sklog.Infof("Skipping %s", serverName)
+			continue
+		}
 		for _, app := range installed.Names {
 			// app is the full versioned name of the installed app, we can find just
 			// the package name of the app by splitting off the stuff before the
