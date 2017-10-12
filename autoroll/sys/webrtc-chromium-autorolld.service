@@ -9,7 +9,7 @@ ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
     --host=webrtc-chromium-roll.skia.org \
     --logtostderr \
-    --parentWaterfall=https://build.chromium.org \
+    --parent_waterfall=https://build.chromium.org \
     --workdir=/mnt/pd0/autoroll_workdir \
     --child_branch=lkgr \
     --childName=WebRTC \
