@@ -16,6 +16,29 @@
       "revId": "32a7343336668840ae6dfe0b05f1a66f5095292f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "964a33d4_8f23593d",
+        "filename": "golden/vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T22:23:57Z",
+      "side": 1,
+      "message": "Need to specify names for your disks.",
+      "range": {
+        "startLine": 41,
+        "startChar": 19,
+        "endLine": 41,
+        "endChar": 27
+      },
+      "revId": "32a7343336668840ae6dfe0b05f1a66f5095292f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
