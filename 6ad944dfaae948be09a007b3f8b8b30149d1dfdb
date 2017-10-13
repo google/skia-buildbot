@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "ac1f7cff_af716ef6",
+        "filename": "statusv2/go/ml/features/features.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T18:42:49Z",
+      "side": 1,
+      "message": "You could use job.Start(), collect the jobs, and later job.Wait() for each job.",
+      "parentUuid": "d9df2da1_9cd6070b",
+      "range": {
+        "startLine": 53,
+        "startChar": 14,
+        "endLine": 53,
+        "endChar": 23
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5bf4265d_b91d938d",
         "filename": "statusv2/go/ml/features/features.go",
         "patchSetId": 13
@@ -413,6 +437,30 @@
       "side": 1,
       "message": "Yeah, it\u0027s so that we can pick up longer-running tasks once they finish.",
       "parentUuid": "5bf4265d_b91d938d",
+      "range": {
+        "startLine": 64,
+        "startChar": 19,
+        "endLine": 64,
+        "endChar": 34
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b80dc296_4fe2446e",
+        "filename": "statusv2/go/ml/features/features.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T18:42:49Z",
+      "side": 1,
+      "message": "Worth a comment, I think.",
+      "parentUuid": "2a23e64c_7d0aa0b3",
       "range": {
         "startLine": 64,
         "startChar": 19,

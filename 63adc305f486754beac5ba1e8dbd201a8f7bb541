@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37f89c5d_4526818a",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T18:42:49Z",
+      "side": 1,
+      "message": "nit: Maybe workdir in case we add stuff in the future.",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 12
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0542303f_42474704",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T18:42:49Z",
+      "side": 1,
+      "message": "nit: doc. (Without thinking, I might assume this is the time that ProcessFn was called, not the end argument.)",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 12
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b926cac_97fa0305",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T18:42:49Z",
+      "side": 1,
+      "message": "nit: include p.Name here, or just move logging to within ProcessFn for more context.",
+      "range": {
+        "startLine": 49,
+        "startChar": 1,
+        "endLine": 49,
+        "endChar": 43
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c8747e3_fe170c7d",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T18:42:49Z",
+      "side": 1,
+      "message": "nit: ISTM this should be either p.BeginningOfTime or p.lastSuccess.Add(-p.Window)",
+      "range": {
+        "startLine": 64,
+        "startChar": 29,
+        "endLine": 64,
+        "endChar": 42
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cf62f00_84ab0a17",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T18:42:49Z",
+      "side": 1,
+      "message": "nit: \"processor\" is pretty generic. Unfortunately I don\u0027t have a better suggestion.\n\n(If you rename here, also consider renaming this package.)",
+      "range": {
+        "startLine": 103,
+        "startChar": 29,
+        "endLine": 103,
+        "endChar": 58
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
