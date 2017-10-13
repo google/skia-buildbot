@@ -45,9 +45,9 @@ Build Release Package
 ---------------------
 
 The process begins with building a Debian package that contains all the assets
-needed, including a monit config file and a SysV style init file if you are
-deploying an application. Note that not only applications can be deployed this
-way, for example nginx config files could be deployed by this system also.
+needed, including a systemd service file if you are deploying an application.
+Note that not only applications can be deployed this way, for example nginx
+config files could be deployed by this system also.
 
 The script in `../bash/release.sh` builds the debian package and uploads it to
 the correct spot in Google Storage.
@@ -91,21 +91,15 @@ running 'pulld' process that polls the
 `gs://skia-push/server/{servername}.json` file and looks for it to change.
 When it does change then any new Debian packages are downloaded from
 `gs://skia-push/debs` and installed.
-The push server will also send a request to
-http://[server-name]:10116/pullpullpull to trigger pulld to look for changes
-in the json file.
-
 
 GCE Instances
 -------------
 
 GCE instances that are created with a boot disk built from the
-'skia-pushable-base' snapshot are fully ready to be push clients.  New packages
+'skia-pushable-base' snapshot are fully ready to be push clients. New packages
 that are part of Debian can't be installed by the push process, for example,
 nginx. Installing such packages on an instance is done by using a [startup
 script](https://cloud.google.com/compute/docs/startupscript).
-
-Similarly mounting other drives should be done via startup script.
 
 Push Server
 -----------
@@ -119,7 +113,8 @@ which servers.
 
 The server reads all the information from `gs://skia-push` to build its UI,
 and on user selection of application versions to deploy it will read and write
-back a modified file to `gs://skia-push/servers/{servername}.json`. That will
-trigger the selected server to update that package during the next polling
-cycle (currently every 15 seconds).
+back a modified file to `gs://skia-push/servers/{servername}.json`. The push
+server will also write a new value into some instance level metadata, which
+will trigger that instance's `pulld` to look for updated packages. As a
+failsafe, pulld will look for new packages every 5 minutes.
 
