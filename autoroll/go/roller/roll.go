@@ -98,6 +98,7 @@ func (r *gerritRoll) withModify(action string, fn func() error) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Close(result, msg string) error {
 	sklog.Infof("Closing issue %d (result %q) with message: %s", r.ci.Issue, result, msg)
+	r.result = result
 	return r.withModify("close the CL", func() error {
 		return r.g.Abandon(r.ci, msg)
 	})

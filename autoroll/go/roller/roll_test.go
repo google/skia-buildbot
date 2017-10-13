@@ -190,6 +190,29 @@ func TestGerritRoll(t *testing.T) {
 	g.MockGetTrybotResults(roll, nil)
 	assert.NoError(t, gr.Close(autoroll.ROLL_RESULT_FAILURE, "close it!"))
 	g.AssertEmpty()
+
+	// Verify that we set the correct status when abandoning a CL.
+	roll = rm.RollerWillUpload(128, from, to, true)
+	g.MockGetIssueProperties(roll)
+	g.MockGetTrybotResults(roll, nil)
+	gr, err = newGerritRoll(g.Gerrit, rm, recent, 128)
+	assert.NoError(t, err)
+	assert.NoError(t, gr.InsertIntoDB())
+	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, roll.Issue)
+	req = testutils.MarshalJSON(t, &struct {
+		Message string `json:"message"`
+	}{
+		Message: "close it!",
+	})
+	g.Mock.MockOnce(url, mockhttpclient.MockPostDialogue("application/json", []byte(req), nil))
+	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
+	g.MockGetIssueProperties(roll)
+	g.MockGetTrybotResults(roll, nil)
+	assert.NoError(t, gr.Close(autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "close it!"))
+	g.AssertEmpty()
+	issue, err := recent.Get(128)
+	assert.NoError(t, err)
+	assert.Equal(t, issue.Result, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS)
 }
 
 func TestGerritAndroidRoll(t *testing.T) {
@@ -362,4 +385,27 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.MockGetTrybotResults(roll, nil)
 	assert.NoError(t, gr.Close(autoroll.ROLL_RESULT_FAILURE, "close it!"))
 	g.AssertEmpty()
+
+	// Verify that we set the correct status when abandoning a CL.
+	roll = rm.RollerWillUpload(128, from, to, true)
+	g.MockGetIssueProperties(roll)
+	g.MockGetTrybotResults(roll, nil)
+	gr, err = newGerritAndroidRoll(g.Gerrit, rm, recent, 128)
+	assert.NoError(t, err)
+	assert.NoError(t, gr.InsertIntoDB())
+	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, roll.Issue)
+	req = testutils.MarshalJSON(t, &struct {
+		Message string `json:"message"`
+	}{
+		Message: "close it!",
+	})
+	g.Mock.MockOnce(url, mockhttpclient.MockPostDialogue("application/json", []byte(req), nil))
+	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
+	g.MockGetIssueProperties(roll)
+	g.MockGetTrybotResults(roll, nil)
+	assert.NoError(t, gr.Close(autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "close it!"))
+	g.AssertEmpty()
+	issue, err := recent.Get(128)
+	assert.NoError(t, err)
+	assert.Equal(t, issue.Result, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS)
 }
