@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e4807ab_06de30be",
+        "filename": "push/DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T19:04:52Z",
+      "side": 1,
+      "message": "typo instance\u0027s",
+      "range": {
+        "startLine": 118,
+        "startChar": 18,
+        "endLine": 118,
+        "endChar": 27
+      },
+      "revId": "e6527fe6e4613294f54aa175e992ab9ab59c51d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
