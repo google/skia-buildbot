@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c93eeea2_2388fcce",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "Yeah, that\u0027s the idea.  I\u0027m kind of torn on how to do this.  I can see wanting to keep running one version while introducing a new one.  I extracted the number into a constant and added some warnings. PTAL.",
+      "parentUuid": "380d4fe6_efbf7514",
+      "range": {
+        "startLine": 22,
+        "startChar": 64,
+        "endLine": 22,
+        "endChar": 66
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1e0ddc53_60b7ec55",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 13
@@ -36,6 +60,30 @@
       "writtenOn": "2017-10-13T15:44:48Z",
       "side": 1,
       "message": "Is there no way to check multiple URLs at once? Maybe batch by date and ls all files for that date?\n\nOTOH, if this is fast, I guess we don\u0027t care.",
+      "range": {
+        "startLine": 46,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 20
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a090151f_458bee35",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "I mean, we can perform ls operations for \"directories\", but they\u0027re WAY slower than looking for a single specific object.",
+      "parentUuid": "1e0ddc53_60b7ec55",
       "range": {
         "startLine": 46,
         "startChar": 2,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f2997dbe_1acf877c",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d72807a7_3d2deca9",
+      "range": {
+        "startLine": 49,
+        "startChar": 6,
+        "endLine": 52,
+        "endChar": 64
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "590061bc_2a8980d2",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 13
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1d84c004_d1922a26",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "590061bc_2a8980d2",
+      "range": {
+        "startLine": 69,
+        "startChar": 5,
+        "endLine": 69,
+        "endChar": 21
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "99a3288f_1f4b36d0",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 13
@@ -105,6 +201,30 @@
       "writtenOn": "2017-10-13T15:44:48Z",
       "side": 1,
       "message": "nit: Consider using a valid JS identifier. Unlikely to matter, but who knows.",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 84,
+        "endChar": 15
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fad2130_4961e60d",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "Shrug. Done.",
+      "parentUuid": "99a3288f_1f4b36d0",
       "range": {
         "startLine": 84,
         "startChar": 8,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "e2651b01_052f0b4d",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "beb939e2_3ba02f20",
+      "range": {
+        "startLine": 118,
+        "startChar": 40,
+        "endLine": 118,
+        "endChar": 41
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c6b525f_3f83c052",
         "filename": "statusv2/go/ml/features/extract_features.py",
         "patchSetId": 13
@@ -160,6 +304,30 @@
       "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77330b02_96a73382",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c6b525f_3f83c052",
+      "range": {
+        "startLine": 123,
+        "startChar": 2,
+        "endLine": 123,
+        "endChar": 36
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "d9df2da1_9cd6070b",
+        "filename": "statusv2/go/ml/features/features.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "I don\u0027t understand what you mean.",
+      "parentUuid": "98331fae_40886e2f",
+      "range": {
+        "startLine": 53,
+        "startChar": 14,
+        "endLine": 53,
+        "endChar": 23
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5bf4265d_b91d938d",
         "filename": "statusv2/go/ml/features/features.go",
         "patchSetId": 13
@@ -197,6 +389,30 @@
       "writtenOn": "2017-10-13T15:44:48Z",
       "side": 1,
       "message": "Is this max task duration? (Maybe doc why it\u0027s not time.Hour.)",
+      "range": {
+        "startLine": 64,
+        "startChar": 19,
+        "endLine": 64,
+        "endChar": 34
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a23e64c_7d0aa0b3",
+        "filename": "statusv2/go/ml/features/features.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T17:11:35Z",
+      "side": 1,
+      "message": "Yeah, it\u0027s so that we can pick up longer-running tasks once they finish.",
+      "parentUuid": "5bf4265d_b91d938d",
       "range": {
         "startLine": 64,
         "startChar": 19,
