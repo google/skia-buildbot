@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "86446e8a_3fa45fbe",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T22:10:08Z",
+      "side": 1,
+      "message": "Let\u0027s suppose for some reason ProcessFn starts failing at 8pm and you don\u0027t notice until 8am the next morning, at which point you fix it. Then now.Sub(p.processedUpTo) will be 12 hours, which is less than p.Window (assuming 24 hours), so we will process from 8am yesterday until 8am today. You will fail to process any tasks that started before 8am and finished after 8pm, even though the window of 24 hours should have ensured that those were processed.\n\nIt\u0027s a nit because it\u0027s unlikely to matter, but if this is a general-purpose utility, maybe a different use case will come up where it does matter.\n\nI think this method should be something like the following (this includes a fix for the next comment):\n\nfunc (p *Processor) run() error {\n\tnow :\u003d time.Now()\n\tstart :\u003d p.lastSuccess.Add(-p.Window)\n\tif p.BeginningOfTime.After(start) {\n\t\tstart \u003d p.BeginningOfTime\n\t}\n\treturn util.IterTimeChunks(start, now, p.ChunkSize, p.process)\n}\n\nAlso, maybe consider renaming Window to ReprocessWindow and indicating that if no reprocessing is necessary, ReprocessWindow can be zero.",
+      "parentUuid": "405541f5_a3078f43",
+      "range": {
+        "startLine": 64,
+        "startChar": 29,
+        "endLine": 64,
+        "endChar": 42
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0cf62f00_84ab0a17",
         "filename": "statusv2/go/ml/processor/processor.go",
         "patchSetId": 14
