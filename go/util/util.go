@@ -977,3 +977,20 @@ func WithGzipWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
 	err = fn(gzw)
 	return
 }
+
+// IterTimeChunks calls the given function for each time chunk of the given
+// duration within the given time range.
+func IterTimeChunks(start, end time.Time, chunkSize time.Duration, fn func(time.Time, time.Time) error) error {
+	chunkStart := start
+	for chunkStart.Before(end) {
+		chunkEnd := chunkStart.Add(chunkSize)
+		if chunkEnd.After(end) {
+			chunkEnd = end
+		}
+		if err := fn(chunkStart, chunkEnd); err != nil {
+			return err
+		}
+		chunkStart = chunkEnd
+	}
+	return nil
+}
