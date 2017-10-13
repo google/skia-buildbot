@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5e3bb924_505de268",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T19:24:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37f89c5d_4526818a",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 12
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0542303f_42474704",
         "filename": "statusv2/go/ml/processor/processor.go",
         "patchSetId": 14
@@ -45,6 +69,30 @@
       "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e17ab53_bb6dd2f2",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T19:24:23Z",
+      "side": 1,
+      "message": "Done, and renamed for clarity.",
+      "parentUuid": "0542303f_42474704",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 12
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "52ae5691_3dab1d90",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T19:24:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b926cac_97fa0305",
+      "range": {
+        "startLine": 49,
+        "startChar": 1,
+        "endLine": 49,
+        "endChar": 43
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4c8747e3_fe170c7d",
         "filename": "statusv2/go/ml/processor/processor.go",
         "patchSetId": 14
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "405541f5_a3078f43",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T19:24:23Z",
+      "side": 1,
+      "message": "Why?  This is the \"we aren\u0027t caught up yet\" case.  Using p.lastSuccess allows us to interrupt a run before it gets totally caught up and pick up where we left off.",
+      "parentUuid": "4c8747e3_fe170c7d",
+      "range": {
+        "startLine": 64,
+        "startChar": 29,
+        "endLine": 64,
+        "endChar": 42
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0cf62f00_84ab0a17",
         "filename": "statusv2/go/ml/processor/processor.go",
         "patchSetId": 14
@@ -105,6 +201,30 @@
       "writtenOn": "2017-10-13T18:42:49Z",
       "side": 1,
       "message": "nit: \"processor\" is pretty generic. Unfortunately I don\u0027t have a better suggestion.\n\n(If you rename here, also consider renaming this package.)",
+      "range": {
+        "startLine": 103,
+        "startChar": 29,
+        "endLine": 103,
+        "endChar": 58
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec56f3a1_5c3daf32",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-13T19:24:23Z",
+      "side": 1,
+      "message": "This package is intended to be generic enough to be used for processing any data source which is keyed by time.  I guess maybe it belongs in the top-level go/ directory, rather than under statusv2/go/ml/ ?",
+      "parentUuid": "0cf62f00_84ab0a17",
       "range": {
         "startLine": 103,
         "startChar": 29,
