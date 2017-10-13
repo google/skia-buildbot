@@ -32,10 +32,10 @@ which distributes requests to two NGINX servers:
 
 They, in turn, handle SSL and then distribute the calls to the backends:
 skiaperf, skiagold, skiadocs, skiapush, skiaalerts, etc.
-For the load balancing setup, see the [cloud console page](https://console.developers.google.com/project/31977622648/compute/loadBalancing/forwardingRules/forwardingRulesDetail/regions/us-central1/forwardingRules/skfe-rule).
-The forwarding rule is name `skfe-rule`, and the target pool is `skfe-pool`.
-To increase the capacity just add more skia-skfe-N servers to the
-target pool.
+For the load balancing setup, see the [cloud console page](https://console.cloud.google.com/net-services/loadbalancing/loadBalancers/list?project=google.com:skia-buildbots).
+The forwarding rule is named `skfe-pool-rule`, and the target pool is
+`skfe-pool`. To increase the capacity just add more skia-skfe-N servers
+to the target pool.
 
 All nginx servers will use certpoller to provide certs, and will
 all handle \*.skia.org traffic with a wildcard cert. The certs
