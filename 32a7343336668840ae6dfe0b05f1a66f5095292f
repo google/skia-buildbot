@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c670c731_baa7e494",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-10-13T20:27:24Z",
+      "side": 1,
+      "message": "You don\u0027t need the if since the for loop will act correctly over a slice of length 0.",
+      "revId": "32a7343336668840ae6dfe0b05f1a66f5095292f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
