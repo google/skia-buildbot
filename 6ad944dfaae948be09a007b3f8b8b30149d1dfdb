@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "380d4fe6_efbf7514",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "I assume this changes anytime this code changes. Maybe doc?",
+      "range": {
+        "startLine": 22,
+        "startChar": 64,
+        "endLine": 22,
+        "endChar": 66
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e0ddc53_60b7ec55",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "Is there no way to check multiple URLs at once? Maybe batch by date and ls all files for that date?\n\nOTOH, if this is fast, I guess we don\u0027t care.",
+      "range": {
+        "startLine": 46,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 20
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d72807a7_3d2deca9",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "nit:\ndef gsutil(args):\n  env \u003d {\u0027HOME\u0027: os.getcwd(),\n         \u0027PATH\u0027: os.environ.get(\u0027PATH\u0027)}\n  return subprocess.check_output([\u0027gsutil\u0027] + args],\n                                 stderr\u003dsubprocess.STDOUT, env\u003denv)",
+      "range": {
+        "startLine": 49,
+        "startChar": 6,
+        "endLine": 52,
+        "endChar": 64
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "590061bc_2a8980d2",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "uber-nit: len(tokens) \u003c 2",
+      "range": {
+        "startLine": 69,
+        "startChar": 5,
+        "endLine": 69,
+        "endChar": 21
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99a3288f_1f4b36d0",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "nit: Consider using a valid JS identifier. Unlikely to matter, but who knows.",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 84,
+        "endChar": 15
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "beb939e2_3ba02f20",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "nit: style guide says \"Do not use backslash line continuation.\"",
+      "range": {
+        "startLine": 118,
+        "startChar": 40,
+        "endLine": 118,
+        "endChar": 41
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c6b525f_3f83c052",
+        "filename": "statusv2/go/ml/features/extract_features.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "nit: document return value somewhere (or remove)",
+      "range": {
+        "startLine": 123,
+        "startChar": 2,
+        "endLine": 123,
+        "endChar": 36
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98331fae_40886e2f",
+        "filename": "statusv2/go/ml/features/features.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "Serial rather than parallel for simplicity?",
+      "range": {
+        "startLine": 53,
+        "startChar": 14,
+        "endLine": 53,
+        "endChar": 23
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bf4265d_b91d938d",
+        "filename": "statusv2/go/ml/features/features.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "Is this max task duration? (Maybe doc why it\u0027s not time.Hour.)",
+      "range": {
+        "startLine": 64,
+        "startChar": 19,
+        "endLine": 64,
+        "endChar": 34
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "815affab_3c71d48e",
+        "filename": "statusv2/go/ml/features/features.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-13T15:44:48Z",
+      "side": 1,
+      "message": "\"per feature extraction version\"?",
+      "range": {
+        "startLine": 74,
+        "startChar": 15,
+        "endLine": 74,
+        "endChar": 19
+      },
+      "revId": "6ad944dfaae948be09a007b3f8b8b30149d1dfdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
