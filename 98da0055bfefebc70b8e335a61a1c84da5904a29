@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f88db93b_bcdb17f2",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-14T20:02:34Z",
+      "side": 1,
+      "message": "nit: comment seems out of place here",
+      "range": {
+        "startLine": 431,
+        "startChar": 1,
+        "endLine": 431,
+        "endChar": 77
+      },
+      "revId": "98da0055bfefebc70b8e335a61a1c84da5904a29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86c1cee9_1bf69839",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-14T20:02:34Z",
+      "side": 1,
+      "message": "nit: this method does not appear to validate.",
+      "range": {
+        "startLine": 454,
+        "startChar": 19,
+        "endLine": 454,
+        "endChar": 28
+      },
+      "revId": "98da0055bfefebc70b8e335a61a1c84da5904a29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
