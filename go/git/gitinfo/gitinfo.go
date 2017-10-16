@@ -75,8 +75,14 @@ func CloneOrUpdate(repoUrl, dir string, allBranches bool) (*GitInfo, error) {
 // Update refreshes the history that GitInfo stores for the repo. If pull is
 // true then git pull is performed before refreshing.
 func (g *GitInfo) Update(pull, allBranches bool) error {
+	// If there is a secondary repository update it in the background and wait
+	// at the end until the update is done.
+	doneCh := g.updateSecondary(pull, allBranches)
+
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
+	defer func() { <-doneCh }()
+
 	sklog.Info("Beginning Update.")
 	if pull {
 		if _, err := exec.RunCwd(g.dir, "git", "pull"); err != nil {
@@ -491,6 +497,24 @@ func (g *GitInfo) ResolveCommit(commitHash string) (string, error) {
 func (g *GitInfo) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSExtractor) {
 	g.secondaryVCS = secVCS
 	g.secondaryExtractor = extractor
+}
+
+// updateSecondary updates the secondary VCS if one is defined. The returned
+// channel will be closed once the update this done. This allows to synchronize
+// with the completion via simple read from the channel.
+func (g *GitInfo) updateSecondary(pull, allBranches bool) <-chan bool {
+	doneCh := make(chan bool)
+
+	// Update the secondary VCS if necessary and close the done channel after.
+	go func() {
+		if g.secondaryVCS != nil {
+			if err := g.secondaryVCS.Update(pull, allBranches); err != nil {
+				sklog.Errorf("Error updating secondary VCS: %s", err)
+			}
+		}
+		close(doneCh)
+	}()
+	return doneCh
 }
 
 // gitHash represents information on a single Git commit.
