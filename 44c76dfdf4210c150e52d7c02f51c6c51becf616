@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a0df52c_ce4beda1",
+        "filename": "golden/go/skiacorrectness/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-16T14:32:17Z",
+      "side": 1,
+      "message": "nit remove space",
+      "revId": "44c76dfdf4210c150e52d7c02f51c6c51becf616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
