@@ -9,7 +9,7 @@ import (
 
 func SKFEBase(name string) *gce.Instance {
 	vm := server.Server20170928(name)
-	vm.DataDisk = nil
+	vm.DataDisks = nil
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_4
 	vm.Metadata["owner_primary"] = "stephana"
 	vm.Metadata["owner_secondary"] = "jcgregorio"

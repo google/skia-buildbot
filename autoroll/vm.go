@@ -12,8 +12,8 @@ import (
 
 func AutoRollBase(name, ipAddress string) *gce.Instance {
 	vm := server.SetGitCredsReadWrite(server.Server20170928(name), name)
-	vm.DataDisk.SizeGb = 64
-	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
+	vm.DataDisks[0].SizeGb = 64
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	if ipAddress != "" {
 		vm.ExternalIpAddress = ipAddress
 	}
@@ -71,7 +71,7 @@ func WebRTC_Chromium() *gce.Instance {
 }
 
 func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
-	vm.DataDisk.SizeGb = 512
+	vm.DataDisks[0].SizeGb = 512
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
 	vm.Scopes = append(vm.Scopes, androidbuildinternal.AndroidbuildInternalScope)
 
@@ -92,8 +92,8 @@ func AndroidO() *gce.Instance {
 func Google3() *gce.Instance {
 	// Not using AutoRollBase because this server does not need auth.SCOPE_GERRIT.
 	vm := server.Server20170928("google3-autoroll")
-	vm.DataDisk.SizeGb = 64
-	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
+	vm.DataDisks[0].SizeGb = 64
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
 	vm.Metadata["owner_primary"] = "benjaminwagner"
 	vm.Metadata["owner_secondary"] = "borenet"

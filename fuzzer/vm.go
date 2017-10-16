@@ -16,8 +16,8 @@ import (
 func FuzzerBase(name string) *gce.Instance {
 	vm := server.Server20170928(name)
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
-	vm.DataDisk.SizeGb = 375
-	vm.DataDisk.Type = gce.DISK_TYPE_LOCAL_SSD
+	vm.DataDisks[0].SizeGb = 375
+	vm.DataDisks[0].Type = gce.DISK_TYPE_LOCAL_SSD
 	vm.Metadata["owner_primary"] = "kjlubick"
 	vm.Metadata["owner_secondary"] = "jcgregorio"
 	vm.Scopes = append(vm.Scopes, auth.SCOPE_READ_WRITE, logging.LoggingWriteScope)
