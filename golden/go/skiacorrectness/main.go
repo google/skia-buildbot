@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	netpprof "net/http/pprof"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -411,9 +412,21 @@ func main() {
 
 	// Start the internal server on the internal port if requested.
 	if *internalPort != "" {
+		// Add the profiling endpoints to the internal router.
+		internalRouter := mux.NewRouter()
+		// Register pprof handlers
+		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
+		internalRouter.HandleFunc("/debug/pprof/cmdline", netpprof.Cmdline)
+		internalRouter.HandleFunc("/debug/pprof/profile", netpprof.Profile)
+		internalRouter.HandleFunc("/debug/pprof/symbol", netpprof.Symbol)
+		internalRouter.HandleFunc("/debug/pprof/trace", netpprof.Trace)
+
+		// Add the rest of the application.
+		internalRouter.PathPrefix("/").Handler(appRouter)
+
 		go func() {
 			sklog.Infoln("Internal server on  http://127.0.0.1" + *internalPort)
-			sklog.Fatal(http.ListenAndServe(*internalPort, appRouter))
+			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
 		}()
 	}
 
