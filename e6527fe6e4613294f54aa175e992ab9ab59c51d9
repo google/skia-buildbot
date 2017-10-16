@@ -22,6 +22,30 @@
       "revId": "e6527fe6e4613294f54aa175e992ab9ab59c51d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0545f81_e2c3a8b9",
+        "filename": "push/DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-10-16T13:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e4807ab_06de30be",
+      "range": {
+        "startLine": 118,
+        "startChar": 18,
+        "endLine": 118,
+        "endChar": 27
+      },
+      "revId": "e6527fe6e4613294f54aa175e992ab9ab59c51d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
