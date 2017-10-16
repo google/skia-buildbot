@@ -109,9 +109,7 @@ func ingestLogsChunk(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiCl
 // Ingest logs for all completed tasks within a given time period.
 func IngestLogs(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient, start, end time.Time, ingested *syncmap.Map) error {
 	failed := map[string]error{}
-	chunkStart := start
-	for chunkStart.Before(end) {
-		chunkEnd := chunkStart.Add(TIME_CHUNK)
+	if err := util.IterTimeChunks(start, end, TIME_CHUNK, func(chunkStart, chunkEnd time.Time) error {
 		fails, err := ingestLogsChunk(taskDb, gcs, s, chunkStart, chunkEnd, ingested)
 		if err != nil {
 			return err
@@ -119,7 +117,10 @@ func IngestLogs(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient,
 		for k, v := range fails {
 			failed[k] = v
 		}
-		chunkStart = chunkEnd
+		// Don't stop early for ingestion errors.
+		return nil
+	}); err != nil {
+		return err
 	}
 	if len(failed) > 0 {
 		failMsg := fmt.Sprintf("Failed to ingest logs for %d tasks.\n", len(failed))
