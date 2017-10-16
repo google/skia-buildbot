@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "af258a1a_d3cdc828",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-16T13:52:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea6aedc8_07105195",
+      "revId": "799eb11d5e6ae19b02260ea44d781ccd86d828de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dd232e24_37546bbe",
         "filename": "statusv2/go/ml/processor/processor.go",
         "patchSetId": 15
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "48a9b952_c447511e",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-16T13:52:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dd232e24_37546bbe",
+      "range": {
+        "startLine": 48,
+        "startChar": 4,
+        "endLine": 48,
+        "endChar": 12
+      },
+      "revId": "799eb11d5e6ae19b02260ea44d781ccd86d828de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "50156c1e_d7a602e0",
         "filename": "statusv2/go/ml/processor/processor.go",
         "patchSetId": 15
@@ -53,6 +95,30 @@
       "writtenOn": "2017-10-13T22:10:08Z",
       "side": 1,
       "message": "nit: should use util.IterTimeChunks here, since doc for ProcessFn says \"will be called to process a single chunk\" and ChunkSize says \"Ingestion will take place in chunks of this size.\"",
+      "range": {
+        "startLine": 77,
+        "startChar": 8,
+        "endLine": 77,
+        "endChar": 17
+      },
+      "revId": "799eb11d5e6ae19b02260ea44d781ccd86d828de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2b43919_ab6dc767",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-16T13:52:49Z",
+      "side": 1,
+      "message": "Good catch, done.",
+      "parentUuid": "50156c1e_d7a602e0",
       "range": {
         "startLine": 77,
         "startChar": 8,
