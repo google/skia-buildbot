@@ -72,11 +72,31 @@ func CloneOrUpdate(repoUrl, dir string, allBranches bool) (*GitInfo, error) {
 	return nil, err
 }
 
+func (g *GitInfo) updateSecondary(pull, allBranches bool) <-chan bool {
+	doneCh := make(chan bool)
+
+	// Update the secondary VCS if necessary and close the done channel after.
+	go func() {
+		if g.secondaryVCS != nil {
+			if err := g.secondaryVCS.Update(pull, allBranches); err != nil {
+				sklog.Errorf("Error updating secondary VCS: %s", err)
+			}
+		}
+		close(doneCh)
+	}()
+	return doneCh
+}
+
 // Update refreshes the history that GitInfo stores for the repo. If pull is
 // true then git pull is performed before refreshing.
 func (g *GitInfo) Update(pull, allBranches bool) error {
+	// If there is a secondary repository update it in the background.
+	doneCh := g.updateSecondary(pull, allBranches)
+
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
+	defer func() { <-doneCh }()
+
 	sklog.Info("Beginning Update.")
 	if pull {
 		if _, err := exec.RunCwd(g.dir, "git", "pull"); err != nil {
