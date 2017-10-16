@@ -31,4 +31,6 @@ TEMPLATES = [
 ]
 
 
+# Set an unused dummy value here to bypass django error that shows up when
+# this field is missing.
 SECRET_KEY = '*lk^6@0l0(iulgar$j)fbvfy&^(^u+qk3j73d18@&+ur^xuTxY'
