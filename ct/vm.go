@@ -19,15 +19,15 @@ func CtBase(name, ipAddress string) *gce.Instance {
 
 func CTFE() *gce.Instance {
 	vm := CtBase("skia-ctfe", "35.202.138.233" /* Whitelisted in ctfe cloud DB */)
-	vm.DataDisk = nil
+	vm.DataDisks = nil
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
 	return vm
 }
 
 func CtMaster() *gce.Instance {
 	vm := CtBase("skia-ct-master", "130.211.125.233" /* Whitelisted in swarming and isolate servers */)
-	vm.DataDisk.SizeGb = 500
-	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_STANDARD
+	vm.DataDisks[0].SizeGb = 500
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
 	vm.Scopes = append(vm.Scopes, auth.SCOPE_GERRIT)
 	vm.ServiceAccount = gce.SERVICE_ACCOUNT_COMPUTE
