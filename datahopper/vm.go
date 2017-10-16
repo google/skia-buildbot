@@ -7,8 +7,8 @@ import (
 
 func DatahopperBase(name string) *gce.Instance {
 	vm := server.Server20170928(name)
-	vm.DataDisk.SizeGb = 200
-	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.DataDisks[0].SizeGb = 200
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "jcgregorio"
 	return vm

@@ -42,11 +42,11 @@ func Server20170928(name string) *gce.Instance {
 			SourceImage: "skia-pushable-base-v2017-09-28-000",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		DataDisk: &gce.Disk{
+		DataDisks: []*gce.Disk{{
 			Name:   fmt.Sprintf("%s-data", name),
 			SizeGb: 300,
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
-		},
+		}},
 		// Include read-only git creds on all servers.
 		GSDownloads: []*gce.GSDownload{
 			&gce.GSDownload{

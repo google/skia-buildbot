@@ -9,9 +9,9 @@ import (
 
 func PerfBase(name, ipAddress string) *gce.Instance {
 	vm := server.Server20170928(name)
-	vm.DataDisk.Name = fmt.Sprintf("%s-ssd-data", name)
-	vm.DataDisk.SizeGb = 1000
-	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.DataDisks[0].Name = fmt.Sprintf("%s-ssd-data", name)
+	vm.DataDisks[0].SizeGb = 1000
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.ExternalIpAddress = ipAddress
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_32
 	vm.Metadata["owner_primary"] = "jcgregorio"

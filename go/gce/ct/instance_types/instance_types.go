@@ -35,7 +35,7 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 			SourceImage: "skia-swarming-v3",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		DataDisk: dataDisk,
+		DataDisks: []*gce.Disk{dataDisk},
 		GSDownloads: []*gce.GSDownload{
 			{
 				Source: GS_URL_GITCONFIG,

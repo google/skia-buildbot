@@ -15,9 +15,9 @@ const (
 
 func FiddleBase(name string) *gce.Instance {
 	vm := server.Server20170928(name)
-	vm.DataDisk.Name = fmt.Sprintf("%s-data", name)
-	vm.DataDisk.SizeGb = 1000
-	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.DataDisks[0].Name = fmt.Sprintf("%s-data", name)
+	vm.DataDisks[0].SizeGb = 1000
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.Gpu = true
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_8
 	vm.MaintenancePolicy = gce.MAINTENANCE_POLICY_TERMINATE

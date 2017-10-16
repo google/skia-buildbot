@@ -8,7 +8,7 @@ import (
 
 func PushBase(name string) *gce.Instance {
 	vm := server.Server20170928(name)
-	vm.DataDisk = nil
+	vm.DataDisks = nil
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_1
 	vm.Metadata["owner_primary"] = "jcgregorio"
 

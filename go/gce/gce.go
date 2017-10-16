@@ -166,6 +166,9 @@ type Disk struct {
 
 	// Output only, which instances are using this disk, if any.
 	InUseBy []string
+
+	// Optional mountpoint. Default: /mnt/pd0 (see format_and_mount.sh)
+	MountPath string
 }
 
 // CreateDisk creates the given disk.
@@ -312,7 +315,7 @@ type Instance struct {
 	BootDisk *Disk
 
 	// Information about an extra data disk. Optional.
-	DataDisk *Disk
+	DataDisks []*Disk
 
 	// External IP address for the instance. Required.
 	ExternalIpAddress string
@@ -423,6 +426,45 @@ func startupScriptToMetadata(vm *Instance) error {
 	return scriptToMetadata(vm, key, vm.StartupScript)
 }
 
+// validateDataDisks validates the data disk definitions.
+func (g *GCloud) validateDataDisks(vm *Instance) error {
+	// Go through the data disks and make sure they are consistent.
+	allDiskNames := util.StringSet{}
+	allMountPaths := util.StringSet{}
+	for _, dataDisk := range vm.DataDisks {
+		// Make sure the name is not empty and unique.
+		if (dataDisk.Name == "") || (allDiskNames[dataDisk.Name]) {
+			return fmt.Errorf("Data disk name is '%s'. It cannot be empty and must be unique for this instance.", dataDisk.Name)
+		}
+		allDiskNames[dataDisk.Name] = true
+
+		// Make sure the mount path are valid and unique.
+		if !filepath.IsAbs(dataDisk.MountPath) || allMountPaths[dataDisk.MountPath] {
+			return fmt.Errorf("Mount path %s is either not a unique path or not absolute.", dataDisk.MountPath)
+		}
+		allMountPaths[dataDisk.MountPath] = true
+
+		if vm.Os == OS_WINDOWS {
+			return fmt.Errorf("Data disks are not currently supported on Windows.")
+		}
+	}
+	return nil
+}
+
+// createDataDisks creates the defined data disks with the exception of local SSDs.
+func (g *GCloud) createDataDisks(vm *Instance, ignoreExists bool) error {
+	for _, dataDisk := range vm.DataDisks {
+		// Local SSDs are created with the instance.
+		if dataDisk.Type != DISK_TYPE_LOCAL_SSD {
+			if err := g.CreateDisk(dataDisk, ignoreExists); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 // createInstance creates the given VM instance.
 func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 	sklog.Infof("Creating instance %q", vm.Name)
@@ -442,22 +484,24 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 			Source:     fmt.Sprintf("projects/%s/zones/%s/disks/%s", g.project, g.zone, vm.BootDisk.Name),
 		})
 	}
-	if vm.DataDisk != nil {
+
+	for _, dataDisk := range vm.DataDisks {
 		d := &compute.AttachedDisk{
-			DeviceName: vm.DataDisk.Name,
+			DeviceName: dataDisk.Name,
 		}
-		if vm.DataDisk.Type == DISK_TYPE_LOCAL_SSD {
+		if dataDisk.Type == DISK_TYPE_LOCAL_SSD {
 			// In this case, we didn't create the disk beforehand.
 			d.AutoDelete = true
 			d.InitializeParams = &compute.AttachedDiskInitializeParams{
-				DiskType: fmt.Sprintf("zones/%s/diskTypes/%s", g.zone, vm.DataDisk.Type),
+				DiskType: fmt.Sprintf("zones/%s/diskTypes/%s", g.zone, dataDisk.Type),
 			}
 			d.Type = "SCRATCH"
 		} else {
-			d.Source = fmt.Sprintf("projects/%s/zones/%s/disks/%s", g.project, g.zone, vm.DataDisk.Name)
+			d.Source = fmt.Sprintf("projects/%s/zones/%s/disks/%s", g.project, g.zone, dataDisk.Name)
 		}
 		disks = append(disks, d)
 	}
+
 	if vm.Os == OS_WINDOWS && vm.User != "" && vm.Password != "" {
 		if vm.Metadata == nil {
 			vm.Metadata = map[string]string{}
@@ -824,7 +868,7 @@ func (g *GCloud) GetFileFromMetadata(vm *Instance, url, dst string) error {
 }
 
 // SafeFormatAndMount copies the safe_format_and_mount script to the instance
-// and runs it.
+// and runs it for all data disks.
 func (g *GCloud) SafeFormatAndMount(vm *Instance) error {
 	// Copy the format_and_mount.sh and safe_format_and_mount
 	// scripts to the instance.
@@ -838,11 +882,14 @@ func (g *GCloud) SafeFormatAndMount(vm *Instance) error {
 	}
 
 	// Run format_and_mount.sh.
-	if _, err := g.Ssh(vm, "/tmp/format_and_mount.sh", vm.DataDisk.Name); err != nil {
-		if !strings.Contains(err.Error(), "is already mounted") {
-			return err
+	for _, dataDisk := range vm.DataDisks {
+		if _, err := g.Ssh(vm, "/tmp/format_and_mount.sh", dataDisk.Name, dataDisk.MountPath); err != nil {
+			if !strings.Contains(err.Error(), "is already mounted") {
+				return err
+			}
 		}
 	}
+
 	return nil
 }
 
@@ -880,23 +927,24 @@ func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 // CreateAndSetup creates an instance and all its disks and performs any
 // additional setup steps.
 func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
-	// Create the disks and the instance.
+	// Validate the data disk definitions first.
+	if err := g.validateDataDisks(vm); err != nil {
+		return err
+	}
+
+	// Create the boot disk.
 	if vm.BootDisk != nil {
 		if err := g.CreateDisk(vm.BootDisk, ignoreExists); err != nil {
 			return err
 		}
 	}
-	if vm.DataDisk != nil {
-		if vm.Os == OS_WINDOWS {
-			return fmt.Errorf("Data disks are not currently supported on Windows.")
-		}
-		// Local SSDs are created with the instance.
-		if vm.DataDisk.Type != DISK_TYPE_LOCAL_SSD {
-			if err := g.CreateDisk(vm.DataDisk, ignoreExists); err != nil {
-				return err
-			}
-		}
+
+	// Create the data disks.
+	if err := g.createDataDisks(vm, ignoreExists); err != nil {
+		return err
 	}
+
+	// Create the instance.
 	if err := g.createInstance(vm, ignoreExists); err != nil {
 		return err
 	}
@@ -931,8 +979,8 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 		}
 	}
 
-	// Format and mount.
-	if vm.DataDisk != nil {
+	// Format and mount all data disks.
+	if len(vm.DataDisks) > 0 {
 		if err := g.SafeFormatAndMount(vm); err != nil {
 			return err
 		}
@@ -997,9 +1045,13 @@ func (g *GCloud) Delete(vm *Instance, ignoreNotExists, deleteDataDisk bool) erro
 	}
 	// Only delete the data disk(s) if explicitly told to do so.
 	// Local SSDs are auto-deleted with the instance.
-	if deleteDataDisk && vm.DataDisk != nil && vm.DataDisk.Type != DISK_TYPE_LOCAL_SSD {
-		if err := g.DeleteDisk(vm.DataDisk.Name, ignoreNotExists); err != nil {
-			return err
+	if deleteDataDisk {
+		for _, dataDisk := range vm.DataDisks {
+			if dataDisk.Type != DISK_TYPE_LOCAL_SSD {
+				if err := g.DeleteDisk(dataDisk.Name, ignoreNotExists); err != nil {
+					return err
+				}
+			}
 		}
 	}
 	return nil

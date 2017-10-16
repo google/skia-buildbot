@@ -53,11 +53,11 @@ func Swarming20170731(name, serviceAccount string) *gce.Instance {
 			SourceImage: "skia-swarming-base-v2017-07-31-000",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		DataDisk: &gce.Disk{
+		DataDisks: []*gce.Disk{{
 			Name:   fmt.Sprintf("%s-data", name),
 			SizeGb: 300,
 			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
-		},
+		}},
 		Gpu:               *gpu,
 		GSDownloads:       []*gce.GSDownload{},
 		MachineType:       gce.MACHINE_TYPE_STANDARD_16,
@@ -106,9 +106,9 @@ func InternalLinuxSwarmingBot(num int) *gce.Instance {
 // Skia CT bots.
 func SkiaCTBot(num int) *gce.Instance {
 	vm := AddLinuxConfigs(Swarming20170731(fmt.Sprintf("skia-ct-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM), GS_URL_NETRC_EXTERNAL)
-	vm.DataDisk.SizeGb = 3000
+	vm.DataDisks[0].SizeGb = 3000
 	// SkiaCT bots use a datadisk with a snapshot that is prepopulated with 1M SKPS.
-	vm.DataDisk.SourceSnapshot = "skia-ct-skps-snapshot-2"
+	vm.DataDisks[0].SourceSnapshot = "skia-ct-skps-snapshot-2"
 	return vm
 }
 
@@ -117,7 +117,7 @@ func AddWinConfigs(vm *gce.Instance, pw, setupScriptPath, startupScriptPath, chr
 	vm.BootDisk.SizeGb = 300
 	vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
-	vm.DataDisk = nil
+	vm.DataDisks = nil
 	// Most of the Windows setup, including the gitconfig/netrc, occurs in
 	// the setup and startup scripts, which also install and schedule the
 	// chrome-bot scheduled task script.

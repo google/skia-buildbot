@@ -11,8 +11,8 @@ import (
 
 func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 	vm := server.Server20170928(name)
-	vm.DataDisk.SizeGb = 200
-	vm.DataDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.DataDisks[0].SizeGb = 200
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.ExternalIpAddress = ipAddress
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
@@ -28,7 +28,7 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 
 func TaskSchedulerProd() *gce.Instance {
 	vm := TaskSchedulerBase("skia-task-scheduler", "35.202.175.145" /* Whitelisted in swarming, isolate and buildbucket servers */)
-	vm.DataDisk.SizeGb = 500
+	vm.DataDisks[0].SizeGb = 500
 	return vm
 }
 
