@@ -404,11 +404,11 @@ func (s *SQLExpectationsStore) SetCanonicalTraceIDs(traceIDs map[string]string) 
 type CachingExpectationStore struct {
 	store    ExpectationsStore
 	cache    ExpectationsStore
-	eventBus *eventbus.EventBus
+	eventBus eventbus.EventBus
 	refresh  bool
 }
 
-func NewCachingExpectationStore(store ExpectationsStore, eventBus *eventbus.EventBus) ExpectationsStore {
+func NewCachingExpectationStore(store ExpectationsStore, eventBus eventbus.EventBus) ExpectationsStore {
 	return &CachingExpectationStore{
 		store:    store,
 		cache:    NewMemExpectationsStore(nil),

@@ -169,14 +169,14 @@ type TriageLogEntry struct {
 type MemExpectationsStore struct {
 	expectations *Expectations
 	readCopy     *Expectations
-	eventBus     *eventbus.EventBus
+	eventBus     eventbus.EventBus
 
 	// Protects expectations.
 	mutex sync.Mutex
 }
 
 // New instance of memory backed expectation storage.
-func NewMemExpectationsStore(eventBus *eventbus.EventBus) ExpectationsStore {
+func NewMemExpectationsStore(eventBus eventbus.EventBus) ExpectationsStore {
 	return &MemExpectationsStore{
 		expectations: NewExpectations(),
 		readCopy:     NewExpectations(),

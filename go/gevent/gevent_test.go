@@ -1,4 +1,4 @@
-package eventbus
+package gevent
 
 import (
 	"sort"
@@ -19,7 +19,8 @@ type testType struct {
 
 func TestEventBus(t *testing.T) {
 	testutils.MediumTest(t)
-	eventBus := New()
+	eventBus, err := New("", "", "")
+	assert.NoError(t, err)
 
 	ch := make(chan int, 5)
 	eventBus.SubscribeAsync("topic1", func(e interface{}) { ch <- 1 })
@@ -28,8 +29,8 @@ func TestEventBus(t *testing.T) {
 
 	eventBus.Publish("topic1", nil)
 	eventBus.Publish("topic2", 2)
-	eventBus.(*MemEventBus).Wait("topic1")
-	eventBus.(*MemEventBus).Wait("topic2")
+	// eventBus.(*MemEventBus).Wait("topic1")
+	// eventBus.(*MemEventBus).Wait("topic2")
 	assert.Equal(t, 3, len(ch))
 
 	vals := []int{<-ch, <-ch, <-ch}
