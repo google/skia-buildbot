@@ -632,7 +632,7 @@ func (c *TaskCfgCache) MakeJob(rs db.RepoState, name string) (*db.Job, error) {
 	}
 
 	return &db.Job{
-		Created:      time.Now(),
+		Created:      util.Now(),
 		Dependencies: deps,
 		Name:         name,
 		Priority:     spec.Priority,
@@ -645,7 +645,7 @@ func (c *TaskCfgCache) MakeJob(rs db.RepoState, name string) (*db.Job, error) {
 func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	periodStart := time.Now().Add(-period)
+	periodStart := util.Now().Add(-period)
 	for repoState := range c.cache {
 		details, err := repoState.GetCommit(c.repos)
 		if err != nil || details.Timestamp.Before(periodStart) {

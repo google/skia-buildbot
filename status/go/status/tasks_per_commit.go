@@ -11,9 +11,8 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -112,7 +111,7 @@ func (c *tasksPerCommitCache) update() error {
 	}
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	start := time.Now().Add(-c.period)
+	start := util.Now().Add(-c.period)
 	for rs := range c.cached {
 		repo, ok := c.repos[rs.Repo]
 		if !ok {

@@ -16,6 +16,7 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
 )
@@ -275,7 +276,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.NoError(t, err)
 	d2, err := r.Details(c2)
 	diff := d2.Timestamp.Sub(d1.Timestamp)
-	now := time.Now()
+	now := util.Now()
 	period := now.Sub(d2.Timestamp) + (diff / 2)
 	assert.NoError(t, cache.Cleanup(period))
 	assert.Equal(t, 1, len(cache.cache))

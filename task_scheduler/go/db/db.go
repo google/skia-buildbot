@@ -332,7 +332,7 @@ func matchJobs(jobs []*Job, p *JobSearchParams) []*Job {
 // parameters.
 func SearchJobs(db JobReader, p *JobSearchParams) ([]*Job, error) {
 	if util.TimeIsZero(p.TimeStart) || util.TimeIsZero(p.TimeEnd) {
-		p.TimeEnd = time.Now()
+		p.TimeEnd = util.Now()
 		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
 	}
 	jobs, err := db.GetJobsFromDateRange(p.TimeStart, p.TimeEnd)

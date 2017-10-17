@@ -420,7 +420,7 @@ func (d *localDB) assignTaskId(tx *bolt.Tx, t *db.Task, now time.Time) error {
 func (d *localDB) AssignId(t *db.Task) error {
 	oldId := t.Id
 	err := d.update("AssignId", func(tx *bolt.Tx) error {
-		return d.assignTaskId(tx, t, time.Now())
+		return d.assignTaskId(tx, t, util.Now())
 	})
 	if err != nil {
 		t.Id = oldId
@@ -555,7 +555,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 		bucket := tasksBucket(tx)
 		// Assign Ids and encode.
 		e := db.TaskEncoder{}
-		now := time.Now().UTC()
+		now := util.Now().UTC()
 		for _, t := range tasks {
 			if t.Id == "" {
 				if err := d.assignTaskId(tx, t, now); err != nil {
@@ -734,7 +734,7 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 		bucket := jobsBucket(tx)
 		// Assign Ids and encode.
 		e := db.JobEncoder{}
-		now := time.Now().UTC()
+		now := util.Now().UTC()
 		for _, job := range jobs {
 			if job.Id == "" {
 				if err := d.assignJobId(tx, job); err != nil {

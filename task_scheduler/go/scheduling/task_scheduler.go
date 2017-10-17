@@ -1063,7 +1063,7 @@ func (s *TaskScheduler) scheduleTasks(bots []*swarming_api.SwarmingRpcsBotInfo, 
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
 	s.queue = queue
-	s.lastScheduled = time.Now()
+	s.lastScheduled = util.Now()
 
 	if len(errs) > 0 {
 		rvErr := "Got failures: "
@@ -1234,7 +1234,7 @@ func (s *TaskScheduler) MainLoop() error {
 		}
 	}()
 
-	now := time.Now()
+	now := util.Now()
 	// TODO(borenet): This is only needed for the perftest because it no
 	// longer has access to the TaskCache used by TaskScheduler. Since it
 	// pushes tasks into the DB between executions of MainLoop, we need to
@@ -1278,7 +1278,7 @@ func (s *TaskScheduler) MainLoop() error {
 		return err
 	}
 
-	if err := s.taskCfgCache.Cleanup(time.Now().Sub(s.window.EarliestStart())); err != nil {
+	if err := s.taskCfgCache.Cleanup(util.Now().Sub(s.window.EarliestStart())); err != nil {
 		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
 	return nil
@@ -1502,7 +1502,7 @@ func (s *TaskScheduler) jobFinished(j *db.Job) error {
 	if !j.Done() {
 		return fmt.Errorf("jobFinished called on Job with status %q", j.Status)
 	}
-	j.Finished = time.Now()
+	j.Finished = util.Now()
 	return nil
 }
 
@@ -1752,7 +1752,7 @@ func (s *TaskScheduler) ValidateAndAddTask(task *db.Task) error {
 	}
 
 	if util.TimeIsZero(task.Created) {
-		task.Created = time.Now().UTC()
+		task.Created = util.Now().UTC()
 	}
 	if len(task.Commits) > 0 {
 		sklog.Warning("Ignoring Commits in ValidateAndAddTask. %v", task)
@@ -1836,7 +1836,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(swarmingTaskId string) bool {
 				sklog.Errorf("Failed to parse timestamp: %s; %s", res.CreatedTs, err)
 				return true
 			}
-			if time.Now().Sub(created) < 2*time.Minute {
+			if util.Now().Sub(created) < 2*time.Minute {
 				sklog.Infof("Failed to update task %q: No such task ID: %q. Less than two minutes old; try again later.", swarmingTaskId, id)
 				return false
 			}

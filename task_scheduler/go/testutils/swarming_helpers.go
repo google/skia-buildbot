@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -73,14 +74,14 @@ func PeriodicallyUpdateMockTasksForTesting(swarm *TestClient) {
 			}
 			if task.TaskResult.State == swarming.TASK_STATE_PENDING {
 				task.TaskResult.State = swarming.TASK_STATE_RUNNING
-				task.TaskResult.StartedTs = time.Now().Format(swarming.TIMESTAMP_FORMAT)
+				task.TaskResult.StartedTs = util.Now().Format(swarming.TIMESTAMP_FORMAT)
 				task.TaskResult.BotId = fmt.Sprintf("A-Bot-To-Run-%s", task.TaskResult.Name)
-			} else if task.TaskResult.State == swarming.TASK_STATE_RUNNING && created.Add(5*time.Minute).Before(time.Now()) {
+			} else if task.TaskResult.State == swarming.TASK_STATE_RUNNING && created.Add(5*time.Minute).Before(util.Now()) {
 				task.TaskResult.State = swarming.TASK_STATE_COMPLETED
 				task.TaskResult.OutputsRef = &swarming_api.SwarmingRpcsFilesRef{
 					Isolated: fmt.Sprintf("Isolated-%s", task.TaskId),
 				}
-				task.TaskResult.CompletedTs = time.Now().Format(swarming.TIMESTAMP_FORMAT)
+				task.TaskResult.CompletedTs = util.Now().Format(swarming.TIMESTAMP_FORMAT)
 			}
 		})
 	}

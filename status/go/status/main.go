@@ -253,7 +253,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Repo:      task.Repo,
 		Revision:  task.Revision,
 		Name:      task.Name,
-		Timestamp: time.Now().UTC(),
+		Timestamp: util.Now().UTC(),
 		TaskId:    task.Id,
 		User:      login.LoggedInAs(r),
 		Message:   comment.Comment,
@@ -341,7 +341,7 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 	c := db.TaskSpecComment{
 		Repo:          repoUrl,
 		Name:          taskSpec,
-		Timestamp:     time.Now().UTC(),
+		Timestamp:     util.Now().UTC(),
 		User:          login.LoggedInAs(r),
 		Flaky:         comment.Flaky,
 		IgnoreFailure: comment.IgnoreFailure,
@@ -420,7 +420,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	c := db.CommitComment{
 		Repo:          repoUrl,
 		Revision:      commit,
-		Timestamp:     time.Now().UTC(),
+		Timestamp:     util.Now().UTC(),
 		User:          login.LoggedInAs(r),
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,

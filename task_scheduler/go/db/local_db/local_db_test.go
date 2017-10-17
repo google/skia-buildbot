@@ -228,7 +228,7 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 		tasks = append(tasks, &db.Task{})
 	}
 
-	begin := time.Now()
+	begin := util.Now()
 
 	// Test AssignId.
 	assert.NoError(t, d.AssignId(tasks[5]))
@@ -237,13 +237,13 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 
 	// Created time is required.
 	for _, task := range tasks {
-		task.Created = time.Now()
+		task.Created = util.Now()
 	}
 
 	// Test PutTasks.
 	assert.NoError(t, d.PutTasks(tasks))
 
-	end := time.Now()
+	end := util.Now()
 
 	// Check that PutTasks did not change existing Ids.
 	assert.Equal(t, id5, tasks[5].Id)
@@ -287,9 +287,9 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 	defer testutils.AssertCloses(t, d)
 
 	task := &db.Task{}
-	beforeAssignId := time.Now().Add(-time.Nanosecond)
+	beforeAssignId := util.Now().Add(-time.Nanosecond)
 	assert.NoError(t, d.AssignId(task))
-	afterAssignId := time.Now().Add(time.Nanosecond)
+	afterAssignId := util.Now().Add(time.Nanosecond)
 
 	// Test "not set".
 	{
@@ -365,11 +365,11 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
-	begin := time.Now().Add(-time.Nanosecond)
+	begin := util.Now().Add(-time.Nanosecond)
 
 	// Create and insert a task that will cause ErrConcurrentUpdate.
 	task1 := &db.Task{
-		Created: time.Now(),
+		Created: util.Now(),
 	}
 	assert.NoError(t, d.PutTask(task1))
 
@@ -382,7 +382,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 
 	// Create and insert a task to check PutTasks doesn't change DbModified.
 	task2 := &db.Task{
-		Created: time.Now(),
+		Created: util.Now(),
 	}
 	assert.NoError(t, d.PutTask(task2))
 	task2InDb := task2.Copy()
@@ -391,11 +391,11 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	// Create a task with an Id already set.
 	task3 := &db.Task{}
 	assert.NoError(t, d.AssignId(task3))
-	task3.Created = time.Now()
+	task3.Created = util.Now()
 
 	// Create a task without an Id set.
 	task4 := &db.Task{
-		Created: time.Now(),
+		Created: util.Now(),
 	}
 
 	// Make an update to task1Cached.
@@ -410,7 +410,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	testutils.AssertDeepEqual(t, expectedTasks, []*db.Task{task1Cached, task2, task3, task4})
 
 	// Check that nothing was updated in the DB.
-	tasksInDb, err := d.GetTasksFromDateRange(begin, time.Now())
+	tasksInDb, err := d.GetTasksFromDateRange(begin, util.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasksInDb))
 	for _, task := range tasksInDb {
@@ -530,11 +530,11 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
-	begin := time.Now().Add(-time.Nanosecond)
+	begin := util.Now().Add(-time.Nanosecond)
 
 	// Create and insert a job that will cause ErrConcurrentUpdate.
 	job1 := &db.Job{
-		Created: time.Now(),
+		Created: util.Now(),
 	}
 	assert.NoError(t, d.PutJob(job1))
 
@@ -547,7 +547,7 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 
 	// Create and insert a job to check PutJobs doesn't change DbModified.
 	job2 := &db.Job{
-		Created: time.Now(),
+		Created: util.Now(),
 	}
 	assert.NoError(t, d.PutJob(job2))
 	job2InDb := job2.Copy()
@@ -555,7 +555,7 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 
 	// Create a job without an Id set.
 	job3 := &db.Job{
-		Created: time.Now(),
+		Created: util.Now(),
 	}
 
 	// Make an update to job1Cached.
@@ -570,7 +570,7 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 	testutils.AssertDeepEqual(t, expectedJobs, []*db.Job{job1Cached, job2, job3})
 
 	// Check that nothing was updated in the DB.
-	jobsInDb, err := d.GetJobsFromDateRange(begin, time.Now())
+	jobsInDb, err := d.GetJobsFromDateRange(begin, util.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(jobsInDb))
 	for _, job := range jobsInDb {
