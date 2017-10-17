@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -31,7 +32,7 @@ func TestTaskCache(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	// Pre-load a task into the DB.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	startTime := util.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
@@ -76,7 +77,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Try jobs don't count toward KnownTaskName.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	startTime := util.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
 	t1.Server = "fake-server"
 	t1.Issue = "fake-issue"
@@ -104,7 +105,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	// Pre-load a task into the DB.
-	timeStart := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	timeStart := util.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := makeTask(timeStart.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
@@ -191,7 +192,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	// Insert several tasks with different repos.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	startTime := util.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := makeTask(startTime, []string{"a", "b"})  // Default Repo.
 	t2 := makeTask(startTime, []string{"a", "b"})
 	t2.Repo = "thats-what-you.git"
@@ -254,7 +255,7 @@ func TestTaskCacheReset(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	// Pre-load a task into the DB.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	startTime := util.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
@@ -299,7 +300,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	// Insert a task.
-	startTime := time.Now().Add(-30 * time.Minute)
+	startTime := util.Now().Add(-30 * time.Minute)
 	t1 := makeTask(startTime, []string{"a"})
 	assert.False(t, t1.Done())
 	assert.NoError(t, db.PutTask(t1))
@@ -329,7 +330,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	testutils.AssertDeepEqual(t, []*Task{}, tasks)
 
 	// Already-finished task.
-	t2 := makeTask(time.Now(), []string{"a"})
+	t2 := makeTask(util.Now(), []string{"a"})
 	t2.Status = TASK_STATUS_MISHAP
 	assert.True(t, t2.Done())
 	assert.NoError(t, db.PutTask(t2))
@@ -339,7 +340,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	testutils.AssertDeepEqual(t, []*Task{}, tasks)
 
 	// An unfinished task, created after the cache was created.
-	t3 := makeTask(time.Now(), []string{"b"})
+	t3 := makeTask(util.Now(), []string{"b"})
 	assert.False(t, t3.Done())
 	assert.NoError(t, db.PutTask(t3))
 	assert.NoError(t, c.Update())
@@ -543,7 +544,7 @@ func TestJobCache(t *testing.T) {
 	db := NewInMemoryJobDB()
 
 	// Pre-load a job into the DB.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	startTime := util.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	j1 := makeJob(startTime)
 	assert.NoError(t, db.PutJob(j1))
 
@@ -572,7 +573,7 @@ func TestJobCacheTriggeredForCommit(t *testing.T) {
 	db := NewInMemoryJobDB()
 
 	// Insert several jobs with different repos.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	startTime := util.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	j1 := makeJob(startTime)                       // Default Repo.
 	j1.Revision = "a"
 	j2 := makeJob(startTime)
@@ -615,7 +616,7 @@ func TestJobCacheReset(t *testing.T) {
 	db := NewInMemoryJobDB()
 
 	// Pre-load a job into the DB.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	startTime := util.Now().Add(-30 * time.Minute) // Arbitrary starting point.
 	j1 := makeJob(startTime)
 	assert.NoError(t, db.PutJob(j1))
 
@@ -644,7 +645,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	db := NewInMemoryJobDB()
 
 	// Insert a job.
-	startTime := time.Now().Add(-30 * time.Minute)
+	startTime := util.Now().Add(-30 * time.Minute)
 	j1 := makeJob(startTime)
 	assert.False(t, j1.Done())
 	assert.NoError(t, db.PutJob(j1))
@@ -664,7 +665,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	testGetUnfinished(t, []*Job{}, c)
 
 	// Already-finished job.
-	j2 := makeJob(time.Now())
+	j2 := makeJob(util.Now())
 	j2.Status = JOB_STATUS_MISHAP
 	assert.True(t, j2.Done())
 	assert.NoError(t, db.PutJob(j2))
@@ -672,7 +673,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	testGetUnfinished(t, []*Job{}, c)
 
 	// An unfinished job, created after the cache was created.
-	j3 := makeJob(time.Now())
+	j3 := makeJob(util.Now())
 	assert.False(t, j3.Done())
 	assert.NoError(t, db.PutJob(j3))
 	assert.NoError(t, c.Update())
@@ -914,7 +915,7 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	defer g.Cleanup()
 
 	git_testutils.GitSetup(g)
-	now := time.Now()
+	now := util.Now()
 	g.AddGen("a.txt")
 	g.CommitMsgAt("Extra commit 1", now.Add(3*time.Second))
 	g.AddGen("a.txt")

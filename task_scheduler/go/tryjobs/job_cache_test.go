@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -22,7 +23,7 @@ func TestJobCache(t *testing.T) {
 	d := db.NewInMemoryJobDB()
 
 	// Pre-load a job into the DB.
-	now := time.Now()
+	now := util.Now()
 	j1 := makeJob(now.Add(-10 * time.Minute))
 	assert.NoError(t, d.PutJob(j1))
 

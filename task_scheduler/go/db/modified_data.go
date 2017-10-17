@@ -9,6 +9,7 @@ import (
 
 	"github.com/satori/go.uuid"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 // modifiedData allows subscribers to keep track of DB entries that have been
@@ -30,7 +31,7 @@ func (m *modifiedData) GetModifiedEntries(id string) (map[string][]byte, error) 
 		return nil, ErrUnknownId
 	}
 	rv := m.data[id]
-	m.expiration[id] = time.Now().Add(MODIFIED_DATA_TIMEOUT)
+	m.expiration[id] = util.Now().Add(MODIFIED_DATA_TIMEOUT)
 	delete(m.data, id)
 	return rv, nil
 }
@@ -43,7 +44,7 @@ func (m *modifiedData) clearExpiredSubscribers() {
 	for range ticker.C {
 		m.mtx.Lock()
 		for id, t := range m.expiration {
-			if time.Now().After(t) {
+			if util.Now().After(t) {
 				sklog.Warningf("Deleting expired subscriber with id %s; expiration time %s.", id, t)
 				delete(m.data, id)
 				delete(m.expiration, id)
@@ -99,7 +100,7 @@ func (m *modifiedData) StartTrackingModifiedEntries() (string, error) {
 		return "", ErrTooManyUsers
 	}
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	m.expiration[id] = time.Now().Add(MODIFIED_DATA_TIMEOUT)
+	m.expiration[id] = util.Now().Add(MODIFIED_DATA_TIMEOUT)
 	return id, nil
 }
 

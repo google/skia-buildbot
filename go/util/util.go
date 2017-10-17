@@ -650,6 +650,10 @@ func UnixMillisToTime(t int64) time.Time {
 	return time.Unix(0, t*MILLIS_TO_NANOS).UTC()
 }
 
+func Now() time.Time {
+	return time.Now().Round(0)
+}
+
 // TimeIsZero returns true if the time.Time is a zero-value or corresponds to
 // a zero Unix timestamp.
 func TimeIsZero(t time.Time) bool {

@@ -15,9 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
@@ -147,12 +147,12 @@ func updateBlamelists(cache db.TaskCache, t *db.Task) ([]*db.Task, error) {
 // last-created task.
 func findApproxLatestCommit(d db.TaskDB) int {
 	sklog.Infof("findApproxLatestCommit begin")
-	for t := time.Now(); t.After(epoch); t = t.Add(-24 * time.Hour) {
+	for t := util.Now(); t.After(epoch); t = t.Add(-24 * time.Hour) {
 		begin := t.Add(-24 * time.Hour)
 		sklog.Infof("findApproxLatestCommit loading %s to %s", begin, t)
-		before := time.Now()
+		before := util.Now()
 		t, err := d.GetTasksFromDateRange(begin, t)
-		getTasksDur := time.Now().Sub(before)
+		getTasksDur := util.Now().Sub(before)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -201,9 +201,9 @@ func putTasks(d db.TaskDB) {
 		for i := 0; i < iterTasks; i++ {
 			t := makeTask(currentCommit)
 			putTasksDur := time.Duration(0)
-			before := time.Now()
+			before := util.Now()
 			updatedTasks, err := db.UpdateTasksWithRetries(d, func() ([]*db.Task, error) {
-				putTasksDur += time.Now().Sub(before)
+				putTasksDur += util.Now().Sub(before)
 				t := t.Copy()
 				if err := cache.Update(); err != nil {
 					sklog.Fatal(err)
@@ -212,17 +212,17 @@ func putTasks(d db.TaskDB) {
 				if err != nil {
 					sklog.Fatal(err)
 				}
-				before = time.Now()
+				before = util.Now()
 				if err := d.AssignId(t); err != nil {
 					sklog.Fatal(err)
 				}
-				putTasksDur += time.Now().Sub(before)
-				t.Created = time.Now()
+				putTasksDur += util.Now().Sub(before)
+				t.Created = util.Now()
 				t.SwarmingTaskId = fmt.Sprintf("%x", rand.Int31())
-				before = time.Now()
+				before = util.Now()
 				return tasksToUpdate, nil
 			})
-			putTasksDur += time.Now().Sub(before)
+			putTasksDur += util.Now().Sub(before)
 			if err != nil {
 				sklog.Fatal(err)
 			}
@@ -299,7 +299,7 @@ func updateTasks(d db.TaskDB) {
 				meanUpdateDelay = kMedianRunningDuration
 			}
 			updateDelayNanos := int64(math.Max(0, (rand.NormFloat64()+1)*float64(meanUpdateDelay)))
-			updateTime := time.Now().Add(time.Duration(updateDelayNanos) * time.Nanosecond)
+			updateTime := util.Now().Add(time.Duration(updateDelayNanos) * time.Nanosecond)
 			if entry == nil {
 				entry = &updateEntry{
 					task:       task,
@@ -327,12 +327,12 @@ func updateTasks(d db.TaskDB) {
 		sklog.Fatal(err)
 	}
 	// Initial read to find pending and running tasks.
-	for t := time.Now(); t.After(epoch); t = t.Add(-24 * time.Hour) {
+	for t := util.Now(); t.After(epoch); t = t.Add(-24 * time.Hour) {
 		begin := t.Add(-24 * time.Hour)
 		sklog.Infof("updateTasks loading %s to %s", begin, t)
-		before := time.Now()
+		before := util.Now()
 		t, err := d.GetTasksFromDateRange(begin, t)
-		getTasksDur := time.Now().Sub(before)
+		getTasksDur := util.Now().Sub(before)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -351,7 +351,7 @@ func updateTasks(d db.TaskDB) {
 	sklog.Infof("updateTasks finished loading; %d pending and running", len(idMap))
 	// Rate limit so we're not constantly taking locks for GetModifiedTasks.
 	for range time.Tick(time.Millisecond) {
-		now := time.Now()
+		now := util.Now()
 		t, err := d.GetModifiedTasks(token)
 		if err != nil {
 			sklog.Fatal(err)
@@ -361,16 +361,16 @@ func updateTasks(d db.TaskDB) {
 		}
 		sklog.Infof("updateTasks performing updates; %d tasks on queue", len(updateQueue))
 		for len(updateQueue) > 0 && updateQueue[0].updateTime.Before(now) {
-			if time.Now().Sub(now) >= db.MODIFIED_DATA_TIMEOUT-5*time.Second {
+			if util.Now().Sub(now) >= db.MODIFIED_DATA_TIMEOUT-5*time.Second {
 				break
 			}
 			entry := heap.Pop(&updateQueue).(*updateEntry)
 			task := entry.task
 			delete(idMap, task.Id)
 			putTasksDur := time.Duration(0)
-			before := time.Now()
+			before := util.Now()
 			_, err := db.UpdateTaskWithRetries(d, task.Id, func(task *db.Task) error {
-				putTasksDur += time.Now().Sub(before)
+				putTasksDur += util.Now().Sub(before)
 				switch task.Status {
 				case db.TASK_STATUS_PENDING:
 					task.Started = now
@@ -397,10 +397,10 @@ func updateTasks(d db.TaskDB) {
 				default:
 					sklog.Fatalf("Task %s in update queue has status %s. %#v", task.Id, task.Status, task)
 				}
-				before = time.Now()
+				before = util.Now()
 				return nil
 			})
-			putTasksDur += time.Now().Sub(before)
+			putTasksDur += util.Now().Sub(before)
 			if err != nil {
 				sklog.Fatal(err)
 			}
@@ -418,11 +418,11 @@ func readTasks(d db.TaskDB) {
 	var taskCount uint64 = 0
 	var readCount uint64 = 0
 	var totalDuration time.Duration = 0
-	lastMessage := time.Now()
+	lastMessage := util.Now()
 	for range time.Tick(time.Second) {
-		now := time.Now()
+		now := util.Now()
 		t, err := d.GetTasksFromDateRange(now.Add(-time.Hour), now)
-		dur := time.Now().Sub(now)
+		dur := util.Now().Sub(now)
 		if err != nil {
 			sklog.Fatal(err)
 		}

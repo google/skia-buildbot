@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 )
@@ -34,7 +35,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	begin := time.Now().UTC().Add(-*period)
+	begin := util.Now().UTC().Add(-*period)
 	if *beginStr != "" {
 		parsed, err := time.Parse(time.RFC3339, *beginStr)
 		if err != nil {

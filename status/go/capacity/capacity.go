@@ -55,7 +55,7 @@ func (c *CapacityClient) QueryAll() error {
 	sklog.Infoln("Recounting Capacity Stats")
 
 	// Fetch last 72 hours worth of tasks that TaskScheduler created.
-	now := time.Now()
+	now := util.Now()
 	before := now.Add(-72 * time.Hour)
 	tasks, err := c.tasks.GetTasksFromDateRange(before, now)
 	if err != nil {
