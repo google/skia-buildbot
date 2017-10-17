@@ -169,7 +169,7 @@ func (c *IncrementalCache) GetRange(repo string, from, to time.Time, maxCommits 
 // Get returns all newly-obtained data since the given time, trimmed to
 // maxComits.
 func (c *IncrementalCache) Get(repo string, since time.Time, maxCommits int) (*Update, error) {
-	return c.GetRange(repo, since, time.Now().UTC(), maxCommits)
+	return c.GetRange(repo, since, util.Now().UTC(), maxCommits)
 }
 
 // GetAll returns all of the data in the cache, trimmed to maxCommits.
@@ -256,7 +256,7 @@ func (c *IncrementalCache) Update(reset bool) error {
 		c.updates = map[string][]*Update{}
 	}
 	// Intentionally waited to set timestamps until we locked the cache.
-	ts := time.Now().UTC()
+	ts := util.Now().UTC()
 	for repo, u := range updates {
 		u.Timestamp = ts
 		c.updates[repo] = append(c.updates[repo], u)
@@ -268,10 +268,10 @@ func (c *IncrementalCache) Update(reset bool) error {
 // 24 hours.
 func (c *IncrementalCache) UpdateLoop(frequency time.Duration, ctx context.Context) {
 	lv := metrics2.NewLiveness("last_successful_incremental_cache_update")
-	lastReset := time.Now()
+	lastReset := util.Now()
 	go util.RepeatCtx(frequency, ctx, func() {
 		reset := false
-		now := time.Now()
+		now := util.Now()
 		if now.Sub(lastReset) > 24*time.Hour {
 			reset = true
 		}

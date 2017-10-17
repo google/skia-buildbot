@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"testing"
-	"time"
 
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
@@ -12,6 +11,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
@@ -21,7 +21,7 @@ func TestUpdateJobs(t *testing.T) {
 	trybots, gb, mock, cleanup := setup(t)
 	defer cleanup()
 
-	now := time.Now()
+	now := util.Now()
 
 	assertActiveTryJob := func(j *db.Job) {
 		assert.NoError(t, trybots.jCache.Update())
@@ -90,7 +90,7 @@ func TestUpdateJobs(t *testing.T) {
 	j1, j2 := jobs[0], jobs[1]
 	for _, j := range jobs[2:] {
 		j.Status = db.JOB_STATUS_SUCCESS
-		j.Finished = time.Now()
+		j.Finished = util.Now()
 	}
 	assert.NoError(t, trybots.db.PutJobs(jobs[2:]))
 	assert.NoError(t, trybots.jCache.Update())
@@ -211,7 +211,7 @@ func TestTryLeaseBuild(t *testing.T) {
 	defer cleanup()
 
 	id := int64(12345)
-	now := time.Now()
+	now := util.Now()
 	MockTryLeaseBuild(mock, id, now, nil)
 	k, err := trybots.tryLeaseBuild(id, now)
 	assert.NoError(t, err)
@@ -230,7 +230,7 @@ func TestJobStarted(t *testing.T) {
 	defer cleanup()
 
 	j := tryjob(gb.RepoUrl())
-	now := time.Now()
+	now := util.Now()
 
 	// Success
 	MockJobStarted(mock, j.BuildbucketBuildId, now, nil)
@@ -249,7 +249,7 @@ func TestJobFinished(t *testing.T) {
 	defer cleanup()
 
 	j := tryjob(gb.RepoUrl())
-	now := time.Now()
+	now := util.Now()
 
 	// Job not actually finished.
 	assert.EqualError(t, trybots.jobFinished(j), "JobFinished called for unfinished Job!")
@@ -300,7 +300,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
-	now := time.Now()
+	now := util.Now()
 
 	// Normal job, Gerrit patch.
 	b1 := Build(t, now)
@@ -391,7 +391,7 @@ func TestPoll(t *testing.T) {
 	trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
-	now := time.Now()
+	now := util.Now()
 
 	assertAdded := func(builds []*buildbucket_api.ApiCommonBuildMessage) {
 		assert.NoError(t, trybots.jCache.Update())

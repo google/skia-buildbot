@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -164,7 +165,7 @@ func tryjob(repoName string) *db.Job {
 	return &db.Job{
 		BuildbucketBuildId:  rand.Int63(),
 		BuildbucketLeaseKey: rand.Int63(),
-		Created:             time.Now(),
+		Created:             util.Now(),
 		Name:                "fake-name",
 		RepoState: db.RepoState{
 			Patch: db.Patch{

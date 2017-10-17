@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
@@ -268,7 +269,7 @@ func main() {
 	// Use dummy GetRevisionTimestamp function so that nothing ever expires from
 	// the cache.
 	dummyGetRevisionTimestamp := func(string, string) (time.Time, error) {
-		return time.Now(), nil
+		return util.Now(), nil
 	}
 	jCache, err := db.NewJobCache(d, w, dummyGetRevisionTimestamp)
 	assertNoError(err)
@@ -306,7 +307,7 @@ func main() {
 		insert := make([]*db.Task, 0, len(newTasks))
 		for _, task := range newTasks {
 			task.Status = db.TASK_STATUS_SUCCESS
-			task.Finished = time.Now()
+			task.Finished = util.Now()
 			task.IsolatedOutput = "abc123"
 			insert = append(insert, task)
 		}
