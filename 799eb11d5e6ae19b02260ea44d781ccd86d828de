@@ -128,6 +128,30 @@
       "revId": "799eb11d5e6ae19b02260ea44d781ccd86d828de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ee463f2_de947178",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-17T22:05:36Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f2b43919_ab6dc767",
+      "range": {
+        "startLine": 77,
+        "startChar": 8,
+        "endLine": 77,
+        "endChar": 17
+      },
+      "revId": "799eb11d5e6ae19b02260ea44d781ccd86d828de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
