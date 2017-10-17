@@ -34,7 +34,7 @@ func setupManifest(t *testing.T) (string, *git_testutils.GitBuilder, []string, *
 	}
 
 	parent := git_testutils.GitInit(t)
-	parent.Add(MANIFEST_FILE_NAME, fmt.Sprintf(`
+	parent.Add(manifestFileName, fmt.Sprintf(`
 <manifest>
   <projects>
 	<project name="third_party/sbase"
