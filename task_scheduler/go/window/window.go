@@ -36,7 +36,7 @@ func New(duration time.Duration, numCommits int, repos repograph.Map) (*Window, 
 
 // Update updates the start time of the Window.
 func (w *Window) Update() error {
-	return w.UpdateWithTime(time.Now())
+	return w.UpdateWithTime(util.Now())
 }
 
 // UpdateWithTime updates the start time of the Window, using the given current time.

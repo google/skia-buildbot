@@ -5,6 +5,7 @@ import (
 	"time"
 
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -110,7 +111,7 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
 }`)
 	gb.Add("somefile.txt", "blahblah")
 	gb.Add("a.txt", "blah")
-	now := time.Now()
+	now := util.Now()
 	c1 := gb.CommitMsgAt("c1", now.Add(-5*time.Second))
 
 	// Commit 2.

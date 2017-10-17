@@ -10,9 +10,9 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 func TestCopyTaskKey(t *testing.T) {
@@ -32,7 +32,7 @@ func TestCopyTaskKey(t *testing.T) {
 // invalid.
 func TestUpdateFromSwarmingInvalid(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().UTC().Round(time.Microsecond)
+	now := util.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
 		TaskKey: TaskKey{
@@ -94,7 +94,7 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 // fields do not match.
 func TestUpdateFromSwarmingMismatched(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().UTC().Round(time.Microsecond)
+	now := util.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
 		TaskKey: TaskKey{
@@ -159,7 +159,7 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 // Test that Task.UpdateFromSwarming sets the expected fields in an empty Task.
 func TestUpdateFromSwarmingInit(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().UTC().Round(time.Microsecond)
+	now := util.Now().UTC().Round(time.Microsecond)
 	task1 := &Task{
 		SwarmingTaskId: "E",
 	}
@@ -246,7 +246,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 // Task.
 func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().UTC().Round(time.Microsecond)
+	now := util.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		Id: "A",
 		TaskKey: TaskKey{
@@ -372,7 +372,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 // Test that Task.UpdateFromSwarming updates the Status field correctly.
 func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().UTC().Round(time.Microsecond)
+	now := util.Now().UTC().Round(time.Microsecond)
 
 	testUpdateStatus := func(s *swarming_api.SwarmingRpcsTaskResult, newStatus TaskStatus) {
 		task := &Task{
@@ -449,7 +449,7 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	// Create task, initialize from swarming, and save.
-	now := time.Now().UTC().Round(time.Microsecond)
+	now := util.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -538,7 +538,7 @@ func TestUpdateDBFromSwarmingTaskTryJob(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	// Create task, initialize from swarming, and save.
-	now := time.Now().UTC().Round(time.Microsecond)
+	now := util.Now().UTC().Round(time.Microsecond)
 	task := &Task{
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -650,7 +650,7 @@ func TestUpdateDBFromSwarmingTaskTryJob(t *testing.T) {
 
 func TestCopyTask(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	now := util.Now()
 	v := &Task{
 		Attempt:        3,
 		Commits:        []string{"a", "b"},
@@ -691,7 +691,7 @@ func TestValidateTask(t *testing.T) {
 		assert.False(t, task.Valid())
 	}
 
-	tmpl := makeTask(time.Now(), []string{"a"})
+	tmpl := makeTask(util.Now(), []string{"a"})
 	tmpl.SwarmingTaskId = ""
 	tmpl.Properties = map[string]string{
 		"barnDoor": "open",

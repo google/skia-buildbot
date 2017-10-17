@@ -206,7 +206,7 @@ func addListObjectsHandler(t *testing.T, r *mux.Router, prefix string, objs []ob
 // existing backups.
 func TestGetBackupMetricsNoFiles(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	now := util.Now()
 	r := mux.NewRouter()
 	addListObjectsHandler(t, r, DB_BACKUP_DIR, []object{})
 	b, cancel := getMockedDBBackup(t, r)
@@ -222,7 +222,7 @@ func TestGetBackupMetricsNoFiles(t *testing.T) {
 // multiple.
 func TestGetBackupMetricsTwoFiles(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	r := mux.NewRouter()
 	addListObjectsHandler(t, r, DB_BACKUP_DIR, []object{
 		{TEST_BUCKET, "a", now.Add(-1 * time.Hour).UTC()},
@@ -240,7 +240,7 @@ func TestGetBackupMetricsTwoFiles(t *testing.T) {
 // getBackupMetrics should not count objects that were not modified recently.
 func TestGetBackupMetricsSeveralDays(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	r := mux.NewRouter()
 	addListObjectsHandler(t, r, DB_BACKUP_DIR, []object{
 		{TEST_BUCKET, "a", now.Add(-49 * time.Hour).UTC()},
@@ -260,7 +260,7 @@ func TestGetBackupMetricsSeveralDays(t *testing.T) {
 // the past.
 func TestGetBackupMetricsOld(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	r := mux.NewRouter()
 	addListObjectsHandler(t, r, DB_BACKUP_DIR, []object{
 		{TEST_BUCKET, "a", now.Add(-49 * time.Hour).UTC()},
@@ -378,14 +378,14 @@ func addMultipartHandler(t *testing.T, r *mux.Router, actualBytesGzip map[string
 			assert.NoError(t, err)
 			actualBytesGzip[name], err = ioutil.ReadAll(dataPart)
 			assert.NoError(t, err)
-			_, _ = w.Write([]byte(makeObjectResponse(object{TEST_BUCKET, name, time.Now()})))
+			_, _ = w.Write([]byte(makeObjectResponse(object{TEST_BUCKET, name, util.Now()})))
 		})
 }
 
 // upload should upload data to GCS.
 func TestUpload(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	r := mux.NewRouter()
 	actualBytesGzip := map[string][]byte{}
 	addMultipartHandler(t, r, actualBytesGzip)
@@ -410,7 +410,7 @@ func TestUpload(t *testing.T) {
 // upload may fail if the GCS request fails.
 func TestUploadError(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	now := util.Now()
 	r := mux.NewRouter()
 	name := "path/to/gsfile.txt"
 
@@ -440,7 +440,7 @@ func TestUploadFile(t *testing.T) {
 	filename := path.Join(tempdir, "myfile.txt")
 	assert.NoError(t, ioutil.WriteFile(filename, []byte(TEST_DB_CONTENT), os.ModePerm))
 
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	r := mux.NewRouter()
 	actualBytesGzip := map[string][]byte{}
 	addMultipartHandler(t, r, actualBytesGzip)
@@ -474,7 +474,7 @@ func TestUploadFileNoFile(t *testing.T) {
 	b, cancel := getMockedDBBackup(t, nil)
 	defer cancel()
 
-	now := time.Now()
+	now := util.Now()
 	name := "path/to/gsfile.txt"
 	err = uploadFile(b.ctx, filename, b.gsClient.Bucket(b.gsBucket), name, now)
 	assert.Error(t, err)
@@ -501,7 +501,7 @@ func TestBackupDB(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	now := time.Now()
+	now := util.Now()
 	r := mux.NewRouter()
 
 	actualBytesGzip := map[string][]byte{}
@@ -529,7 +529,7 @@ func TestBackupDB(t *testing.T) {
 
 // testBackupDBLarge tests backupDB for DB contents larger than 8MB.
 func testBackupDBLarge(t *testing.T, contentSize int64) {
-	now := time.Now()
+	now := util.Now()
 	r := mux.NewRouter()
 	name := DB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/task-scheduler.bdb"
 
@@ -589,7 +589,7 @@ func testBackupDBLarge(t *testing.T, contentSize int64) {
 			recvBytes += end - begin + 1
 			if finalChunk {
 				complete = true
-				_, _ = w.Write([]byte(makeObjectResponse(object{TEST_BUCKET, name, time.Now()})))
+				_, _ = w.Write([]byte(makeObjectResponse(object{TEST_BUCKET, name, util.Now()})))
 			} else {
 				w.Header().Set("Range", fmt.Sprintf("0-%d", recvBytes-1))
 				// https://github.com/google/google-api-go-client/commit/612451d2aabbf88084e4f1c48c0781073c0d5583
@@ -779,7 +779,7 @@ func TestDeleteTriggerFileAlreadyDeleted(t *testing.T) {
 // maybeBackupDB should do nothing if there is no trigger file.
 func TestMaybeBackupDBNotYet(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	now := util.Now()
 	r := mux.NewRouter()
 	called := false
 	gsRoute(r).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -912,7 +912,7 @@ func makeExistingJob(now time.Time, id string) *db.Job {
 // backupJob should create a GCS object with the gzipped bytes.
 func TestBackupJob(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	now := util.Now()
 
 	j := makeJob(now)
 	var buf bytes.Buffer
@@ -952,7 +952,7 @@ func TestIncrementalBackupStepNoJobs(t *testing.T) {
 
 	b.incrementalBackupLiveness.ManualReset(time.Time{})
 
-	now := time.Now()
+	now := util.Now()
 	assert.NoError(t, b.incrementalBackupStep(now))
 
 	newTs, err := b.db.GetIncrementalBackupTime()
@@ -966,7 +966,7 @@ func TestIncrementalBackupStepNoJobs(t *testing.T) {
 // incrementalBackupStep should back up each added or modified job.
 func TestIncrementalBackupStep(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	now := util.Now()
 	namePrefix := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/"
 
 	r := mux.NewRouter()
@@ -1039,7 +1039,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 // incrementalBackupStep should continue when one job can not be uploaded.
 func TestIncrementalBackupStepSingleUploadError(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	now := util.Now()
 
 	r := mux.NewRouter()
 	b, cancel := getMockedDBBackup(t, r)
@@ -1097,7 +1097,7 @@ func TestIncrementalBackupStepSingleUploadError(t *testing.T) {
 // incrementalBackupStep should report multiple errors when they occur.
 func TestIncrementalBackupStepMultipleUploadError(t *testing.T) {
 	testutils.SmallTest(t)
-	now := time.Now()
+	now := util.Now()
 
 	r := mux.NewRouter()
 	b, cancel := getMockedDBBackup(t, r)
@@ -1159,7 +1159,7 @@ func TestIncrementalBackupStepReset(t *testing.T) {
 	oldTs, err := b.db.GetIncrementalBackupTime()
 	assert.NoError(t, err)
 
-	now := time.Now()
+	now := util.Now()
 	err = b.incrementalBackupStep(now)
 	assert.True(t, db.IsUnknownId(err))
 
@@ -1204,7 +1204,7 @@ func TestIncrementalBackupStepSetTSError(t *testing.T) {
 
 	b.incrementalBackupLiveness.ManualReset(time.Time{})
 
-	now := time.Now()
+	now := util.Now()
 	err := b.incrementalBackupStep(now)
 	assert.Equal(t, injectedError, err)
 
@@ -1232,7 +1232,7 @@ func addGetJobGOBHandler(t *testing.T, r *mux.Router, job *db.Job) {
 func TestDownloadGOB(t *testing.T) {
 	testutils.SmallTest(t)
 
-	now := time.Now()
+	now := util.Now()
 	job := makeExistingJob(now, "j1")
 
 	r := mux.NewRouter()
@@ -1329,7 +1329,7 @@ func assertJobMapsEqual(t *testing.T, expected map[string]*db.Job, actual map[st
 func TestRetrieveJobsSimple(t *testing.T) {
 	testutils.SmallTest(t)
 
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	since := now.Add(-1 * time.Hour)
 	expectedJobs := map[string]*db.Job{}
 
@@ -1348,7 +1348,7 @@ func TestRetrieveJobsSimple(t *testing.T) {
 		allJobsByDir[job1dir] = []*db.Job{job1}
 		allJobsByDir[job2dir] = []*db.Job{job2}
 	}
-	nowdir := path.Dir(formatJobObjectName(time.Now(), "dummy"))
+	nowdir := path.Dir(formatJobObjectName(util.Now(), "dummy"))
 	if job2dir != nowdir {
 		allJobsByDir[nowdir] = []*db.Job{}
 	}
@@ -1366,7 +1366,7 @@ func TestRetrieveJobsSimple(t *testing.T) {
 func TestRetrieveJobsMultipleDirs(t *testing.T) {
 	testutils.MediumTest(t) // GOB encoding and decoding takes time.
 
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	since := now.Add(-26 * time.Hour)
 	allJobsByDir := map[string][]*db.Job{}
 	expectedJobs := map[string]*db.Job{}
@@ -1401,7 +1401,7 @@ func TestRetrieveJobsMultipleDirs(t *testing.T) {
 func TestRetrieveJobsMultipleVersions(t *testing.T) {
 	testutils.MediumTest(t) // GOB encoding and decoding takes time.
 
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	since := now.Add(-26 * time.Hour)
 	allJobsByDir := map[string][]*db.Job{}
 	expectedJobs := map[string]*db.Job{}
@@ -1466,7 +1466,7 @@ func TestRetrieveJobsErrorListingJobs(t *testing.T) {
 	testutils.SmallTest(t)
 
 	r := mux.NewRouter()
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	prefix := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/"
 	gsRoute(r).Methods("GET").
 		Path(fmt.Sprintf("/storage/v1/b/%s/o", TEST_BUCKET)).
@@ -1486,7 +1486,7 @@ func TestRetrieveJobsErrorDownloading(t *testing.T) {
 	testutils.SmallTest(t)
 
 	r := mux.NewRouter()
-	now := time.Now().Round(time.Second)
+	now := util.Now().Round(time.Second)
 	prefix := JOB_BACKUP_DIR + "/" + now.UTC().Format("2006/01/02") + "/"
 	name := prefix + "j1.gob"
 	addListObjectsHandler(t, r, prefix, []object{

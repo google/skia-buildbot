@@ -9,8 +9,8 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 func makeFullJob(now time.Time) *Job {
@@ -41,7 +41,7 @@ func makeFullJob(now time.Time) *Job {
 
 func TestJobCopy(t *testing.T) {
 	testutils.SmallTest(t)
-	v := makeFullJob(time.Now())
+	v := makeFullJob(util.Now())
 	testutils.AssertCopy(t, v, v.Copy())
 }
 
