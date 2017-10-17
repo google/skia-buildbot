@@ -18,15 +18,13 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-const (
-	// TODO(rmistry): Make this configurable.
-	MANIFEST_FILE_NAME = "skia"
-)
-
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
 	NewManifestRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string) (RepoManager, error) = newManifestRepoManager
+
+	// TODO(rmistry): Make this configurable.
+	manifestFileName = filepath.Join("manifest", "skia")
 )
 
 // manifestRepoManager is a struct used by Manifest AutoRoller for managing checkouts.
@@ -128,15 +126,15 @@ func (mr *manifestRepoManager) Update() error {
 //                add a tool similar to roll-dep.
 func (mr *manifestRepoManager) getLastRollRev() (string, error) {
 	// Parse the manifest file to extract the child repo revision.
-	content, err := ioutil.ReadFile(filepath.Join(mr.parentDir, "manifest", MANIFEST_FILE_NAME))
+	content, err := ioutil.ReadFile(filepath.Join(mr.parentDir, manifestFileName))
 	if err != nil {
-		return "", fmt.Errorf("Could not read from %s: %s", MANIFEST_FILE_NAME, err)
+		return "", fmt.Errorf("Could not read from %s: %s", manifestFileName, err)
 	}
 	childRepoName := path.Base(mr.childDir)
 	regex := regexp.MustCompile(fmt.Sprintf(`(?sm)%s(.*?)revision="(.*?)"`, childRepoName))
 	m := regex.FindStringSubmatch(string(content))
 	if m == nil {
-		return "", fmt.Errorf("Could not find target revision from %s", MANIFEST_FILE_NAME)
+		return "", fmt.Errorf("Could not find target revision from %s", manifestFileName)
 	}
 	return m[len(m)-1], nil
 }
@@ -210,7 +208,7 @@ https://%s.googlesource.com/%s.git/+log/%s
 `, mr.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"))
 
 	// Commit the change with the above message.
-	if _, addErr := exec.RunCwd(mr.parentDir, "git", "add", MANIFEST_FILE_NAME); addErr != nil {
+	if _, addErr := exec.RunCwd(mr.parentDir, "git", "add", manifestFileName); addErr != nil {
 		return 0, fmt.Errorf("Failed to git add: %s", addErr)
 	}
 	if _, commitErr := exec.RunCwd(mr.parentDir, "git", "commit", "-m", commitMsg); commitErr != nil {
@@ -290,7 +288,7 @@ func (r *manifestRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun 
 }
 
 func (mr *manifestRepoManager) updateManifestFile(prevHash, newHash string) error {
-	manifestFilePath := filepath.Join(mr.parentDir, MANIFEST_FILE_NAME)
+	manifestFilePath := filepath.Join(mr.parentDir, manifestFileName)
 	sklog.Infof("Updating %s from %s to %s", manifestFilePath, prevHash, newHash)
 	content, err := ioutil.ReadFile(manifestFilePath)
 	if err != nil {
