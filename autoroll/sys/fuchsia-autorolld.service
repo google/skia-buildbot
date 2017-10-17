@@ -10,7 +10,7 @@ ExecStart=/usr/local/bin/autoroll \
     --host=fuchsia-roll.skia.org \
     --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --parent_repo=https://fuchsia.googlesource.com/manifest.git \
+    --parent_repo=https://fuchsia.googlesource.com/garnet.git \
     --parent_waterfall=https://fuchsia-dashboard.appspot.com/ \
     --gerrit_url=https://fuchsia-review.googlesource.com \
     --childName=Skia \
