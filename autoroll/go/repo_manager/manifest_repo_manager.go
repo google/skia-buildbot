@@ -128,7 +128,7 @@ func (mr *manifestRepoManager) Update() error {
 //                add a tool similar to roll-dep.
 func (mr *manifestRepoManager) getLastRollRev() (string, error) {
 	// Parse the manifest file to extract the child repo revision.
-	content, err := ioutil.ReadFile(filepath.Join(mr.parentDir, MANIFEST_FILE_NAME))
+	content, err := ioutil.ReadFile(filepath.Join(mr.parentDir, "manifest", MANIFEST_FILE_NAME))
 	if err != nil {
 		return "", fmt.Errorf("Could not read from %s: %s", MANIFEST_FILE_NAME, err)
 	}
