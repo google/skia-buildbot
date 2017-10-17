@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -34,8 +35,8 @@ func setup(t *testing.T) (string, *IncrementalCache, repograph.Map, db.DB, *git_
 	assert.NoError(t, repos.Update())
 
 	initialTask := &db.Task{
-		Created:    time.Now(),
-		DbModified: time.Now(),
+		Created:    util.Now(),
+		DbModified: util.Now(),
 		Id:         "0",
 		TaskKey: db.TaskKey{
 			RepoState: db.RepoState{
@@ -61,7 +62,7 @@ func setup(t *testing.T) (string, *IncrementalCache, repograph.Map, db.DB, *git_
 
 func update(t *testing.T, repo string, c *IncrementalCache, ts time.Time) (*Update, time.Time) {
 	assert.NoError(t, c.Update(false))
-	now := time.Now()
+	now := util.Now()
 	u, err := c.Get(repo, ts, 100)
 	assert.NoError(t, err)
 	return u, now
@@ -79,7 +80,7 @@ func TestIncrementalCache(t *testing.T) {
 
 	// Verify the initial state.
 	assert.Equal(t, 1, len(cache.updates[repoUrl]))
-	ts := time.Now()
+	ts := util.Now()
 	ts0 := ts // Used later.
 	u, err := cache.GetAll(repoUrl, 100)
 	assert.NoError(t, err)
@@ -120,7 +121,7 @@ func TestIncrementalCache(t *testing.T) {
 		Repo:      t0.Repo,
 		Revision:  t0.Revision,
 		Name:      t0.Name,
-		Timestamp: time.Now(),
+		Timestamp: util.Now(),
 		TaskId:    t0.Id,
 		User:      "me",
 		Message:   "here's a task comment.",
@@ -155,7 +156,7 @@ func TestIncrementalCache(t *testing.T) {
 	cc := db.CommitComment{
 		Repo:          t0.Repo,
 		Revision:      t0.Revision,
-		Timestamp:     time.Now(),
+		Timestamp:     util.Now(),
 		User:          "me",
 		IgnoreFailure: true,
 		Message:       "here's a commit comment",
@@ -177,7 +178,7 @@ func TestIncrementalCache(t *testing.T) {
 	tsc := db.TaskSpecComment{
 		Repo:          t0.Repo,
 		Name:          t0.Name,
-		Timestamp:     time.Now(),
+		Timestamp:     util.Now(),
 		User:          "me",
 		Flaky:         true,
 		IgnoreFailure: true,

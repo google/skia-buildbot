@@ -107,12 +107,12 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 // given Context is canceled, the loops stop.
 func (t *TryJobIntegrator) Start(ctx context.Context) {
 	go util.RepeatCtx(UPDATE_INTERVAL, ctx, func() {
-		if err := t.updateJobs(time.Now()); err != nil {
+		if err := t.updateJobs(util.Now()); err != nil {
 			sklog.Error(err)
 		}
 	})
 	go util.RepeatCtx(POLL_INTERVAL, ctx, func() {
-		if err := t.Poll(time.Now()); err != nil {
+		if err := t.Poll(util.Now()); err != nil {
 			sklog.Errorf("Failed to poll for new try jobs: %s", err)
 		}
 	})
@@ -283,7 +283,7 @@ func (t *TryJobIntegrator) localCancelJobs(jobs []*db.Job) error {
 	for _, j := range jobs {
 		j.BuildbucketLeaseKey = 0
 		j.Status = db.JOB_STATUS_CANCELED
-		j.Finished = time.Now()
+		j.Finished = util.Now()
 	}
 	if err := t.db.PutJobs(jobs); err != nil {
 		return err

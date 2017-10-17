@@ -181,7 +181,7 @@ func (c *TestClient) TriggerTask(t *swarming_api.SwarmingRpcsNewTaskRequest) (*s
 		return nil, fmt.Errorf("Mocked trigger failure!")
 	}
 
-	createdTs := time.Now().UTC().Format(swarming.TIMESTAMP_FORMAT)
+	createdTs := util.Now().UTC().Format(swarming.TIMESTAMP_FORMAT)
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
 	rv := &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{

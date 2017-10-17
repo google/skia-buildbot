@@ -3,10 +3,9 @@ package tryjobs
 import (
 	"sort"
 	"sync"
-	"time"
 
 	"go.skia.org/infra/go/sklog"
-
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -87,7 +86,7 @@ func (c *jobCache) reset() error {
 	if err != nil {
 		return err
 	}
-	now := time.Now()
+	now := util.Now()
 	start := c.timeWindow.EarliestStart()
 	sklog.Infof("Reading Jobs from %s to %s.", start, now)
 	jobs, err := c.db.GetJobsFromDateRange(start, now)

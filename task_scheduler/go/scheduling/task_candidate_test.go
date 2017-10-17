@@ -2,13 +2,12 @@ package scheduling
 
 import (
 	"testing"
-	"time"
-
-	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/specs"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 func TestCopyTaskCandidate(t *testing.T) {
@@ -18,7 +17,7 @@ func TestCopyTaskCandidate(t *testing.T) {
 		Commits:        []string{"a", "b"},
 		IsolatedInput:  "lonely-parameter",
 		IsolatedHashes: []string{"browns"},
-		JobCreated:     time.Now(),
+		JobCreated:     util.Now(),
 		ParentTaskIds:  []string{"38", "39", "40"},
 		RetryOf:        "41",
 		Score:          99,

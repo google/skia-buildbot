@@ -89,7 +89,7 @@ func getRS2(t *testing.T, gb *git_testutils.GitBuilder) db.RepoState {
 func makeTask(name, repo, revision string) *db.Task {
 	return &db.Task{
 		Commits: []string{revision},
-		Created: time.Now(),
+		Created: util.Now(),
 		TaskKey: db.TaskKey{
 			RepoState: db.RepoState{
 				Repo:     repo,
@@ -276,7 +276,7 @@ func TestGatherNewJobs(t *testing.T) {
 	cfgBytes, err := specs.EncodeTasksCfg(cfg)
 	assert.NoError(t, err)
 	gb.Add("infra/bots/tasks.json", string(cfgBytes))
-	gb.CommitMsgAt("abcd", time.Now())
+	gb.CommitMsgAt("abcd", util.Now())
 	assert.NoError(t, s.updateRepos())
 	testGatherNewJobs(72)
 }
@@ -301,7 +301,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// Run on an empty job list, ensure empty list returned.
 	test([]*db.Job{}, map[db.TaskKey]*taskCandidate{})
 
-	now := time.Now().UTC()
+	now := util.Now().UTC()
 
 	// Run for one job, ensure that we get the right set of task specs
 	// returned (ie. all dependencies and their dependencies).
@@ -673,7 +673,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 	gb, _, _, s, _, cleanup := setup(t)
 	defer cleanup()
 
-	ts := time.Now()
+	ts := util.Now()
 
 	rs1 := getRS1(t, gb)
 	rs2 := getRS2(t, gb)
@@ -780,7 +780,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 		},
 	}
 
-	processed, err := s.processTaskCandidates(candidates, time.Now())
+	processed, err := s.processTaskCandidates(candidates, util.Now())
 	assert.NoError(t, err)
 	for _, c := range processed {
 		assertProcessed(c)
@@ -1042,7 +1042,7 @@ func TestComputeBlamelist(t *testing.T) {
 		}
 		task := c.MakeTask()
 		task.Commits = commits
-		task.Created = time.Now()
+		task.Created = util.Now()
 		if stoleFrom != nil {
 			// Re-insert the stoleFrom task without the commits
 			// which were stolen from it.
@@ -1236,7 +1236,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	c2 := rs2.Revision
 
 	// Our test repo has a job pointing to every task.
-	now := time.Now()
+	now := util.Now()
 	j1 := &db.Job{
 		Created:      now,
 		Name:         "j1",
@@ -1277,7 +1277,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.jCache.Update())
 
 	// Regenerate the task queue.
-	queue, err := s.regenerateTaskQueue(time.Now())
+	queue, err := s.regenerateTaskQueue(util.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(queue)) // Two Build tasks.
 
@@ -1314,7 +1314,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(time.Now())
+	queue, err = s.regenerateTaskQueue(util.Now())
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain the other Build task and the one
@@ -1351,7 +1351,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(time.Now())
+	queue, err = s.regenerateTaskQueue(util.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(queue))
 	testSort()
@@ -1384,7 +1384,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(time.Now())
+	queue, err = s.regenerateTaskQueue(util.Now())
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The
@@ -1580,7 +1580,7 @@ func TestSchedulingE2E(t *testing.T) {
 
 	// The task is complete.
 	t1.Status = db.TASK_STATUS_SUCCESS
-	t1.Finished = time.Now()
+	t1.Finished = util.Now()
 	t1.IsolatedOutput = "abc123"
 	assert.NoError(t, d.PutTask(t1))
 	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{
@@ -1656,7 +1656,7 @@ func TestSchedulingE2E(t *testing.T) {
 	assert.NotNil(t, t3)
 	assert.NotNil(t, t4)
 	t4.Status = db.TASK_STATUS_SUCCESS
-	t4.Finished = time.Now()
+	t4.Finished = util.Now()
 	t4.IsolatedOutput = "abc123"
 
 	// No new bots free; only the remaining test task should be in the queue.
@@ -1677,7 +1677,7 @@ func TestSchedulingE2E(t *testing.T) {
 	t3, err = s.tCache.GetTask(t3.Id)
 	assert.NoError(t, err)
 	t3.Status = db.TASK_STATUS_SUCCESS
-	t3.Finished = time.Now()
+	t3.Finished = util.Now()
 	t3.IsolatedOutput = "abc123"
 
 	// Ensure that we finalize all of the tasks and insert into the DB.
@@ -1699,7 +1699,7 @@ func TestSchedulingE2E(t *testing.T) {
 		for _, task := range v {
 			if task.Status != db.TASK_STATUS_SUCCESS {
 				task.Status = db.TASK_STATUS_SUCCESS
-				task.Finished = time.Now()
+				task.Finished = util.Now()
 				task.IsolatedOutput = "abc123"
 				tasksList = append(tasksList, task)
 			}
@@ -1745,7 +1745,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	tasksList := []*db.Task{}
 	t1 := tasks[c2][specs_testutils.BuildTask]
 	t1.Status = db.TASK_STATUS_SUCCESS
-	t1.Finished = time.Now()
+	t1.Finished = util.Now()
 	t1.IsolatedOutput = "abc123"
 	tasksList = append(tasksList, t1)
 
@@ -1782,7 +1782,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	testutils.AssertDeepEqual(t, expect, task.Commits)
 
 	task.Status = db.TASK_STATUS_SUCCESS
-	task.Finished = time.Now()
+	task.Finished = util.Now()
 	task.IsolatedOutput = "abc123"
 	assert.NoError(t, d.PutTask(task))
 	assert.NoError(t, s.tCache.Update())
@@ -1827,7 +1827,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		assert.Equal(t, 0, len(new.Intersect(updatedOld)))
 		// Finish the new task.
 		newTask.Status = db.TASK_STATUS_SUCCESS
-		newTask.Finished = time.Now()
+		newTask.Finished = util.Now()
 		newTask.IsolatedOutput = "abc123"
 		assert.NoError(t, d.PutTask(newTask))
 		assert.NoError(t, s.tCache.Update())
@@ -1937,7 +1937,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	mock := func(task *db.Task) {
 		task.Status = db.TASK_STATUS_SUCCESS
-		task.Finished = time.Now()
+		task.Finished = util.Now()
 		task.IsolatedOutput = "abc123"
 		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
 		swarmingClient.MockTasks(mockTasks)
@@ -2116,9 +2116,9 @@ func TestSchedulingRetry(t *testing.T) {
 
 	// One task successful, the other not.
 	t1.Status = db.TASK_STATUS_FAILURE
-	t1.Finished = time.Now()
+	t1.Finished = util.Now()
 	t2.Status = db.TASK_STATUS_SUCCESS
-	t2.Finished = time.Now()
+	t2.Finished = util.Now()
 	t2.IsolatedOutput = "abc123"
 
 	assert.NoError(t, d.PutTasks([]*db.Task{t1, t2}))
@@ -2142,7 +2142,7 @@ func TestSchedulingRetry(t *testing.T) {
 		assert.Equal(t, i, retry.Attempt)
 		assert.Equal(t, c2, retry.Revision)
 		retry.Status = db.TASK_STATUS_FAILURE
-		retry.Finished = time.Now()
+		retry.Finished = util.Now()
 		assert.NoError(t, d.PutTask(retry))
 		assert.NoError(t, s.tCache.Update())
 
@@ -2166,7 +2166,7 @@ func TestParentTaskId(t *testing.T) {
 	assert.Equal(t, 1, len(tasks))
 	t1 := tasks[0]
 	t1.Status = db.TASK_STATUS_SUCCESS
-	t1.Finished = time.Now()
+	t1.Finished = util.Now()
 	t1.IsolatedOutput = "abc123"
 	assert.Equal(t, 0, len(t1.ParentTaskIds))
 	assert.NoError(t, d.PutTasks([]*db.Task{t1}))
@@ -2234,7 +2234,7 @@ func TestTrybots(t *testing.T) {
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", androidTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
-	now := time.Now()
+	now := util.Now()
 
 	n := 0
 	for i := 0; i < 10; i++ {
@@ -2414,7 +2414,7 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Mark the task successful.
 	t1.Status = db.TASK_STATUS_FAILURE
-	t1.Finished = time.Now()
+	t1.Finished = util.Now()
 	assert.NoError(t, d.PutTasks([]*db.Task{t1}))
 	assert.NoError(t, s.tCache.Update())
 
@@ -2449,7 +2449,7 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// The retry succeeded.
 	t2.Status = db.TASK_STATUS_SUCCESS
-	t2.Finished = time.Now()
+	t2.Finished = util.Now()
 	t2.IsolatedOutput = "abc"
 	assert.NoError(t, d.PutTask(t2))
 	assert.NoError(t, s.tCache.Update())
@@ -3084,15 +3084,15 @@ func TestAddTasksRetries(t *testing.T) {
 		defer retryCountMtx.Unlock()
 		retryCount[tasks[0].Name]++
 		if tasks[0].Name == "toil" && retryCount["toil"] < 2 {
-			toil2.Started = time.Now().UTC()
+			toil2.Started = util.Now().UTC()
 			assert.NoError(t, d.PutTasks([]*db.Task{toil2}))
 		}
 		if tasks[0].Name == "duty" && retryCount["duty"] < 3 {
-			duty2.Started = time.Now().UTC()
+			duty2.Started = util.Now().UTC()
 			assert.NoError(t, d.PutTasks([]*db.Task{duty2}))
 		}
 		if tasks[0].Name == "work" && retryCount["work"] < 4 {
-			work2.Started = time.Now().UTC()
+			work2.Started = util.Now().UTC()
 			assert.NoError(t, d.PutTasks([]*db.Task{work2}))
 		}
 	}
@@ -3377,7 +3377,7 @@ func TestUpdateTask(t *testing.T) {
 	task.Properties = map[string]string{
 		"barnDoor": "open",
 	}
-	task.Started = time.Now()
+	task.Started = util.Now()
 	task.Status = db.TASK_STATUS_RUNNING
 	assert.NoError(t, d.PutTask(task))
 
@@ -3385,10 +3385,10 @@ func TestUpdateTask(t *testing.T) {
 	assert.NoError(t, err)
 
 	task.Commits = []string{c2, c1}
-	task.Finished = time.Now()
+	task.Finished = util.Now()
 	task.Properties["barnDoor"] = "closed"
 	task.Properties["yourHorsesHeld"] = "true"
-	task.Started = time.Now().Add(-time.Minute)
+	task.Started = util.Now().Add(-time.Minute)
 	task.Status = db.TASK_STATUS_SUCCESS
 	expected := task.Copy()
 

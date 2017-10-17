@@ -6,19 +6,19 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 func TestCopyTaskComment(t *testing.T) {
 	testutils.SmallTest(t)
-	v := makeTaskComment(1, 1, 1, 1, time.Now())
+	v := makeTaskComment(1, 1, 1, 1, util.Now())
 	testutils.AssertCopy(t, v, v.Copy())
 }
 
 func TestCopyTaskSpecComment(t *testing.T) {
 	testutils.SmallTest(t)
-	v := makeTaskSpecComment(1, 1, 1, time.Now())
+	v := makeTaskSpecComment(1, 1, 1, util.Now())
 	v.Flaky = true
 	v.IgnoreFailure = true
 	testutils.AssertCopy(t, v, v.Copy())
@@ -26,7 +26,7 @@ func TestCopyTaskSpecComment(t *testing.T) {
 
 func TestCopyCommitComment(t *testing.T) {
 	testutils.SmallTest(t)
-	v := makeCommitComment(1, 1, 1, time.Now())
+	v := makeCommitComment(1, 1, 1, util.Now())
 	v.IgnoreFailure = true
 	testutils.AssertCopy(t, v, v.Copy())
 }
@@ -37,14 +37,14 @@ func TestCopyRepoComments(t *testing.T) {
 		Repo: "r1",
 		TaskComments: map[string]map[string][]*TaskComment{
 			"c1": {
-				"n1": {makeTaskComment(1, 1, 1, 1, time.Now())},
+				"n1": {makeTaskComment(1, 1, 1, 1, util.Now())},
 			},
 		},
 		TaskSpecComments: map[string][]*TaskSpecComment{
-			"n1": {makeTaskSpecComment(1, 1, 1, time.Now())},
+			"n1": {makeTaskSpecComment(1, 1, 1, util.Now())},
 		},
 		CommitComments: map[string][]*CommitComment{
-			"c1": {makeCommitComment(1, 1, 1, time.Now())},
+			"c1": {makeCommitComment(1, 1, 1, util.Now())},
 		},
 	}
 	testutils.AssertCopy(t, v, v.Copy())
@@ -71,7 +71,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 
 	db := NewCommentBoxWithPersistence(nil, testWriter)
 
-	now := time.Now()
+	now := util.Now()
 
 	assert.Equal(t, 0, callCount)
 
@@ -226,7 +226,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 
 	db := NewCommentBoxWithPersistence(nil, testWriter)
 
-	now := time.Now()
+	now := util.Now()
 
 	// Add some comments.
 	tc1 := makeTaskComment(1, 1, 1, 1, now)
