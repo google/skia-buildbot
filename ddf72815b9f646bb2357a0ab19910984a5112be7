@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d685bf52_55cf02aa",
+        "filename": "autoroll/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-18T11:20:05Z",
+      "side": 1,
+      "message": "Please land this as a separate CL.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 0
+      },
+      "revId": "ddf72815b9f646bb2357a0ab19910984a5112be7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
