@@ -16,5 +16,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "http-server": "^0.10.0",
+    "sinon": "^1.17.2"
+  }
 }
