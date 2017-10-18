@@ -46,6 +46,30 @@
       "revId": "ed93beda3f17ed51d3248554826506d011e8ad3b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9df0bd5c_d23300ad",
+        "filename": "task_scheduler/go/db/local_db/local_db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 522,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-18T15:15:31Z",
+      "side": 1,
+      "message": "Okay:\n1. Do we expand our search by this tolerance during GetTaskForDateRange?\n2. Is there a problem using the time from the task ID for task.Created?",
+      "parentUuid": "8453c1ea_6065a936",
+      "range": {
+        "startLine": 518,
+        "startChar": 0,
+        "endLine": 522,
+        "endChar": 239
+      },
+      "revId": "ed93beda3f17ed51d3248554826506d011e8ad3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
