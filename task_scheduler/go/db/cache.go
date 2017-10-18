@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/task_scheduler/go/window"
-
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
@@ -390,7 +390,7 @@ func (c *taskCache) reset() error {
 		return err
 	}
 	start := c.timeWindow.EarliestStart()
-	now := time.Now()
+	now := util.Now()
 	sklog.Infof("Reading Tasks from %s to %s.", start, now)
 	tasks, err := c.db.GetTasksFromDateRange(start, now)
 	if err != nil {
@@ -599,7 +599,7 @@ func (c *jobCache) reset() error {
 	if err != nil {
 		return err
 	}
-	now := time.Now()
+	now := util.Now()
 	start := c.timeWindow.EarliestStart()
 	sklog.Infof("Reading Jobs from %s to %s.", start, now)
 	jobs, err := c.db.GetJobsFromDateRange(start, now)
