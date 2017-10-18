@@ -41,7 +41,7 @@ type Storage struct {
 	MasterTileBuilder tracedb.MasterTileBuilder
 	BranchTileBuilder tracedb.BranchTileBuilder
 	DigestStore       digeststore.DigestStore
-	EventBus          *eventbus.EventBus
+	EventBus          eventbus.EventBus
 	TrybotResults     *trybot.TrybotResults
 	RietveldAPI       *rietveld.Rietveld
 	GerritAPI         *gerrit.Gerrit
