@@ -80,13 +80,15 @@ def _CheckBannedGoAPIs(input_api, output_api):
   # A list of tuples of a regex to match an API and a suggested replacement for
   # that API.
   banned_replacements = [
+    (r'\breflect\.DeepEqual\b', 'DeepEqual in go.skia.org/infra/go/testutils'),
+    (r'\bassert\.Equal\b', 'AssertDeepEqual in go.skia.org/infra/go/testutils'),
+    (r'\bgithub\.com/golang/glog\b', 'go.skia.org/infra/go/sklog'),
+    (r'\bgithub\.com/skia-dev/glog\b', 'go.skia.org/infra/go/sklog'),
     (r'\bhttp\.Get\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
     (r'\bhttp\.Head\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
     (r'\bhttp\.Post\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
     (r'\bhttp\.PostForm\b',
-     'NewTimeoutClient in go.skia.org/infra/go/httputils'),
-    (r'\bgithub\.com/golang/glog\b', 'go.skia.org/infra/go/sklog'),
-    (r'\bgithub\.com/skia-dev/glog\b', 'go.skia.org/infra/go/sklog'),
+        'NewTimeoutClient in go.skia.org/infra/go/httputils'),
   ]
 
   compiled_replacements = []
