@@ -16,6 +16,29 @@
       "revId": "9137dcf3b87bd7dec13eaccc3c93dc34031cd383",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1e93a2e_67d237dd",
+        "filename": "go/testutils/deep_equals.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-18T15:13:53Z",
+      "side": 1,
+      "message": "Need to do more type checking to ensure this doesn\u0027t panic.",
+      "range": {
+        "startLine": 113,
+        "startChar": 14,
+        "endLine": 113,
+        "endChar": 45
+      },
+      "revId": "9137dcf3b87bd7dec13eaccc3c93dc34031cd383",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
