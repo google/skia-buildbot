@@ -139,7 +139,7 @@
           </paper-radio-group>
           <paper-input
               id="taskSpecTextFilter"
-              value="{{search}}"
+              value="{{_searchVal}}"
               label="Filter task spec"
               on-change="_setFilterToSearch"
               no-label-float>
@@ -291,6 +291,10 @@
             return ["author", "subject"];
           }
         },
+        _searchVal: {
+          type: String,
+          value: "",
+        },
         _short_filters: {
           type: Array,
           value: function(){
@@ -340,7 +344,8 @@
       },
 
       _setFilterToSearch: function() {
-        this.set("filter","search");
+        this.set("filter", "search");
+        this.set("search", this._searchVal);
       },
 
       _getLeftAlign: function(commit_label) {
