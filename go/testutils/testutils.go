@@ -13,7 +13,6 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	assert "github.com/stretchr/testify/require"
 )
 
@@ -39,7 +38,7 @@ var (
 
 	TIMEOUT_SMALL  = "4s"
 	TIMEOUT_MEDIUM = "15s"
-	TIMEOUT_LARGE  = "10m"
+	TIMEOUT_LARGE  = "2m"
 
 	// TEST_TYPES lists all of the types of tests.
 	TEST_TYPES = []string{
@@ -96,13 +95,6 @@ func MediumTest(t *testing.T) {
 func LargeTest(t *testing.T) {
 	if !ShouldRun(LARGE_TEST) || testing.Short() {
 		t.Skip("Not running large tests.")
-	}
-}
-
-// AssertDeepEqual fails the test if the two objects do not pass reflect.DeepEqual.
-func AssertDeepEqual(t *testing.T, a, b interface{}) {
-	if !reflect.DeepEqual(a, b) {
-		assert.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%s\n\nb:\n%s\n", spew.Sprint(a), spew.Sprint(b)))
 	}
 }
 
