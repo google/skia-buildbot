@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -976,4 +977,42 @@ func WithGzipWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
 	}()
 	err = fn(gzw)
 	return
+}
+
+// ReadGobFile reads data from the given file into the given data structure.
+// If the file does not exist, no error is returned and no data is written.
+func ReadGobFile(file string, data interface{}) error {
+	f, err := os.Open(file)
+	if err == nil {
+		if err := gob.NewDecoder(f).Decode(data); err != nil {
+			return err
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	return nil
+}
+
+// WriteGobFile writes the given data to the given file, using gob encoding.
+func WriteGobFile(file string, data interface{}) error {
+	return WithWriteFile(file, func(w io.Writer) error {
+		return gob.NewEncoder(w).Encode(data)
+	})
+}
+
+// IterTimeChunks calls the given function for each time chunk of the given
+// duration within the given time range.
+func IterTimeChunks(start, end time.Time, chunkSize time.Duration, fn func(time.Time, time.Time) error) error {
+	chunkStart := start
+	for chunkStart.Before(end) {
+		chunkEnd := chunkStart.Add(chunkSize)
+		if chunkEnd.After(end) {
+			chunkEnd = end
+		}
+		if err := fn(chunkStart, chunkEnd); err != nil {
+			return err
+		}
+		chunkStart = chunkEnd
+	}
+	return nil
 }
