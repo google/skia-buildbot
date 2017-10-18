@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd5b51a0_1112a9d9",
+        "filename": "go/testutils/deep_equals.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-18T14:32:58Z",
+      "side": 1,
+      "message": "Correct/intentional?  If this file is a direct copy from the Go library source, please make a note of that.  If I need to review it, let me know; I just skipped over it since it\u0027s complicated :)",
+      "revId": "9137dcf3b87bd7dec13eaccc3c93dc34031cd383",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
