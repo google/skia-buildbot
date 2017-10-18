@@ -214,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "d239643b_490c80aa",
+        "filename": "statusv2/go/ml/processor/processor.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-18T19:04:23Z",
+      "side": 1,
+      "message": "Changed run() as suggested.  I don\u0027t think I agree with a window of zero, since the window mainly exists to ensure that we actually process all of the data, even if the server goes down for a while.",
+      "parentUuid": "86446e8a_3fa45fbe",
+      "range": {
+        "startLine": 64,
+        "startChar": 29,
+        "endLine": 64,
+        "endChar": 42
+      },
+      "revId": "63adc305f486754beac5ba1e8dbd201a8f7bb541",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0cf62f00_84ab0a17",
         "filename": "statusv2/go/ml/processor/processor.go",
         "patchSetId": 14
