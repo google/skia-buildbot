@@ -14,6 +14,8 @@ import (
 	"runtime"
 	"time"
 
+	"go.skia.org/infra/go/gevent"
+
 	"golang.org/x/net/context"
 
 	"github.com/gorilla/mux"
@@ -628,6 +630,9 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
+
+	pubSubReceiver, err := gevent.NewReceiver()
+
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
