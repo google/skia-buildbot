@@ -461,7 +461,7 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 // See docs for TaskDB interface.
 func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error) {
 	min := []byte(start.Add(-MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
-	max := []byte(end.UTC().Format(TIMESTAMP_FORMAT))
+	max := []byte(end.Add(MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	decoder := db.TaskDecoder{}
 	if err := d.view("GetTasksFromDateRange", func(tx *bolt.Tx) error {
 		c := tasksBucket(tx).Cursor()
@@ -518,8 +518,8 @@ func (d *localDB) validateTask(task *db.Task) error {
 		if task.Created.Sub(idTs) > MAX_CREATED_TIME_SKEW {
 			return fmt.Errorf("Created too late. Task %s was assigned Id at %s which is %s before Created time %s, more than MAX_CREATED_TIME_SKEW = %s.", task.Id, idTs, task.Created.Sub(idTs), task.Created, MAX_CREATED_TIME_SKEW)
 		}
-		if task.Created.Before(idTs) {
-			return fmt.Errorf("Created too early. Task %s Created time was changed or set to %s after Id assigned at %s.", task.Id, task.Created, idTs)
+		if idTs.Sub(task.Created) > MAX_CREATED_TIME_SKEW {
+			return fmt.Errorf("Created too early. Task %s Created time was changed or set to %s which is %s after Id assigned at %s, more than MAX_CREATED_TIME_SKEW = %s.", task.Id, task.Created, idTs.Sub(task.Created), idTs, MAX_CREATED_TIME_SKEW)
 		}
 	}
 	return nil
