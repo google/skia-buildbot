@@ -308,7 +308,7 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 
 	// Test "too early".
 	{
-		task.Created = beforeAssignId
+		task.Created = beforeAssignId.Add(-MAX_CREATED_TIME_SKEW)
 		err := d.PutTask(task)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "Created too early.")
@@ -319,7 +319,7 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 		assert.Nil(t, noTask)
 	}
 
-	// Test in range.
+	// Test late but within range.
 	{
 		task.Created = beforeAssignId.Add(MAX_CREATED_TIME_SKEW)
 		err := d.PutTask(task)
@@ -333,11 +333,13 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 
 	// We can even change the Created time if we want. (Not necessarily supported
 	// by all DB implementations.)
+	// Test early but within range.
 	{
-		task.Created = afterAssignId
+		task.Created = afterAssignId.Add(-MAX_CREATED_TIME_SKEW)
 		err := d.PutTask(task)
 		assert.NoError(t, err)
 
+		// Verify added to DB.
 		taskCopy, err := d.GetTaskById(task.Id)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, task, taskCopy)
@@ -346,7 +348,7 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 	// But we can't change it to be out of range.
 	{
 		prevCreated := task.Created
-		task.Created = beforeAssignId
+		task.Created = beforeAssignId.Add(-MAX_CREATED_TIME_SKEW)
 		err := d.PutTask(task)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "Created too early.")
