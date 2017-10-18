@@ -2,9 +2,9 @@ package incremental
 
 import (
 	"sync"
-	"time"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -55,7 +55,7 @@ func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 		return nil, false, err
 	}
 	c.queryId = queryId
-	tasks, err := c.db.GetTasksFromDateRange(w.EarliestStart(), time.Now())
+	tasks, err := c.db.GetTasksFromDateRange(w.EarliestStart(), util.Now())
 	if err != nil {
 		c.db.StopTrackingModifiedTasks(c.queryId)
 		c.queryId = ""

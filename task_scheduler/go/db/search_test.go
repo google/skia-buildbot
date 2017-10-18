@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 func TestJobSearch(t *testing.T) {
 	testutils.SmallTest(t)
 
-	now := time.Now()
+	now := util.Now()
 
 	j := makeFullJob(now)
 

@@ -87,6 +87,7 @@ def _CheckBannedGoAPIs(input_api, output_api):
      'NewTimeoutClient in go.skia.org/infra/go/httputils'),
     (r'\bgithub\.com/golang/glog\b', 'go.skia.org/infra/go/sklog'),
     (r'\bgithub\.com/skia-dev/glog\b', 'go.skia.org/infra/go/sklog'),
+    (r'\btime\.Now\b', 'util.Now() in go.skia.org/infra/util'),
   ]
 
   compiled_replacements = []

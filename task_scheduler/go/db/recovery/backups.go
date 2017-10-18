@@ -111,7 +111,7 @@ func NewDBBackup(ctx context.Context, gsBucket string, db db.BackupDBCloser, nam
 
 	go util.RepeatCtx(10*time.Minute, b.ctx, b.updateMetrics)
 	go util.RepeatCtx(10*time.Second, b.ctx, func() {
-		if err := b.incrementalBackupStep(time.Now()); err != nil {
+		if err := b.incrementalBackupStep(util.Now()); err != nil {
 			sklog.Errorf("Incremental Job backup failed: %s", err)
 		}
 	})
@@ -194,7 +194,7 @@ func (b *gsDBBackup) getBackupMetrics(now time.Time) (time.Time, int64, error) {
 // updateMetrics updates the metrics for the time since last successful backup
 // and number of backups in the last 24 hours.
 func (b *gsDBBackup) updateMetrics() {
-	last, count, err := b.getBackupMetrics(time.Now())
+	last, count, err := b.getBackupMetrics(util.Now())
 	if err != nil {
 		sklog.Errorf("Failed to get DB backup metrics: %s", err)
 	}
@@ -296,7 +296,7 @@ func immediateBackupBasename(now time.Time) string {
 // See documentation for DBBackup.ImmediateBackup.
 func (b *gsDBBackup) ImmediateBackup() error {
 	sklog.Infof("Beginning manual DB backup.")
-	now := time.Now()
+	now := util.Now()
 	return b.backupDB(now, immediateBackupBasename(now))
 }
 
@@ -394,7 +394,7 @@ func (b *gsDBBackup) maybeBackupDB(now time.Time) {
 
 // See documentation for DBBackup.Tick.
 func (b *gsDBBackup) Tick() {
-	now := time.Now()
+	now := util.Now()
 	// TODO(benjaminwagner): Tick should return as soon as the DB file is written.
 	b.maybeBackupDB(now)
 }
@@ -489,7 +489,7 @@ func RetrieveJobs(ctx context.Context, since time.Time, gsClient *storage.Client
 	bucket := gsClient.Bucket(gsBucket)
 	rv := map[string]*db.Job{}
 	// Iterate from today backwards to sinceDir.
-	for t := time.Now(); ; t = t.Add(-24 * time.Hour) {
+	for t := util.Now(); ; t = t.Add(-24 * time.Hour) {
 		curDir := path.Dir(formatJobObjectName(t, "dummy")) + "/"
 		if curDir < sinceDir {
 			break

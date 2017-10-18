@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 // A Window with no repos should just be a time range check.
@@ -29,7 +30,7 @@ func TestWindowNoRepos(t *testing.T) {
 
 	assert.False(t, w.TestTime(repo, time.Unix(0, 0)))
 	assert.False(t, w.TestTime(repo, time.Time{}))
-	assert.True(t, w.TestTime(repo, time.Now()))
+	assert.True(t, w.TestTime(repo, util.Now()))
 	assert.True(t, w.TestTime(repo, time.Unix(0, startTs))) // Inclusive.
 	assert.True(t, w.TestTime(repo, time.Unix(0, startTs+1)))
 	assert.False(t, w.TestTime(repo, time.Unix(0, startTs-1)))

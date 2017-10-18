@@ -6,10 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/util"
-
 	"github.com/satori/go.uuid"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 type inMemoryTaskDB struct {
@@ -86,7 +85,7 @@ func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 			}
 		}
 
-		task.DbModified = time.Now()
+		task.DbModified = util.Now()
 
 		// TODO(borenet): Keep tasks in a sorted slice.
 		db.tasks[task.Id] = task.Copy()
@@ -176,7 +175,7 @@ func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
 				return err
 			}
 		}
-		job.DbModified = time.Now()
+		job.DbModified = util.Now()
 
 		// TODO(borenet): Keep jobs in a sorted slice.
 		db.jobs[job.Id] = job.Copy()
