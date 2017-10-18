@@ -34,6 +34,24 @@
       "revId": "dd1ead7f85ca12e600ee03bad9f53de403012bcb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0710054_669a38ec",
+        "filename": "res/imp/http-server.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-18T18:02:21Z",
+      "side": 1,
+      "message": "Understood.",
+      "parentUuid": "191a1e9f_6349e380",
+      "revId": "dd1ead7f85ca12e600ee03bad9f53de403012bcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
