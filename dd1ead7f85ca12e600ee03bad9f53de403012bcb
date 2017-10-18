@@ -16,6 +16,24 @@
       "revId": "dd1ead7f85ca12e600ee03bad9f53de403012bcb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "191a1e9f_6349e380",
+        "filename": "res/imp/http-server.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-18T18:00:59Z",
+      "side": 1,
+      "message": "Yes, part of this is figuring out exactly what is required.  Some servers have 10 lines worth of stuff, others have 2 or 3.  I deleted all of the generated stuff in the autoroll dir and ran this, and I was able to get the demo to work, so that\u0027s why these lines are here.  I did not exhaustively test every server.",
+      "parentUuid": "c511e6bc_c2248ac3",
+      "revId": "dd1ead7f85ca12e600ee03bad9f53de403012bcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
