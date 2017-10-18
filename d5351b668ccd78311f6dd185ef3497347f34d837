@@ -62,6 +62,24 @@
       "revId": "d5351b668ccd78311f6dd185ef3497347f34d837",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4162e830_f3d9a191",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-18T19:08:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5556ffc6_a4ff3b1b",
+      "revId": "d5351b668ccd78311f6dd185ef3497347f34d837",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
