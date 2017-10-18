@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "15652af9_1777fd6b",
+        "filename": "go/testutils/deep_equals.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-18T19:07:04Z",
+      "side": 1,
+      "message": "nit: line-end comments split over multiple lines is ugly",
+      "range": {
+        "startLine": 159,
+        "startChar": 51,
+        "endLine": 160,
+        "endChar": 55
+      },
+      "revId": "d5351b668ccd78311f6dd185ef3497347f34d837",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66cdb286_a852ec1d",
+        "filename": "go/testutils/deep_equals_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-18T19:07:04Z",
+      "side": 1,
+      "message": "nit: maybe \u0027return b.a \u003d\u003d \"foo\" \u0026\u0026 o.a \u003d\u003d \"bar\"\u0027 and test for non-equal also.",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 12
+      },
+      "revId": "d5351b668ccd78311f6dd185ef3497347f34d837",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5556ffc6_a4ff3b1b",
         "filename": "go/testutils/testutils.go",
         "patchSetId": 8
