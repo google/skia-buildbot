@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ee222ee_a410f7f5",
+        "filename": "go/testutils/deep_equals.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-18T21:57:45Z",
+      "side": 1,
+      "message": "nit: everything else I do uses an indent of 2 spaces",
+      "range": {
+        "startLine": 360,
+        "startChar": 26,
+        "endLine": 360,
+        "endChar": 29
+      },
+      "revId": "0feea8fb1668cc60af44b6daa966b29e2841c251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
