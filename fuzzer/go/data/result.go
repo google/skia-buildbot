@@ -273,7 +273,7 @@ func parseCatchsegv(category, dump, err string) FuzzFlag {
 
 // clangDumped returns true if the clang output is consistent with a crash, that is, non empty.
 func clangDumped(dump string) bool {
-	return len(dump) != 0
+	return strings.Contains(dump, "Register dump")
 }
 
 var skAbortStackTraceLine = regexp.MustCompile(`(?:\.\./)+(?P<package>(?:\w+/)+)(?P<file>.+):(?P<line>\d+): fatal error`)

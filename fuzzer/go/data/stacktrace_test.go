@@ -626,3 +626,32 @@ func TestParseGCSPackage_AssemblyCrash(t *testing.T) {
 		t.Errorf("Expected Release to be %#v\nbut was %#v", expectedRelease, result.Release.StackTrace)
 	}
 }
+
+func TestParseGCSPackage_StderrNoCrash(t *testing.T) {
+	testutils.SmallTest(t)
+	// The crash was in a line of assembly code, which lacks file information
+	g := GCSPackage{
+		Debug: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("12grey_debug.asan")),
+			Dump:   testutils.MustReadFile(stacktrace("12grey_debug.dump")),
+			StdErr: testutils.MustReadFile(stacktrace("12grey_debug.err")),
+		},
+		Release: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("12grey_release.asan")),
+			Dump:   testutils.MustReadFile(stacktrace("12grey_release.dump")),
+			StdErr: testutils.MustReadFile(stacktrace("12grey_release.err")),
+		},
+		FuzzCategory:     "skpicture",
+		FuzzArchitecture: "mock_arm8",
+	}
+
+	result := ParseGCSPackage(g)
+	expectedDebugFlags := TerminatedGracefully
+	expectedReleaseFlags := TerminatedGracefully
+	if result.Debug.Flags != expectedDebugFlags {
+		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	}
+	if result.Release.Flags != expectedReleaseFlags {
+		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	}
+}
