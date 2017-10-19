@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "60aed379_010cd0a9",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "bus",
+      "range": {
+        "startLine": 40,
+        "startChar": 38,
+        "endLine": 40,
+        "endChar": 41
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c3740bb_3d6d4bd3",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "ubernit: wrap to 100 chars (I could be wrong about this because my mac\u0027s screen is narrow, but I think it\u0027s past)",
+      "range": {
+        "startLine": 36,
+        "startChar": 101,
+        "endLine": 36,
+        "endChar": 103
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b7149ac_e16dc65c",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "Consider moving this to the first clause of the if statement on 72",
+      "range": {
+        "startLine": 71,
+        "startChar": 2,
+        "endLine": 71,
+        "endChar": 29
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a4af1b6_9bf82270",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "nit: Is this return needed?",
+      "range": {
+        "startLine": 74,
+        "startChar": 3,
+        "endLine": 74,
+        "endChar": 9
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e9ea607_0900880d",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "Consider augmenting these errors with fmt.Errorf.  Here and elsewhere",
+      "range": {
+        "startLine": 94,
+        "startChar": 9,
+        "endLine": 94,
+        "endChar": 12
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a47163e9_cd8eb458",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "Where does this come from?  Experimental results?  Should it be a flag or a constant?",
+      "range": {
+        "startLine": 115,
+        "startChar": 16,
+        "endLine": 115,
+        "endChar": 32
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d62a986_58a0c924",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "Comment on function?",
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "245f12bd_de4f2f95",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "Leftover print can be removed?",
+      "range": {
+        "startLine": 142,
+        "startChar": 4,
+        "endLine": 142,
+        "endChar": 7
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99553e5d_c0b03c2f",
+        "filename": "go/gevent/gevent_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-19T16:56:20Z",
+      "side": 1,
+      "message": "Did you run this test locally with -race to make sure there\u0027s no race conditions?",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 17
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
