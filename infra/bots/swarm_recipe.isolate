@@ -4,7 +4,9 @@
   ],
   'variables': {
     'command': [
-      'python', 'recipes.py', '--package', '../config/recipes.cfg', 'run', '--timestamps',
+      'kitchen/kitchen${EXECUTABLE_PREFIX}', 'cook',
+      '-mode', 'swarming',
+      '-luci-system-account', 'system',
     ],
     'files': [
       '../../../.gclient',
