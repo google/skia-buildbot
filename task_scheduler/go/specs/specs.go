@@ -334,10 +334,11 @@ type gobTaskCfgCache struct {
 // NewTaskCfgCache returns a TaskCfgCache instance.
 func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*TaskCfgCache, error) {
 	file := path.Join(workdir, "taskCfgCache.gob")
+	queue := make(chan func(int))
 	c := &TaskCfgCache{
 		depotToolsDir: depotToolsDir,
 		file:          file,
-		queue:         make(chan func(int)),
+		queue:         queue,
 		repos:         repos,
 		workdir:       workdir,
 	}
@@ -368,7 +369,7 @@ func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWork
 	}
 	for i := 0; i < numWorkers; i++ {
 		go func(i int) {
-			for f := range c.queue {
+			for f := range queue {
 				f(i)
 			}
 		}(i)
