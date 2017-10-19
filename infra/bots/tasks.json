@@ -31,6 +31,11 @@
           "name": "skia/bots/protoc",
           "path": "protoc",
           "version": "version:0"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": "kitchen",
+          "version": "git_revision:178957e5b67f42bd0ec25c609febedb66dc5d544"
         }
       ],
       "dimensions": [
@@ -40,20 +45,10 @@
         "cpu:x86-64-Haswell_GCE"
       ],
       "extra_args": [
-        "--workdir",
-        "../../..",
+        "-recipe",
         "swarm_infra",
-        "repository=<(REPO)",
-        "buildername=Infra-PerCommit-Large",
-        "mastername=fake-master",
-        "buildnumber=2",
-        "slavename=fake-buildslave",
-        "nobuildbot=True",
-        "swarm_out_dir=${ISOLATED_OUTDIR}",
-        "revision=<(REVISION)",
-        "patch_storage=<(PATCH_STORAGE)",
-        "patch_issue=<(ISSUE)",
-        "patch_set=<(PATCHSET)"
+        "-properties",
+        "{\"buildername\":\"Infra-PerCommit-Large\",\"buildnumber\":\"2\",\"mastername\":\"fake-master\",\"nobuildbot\":\"True\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"slavename\":\"fake-buildslave\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}"
       ],
       "isolate": "swarm_recipe.isolate",
       "priority": 0.8
@@ -64,6 +59,11 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:3"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": "kitchen",
+          "version": "git_revision:178957e5b67f42bd0ec25c609febedb66dc5d544"
         }
       ],
       "dimensions": [
@@ -73,20 +73,10 @@
         "cpu:x86-64-Haswell_GCE"
       ],
       "extra_args": [
-        "--workdir",
-        "../../..",
+        "-recipe",
         "swarm_infra",
-        "repository=<(REPO)",
-        "buildername=Infra-PerCommit-Medium",
-        "mastername=fake-master",
-        "buildnumber=2",
-        "slavename=fake-buildslave",
-        "nobuildbot=True",
-        "swarm_out_dir=${ISOLATED_OUTDIR}",
-        "revision=<(REVISION)",
-        "patch_storage=<(PATCH_STORAGE)",
-        "patch_issue=<(ISSUE)",
-        "patch_set=<(PATCHSET)"
+        "-properties",
+        "{\"buildername\":\"Infra-PerCommit-Medium\",\"buildnumber\":\"2\",\"mastername\":\"fake-master\",\"nobuildbot\":\"True\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"slavename\":\"fake-buildslave\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}"
       ],
       "isolate": "swarm_recipe.isolate",
       "priority": 0.8
@@ -97,6 +87,11 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:3"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": "kitchen",
+          "version": "git_revision:178957e5b67f42bd0ec25c609febedb66dc5d544"
         }
       ],
       "dimensions": [
@@ -106,20 +101,10 @@
         "cpu:x86-64-Haswell_GCE"
       ],
       "extra_args": [
-        "--workdir",
-        "../../..",
+        "-recipe",
         "swarm_infra",
-        "repository=<(REPO)",
-        "buildername=Infra-PerCommit-Small",
-        "mastername=fake-master",
-        "buildnumber=2",
-        "slavename=fake-buildslave",
-        "nobuildbot=True",
-        "swarm_out_dir=${ISOLATED_OUTDIR}",
-        "revision=<(REVISION)",
-        "patch_storage=<(PATCH_STORAGE)",
-        "patch_issue=<(ISSUE)",
-        "patch_set=<(PATCHSET)"
+        "-properties",
+        "{\"buildername\":\"Infra-PerCommit-Small\",\"buildnumber\":\"2\",\"mastername\":\"fake-master\",\"nobuildbot\":\"True\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"slavename\":\"fake-buildslave\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}"
       ],
       "isolate": "swarm_recipe.isolate",
       "priority": 0.8
