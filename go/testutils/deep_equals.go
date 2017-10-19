@@ -37,6 +37,7 @@ import (
 	"unsafe"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/pmezard/go-difflib/difflib"
 	assert "github.com/stretchr/testify/require"
 )
 
@@ -288,9 +289,76 @@ func DeepEqual(x, y interface{}) bool {
 	return deepValueEqual(v1, v2, make(map[visit]bool), 0)
 }
 
+// Twiddle this flag for the complete spew.SDump of an object
+// This is useful when pumped into a diff tool, but likely extreme
+// overkill for most uses. The diff that is created by default should
+// be enough for the average test.
+var superVerbose = false
+
 // AssertDeepEqual fails the test if the two objects do not pass reflect.DeepEqual.
-func AssertDeepEqual(t *testing.T, a, b interface{}) {
-	if !DeepEqual(a, b) {
-		assert.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%s\n\nb:\n%s\n", spew.Sprint(a), spew.Sprint(b)))
+func AssertDeepEqual(t *testing.T, expected, actual interface{}) {
+	if !DeepEqual(expected, actual) {
+		// The formatting is inspired by stretchr/testify's assert.Equal() output.
+		extra := ""
+		if doDetailedDiff(expected, actual) {
+			e := spewConfig.Sdump(expected)
+			a := spewConfig.Sdump(actual)
+
+			diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+				A:        difflib.SplitLines(e),
+				B:        difflib.SplitLines(a),
+				FromFile: "Expected",
+				FromDate: "",
+				ToFile:   "Actual",
+				ToDate:   "",
+				Context:  2,
+			})
+
+			extra = "\n\nDiff:\n" + diff
+		}
+
+		if superVerbose {
+			assert.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%s\n\nb:\n%s\n%s", spew.Sdump(expected), spew.Sdump(actual), extra))
+		} else {
+			assert.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%#v\n\nb:\n%#v\n%s", expected, actual, extra))
+		}
 	}
+}
+
+// doDetailedDiff returns true if doing a detailed diff would help. This means if
+// the two objects are the same type and are one of the complicated types:
+// e.g. Map, Slice, Struct, etc.
+func doDetailedDiff(e, a interface{}) bool {
+	if e == nil || a == nil {
+		return false
+	}
+
+	et := reflect.TypeOf(e)
+	ek := et.Kind()
+	if ek == reflect.Ptr {
+		et = et.Elem()
+		ek = et.Kind()
+	}
+	at := reflect.TypeOf(a)
+	ak := at.Kind()
+	if ak == reflect.Ptr {
+		at = at.Elem()
+		ak = at.Kind()
+	}
+
+	if et != at {
+		return false
+	}
+
+	if ek != reflect.Struct && ek != reflect.Map && ek != reflect.Slice && ek != reflect.Array {
+		return false
+	}
+	return true
+}
+
+var spewConfig = spew.ConfigState{
+	Indent:                  "  ",
+	DisablePointerAddresses: true,
+	DisableCapacities:       true,
+	SortKeys:                true,
 }
