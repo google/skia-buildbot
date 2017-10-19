@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "536c718a_79434f40",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60aed379_010cd0a9",
+      "range": {
+        "startLine": 40,
+        "startChar": 38,
+        "endLine": 40,
+        "endChar": 41
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c3740bb_3d6d4bd3",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47b578c7_d725dd3b",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c3740bb_3d6d4bd3",
+      "range": {
+        "startLine": 36,
+        "startChar": 101,
+        "endLine": 36,
+        "endChar": 103
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ccb5cdb2_a1cb0542",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b7149ac_e16dc65c",
+      "range": {
+        "startLine": 71,
+        "startChar": 2,
+        "endLine": 71,
+        "endChar": 29
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4a4af1b6_9bf82270",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2017-10-19T16:56:20Z",
       "side": 1,
       "message": "nit: Is this return needed?",
+      "range": {
+        "startLine": 74,
+        "startChar": 3,
+        "endLine": 74,
+        "endChar": 9
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "554bd230_f452b5d9",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "No it\u0027s technically not needed, but \"logically\" it belongs there, because if we encounter an error we want to return. I have been bitten by this in the past when I omitted the return and then added code after the statement. IMO it\u0027s easy to overlook that we need to add a return statement.",
+      "parentUuid": "4a4af1b6_9bf82270",
       "range": {
         "startLine": 74,
         "startChar": 3,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "88d82209_0a6336e1",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e9ea607_0900880d",
+      "range": {
+        "startLine": 94,
+        "startChar": 9,
+        "endLine": 94,
+        "endChar": 12
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a47163e9_cd8eb458",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 4
@@ -128,6 +248,30 @@
       "writtenOn": "2017-10-19T16:56:20Z",
       "side": 1,
       "message": "Where does this come from?  Experimental results?  Should it be a flag or a constant?",
+      "range": {
+        "startLine": 115,
+        "startChar": 16,
+        "endLine": 115,
+        "endChar": 32
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f65226c5_068a366c",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "Done.\nRemoved that line, since it was the default anyway and I don\u0027t think this makes a difference for this use case.",
+      "parentUuid": "a47163e9_cd8eb458",
       "range": {
         "startLine": 115,
         "startChar": 16,
@@ -157,6 +301,24 @@
     },
     {
       "key": {
+        "uuid": "61f999b9_e596bbc8",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d62a986_58a0c924",
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "245f12bd_de4f2f95",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 4
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "f935b3de_83d39949",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "245f12bd_de4f2f95",
+      "range": {
+        "startLine": 142,
+        "startChar": 4,
+        "endLine": 142,
+        "endChar": 7
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "99553e5d_c0b03c2f",
         "filename": "go/gevent/gevent_test.go",
         "patchSetId": 4
@@ -191,6 +377,30 @@
       "writtenOn": "2017-10-19T16:56:20Z",
       "side": 1,
       "message": "Did you run this test locally with -race to make sure there\u0027s no race conditions?",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 17
+      },
+      "revId": "b0ce5105cab40907c40b614cb325beb4e9c698c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04a72965_3aeb18b0",
+        "filename": "go/gevent/gevent_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-19T18:39:01Z",
+      "side": 1,
+      "message": "Yes I ran this locally against the emulator as well as GCP directly.\nI also have written two independent test programs that send/receive 100000+ messages and it seems they all are delivered correctly.\nThere will be more testing in the near future once we have a better feel for the edge cases/conditions.",
+      "parentUuid": "99553e5d_c0b03c2f",
       "range": {
         "startLine": 27,
         "startChar": 5,
