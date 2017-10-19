@@ -1,7 +1,7 @@
 package diffstore
 
 import (
-	context "golang.org/x/net/context"
+	"context"
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"

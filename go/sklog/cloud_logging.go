@@ -1,6 +1,7 @@
 package sklog
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/skia-dev/glog"
-	"golang.org/x/net/context"
 	logging "google.golang.org/api/logging/v2"
 )
 

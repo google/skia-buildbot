@@ -5,6 +5,7 @@ package sharedb
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/fileutil"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

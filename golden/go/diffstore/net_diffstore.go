@@ -1,12 +1,12 @@
 package diffstore
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 
-	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	"go.skia.org/infra/go/sklog"

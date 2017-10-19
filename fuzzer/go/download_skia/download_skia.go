@@ -1,6 +1,7 @@
 package download_skia
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,12 +10,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-
 	"go.skia.org/infra/fuzzer/go/config"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/sklog"
-	"golang.org/x/net/context"
 )
 
 // AtGCSRevision downloads the revision of Skia specified in Google Storage

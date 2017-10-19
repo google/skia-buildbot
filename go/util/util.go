@@ -3,6 +3,7 @@ package util
 import (
 	"bufio"
 	"compress/gzip"
+	"context"
 	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha256"
@@ -21,8 +22,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/zeebo/bencode"
 	"go.skia.org/infra/go/sklog"

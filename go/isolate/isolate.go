@@ -1,6 +1,7 @@
 package isolate
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,14 +14,11 @@ import (
 	"strconv"
 	"strings"
 
-	"google.golang.org/api/option"
-
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/util"
-
-	"cloud.google.com/go/storage"
-	"golang.org/x/net/context"
+	"google.golang.org/api/option"
 )
 
 const (

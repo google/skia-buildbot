@@ -1,6 +1,7 @@
 package scheduling
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math"
@@ -11,8 +12,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"

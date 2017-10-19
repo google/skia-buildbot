@@ -2,6 +2,7 @@ package ingestion
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -13,7 +14,6 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/depot_tools"
