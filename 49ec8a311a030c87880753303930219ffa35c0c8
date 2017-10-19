@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "989eaab3_56552bf8",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2017-10-19T21:35:01Z",
+      "side": 1,
+      "message": "you\u0027ll want to keep this one; this allows the task to maintain it\u0027s own version of python. We plan to update this more regularly in LUCI land. The \u0027system\u0027 python is currently stuck on 2.7.6 which is about 5 years old at this point, with a lot of flaws and bugs and stuff.",
+      "range": {
+        "startLine": 51,
+        "startChar": 26,
+        "endLine": 51,
+        "endChar": 33
+      },
+      "revId": "49ec8a311a030c87880753303930219ffa35c0c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e6c63a2_2c21e072",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2017-10-19T21:35:01Z",
+      "side": 1,
+      "message": "this and the infra/git package above are only needed if your task does any git operations. Otherwise you can drop them safely.",
+      "range": {
+        "startLine": 56,
+        "startChar": 25,
+        "endLine": 56,
+        "endChar": 28
+      },
+      "revId": "49ec8a311a030c87880753303930219ffa35c0c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4075927c_fd3ae64f",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2017-10-19T21:35:01Z",
+      "side": 1,
+      "message": "this can also be dropped if you don\u0027t do any git stuff",
+      "range": {
+        "startLine": 61,
+        "startChar": 30,
+        "endLine": 61,
+        "endChar": 49
+      },
+      "revId": "49ec8a311a030c87880753303930219ffa35c0c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b6ba478_7b1dc9c3",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2017-10-19T21:35:01Z",
+      "side": 1,
+      "message": "this one is probably a required package; recipes use this to get python wheel dependencies for modules like `recipe_engine/url`. You could probably hand-tune the inclusion of this one, but I don\u0027t think it\u0027s worth it.",
+      "range": {
+        "startLine": 66,
+        "startChar": 30,
+        "endLine": 66,
+        "endChar": 37
+      },
+      "revId": "49ec8a311a030c87880753303930219ffa35c0c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97fa9718_398993fa",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2017-10-19T21:35:01Z",
+      "side": 1,
+      "message": "this one is how service account credentials work in LUCI. you\u0027ll need this",
+      "range": {
+        "startLine": 71,
+        "startChar": 25,
+        "endLine": 71,
+        "endChar": 33
+      },
+      "revId": "49ec8a311a030c87880753303930219ffa35c0c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c46cfd4_b5b0fc0e",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2017-10-19T21:35:01Z",
+      "side": 1,
+      "message": "I think this is only used for triggering buildbucket builds, you can drop it",
+      "range": {
+        "startLine": 76,
+        "startChar": 25,
+        "endLine": 76,
+        "endChar": 36
+      },
+      "revId": "49ec8a311a030c87880753303930219ffa35c0c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c4c70f1_87487086",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2017-10-19T21:35:01Z",
+      "side": 1,
+      "message": "I\u0027m not actually certain what we use this one for, and you can probably drop it.",
+      "range": {
+        "startLine": 81,
+        "startChar": 25,
+        "endLine": 81,
+        "endChar": 34
+      },
+      "revId": "49ec8a311a030c87880753303930219ffa35c0c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
