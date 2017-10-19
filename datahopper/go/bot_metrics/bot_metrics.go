@@ -8,6 +8,7 @@ package bot_metrics
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
@@ -17,8 +18,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"

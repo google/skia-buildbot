@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"golang.org/x/net/context"
 )
 
 type Generator struct {
