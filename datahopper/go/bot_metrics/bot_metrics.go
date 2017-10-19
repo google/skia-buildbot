@@ -8,6 +8,7 @@ package bot_metrics
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
@@ -18,8 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/context"
-
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
