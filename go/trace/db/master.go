@@ -43,7 +43,7 @@ type masterTileBuilder struct {
 	git *gitinfo.GitInfo
 
 	// evt is the eventbus where we announce the availability of new tiles.
-	evt *eventbus.EventBus
+	evt eventbus.EventBus
 
 	// cachePath is the path to the file where tiles are cahed for quick restarts.
 	cachePath string
@@ -53,7 +53,7 @@ type masterTileBuilder struct {
 // traceserver running at the given address. The tiles contain the last
 // 'tileSize' commits and are built from Traces of the type that traceBuilder
 // returns.
-func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt *eventbus.EventBus, cachePath string) (MasterTileBuilder, error) {
+func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt eventbus.EventBus, cachePath string) (MasterTileBuilder, error) {
 	ret := &masterTileBuilder{
 		tileSize:  tileSize,
 		tile:      nil,

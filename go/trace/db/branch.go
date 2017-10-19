@@ -79,7 +79,7 @@ type tileBuilder struct {
 // querying db.
 //
 // TODO(stephana): The EventBus is used to update the internal cache as commits are updated.
-func NewBranchTileBuilder(db DB, vcs vcsinfo.VCS, rietveldReview *rietveld.Rietveld, gerritReview *gerrit.Gerrit, evt *eventbus.EventBus) BranchTileBuilder {
+func NewBranchTileBuilder(db DB, vcs vcsinfo.VCS, rietveldReview *rietveld.Rietveld, gerritReview *gerrit.Gerrit, evt eventbus.EventBus) BranchTileBuilder {
 	return &tileBuilder{
 		db:                 db,
 		vcs:                vcs,

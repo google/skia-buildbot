@@ -78,7 +78,7 @@ func TestBigSQLChange(t *testing.T) {
 }
 
 // Test against the expectation store interface.
-func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *eventbus.EventBus) {
+func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventbus.EventBus) {
 	// Get the initial log size. This is necessary because we
 	// call this function multiple times with the same underlying
 	// SQLExpectationStore.
@@ -121,7 +121,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 
 	assert.NoError(t, store.AddChange(expChange_1, "user-0"))
 	if eventBus != nil {
-		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
 	}
@@ -149,7 +149,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 
 	assert.NoError(t, store.AddChange(expChange_2, "user-1"))
 	if eventBus != nil {
-		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
 	}
@@ -164,7 +164,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	emptyChanges := map[string]types.TestClassification{}
 	assert.NoError(t, store.AddChange(emptyChanges, "user-2"))
 	if eventBus != nil {
-		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{}, <-callbackCh)
 	}
@@ -177,7 +177,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	}
 	assert.NoError(t, store.RemoveChange(removeDigests_1))
 	if eventBus != nil {
-		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
 	}
@@ -191,7 +191,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	removeDigests_2 := map[string][]string{TEST_1: {DIGEST_12}}
 	assert.NoError(t, store.RemoveChange(removeDigests_2))
 	if eventBus != nil {
-		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{TEST_1}, <-callbackCh)
 	}
@@ -202,7 +202,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 
 	assert.NoError(t, store.RemoveChange(map[string][]string{}))
 	if eventBus != nil {
-		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{}, <-callbackCh)
 	}
