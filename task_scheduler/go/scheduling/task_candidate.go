@@ -128,7 +128,7 @@ func getPatchStorage(server string) string {
 }
 
 // replaceVars replaces variable names with their values in a given string.
-func replaceVars(c *taskCandidate, s string) string {
+func replaceVars(c *taskCandidate, s, taskId string) string {
 	issueShort := ""
 	if len(c.Issue) < specs.ISSUE_SHORT_LENGTH {
 		issueShort = c.Issue
@@ -144,6 +144,7 @@ func replaceVars(c *taskCandidate, s string) string {
 		specs.VARIABLE_PATCHSET:          c.Patchset,
 		specs.VARIABLE_REPO:              c.Repo,
 		specs.VARIABLE_REVISION:          c.Revision,
+		specs.VARIABLE_TASK_ID:           taskId,
 		specs.VARIABLE_TASK_NAME:         c.Name,
 	}
 	for k, v := range replacements {
@@ -194,7 +195,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 
 	extraArgs := make([]string, 0, len(c.TaskSpec.ExtraArgs))
 	for _, arg := range c.TaskSpec.ExtraArgs {
-		extraArgs = append(extraArgs, replaceVars(c, arg))
+		extraArgs = append(extraArgs, replaceVars(c, arg, id))
 	}
 
 	expirationSecs := int64(c.TaskSpec.Expiration.Seconds())
