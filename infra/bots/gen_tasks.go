@@ -31,6 +31,7 @@ var (
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
+		"Infra-PerCommit-Race",
 	}
 )
 
@@ -38,7 +39,7 @@ var (
 // generated chain of Tasks, which the Job should add as a dependency.
 func infra(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go")}
-	if strings.Contains(name, "Large") {
+	if strings.Contains(name, "Large") || strings.Contains(name, "Race") {
 		pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 	}
 	b.MustAddTask(name, &specs.TaskSpec{

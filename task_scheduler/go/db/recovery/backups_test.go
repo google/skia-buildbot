@@ -621,7 +621,7 @@ func testBackupDBLarge(t *testing.T, contentSize int64) {
 
 // backupDB should work for a large-ish DB.
 func TestBackupDBLarge(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	// Send 128MB. Add 1 so it's not a multiple of 8MB.
 	var contentSize int64 = 128*1024*1024 + 1
 	testBackupDBLarge(t, contentSize)
