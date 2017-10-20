@@ -20,7 +20,7 @@ sudo easy_install -U pip
 sudo pip install -U crcmod
 
 # Install golang.
-GO_VERSION=go1.8.linux-amd64
+GO_VERSION=go1.9.linux-amd64
 wget https://storage.googleapis.com/golang/$GO_VERSION.tar.gz
 tar -zxvf $GO_VERSION.tar.gz
 sudo mv go /usr/local/$GO_VERSION
