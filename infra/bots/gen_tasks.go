@@ -9,9 +9,11 @@ package main
 */
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
@@ -32,7 +34,64 @@ var (
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
 	}
+
+	// TODO(borenet): Roll these versions automatically!
+	CIPD_PKGS_KITCHEN = []*specs.CipdPackage{
+		&specs.CipdPackage{
+			Name:    "infra/tools/luci/kitchen/${platform}",
+			Path:    ".",
+			Version: "git_revision:178957e5b67f42bd0ec25c609febedb66dc5d544",
+		},
+		&specs.CipdPackage{
+			Name:    "infra/git/${platform}",
+			Path:    "cipd_bin_packages",
+			Version: "version:2.14.1.chromium10",
+		},
+		&specs.CipdPackage{
+			Name:    "infra/python/cpython/${platform}",
+			Path:    "cipd_bin_packages",
+			Version: "version:2.7.14.chromium14",
+		},
+		&specs.CipdPackage{
+			Name:    "infra/tools/luci/vpython/${platform}",
+			Path:    "cipd_bin_packages",
+			Version: "git_revision:25b0564a204da2bfd6346f26a59b9efb8cfc2212",
+		},
+		&specs.CipdPackage{
+			Name:    "infra/tools/authutil/${platform}",
+			Path:    "cipd_bin_packages",
+			Version: "git_revision:9c63809842a277ce10a86afd51b61c639a665d11",
+		},
+	}
+
+	CIPD_PKGS_GIT = []*specs.CipdPackage{
+		&specs.CipdPackage{
+			Name:    "infra/tools/git/${platform}",
+			Path:    "cipd_bin_packages",
+			Version: "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b",
+		},
+		&specs.CipdPackage{
+			Name:    "infra/tools/luci/git-credential-luci/${platform}",
+			Path:    "cipd_bin_packages",
+			Version: "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b",
+		},
+	}
 )
+
+// Apply the default CIPD packages.
+func cipd(pkgs []*specs.CipdPackage) []*specs.CipdPackage {
+	// We also need Git.
+	rv := append(CIPD_PKGS_KITCHEN, CIPD_PKGS_GIT...)
+	return append(rv, pkgs...)
+}
+
+func props(p map[string]string) string {
+	j, err := json.Marshal(p)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	return strings.Replace(string(j), "\\u003c", "<", -1)
+}
 
 // infra generates an infra test Task. Returns the name of the last Task in the
 // generated chain of Tasks, which the Job should add as a dependency.
@@ -41,8 +100,21 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	if strings.Contains(name, "Large") {
 		pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 	}
+	propsJson := props(map[string]string{
+		"repository":    specs.PLACEHOLDER_REPO,
+		"buildername":   name,
+		"mastername":    "fake-master",
+		"buildnumber":   "2",
+		"slavename":     "fake-buildslave",
+		"nobuildbot":    "True",
+		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
+		"patch_storage": specs.PLACEHOLDER_PATCH_STORAGE,
+		"patch_issue":   specs.PLACEHOLDER_ISSUE,
+		"patch_set":     specs.PLACEHOLDER_PATCHSET,
+	})
+	sklog.Infof("Serialized: %q", string(propsJson))
 	b.MustAddTask(name, &specs.TaskSpec{
-		CipdPackages: pkgs,
+		CipdPackages: cipd(pkgs),
 		Dimensions: []string{
 			"pool:Skia",
 			fmt.Sprintf("os:%s", DEFAULT_OS_LINUX),
@@ -50,18 +122,9 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 			"cpu:x86-64-Haswell_GCE",
 		},
 		ExtraArgs: []string{
-			"--workdir", "../../..", "swarm_infra",
-			fmt.Sprintf("repository=%s", specs.PLACEHOLDER_REPO),
-			fmt.Sprintf("buildername=%s", name),
-			"mastername=fake-master",
-			"buildnumber=2",
-			"slavename=fake-buildslave",
-			"nobuildbot=True",
-			fmt.Sprintf("swarm_out_dir=%s", specs.PLACEHOLDER_ISOLATED_OUTDIR),
-			fmt.Sprintf("revision=%s", specs.PLACEHOLDER_REVISION),
-			fmt.Sprintf("patch_storage=%s", specs.PLACEHOLDER_PATCH_STORAGE),
-			fmt.Sprintf("patch_issue=%s", specs.PLACEHOLDER_ISSUE),
-			fmt.Sprintf("patch_set=%s", specs.PLACEHOLDER_PATCHSET),
+			"-recipe", "swarm_infra",
+			"-properties", string(propsJson),
+			"-logdog-annotation-url", fmt.Sprintf("logdog://logs.chromium.org/%s/%s/+/annotations", specs.PLACEHOLDER_PROJECT, specs.PLACEHOLDER_TASK_ID),
 		},
 		Isolate:  "swarm_recipe.isolate",
 		Priority: 0.8,
