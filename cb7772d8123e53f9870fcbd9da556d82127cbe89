@@ -22,6 +22,30 @@
       "revId": "cb7772d8123e53f9870fcbd9da556d82127cbe89",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b1f2bc0_23135804",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-20T15:32:49Z",
+      "side": 0,
+      "message": "Must have fat fingered something.  Restored.",
+      "parentUuid": "764e4faa_27ed4cb0",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 36
+      },
+      "revId": "cb7772d8123e53f9870fcbd9da556d82127cbe89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
