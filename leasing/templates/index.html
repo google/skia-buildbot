@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leasing server for Swarming bots</title>
+    {{template "header.html" .}}
+</head>
+<body>
+    {{.OsTypes}}}
+    <leasing-index-sk
+      osTypes="{{.OsTypes}}">
+    </leasing-index-sk>
+
+    <script type="text/javascript" charset="utf-8">
+       (function() {
+         sk.post('/_/pooldetails').then(JSON.parse).then(function(json) {
+           console.log(json)
+           $$$('leasing-index-sk').osTypes = json["OsTypes"];
+           $$$('leasing-index-sk').deviceTypes = json["DeviceTypes"];
+         }).catch(sk.errorMessage);
+       })();
+    </script>
+</body>
+</html>
