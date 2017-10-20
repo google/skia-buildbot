@@ -80,6 +80,8 @@ var (
 
 	// Flags.
 
+	race = flag.Bool("race", false, "Whether or not to enable the race flag when running go tests.  This flag signals to only run go tests.")
+
 	// writeTimings is a file in which to write the test timings in JSON
 	// format.
 	writeTimings = flag.String("write_timings", "", "JSON file in which to write the test timings.")
@@ -198,6 +200,9 @@ func polylintTests() []*test {
 // goTest returns a test which runs `go test` in the given cwd.
 func goTest(cwd string, testType string, args ...string) *test {
 	cmd := []string{"go", "test", "-v", "./go/...", "-parallel", "1"}
+	if *race {
+		cmd = append(cmd, "-race")
+	}
 	cmd = append(cmd, args...)
 	t := cmdTest(cmd, cwd, fmt.Sprintf("go tests (%s) in %s", testType, cwd), testType)
 
@@ -371,6 +376,7 @@ func main() {
 	// Gather all of the tests to run.
 	sklog.Info("Searching for tests.")
 	tests := []*test{goGenerate()}
+	gotests := []*test{}
 
 	// Search for Python tests and Go dirs to test in the repo.
 	if err := filepath.Walk(rootDir, func(p string, info os.FileInfo, err error) error {
@@ -389,9 +395,9 @@ func main() {
 			}
 
 			if basename == "go" {
-				tests = append(tests, goTestSmall(path.Dir(p)))
-				tests = append(tests, goTestMedium(path.Dir(p)))
-				tests = append(tests, goTestLarge(path.Dir(p)))
+				gotests = append(gotests, goTestSmall(path.Dir(p)))
+				gotests = append(gotests, goTestMedium(path.Dir(p)))
+				gotests = append(gotests, goTestLarge(path.Dir(p)))
 			}
 		}
 		if strings.HasSuffix(basename, "_test.py") {
@@ -406,13 +412,17 @@ func main() {
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"gofmt", "-s", "-d"}, ".", "go simplify (gofmt -s -w .)", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", testutils.MEDIUM_TEST))
-	tests = append(tests, polylintTests()...)
 	tests = append(tests, cmdTest([]string{"go", "run", "prober/go/build_probers_json5/main.go", "--srcdir=.", "--dest=/tmp/allprobers.json5"}, ".", "probers test", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"make", "validate"}, "perf", "perf validator", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/check_cq_cfg.py"}, ".", "check CQ config", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"python", "go/testutils/uncategorized_tests.py"}, ".", "uncategorized tests", testutils.SMALL_TEST))
+
+	if !*race {
+		// put this behind a flag because polylintTests trys to build the polymer files
+		tests = append(tests, polylintTests()...)
+	}
 
 	goimportsCmd := []string{"goimports", "-l", "."}
 	tests = append(tests, &test{
@@ -441,23 +451,40 @@ func main() {
 		Type: testutils.MEDIUM_TEST,
 	})
 
+	if *race {
+		tests = gotests
+	} else {
+		tests = append(gotests, tests...)
+	}
+
 	// Run the tests.
 	sklog.Infof("Found %d tests.", len(tests))
-	var mutex sync.Mutex
 	errors := map[string]error{}
-	var wg sync.WaitGroup
-	for _, t := range tests {
-		wg.Add(1)
-		go func(t *test) {
-			defer wg.Done()
+
+	if *race {
+		// Do unit tests one at a time, as the -race can fail when done concurrently with a bunch of other stuff.
+		for _, t := range gotests {
 			if err := t.Run(); err != nil {
-				mutex.Lock()
 				errors[t.Name] = err
-				mutex.Unlock()
 			}
-		}(t)
+		}
+	} else {
+
+		var mutex sync.Mutex
+		var wg sync.WaitGroup
+		for _, t := range tests {
+			wg.Add(1)
+			go func(t *test) {
+				defer wg.Done()
+				if err := t.Run(); err != nil {
+					mutex.Lock()
+					errors[t.Name] = err
+					mutex.Unlock()
+				}
+			}(t)
+		}
+		wg.Wait()
 	}
-	wg.Wait()
 
 	// Collect test durations.
 	durations := map[string]time.Duration{}

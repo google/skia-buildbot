@@ -76,10 +76,6 @@
       "/b/cache",
       "--cleanup-dir",
       "[CLEANUP]/bot_update",
-      "--gerrit_repo",
-      "https://skia.googlesource.com/skia",
-      "--gerrit_ref",
-      "refs/changes/89/456789/12",
       "--output_json",
       "/path/to/tmp/json",
       "--revision",
@@ -243,10 +239,6 @@
       "/b/cache",
       "--cleanup-dir",
       "[CLEANUP]/bot_update",
-      "--gerrit_repo",
-      "https://skia.googlesource.com/skia",
-      "--gerrit_ref",
-      "refs/changes/89/456789/12",
       "--output_json",
       "/path/to/tmp/json",
       "--revision",
@@ -330,74 +322,6 @@
   },
   {
     "cmd": [
-      "sudo",
-      "npm",
-      "i",
-      "-g",
-      "npm@5.4.2"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[START_DIR]/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
-    },
-    "name": "install npm"
-  },
-  {
-    "cmd": [
-      "sudo",
-      "npm",
-      "i",
-      "-g",
-      "bower@1.8.2"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[START_DIR]/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
-    },
-    "name": "install bower"
-  },
-  {
-    "cmd": [
-      "go",
-      "get",
-      "golang.org/x/tools/cmd/goimports"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[START_DIR]/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
-    },
-    "name": "install goimports"
-  },
-  {
-    "cmd": [
-      "go",
-      "get",
-      "github.com/kisielk/errcheck"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[START_DIR]/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
-    },
-    "name": "install errcheck"
-  },
-  {
-    "cmd": [
       "go",
       "get",
       "-u",
@@ -450,6 +374,9 @@
       "run",
       "./run_unittests.go",
       "--alsologtostderr",
+      "--race",
+      "--large",
+      "--medium",
       "--small"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
@@ -459,7 +386,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "KARMA_PORT": "9876",
+      "KARMA_PORT": "15001",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>:[DEPOT_TOOLS]",
       "TMPDIR": null
     },
