@@ -36,7 +36,7 @@
     "cmd": [
       "git",
       "clean",
-      "-d",
+      "-x",
       "-f"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
@@ -50,16 +50,6 @@
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
     "name": "git checkout"
-  },
-  {
-    "cmd": [
-      "git",
-      "reset",
-      "--hard",
-      "origin/master"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "name": "git reset"
   },
   {
     "cmd": [
@@ -203,7 +193,7 @@
     "cmd": [
       "git",
       "clean",
-      "-d",
+      "-x",
       "-f"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
@@ -217,16 +207,6 @@
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
     "name": "git checkout (3)"
-  },
-  {
-    "cmd": [
-      "git",
-      "reset",
-      "--hard",
-      "origin/master"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "name": "git reset (2)"
   },
   {
     "cmd": [
