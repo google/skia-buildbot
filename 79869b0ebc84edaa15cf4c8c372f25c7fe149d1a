@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04ac1826_cfc40db2",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-20T14:43:41Z",
+      "side": 1,
+      "message": "I kind of expected this to be its own recipe, which just does \"go test -race ./...\".  Is there any reason not to do that?",
+      "range": {
+        "startLine": 191,
+        "startChar": 0,
+        "endLine": 192,
+        "endChar": 79
+      },
+      "revId": "79869b0ebc84edaa15cf4c8c372f25c7fe149d1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "153fa6b2_59358c96",
+        "filename": "run_unittests.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-20T14:43:41Z",
+      "side": 1,
+      "message": "Does --race require --go_tests_only?  If so, you could just make a note that only Go tests are run with --race and remove this flag.",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 101
+      },
+      "revId": "79869b0ebc84edaa15cf4c8c372f25c7fe149d1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
