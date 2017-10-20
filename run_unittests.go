@@ -197,7 +197,7 @@ func polylintTests() []*test {
 
 // goTest returns a test which runs `go test` in the given cwd.
 func goTest(cwd string, testType string, args ...string) *test {
-	cmd := []string{"go", "test", "-v", "./go/...", "-parallel", "1"}
+	cmd := []string{"go", "test", "-v", "-race", "./go/...", "-parallel", "1"}
 	cmd = append(cmd, args...)
 	t := cmdTest(cmd, cwd, fmt.Sprintf("go tests (%s) in %s", testType, cwd), testType)
 
@@ -371,6 +371,7 @@ func main() {
 	// Gather all of the tests to run.
 	sklog.Info("Searching for tests.")
 	tests := []*test{goGenerate()}
+	gotests := []*test{}
 
 	// Search for Python tests and Go dirs to test in the repo.
 	if err := filepath.Walk(rootDir, func(p string, info os.FileInfo, err error) error {
@@ -389,9 +390,9 @@ func main() {
 			}
 
 			if basename == "go" {
-				tests = append(tests, goTestSmall(path.Dir(p)))
-				tests = append(tests, goTestMedium(path.Dir(p)))
-				tests = append(tests, goTestLarge(path.Dir(p)))
+				gotests = append(gotests, goTestSmall(path.Dir(p)))
+				gotests = append(gotests, goTestMedium(path.Dir(p)))
+				gotests = append(gotests, goTestLarge(path.Dir(p)))
 			}
 		}
 		if strings.HasSuffix(basename, "_test.py") {
@@ -443,8 +444,17 @@ func main() {
 
 	// Run the tests.
 	sklog.Infof("Found %d tests.", len(tests))
-	var mutex sync.Mutex
+
+	// Do unit tests first, as the -race can fail when done concurrently with a bunch of other stuff.
+
 	errors := map[string]error{}
+	for _, t := range gotests {
+		if err := t.Run(); err != nil {
+			errors[t.Name] = err
+		}
+	}
+
+	var mutex sync.Mutex
 	var wg sync.WaitGroup
 	for _, t := range tests {
 		wg.Add(1)
