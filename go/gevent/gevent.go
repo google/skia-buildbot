@@ -11,6 +11,9 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+func RegisterCodec(channel string, codec util.LRUCodec) {
+}
+
 // DistEventBus implements the eventbus.EventBus interfase on top of Cloud PubSub.
 type distEventBus struct {
 	localEventBus eventbus.EventBus

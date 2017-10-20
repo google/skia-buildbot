@@ -4,7 +4,9 @@ import (
 	"sync"
 
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -14,6 +16,10 @@ const (
 	// Callback argument: []string with the names of changed tests.
 	EV_EXPSTORAGE_CHANGED = "expstorage:changed"
 )
+
+func init() {
+	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.JSONCodec(&map[string]types.TestClassification{}))
+}
 
 // Wraps the set of expectations and provides methods to manipulate them.
 type Expectations struct {
@@ -73,7 +79,7 @@ func (e *Expectations) DeepCopy() *Expectations {
 
 // Delta returns the additions and removals that are necessary to
 // get from e to right. The results can be passed directly to the
-// AddChange and RemoveChange functions of the ExpectationsStore.
+// AddChange and removeChange functions of the ExpectationsStore.
 func (e *Expectations) Delta(right *Expectations) (*Expectations, map[string][]string) {
 	addExp := subtract(right, e, nil)
 	removeExp := subtract(e, right, addExp.Tests)
@@ -122,11 +128,6 @@ type ExpectationsStore interface {
 	// user that made the change.
 	AddChange(changes map[string]types.TestClassification, userId string) error
 
-	// RemoveChange removes the given digests from the expectations store.
-	// The key in changes is the test name which maps to a list of digests
-	// to remove.
-	RemoveChange(changes map[string][]string) error
-
 	// QueryLog allows to paginate through the changes in the expectations.
 	// If details is true the result will include a list of triage operations
 	// that were part a change.
@@ -145,6 +146,11 @@ type ExpectationsStore interface {
 	// CanonicalTraceIDs sets the canonical trace IDs for the mapping of
 	// test names to trace IDs.
 	SetCanonicalTraceIDs(traceIDs map[string]string) error
+
+	// removeChange removes the given digests from the expectations store.
+	// The key in changes is the test name which maps to a list of digests
+	// to remove. Used for testing only.
+	removeChange(changes map[string]types.TestClassification) error
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -216,24 +222,22 @@ func (m *MemExpectationsStore) AddChange(changedTests map[string]types.TestClass
 	return nil
 }
 
-// RemoveChange, see ExpectationsStore interface.
-func (m *MemExpectationsStore) RemoveChange(changedDigests map[string][]string) error {
+// removeChange, see ExpectationsStore interface.
+func (m *MemExpectationsStore) removeChange(changedDigests map[string]types.TestClassification) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	testNames := make([]string, 0, len(changedDigests))
-
 	for testName, digests := range changedDigests {
-		for _, digest := range digests {
+		for digest := range digests {
 			delete(m.expectations.Tests[testName], digest)
 			if len(m.expectations.Tests[testName]) == 0 {
 				delete(m.expectations.Tests, testName)
 			}
 		}
-		testNames = append(testNames, testName)
 	}
+
 	if m.eventBus != nil {
-		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, testNames)
+		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedDigests)
 	}
 
 	m.readCopy = m.expectations.DeepCopy()
