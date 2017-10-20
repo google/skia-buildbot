@@ -82,10 +82,12 @@ func TestReplaceVar(t *testing.T) {
 	c.Repo = "my-repo"
 	c.Revision = "abc123"
 	c.Name = "my-task"
-	assert.Equal(t, "", replaceVars(c, ""))
-	assert.Equal(t, "my-repo", replaceVars(c, "<(REPO)"))
-	assert.Equal(t, "my-task", replaceVars(c, "<(TASK_NAME)"))
-	assert.Equal(t, "abc123", replaceVars(c, "<(REVISION)"))
-	assert.Equal(t, "<(REVISION", replaceVars(c, "<(REVISION"))
-	assert.Equal(t, "my-repo_my-task_abc123", replaceVars(c, "<(REPO)_<(TASK_NAME)_<(REVISION)"))
+	dummyId := "id123"
+	assert.Equal(t, "", replaceVars(c, "", dummyId))
+	assert.Equal(t, "my-repo", replaceVars(c, "<(REPO)", dummyId))
+	assert.Equal(t, "my-task", replaceVars(c, "<(TASK_NAME)", dummyId))
+	assert.Equal(t, "abc123", replaceVars(c, "<(REVISION)", dummyId))
+	assert.Equal(t, "<(REVISION", replaceVars(c, "<(REVISION", dummyId))
+	assert.Equal(t, "my-repo_my-task_abc123", replaceVars(c, "<(REPO)_<(TASK_NAME)_<(REVISION)", dummyId))
+	assert.Equal(t, dummyId, replaceVars(c, "<(TASK_ID)", dummyId))
 }
