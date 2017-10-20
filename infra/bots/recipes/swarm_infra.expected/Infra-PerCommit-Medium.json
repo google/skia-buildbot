@@ -36,7 +36,7 @@
     "cmd": [
       "git",
       "clean",
-      "-d",
+      "-x",
       "-f"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
@@ -199,7 +199,7 @@
     "cmd": [
       "git",
       "clean",
-      "-d",
+      "-x",
       "-f"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",

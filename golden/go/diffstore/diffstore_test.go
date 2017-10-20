@@ -54,7 +54,7 @@ func (d DummyDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA
 }
 
 func TestDiffFn(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	baseDir := TEST_DATA_BASE_DIR + "-difffn"
 	client, _ := getSetupAndTile(t, baseDir)

@@ -55,7 +55,7 @@ def git_checkout(api, url, dest, ref=None):
     ref = REF_ORIGIN_MASTER
   with api.context(cwd=dest):
     git(api, 'fetch', 'origin')
-    git(api, 'clean', '-d', '-f')
+    git(api, 'clean', '-x', '-f')
     git(api, 'checkout', 'master')
     git(api, 'reset', '--hard', ref)
 
@@ -152,18 +152,19 @@ def RunSteps(api):
 
   # More prerequisites.
   with api.context(cwd=infra_dir, env=env):
-    api.step(
-        'install npm',
-        cmd=['sudo', 'npm', 'i', '-g', 'npm@5.4.2'])
-    api.step(
-        'install bower',
-        cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
-    api.step(
-        'install goimports',
-        cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'])
-    api.step(
-        'install errcheck',
-        cmd=['go', 'get', 'github.com/kisielk/errcheck'])
+    if 'Race' not in api.properties['buildername']:
+      api.step(
+          'install npm',
+          cmd=['sudo', 'npm', 'i', '-g', 'npm@5.4.2'])
+      api.step(
+          'install bower',
+          cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
+      api.step(
+          'install goimports',
+          cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'])
+      api.step(
+          'install errcheck',
+          cmd=['go', 'get', 'github.com/kisielk/errcheck'])
     api.step(
         'install protoc-gen-go',
         cmd=['go', 'get', '-u', 'github.com/golang/protobuf/protoc-gen-go'])
@@ -188,7 +189,9 @@ def RunSteps(api):
       env['PATH'], str(api.path['depot_tools'])])
 
   cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
-  if 'Large' in api.properties['buildername']:
+  if 'Race' in api.properties['buildername']:
+    cmd.extend(['--race', '--large', '--medium', '--small'])
+  elif 'Large' in api.properties['buildername']:
     cmd.append('--large')
   elif 'Medium' in api.properties['buildername']:
     cmd.append('--medium')
@@ -233,6 +236,12 @@ def GenTests(api):
   yield (
       api.test('Infra-PerCommit-Medium') +
       api.properties(buildername='Infra-PerCommit-Medium',
+                     slavename='skiabot-linux-infra-001',
+                     path_config='kitchen')
+  )
+  yield (
+      api.test('Infra-PerCommit-Race') +
+      api.properties(buildername='Infra-PerCommit-Race',
                      slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )

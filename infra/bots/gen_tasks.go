@@ -31,6 +31,7 @@ var (
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
+		"Infra-PerCommit-Race",
 	}
 )
 
@@ -40,6 +41,10 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := []*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go")}
 	if strings.Contains(name, "Large") {
 		pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
+	}
+	attempts := 2
+	if strings.Contains(name, "Race") {
+		attempts = 1
 	}
 	b.MustAddTask(name, &specs.TaskSpec{
 		CipdPackages: pkgs,
@@ -63,8 +68,9 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 			fmt.Sprintf("patch_issue=%s", specs.PLACEHOLDER_ISSUE),
 			fmt.Sprintf("patch_set=%s", specs.PLACEHOLDER_PATCHSET),
 		},
-		Isolate:  "swarm_recipe.isolate",
-		Priority: 0.8,
+		Isolate:     "swarm_recipe.isolate",
+		Priority:    0.8,
+		MaxAttempts: attempts,
 	})
 	return name
 }
