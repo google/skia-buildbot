@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aaf7ddfc_c5df6cbd",
+        "filename": "run_unittests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-20T15:42:29Z",
+      "side": 1,
+      "message": "Nit: Wording is a little unclear. Maybe \"Only Go tests are run when -race is specified\"",
+      "range": {
+        "startLine": 83,
+        "startChar": 97,
+        "endLine": 83,
+        "endChar": 136
+      },
+      "revId": "1fd9911a903e79e30f8ec09085a505fe8edf54b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
