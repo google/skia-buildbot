@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b4d13fc1_633585ce",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-23T19:42:39Z",
+      "side": 1,
+      "message": "Big, giant caveat: The list of jobs we add as tags to the Swarming task will only consist of  the Jobs which utilized the task *before* it was triggered, ie. we never update it.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 41
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "951ffbb3_6b8bbf33",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1574,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-23T19:42:39Z",
+      "side": 1,
+      "message": "Now this kind of defeats the purpose of collecting the errors to report at the end. In particular, before, we could fail to update some jobs but still insert the others into the DB so that we don\u0027t have to reprocess all of them next time.",
+      "range": {
+        "startLine": 1572,
+        "startChar": 0,
+        "endLine": 1574,
+        "endChar": 2
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
