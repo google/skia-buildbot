@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f1946b84_63d7b2ca",
+        "filename": "golden/frontend/res/imp/digest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-23T12:34:17Z",
+      "side": 1,
+      "message": "I think if you had the button text be dynamic, it may be a bit clearer as to the functionality of it.\n\ne.g. \"Compare to Negative\" \"Compare to Positive\" or \"Use Closest Negative\" \"Use Closest Positive\"",
+      "range": {
+        "startLine": 265,
+        "startChar": 100,
+        "endLine": 265,
+        "endChar": 107
+      },
+      "revId": "ced5bbef47dff46fce23f537fa60606669bb4a8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
