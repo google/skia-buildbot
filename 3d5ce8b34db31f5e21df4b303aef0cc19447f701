@@ -25,6 +25,122 @@
     },
     {
       "key": {
+        "uuid": "0072a7d0_42b56d38",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-23T20:37:36Z",
+      "side": 1,
+      "message": "IMO omit this.",
+      "parentUuid": "b4d13fc1_633585ce",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 41
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15820812_20755b48",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-23T20:37:36Z",
+      "side": 1,
+      "message": "The jobs listed on swarming could be incorrect. This is more like blamelist, where only Task Scheduler knows the truth.",
+      "range": {
+        "startLine": 259,
+        "startChar": 0,
+        "endLine": 262,
+        "endChar": 17
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c02413af_88de6a77",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-23T20:37:36Z",
+      "side": 1,
+      "message": "Is there a possibility that we\u0027ll process a job more than once?",
+      "range": {
+        "startLine": 432,
+        "startChar": 0,
+        "endLine": 433,
+        "endChar": 23
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3606116_760e9e13",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1539,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-23T20:37:36Z",
+      "side": 1,
+      "message": "Need to add something like:\nif existing :\u003d modifiedTasks[t.Id]; existing !\u003d nil {\n  t \u003d existing\n}",
+      "range": {
+        "startLine": 1539,
+        "startChar": 10,
+        "endLine": 1539,
+        "endChar": 11
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d81e7ec_ee302f31",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1541,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-23T20:37:36Z",
+      "side": 1,
+      "message": "nit: maybe sort.SearchStrings. Maybe add util.InSorted (although you might want the result of sort.SearchStrings when inserting).\n\nWe could use util.StringSet instead, although I think for serialization we\u0027d prefer a slice.",
+      "range": {
+        "startLine": 1541,
+        "startChar": 7,
+        "endLine": 1541,
+        "endChar": 29
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "951ffbb3_6b8bbf33",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -36,6 +152,30 @@
       "writtenOn": "2017-10-23T19:42:39Z",
       "side": 1,
       "message": "Now this kind of defeats the purpose of collecting the errors to report at the end. In particular, before, we could fail to update some jobs but still insert the others into the DB so that we don\u0027t have to reprocess all of them next time.",
+      "range": {
+        "startLine": 1572,
+        "startChar": 0,
+        "endLine": 1574,
+        "endChar": 2
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdb4cf56_6475218a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1574,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-23T20:37:36Z",
+      "side": 1,
+      "message": "Yeah, maybe remove -- I see there\u0027s also a bug where even if jobFinished returns an error, we update the job status in the DB, so it will never be reprocessed. (Or maybe that was intentional?) How often do we see \"Got errors updating unfinished jobs\" in the logs?",
+      "parentUuid": "951ffbb3_6b8bbf33",
       "range": {
         "startLine": 1572,
         "startChar": 0,
