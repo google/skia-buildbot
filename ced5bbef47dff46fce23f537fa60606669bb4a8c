@@ -46,6 +46,30 @@
       "revId": "ced5bbef47dff46fce23f537fa60606669bb4a8c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69dc979f_935b1830",
+        "filename": "golden/frontend/res/imp/digest-details-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-23T13:43:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a4f5c25a_e66f1f46",
+      "range": {
+        "startLine": 265,
+        "startChar": 100,
+        "endLine": 265,
+        "endChar": 107
+      },
+      "revId": "ced5bbef47dff46fce23f537fa60606669bb4a8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
