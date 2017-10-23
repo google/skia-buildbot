@@ -28,6 +28,7 @@ const (
 	SWARMING_TAG_FORCED_JOB_ID    = "sk_forced_job_id"
 	SWARMING_TAG_ID               = "sk_id"
 	SWARMING_TAG_ISSUE            = "sk_issue"
+	SWARMING_TAG_JOB              = "sk_job"
 	SWARMING_TAG_LUCI_PROJECT     = "luci_project"
 	SWARMING_TAG_NAME             = "sk_name"
 	SWARMING_TAG_PARENT_TASK_ID   = "sk_parent_task_id"
@@ -128,6 +129,9 @@ type Task struct {
 	// Filled in when the task is completed. This field will not be set if the
 	// Task does not correspond to a Swarming task.
 	IsolatedOutput string `json:"isolatedOutput"`
+
+	// Jobs are the IDs of all Jobs which utilized this Task.
+	Jobs []string `json:"jobs"`
 
 	// MaxAttempts is the maximum number of attempts for this TaskSpec.
 	MaxAttempts int `json:"max_attempts"`
@@ -251,6 +255,11 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	if err := checkOrSetFromTag(SWARMING_TAG_SERVER, &copy.Server, "Server"); err != nil {
 		return false, err
 	}
+
+	// Set Jobs.
+	jobs := tags[SWARMING_TAG_JOB]
+	sort.Strings(jobs)
+	copy.Jobs = jobs
 
 	// Set ParentTaskIds.
 	parentTaskIds := tags[SWARMING_TAG_PARENT_TASK_ID]
@@ -376,18 +385,17 @@ func (t *Task) Success() bool {
 }
 
 func (t *Task) Copy() *Task {
-	commits := util.CopyStringSlice(t.Commits)
-	parentTaskIds := util.CopyStringSlice(t.ParentTaskIds)
 	return &Task{
 		Attempt:        t.Attempt,
-		Commits:        commits,
+		Commits:        util.CopyStringSlice(t.Commits),
 		Created:        t.Created,
 		DbModified:     t.DbModified,
 		Finished:       t.Finished,
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
+		Jobs:           util.CopyStringSlice(t.Jobs),
 		MaxAttempts:    t.MaxAttempts,
-		ParentTaskIds:  parentTaskIds,
+		ParentTaskIds:  util.CopyStringSlice(t.ParentTaskIds),
 		Properties:     util.CopyStringMap(t.Properties),
 		RetryOf:        t.RetryOf,
 		Started:        t.Started,
@@ -616,7 +624,7 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 }
 
 // TagsForTask returns the tags which should be set for a Task.
-func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
+func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds, jobs []string) []string {
 	tags := map[string]string{
 		SWARMING_TAG_ATTEMPT:         fmt.Sprintf("%d", attempt),
 		SWARMING_TAG_FORCED_JOB_ID:   forcedJobId,
@@ -645,12 +653,15 @@ func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, r
 		}
 	}
 
-	tagsList := make([]string, 0, len(tags)+len(parentTaskIds))
+	tagsList := make([]string, 0, len(tags)+len(parentTaskIds)+len(jobs))
 	for k, v := range tags {
 		tagsList = append(tagsList, fmt.Sprintf("%s:%s", k, v))
 	}
 	for _, id := range parentTaskIds {
 		tagsList = append(tagsList, fmt.Sprintf("%s:%s", SWARMING_TAG_PARENT_TASK_ID, id))
+	}
+	for _, j := range jobs {
+		tagsList = append(tagsList, fmt.Sprintf("%s:%s", SWARMING_TAG_JOB, j))
 	}
 	return tagsList
 }
