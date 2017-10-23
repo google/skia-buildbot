@@ -23,9 +23,10 @@ class TestCsvMerger(unittest.TestCase):
                                        ACTUAL_OUTPUT_FILENAME)
 
   def tearDown(self):
-    os.remove(self._actual_output)
+    print self._actual_output
+    # os.remove(self._actual_output)
 
-  def test_E2EMerger(self):
+  def _test_E2EMerger(self):
     merger = csv_pivot_table_merger.CsvMerger(
         csv_dir=self._test_csv_dir, output_csv_name=ACTUAL_OUTPUT_FILENAME,
         handle_strings=False)
@@ -37,7 +38,7 @@ class TestCsvMerger(unittest.TestCase):
     actual_output_lines = open(self._actual_output).readlines()
     self.assertTrue(set(expected_output_lines) == set(actual_output_lines))
 
-  def _test_E2EMergerWithStrings(self):
+  def test_E2EMergerWithStrings(self):
     merger = csv_pivot_table_merger.CsvMerger(
         csv_dir=self._test_csv_dir, output_csv_name=ACTUAL_OUTPUT_FILENAME,
         handle_strings=True)
