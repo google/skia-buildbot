@@ -118,7 +118,7 @@
         margin-right: 1.5em;
       }
 
-      #warning {
+      .warning {
         font-weight: bold;
         width: 5em;
         padding: 1em;
@@ -182,9 +182,6 @@
           <div class="flex self-start testHeader" hidden$="[[!_hasRight(_right)]]">Right: [[_right.digest]]</div>
         </div>
         <div class="horizontal layout">
-          <div class="vertical layout" id="warning" hidden$="[[!_negIsClosest]]">
-            Closest Image Is Negative!
-          </div>
 
           <!-- Triage Controls -->
           <div class="vertical layout triageInfo">
@@ -262,6 +259,13 @@
               </div>
             </div>
               <paper-button id="zoomButton" raised>Zoom</paper-button>
+          </div>
+
+          <div class="vertical layout">
+            <paper-button id="toggleRefButton" raised hidden$="[[_hideRefToggle(_refKeys)]]">Toggle Closest</paper-button>
+            <div class="warning" hidden$="[[!_negIsClosest]]">
+              Closest Image Is Negative!
+            </div>
           </div>
         </div>
 
@@ -342,6 +346,11 @@
         _diff: {
           type: Object,
           value: null
+        },
+
+        _refKeys: {
+          type: Array,
+          value: function() { return []; }
         }
       },
 
@@ -351,6 +360,7 @@
 
       ready: function () {
         this.listen(this.$.zoomButton, 'click', '_zoomHandler');
+        this.listen(this.$.toggleRefButton, 'tap', '_toggleRefHandler');
         this.listen(this.$.dots, 'hover', '_hoverHandler');
         this.listen(this.$.dots, 'mouseleave', '_mouseLeaveHandler');
         this.listen(this.$.triageControls, 'change', '_triageChangeHandler');
@@ -391,6 +401,13 @@
 
       _zoomHandler: function() {
         this.fire('zoom-clicked', this.getZoomDetail());
+      },
+
+      _toggleRefHandler: function() {
+        this._refIdx = (this._refIdx+1) % this._refKeys.length;
+        this.details.closestRef = this._refKeys[this._refIdx];
+        this._setRefDiff();
+        this._setProperties();
       },
 
       _hoverHandler: function(e) {
@@ -448,11 +465,21 @@
         this._right = null;
         this._diff = null;
         this._rightParamTitle = '';
-        if (this.details.closestRef && this.details.closestRef !== '') {
-          this._negIsClosest = (this.details.closestRef === gold.REF_NEG);
-          this._right = this.details.refDiffs[this.details.closestRef];
-          this._diff = this._right;
-          this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
+
+        // Set the reference image returned by the server.
+        var hasRef = this._setRefDiff();
+        if (hasRef) {
+          // Get all the reference images that are availalble.
+          var refKeys = [];
+          if (this.details.refDiffs) {
+            for(var k in this.details.refDiffs) {
+              if (this.details.refDiffs.hasOwnProperty(k)) {
+                refKeys.push(k);
+              }
+            }
+          }
+          this._refIdx = refKeys.indexOf(this.details.closestRef);
+          this.set("_refKeys", refKeys);
         }
 
         // Set the blame, dots, dotlegend
@@ -462,6 +489,18 @@
 
       statusClosest: function() {
         return (this._right) ? ((this._negIsClosest) ? gold.NEGATIVE : gold.POSITIVE) : null;
+      },
+
+      // _setRefDiff sets the reference image and returns true if there is one.
+      _setRefDiff: function() {
+        if (this.details.closestRef && this.details.closestRef !== '') {
+          this._negIsClosest = (this.details.closestRef === gold.REF_NEG);
+          this._right = this.details.refDiffs[this.details.closestRef];
+          this._diff = this._right;
+          this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
+          return true;
+        }
+        return false;
       },
 
       _digestFromDiff: function(test, refDiff, status) {
@@ -606,6 +645,10 @@
 
       _eq: function(val, expected) {
         return val === expected;
+      },
+
+      _hideRefToggle: function(refKeys) {
+        return !(refKeys && refKeys.length && refKeys.length > 1);
       }
     });
   </script>
