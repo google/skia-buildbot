@@ -25,6 +25,7 @@ type taskCandidate struct {
 	IsolatedInput  string    `json:"isolatedInput"`
 	IsolatedHashes []string  `json:"isolatedHashes"`
 	JobCreated     time.Time `json:"jobCreated"`
+	Jobs           []string  `json:"jobs"`
 	ParentTaskIds  []string  `json:"parentTaskIds"`
 	RetryOf        string    `json:"retryOf"`
 	Score          float64   `json:"score"`
@@ -41,6 +42,7 @@ func (c *taskCandidate) Copy() *taskCandidate {
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: util.CopyStringSlice(c.IsolatedHashes),
 		JobCreated:     c.JobCreated,
+		Jobs:           util.CopyStringSlice(c.Jobs),
 		ParentTaskIds:  util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:        c.RetryOf,
 		Score:          c.Score,
@@ -82,20 +84,17 @@ func parseId(id string) (db.TaskKey, error) {
 
 // MakeTask instantiates a db.Task from the taskCandidate.
 func (c *taskCandidate) MakeTask() *db.Task {
-	commits := make([]string, len(c.Commits))
-	copy(commits, c.Commits)
-	parentTaskIds := make([]string, len(c.ParentTaskIds))
-	copy(parentTaskIds, c.ParentTaskIds)
 	maxAttempts := c.TaskSpec.MaxAttempts
 	if maxAttempts == 0 {
 		maxAttempts = specs.DEFAULT_TASK_SPEC_MAX_ATTEMPTS
 	}
 	return &db.Task{
 		Attempt:       c.Attempt,
-		Commits:       commits,
+		Commits:       util.CopyStringSlice(c.Commits),
 		Id:            "", // Filled in when the task is inserted into the DB.
+		Jobs:          util.CopyStringSlice(c.Jobs),
 		MaxAttempts:   maxAttempts,
-		ParentTaskIds: parentTaskIds,
+		ParentTaskIds: util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:       c.RetryOf,
 		TaskKey:       c.TaskKey.Copy(),
 	}
@@ -228,7 +227,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		},
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
 		ServiceAccount: swarming.GetServiceAccountFromTaskDims(dimsMap),
-		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, c.Jobs),
 		User:           "skiabot@google.com",
 	}, nil
 }

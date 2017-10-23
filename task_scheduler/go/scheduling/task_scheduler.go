@@ -415,16 +415,27 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(unfinishedJobs []*db.Job) (map
 		}
 		for tsName := range j.Dependencies {
 			key := j.MakeTaskKey(tsName)
-			spec, err := s.taskCfgCache.GetTaskSpec(j.RepoState, tsName)
-			if err != nil {
-				return nil, err
+			c, ok := candidates[key]
+			if !ok {
+				spec, err := s.taskCfgCache.GetTaskSpec(j.RepoState, tsName)
+				if err != nil {
+					return nil, err
+				}
+				c = &taskCandidate{
+					JobCreated: j.Created,
+					Jobs:       []string{},
+					TaskKey:    key,
+					TaskSpec:   spec,
+				}
+				candidates[key] = c
 			}
-			c := &taskCandidate{
-				JobCreated: j.Created,
-				TaskKey:    key,
-				TaskSpec:   spec,
+			c.Jobs = append(c.Jobs, j.Id)
+			sort.Strings(c.Jobs)
+			// Use the earliest JobCreated time, which will
+			// maximize priority for older try jobs.
+			if c.JobCreated.After(j.Created) {
+				c.JobCreated = j.Created
 			}
-			candidates[key] = c
 		}
 	}
 	sklog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
@@ -1514,7 +1525,8 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 		return err
 	}
 
-	modified := make([]*db.Job, 0, len(jobs))
+	modifiedJobs := make([]*db.Job, 0, len(jobs))
+	modifiedTasks := make(map[string]*db.Task, len(jobs))
 	errs := []error{}
 	for _, j := range jobs {
 		tasks, err := s.getTasksForJob(j)
@@ -1526,6 +1538,11 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 			cpy := make([]*db.TaskSummary, 0, len(v))
 			for _, t := range v {
 				cpy = append(cpy, t.MakeTaskSummary())
+				if !util.In(j.Id, t.Jobs) {
+					t.Jobs = append(t.Jobs, j.Id)
+					sort.Strings(t.Jobs)
+					modifiedTasks[t.Id] = t
+				}
 			}
 			summaries[k] = cpy
 		}
@@ -1538,11 +1555,25 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 				}
 			}
 
-			modified = append(modified, j)
+			modifiedJobs = append(modifiedJobs, j)
 		}
 	}
-	if len(modified) > 0 {
-		if err := s.db.PutJobs(modified); err != nil {
+	if len(modifiedTasks) > 0 {
+		tasks := make([]*db.Task, 0, len(modifiedTasks))
+		for _, t := range modifiedTasks {
+			tasks = append(tasks, t)
+		}
+		if err := s.db.PutTasks(tasks); err != nil {
+			errs = append(errs, err)
+		} else if err := s.tCache.Update(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("Got errors updating unfinished jobs: %v", errs)
+	}
+	if len(modifiedJobs) > 0 {
+		if err := s.db.PutJobs(modifiedJobs); err != nil {
 			errs = append(errs, err)
 		} else if err := s.jCache.Update(); err != nil {
 			errs = append(errs, err)

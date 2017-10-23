@@ -138,6 +138,9 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task, dims map[s
 		tag(db.SWARMING_TAG_REPO, task.Repo),
 		tag(db.SWARMING_TAG_REVISION, task.Revision),
 	}
+	for _, j := range task.Jobs {
+		tags = append(tags, tag(db.SWARMING_TAG_JOB, j))
+	}
 	for _, p := range task.ParentTaskIds {
 		tags = append(tags, tag(db.SWARMING_TAG_PARENT_TASK_ID, p))
 	}
@@ -307,6 +310,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// returned (ie. all dependencies and their dependencies).
 	j1 := &db.Job{
 		Created:      now,
+		Id:           "job1id",
 		Name:         "j1",
 		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.5,
@@ -314,6 +318,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc1 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{j1.Id},
 		TaskKey: db.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      specs_testutils.BuildTask,
@@ -322,6 +327,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc2 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{j1.Id},
 		TaskKey: db.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      specs_testutils.TestTask,
@@ -338,6 +344,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// dependencies are de-duplicated.
 	j2 := &db.Job{
 		Created:      now,
+		Id:           "job2id",
 		Name:         "j2",
 		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.6,
@@ -345,6 +352,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	j3 := &db.Job{
 		Created:      now,
+		Id:           "job3id",
 		Name:         "j3",
 		Dependencies: map[string][]string{specs_testutils.PerfTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.6,
@@ -352,6 +360,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc3 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{"job2id", "job3id"},
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.BuildTask,
@@ -360,6 +369,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc4 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{"job2id"},
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.TestTask,
@@ -368,6 +378,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc5 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{"job3id"},
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.PerfTask,
@@ -385,6 +396,9 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 
 	// Finish j3, ensure that its task specs no longer show up.
 	delete(allCandidates, j3.MakeTaskKey(specs_testutils.PerfTask))
+	// This is hacky, but findTaskCandidatesForJobs accepts an already-
+	// filtered list of jobs, so we have to pretend it never existed.
+	tc3.Jobs = []string{j2.Id}
 	test([]*db.Job{j1, j2}, allCandidates)
 }
 
@@ -3418,7 +3432,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
 	bot2 := makeBot("bot2", map[string]string{"pool": "Skia"})
 	bot3 := makeBot("bot3", map[string]string{"pool": "Skia"})
-	makeTags := func(commit string) []string {
+	makeTags := func(commit, id string) []string {
 		return []string{
 			"luci_project:",
 			"sk_attempt:0",
@@ -3431,11 +3445,20 @@ func TestTriggerTaskFailed(t *testing.T) {
 			"sk_forced_job_id:",
 			"sk_name:dummytask",
 			"sk_priority:1.000000",
+			fmt.Sprintf("sk_job:%s", id),
+		}
+	}
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
+	assert.NoError(t, s.MainLoop())
+	jobs, err := s.jCache.UnfinishedJobs()
+	assert.NoError(t, err)
+	for _, j := range jobs {
+		if j.Revision == commits[4] {
+			swarmingClient.MockTriggerTaskFailure(makeTags(j.Revision, j.Id))
 		}
 	}
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
-	swarmingClient.MockTriggerTaskFailure(makeTags(commits[4]))
-	err := s.MainLoop()
+	err = s.MainLoop()
 	assert.EqualError(t, err, "Got failures: \nFailed to trigger task: Mocked trigger failure!\n")
 	assert.NoError(t, s.tCache.Update())
 	assert.Equal(t, 6, len(s.queue))
