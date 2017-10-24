@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "85559e45_0c1dfc31",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-24T15:11:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0072a7d0_42b56d38",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 41
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15820812_20755b48",
         "filename": "task_scheduler/go/db/task.go",
         "patchSetId": 2
@@ -60,6 +84,30 @@
       "writtenOn": "2017-10-23T20:37:36Z",
       "side": 1,
       "message": "The jobs listed on swarming could be incorrect. This is more like blamelist, where only Task Scheduler knows the truth.",
+      "range": {
+        "startLine": 259,
+        "startChar": 0,
+        "endLine": 262,
+        "endChar": 17
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35cb5657_270322e5",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-24T15:11:47Z",
+      "side": 1,
+      "message": "Removed as suggested.",
+      "parentUuid": "15820812_20755b48",
       "range": {
         "startLine": 259,
         "startChar": 0,
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "ff851020_dfd604dc",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-24T15:11:47Z",
+      "side": 1,
+      "message": "We recreate all of these candidates at every cycle, so the only way that would happen is if the JobCache included duplicates in the list of UnfinishedJobs().  Is that what you\u0027re asking?  I guess we could do a map here to avoid duplicates, but it seems unlikely.",
+      "parentUuid": "c02413af_88de6a77",
+      "range": {
+        "startLine": 432,
+        "startChar": 0,
+        "endLine": 433,
+        "endChar": 23
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c3606116_760e9e13",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -118,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "4a319572_a41ab8e7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1539,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-24T15:11:47Z",
+      "side": 1,
+      "message": "Good catch, done.",
+      "parentUuid": "c3606116_760e9e13",
+      "range": {
+        "startLine": 1539,
+        "startChar": 10,
+        "endLine": 1539,
+        "endChar": 11
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d81e7ec_ee302f31",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 2
@@ -129,6 +225,30 @@
       "writtenOn": "2017-10-23T20:37:36Z",
       "side": 1,
       "message": "nit: maybe sort.SearchStrings. Maybe add util.InSorted (although you might want the result of sort.SearchStrings when inserting).\n\nWe could use util.StringSet instead, although I think for serialization we\u0027d prefer a slice.",
+      "range": {
+        "startLine": 1541,
+        "startChar": 7,
+        "endLine": 1541,
+        "endChar": 29
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c2b0b06_aeb1a026",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1541,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-24T15:11:47Z",
+      "side": 1,
+      "message": "So right now the majority of tasks (test, perf, upload, infra, normal housekeeper, etc) will have one associated job.  Build tasks may have several, and the BundleRecipes and Isolate* tasks will have ~80 or so.  I really want Task.Jobs to be a slice.  I changed to use sort.SearchStrings.  I\u0027m hoping we don\u0027t need a map or util.StringSet for now.",
+      "parentUuid": "3d81e7ec_ee302f31",
       "range": {
         "startLine": 1541,
         "startChar": 7,
@@ -176,6 +296,30 @@
       "side": 1,
       "message": "Yeah, maybe remove -- I see there\u0027s also a bug where even if jobFinished returns an error, we update the job status in the DB, so it will never be reprocessed. (Or maybe that was intentional?) How often do we see \"Got errors updating unfinished jobs\" in the logs?",
       "parentUuid": "951ffbb3_6b8bbf33",
+      "range": {
+        "startLine": 1572,
+        "startChar": 0,
+        "endLine": 1574,
+        "endChar": 2
+      },
+      "revId": "3d5ce8b34db31f5e21df4b303aef0cc19447f701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c3a1166_5ec68577",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1574,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-24T15:11:47Z",
+      "side": 1,
+      "message": "Not once in the last two weeks.  Changed to just return errors as they appear.",
+      "parentUuid": "bdb4cf56_6475218a",
       "range": {
         "startLine": 1572,
         "startChar": 0,
