@@ -46,6 +46,30 @@
       "revId": "d9a92e2df30563dc9cf52067e75914107c1702ba",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8dd4ee76_7ed92ef3",
+        "filename": "go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-24T17:44:56Z",
+      "side": 1,
+      "message": "Thanks and Sorry!",
+      "parentUuid": "438c02c2_85ebe69d",
+      "range": {
+        "startLine": 172,
+        "startChar": 33,
+        "endLine": 172,
+        "endChar": 50
+      },
+      "revId": "d9a92e2df30563dc9cf52067e75914107c1702ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
