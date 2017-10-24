@@ -467,6 +467,7 @@ func main() {
 			if err := t.Run(); err != nil {
 				errors[t.Name] = err
 			}
+			sklog.Infof("Finished %s", t.Name)
 		}
 	} else {
 
