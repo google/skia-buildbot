@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -63,6 +64,8 @@ var (
 	PLACEHOLDER_ISOLATED_OUTDIR   = "${ISOLATED_OUTDIR}"
 
 	PERIODIC_TRIGGERS = []string{TRIGGER_NIGHTLY, TRIGGER_WEEKLY}
+
+	errMustWrite = errors.New("CACHE MUST BE WRITTEN TO DISK")
 )
 
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
@@ -393,6 +396,9 @@ type cacheEntry struct {
 	Rs  db.RepoState
 }
 
+// Get returns the TasksCfg for this cache entry. If it does not already exist
+// in the cache, it is read from the repo, errMustWrite is returned, and the
+// caller is responsible for calling write() on the cache.
 func (e *cacheEntry) Get() (*TasksCfg, error) {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
@@ -457,9 +463,7 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 			e.c.recentJobSpecs[name] = ts
 		}
 	}
-	e.c.mtx.Lock()
-	defer e.c.mtx.Unlock()
-	return cfg, e.c.write()
+	return cfg, errMustWrite
 }
 
 func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
@@ -479,25 +483,32 @@ func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
 // file if needed.
 func (c *TaskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	entry := c.getEntry(rs)
-	c.mtx.Unlock()
-	return entry.Get()
+	rv, err := entry.Get()
+	if err == errMustWrite {
+		c.recentMtx.Lock()
+		defer c.recentMtx.Unlock()
+		return rv, c.write()
+	}
+	return rv, err
 }
 
 // GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
 // given set of RepoStates, keyed by RepoState and TaskSpec name.
 func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	entries := make(map[db.RepoState]*cacheEntry, len(rs))
 	for _, s := range rs {
 		entries[s] = c.getEntry(s)
 	}
-	c.mtx.Unlock()
 
 	var m sync.Mutex
 	var wg sync.WaitGroup
 	rv := make(map[db.RepoState]map[string]*TaskSpec, len(rs))
 	errs := []error{}
+	mustWrite := false
 	for s, entry := range entries {
 		wg.Add(1)
 		go func(s db.RepoState, entry *cacheEntry) {
@@ -505,9 +516,14 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 			cfg, err := entry.Get()
 			if err != nil {
 				m.Lock()
-				defer m.Unlock()
-				errs = append(errs, err)
-				return
+				if err == errMustWrite {
+					mustWrite = true
+					m.Unlock()
+				} else {
+					errs = append(errs, err)
+					m.Unlock()
+					return
+				}
 			}
 			// Make a copy of the task specs.
 			subMap := make(map[string]*TaskSpec, len(cfg.Tasks))
@@ -522,6 +538,10 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 	wg.Wait()
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("Errors loading task cfgs: %v", errs)
+	} else if mustWrite {
+		c.recentMtx.Lock()
+		defer c.recentMtx.Unlock()
+		return rv, c.write()
 	}
 	return rv, nil
 }
