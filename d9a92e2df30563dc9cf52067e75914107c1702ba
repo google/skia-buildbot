@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dc7f93b_a4b8bf81",
+        "filename": "go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-24T17:39:38Z",
+      "side": 1,
+      "message": "nit: Based on Java List API and C++ vector API, it seems more common for the index param to be before the item to insert.",
+      "range": {
+        "startLine": 172,
+        "startChar": 33,
+        "endLine": 172,
+        "endChar": 50
+      },
+      "revId": "d9a92e2df30563dc9cf52067e75914107c1702ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
