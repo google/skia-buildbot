@@ -22,6 +22,30 @@
       "revId": "d47c150fc08e3012d1a551bbe198e75948073073",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "140bbd02_35ee7b0b",
+        "filename": "ct/py/csv_pivot_table_merger.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-24T19:07:59Z",
+      "side": 1,
+      "message": "It was an optimization, but probably not worth it for this. Removed for simplicity.",
+      "parentUuid": "2924fa82_4e43b604",
+      "range": {
+        "startLine": 78,
+        "startChar": 4,
+        "endLine": 78,
+        "endChar": 23
+      },
+      "revId": "d47c150fc08e3012d1a551bbe198e75948073073",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
