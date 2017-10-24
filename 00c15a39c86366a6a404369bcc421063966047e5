@@ -22,6 +22,30 @@
       "revId": "00c15a39c86366a6a404369bcc421063966047e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "735d313d_3e68313d",
+        "filename": "ct/py/csv_pivot_table_merger.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-24T18:49:45Z",
+      "side": 1,
+      "message": "I was also trying to maintain the order of items in the list (which would be lot with set(values)). Added a comment.",
+      "parentUuid": "3bb31d25_becadc1a",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 74
+      },
+      "revId": "00c15a39c86366a6a404369bcc421063966047e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
