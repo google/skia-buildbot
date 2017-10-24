@@ -129,6 +129,9 @@ type Task struct {
 	// Task does not correspond to a Swarming task.
 	IsolatedOutput string `json:"isolatedOutput"`
 
+	// Jobs are the IDs of all Jobs which utilized this Task.
+	Jobs []string `json:"jobs"`
+
 	// MaxAttempts is the maximum number of attempts for this TaskSpec.
 	MaxAttempts int `json:"max_attempts"`
 
@@ -376,18 +379,17 @@ func (t *Task) Success() bool {
 }
 
 func (t *Task) Copy() *Task {
-	commits := util.CopyStringSlice(t.Commits)
-	parentTaskIds := util.CopyStringSlice(t.ParentTaskIds)
 	return &Task{
 		Attempt:        t.Attempt,
-		Commits:        commits,
+		Commits:        util.CopyStringSlice(t.Commits),
 		Created:        t.Created,
 		DbModified:     t.DbModified,
 		Finished:       t.Finished,
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
+		Jobs:           util.CopyStringSlice(t.Jobs),
 		MaxAttempts:    t.MaxAttempts,
-		ParentTaskIds:  parentTaskIds,
+		ParentTaskIds:  util.CopyStringSlice(t.ParentTaskIds),
 		Properties:     util.CopyStringMap(t.Properties),
 		RetryOf:        t.RetryOf,
 		Started:        t.Started,

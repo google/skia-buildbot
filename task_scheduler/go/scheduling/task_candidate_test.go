@@ -19,6 +19,7 @@ func TestCopyTaskCandidate(t *testing.T) {
 		IsolatedInput:  "lonely-parameter",
 		IsolatedHashes: []string{"browns"},
 		JobCreated:     time.Now(),
+		Jobs:           []string{"123abc", "456def"},
 		ParentTaskIds:  []string{"38", "39", "40"},
 		RetryOf:        "41",
 		Score:          99,

@@ -659,6 +659,7 @@ func TestCopyTask(t *testing.T) {
 		Finished:       now.Add(time.Second),
 		Id:             "42",
 		IsolatedOutput: "lonely-result",
+		Jobs:           []string{"123abc", "456def"},
 		MaxAttempts:    2,
 		ParentTaskIds:  []string{"38", "39", "40"},
 		Properties: map[string]string{

@@ -307,6 +307,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// returned (ie. all dependencies and their dependencies).
 	j1 := &db.Job{
 		Created:      now,
+		Id:           "job1id",
 		Name:         "j1",
 		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.5,
@@ -314,6 +315,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc1 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{j1.Id},
 		TaskKey: db.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      specs_testutils.BuildTask,
@@ -322,6 +324,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc2 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{j1.Id},
 		TaskKey: db.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      specs_testutils.TestTask,
@@ -338,6 +341,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// dependencies are de-duplicated.
 	j2 := &db.Job{
 		Created:      now,
+		Id:           "job2id",
 		Name:         "j2",
 		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.6,
@@ -345,6 +349,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	j3 := &db.Job{
 		Created:      now,
+		Id:           "job3id",
 		Name:         "j3",
 		Dependencies: map[string][]string{specs_testutils.PerfTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
 		Priority:     0.6,
@@ -352,6 +357,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc3 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{"job2id", "job3id"},
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.BuildTask,
@@ -360,6 +366,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc4 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{"job2id"},
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.TestTask,
@@ -368,6 +375,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	}
 	tc5 := &taskCandidate{
 		JobCreated: now,
+		Jobs:       []string{"job3id"},
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.PerfTask,
@@ -385,6 +393,9 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 
 	// Finish j3, ensure that its task specs no longer show up.
 	delete(allCandidates, j3.MakeTaskKey(specs_testutils.PerfTask))
+	// This is hacky, but findTaskCandidatesForJobs accepts an already-
+	// filtered list of jobs, so we have to pretend it never existed.
+	tc3.Jobs = []string{j2.Id}
 	test([]*db.Job{j1, j2}, allCandidates)
 }
 
