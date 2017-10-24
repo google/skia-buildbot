@@ -21,6 +21,8 @@ TELEMETRY_PAGE_NAME_KEY = 'stories'
 TELEMETRY_FIELD_NAME_KEY = 'name'
 TELEMETRY_FIELD_VALUE_KEY = 'avg'
 TELEMETRY_FIELD_UNITS_KEY = 'unit'
+# Special handling for traceURLs. See skbug.com/7212.
+TELEMETRY_TRACE_URLS_KEY = 'traceUrls'
 
 OUTPUT_PAGE_NAME_KEY = 'page_name'
 
@@ -53,6 +55,7 @@ class CsvMerger(object):
         field_names.add(field_name)
     # We use 'page_name' in the output CSV to ID the webpage.
     field_names.add(OUTPUT_PAGE_NAME_KEY);
+    field_names.add(TELEMETRY_TRACE_URLS_KEY);
     return field_names
 
   def _GetSmallest(self, l):
@@ -67,6 +70,13 @@ class CsvMerger(object):
       avg += v
     return avg/len(l)
 
+  def _GetTraceURLVal(self, values):
+    if not values:
+      return ''
+    # Deduplicate and maintain the order of items in the list.
+    seen = set()
+    return ','.join([x for x in values if not (x in seen or seen.add(x))])
+
   def _GetRowWithAvgValues(self, rows):
     """Parses the specified rows and returns a row with the avg values."""
     fieldname_to_values = {}
@@ -75,6 +85,14 @@ class CsvMerger(object):
       value = row[TELEMETRY_FIELD_VALUE_KEY]
       fieldname = self._GetFieldNameFromRow(row)
       fieldname_to_values[OUTPUT_PAGE_NAME_KEY] = page_name
+
+      traceURL = row.get(TELEMETRY_TRACE_URLS_KEY)
+      if traceURL:
+        if TELEMETRY_TRACE_URLS_KEY in fieldname_to_values:
+          fieldname_to_values[TELEMETRY_TRACE_URLS_KEY].append(traceURL)
+        else:
+          fieldname_to_values[TELEMETRY_TRACE_URLS_KEY] = [traceURL]
+
       try:
         value = float(value)
       except (ValueError, TypeError):
@@ -93,6 +111,9 @@ class CsvMerger(object):
     for fieldname, values in fieldname_to_values.items():
       if fieldname == OUTPUT_PAGE_NAME_KEY:
         avg_row[fieldname] = values
+        continue
+      elif fieldname == TELEMETRY_TRACE_URLS_KEY:
+        avg_row[fieldname] = self._GetTraceURLVal(values)
         continue
       try:
         avg_row[fieldname] = self._GetAvg(values)
