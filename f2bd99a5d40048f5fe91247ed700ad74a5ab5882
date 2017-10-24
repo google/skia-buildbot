@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c4b93173_72ff272b",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-24T20:56:44Z",
+      "side": 1,
+      "message": "nit: maybe mention locking order is mtx, cache[*].mtx, recentMtx.",
+      "range": {
+        "startLine": 323,
+        "startChar": 1,
+        "endLine": 323,
+        "endChar": 10
+      },
+      "revId": "f2bd99a5d40048f5fe91247ed700ad74a5ab5882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea9d845c_4f160e21",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-24T20:56:44Z",
+      "side": 1,
+      "message": "nit: extra bool return value might be a bit simpler.",
+      "range": {
+        "startLine": 400,
+        "startChar": 43,
+        "endLine": 400,
+        "endChar": 55
+      },
+      "revId": "f2bd99a5d40048f5fe91247ed700ad74a5ab5882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3967a381_02b7b023",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-24T20:56:44Z",
+      "side": 1,
+      "message": "nit: maybe write regardless of errs?",
+      "range": {
+        "startLine": 541,
+        "startChar": 8,
+        "endLine": 544,
+        "endChar": 22
+      },
+      "revId": "f2bd99a5d40048f5fe91247ed700ad74a5ab5882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d2d59a9_9b0452b9",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-24T20:56:44Z",
+      "side": 1,
+      "message": "nit: unreachable",
+      "range": {
+        "startLine": 546,
+        "startChar": 1,
+        "endLine": 546,
+        "endChar": 15
+      },
+      "revId": "f2bd99a5d40048f5fe91247ed700ad74a5ab5882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
