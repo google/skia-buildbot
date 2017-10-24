@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a6bb765_6c947d1b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-24T16:27:37Z",
+      "side": 1,
+      "message": "nit: probably want the same logic as below to add to a sorted list.",
+      "range": {
+        "startLine": 432,
+        "startChar": 3,
+        "endLine": 433,
+        "endChar": 23
+      },
+      "revId": "0aa4f5261aa78bd066f691513a9d7d9d8f3d4498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d33eeb0_da4bec27",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1546,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-24T16:27:37Z",
+      "side": 1,
+      "message": "uber-nit: This is definitely correct and the most straightforward way to write this, but it will create a new backing array for every append. Here is a non-straightforward but efficient way, if you think it\u0027s preferable:\noldLen :\u003d len(t.Jobs)\nt.Jobs \u003d append(t.Jobs, \"\")\ncopy(t.Jobs[idx+1:], t.Jobs[idx:oldLen])\nt.Jobs[idx] \u003d j.Id\n\n(Maybe encapsulating this as util.InsertString would make this not-so-yucky.)",
+      "range": {
+        "startLine": 1545,
+        "startChar": 0,
+        "endLine": 1546,
+        "endChar": 47
+      },
+      "revId": "0aa4f5261aa78bd066f691513a9d7d9d8f3d4498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
