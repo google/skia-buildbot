@@ -168,6 +168,25 @@ func Reverse(s []string) []string {
 	return r
 }
 
+// InsertString inserts the given string into the slice at the given index.
+func InsertString(strs []string, idx int, s string) []string {
+	oldLen := len(strs)
+	strs = append(strs, "")
+	copy(strs[idx+1:], strs[idx:oldLen])
+	strs[idx] = s
+	return strs
+}
+
+// InsertStringSorted inserts the given string into the sorted slice of strings
+// if it does not already exist. Maintains sorted order.
+func InsertStringSorted(strs []string, s string) []string {
+	idx := sort.SearchStrings(strs, s)
+	if idx == len(strs) || strs[idx] != s {
+		return InsertString(strs, idx, s)
+	}
+	return strs
+}
+
 type Int64Slice []int64
 
 func (p Int64Slice) Len() int           { return len(p) }
