@@ -187,6 +187,8 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 		// it should be as long as 'proxy_set_header Host $host;' is set for
 		// the nginx server config.
 		redirect = "https://" + r.Host + r.RequestURI
+		fmt.Println("CONSTRUCTED!!!!!!!!!!!!!")
+		fmt.Println(redirect)
 	}
 	// Append the current URL to the state, in a way that's safe from tampering,
 	// so that we can use it on the rebound. So the state we pass in has the
