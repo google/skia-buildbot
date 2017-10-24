@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leasing server for Swarming bots</title>
+    {{template "header.html" .}}
+</head>
+<body>
+    <leasing-index-sk></leasing-index-sk>
+
+    <script type="text/javascript" charset="utf-8">
+       (function() {
+         sk.post('/_/pooldetails').then(JSON.parse).then(function(json) {
+           $$$('leasing-index-sk').poolDetails = json;
+         }).catch(sk.errorMessage);
+       })();
+    </script>
+</body>
+</html>

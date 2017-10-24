@@ -1,0 +1,116 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <leasing-list-sk>
+
+  This is the side navigation menu for the Skia Fuzzer
+
+  To use this file import it:
+
+    <link href="leasing-list-sk.html" rel="import" />
+
+  Usage:
+
+    <leasing-list-sk></leasing-list-sk>
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<!--<link rel="import" href="/res/imp/bower_components/paper-item/paper-item.html"> -->
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/common/imp/app-sk.html" />                        
+<link rel="import" href="leasing-menu-sk.html" />
+
+<dom-module id="leasing-list-sk">
+  <template>
+    <style is="custom-style" include="iron-positioning">                        
+      app-sk {                                                                  
+        --app-sk-main: {                                                        
+          background-color: #FFFFFF;                                            
+          font-family: sans-serif;                                              
+        };                                                                      
+        --app-sk-toolbar: {                                                     
+          background-color: #3f51b5;                                            
+        };                                                                      
+        login-sk{                                                               
+          --login-sk-color: white;                                              
+        };                                                                      
+      }                                                                         
+      .title {                                                                  
+        padding:2px;                                                            
+        margin-top:5px;                                                         
+      }                                                                         
+      .title {                                                                  
+        display:inline;                                                         
+        font-size: 1.5em;                                                       
+        -webkit-margin-before: 0.83em;                                          
+        -webkit-margin-after: 0.83em;                                           
+        -webkit-margin-start: 0px;                                              
+        -webkit-margin-end: 0px;                                                
+        font-weight: bold;                                                      
+      }                                                                         
+    </style>
+
+   <app-sk class="fit" header_height="60px">                                   
+      <span header class="title">Leasing Server for Swarming Bots</span>        
+      <leasing-menu-sk navigation></leasing-menu-sk>                            
+
+      <table class="runshistory" id="runshistory" cellpadding="5" border="1">
+        <tr class="headers">
+          <td>Created Time</td>
+          <td>Lease End Time</td>
+          <td>Requester</td>
+          <td>Os Type</td>
+          <td>Device Type</td>
+          <td>Description</td>
+          <td>Swarming Logs</td>
+          <td>Bot ID</td>
+          <td>Done</td>
+        </tr>
+
+       <template is="dom-repeat" items="{{tasks}}">
+       <tr style="border: 1px solid black;">
+         <td class="nowrap">{{ formatTimestamp(item.created) }}</td>
+         <td class="nowrap">{{ formatTimestamp(item.leaseEndTime) }}</td>
+         <td class="nowrap">{{item.requester}}</td>
+         <td class="nowrap">{{item.osType}}</td>
+         <td class="nowrap">{{item.deviceType}}</td>
+         <td class="nowrap">{{item.description}}</td>
+         <td class="nowrap">{{item.swarmingLogs}}</td>
+         <td class="nowrap">{{item.botId}}</td>
+         <td class="nowrap">{{item.done}}</td>
+       </tr>
+       </template>
+
+      </table>
+    </app-sk>
+
+  </template>
+  <script>
+  Polymer({
+    is: "leasing-list-sk",
+    properties: {
+      tasks: {
+        type: Array,
+        value: [],
+      }
+    },
+
+    formatTimestamp: function(timestamp) {
+      if (timestamp == 0) {                                                       
+        return timestamp;                                                         
+      }
+      const d = new Date(timestamp);
+      return d.toUTCString();                                                                           
+    },
+  });
+  </script>
+</dom-module>
