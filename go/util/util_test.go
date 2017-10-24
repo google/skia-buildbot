@@ -75,6 +75,23 @@ func TestSSliceEqual(t *testing.T) {
 	}
 }
 
+func TestInsertString(t *testing.T) {
+	testutils.SmallTest(t)
+	testutils.AssertDeepEqual(t, []string{"a"}, InsertString([]string{}, "a", 0))
+	testutils.AssertDeepEqual(t, []string{"b", "a"}, InsertString([]string{"a"}, "b", 0))
+	testutils.AssertDeepEqual(t, []string{"b", "c", "a"}, InsertString([]string{"b", "a"}, "c", 1))
+	testutils.AssertDeepEqual(t, []string{"b", "c", "a", "d"}, InsertString([]string{"b", "c", "a"}, "d", 3))
+}
+
+func TestInsertStringSorted(t *testing.T) {
+	testutils.SmallTest(t)
+	testutils.AssertDeepEqual(t, []string{"a"}, InsertStringSorted([]string{}, "a"))
+	testutils.AssertDeepEqual(t, []string{"a"}, InsertStringSorted([]string{"a"}, "a"))
+	testutils.AssertDeepEqual(t, []string{"a", "b"}, InsertStringSorted([]string{"a"}, "b"))
+	testutils.AssertDeepEqual(t, []string{"0", "a", "b"}, InsertStringSorted([]string{"a", "b"}, "0"))
+	testutils.AssertDeepEqual(t, []string{"0", "a", "b"}, InsertStringSorted([]string{"0", "a", "b"}, "b"))
+}
+
 func TestIntersectIntSets(t *testing.T) {
 	testutils.SmallTest(t)
 	sets := []map[int]bool{

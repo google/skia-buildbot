@@ -25,6 +25,7 @@ type taskCandidate struct {
 	IsolatedInput  string    `json:"isolatedInput"`
 	IsolatedHashes []string  `json:"isolatedHashes"`
 	JobCreated     time.Time `json:"jobCreated"`
+	Jobs           []string  `json:"jobs"`
 	ParentTaskIds  []string  `json:"parentTaskIds"`
 	RetryOf        string    `json:"retryOf"`
 	Score          float64   `json:"score"`
@@ -41,6 +42,7 @@ func (c *taskCandidate) Copy() *taskCandidate {
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: util.CopyStringSlice(c.IsolatedHashes),
 		JobCreated:     c.JobCreated,
+		Jobs:           util.CopyStringSlice(c.Jobs),
 		ParentTaskIds:  util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:        c.RetryOf,
 		Score:          c.Score,
@@ -84,6 +86,8 @@ func parseId(id string) (db.TaskKey, error) {
 func (c *taskCandidate) MakeTask() *db.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
+	jobs := make([]string, len(c.Jobs))
+	copy(jobs, c.Jobs)
 	parentTaskIds := make([]string, len(c.ParentTaskIds))
 	copy(parentTaskIds, c.ParentTaskIds)
 	maxAttempts := c.TaskSpec.MaxAttempts
@@ -94,6 +98,7 @@ func (c *taskCandidate) MakeTask() *db.Task {
 		Attempt:       c.Attempt,
 		Commits:       commits,
 		Id:            "", // Filled in when the task is inserted into the DB.
+		Jobs:          jobs,
 		MaxAttempts:   maxAttempts,
 		ParentTaskIds: parentTaskIds,
 		RetryOf:       c.RetryOf,
