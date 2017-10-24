@@ -237,7 +237,9 @@ func main() {
 	// Determine hard timeout according to the number of times benchmark should be repeated.
 	// Cap it off at the max allowable hours.
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
-	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
+	// Calculate the max pages to run per bot.
+	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
+	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
@@ -250,7 +252,7 @@ func main() {
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	for _, run := range []string{runIDNoPatch, runIDWithPatch} {
 		if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, numPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {
+			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {
 				sklog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
 			}
 			// Cleanup created dir after the run completes.
