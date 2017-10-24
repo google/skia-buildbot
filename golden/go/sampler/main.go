@@ -42,8 +42,18 @@ func main() {
 	// Load the data that make up the state of the system.
 	tile, expectations, ignoreStore := load()
 	tile = sampleTile(tile, *sampleSize, *query, *nTests)
+	validateTile(tile)
 	writeSample(*outputFile, tile, expectations, ignoreStore)
 	sklog.Infof("Finished.")
+}
+
+func validateTile(tile *tiling.Tile) {
+	for traceID, trace := range tile.Traces {
+		params := trace.Params()
+		if params[types.PRIMARY_KEY_FIELD] == "" {
+			sklog.Errorf("Got empty name: %s", traceID)
+		}
+	}
 }
 
 func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) *tiling.Tile {
