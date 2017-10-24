@@ -3,6 +3,7 @@ package gevent
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"cloud.google.com/go/pubsub"
 
@@ -11,6 +12,12 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+var codecMap = sync.Map{}
+
+func RegisterCodec(channel string, codec util.LRUCodec) {
+	codecMap.Store(channel, codec)
+}
+
 // DistEventBus implements the eventbus.EventBus interfase on top of Cloud PubSub.
 type distEventBus struct {
 	localEventBus eventbus.EventBus
@@ -18,7 +25,6 @@ type distEventBus struct {
 	clientID      string
 	topic         *pubsub.Topic
 	sub           *pubsub.Subscription
-	codec         util.LRUCodec
 	wrapperCodec  util.LRUCodec
 }
 
@@ -40,11 +46,9 @@ type channelWrapper struct {
 //   event bus.
 // - subscriberName is an id that uniquely identifies this node within the
 //   event bus network.
-// - codec encodes/decodes event data for transportation on the PubSub topic.
-func New(projectID, topicName, subscriberName string, codec util.LRUCodec) (eventbus.EventBus, error) {
+func New(projectID, topicName, subscriberName string) (eventbus.EventBus, error) {
 	ret := &distEventBus{
 		localEventBus: eventbus.New(),
-		codec:         codec,
 		wrapperCodec:  util.JSONCodec(&channelWrapper{}),
 	}
 
@@ -62,6 +66,12 @@ func New(projectID, topicName, subscriberName string, codec util.LRUCodec) (even
 func (d *distEventBus) Publish(channel string, arg interface{}) {
 	// publish to pubsub in the background.
 	go func() {
+		codec, ok := codecMap.Load(channel)
+		if !ok {
+			sklog.Errorf("Unable to publish on channel '%s'. No codec defined.", channel)
+			return
+		}
+
 		msg, err := d.encodeMsg(channel, arg)
 		if err != nil {
 			sklog.Errorf("Error encoding outgoing message: %s", err)
@@ -159,6 +169,7 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) (*channelWrapper, interfac
 	// Unwrap the payload if this was wrapped in a channel wrapper.
 	var wrapper *channelWrapper = nil
 	payload := msg.Data
+	codec := nil
 	if d.wrapperCodec != nil {
 		tempWrapper, err := d.wrapperCodec.Decode(payload)
 		if err != nil {

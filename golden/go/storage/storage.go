@@ -129,7 +129,7 @@ func (s *Storage) GetTileStreamNow(interval time.Duration) <-chan *types.TilePai
 
 // DrainChangeChannel removes everything from the channel thats currently
 // buffered or ready to be read.
-func DrainChangeChannel(ch <-chan []string) {
+func DrainChangeChannel(ch <-chan map[string]types.TestClassification) {
 Loop:
 	for {
 		select {
