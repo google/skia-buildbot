@@ -603,6 +603,11 @@ func GetRunBenchmarkTimeoutValue(benchmarkArgs string, defaultValue int) int {
 	return GetIntFlagValue(benchmarkArgs, RUN_BENCHMARK_TIMEOUT_FLAG, defaultValue)
 }
 
+// GetMaxPagesPerBotValue returns the defaultValue if "--max-pages-per-bot" is not specified in benchmarkArgs.
+func GetMaxPagesPerBotValue(benchmarkArgs string, defaultValue int) int {
+	return GetIntFlagValue(benchmarkArgs, MAX_PAGES_PER_BOT, defaultValue)
+}
+
 // GetIntFlagValue returns the defaultValue if the specified flag name is not in benchmarkArgs.
 func GetIntFlagValue(benchmarkArgs, flagName string, defaultValue int) int {
 	if strings.Contains(benchmarkArgs, flagName) {
@@ -686,7 +691,7 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 
 	// Remove from benchmarkExtraArgs "special" flags that are recognized by CT but not
 	// by the run_benchmark script.
-	benchmarkExtraArgs = RemoveFlagsFromArgs(benchmarkExtraArgs, RUN_BENCHMARK_TIMEOUT_FLAG)
+	benchmarkExtraArgs = RemoveFlagsFromArgs(benchmarkExtraArgs, RUN_BENCHMARK_TIMEOUT_FLAG, MAX_PAGES_PER_BOT)
 	// Split benchmark args if not empty and append to args.
 	if benchmarkExtraArgs != "" {
 		args = append(args, strings.Fields(benchmarkExtraArgs)...)
