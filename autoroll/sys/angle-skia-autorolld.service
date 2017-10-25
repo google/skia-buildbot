@@ -7,7 +7,7 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
-    --host=angle-roll.skia.org \
+    --host=angle-skia-roll.skia.org \
     --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=ANGLE \

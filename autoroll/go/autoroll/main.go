@@ -105,6 +105,8 @@ func getSheriff() ([]string, error) {
 
 // Parse the sheriff list from JS. Expects the list in this format:
 // document.write('somebody, somebodyelse')
+// TODO(borenet): Remove this once Chromium has a proper sheriff endpoint, ie.
+// https://bugs.chromium.org/p/chromium/issues/detail?id=769804
 func getSheriffJS(js string) []string {
 	trimmed := strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(js), "document.write('"), "')")
 	list := strings.Split(trimmed, ",")
