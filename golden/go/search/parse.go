@@ -250,5 +250,8 @@ func ParseQuery(r *http.Request, query *Query) error {
 	query.FGroupTest = r.FormValue("fgrouptest")
 	query.FRef = r.FormValue("fref") == "true"
 
+	// Check if we want diffs.
+	query.NoDiff = r.FormValue("nodiff") == "true"
+
 	return nil
 }
