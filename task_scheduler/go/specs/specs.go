@@ -317,6 +317,9 @@ type TaskCfgCache struct {
 	addedTasksCache map[db.RepoState]util.StringSet
 	recentCommits   map[string]time.Time
 	recentJobSpecs  map[string]time.Time
+	// protects recentCommits, recentJobSpecs, and recentTaskSpecs. When
+	// locking multiple mutexes, mtx should be locked first, followed by
+	// cache[*].mtx when applicable, then recentMtx.
 	recentMtx       sync.RWMutex
 	recentTaskSpecs map[string]time.Time
 	repos           repograph.Map
@@ -393,14 +396,17 @@ type cacheEntry struct {
 	Rs  db.RepoState
 }
 
-func (e *cacheEntry) Get() (*TasksCfg, error) {
+// Get returns the TasksCfg for this cache entry. If it does not already exist
+// in the cache, it is read from the repo and the bool return value is true,
+// indicating that the caller should write out the cache.
+func (e *cacheEntry) Get() (*TasksCfg, bool, error) {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 	if e.Cfg != nil {
-		return e.Cfg, nil
+		return e.Cfg, false, nil
 	}
 	if e.Err != "" {
-		return nil, fmt.Errorf(e.Err)
+		return nil, false, fmt.Errorf(e.Err)
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
@@ -409,7 +415,7 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 	// latency.
 	r, ok := e.c.repos[e.Rs.Repo]
 	if !ok {
-		return nil, fmt.Errorf("Unknown repo %q", e.Rs.Repo)
+		return nil, false, fmt.Errorf("Unknown repo %q", e.Rs.Repo)
 	}
 	var cfg *TasksCfg
 	if err := e.c.TempGitRepo(e.Rs, e.Rs.IsTryJob(), func(checkout *git.TempCheckout) error {
@@ -431,7 +437,7 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 		if strings.Contains(err.Error(), "error: Failed to merge in the changes.") {
 			e.Err = err.Error()
 		}
-		return nil, err
+		return nil, false, err
 	}
 	e.Cfg = cfg
 
@@ -441,7 +447,7 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 	defer e.c.recentMtx.Unlock()
 	d := r.Get(e.Rs.Revision)
 	if d == nil {
-		return nil, fmt.Errorf("Unknown revision %s in %s", e.Rs.Revision, e.Rs.Repo)
+		return nil, false, fmt.Errorf("Unknown revision %s in %s", e.Rs.Revision, e.Rs.Repo)
 	}
 	ts := d.Timestamp
 	if ts.After(e.c.recentCommits[e.Rs.Revision]) {
@@ -457,9 +463,7 @@ func (e *cacheEntry) Get() (*TasksCfg, error) {
 			e.c.recentJobSpecs[name] = ts
 		}
 	}
-	e.c.mtx.Lock()
-	defer e.c.mtx.Unlock()
-	return cfg, e.c.write()
+	return cfg, true, nil
 }
 
 func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
@@ -479,30 +483,39 @@ func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
 // file if needed.
 func (c *TaskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	entry := c.getEntry(rs)
-	c.mtx.Unlock()
-	return entry.Get()
+	rv, mustWrite, err := entry.Get()
+	if err != nil {
+		return nil, err
+	} else if mustWrite {
+		c.recentMtx.Lock()
+		defer c.recentMtx.Unlock()
+		return rv, c.write()
+	}
+	return rv, err
 }
 
 // GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
 // given set of RepoStates, keyed by RepoState and TaskSpec name.
 func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	entries := make(map[db.RepoState]*cacheEntry, len(rs))
 	for _, s := range rs {
 		entries[s] = c.getEntry(s)
 	}
-	c.mtx.Unlock()
 
 	var m sync.Mutex
 	var wg sync.WaitGroup
 	rv := make(map[db.RepoState]map[string]*TaskSpec, len(rs))
 	errs := []error{}
+	mustWrite := false
 	for s, entry := range entries {
 		wg.Add(1)
 		go func(s db.RepoState, entry *cacheEntry) {
 			defer wg.Done()
-			cfg, err := entry.Get()
+			cfg, w, err := entry.Get()
 			if err != nil {
 				m.Lock()
 				defer m.Unlock()
@@ -517,9 +530,19 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 			m.Lock()
 			defer m.Unlock()
 			rv[s] = subMap
+			if w {
+				mustWrite = true
+			}
 		}(s, entry)
 	}
 	wg.Wait()
+	if mustWrite {
+		c.recentMtx.Lock()
+		defer c.recentMtx.Unlock()
+		if err := c.write(); err != nil {
+			return nil, err
+		}
+	}
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("Errors loading task cfgs: %v", errs)
 	}
