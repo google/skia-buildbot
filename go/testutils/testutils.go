@@ -203,7 +203,7 @@ func MustReadJsonFile(filename string, dest interface{}) {
 // WriteFile writes the given contents to the given file path, reporting any
 // error.
 func WriteFile(t assert.TestingT, filename, contents string) {
-	assert.NoError(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm))
+	assert.NoErrorf(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
 }
 
 // CloseInTest takes an ioutil.Closer and Closes it, reporting any error.
