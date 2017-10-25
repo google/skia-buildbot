@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9734792_209af6a7",
+        "filename": "golden/go/skia_knowledge/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-25T19:02:59Z",
+      "side": 1,
+      "message": "ubernit: metadata (no space). Here and below",
+      "range": {
+        "startLine": 2,
+        "startChar": 9,
+        "endLine": 2,
+        "endChar": 19
+      },
+      "revId": "454cf687bb7aa90582e3edda84c3a194e65c7022",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8058ed33_6e979f07",
+        "filename": "golden/go/skia_knowledge/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-25T19:02:59Z",
+      "side": 1,
+      "message": "nit space in imports",
+      "revId": "454cf687bb7aa90582e3edda84c3a194e65c7022",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fa81b2a_71ad897d",
+        "filename": "golden/go/skia_knowledge/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-25T19:02:59Z",
+      "side": 1,
+      "message": "Consider using httputil.NewTimeoutClient() - it comes with a timeout built in, the default one does not.",
+      "revId": "454cf687bb7aa90582e3edda84c3a194e65c7022",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
