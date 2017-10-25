@@ -22,6 +22,30 @@
       "revId": "140f6df81e40b82b4fd49fad3902bdeb718e7f69",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d999f2f_e9633059",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-25T15:08:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "35d94d9d_f74b2e07",
+      "range": {
+        "startLine": 104,
+        "startChar": 5,
+        "endLine": 104,
+        "endChar": 88
+      },
+      "revId": "140f6df81e40b82b4fd49fad3902bdeb718e7f69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
