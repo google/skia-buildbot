@@ -1,0 +1,25 @@
+[Unit]
+Description=AutoRoll Bot
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --use_metadata=true \
+    --host=angle-chromium-roll.skia.org \
+    --logtostderr \
+    --parent_waterfall=https://build.chromium.org \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --childName="ANGLE" \
+    --childPath=src/third_party/angle \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=https://chromium-build.appspot.com/p/chromium/sheriff_angle.js \
+    --cqExtraTrybots=master.tryserver.chromium.angle:android_angle_rel_ng,android_angle_deqp_rel_ng,linux_angle_rel_ng,linux_angle_dbg_ng,linux_angle_deqp_rel_ng,linux_angle_ozone_rel_ng,mac_angle_rel_ng,mac_angle_dbg_ng,win_angle_rel_ng,win_angle_dbg_ng,win_angle_x64_rel_ng,win_angle_x64_dbg_ng,win_angle_deqp_rel_ng,win_angle_x64_deqp_rel_ng;master.tryserver.chromium.android:android_optional_gpu_tests_rel;master.tryserver.chromium.linux:linux_optional_gpu_tests_rel;master.tryserver.chromium.mac:mac_optional_gpu_tests_rel;master.tryserver.chromium.win:win_optional_gpu_tests_rel
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

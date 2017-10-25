@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds and uploads a debian package for autoroll.
-APPNAME=angle-autorolld
-DESCRIPTION="Controls DEPS rolls of ANGLE into Skia."
+APPNAME=angle-chromium-autorolld
+DESCRIPTION="Controls DEPS rolls of ANGLE into Chrome."
 SYSTEMD=${APPNAME}.service
 
 set -x -e

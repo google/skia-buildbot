@@ -28,7 +28,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-release: autoroll android_master_release android_o_release angle_release catapult_release depot_tools_chromium_release google3_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release src_internal_chromium_release webrtc_chromium_release
+release: autoroll android_master_release android_o_release angle_skia_release angle_chromium_release catapult_release depot_tools_chromium_release google3_release nacl_release pdfium_release fuchsia_release skia_release skia_internal_release src_internal_chromium_release webrtc_chromium_release
 
 android_master_release: autoroll
 	./build_android_master_release "$(MESSAGE)"
@@ -36,8 +36,11 @@ android_master_release: autoroll
 android_o_release: autoroll
 	./build_android_o_release "$(MESSAGE)"
 
-angle_release: autoroll
-	./build_angle_release "$(MESSAGE)"
+angle_skia_release: autoroll
+	./build_angle_skia_release "$(MESSAGE)"
+
+angle_chromium_release: autoroll
+	./build_angle_chromium_release "$(MESSAGE)"
 
 catapult_release: autoroll
 	./build_catapult_release "$(MESSAGE)"
