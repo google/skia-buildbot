@@ -2,7 +2,6 @@ package common
 
 import (
 	"sort"
-	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/sklog"
@@ -238,18 +237,6 @@ func HasArchitecture(a string) bool {
 		}
 	}
 	return false
-}
-
-// SafeParseInt parses a string that is known to contain digits into an int.
-// It may fail if the number is larger than MAX_INT, but it is unlikely those
-// numbers would come up in the stack traces.
-func SafeAtoi(n string) int {
-	if i, err := strconv.Atoi(n); err != nil {
-		sklog.Errorf("Could not parse number from known digits %q: %v", n, err)
-		return 0
-	} else {
-		return i
-	}
 }
 
 func SetMockCommon(c CommonImpl) {
