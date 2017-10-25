@@ -98,6 +98,12 @@
         </tr>
       </template>
     </table>
+    <template is="dom-if" if="[[task.jobs]]">
+      <h3>Jobs Which Include This Task</h3>
+      <template is="dom-repeat" items="[[task.jobs]]" as="job">
+        <a href$="[[_jobUrl(task_scheduler_url, job)]]" target="_blank">[[job]]</a><br/>
+      </template>
+    </template>
     <hr/>
     <comments-sk
         comments="{{task.comments}}"
@@ -157,6 +163,12 @@
       },
       _makeCommitURL: function(c, repo_base) {
         return repo_base + c;
+      },
+      _jobUrl: function(task_scheduler_url, job) {
+        if (!task_scheduler_url || !job) {
+          return "";
+        }
+        return this.task_scheduler_url + "/job/" + job;
       },
       _retryUrl: function(task_scheduler_url, task) {
         if (!task || !task.name || !task_scheduler_url) {

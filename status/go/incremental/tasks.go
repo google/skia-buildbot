@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -29,9 +30,10 @@ func mapTasks(tasks []*db.Task) map[string][]*Task {
 	rv := map[string][]*Task{}
 	for _, t := range tasks {
 		rv[t.Repo] = append(rv[t.Repo], &Task{
-			Commits:        t.Commits,
+			Commits:        util.CopyStringSlice(t.Commits),
 			Name:           t.Name,
 			Id:             t.Id,
+			Jobs:           util.CopyStringSlice(t.Jobs),
 			Revision:       t.Revision,
 			Status:         t.Status,
 			SwarmingTaskId: t.SwarmingTaskId,

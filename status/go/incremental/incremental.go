@@ -26,6 +26,7 @@ type Task struct {
 	Commits        []string      `json:"commits"`
 	Name           string        `json:"name"`
 	Id             string        `json:"id"`
+	Jobs           []string      `json:"jobs"`
 	Revision       string        `json:"revision"`
 	Status         db.TaskStatus `json:"status"`
 	SwarmingTaskId string        `json:"swarming_task_id"`
