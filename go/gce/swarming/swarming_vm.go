@@ -40,8 +40,8 @@ var (
 	gpu            = flag.Bool("gpu", false, "Whether or not to add an NVIDIA Tesla k80 GPU on the instance(s)")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
+	opsys          = flag.String("os", "Debian9", "OS identifier; one of Debian9, Win2k8, or Win2016.")
 	skylake        = flag.Bool("skylake", false, "Whether or not the instance(s) should use Intel Skylake CPUs.")
-	windows        = flag.Bool("windows", false, "Whether or not the bots run Windows.")
 	workdir        = flag.String("workdir", ".", "Working directory.")
 )
 
@@ -113,9 +113,17 @@ func SkiaCTBot(num int) *gce.Instance {
 }
 
 // Configs for Windows GCE instances.
-func AddWinConfigs(vm *gce.Instance, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+func AddWinConfigs(vm *gce.Instance, opsys, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm.BootDisk.SizeGb = 300
-	vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
+	switch opsys {
+	case "Win2k8":
+		vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
+	case "Win2016":
+		vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2016-dc-v20171010"
+	default:
+		// Shouldn't happen.
+		sklog.Fatalf("Invalid os %q", opsys)
+	}
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.DataDisks = nil
 	// Most of the Windows setup, including the gitconfig/netrc, occurs in
@@ -130,15 +138,15 @@ func AddWinConfigs(vm *gce.Instance, pw, setupScriptPath, startupScriptPath, chr
 }
 
 // Windows GCE instances.
-func WinSwarmingBot(num int, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+func WinSwarmingBot(num int, opsys, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm := Swarming20170731(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM)
-	return AddWinConfigs(vm, pw, setupScriptPath, startupScriptPath, chromebotScript)
+	return AddWinConfigs(vm, opsys, pw, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // Internal Windows GCE instances.
-func InternalWinSwarmingBot(num int, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+func InternalWinSwarmingBot(num int, opsys, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm := Swarming20170731(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING)
-	return AddWinConfigs(vm, pw, setupScriptPath, startupScriptPath, chromebotScript)
+	return AddWinConfigs(vm, opsys, pw, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // GCE instances with GPUs.
@@ -216,8 +224,13 @@ func main() {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
 	}
 
-	if *ct && *windows {
-		sklog.Fatal("--skia-ct and --windows are mutually exclusive.")
+	if !util.In(*opsys, []string{"Debian9", "Win2k8", "Win2016"}) {
+		sklog.Fatal("Unknown --os %q", *opsys)
+	}
+	windows := strings.HasPrefix(*opsys, "Win")
+
+	if *ct && windows {
+		sklog.Fatal("--skia-ct does not support %q.", *opsys)
 	}
 	if *skylake && *gpu {
 		sklog.Fatal("--skylake and --gpu are mutually exclusive.")
@@ -256,7 +269,7 @@ func main() {
 
 	// Read the various Windows scripts.
 	var pw, setupScript, startupScript, chromebotScript string
-	if *windows {
+	if windows {
 		pw, setupScript, startupScript, chromebotScript, err = getWindowsStuff(wdAbs)
 		if err != nil {
 			sklog.Fatal(err)
@@ -269,11 +282,11 @@ func main() {
 		var vm *gce.Instance
 		if *ct {
 			vm = SkiaCTBot(num)
-		} else if *windows {
+		} else if windows {
 			if *internal {
-				vm = InternalWinSwarmingBot(num, pw, setupScript, startupScript, chromebotScript)
+				vm = InternalWinSwarmingBot(num, *opsys, pw, setupScript, startupScript, chromebotScript)
 			} else {
-				vm = WinSwarmingBot(num, pw, setupScript, startupScript, chromebotScript)
+				vm = WinSwarmingBot(num, *opsys, pw, setupScript, startupScript, chromebotScript)
 			}
 		} else {
 			if *internal {
@@ -294,7 +307,7 @@ func main() {
 					return err
 				}
 
-				if *windows {
+				if windows {
 					// Reboot. The startup script enabled auto-login as chrome-bot
 					// on boot. Reboot in order to run chrome-bot's scheduled task.
 					if err := g.Reboot(vm); err != nil {
