@@ -154,6 +154,9 @@ type Query struct {
 	// Pagination.
 	Offset int32 `json:"offset"`
 	Limit  int32 `json:"limit"`
+
+	// Do not include diffs in search.
+	NoDiff bool `json:"nodiff"`
 }
 
 // SearchResponse is the standard search response. Depending on the query some fields
