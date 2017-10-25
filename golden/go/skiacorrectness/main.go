@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/gevent"
+
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -57,6 +59,7 @@ var (
 	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
+	eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 	forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
 	gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
 	hashFileBucket      = flag.String("hash_file_bucket", "", "Bucket where the file with the known list of hashes should be written.")
@@ -235,7 +238,22 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	evt := eventbus.New()
+	// Set up the event bus which can either be in-process or distributed
+	// depending whether an PubSub topic was defined.
+	var evt eventbus.EventBus = nil
+	if *eventTopic != "" {
+		subscriberName, err := getSubscriberName(*local)
+		if err != nil {
+			sklog.Fatalf("Error getting unique subscriber name: %s", err)
+		}
+		evt, err = gevent.New(common.PROJECT_ID, *eventTopic, subscriberName)
+		if err != nil {
+			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
+		}
+		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, subscriberName)
+	} else {
+		evt = eventbus.New()
+	}
 
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	gerritAPI, err := gerrit.NewGerrit(*gerritURL, "", httputils.NewTimeoutClient())
@@ -433,4 +451,19 @@ func main() {
 	// Start the server
 	sklog.Infoln("Serving on http://127.0.0.1" + *port)
 	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
+}
+
+// getSubscriberName generates a subscriber name based on the hostname and
+// whether we are running locally or in the cloud. This is enough to distinguish
+// between hosts.
+func getSubscriberName(local bool) (string, error) {
+	hostName, err := os.Hostname()
+	if err != nil {
+		return "", err
+	}
+
+	if local {
+		return "local-" + hostName, nil
+	}
+	return hostName, nil
 }
