@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/fuzzer/go/common"
+	"go.skia.org/infra/go/util"
 )
 
 // Represents the metadata about a crash, hopefully easing debugging.
@@ -283,7 +284,7 @@ var skAbortStackTraceLine = regexp.MustCompile(`(?:\.\./)+(?P<package>(?:\w+/)+)
 func extractSkAbortTrace(err string) StackTrace {
 	st := StackTrace{}
 	if match := skAbortStackTraceLine.FindStringSubmatch(err); match != nil {
-		st.Frames = append(st.Frames, FullStackFrame(match[1], match[2], common.UNKNOWN_FUNCTION, common.SafeAtoi(match[3])))
+		st.Frames = append(st.Frames, FullStackFrame(match[1], match[2], common.UNKNOWN_FUNCTION, util.SafeAtoi(match[3])))
 	}
 	return st
 }
