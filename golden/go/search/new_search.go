@@ -96,6 +96,10 @@ func NewSearchAPI(storages *storage.Storage, ixr *indexer.Indexer) (*SearchAPI, 
 // Search queries the current tile based on the parameters specified in
 // the instance of Query.
 func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
+	// Keep track if we are including reference diffs. This is going to be true
+	// for the majority of queries.
+	getRefDiffs := !q.NoDiff
+
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
 	exp, err := s.storages.ExpectationsStore.Get()
@@ -108,23 +112,34 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// representation that contains all the traces matching the queries.
 	inter, err := s.filterTile(q, idx)
 
-	// Diff stage: Compare all digests found in the previous stages and find
-	// reference points (positive, negative etc.) for each digest.
-	ret := s.getReferenceDiffs(q.Metric, q.Match, q.IncludeIgnores, inter, exp, idx)
-	if err != nil {
-		return nil, err
+	// Convert the intermediate representation to the list of digests that we
+	// are going to return to the client.
+	ret := s.getDigestRecs(inter, exp)
+
+	// displayRet captures the portion of the result that is displayed.
+	displayRet := ret
+	offset := 0
+
+	// Get reference diffs unless it was specifically disabled.
+	if getRefDiffs {
+		// Diff stage: Compare all digests found in the previous stages and find
+		// reference points (positive, negative etc.) for each digest.
+		s.getReferenceDiffs(ret, q.Metric, q.Match, q.IncludeIgnores, exp, idx)
+		if err != nil {
+			return nil, err
+		}
+
+		// Post-diff stage: Apply all filters that are relevant once we have
+		// diff values for the digests.
+		ret = s.afterDiffResultFilter(ret, q)
+
+		// Sort the digests and fill the ones that are going to be displayed with
+		// additional data. Note we are returning all digests found, so we can do
+		// bulk triage, but only the digests that are going to be shown are padded
+		// with additional information.
+		displayRet, offset = s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
+		s.addParamsAndTraces(displayRet, inter, exp, idx)
 	}
-
-	// Post-diff stage: Apply all filters that are relevant once we have
-	// diff values for the digests.
-	ret = s.afterDiffResultFilter(ret, q)
-
-	// Sort the digests and fill the ones that are going to be displayed with
-	// additional data. Note we are returning all digests found, so we can do
-	// bulk triage, but only the digests that are going to be shown are padded
-	// with additional information.
-	displayRet, offset := s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
-	s.addParamsAndTraces(displayRet, inter, exp, idx)
 
 	// Return all digests with the selected offset within the result set.
 	return &NewSearchResponse{
@@ -172,7 +187,8 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := map[string]map[string]*srIntermediate{test: {digest: oneInter}}
-	ret := s.getReferenceDiffs(diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, inter, exp, idx)
+	ret := s.getDigestRecs(inter, exp)
+	s.getReferenceDiffs(ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, exp, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -260,40 +276,47 @@ func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]m
 	return ret, nil
 }
 
-// getReferenceDiffs compares all digests collected in the intermediate representation
-// and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(metric string, match []string, includeIgnores bool, inter map[string]map[string]*srIntermediate, exp *expstorage.Expectations, idx *indexer.SearchIndex) []*SRDigest {
+// getDigestRecs takes the intermediate results and converts them to the list
+// of records that will be returned to the client.
+func (s *SearchAPI) getDigestRecs(inter map[string]map[string]*srIntermediate, exp *expstorage.Expectations) []*SRDigest {
 	// Get the total number of digests we have at this point.
-	// This allows to allocate the result below more efficiently and avoid using
-	// a lock to write the results.
 	nDigests := 0
 	for _, digestInfo := range inter {
 		nDigests += len(digestInfo)
 	}
 
-	refDiffer := NewRefDiffer(exp, s.storages.DiffStore, idx)
-	retDigests := make([]*SRDigest, nDigests, nDigests)
-	index := 0
-	var wg sync.WaitGroup
-	wg.Add(nDigests)
+	retDigests := make([]*SRDigest, 0, nDigests)
 	for _, testDigests := range inter {
 		for _, interValue := range testDigests {
-			go func(i *srIntermediate, index int) {
-				closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, i.test, i.digest, i.params, includeIgnores)
-				retDigests[index] = &SRDigest{
-					Test:       i.test,
-					Digest:     i.digest,
-					Status:     exp.Classification(i.test, i.digest).String(),
-					ClosestRef: closestRef,
-					RefDiffs:   refDiffs,
-				}
-				wg.Done()
-			}(interValue, index)
-			index++
+			retDigests = append(retDigests, &SRDigest{
+				Test:     interValue.test,
+				Digest:   interValue.digest,
+				Status:   exp.Classification(interValue.test, interValue.digest).String(),
+				ParamSet: interValue.params,
+			})
 		}
 	}
-	wg.Wait()
 	return retDigests
+}
+
+// getReferenceDiffs compares all digests collected in the intermediate representation
+// and compares them to the other known results for the test at hand.
+func (s *SearchAPI) getReferenceDiffs(resultDigests []*SRDigest, metric string, match []string, includeIgnores bool, exp *expstorage.Expectations, idx *indexer.SearchIndex) {
+	refDiffer := NewRefDiffer(exp, s.storages.DiffStore, idx)
+	var wg sync.WaitGroup
+	wg.Add(len(resultDigests))
+	for _, retDigest := range resultDigests {
+		go func(retDigest *SRDigest) {
+			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores)
+			retDigest.ClosestRef = closestRef
+			retDigest.RefDiffs = refDiffs
+
+			// Remove the paramset since it will not be necessary for all results.
+			retDigest.ParamSet = nil
+			wg.Done()
+		}(retDigest)
+	}
+	wg.Wait()
 }
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
