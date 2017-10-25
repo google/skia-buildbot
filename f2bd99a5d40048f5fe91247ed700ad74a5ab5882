@@ -187,6 +187,30 @@
       "revId": "f2bd99a5d40048f5fe91247ed700ad74a5ab5882",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3adc861b_d3e8c8ce",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-25T15:32:02Z",
+      "side": 1,
+      "message": "Not applicable to the current code.",
+      "parentUuid": "5ddbef47_f2a5533a",
+      "range": {
+        "startLine": 546,
+        "startChar": 1,
+        "endLine": 546,
+        "endChar": 15
+      },
+      "revId": "f2bd99a5d40048f5fe91247ed700ad74a5ab5882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
