@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35d94d9d_f74b2e07",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-25T13:31:02Z",
+      "side": 1,
+      "message": "This is just a link with the Job ID as text.  We do not have the name of the job here, and in order to get it we\u0027d either have to send all of the job information (not an acceptable cost/benefit ratio) or make a separate request to task scheduler (or status, I guess) to obtain the Job info.",
+      "range": {
+        "startLine": 104,
+        "startChar": 5,
+        "endLine": 104,
+        "endChar": 88
+      },
+      "revId": "140f6df81e40b82b4fd49fad3902bdeb718e7f69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
