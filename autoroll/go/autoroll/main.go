@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os/user"
@@ -87,6 +88,7 @@ type AutoRollerI interface {
 	GetMiniStatus() *roller.AutoRollMiniStatus
 }
 
+// Update the current sheriff list.
 func getSheriff() ([]string, error) {
 	emails, err := getSheriffHelper()
 	if err != nil {
@@ -101,6 +103,22 @@ func getSheriff() ([]string, error) {
 	return emails, nil
 }
 
+// Parse the sheriff list from JS. Expects the list in this format:
+// document.write('somebody, somebodyelse')
+func getSheriffJS(js string) []string {
+	trimmed := strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(js), "document.write('"), "')")
+	list := strings.Split(trimmed, ",")
+	rv := make([]string, 0, len(list))
+	for _, name := range list {
+		name = strings.TrimSpace(name)
+		if name != "" {
+			rv = append(rv, name+"@chromium.org")
+		}
+	}
+	return rv
+}
+
+// Helper for loading the sheriff list.
 func getSheriffHelper() ([]string, error) {
 	// If the passed-in sheriff doesn't look like a URL, it's probably an
 	// email address. Use it directly.
@@ -112,20 +130,29 @@ func getSheriffHelper() ([]string, error) {
 		}
 	}
 
-	// Hit the URL to get the email address. Expect JSON.
+	// Hit the URL to get the email address. Expect JSON or a JS file which
+	// document.writes the Sheriff(s) in a comma-separated list.
 	client := httputils.NewTimeoutClient()
 	resp, err := client.Get(*sheriff)
 	if err != nil {
 		return nil, err
 	}
 	defer util.Close(resp.Body)
-	var sheriff struct {
-		Username string `json:"username"`
+	if strings.HasSuffix(*sheriff, ".js") {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return getSheriffJS(string(body)), nil
+	} else {
+		var sheriff struct {
+			Username string `json:"username"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&sheriff); err != nil {
+			return nil, err
+		}
+		return []string{sheriff.Username}, nil
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&sheriff); err != nil {
-		return nil, err
-	}
-	return []string{sheriff.Username}, nil
 }
 
 func getCQExtraTrybots() string {
