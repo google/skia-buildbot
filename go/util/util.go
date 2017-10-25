@@ -1034,3 +1034,15 @@ func IterTimeChunks(start, end time.Time, chunkSize time.Duration, fn func(time.
 	}
 	return nil
 }
+
+// SafeParseInt parses a string that is known to contain digits into an int.
+// If the number is larger than MAX_INT, 0 will be returned after
+// logging an error.
+func SafeAtoi(n string) int {
+	if i, err := strconv.Atoi(n); err != nil {
+		sklog.Errorf("Could not parse number from known digits %q: %v", n, err)
+		return 0
+	} else {
+		return i
+	}
+}

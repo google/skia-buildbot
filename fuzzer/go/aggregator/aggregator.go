@@ -388,7 +388,7 @@ func collectFuzzerMetrics() error {
 			}
 			metric := fmt.Sprintf("fuzzer_stats_%s", m)
 			if match := r.FindStringSubmatch(contents); match != nil {
-				metrics2.GetInt64Metric(metric, map[string]string{"fuzz_category": category, "architecture": config.Generator.Architecture}).Update(int64(common.SafeAtoi(match[1])))
+				metrics2.GetInt64Metric(metric, map[string]string{"fuzz_category": category, "architecture": config.Generator.Architecture}).Update(int64(util.SafeAtoi(match[1])))
 			}
 		}
 	}
