@@ -22,6 +22,30 @@
       "revId": "e175932b770fa88cff4135f46b558804a4b7a83f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "439772e2_c158ce82",
+        "filename": "webtools/vulcanize.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-25T16:53:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "397eecf3_cc476483",
+      "range": {
+        "startLine": 3,
+        "startChar": 23,
+        "endLine": 3,
+        "endChar": 53
+      },
+      "revId": "e175932b770fa88cff4135f46b558804a4b7a83f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
