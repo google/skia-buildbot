@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bbb535b8_94a9ec45",
+        "filename": "golden/go/skia_knowledge/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-25T19:23:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9734792_209af6a7",
+      "range": {
+        "startLine": 2,
+        "startChar": 9,
+        "endLine": 2,
+        "endChar": 19
+      },
+      "revId": "454cf687bb7aa90582e3edda84c3a194e65c7022",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8058ed33_6e979f07",
         "filename": "golden/go/skia_knowledge/main.go",
         "patchSetId": 5
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "7b537202_4491b5d2",
+        "filename": "golden/go/skia_knowledge/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-25T19:23:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8058ed33_6e979f07",
+      "revId": "454cf687bb7aa90582e3edda84c3a194e65c7022",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5fa81b2a_71ad897d",
         "filename": "golden/go/skia_knowledge/main.go",
         "patchSetId": 5
@@ -53,6 +95,24 @@
       "writtenOn": "2017-10-25T19:02:59Z",
       "side": 1,
       "message": "Consider using httputil.NewTimeoutClient() - it comes with a timeout built in, the default one does not.",
+      "revId": "454cf687bb7aa90582e3edda84c3a194e65c7022",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bd8bf07_ba37a6ec",
+        "filename": "golden/go/skia_knowledge/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-25T19:23:28Z",
+      "side": 1,
+      "message": "Generally I would agree, but this is meant to be run interactively and the search on Gold can be long running, so if it hangs for a very long time, the user will just kill the program.",
+      "parentUuid": "5fa81b2a_71ad897d",
       "revId": "454cf687bb7aa90582e3edda84c3a194e65c7022",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
