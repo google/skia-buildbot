@@ -15,7 +15,8 @@ scrape_configs:
     static_configs:
       - targets: ['android-master-autoroll:20000']
       - targets: ['android-o-autoroll:20000']
-      - targets: ['angle-autoroll:20000']
+      - targets: ['angle-chromium-autoroll:20000']
+      - targets: ['angle-skia-autoroll:20000']
       - targets: ['skia-autoroll:20000']
       - targets: ['skia-internal-autoroll:20000']
       - targets: ['catapult-autoroll:20000']
@@ -156,7 +157,8 @@ scrape_configs:
     static_configs:
       - targets: ['android-master-autoroll:11000']
       - targets: ['android-o-autoroll:11000']
-      - targets: ['angle-autoroll:11000']
+      - targets: ['angle-chromium-autoroll:11000']
+      - targets: ['angle-skia-autoroll:11000']
       - targets: ['google3-autoroll:11000']
       - targets: ['catapult-autoroll:11000']
       - targets: ['depot-tools-chromium-autoroll:11000']
