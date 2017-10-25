@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c173521_d088ca8d",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-25T18:59:03Z",
+      "side": 1,
+      "message": "Nit: let\u0027s make these constants, ie.\n\nOS_WIN_2k8 \u003d \"...\"\n...\n\nVALID_OS \u003d ...",
+      "range": {
+        "startLine": 43,
+        "startChar": 70,
+        "endLine": 43,
+        "endChar": 97
+      },
+      "revId": "87a7da922c4267436c333278e9fcbea79046566d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
