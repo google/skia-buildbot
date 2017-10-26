@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "938790e7_98048f02",
+        "filename": "coverage/bower.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-26T11:51:03Z",
+      "side": 1,
+      "message": "nit: 1.0.0 ? (because we never seem to change it and maybe makes sense to start with 1)",
+      "range": {
+        "startLine": 3,
+        "startChar": 14,
+        "endLine": 3,
+        "endChar": 19
+      },
+      "revId": "447352b2851f461e31d48d46d69c022082dc2bff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12f27e3a_a1c1b00a",
+        "filename": "coverage/package.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-26T11:51:03Z",
+      "side": 1,
+      "message": "nit: 1.0.0 ? (because we never seem to change it and maybe makes sense to start with 1)",
+      "range": {
+        "startLine": 3,
+        "startChar": 14,
+        "endLine": 3,
+        "endChar": 19
+      },
+      "revId": "447352b2851f461e31d48d46d69c022082dc2bff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9f38e96_0b57f0b4",
+        "filename": "coverage/package.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-26T11:51:03Z",
+      "side": 1,
+      "message": "What is the right thing to use here? I see something else in a few other package.json files:\nhttps://skia.googlesource.com/buildbot/+/master/golden/package.json#11",
+      "range": {
+        "startLine": 20,
+        "startChar": 14,
+        "endLine": 20,
+        "endChar": 17
+      },
+      "revId": "447352b2851f461e31d48d46d69c022082dc2bff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ba942ad_e48dd0cf",
+        "filename": "coverage/res/imp/coverage-index.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-26T11:51:03Z",
+      "side": 1,
+      "message": "Can this section can be moved to a coverage.css file so that it can be shared by both coverage-index.html and coverage-page.html?",
+      "revId": "447352b2851f461e31d48d46d69c022082dc2bff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfc946a2_7ff26c33",
+        "filename": "coverage/res/imp/coverage-page.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-26T11:51:03Z",
+      "side": 1,
+      "message": "Does not look like most (all?) of these imports are used on this page.",
+      "revId": "447352b2851f461e31d48d46d69c022082dc2bff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
