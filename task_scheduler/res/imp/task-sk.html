@@ -1,0 +1,575 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <task-sk>
+
+  Status information about the task scheduler.
+
+  To use this file import it:
+
+    <link href="/res/imp/task-sk.html" rel="import" />
+
+  Usage:
+
+    <task-sk></task-sk>
+
+  Properties:
+    None.
+
+  Methods:
+    setTask: Provide task data.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/common/imp/human-date-sk.html">
+<link rel="import" href="/res/common/imp/styles-sk.html">
+<link rel="import" href="/res/common/imp/timer-sk.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+
+<dom-module id="task-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment styles-sk">
+    <style>
+    :host {
+      font-family: sans-serif;
+    }
+    </style>
+    <timer-sk id="timer" period="[[_reload]]" on-trigger="_loadTask">
+    <div class="container">
+      <div class="layout horizontal">
+        <div class="flex">
+          <h2>Task Information</h2>
+        </div>
+      </div>
+      <div class="table">
+        <div class="tr"><div class="td">ID</div><div class="td">[[_task.id]]</div></div>
+        <div class="tr"><div class="td">Name</div><div class="td">[[_task.name]]</div></div>
+        <div class="tr">
+          <div class="td">Status</div>
+          <div class="td" style$="background-color:[[_statusColor]]">[[_statusText]]</div>
+        </div>
+        <div class="tr"><div class="td">Created</div><div class="td"><human-date-sk date="[[_task.created]]"></human-date-sk></div></div>
+        <template is="dom-if" if="[[_task.status]]">
+          <div class="tr"><div class="td">Finished</div><div class="td"><human-date-sk date="[[_task.finished]]"></human-date-sk></div></div>
+        </template>
+        <div class="tr"><div class="td">Duration</div><div class="td">[[_duration]]</div></div>
+        <div class="tr">
+          <div class="td">Repo</div>
+          <div class="td"><a href$="[[_task.repo]]" target="_blank">[[_task.repo]]</a></div>
+        </div>
+        <div class="tr">
+          <div class="td">Revision</div>
+          <div class="td"><a href$="[[_revisionLink]]" target="_blank">[[_task.revision]]</a></div>
+        </div>
+        <div class="tr">
+          <div class="td">Swarming Task</div>
+          <div class="td"><a href$="[[_computeTaskLink(_task.swarmingTaskId)]]" target="_blank">[[_task.swarmingTaskId]]</a></div>
+        </div>
+        <div class="tr">
+          <div class="td">Jobs</div>
+          <div class="td">
+            <template is="dom-repeat" items="[[_jobs]]" as="job">
+              <div><a href$="/jobs/[[job.id]]">[[job.name]]</a></div>
+            </template>
+          </div>
+        </div>
+        <template is="dom-if" if="[[_isTryJob]]">
+          <div class="tr">
+            <div class="td">Codereview Link</div>
+            <div class="td"><a href$="[[_codereviewLink]]" target="_blank">[[_codereviewLink]]</a></div>
+          </div>
+          <div class="tr"><div class="td">Codereview Server</div><div class="td">[[_task.server]]</div></div>
+          <div class="tr"><div class="td">Issue</div><div class="td">[[_task.issue]]</div></div>
+          <div class="tr"><div class="td">Patchset</div><div class="td">[[_task.patchset]]</div></div>
+        </template>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2>Context</h2>
+      <svg id="tasks_svg"></svg>
+    </div>
+  </template>
+  <script src="/res/imp/bower_components/d3/d3.min.js"></script>
+  <script>
+  (function(){
+    var taskStatusToTextColor = {
+      "":         ["in progress", "rgb(248, 230, 180)"],
+      "SUCCESS":  ["succeeded",   "rgb(209, 228, 188)"],
+      "FAILURE":  ["failed",      "rgb(217, 95, 2)"],
+      "MISHAP":   ["mishap",      "rgb(117, 112, 179)"],
+      "CANCELED": ["canceled",    "rgb(117, 112, 179)"],
+    };
+
+   var taskStatusToTextColor = {
+      "":        ["pending",   "rgb(255, 255, 255)"],
+      "RUNNING": ["running",   "rgb(248, 230, 180)"],
+      "SUCCESS": ["succeeded", "rgb(209, 228, 188)"],
+      "FAILURE": ["failed",    "rgb(217, 95, 2)"],
+      "MISHAP":  ["mishap",    "rgb(117, 112, 179)"],
+   };
+
+    Polymer({
+      is: "task-sk",
+
+      properties: {
+        taskId: {
+          type: String,
+          observer: "_loadTask",
+        },
+
+        swarmingServer: {
+          type: String,
+        },
+
+        _task: {
+          type: Object,
+        },
+
+        _codereviewLink: {
+          type: String,
+          computed: "_computeCodereviewLink(_task)",
+        },
+        _duration: {
+          type: String,
+          computed: "_computeDuration(_task)",
+        },
+        _isTryJob: {
+          type: Boolean,
+          computed: "_computeIsTryJob(_task)",
+        },
+        _jobs: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+        },
+        _reload: {
+          type: Number,
+          value: 10,
+        },
+        _revisionLink: {
+          type: String,
+          computed: "_computeRevisionLink(_task)",
+        },
+        _statusText: {
+          type: String,
+          computed: "_computeStatusText(_task)",
+        },
+        _statusColor: {
+          type: String,
+          computed: "_computeStatusColor(_task)",
+        },
+      },
+
+      observers: [
+        "_computeTasksGraph(_jobs.*, _task.*)",
+      ],
+
+      _loadTask: function() {
+        var url = "/json/task/" + this.taskId;
+        console.log("Loading Task from " + url);
+        sk.get(url).then(JSON.parse).then(function(json) {
+          this.set("_task", json);
+          // If the task is finished, don't reload.
+          if (this._task.status != "") {
+            this.set("_reload", -1);
+          }
+          if (json.jobs) {
+            this.set("_jobs", []);
+            for (var i = 0; i < json.jobs.length; i++) {
+              var url = "/json/job/" + json.jobs[i];
+              console.log("Loading Job from " + url);
+              sk.get(url).then(JSON.parse).then(function(json) {
+                this.push("_jobs", json);
+              }.bind(this));//.catch(sk.errorMessage);
+            }
+          }
+        }.bind(this));//.catch(sk.errorMessage);
+      },
+
+      _computeCodereviewLink: function(task) {
+        if (task.server.indexOf("codereview.chromium") != -1) {
+          return task.server + "/" + task.issue + "/#ps" + task.patchset;
+        } else {
+          return task.server + "/c/" + task.issue + "/" + task.patchset;
+        }
+      },
+
+      _computeDuration: function(task) {
+        if (!task) {
+          return "???";
+        }
+        var start = new Date(task.created);
+        var end = new Date(task.finished);
+        if (task.status == "") {
+          end = new Date();
+        }
+        var duration = (end.getTime() - start.getTime()) / 1000;
+        return sk.human.strDuration(duration);
+      },
+
+      _computeIsTryJob: function(task) {
+        return task.server && task.issue && task.patchset;
+      },
+
+      _computeRevisionLink: function(task) {
+        // This assumes we use Gitiles, but that's a safe assumption for now.
+        return task.repo + "/+/" + task.revision;
+      },
+
+      _computeStatusText: function(task) {
+        if (!task || task.status == undefined || task.status == null) {
+          return "unknown";
+        }
+        var textColor = taskStatusToTextColor[task.status];
+        if (!textColor || textColor.length != 2) {
+          return "unknown";
+        }
+        return textColor[0];
+      },
+
+      _computeStatusColor: function(task) {
+        if (!task || task.status == undefined || task.status == null) {
+          return "rgb(255, 255, 255)";
+        }
+        var textColor = taskStatusToTextColor[task.status];
+        if (!textColor || textColor.length != 2) {
+          return "rgb(255, 255, 255)";
+        }
+        return textColor[1];
+      },
+
+      _computeTaskLink: function(taskId) {
+        var taskLinkUrlPrefix = "https://luci-milo.appspot.com/swarming/task/";
+        if ($$$("login-sk").email &&
+            $$$("login-sk").email.endsWith("@google.com")) {
+          taskLinkUrlPrefix = "https://" + this.swarmingServer + "/task?id=";
+        }
+        return taskLinkUrlPrefix + taskId;
+      },
+
+      _computeTasksGraph: function() {
+        var graph = {};
+        var taskData = {};
+        for (var i = 0; i < this._jobs.length; i++) {
+          var job = this._jobs[i];
+          for (var taskName in job.dependencies) {
+            var deps = graph[taskName] || [];
+            if (job.dependencies[taskName]) {
+              for (var j = 0; j < job.dependencies[taskName].length; j++) {
+                deps.push(job.dependencies[taskName][j]);
+              }
+            }
+            graph[taskName] = deps;
+          }
+          for (var taskName in job.tasks) {
+            var tasks = taskData[taskName] || [];
+            for (var j = 0; j < job.tasks[taskName].length; j++) {
+              tasks.push(job.tasks[taskName][j]);
+            }
+            taskData[taskName] = tasks;
+          }
+        }
+
+        // Skip drawing the graph if taskData or graph are missing or empty. This
+        // is mainly to prevent errors on the demo page.
+        if (!taskData || !graph || Object.keys(taskData).length == 0 || Object.keys(graph).length == 0) {
+          console.log("Not drawing graph; taskData or graph not ready.");
+          return;
+        }
+        console.log("Drawing tasks graph.");
+
+        // Compute the "depth" of each task spec.
+        var depth = {};
+        var cols = [];
+        var visited = {};
+
+        var visit = function(current) {
+          visited[current] = true
+          var myDepth = 0;
+          var deps = graph[current] || [];
+          for (var i = 0; i < deps.length; i++) {
+            var dep = deps[i];
+            // Visit the dep if we haven't yet. Its depth may be zero, so we have
+            // to explicitly use "depth[dep] == undefined" instead of "!depth[dep]"
+            if (depth[dep] == undefined) {
+              visit(dep);
+            }
+            if (depth[dep] >= myDepth) {
+              myDepth = depth[dep] + 1;
+            }
+          }
+          depth[current] = myDepth;
+          if (cols.length == myDepth) {
+            cols.push([]);
+          } else if (myDepth > cols.length) {
+            console.log("_computeTasksGraph skipped a column!");
+            return;
+          }
+          cols[myDepth].push({
+              name: current,
+              tasks: taskData[current] || [],
+          });
+        };
+
+        // Visit all of the nodes.
+        for (var key in graph) {
+          if (!visited[key]) {
+            visit(key);
+          }
+        }
+
+        var fontFamily = "Arial";
+        var fontSize = 12;
+        var taskSpecMarginX = 20;
+        var taskSpecMarginY = 20;
+        var taskMarginX = 10;
+        var taskMarginY = 10;
+        var textMarginX = 10;
+        var textMarginY = 10;
+        var taskWidth = 30;
+        var taskHeight = 30;
+        var textOffsetX = textMarginX;
+        var textOffsetY = fontSize + textMarginY;
+        var textHeight = fontSize + 2 * textMarginY;
+        var taskSpecHeight = textHeight + taskHeight + taskMarginY;
+
+        // Compute the task spec block width for each column.
+        var maxTextWidth = 0;
+        var canvas = document.createElement("canvas");
+        var ctx = canvas.getContext("2d");
+        ctx.font = fontSize + "px " + fontFamily;
+        var taskSpecWidth = [];
+        for (var col = 0; col < cols.length; col++) {
+          // Get the minimum width of a task spec block needed to fit the entire
+          // task spec name.
+          var maxWidth = 0;
+          for (var i = 0; i < cols[col].length; i++) {
+            var oldFont = ctx.font;
+            var text = cols[col][i].name;
+            if (text == this._task.name) {
+              ctx.font = "bold " + ctx.font;
+            }
+            var textWidth = ctx.measureText(text).width + 2 * textMarginX;
+            ctx.font = oldFont;
+            if (textWidth > maxWidth) {
+              maxWidth = textWidth;
+            }
+
+            var numTasks = cols[col][i].tasks.length || 1;
+            var tasksWidth = taskMarginX + numTasks * (taskWidth + taskMarginX);
+            if (tasksWidth > maxWidth) {
+              maxWidth = tasksWidth;
+            }
+          }
+
+          taskSpecWidth.push(maxWidth);
+        }
+
+        // Lay out the task specs and tasks.
+        var totalWidth = 0;
+        var totalHeight = 0;
+        var taskSpecs = [];
+        var tasks = [];
+        var byName = {};
+        var curX = taskMarginX;
+        for (var col = 0; col < cols.length; col++) {
+          var curY = taskMarginY;
+          // Add an entry for each task.
+          for (var i = 0; i < cols[col].length; i++) {
+            var taskSpec = cols[col][i];
+            var entry = {
+              x: curX,
+              y: curY,
+              width: taskSpecWidth[col],
+              height: taskSpecHeight,
+              name: taskSpec.name,
+              numTasks: taskSpec.tasks.length,
+            };
+            taskSpecs.push(entry);
+            byName[taskSpec.name] = entry;
+
+            var taskX = curX + taskMarginX;
+            var taskY = curY + textHeight;
+            for (var j = 0; j < taskSpec.tasks.length; j++) {
+              var task = taskSpec.tasks[j];
+              tasks.push({
+                x: taskX + j * (taskWidth + taskMarginX),
+                y: taskY,
+                width: taskWidth,
+                height: taskHeight,
+                task: task,
+              });
+            }
+            curY += taskSpecHeight + taskSpecMarginY;
+          }
+          if (curY > totalHeight) {
+            totalHeight = curY;
+          }
+          curX += taskSpecWidth[col] + taskSpecMarginX;
+        }
+
+        totalWidth = curX;
+
+        // Compute the arrows.
+        var arrows = []
+        for (var name in graph) {
+          var dst = byName[name];
+          var deps = graph[name];
+          if (deps) {
+            for (var j = 0; j < deps.length; j++) {
+              var src = byName[deps[j]]
+              if (!src) {
+                console.log("Error: task " + dst.name + " has unknown parent " + deps[j]);
+              } else {
+                arrows.push([src, dst]);
+              }
+            }
+          }
+        }
+
+        // Draw the graph.
+        svg = d3.select(this.$.tasks_svg)
+          .attr("width", totalWidth)
+          .attr("height", totalHeight);
+
+        // Helper for styling.
+        var styleToString = function(style) {
+          var rv = "";
+          for (var key in style) {
+            if (rv.length > 0) {
+              rv += "; "
+            }
+            rv += key + ":" + style[key];
+          }
+          return rv;
+        }
+
+        // Draw task specs.
+        var taskSpecRects = svg.selectAll("rect.taskSpec").data(taskSpecs);
+        taskSpecRects.enter()
+          .append("svg:rect")
+            .attr("class", "taskSpec")
+            .attr("rx", "4")
+            .attr("ry", "4");
+        taskSpecRects
+          .attr("x", function(data) { return data.x; })
+          .attr("y", function(data) { return data.y; })
+          .attr("width", function(data) { return data.width; })
+          .attr("height", function(data) { return data.height; })
+          .attr("style", function(taskspec) {
+            var style = {
+              "stroke": "black",
+               "fill":   "white",
+            };
+            if (taskspec.name == this._task.name) {
+              style["stroke-width"] = "3px";
+            }
+            return styleToString(style);
+          }.bind(this));
+        taskSpecRects.exit().remove();
+
+        // Draw text.
+        var taskSpecTexts = svg.selectAll("text.taskSpec").data(taskSpecs);
+        taskSpecTexts.enter()
+          .append("svg:text")
+            .attr("class", "taskSpec")
+            .attr("font-family", fontFamily)
+            .attr("font-size", fontSize);
+        taskSpecTexts
+          .attr("x", function(data) { return data.x + textOffsetX; })
+          .attr("y", function(data) { return data.y + textOffsetY; })
+          .attr("font-weight", function(data) { return data.name == this._task.name ? "bold" : "normal"; }.bind(this))
+          .text(function(data) { return data.name; });
+        taskSpecTexts.exit().remove();
+
+        // Draw tasks.
+        var taskLinks = svg.selectAll("a.task").data(tasks)
+        taskLinks.enter()
+          .append("a")
+            .attr("class", "task")
+            .attr("target", "_blank")
+            .append("svg:rect")
+              .attr("rx", "4")
+              .attr("ry", "4")
+              .attr("class", "task");
+        taskLinks.attr("href", function(data) {
+            return this._computeTaskLink(data.task.swarmingTaskId);
+        }.bind(this));
+        taskLinks.exit().remove();
+        var taskRects = svg.selectAll("rect.task").data(tasks);
+        taskRects
+          .attr("x", function(data) { return data.x; })
+          .attr("y", function(data) { return data.y; })
+          .attr("width", function(data) { return data.width; })
+          .attr("height", function(data) { return data.height; })
+          .attr("style", function(data) {
+              var color = taskStatusToTextColor[data.task.status][1];
+              var style = {
+                "stroke": "black",
+                "fill": color,
+              };
+              if (data.task.id == this._task.id) {
+                style["stroke-width"] = "3px";
+              }
+              return styleToString(style);
+          }.bind(this));
+        taskRects.exit().remove();
+
+
+        // Draw arrows.
+        var arrowWidth = 4;
+        var arrowHeight = 4;
+        var arrowHeadPath = svg.selectAll("marker.arrowhead").data([0]);
+        arrowHeadPath.enter()
+          .append("svg:marker")
+            .attr("id", "arrowhead")
+            .attr("class", "arrowhead")
+            .attr("viewBox", "0 0 10 10")
+            .attr("refX", "0")
+            .attr("refY", "5")
+            .attr("markerUnits", "strokeWidth")
+            .attr("markerWidth", arrowWidth)
+            .attr("markerHeight", arrowHeight)
+            .attr("orient", "auto")
+            .append("svg:path")
+               .attr("d", "M 0 0 L 10 5 L 0 10 Z"); // Filled triangle path.
+        arrowHeadPath.exit().remove();
+
+        var arrowPaths = svg.selectAll("path.arrow").data(arrows);
+        arrowPaths
+          .enter()
+          .append("svg:path")
+            .attr("class", "arrow")
+            .attr("stroke", "black")
+            .attr("stroke-width", "1")
+            .attr("fill", "transparent")
+            .attr("marker-end", "url(#arrowhead)");
+        arrowPaths
+          .attr("d", function(data) {
+              // Start and end points.
+              var x1 = data[0].x + data[0].width;
+              var y1 = data[0].y + data[0].height / 2;
+              var x2 = data[1].x - arrowWidth;
+              var y2 = data[1].y + data[1].height / 2;
+              // Control points.
+              var cx1 = x1 + taskSpecMarginX - arrowWidth/2;
+              var cy1 = y1;
+              var cx2 = x2 - taskSpecMarginX + arrowWidth/2;
+              var cy2 = y2;
+              return ("M"  + x1  + " " + y1
+                    + " C" + cx1 + " " + cy1
+                    + " "  + cx2 + " " + cy2
+                    + " "  + x2  + " " + y2);
+          });
+        arrowPaths.exit().remove();
+      },
+    });
+  })();
+  </script>
+</dom-module>

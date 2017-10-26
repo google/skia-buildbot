@@ -1,0 +1,178 @@
+<html>
+<head>
+  <title>task-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    // task1 is a task to display.
+    var task1 = {
+      "attempt": 0,
+      "commits": ["a", "b", "c"],
+      "created": "2016-10-10T15:56:13.393516175-04:00",
+      "dbModified": "2016-10-10T19:56:44.572122663Z",
+      "finished": "2016-10-11T15:30:45.22367Z",
+      "forcedJobId": "",
+      "id": "20161010T195613.393516175Z_0000000000000048",
+      "issue": "2410843002",
+      "isolatedOutput": "",
+      "jobs": ["20161010T195613.393516175Z_0000000000000048", "20161010T195613.393516175Z_0000000000000049"],
+      "max_attempts": 1,
+      "name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+      "parentTaskIds": null,
+      "patchset": "1",
+      "properties": null,
+      "repo": "https://skia.googlesource.com/skia.git",
+      "retryOf": "",
+      "revision": "c",
+      "server": "https://codereview.chromium.org",
+      "started": "2016-10-10T15:56:13.393516175-04:00",
+      "status": "SUCCESS",
+      "swarmingBotId": "skia-vm-050",
+      "swarmingTaskId": "31cd28b854e04d10",
+    };
+
+    // job1 represents real task data.
+    var job1 = {
+        "buildbucketBuildId": 0,
+        "buildbucketLeaseKey": 0,
+        "created": "2016-10-10T15:56:13.393516175-04:00",
+        "dbModified": "2016-10-10T19:56:44.572122663Z",
+        "dependencies": {
+            "Build-Ubuntu-GCC-x86_64-Release-GN": null,
+            "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Build-Ubuntu-GCC-x86_64-Release-GN"],
+            "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
+        },
+        "finished": "2016-10-11T15:30:45.22367Z",
+        "id": "20161010T195613.393516175Z_0000000000000048",
+        "isForce": false,
+        "name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+        "priority": 0.8,
+        "issue": "2410843002",
+        "patchset": "1",
+        "server": "https://codereview.chromium.org",
+        "repo": "https://skia.googlesource.com/skia.git",
+        "revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
+        "status": "SUCCESS",
+        "tasks": {
+            "Build-Ubuntu-GCC-x86_64-Release-GN": [{
+                "id": "20161011T152315.308660290Z_0000000000000a40",
+                "status": "SUCCESS",
+                "swarmingTaskId": "31cd28b854e04d10",
+            }],
+            "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
+                "id": task1.id,
+                "status": task1.status,
+                "swarmingTaskId": task1.swarmingTaskId,
+            }],
+            "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
+                "id": "20161011T152813.960219550Z_0000000000000a42",
+                "status": "SUCCESS",
+                "swarmingTaskId": "31cd2d46acc0e110",
+            }],
+        },
+    };
+
+    // job2 is fake data but is more visually interesting.
+    var job2 = {
+        "created": (new Date(new Date().getTime() - 5000000)).toUTCString(),
+        "dbModified": "2016-10-10T19:56:44.572122663Z",
+        "dependencies": {
+          "F": ["E"],
+          "E": ["B"],
+          "D": ["B"],
+          "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["A"],
+          "B": ["A"],
+          "A": [],
+        },
+        "finished": "",
+        "id": "20161010T195613.393516175Z_0000000000000049",
+        "isForce": false,
+        "name": "ABCDEF",
+        "priority": 0.8,
+        "issue": "2410843002",
+        "patchset": "1",
+        "server": "https://codereview.chromium.org",
+        "repo": "https://skia.googlesource.com/skia.git",
+        "revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
+        "status": "",
+        "tasks": {
+          "A": [{
+            "id": "A1",
+            "status": "SUCCESS",
+            "swarmingTaskId": "31cd28b854e04d10",
+          }],
+          "B": [{
+            "id": "B1",
+            "status": "FAILURE",
+            "swarmingTaskId": "31cd28b854e04d10",
+          }, {
+            "id": "B2",
+            "status": "SUCCESS",
+            "swarmingTaskId": "31cd28b854e04d10",
+          }],
+          "C": [{
+            "id": task1.id,
+            "status": task1.status,
+            "swarmingTaskId": task1.swarmingTaskId,
+          }],
+          "D": [{
+            "id": "D1",
+            "status": "",
+            "swarmingTaskId": "31cd28b854e04d10",
+          }],
+          "E": [{
+            "id": "E1",
+            "status": "RUNNING",
+            "swarmingTaskId": "31cd28b854e04d10",
+          }],
+        },
+    };
+
+    // Mock out sk.get and so we can fake a response from the server.
+    sk.get = function(url) {
+      return new Promise(function (resolve, reject) {
+        if (url.indexOf("/json/task/") != -1) {
+          resolve(JSON.stringify(task1));
+        } else if (url.indexOf("/json/job/") != -1) {
+          if (url.indexOf(job1.id) != -1) {
+            resolve(JSON.stringify(job1));
+          } else if (url.indexOf(job2.id) != -1) {
+            resolve(JSON.stringify(job2));
+          } else {
+            reject("Unknown Job url " + url);
+          }
+        } else if (url == "/loginstatus/") {
+          resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
+        } else {
+          reject("Unknown url " + url);
+        }
+      });
+    };
+    sk.post = function(url) {
+      return new Promise(function (resolve, reject) {
+        var j = task1;
+        if (url.indexOf("task1") == -1) {
+          j = task2;
+        }
+        j.status = "CANCELED";
+        j.finished = (new Date()).toISOString();
+        resolve(JSON.stringify(j));
+      });
+    };
+
+  </script>
+  <link rel="import" href="task-sk.html">
+  <link rel="import" href="/res/common/imp/error-toast-sk.html">
+  <link rel="import" href="/res/common/imp/login.html">
+  <link rel="import" href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html" />
+</head>
+<body>
+  <login-sk style="display:none"></login-sk>
+  <h1>task-sk demo</h1>
+  <task-sk id="task_sk" task-id="task1" swarming-server="chromium-swarm.appspot.com"></task-sk>
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>
