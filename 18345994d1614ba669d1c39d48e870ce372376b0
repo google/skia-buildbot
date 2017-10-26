@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "72f1a5c7_5df23708",
+        "filename": "task_scheduler/res/imp/task-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-26T13:47:37Z",
+      "side": 1,
+      "message": "This is copied and modified from job-sk-demo.html.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4f7e9a6_b45de2c3",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-26T13:47:37Z",
+      "side": 1,
+      "message": "This is copied and modified from job-sk.html",
+      "range": {
+        "startLine": 1,
+        "startChar": 4,
+        "endLine": 1,
+        "endChar": 0
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
