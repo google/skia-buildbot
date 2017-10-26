@@ -70,6 +70,7 @@ func main() {
 		sklog.Fatalf("Error loading meta data: %s", err)
 	}
 	sklog.Infoln("Meta data loaded from Gold.")
+	sklog.Infoln("Meta data loaded from Gold.")
 
 	// Write the meta data to disk.
 	if err := writeTestRecords(*outputDir, testRecords); err != nil {
