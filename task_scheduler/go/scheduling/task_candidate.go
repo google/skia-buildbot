@@ -215,6 +215,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 	if ioTimeoutSecs == int64(0) {
 		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds())
 	}
+	// rmistry - swarming task trigger
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
 		Name:           c.Name,
