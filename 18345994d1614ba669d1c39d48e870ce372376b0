@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "742a072f_34f4afc6",
+        "filename": "task_scheduler/res/imp/task-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "72f1a5c7_5df23708",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d4f7e9a6_b45de2c3",
         "filename": "task_scheduler/res/imp/task-sk.html",
         "patchSetId": 1
@@ -41,6 +65,214 @@
         "startChar": 4,
         "endLine": 1,
         "endChar": 0
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be86122d_d142349a",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d4f7e9a6_b45de2c3",
+      "range": {
+        "startLine": 1,
+        "startChar": 4,
+        "endLine": 1,
+        "endChar": 0
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8671bdde_c7b2ebe4",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "nit: maybe if \u003eN jobs, use iron-collapse or details-sk?",
+      "range": {
+        "startLine": 75,
+        "startChar": 12,
+        "endLine": 77,
+        "endChar": 23
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b015799_8bb71b71",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "somehow this got renamed from \"jobStatusToTextColor\"\n\nAlso, it\u0027s unused.",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 29
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adfeab04_22cc623c",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "nit: wrong indentation",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 3
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d61ae0f9_77176c99",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "Doesn\u0027t this cause flashing? Seems like it would be better to remove this line and use splice rather than push below.",
+      "range": {
+        "startLine": 183,
+        "startChar": 12,
+        "endLine": 183,
+        "endChar": 34
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3629570_d3263da7",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 189,
+        "startChar": 28,
+        "endLine": 189,
+        "endChar": 54
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0feabe12_5e3f2f51",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 192,
+        "startChar": 22,
+        "endLine": 192,
+        "endChar": 48
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb70015b_2f48a889",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "nit: Can we remove this now? (Also in job-sk.html)",
+      "range": {
+        "startLine": 196,
+        "startChar": 8,
+        "endLine": 197,
+        "endChar": 73
+      },
+      "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d366816e_b13c762d",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-26T16:22:52Z",
+      "side": 1,
+      "message": "nit: Could we move this into a shared element?",
+      "range": {
+        "startLine": 256,
+        "startChar": 6,
+        "endLine": 256,
+        "endChar": 24
       },
       "revId": "18345994d1614ba669d1c39d48e870ce372376b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
