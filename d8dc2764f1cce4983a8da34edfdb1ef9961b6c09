@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "567e4b0f_7fd2fb06",
+        "filename": "golden/go/skia_knowledge/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-26T14:28:34Z",
+      "side": 1,
+      "message": "Why are you doing this ?",
+      "range": {
+        "startLine": 73,
+        "startChar": 1,
+        "endLine": 74,
+        "endChar": 0
+      },
+      "revId": "d8dc2764f1cce4983a8da34edfdb1ef9961b6c09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
