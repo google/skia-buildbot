@@ -56,7 +56,13 @@ func main() {
 	if err := json.Unmarshal(b, &requests); err != nil {
 		log.Fatalf("%s does not contain valid JSON: %s", *input, err)
 	}
-
+	lastWritten := types.BulkResponse{}
+	b, err = ioutil.ReadFile(*output)
+	if err == nil {
+		if err := json.Unmarshal(b, &lastWritten); err != nil {
+			lastWritten = nil
+		}
+	}
 	g := errgroup.Group{}
 	requestsCh := make(chan chanRequest, len(requests))
 
@@ -74,6 +80,18 @@ func main() {
 				}
 				if *force {
 					req.req.Fast = false
+				} else if lastWritten != nil {
+					fiddleHash, err := req.req.Options.ComputeHash(req.req.Code)
+					if err == nil {
+						if lastWritten[req.id] != nil {
+							if lastWritten[req.id].FiddleHash == fiddleHash {
+								mutex.Lock()
+								response[req.id] = lastWritten[req.id]
+								mutex.Unlock()
+								continue
+							}
+						}
+					}
 				}
 				// POST to fiddle.
 				b, err = json.Marshal(req.req)
