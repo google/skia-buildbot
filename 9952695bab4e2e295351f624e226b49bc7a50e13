@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "24425eff_7833d964",
+        "filename": "res/imp/date-time-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-27T18:40:48Z",
+      "side": 1,
+      "message": "nit: unmatched quote",
+      "range": {
+        "startLine": 12,
+        "startChar": 46,
+        "endLine": 12,
+        "endChar": 47
+      },
+      "revId": "9952695bab4e2e295351f624e226b49bc7a50e13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b009edcc_f0bb1b6f",
+        "filename": "res/imp/date-time-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-27T18:40:48Z",
+      "side": 1,
+      "message": "I\u0027m not sure how awful this would be, but would it make more sense to have multiple properties like:\nisoString\nseconds\nmilliseconds\n\nand then have an observer on each field that simply sets _date, and have an observer on _date that sets each of these fields (if different)?",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 60
+      },
+      "revId": "9952695bab4e2e295351f624e226b49bc7a50e13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "900e48a9_70ae4360",
+        "filename": "res/imp/date-time-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-27T18:40:48Z",
+      "side": 1,
+      "message": "Does this need an observer? Or do we expect this to be set initially and not changed except by _updateValue?",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 13
+      },
+      "revId": "9952695bab4e2e295351f624e226b49bc7a50e13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
