@@ -64,6 +64,7 @@ var (
 	blacklistTemplate *template.Template = nil
 	jobTemplate       *template.Template = nil
 	mainTemplate      *template.Template = nil
+	taskTemplate      *template.Template = nil
 	triggerTemplate   *template.Template = nil
 
 	// Flags.
@@ -107,6 +108,11 @@ func reloadTemplates() {
 	))
 	mainTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/main.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/footer.html"),
+	))
+	taskTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/task.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/footer.html"),
 	))
@@ -353,6 +359,33 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func taskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *local {
+		reloadTemplates()
+	}
+
+	id, ok := mux.Vars(r)["id"]
+	if !ok {
+		httputils.ReportError(w, r, nil, "Task ID is required.")
+		return
+	}
+
+	page := struct {
+		TaskId         string
+		SwarmingServer string
+	}{
+		TaskId:         id,
+		SwarmingServer: *swarmingServer,
+	}
+	if err := taskTemplate.Execute(w, page); err != nil {
+		httputils.ReportError(w, r, err, "Failed to execute template.")
+		return
+	}
+}
+
 func jsonGetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, ok := mux.Vars(r)["id"]
@@ -465,6 +498,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/blacklist", blacklistHandler)
 	r.HandleFunc("/job/{id}", jobHandler)
+	r.HandleFunc("/task/{id}", taskHandler)
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
 	r.HandleFunc("/json/job/{id}", jsonJobHandler)

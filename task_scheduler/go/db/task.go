@@ -102,7 +102,7 @@ func (k TaskKey) IsForceRun() bool {
 //   - Add any new fields to the Copy() method.
 type Task struct {
 	// Attempt is the attempt number of this task, starting with zero.
-	Attempt int
+	Attempt int `json:"attempt"`
 
 	// Commits are the commits which were tested in this Task. The list may
 	// change due to backfilling/bisecting.
