@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "83ac718f_7fac4404",
+        "filename": "res/imp/date-time-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-27T19:03:55Z",
+      "side": 1,
+      "message": "Seems feasible, but I can\u0027t think of a situation where we\u0027d need more than one of those values, and it seems like it would add a lot of complication.  In any situation where we\u0027d want a secondary display of the contained datetime we could just use a human-date-sk with any of the output formats.",
+      "parentUuid": "b009edcc_f0bb1b6f",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 60
+      },
+      "revId": "9952695bab4e2e295351f624e226b49bc7a50e13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08d723bd_aeb8aa53",
+        "filename": "res/imp/date-time-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-27T19:03:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "24425eff_7833d964",
+      "range": {
+        "startLine": 12,
+        "startChar": 46,
+        "endLine": 12,
+        "endChar": 47
+      },
+      "revId": "9952695bab4e2e295351f624e226b49bc7a50e13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "900e48a9_70ae4360",
         "filename": "res/imp/date-time-picker-sk.html",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2017-10-27T18:40:48Z",
       "side": 1,
       "message": "Does this need an observer? Or do we expect this to be set initially and not changed except by _updateValue?",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 13
+      },
+      "revId": "9952695bab4e2e295351f624e226b49bc7a50e13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4fd15c0_977a8648",
+        "filename": "res/imp/date-time-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-27T19:03:55Z",
+      "side": 1,
+      "message": "My immediate use case for this is to data-bind the value with url-param-sk, in which case it is optionally set on page load and subsequently only modified when the user changes the datetime inside the date-time-picker-sk.  So for me, right now, no observer is needed since I expect the value to only be changed by _updateValue.  I guess in the future there might be other use cases, although I can\u0027t think of one in which we\u0027d have a different element writing the value, other than at page load.",
+      "parentUuid": "900e48a9_70ae4360",
       "range": {
         "startLine": 54,
         "startChar": 8,
