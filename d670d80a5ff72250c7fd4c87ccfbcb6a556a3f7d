@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "978952fd_548cdd6f",
+        "filename": "task_scheduler/res/imp/job-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-27T14:32:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f98fe645_12763842",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 5
+      },
+      "revId": "d670d80a5ff72250c7fd4c87ccfbcb6a556a3f7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "452ae06b_eb4f0744",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 2
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "017c58d9_aeb0a71b",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-27T14:32:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "452ae06b_eb4f0744",
+      "revId": "d670d80a5ff72250c7fd4c87ccfbcb6a556a3f7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9d9e0dda_c41cc21c",
         "filename": "task_scheduler/res/imp/task-sk.html",
         "patchSetId": 2
@@ -53,6 +95,30 @@
       "writtenOn": "2017-10-27T13:57:38Z",
       "side": 1,
       "message": "nit: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex",
+      "range": {
+        "startLine": 176,
+        "startChar": 0,
+        "endLine": 182,
+        "endChar": 17
+      },
+      "revId": "d670d80a5ff72250c7fd4c87ccfbcb6a556a3f7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f33239b_f69d3b4e",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-27T14:32:09Z",
+      "side": 1,
+      "message": "Cool, didn\u0027t know about that.  Done.",
+      "parentUuid": "9d9e0dda_c41cc21c",
       "range": {
         "startLine": 176,
         "startChar": 0,
