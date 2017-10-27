@@ -17,6 +17,10 @@ build: elements_html core_js
 	go install -v ./go/fiddle
 	go install -v ./go/fiddlecli
 
+.PHONY: cli
+cli:
+	go install -v ./go/fiddlecli
+
 .PHONY: testgo
 testgo:
 	go test -v ./...
