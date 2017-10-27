@@ -1,12 +1,39 @@
 <html>
 <head>
-  <title>job-sk demo</title>
+  <title>task-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script type="text/javascript" charset="utf-8">
+    // task1 is a task to display.
+    var task1 = {
+      "attempt": 0,
+      "commits": ["a", "b", "c"],
+      "created": "2016-10-10T15:56:13.393516175-04:00",
+      "dbModified": "2016-10-10T19:56:44.572122663Z",
+      "finished": "2016-10-11T15:30:45.22367Z",
+      "forcedJobId": "",
+      "id": "20161010T195613.393516175Z_0000000000000048",
+      "issue": "2410843002",
+      "isolatedOutput": "",
+      "jobs": ["20161010T195613.393516175Z_0000000000000048", "20161010T195613.393516175Z_0000000000000049"],
+      "max_attempts": 1,
+      "name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+      "parentTaskIds": null,
+      "patchset": "1",
+      "properties": null,
+      "repo": "https://skia.googlesource.com/skia.git",
+      "retryOf": "",
+      "revision": "c",
+      "server": "https://codereview.chromium.org",
+      "started": "2016-10-10T15:56:13.393516175-04:00",
+      "status": "SUCCESS",
+      "swarmingBotId": "skia-vm-050",
+      "swarmingTaskId": "31cd28b854e04d10",
+    };
+
     // job1 represents real task data.
     var job1 = {
         "buildbucketBuildId": 0,
@@ -36,9 +63,9 @@
                 "swarmingTaskId": "31cd28b854e04d10",
             }],
             "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
-                "id": "20161011T152506.638634008Z_0000000000000a41",
-                "status": "SUCCESS",
-                "swarmingTaskId": "31cd2a6aef2ec410",
+                "id": task1.id,
+                "status": task1.status,
+                "swarmingTaskId": task1.swarmingTaskId,
             }],
             "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
                 "id": "20161011T152813.960219550Z_0000000000000a42",
@@ -56,14 +83,14 @@
           "F": ["E"],
           "E": ["B"],
           "D": ["B"],
-          "C": ["A"],
+          "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["A"],
           "B": ["A"],
           "A": [],
         },
         "finished": "",
-        "id": "20161010T195613.393516175Z_0000000000000048",
+        "id": "20161010T195613.393516175Z_0000000000000049",
         "isForce": false,
-        "name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
+        "name": "ABCDEF",
         "priority": 0.8,
         "issue": "2410843002",
         "patchset": "1",
@@ -87,9 +114,9 @@
             "swarmingTaskId": "31cd28b854e04d10",
           }],
           "C": [{
-            "id": "C1",
-            "status": "SUCCESS",
-            "swarmingTaskId": "31cd28b854e04d10",
+            "id": task1.id,
+            "status": task1.status,
+            "swarmingTaskId": task1.swarmingTaskId,
           }],
           "D": [{
             "id": "D1",
@@ -107,11 +134,15 @@
     // Mock out sk.get and so we can fake a response from the server.
     sk.get = function(url) {
       return new Promise(function (resolve, reject) {
-        if (url.indexOf("/json/job/") != -1) {
-          if (url.indexOf("job1") != -1) {
+        if (url.indexOf("/json/task/") != -1) {
+          resolve(JSON.stringify(task1));
+        } else if (url.indexOf("/json/job/") != -1) {
+          if (url.indexOf(job1.id) != -1) {
             resolve(JSON.stringify(job1));
-          } else {
+          } else if (url.indexOf(job2.id) != -1) {
             resolve(JSON.stringify(job2));
+          } else {
+            reject("Unknown Job url " + url);
           }
         } else if (url == "/loginstatus/") {
           resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
@@ -122,9 +153,9 @@
     };
     sk.post = function(url) {
       return new Promise(function (resolve, reject) {
-        var j = job1;
-        if (url.indexOf("job1") == -1) {
-          j = job2;
+        var j = task1;
+        if (url.indexOf("task1") == -1) {
+          j = task2;
         }
         j.status = "CANCELED";
         j.finished = (new Date()).toISOString();
@@ -133,51 +164,15 @@
     };
 
   </script>
-  <link rel="import" href="job-sk.html">
+  <link rel="import" href="task-sk.html">
   <link rel="import" href="/res/common/imp/error-toast-sk.html">
   <link rel="import" href="/res/common/imp/login.html">
   <link rel="import" href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html" />
 </head>
 <body>
-<dom-module id="job-sk-demo">
-  <template>
-    Alternate tasks set
-    <paper-toggle-button checked="{{alternate}}"></paper-toggle-button>
-    <job-sk id="job_sk" swarming-server="chromium-swarm.appspot.com"></job-sk>
-  </template>
-  <script>
-  Polymer({
-    is: 'job-sk-demo',
-
-    properties: {
-      alternate: {
-        type: Boolean,
-        value: false,
-        observer: "_alternateChanged",
-      },
-    },
-
-    ready: function() {
-      if (this.alternate) {
-        this.$.job_sk.jobId = "job1";
-      } else {
-        this.$.job_sk.jobId = "job2";
-      }
-    },
-
-    _alternateChanged: function() {
-      if (this.alternate) {
-        this.$.job_sk.jobId = "job1";
-      } else {
-        this.$.job_sk.jobId = "job2";
-      }
-    },
-  });
-  </script>
-</dom-module>
   <login-sk style="display:none"></login-sk>
-  <h1>job-sk demo</h1>
-  <job-sk-demo></job-sk-demo>
+  <h1>task-sk demo</h1>
+  <task-sk id="task_sk" task-id="task1" swarming-server="chromium-swarm.appspot.com"></task-sk>
   <error-toast-sk></error-toast-sk>
 </body>
 </html>
