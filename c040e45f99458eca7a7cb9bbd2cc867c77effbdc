@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2f91e994_a16ffd6a",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T15:22:12Z",
+      "side": 1,
+      "message": "There\u0027s two layers here.  \n\nOn line 87, we tell go that /[anything] should be handled by roothandler\nroothandler is a muxRouter so we tell it when we say \"just /\", use indexHandler and for /coverage use pageHandler, etc.",
+      "parentUuid": "b072058a_47bd4f04",
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e0be6b6a_478df96a",
         "filename": "coverage/go/coverage-server/main.go",
         "patchSetId": 2
@@ -33,6 +51,24 @@
       "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4b2d81c_78ed5a03",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T15:22:12Z",
+      "side": 1,
+      "message": "Stephan recommended this approach becuase it doesn\u0027t require making a module-level indexTemplate or pageTemplate variable and still allows for dynamic update when local.",
+      "parentUuid": "e0be6b6a_478df96a",
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "dd6a6093_279a05d9",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T15:22:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fed38506_8eb31b79",
+      "range": {
+        "startLine": 4,
+        "startChar": 7,
+        "endLine": 4,
+        "endChar": 14
+      },
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "adfefdb4_5a262c80",
         "filename": "coverage/go/coverageingest/ingester.go",
         "patchSetId": 2
@@ -70,6 +130,30 @@
       "writtenOn": "2017-10-30T14:37:12Z",
       "side": 1,
       "message": "Should this return false so that the file can be re-downloaded?",
+      "range": {
+        "startLine": 233,
+        "startChar": 9,
+        "endLine": 233,
+        "endChar": 13
+      },
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22a43ec3_3fc093b5",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T15:22:12Z",
+      "side": 1,
+      "message": "Good point - done.",
+      "parentUuid": "adfefdb4_5a262c80",
       "range": {
         "startLine": 233,
         "startChar": 9,
