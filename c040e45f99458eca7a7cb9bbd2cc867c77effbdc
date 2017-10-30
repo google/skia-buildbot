@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "908c8523_bed7d96a",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-30T15:29:20Z",
+      "side": 1,
+      "message": "This has been working well for me in handlers:\n\nfunc indexHandler(w http.ResponseWriter, r *http.Request) {\n\tif *local {\n\t\treloadTemplates()\n\t}\n\tw.Header().Set(\"Content-Type\", \"text/html\")\n\n\tif err :\u003d indexTemplate.Execute(w, nil); err !\u003d nil {\n\t\thttputils.ReportError(w, r, err, \"Failed to expand template\")\n\t\treturn\n\t}\n\treturn\n}\n\nMaybe the benefit of the other approach is that you do not need a global var for each template (indexTemplate) the flip side is do not have to return a function. Either way should work I guess.",
+      "parentUuid": "f4b2d81c_78ed5a03",
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fed38506_8eb31b79",
         "filename": "coverage/go/coverageingest/ingester.go",
         "patchSetId": 2
