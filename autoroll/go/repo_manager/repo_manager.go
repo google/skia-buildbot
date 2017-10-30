@@ -18,6 +18,16 @@ import (
 )
 
 const (
+	COMMIT_MSG_FOOTER_TMPL = `
+The AutoRoll server is located here: %s
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, please contact the current sheriff, who should
+be CC'd on the roll, and stop the roller if necessary.
+
+`
 	ROLL_BRANCH = "roll_branch"
 )
 
@@ -51,6 +61,7 @@ type commonRepoManager struct {
 	childBranch      string
 	commitsNotRolled int
 	preUploadSteps   []PreUploadStep
+	serverURL        string
 	strategy         NextRollStrategy
 	user             string
 	workdir          string

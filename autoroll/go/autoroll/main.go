@@ -248,7 +248,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runServer() {
+func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
@@ -261,10 +261,6 @@ func runServer() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	arb.AddHandlers(r)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	serverURL := "https://" + *host
-	if *local {
-		serverURL = "http://" + *host + *port
-	}
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
@@ -377,19 +373,24 @@ func main() {
 		}
 	}
 
+	serverURL := "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
+	}
+
 	// Start the autoroller.
 	strat, err := repo_manager.GetNextRollStrategy(*strategy, *childBranch, "")
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	if *rollIntoAndroid {
-		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps)
+		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps, serverURL)
 	} else if *rollIntoGoogle3 {
 		arb, err = google3.NewAutoRoller(*workdir, common.REPO_SKIA, *childBranch)
 	} else if *useManifest {
-		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps)
+		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, serverURL)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars)
+		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars, serverURL)
 	}
 	if err != nil {
 		sklog.Fatal(err)
@@ -458,5 +459,5 @@ func main() {
 
 	login.SimpleInitMust(*port, *local)
 
-	runServer()
+	runServer(serverURL)
 }

@@ -65,7 +65,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
 	assert.NoError(t, err)
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
@@ -82,7 +82,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
@@ -148,7 +148,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil)
+	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	ran := false

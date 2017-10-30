@@ -26,7 +26,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(string, string, string, string, gerrit.GerritInterface, NextRollStrategy, []string) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(string, string, string, string, gerrit.GerritInterface, NextRollStrategy, []string, string) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{"include/config/SkUserConfig.h"}
 
@@ -44,7 +44,7 @@ type androidRepoManager struct {
 	authDaemonRunning       bool
 }
 
-func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy NextRollStrategy, preUploadStepNames []string) (RepoManager, error) {
+func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy NextRollStrategy, preUploadStepNames []string, serverURL string) (RepoManager, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -68,6 +68,7 @@ func newAndroidRepoManager(workdir, parentBranch, childPath, childBranch string,
 			childRepo:      childRepo,
 			childBranch:    childBranch,
 			preUploadSteps: preUploadSteps,
+			serverURL:      serverURL,
 			strategy:       strategy,
 			user:           SERVICE_ACCOUNT,
 			workdir:        wd,
@@ -370,10 +371,11 @@ https://%s.googlesource.com/%s.git/+log/%s
 
 %s
 
+%s
 
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
-`, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"))
+`, r.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"), fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, r.serverURL))
 
 	// Loop through all commits:
 	// * Collect all bugs from b/xyz to add the commit message later.
