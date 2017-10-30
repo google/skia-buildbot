@@ -34,10 +34,6 @@ var (
 	BEGINNING_OF_TIME = time.Date(2015, time.June, 1, 0, 0, 0, 0, time.UTC)
 )
 
-func TestRietveldTrybotResults(t *testing.T) {
-	testOneTrybotResults(t, TEST_RIETVELD_INGESTION_FILE)
-}
-
 func TestGerritTrybotResults(t *testing.T) {
 	testOneTrybotResults(t, TEST_GERRIT_INGESTION_FILE)
 }
