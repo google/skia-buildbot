@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a55503d0_32555c86",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:23:58Z",
+      "side": 1,
+      "message": "nit: indentation of \u003cstyle\u003e contents seems wrong",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 5
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4643f42_318ad788",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:23:58Z",
+      "side": 1,
+      "message": "nit: consider using autocomplete-input-sk with accept-custom-value\u003d\"true\", e.g. https://skia.googlesource.com/buildbot/+/master/ct/res/imp/chromium-analysis-sk.html#78\n\nfor repo, revision, server, name, status",
+      "range": {
+        "startLine": 80,
+        "startChar": 13,
+        "endLine": 80,
+        "endChar": 24
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ccb2f2e_a4e1e853",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:23:58Z",
+      "side": 1,
+      "message": "IWBN to add a small link below/beside Search to download the JSON from \"/json/jobs/search\" + window.location.search.",
+      "range": {
+        "startLine": 92,
+        "startChar": 86,
+        "endLine": 92,
+        "endChar": 92
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f71ac184_6153b879",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:23:58Z",
+      "side": 1,
+      "message": "nit: probably some polymer/JS thing I don\u0027t know about, but why not this.set(\"_results\", json);?",
+      "range": {
+        "startLine": 195,
+        "startChar": 0,
+        "endLine": 198,
+        "endChar": 11
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "451e5ec6_3f2d8b2c",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:23:58Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 203,
+        "startChar": 1,
+        "endLine": 205,
+        "endChar": 8
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e0ca4b8_2743608c",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:23:58Z",
+      "side": 1,
+      "message": "nit: var idx \u003d this._results.findIndex(function (job) { return job.id \u003d\u003d\u003d jobId });",
+      "range": {
+        "startLine": 224,
+        "startChar": 1,
+        "endLine": 230,
+        "endChar": 11
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa694944_0ade7321",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:23:58Z",
+      "side": 1,
+      "message": "nit: This might not work well if there are multiple failures. sk.errorMessage will only show the last error. Suggestions:\nA. Don\u0027t worry about it.\nB. Collect the Promises from _cancel, then do something like:\nPromise.all(...).catch(function () {\n  sk.errorMessage(\"Failed to cancel one or more jobs.\");\n});\nC. Collect the successes and failures, then display a popup indicating which were canceled and which were not.",
+      "range": {
+        "startLine": 250,
+        "startChar": 10,
+        "endLine": 250,
+        "endChar": 38
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aeb9c88b_f00aca10",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:23:58Z",
+      "side": 1,
+      "message": "nit: Might be time to move the common JS into a shared file.",
+      "range": {
+        "startLine": 254,
+        "startChar": 0,
+        "endLine": 291,
+        "endChar": 8
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
