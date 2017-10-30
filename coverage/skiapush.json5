@@ -1,0 +1,10 @@
+{
+  "Servers": {
+    "skia-coverage": {
+      "AppNames": [
+        "pulld",
+        "coverage-ingest",
+      ],
+    },
+  }
+}
