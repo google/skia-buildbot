@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>coverage-controller Demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+  <script src="/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="/res/common/js/common.js"></script>
+
+  <script src="/node_modules/sinon/pkg/sinon-2.3.1.js"></script>
+
+  <script type="text/javascript" charset="utf-8">
+
+    var server = sinon.fakeServer.create({
+     logger: function(msg){console.log(msg)},
+    });
+    server.autoRespond = true;
+
+    var login = {"Email":"test@google.com","LoginURL":"http://www.example.com","IsAGoogler":true};
+    server.respondWith("GET","/loginstatus/", JSON.stringify(login));
+
+    var version = {"commit":"singedpotato","date":"2017-03-11T16:57:18-05:00"};
+    server.respondWith("GET","/json/version", JSON.stringify(version));
+
+    var data = {
+      list: [
+        {
+          info: {
+            hash: "abcdef0123",
+            author: "nobody whozit (nobody@example.com)",
+            subject: "This is a really obnixiously long commit subject.  The author didn't read the guidlines on keeping it short."
+          },
+          jobs: [
+            {
+              name: "Test-Some-Config-Release",
+              lines: 10000,
+              missed_lines: 4500,
+            },
+            {
+              name: "Test-Some-Config-Debug",
+              lines: 11000,
+              missed_lines: 4500,
+            }
+          ],
+        },
+        {
+          info: {
+            hash: "feedbar",
+            author: "Nobody Whozit Junior (nobodyjr@example.com)",
+            subject: "Terse commit",
+          },
+          jobs: [
+            {
+              name: "Test-Other-Config-Release",
+              lines: 13000,
+              missed_lines: 4500,
+            },
+            {
+              name: "Test-Other-Config-Debug",
+              lines: 8000,
+              missed_lines: 4500,
+            },
+            {
+              name: "Test-Some-Config-Release",
+              lines: 9000,
+              missed_lines: 4500,
+            },
+            {
+              name: "Test-Some-Config-Debug-ASAN",
+              lines: 7000,
+              missed_lines: 4500,
+            }
+          ],
+        },
+      ],
+    };
+
+    server.respondWith("GET", /^\/ingested/, JSON.stringify(data));
+
+
+  </script>
+
+  <link rel="import" href="coverage-index.html">
+</head>
+<body>
+
+<coverage-index></coverage-index>
+
+</body>
+</html>

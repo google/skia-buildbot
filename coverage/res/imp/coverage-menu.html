@@ -1,0 +1,34 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <coverage-menu>
+
+  Usage:
+
+    <coverage-menu></coverage-menu>
+
+  Properties:
+    None.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/common/imp/menu-item-sk.html">
+<link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+
+<dom-module id="coverage-menu">
+  <template>
+    <menu-item-sk label="Home" url="coverage.skia.org" icon="icons:warning"></menu-item-sk>
+  </template>
+  <script>
+    Polymer({
+      is: "coverage-menu"
+    });
+  </script>
+</dom-module>

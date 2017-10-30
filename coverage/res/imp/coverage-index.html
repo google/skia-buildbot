@@ -1,0 +1,100 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <coverage-index>
+
+
+  Usage:
+
+    <coverage-index></coverage-index>
+
+  This is a top-level element.
+
+  Properties:
+    None.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<link rel="import" href="/res/common/imp/app-sk.html" />
+<link rel="import" href="/res/common/imp/error-toast-sk.html" />
+
+<link rel="import" href="coverage-menu.html" />
+<link rel="import" href="coverage-shared-styles.html" />
+
+<dom-module id="coverage-index">
+  <template>
+    <style is="custom-style" include="iron-positioning coverage-app-style">
+
+    </style>
+
+    <app-sk class="fit" drawer_width="250px">
+      <div header class="header">Code Coverage</div>
+      <coverage-menu navigation></coverage-menu>
+
+
+      <template is="dom-repeat" items="[[_ingested]]" as="commit">
+        <h3>[[_header(commit.info, commit.info.*)]]</h3>
+        <template is="dom-repeat" items="[[commit.jobs]]" as="job">
+          <div>
+            <a href="coverage?commit=[[commit.info.hash]]&job=[[job.name]]">[[job.name]]</a>
+            - [[job.coverage]]%
+          </div>
+        </template>
+      </template>
+      <error-toast-sk></error-toast-sk>
+
+    </app-sk>
+
+  </template>
+  <script>
+    Polymer({
+      is: "coverage-index",
+
+      properties: {
+        _ingested: {
+          type: Array,
+        },
+      },
+
+      attached: function() {
+        this.async(this._reload);
+      },
+
+      _header: function(info){
+        var subject = info.subject
+        if (subject.length > 60) {
+          subject = subject.substr(0, 57) + "...";
+        }
+        return info.hash.substr(0, 10) + " - " + subject + " - " + info.author.split("(")[0];
+      },
+
+      _reload: function(){
+        console.log("Query for ingested");
+        sk.get("/ingested").then(JSON.parse).then(function(json){
+          json.list = json.list || [];
+          json.list.forEach(function(c){
+            c.jobs = c.jobs || [];
+            c.jobs.forEach(function(j){
+              if (j.lines && j.missed_lines) {
+                j.coverage = (100 * (j.lines - j.missed_lines)/j.lines).toFixed(2);
+              }
+            });
+
+          });
+          this.set("_ingested", json.list);
+        }.bind(this)).catch(function(e){
+          sk.errorMessage(e);
+        })
+      },
+
+    });
+  </script>
+</dom-module>
