@@ -110,7 +110,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	g := setupFakeGerrit(t, wd)
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -149,7 +149,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	s, err := GetNextRollStrategy(strategy, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -186,7 +186,7 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	ran := false
@@ -215,7 +215,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
 
-		rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, includeLog, nil)
+		rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, includeLog, nil, "fake.server.com")
 		assert.NoError(t, err)
 
 		// Create a roll.
@@ -251,7 +251,7 @@ func TestDEPSRepoManagerCustomVars(t *testing.T) {
 		"a=b",
 		"c=d",
 	}
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, customVars)
+	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, customVars, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll.

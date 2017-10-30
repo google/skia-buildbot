@@ -21,7 +21,7 @@ import (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewManifestRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string) (RepoManager, error) = newManifestRepoManager
+	NewManifestRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, string) (RepoManager, error) = newManifestRepoManager
 
 	// TODO(rmistry): Make this configurable.
 	manifestFileName = filepath.Join("manifest", "skia")
@@ -34,7 +34,7 @@ type manifestRepoManager struct {
 
 // newManifestRepoManager returns a RepoManager instance which operates in the
 // given working directory and updates at the given frequency.
-func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string) (RepoManager, error) {
+func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, serverURL string) (RepoManager, error) {
 	wd := path.Join(workdir, "repo_manager")
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
@@ -64,6 +64,7 @@ func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childB
 				childRepo:      childRepo,
 				childBranch:    childBranch,
 				preUploadSteps: preUploadSteps,
+				serverURL:      serverURL,
 				strategy:       strategy,
 				user:           user,
 				workdir:        wd,
@@ -205,7 +206,8 @@ https://%s.googlesource.com/%s.git/+log/%s
 
 %s
 
-`, mr.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"))
+%s
+`, mr.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"), fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, mr.serverURL))
 
 	// Commit the change with the above message.
 	if _, addErr := exec.RunCwd(mr.parentDir, "git", "add", manifestFileName); addErr != nil {
