@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d2a8660e_9ecf4c4d",
+        "filename": "res/imp/date-time-picker-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-30T17:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4180dfbd_88dae1e6",
+      "range": {
+        "startLine": 27,
+        "startChar": 46,
+        "endLine": 27,
+        "endChar": 48
+      },
+      "revId": "afe80a766e949fa4225686c4063021a7d7fcb36a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad5ad9a5_5dac5e8d",
         "filename": "res/imp/date-time-picker-sk.html",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "afe80a766e949fa4225686c4063021a7d7fcb36a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7349f9eb_efcef59c",
+        "filename": "res/imp/date-time-picker-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-30T17:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad5ad9a5_5dac5e8d",
+      "range": {
+        "startLine": 101,
+        "startChar": 24,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "afe80a766e949fa4225686c4063021a7d7fcb36a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
