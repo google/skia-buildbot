@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "80e2d348_c7a82fc3",
+        "filename": "go/util/caching_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-30T16:55:14Z",
+      "side": 1,
+      "message": "Done\nCool, wasn\u0027t aware that we had our own deep equal.",
+      "parentUuid": "cea5e786_629f7a8d",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 13
+      },
+      "revId": "6e49a75abf1c56101b6f3099cc393ca1dadb2663",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2ee691a2_09d21d7f",
         "filename": "golden/go/skiacorrectness/main.go",
         "patchSetId": 8
@@ -39,6 +63,24 @@
       "revId": "6e49a75abf1c56101b6f3099cc393ca1dadb2663",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "984aeab7_deedb5d8",
+        "filename": "golden/go/skiacorrectness/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-10-30T16:55:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ee691a2_09d21d7f",
+      "revId": "6e49a75abf1c56101b6f3099cc393ca1dadb2663",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
