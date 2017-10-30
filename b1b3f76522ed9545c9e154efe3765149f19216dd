@@ -71,6 +71,29 @@
     },
     {
       "key": {
+        "uuid": "4f1b8a93_365ec367",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T20:44:03Z",
+      "side": 1,
+      "message": "Consider using initialCount\u003d20 for performance.  It will only render 20, then draw the next gradually, which makes the UI seem to load quicker.  It\u0027s useful for very long lists.",
+      "range": {
+        "startLine": 115,
+        "startChar": 24,
+        "endLine": 115,
+        "endChar": 34
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f71ac184_6153b879",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -117,6 +140,52 @@
     },
     {
       "key": {
+        "uuid": "457282e9_06f0ff73",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T20:44:03Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d, here and other places",
+      "range": {
+        "startLine": 208,
+        "startChar": 37,
+        "endLine": 208,
+        "endChar": 39
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d664c686_7f48e412",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T20:44:03Z",
+      "side": 1,
+      "message": "!job.status.  If it is this simple, consider eliminating the function",
+      "range": {
+        "startLine": 217,
+        "startChar": 16,
+        "endLine": 217,
+        "endChar": 31
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1e0ca4b8_2743608c",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -140,6 +209,52 @@
     },
     {
       "key": {
+        "uuid": "a7537225_ab93b89d",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T20:44:03Z",
+      "side": 1,
+      "message": "!job.status",
+      "range": {
+        "startLine": 243,
+        "startChar": 17,
+        "endLine": 243,
+        "endChar": 33
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea1804e6_989f71cd",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T20:44:03Z",
+      "side": 1,
+      "message": "!toCancel.length",
+      "range": {
+        "startLine": 245,
+        "startChar": 12,
+        "endLine": 245,
+        "endChar": 32
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aa694944_0ade7321",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -156,6 +271,29 @@
         "startChar": 10,
         "endLine": 250,
         "endChar": 38
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdcfae8e_0db97d71",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-30T20:44:03Z",
+      "side": 1,
+      "message": "These are redundant to !job",
+      "range": {
+        "startLine": 272,
+        "startChar": 17,
+        "endLine": 272,
+        "endChar": 65
       },
       "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
