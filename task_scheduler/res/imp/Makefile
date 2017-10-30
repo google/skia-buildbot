@@ -11,4 +11,6 @@ default:
 
 # Run a local HTTP server for the demo pages.
 run:
+	# We download these here because the default target is called by unittests
+	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/task-scheduler-demo/job-search-sk-demo.json
 	../../node_modules/.bin/http-server -p 8080 -a $(shell hostname)
