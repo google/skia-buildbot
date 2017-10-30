@@ -301,6 +301,30 @@
     },
     {
       "key": {
+        "uuid": "ac8e916d_323847e8",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-30T20:58:19Z",
+      "side": 1,
+      "message": "Can you explain? Here\u0027s my understanding:\n\u003e var job;\nundefined\n\u003e !job\ntrue\n\u003e job \u003d {};\n{}\n\u003e !job\nfalse\n\u003e job.status \u003d\u003d undefined;\ntrue\n\u003e job.status \u003d \"\";\n\"\"\n\u003e !job || job.status \u003d\u003d undefined || job.status \u003d\u003d null\nfalse",
+      "parentUuid": "cdcfae8e_0db97d71",
+      "range": {
+        "startLine": 272,
+        "startChar": 17,
+        "endLine": 272,
+        "endChar": 65
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aeb9c88b_f00aca10",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
