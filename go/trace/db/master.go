@@ -81,7 +81,7 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt eventbu
 		}
 	}
 
-	evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile())
+	evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile(), false)
 	go func() {
 		if !initialTileLoaded {
 			// Load the initial tile from disk if it came from the disk cache.
@@ -96,7 +96,7 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt eventbu
 				sklog.Errorf("Failed to refresh tile: %s", err)
 			} else {
 				liveness.Reset()
-				evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile())
+				evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile(), false)
 			}
 		}
 	}()
