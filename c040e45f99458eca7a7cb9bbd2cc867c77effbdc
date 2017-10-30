@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b072058a_47bd4f04",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-30T14:37:12Z",
+      "side": 1,
+      "message": "Just curious: I have the same thing in my servers. Do you know why we specify 2 handlers getIndexHandler() and rootHandler for \"/\" ?",
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0be6b6a_478df96a",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-30T14:37:12Z",
+      "side": 1,
+      "message": "Instead of returning a func you can just do:\nr.HandlerFunc(\"/\", getIndexHandler)\n\nIt should simplify the handler functions. Does returning a func have a benefit I am missing?",
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fed38506_8eb31b79",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-30T14:37:12Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 4,
+        "startChar": 7,
+        "endLine": 4,
+        "endChar": 14
+      },
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adfefdb4_5a262c80",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-10-30T14:37:12Z",
+      "side": 1,
+      "message": "Should this return false so that the file can be re-downloaded?",
+      "range": {
+        "startLine": 233,
+        "startChar": 9,
+        "endLine": 233,
+        "endChar": 13
+      },
+      "revId": "c040e45f99458eca7a7cb9bbd2cc867c77effbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
