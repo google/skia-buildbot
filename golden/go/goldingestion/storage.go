@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"go.skia.org/infra/go/sharedb"
 	"go.skia.org/infra/go/sklog"
@@ -56,7 +57,7 @@ func (i *IngestionStore) IsIngested(ingesterID, master, builder string, buildNum
 
 // Add adds the given master/builder/buildNumber with a timestamp to the data store.
 func (i *IngestionStore) Add(ingesterID, master, builder string, buildNumber int64) error {
-	value := []byte(strconv.FormatInt(util.TimeStampMs(), 10))
+	value := []byte(strconv.FormatInt(util.TimeStamp(time.Millisecond), 10))
 	_, err := i.client.Put(i.ctx, &sharedb.PutRequest{Database: DB_NAME, Bucket: getBucketName(ingesterID), Key: getKey(master, builder, buildNumber), Value: value})
 	return err
 }
