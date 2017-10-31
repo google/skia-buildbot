@@ -63,6 +63,7 @@ var (
 	// HTML templates.
 	blacklistTemplate *template.Template = nil
 	jobTemplate       *template.Template = nil
+	jobSearchTemplate *template.Template = nil
 	mainTemplate      *template.Template = nil
 	taskTemplate      *template.Template = nil
 	triggerTemplate   *template.Template = nil
@@ -103,6 +104,11 @@ func reloadTemplates() {
 	))
 	jobTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/job.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/footer.html"),
+	))
+	jobSearchTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/job_search.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/footer.html"),
 	))
@@ -359,6 +365,34 @@ func jobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jobSearchHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *local {
+		reloadTemplates()
+	}
+
+	j, _, c := ts.RecentSpecsAndCommits()
+	page := struct {
+		Repos    []string       `json:"recent_repos"`
+		JobSpecs []string       `json:"recent_job_names"`
+		Commits  []string       `json:"recent_commits"`
+		Servers  []string       `json:"recent_servers"`
+		Statuses []db.JobStatus `json:"valid_statuses"`
+	}{
+		Repos:    *repoUrls,
+		JobSpecs: j,
+		Commits:  c,
+		Servers:  []string{gerrit.GERRIT_SKIA_URL},
+		Statuses: db.VALID_JOB_STATUSES,
+	}
+	if err := jobSearchTemplate.Execute(w, &page); err != nil {
+		httputils.ReportError(w, r, err, "Failed to execute template.")
+		return
+	}
+}
+
 func taskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -498,6 +532,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/blacklist", blacklistHandler)
 	r.HandleFunc("/job/{id}", jobHandler)
+	r.HandleFunc("/jobs/search", jobSearchHandler)
 	r.HandleFunc("/task/{id}", taskHandler)
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
