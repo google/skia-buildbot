@@ -127,7 +127,7 @@ ALERT CTFEErrorRate
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     summary = "CTFE error rate too high.",
-    description = "The error rate for CTFE is too high. See cloud logging for skia-ctfe."
+    description = "The error rate for CTFE is too high. See cloud logging for skia-ctfe. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}"
   }
 
 # CQ Watcher
@@ -418,7 +418,7 @@ ALERT AutoRollErrorRate
   IF rate(num_log_lines{level="ERROR",log_source="autoroll"}[10m]) > 0.001
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate."
+    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate."
   }
 
 # Gold
@@ -448,7 +448,7 @@ ALERT GoldErrorRate
   IF rate(num_log_lines{level="ERROR",job="gold"}[2m]) > 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The error rate for Gold {{ $labels.instance }} is too high.",
+    description = "The error rate for Gold {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 ALERT GoldIngestionStalled
@@ -462,7 +462,7 @@ ALERT GoldIngestionErrorRate
   IF rate(num_log_lines{level="ERROR",job="ingestion"}[2m]) > 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See See https://mon.skia.org/dashboard/db/ingestion.",
+    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See https://mon.skia.org/dashboard/db/ingestion. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 # Task Scheduler
@@ -490,7 +490,7 @@ ALERT TaskSchedulerErrorRate
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     summary = "Task Scheduler Error Rate ({{ $labels.instance }})",
-    description = "The error rate for task_scheduler on {{ $labels.instance }} is too high. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#error_rate"
+    description = "The error rate for task_scheduler on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#error_rate"
   }
 
 ALERT TaskSchedulerDBBackup
