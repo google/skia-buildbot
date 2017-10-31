@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8254c84e_ff3fbfeb",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-31T23:58:36Z",
+      "side": 1,
+      "message": "I didn\u0027t think hard enough about this when I reviewed. Do we really want to use testutils.AssertDeepEqual instead of assert.Equal everywhere?",
+      "revId": "1725c674d72301bb2091b94cc4c5caa230ee6a44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
