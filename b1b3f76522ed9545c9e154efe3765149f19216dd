@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0a95e328_2d6f7565",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a55503d0_32555c86",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 5
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a4643f42_318ad788",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-10-30T20:23:58Z",
       "side": 1,
       "message": "nit: consider using autocomplete-input-sk with accept-custom-value\u003d\"true\", e.g. https://skia.googlesource.com/buildbot/+/master/ct/res/imp/chromium-analysis-sk.html#78\n\nfor repo, revision, server, name, status",
+      "range": {
+        "startLine": 80,
+        "startChar": 13,
+        "endLine": 80,
+        "endChar": 24
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "188a0487_ebe79a0b",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "Done.  Not that this whole thing behaves a little strangely for certain fields, eg. job status and isForce.  For example, the url-param-sk ignores empty/falsy values, so we can\u0027t search for \"isForce\u003dfalse\", even though that would work if it were typed into the JSON endpoint query params.  Same thing with \"status\u003d\" for unfinished jobs.",
+      "parentUuid": "a4643f42_318ad788",
       "range": {
         "startLine": 80,
         "startChar": 13,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ccdcf9f7_1fd1f29e",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "So, I tried maintaining a search URL with an observer on all of the relevant properties, but I was unable to make it work.  The URL was out of date and incorrect more often than not.  I could open a dialog with the jobs JSON we loaded?",
+      "parentUuid": "7ccb2f2e_a4e1e853",
+      "range": {
+        "startLine": 92,
+        "startChar": 86,
+        "endLine": 92,
+        "endChar": 92
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4f1b8a93_365ec367",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "3d6b0172_aa67bbef",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f1b8a93_365ec367",
+      "range": {
+        "startLine": 115,
+        "startChar": 24,
+        "endLine": 115,
+        "endChar": 34
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f71ac184_6153b879",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2017-10-30T20:23:58Z",
       "side": 1,
       "message": "nit: probably some polymer/JS thing I don\u0027t know about, but why not this.set(\"_results\", json);?",
+      "range": {
+        "startLine": 195,
+        "startChar": 0,
+        "endLine": 198,
+        "endChar": 11
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f159543a_eb63ff16",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "I could\u0027ve sworn that did not work initially, but it did just now.",
+      "parentUuid": "f71ac184_6153b879",
       "range": {
         "startLine": 195,
         "startChar": 0,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "4435b5dd_dedb6bb1",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "It\u0027s used.  It hides the table header if we haven\u0027t loaded anything yet.",
+      "parentUuid": "451e5ec6_3f2d8b2c",
+      "range": {
+        "startLine": 203,
+        "startChar": 1,
+        "endLine": 205,
+        "endChar": 8
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "457282e9_06f0ff73",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "207ead8d_926557fd",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "457282e9_06f0ff73",
+      "range": {
+        "startLine": 208,
+        "startChar": 37,
+        "endLine": 208,
+        "endChar": 39
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d664c686_7f48e412",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -174,6 +342,30 @@
       "writtenOn": "2017-10-30T20:44:03Z",
       "side": 1,
       "message": "!job.status.  If it is this simple, consider eliminating the function",
+      "range": {
+        "startLine": 217,
+        "startChar": 16,
+        "endLine": 217,
+        "endChar": 31
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7428e738_d82fee0a",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "Done. I thought that syntax was removed, but it seems to work.",
+      "parentUuid": "d664c686_7f48e412",
       "range": {
         "startLine": 217,
         "startChar": 16,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "991e4dd2_11d92b24",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e0ca4b8_2743608c",
+      "range": {
+        "startLine": 224,
+        "startChar": 1,
+        "endLine": 230,
+        "endChar": 11
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a7537225_ab93b89d",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -220,6 +436,30 @@
       "writtenOn": "2017-10-30T20:44:03Z",
       "side": 1,
       "message": "!job.status",
+      "range": {
+        "startLine": 243,
+        "startChar": 17,
+        "endLine": 243,
+        "endChar": 33
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e3e3c86_078b81c5",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "I disagree.  The empty string is a valid job status and is different from undefined or null.",
+      "parentUuid": "a7537225_ab93b89d",
       "range": {
         "startLine": 243,
         "startChar": 17,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "c40d5af7_41f57c9a",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "This feels really weird, but okay.",
+      "parentUuid": "ea1804e6_989f71cd",
+      "range": {
+        "startLine": 245,
+        "startChar": 12,
+        "endLine": 245,
+        "endChar": 32
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aa694944_0ade7321",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -266,6 +530,30 @@
       "writtenOn": "2017-10-30T20:23:58Z",
       "side": 1,
       "message": "nit: This might not work well if there are multiple failures. sk.errorMessage will only show the last error. Suggestions:\nA. Don\u0027t worry about it.\nB. Collect the Promises from _cancel, then do something like:\nPromise.all(...).catch(function () {\n  sk.errorMessage(\"Failed to cancel one or more jobs.\");\n});\nC. Collect the successes and failures, then display a popup indicating which were canceled and which were not.",
+      "range": {
+        "startLine": 250,
+        "startChar": 10,
+        "endLine": 250,
+        "endChar": 38
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0668488_cf266551",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "I\u0027m voting A for now.  My reasoning is that the jobs which did get canceled will show up as such in the search results, so it should be easy to just hit the button again to retry, or refresh the page to update the results list and then try again.  I think the most common reason for cancel to fail is that the job is finished (or canceled by someone else) between the page load and the cancel request.",
+      "parentUuid": "aa694944_0ade7321",
       "range": {
         "startLine": 250,
         "startChar": 10,
@@ -349,6 +637,30 @@
     },
     {
       "key": {
+        "uuid": "b7e137da_5321f213",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "This line just checks that the job has a valid status.  IMO the place to do validation is at the beginning of the function.",
+      "parentUuid": "a04c0e78_38a911da",
+      "range": {
+        "startLine": 272,
+        "startChar": 17,
+        "endLine": 272,
+        "endChar": 65
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aeb9c88b_f00aca10",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -360,6 +672,30 @@
       "writtenOn": "2017-10-30T20:23:58Z",
       "side": 1,
       "message": "nit: Might be time to move the common JS into a shared file.",
+      "range": {
+        "startLine": 254,
+        "startChar": 0,
+        "endLine": 291,
+        "endChar": 8
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d27e0f0f_1aae48c2",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:44:31Z",
+      "side": 1,
+      "message": "Agreed. Can I do it in a subsequent CL?  I\u0027d like to keep the surface area of this change from growing much more.",
+      "parentUuid": "aeb9c88b_f00aca10",
       "range": {
         "startLine": 254,
         "startChar": 0,
