@@ -496,6 +496,30 @@
     },
     {
       "key": {
+        "uuid": "9c4f1465_3ea56672",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-31T14:54:24Z",
+      "side": 1,
+      "message": "I recommend using \u003d\u003d\u003d here anyway to perform properly if job.status somehow gets to be false or similar jank:\n\n\"\" \u003d\u003d [\"\"]\ntrue\n\"\" \u003d\u003d {}\nfalse\n\"\" \u003d\u003d {toString:function(){return \"\";}} // an object with toString() defined\ntrue",
+      "parentUuid": "8e3e3c86_078b81c5",
+      "range": {
+        "startLine": 243,
+        "startChar": 17,
+        "endLine": 243,
+        "endChar": 33
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ea1804e6_989f71cd",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -673,6 +697,30 @@
       "side": 1,
       "message": "This line just checks that the job has a valid status.  IMO the place to do validation is at the beginning of the function.",
       "parentUuid": "a04c0e78_38a911da",
+      "range": {
+        "startLine": 272,
+        "startChar": 17,
+        "endLine": 272,
+        "endChar": 65
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e040fee_dc3768d1",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-31T14:54:24Z",
+      "side": 1,
+      "message": "sgtm.  (!job || !job.status \u003d\u003d null) does the same thing as (!job || job.status \u003d\u003d undefined || job.status \u003d\u003d null) if you want to be more concise (and please add a comment that double equals is intentional.  \n\nOtherwise, some future person may be tempted to replace it with !job.status if they don\u0027t know or remember \"\" is valid.",
+      "parentUuid": "b7e137da_5321f213",
       "range": {
         "startLine": 272,
         "startChar": 17,
