@@ -48,6 +48,13 @@ var (
 		JOB_STATUS_FAILURE:     3,
 		JOB_STATUS_MISHAP:      4,
 	}
+	VALID_JOB_STATUSES = []JobStatus{
+		JOB_STATUS_IN_PROGRESS,
+		JOB_STATUS_SUCCESS,
+		JOB_STATUS_FAILURE,
+		JOB_STATUS_MISHAP,
+		JOB_STATUS_CANCELED,
+	}
 )
 
 // JobStatus represents the current status of a Job. A JobStatus other than
