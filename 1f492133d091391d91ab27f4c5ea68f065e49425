@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d31be02_7baf3a1f",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-31T19:11:21Z",
+      "side": 1,
+      "message": "nit: Unlikely, but possible for tasks to be out of order due to asynchronous update of Jobs in Task Scheduler DB. Maybe:\ntasks.sort(function (a, b) {\n  return a.Created - b.Created;\n});\n\n(Assuming Created is a JS Date.)",
+      "range": {
+        "startLine": 100,
+        "startChar": 16,
+        "endLine": 100,
+        "endChar": 33
+      },
+      "revId": "1f492133d091391d91ab27f4c5ea68f065e49425",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
