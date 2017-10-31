@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "fe122db1_c76ab247",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-10-31T14:46:39Z",
+      "side": 1,
+      "message": "I mis-commented.  I want to compare the job status to the empty string.",
+      "parentUuid": "7428e738_d82fee0a",
+      "range": {
+        "startLine": 217,
+        "startChar": 16,
+        "endLine": 217,
+        "endChar": 31
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1e0ca4b8_2743608c",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
