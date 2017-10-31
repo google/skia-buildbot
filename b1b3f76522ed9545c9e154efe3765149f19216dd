@@ -640,6 +640,30 @@
     },
     {
       "key": {
+        "uuid": "ccf64e35_40d50aba",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-31T15:17:58Z",
+      "side": 1,
+      "message": "It\u0027s not \"fixed\" because it\u0027s \"Works as Intended\". :(",
+      "parentUuid": "4423a8f5_a275cb17",
+      "range": {
+        "startLine": 243,
+        "startChar": 17,
+        "endLine": 243,
+        "endChar": 33
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea1804e6_989f71cd",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -684,6 +708,30 @@
       "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35f1a9bd_62ff53a6",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-31T15:17:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c40d5af7_41f57c9a",
+      "range": {
+        "startLine": 245,
+        "startChar": 12,
+        "endLine": 245,
+        "endChar": 32
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -898,6 +946,30 @@
       "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98a32fab_ce46b6b1",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-31T15:17:58Z",
+      "side": 1,
+      "message": "herp derp, I was looking at the wrong patchset.  LGTM",
+      "parentUuid": "dd533a6a_20abe982",
+      "range": {
+        "startLine": 272,
+        "startChar": 17,
+        "endLine": 272,
+        "endChar": 65
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
