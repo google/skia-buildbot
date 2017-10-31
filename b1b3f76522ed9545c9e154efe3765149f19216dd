@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "e7190f17_b03a94c7",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-31T14:57:23Z",
+      "side": 1,
+      "message": "That\u0027s unfortunate, but I don\u0027t know how to fix it.",
+      "parentUuid": "188a0487_ebe79a0b",
+      "range": {
+        "startLine": 80,
+        "startChar": 13,
+        "endLine": 80,
+        "endChar": 24
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7ccb2f2e_a4e1e853",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -272,6 +296,30 @@
       "side": 1,
       "message": "It\u0027s used.  It hides the table header if we haven\u0027t loaded anything yet.",
       "parentUuid": "451e5ec6_3f2d8b2c",
+      "range": {
+        "startLine": 203,
+        "startChar": 1,
+        "endLine": 205,
+        "endChar": 8
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03803d12_cb73e797",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-31T14:57:23Z",
+      "side": 1,
+      "message": "Ok, I see a _showResults property that controls the table header, but I don\u0027t see how this method is used. I also don\u0027t understand how it works to have a property and a method with the same name.",
+      "parentUuid": "4435b5dd_dedb6bb1",
       "range": {
         "startLine": 203,
         "startChar": 1,
@@ -614,6 +662,30 @@
     },
     {
       "key": {
+        "uuid": "cdc85ce8_954e53a6",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-31T14:57:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b0668488_cf266551",
+      "range": {
+        "startLine": 250,
+        "startChar": 10,
+        "endLine": 250,
+        "endChar": 38
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cdcfae8e_0db97d71",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
@@ -777,6 +849,30 @@
       "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c553e8c0_9f9ce6b0",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-10-31T14:57:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d27e0f0f_1aae48c2",
+      "range": {
+        "startLine": 254,
+        "startChar": 0,
+        "endLine": 291,
+        "endChar": 8
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
