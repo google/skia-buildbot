@@ -325,6 +325,30 @@
     },
     {
       "key": {
+        "uuid": "a04c0e78_38a911da",
+        "filename": "task_scheduler/res/imp/job-search-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-10-31T12:00:20Z",
+      "side": 1,
+      "message": "Sorry, I missed the .status part of the 2nd and third term.\n\nI understand this a bit better now.  job.status can be a set of strings, including \"\", so we can\u0027t do !job || !job.status because\n\"\" \u003d\u003d false\n\nThe job.status \u003d\u003d null is the same as job.status \u003d\u003d undefined because \nnull \u003d\u003d undefined (but null !\u003d\u003d undefined)\n\nWhat\u0027s probably best is to add a comment that \"\" is an acceptable value for job.status, and just do !job on line 272.\n\nYour if statement on 276 will catch bad values of job.status (e.g. undefined, null)\n\nIn general, if you find yourself using \u003d\u003d undefined/null and there\u0027s a good reason not to do !foo:\na) comment on it\nb) use \u003d\u003d\u003d if undefined and null should be treated separately, otherwise just do (foo \u003d\u003d null)",
+      "parentUuid": "ac8e916d_323847e8",
+      "range": {
+        "startLine": 272,
+        "startChar": 17,
+        "endLine": 272,
+        "endChar": 65
+      },
+      "revId": "b1b3f76522ed9545c9e154efe3765149f19216dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aeb9c88b_f00aca10",
         "filename": "task_scheduler/res/imp/job-search-sk.html",
         "patchSetId": 3
