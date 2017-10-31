@@ -43,6 +43,12 @@ push: all
 	go install -v ../push/go/pushcli
 	pushcli task-scheduler skia-task-scheduler
 
+.PHONY: push_internal
+push_internal: all
+	./build_internal_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli task-scheduler-internal skia-task-scheduler-internal
+
 .PHONY: push_backup
 push_backup: all
 	./build_backup_release "`git log -n1 --format=%s`"

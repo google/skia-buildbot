@@ -1,13 +1,46 @@
 {{template "header.html"}}
 
-<job-search-sk
-    recent_repos="{{.Repos}}"
-    recent_job_names="{{.JobSpecs}}"
-    recent_commits="{{.Commits}}"
-    recent_servers="{{.Servers}}"
-    valid_statuses="{{.Statuses}}"
-    ></job-search-sk>
+<job-search-sk></job-search-sk>
 
 <error-toast-sk></error-toast-sk>
+
+<script>
+var repos = [
+  {{range .Repos}}
+    "{{.}}",
+  {{end}}
+];
+
+var jobs = [
+  {{range .JobSpecs}}
+    "{{.}}",
+  {{end}}
+];
+
+var commits = [
+  {{range .Commits}}
+    "{{.}}",
+  {{end}}
+];
+
+var servers = [
+  {{range .Servers}}
+    "{{.}}",
+  {{end}}
+];
+
+var statuses = [
+  {{range .Statuses}}
+    "{{.}}",
+  {{end}}
+];
+
+var elem = document.getElementsByTagName("job-search-sk")[0];
+elem.recent_repos = repos;
+elem.recent_job_names = jobs;
+elem.recent_commits = commits;
+elem.recent_servers = servers;
+elem.valid_statuses = statuses;
+</script>
 
 {{template "footer.html"}}
