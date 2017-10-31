@@ -1,0 +1,13 @@
+{
+  'variables': {
+    'command': [
+      'python',
+      'leasing.py',
+      # '--task-id', '<(TASK_ID)',
+      # '--os-type', '<(OS_TYPE)',
+    ],
+    'files': [
+      'leasing.py',
+    ],
+  },
+}
