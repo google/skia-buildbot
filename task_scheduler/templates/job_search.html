@@ -1,0 +1,13 @@
+{{template "header.html"}}
+
+<job-search-sk
+    recent_repos="{{.Repos}}"
+    recent_job_names="{{.JobSpecs}}"
+    recent_commits="{{.Commits}}"
+    recent_servers="{{.Servers}}"
+    valid_statuses="{{.Statuses}}"
+    ></job-search-sk>
+
+<error-toast-sk></error-toast-sk>
+
+{{template "footer.html"}}
