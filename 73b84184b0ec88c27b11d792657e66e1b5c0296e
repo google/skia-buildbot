@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7d22b30f_356141b8",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-01T18:30:44Z",
+      "side": 1,
+      "message": "Added a copy, since performance isn\u0027t that important here.",
+      "parentUuid": "8a569be7_63f4a8cb",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 82,
+        "endChar": 28
+      },
+      "revId": "73b84184b0ec88c27b11d792657e66e1b5c0296e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a0310655_aee0b50f",
         "filename": "datahopper/go/datahopper/jobs_test.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "73b84184b0ec88c27b11d792657e66e1b5c0296e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48247c23_f45ab1c0",
+        "filename": "datahopper/go/datahopper/jobs_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-01T18:30:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0310655_aee0b50f",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 1
+      },
+      "revId": "73b84184b0ec88c27b11d792657e66e1b5c0296e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
