@@ -301,7 +301,7 @@
         }
 
         // Draw task specs.
-        var taskSpecRects = svg.selectAll("rect.taskSpec").data(taskSpecs);
+        var taskSpecRects = svg.selectAll("rect.taskSpec").data(taskSpecs, function(data) { return data.name; });
         taskSpecRects.enter()
           .append("svg:rect")
             .attr("class", "taskSpec")
@@ -325,7 +325,7 @@
         taskSpecRects.exit().remove();
 
         // Draw text.
-        var taskSpecTexts = svg.selectAll("text.taskSpec").data(taskSpecs);
+        var taskSpecTexts = svg.selectAll("text.taskSpec").data(taskSpecs, function(data) { return data.name; });
         taskSpecTexts.enter()
           .append("svg:text")
             .attr("class", "taskSpec")
@@ -339,7 +339,7 @@
         taskSpecTexts.exit().remove();
 
         // Draw tasks.
-        var taskLinks = svg.selectAll("a.task").data(tasks)
+        var taskLinks = svg.selectAll("a.task").data(tasks, function(data) { return data.task.id; });
         taskLinks.enter()
           .append("a")
             .attr("class", "task")
@@ -352,7 +352,7 @@
           return this._computeTaskLink(data.task.swarmingTaskId);
         }.bind(this));
         taskLinks.exit().remove();
-        var taskRects = svg.selectAll("rect.task").data(tasks);
+        var taskRects = svg.selectAll("rect.task").data(tasks, function(data) { return data.task.id; });
         taskRects
           .attr("x", function(data) { return data.x; })
           .attr("y", function(data) { return data.y; })
@@ -390,7 +390,8 @@
                .attr("d", "M 0 0 L 10 5 L 0 10 Z"); // Filled triangle path.
         arrowHeadPath.exit().remove();
 
-        var arrowPaths = svg.selectAll("path.arrow").data(arrows);
+        var arrowId = function(data) { return `(${data[0].x},${data[0].y}),(${data[1].x},${data[1].y})`; };
+        var arrowPaths = svg.selectAll("path.arrow").data(arrows, arrowId);
         arrowPaths
           .enter()
           .append("svg:path")
@@ -400,7 +401,7 @@
             .attr("fill", "transparent")
             .attr("marker-end", "url(#arrowhead)");
         arrowPaths
-          .attr("d", function(data) {
+          .attr("d", function(data, arrowId) {
               // Start and end points.
               var x1 = data[0].x + data[0].width;
               var y1 = data[0].y + data[0].height / 2;
