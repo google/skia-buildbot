@@ -73,7 +73,7 @@
         <div class="tr">
           <div class="td">Jobs</div>
           <div class="td">
-            <template is="dom-repeat" items="[[_jobs]]" as="job">
+            <template is="dom-repeat" items="[[_jobs]]" as="job" sort="_sortJobsByName">
               <div><a href$="/job/[[job.id]]">[[job.name]]</a></div>
             </template>
           </div>
@@ -242,6 +242,10 @@
           taskLinkUrlPrefix = "https://" + this.swarmingServer + "/task?id=";
         }
         return taskLinkUrlPrefix + taskId;
+      },
+
+      _sortJobsByName: function(a, b) {
+        return a.name.localeCompare(b.name);
       },
     });
   })();
