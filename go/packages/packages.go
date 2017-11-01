@@ -60,7 +60,7 @@ type Installed struct {
 
 // AllInfo keeps a cache of all installed packages and all available to be installed packages.
 type AllInfo struct {
-	mutex        sync.Mutex
+	mutex        sync.Mutex // protects allInstalled and allAvailable
 	allInstalled map[string]*Installed
 	allAvailable map[string][]*Package
 	client       *http.Client
@@ -92,17 +92,18 @@ func (a *AllInfo) ForceRefresh() error {
 }
 
 func (a *AllInfo) step() error {
+	allInstalled, err := allInstalled(a.client, a.store, a.serverNames)
+	if err != nil {
+		return err
+	}
+	allAvailable, err := AllAvailable(a.store)
+	if err != nil {
+		return err
+	}
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	var err error
-	a.allInstalled, err = allInstalled(a.client, a.store, a.serverNames)
-	if err != nil {
-		return err
-	}
-	a.allAvailable, err = AllAvailable(a.store)
-	if err != nil {
-		return err
-	}
+	a.allInstalled = allInstalled
+	a.allAvailable = allAvailable
 	return nil
 }
 
