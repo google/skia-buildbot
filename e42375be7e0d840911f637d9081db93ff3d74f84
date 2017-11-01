@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a93e8208_3acf95e0",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-01T17:29:45Z",
+      "side": 1,
+      "message": "nit: I\u0027m guessing this was meant to be task.id.",
+      "range": {
+        "startLine": 188,
+        "startChar": 22,
+        "endLine": 188,
+        "endChar": 31
+      },
+      "revId": "e42375be7e0d840911f637d9081db93ff3d74f84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
