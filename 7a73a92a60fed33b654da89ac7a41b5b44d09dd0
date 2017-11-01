@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f9c7aaec_6c2cf180",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T18:10:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0420ebd1_50cac02a",
+      "range": {
+        "startLine": 393,
+        "startChar": 46,
+        "endLine": 393,
+        "endChar": 103
+      },
+      "revId": "7a73a92a60fed33b654da89ac7a41b5b44d09dd0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c4e215c5_b51a7ac9",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "cf48607d_c5865bf0",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T18:10:17Z",
+      "side": 1,
+      "message": "Oh, this was a mistake. Removed.",
+      "parentUuid": "c4e215c5_b51a7ac9",
+      "range": {
+        "startLine": 404,
+        "startChar": 34,
+        "endLine": 404,
+        "endChar": 43
+      },
+      "revId": "7a73a92a60fed33b654da89ac7a41b5b44d09dd0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "88a9ffbe_4ea381a6",
         "filename": "task_scheduler/res/imp/task-sk.html",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2017-11-01T18:03:01Z",
       "side": 1,
       "message": "Same Q as on other CL -- it\u0027s not clear to me what happens if we return 1 when a.name \u003d\u003d b.name.",
+      "range": {
+        "startLine": 251,
+        "startChar": 8,
+        "endLine": 251,
+        "endChar": 17
+      },
+      "revId": "7a73a92a60fed33b654da89ac7a41b5b44d09dd0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd1e687d_04ddf1f0",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T18:10:17Z",
+      "side": 1,
+      "message": "Changed to use localeCompare.",
+      "parentUuid": "88a9ffbe_4ea381a6",
       "range": {
         "startLine": 251,
         "startChar": 8,
