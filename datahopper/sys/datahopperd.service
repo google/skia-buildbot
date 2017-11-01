@@ -7,8 +7,6 @@ After=network-online.target
 ExecStart=/usr/local/bin/datahopper \
     --logtostderr \
     --workdir=/mnt/pd0/datahopper_workdir \
-    --grpc_port=:8000 \
-    --http_port=:8001
 Restart=always
 User=default
 Group=default
