@@ -158,6 +158,7 @@ func DeleteAllFilesInDir(s *storage.Client, bucket, folder string, processes int
 	var wg sync.WaitGroup
 	toDelete := make(chan string, 1000)
 	for i := 0; i < processes; i++ {
+		wg.Add(1)
 		go deleteHelper(s, bucket, &wg, toDelete, &errCount)
 	}
 	del := func(item *storage.ObjectAttrs) {
@@ -178,7 +179,6 @@ func DeleteAllFilesInDir(s *storage.Client, bucket, folder string, processes int
 // deleteHelper spins and waits for work to come in on the toDelete channel.  When it does, it
 // uses the storage client to delete the file from the given bucket.
 func deleteHelper(s *storage.Client, bucket string, wg *sync.WaitGroup, toDelete <-chan string, errCount *int32) {
-	wg.Add(1)
 	defer wg.Done()
 	for file := range toDelete {
 		if err := s.Bucket(bucket).Object(file).Delete(context.Background()); err != nil {
