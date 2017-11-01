@@ -94,16 +94,24 @@ func (a *AllInfo) ForceRefresh() error {
 func (a *AllInfo) step() error {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	var err error
-	a.allInstalled, err = allInstalled(a.client, a.store, a.serverNames)
-	if err != nil {
-		return err
-	}
-	a.allAvailable, err = AllAvailable(a.store)
-	if err != nil {
-		return err
-	}
-	return nil
+	errgroup := util.NewNamedErrGroup()
+	errgroup.Go("allInstalled", func() error {
+		if allInstalled, err := allInstalled(a.client, a.store, a.serverNames); err != nil {
+			return err
+		} else {
+			a.allInstalled = allInstalled
+			return nil
+		}
+	})
+	errgroup.Go("AllAvailable", func() error {
+		if allAvailable, err := AllAvailable(a.store); err != nil {
+			return err
+		} else {
+			a.allAvailable = allAvailable
+			return nil
+		}
+	})
+	return errgroup.Wait()
 }
 
 func (a *AllInfo) AllAvailable() map[string][]*Package {
@@ -161,14 +169,23 @@ func (a *AllInfo) AllInstalled() map[string]*Installed {
 
 // allInstalled returns a map of all known server names to their list of installed package names.
 func allInstalled(client *http.Client, store *storage.Service, names []string) (map[string]*Installed, error) {
+	wg := sync.WaitGroup{}
+	m := sync.Mutex{}
 	ret := map[string]*Installed{}
 	for _, name := range names {
-		p, err := InstalledForServer(client, store, name)
-		if err != nil {
-			sklog.Errorf("Failed to retrieve remote package list: %s", err)
-		}
-		ret[name] = p
+		wg.Add(1)
+		go func(name string) {
+			defer wg.Done()
+			p, err := InstalledForServer(client, store, name)
+			if err != nil {
+				sklog.Errorf("Failed to retrieve remote package list: %s", err)
+			}
+			m.Lock()
+			defer m.Unlock()
+			ret[name] = p
+		}(name)
 	}
+	wg.Wait()
 	return ret, nil
 }
 
