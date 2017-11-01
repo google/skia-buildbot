@@ -43,7 +43,7 @@ func DiffServerBase(name string) *gce.Instance {
 			Name:      fmt.Sprintf("%s-data", name),
 			SizeGb:    2000,
 			Type:      gce.DISK_TYPE_PERSISTENT_SSD,
-			MountPath: server.MOUNT_PATH_DEFAULT,
+			MountPath: gce.DISK_MOUNT_PATH_DEFAULT,
 		},
 		{
 			Name:      fmt.Sprintf("%s-data-2", name),

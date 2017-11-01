@@ -54,9 +54,10 @@ func Swarming20170731(name, serviceAccount string) *gce.Instance {
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		DataDisks: []*gce.Disk{{
-			Name:   fmt.Sprintf("%s-data", name),
-			SizeGb: 300,
-			Type:   gce.DISK_TYPE_PERSISTENT_STANDARD,
+			Name:      fmt.Sprintf("%s-data", name),
+			SizeGb:    300,
+			Type:      gce.DISK_TYPE_PERSISTENT_STANDARD,
+			MountPath: gce.DISK_MOUNT_PATH_DEFAULT,
 		}},
 		Gpu:               *gpu,
 		GSDownloads:       []*gce.GSDownload{},

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"google.golang.org/api/compute/v0.alpha"
+	compute "google.golang.org/api/compute/v0.beta"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"

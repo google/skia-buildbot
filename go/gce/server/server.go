@@ -22,8 +22,6 @@ const (
 	GS_URL_GITCONFIG               = "gs://skia-buildbots/artifacts/server/.gitconfig"
 	GS_URL_NETRC_READONLY          = "gs://skia-buildbots/artifacts/server/.netrc_git-fetch-readonly"
 	GS_URL_NETRC_READONLY_INTERNAL = "gs://skia-buildbots/artifacts/server/.netrc_git-fetch-readonly-internal"
-
-	MOUNT_PATH_DEFAULT = "/mnt/pd0"
 )
 
 var (
@@ -46,7 +44,7 @@ func Server20170928(name string) *gce.Instance {
 		},
 		DataDisks: []*gce.Disk{{
 			Name:      fmt.Sprintf("%s-data", name),
-			MountPath: MOUNT_PATH_DEFAULT,
+			MountPath: gce.DISK_MOUNT_PATH_DEFAULT,
 			SizeGb:    300,
 			Type:      gce.DISK_TYPE_PERSISTENT_STANDARD,
 		}},
