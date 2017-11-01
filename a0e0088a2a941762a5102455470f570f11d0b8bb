@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "413d2daf_0dcd1c8b",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-01T17:38:32Z",
+      "side": 1,
+      "message": "nit: assuming this is string comparison, you can call sort with no args.",
+      "range": {
+        "startLine": 110,
+        "startChar": 31,
+        "endLine": 115,
+        "endChar": 11
+      },
+      "revId": "a0e0088a2a941762a5102455470f570f11d0b8bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61e57cac_e76ff2f7",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-01T17:38:32Z",
+      "side": 1,
+      "message": "nit: I can\u0027t tell from Mozilla\u0027s docs what happens if this function returns 1 when the two are equal. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort \n\nThis might be simpler:\nfunction(a, b) {\n  return a.id.localeCompare(b.id)\n}",
+      "range": {
+        "startLine": 124,
+        "startChar": 12,
+        "endLine": 124,
+        "endChar": 20
+      },
+      "revId": "a0e0088a2a941762a5102455470f570f11d0b8bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
