@@ -92,10 +92,37 @@
           for (var taskName in job.tasks) {
             var tasks = taskData[taskName] || [];
             for (var j = 0; j < job.tasks[taskName].length; j++) {
-              tasks.push(job.tasks[taskName][j]);
+              var task = job.tasks[taskName][j];
+              var found = tasks.find(function(item) {
+                return item.id === task.id;
+              });
+              if (!found) {
+                tasks.push(task);
+              }
             }
             taskData[taskName] = tasks;
           }
+        }
+
+        // Sort the tasks and task specs for consistency.
+        var graphKeys = [];
+        for (var taskName in graph) {
+          graph[taskName].sort(function(a, b) {
+            if (a < b) {
+              return -1;
+            }
+            return 1;
+          });
+          graphKeys.push(taskName);
+        }
+        graphKeys.sort();
+        for (var taskName in taskData) {
+          taskData[taskName].sort(function(a, b) {
+            if (a.id < b.id) {
+              return -1;
+            }
+            return 1;
+          });
         }
 
         // Skip drawing the graph if taskData or graph are missing or empty. This
@@ -140,7 +167,8 @@
         };
 
         // Visit all of the nodes.
-        for (var key in graph) {
+        for (var i = 0; i < graphKeys.length; i++) {
+          var key = graphKeys[i];
           if (!visited[key]) {
             visit(key);
           }
