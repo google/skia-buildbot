@@ -247,6 +247,7 @@ func TestComputeFailureMishapRate(t *testing.T) {
 	expect := func(jobName string, metric string, numer, denom int) {
 		tester.AddAssert(map[string]string{
 			"job_name": jobName,
+			"job_type": "",
 			"metric":   metric,
 		}, float64(numer)/float64(denom))
 	}

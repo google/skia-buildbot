@@ -234,6 +234,7 @@ func computeFailureMishapRate(ev []*events.Event) ([]map[string]string, []float6
 	add := func(jobName, metric string, value float64) {
 		rvTags = append(rvTags, map[string]string{
 			"job_name": jobName,
+			"job_type": "",
 			"metric":   metric,
 		})
 		rvVals = append(rvVals, value)

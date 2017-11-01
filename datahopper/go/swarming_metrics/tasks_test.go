@@ -200,7 +200,7 @@ func TestMetrics(t *testing.T) {
 			"os":        "Ubuntu",
 			"period":    "24h0m0s",
 			"stream":    STREAM_SWARMING_TASKS,
-			"task-name": "my-task",
+			"task_name": "my-task",
 		}
 		for k := range DIMENSION_WHITELIST {
 			if _, ok := tags[k]; !ok {
