@@ -9,8 +9,8 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL}     --mode=644 -T ./sys/${SYSTEMD}             ${ROOT}/etc/systemd/system/${SYSTEMD}
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/task_scheduler ${ROOT}/usr/local/bin/task_scheduler
 ${INSTALL}     --mode=644 -T ./res/js/core.js             ${ROOT}/usr/local/share/task-scheduler/res/js/core.js

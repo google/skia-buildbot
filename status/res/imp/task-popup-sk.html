@@ -185,7 +185,7 @@
         return task.status;
       },
       _taskUrl: function(task_scheduler_url, task) {
-        if (!task || !task.name || !task_scheduler_url) {
+        if (!task || !task.id || !task_scheduler_url) {
           return "";
         }
         return this.task_scheduler_url + "/task/" + task.id;
