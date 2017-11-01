@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94bc462b_27781206",
+        "filename": "leasing/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:41:01Z",
+      "side": 1,
+      "message": "phony here too?",
+      "revId": "5d951e433663dc1d7d84f5df4e6432326226a41a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b00aa9e8_6bf92c10",
+        "filename": "leasing/build_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:41:01Z",
+      "side": 1,
+      "message": "fakeroot",
+      "range": {
+        "startLine": 12,
+        "startChar": 9,
+        "endLine": 12,
+        "endChar": 13
+      },
+      "revId": "5d951e433663dc1d7d84f5df4e6432326226a41a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6889089f_be2c2621",
+        "filename": "leasing/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:41:01Z",
+      "side": 1,
+      "message": "I\u0027m flattered :)",
+      "range": {
+        "startLine": 13,
+        "startChar": 35,
+        "endLine": 13,
+        "endChar": 43
+      },
+      "revId": "5d951e433663dc1d7d84f5df4e6432326226a41a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
