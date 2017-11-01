@@ -22,6 +22,30 @@
       "revId": "1f492133d091391d91ab27f4c5ea68f065e49425",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04ada8fd_fbcded78",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T13:37:26Z",
+      "side": 1,
+      "message": "We don\u0027t have the task creation times (only db.TaskSummary) but we can use the ID the same way. Done.  Also noticed that we iterate over the graph object which may result in inconsistent vertical ordering of tasks, so sorted that as well.",
+      "parentUuid": "2d31be02_7baf3a1f",
+      "range": {
+        "startLine": 100,
+        "startChar": 16,
+        "endLine": 100,
+        "endChar": 33
+      },
+      "revId": "1f492133d091391d91ab27f4c5ea68f065e49425",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
