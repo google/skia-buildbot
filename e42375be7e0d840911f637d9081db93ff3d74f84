@@ -22,6 +22,30 @@
       "revId": "e42375be7e0d840911f637d9081db93ff3d74f84",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7da73ac2_1965dcfb",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T17:32:16Z",
+      "side": 1,
+      "message": "Yep. Will fix in subsequent CL.",
+      "parentUuid": "a93e8208_3acf95e0",
+      "range": {
+        "startLine": 188,
+        "startChar": 22,
+        "endLine": 188,
+        "endChar": 31
+      },
+      "revId": "e42375be7e0d840911f637d9081db93ff3d74f84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
