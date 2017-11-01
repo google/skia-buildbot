@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8a569be7_63f4a8cb",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T11:31:24Z",
+      "side": 1,
+      "message": "Are we certain it\u0027s safe to return a slice of the backing array without copying?",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 82,
+        "endChar": 28
+      },
+      "revId": "73b84184b0ec88c27b11d792657e66e1b5c0296e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0310655_aee0b50f",
+        "filename": "datahopper/go/datahopper/jobs_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T11:31:24Z",
+      "side": 1,
+      "message": "Nit: If we want the custom type and constants in the tests, why not move to jobs.go and use them there as well?",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 1
+      },
+      "revId": "73b84184b0ec88c27b11d792657e66e1b5c0296e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
