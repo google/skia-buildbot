@@ -2,6 +2,7 @@ package gce
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	compute "google.golang.org/api/compute/v0.alpha"
+	compute "google.golang.org/api/compute/v0.beta"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
@@ -30,6 +31,8 @@ const (
 	// Labels can only contain lowercase letters, numbers, underscores, and dashes.
 	DATE_FORMAT     = "2006-01-02"
 	DATETIME_FORMAT = "2006-01-02_15-04-05"
+
+	DISK_MOUNT_PATH_DEFAULT = "/mnt/pd0"
 
 	DISK_SNAPSHOT_SYSTEMD_PUSHABLE_BASE = "skia-systemd-pushable-base"
 
@@ -53,6 +56,8 @@ const (
 	MAINTENANCE_POLICY_TERMINATE = "TERMINATE"
 
 	NETWORK_DEFAULT = "global/networks/default"
+
+	OPERATION_STATUS_DONE = "DONE"
 
 	OS_LINUX   = "Linux"
 	OS_WINDOWS = "Windows"
@@ -104,7 +109,7 @@ var (
 // GCloud is a struct used for creating disks and instances in GCE.
 type GCloud struct {
 	project string
-	s       *compute.Service
+	service *compute.Service
 	workdir string
 	zone    string
 }
@@ -134,7 +139,7 @@ func NewGCloudWithClient(zone, workdir string, httpClient *http.Client) (*GCloud
 
 	return &GCloud{
 		project: PROJECT_ID,
-		s:       s,
+		service: s,
 		workdir: workdir,
 		zone:    zone,
 	}, nil
@@ -142,7 +147,49 @@ func NewGCloudWithClient(zone, workdir string, httpClient *http.Client) (*GCloud
 
 // Service returns the underlying compute.Service instance.
 func (g *GCloud) Service() *compute.Service {
-	return g.s
+	return g.service
+}
+
+// waitForOperation waits for the given operation to complete. Returns an error
+// if the operation failed.
+func (g *GCloud) waitForOperation(id string, timeout time.Duration) error {
+	s := compute.NewZoneOperationsService(g.service)
+	start := time.Now()
+	for {
+		if time.Now().Sub(start) > timeout {
+			return fmt.Errorf("Operation %q did not complete within %s", id, timeout)
+		}
+		op, err := s.Get(g.project, g.zone, id).Do()
+		if err != nil {
+			return err
+		}
+		if op.Error != nil {
+			msg := fmt.Sprintf("Operation %s encountered errors:\n", id)
+			for _, err := range op.Error.Errors {
+				msg += fmt.Sprintf("[%s] %s", err.Code, err.Message)
+				if err.Location != "" {
+					msg += fmt.Sprintf(" (%s)", err.Location)
+				}
+				msg += "\n"
+			}
+			return errors.New(msg)
+		}
+		if op.Status == OPERATION_STATUS_DONE {
+			return nil
+		}
+		sklog.Infof("Waiting for %s to complete.", id)
+		time.Sleep(5 * time.Second)
+	}
+}
+
+// checkOperation waits for the given operation to complete and returns any
+// error. Convenience wrapper around waitForOperation.
+func (g *GCloud) checkOperation(op *compute.Operation, err error) error {
+	if err != nil {
+		return err
+	}
+
+	return g.waitForOperation(op.Name, maxWaitTime)
 }
 
 // Disk is a struct describing a disk resource in GCE.
@@ -195,7 +242,7 @@ func (g *GCloud) CreateDisk(disk *Disk, ignoreExists bool) error {
 			d.SourceSnapshot = fmt.Sprintf("projects/%s/global/snapshots/%s", g.project, disk.SourceSnapshot)
 		}
 	}
-	op, err := g.s.Disks.Insert(g.project, g.zone, d).Do()
+	err := g.checkOperation(g.service.Disks.Insert(g.project, g.zone, d).Do())
 	if err != nil {
 		if strings.Contains(err.Error(), errAlreadyExists) {
 			if ignoreExists {
@@ -206,8 +253,6 @@ func (g *GCloud) CreateDisk(disk *Disk, ignoreExists bool) error {
 		} else {
 			return err
 		}
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to insert disk: %v", op.Error)
 	} else {
 		if err := g.waitForDisk(disk.Name, diskStatusReady, maxWaitTime); err != nil {
 			return err
@@ -220,7 +265,7 @@ func (g *GCloud) CreateDisk(disk *Disk, ignoreExists bool) error {
 // DeleteDisk deletes the given disk.
 func (g *GCloud) DeleteDisk(name string, ignoreNotExists bool) error {
 	sklog.Infof("Deleting disk %q", name)
-	op, err := g.s.Disks.Delete(g.project, g.zone, name).Do()
+	err := g.checkOperation(g.service.Disks.Delete(g.project, g.zone, name).Do())
 	if err != nil {
 		if strings.Contains(err.Error(), errNotFound) {
 			if ignoreNotExists {
@@ -231,8 +276,6 @@ func (g *GCloud) DeleteDisk(name string, ignoreNotExists bool) error {
 		} else {
 			return fmt.Errorf("Failed to delete disk %q: %s", name, err)
 		}
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to delete disk: %v", op.Error)
 	} else {
 		if err := g.waitForDisk(name, diskStatusError, maxWaitTime); err != nil {
 			return err
@@ -245,7 +288,7 @@ func (g *GCloud) DeleteDisk(name string, ignoreNotExists bool) error {
 // ListDisks returns a list of Disks in the project.
 func (g *GCloud) ListDisks() ([]*Disk, error) {
 	disks := []*Disk{}
-	call := g.s.Disks.List(g.project, g.zone)
+	call := g.service.Disks.List(g.project, g.zone)
 	if err := call.Pages(context.Background(), func(list *compute.DiskList) error {
 		for _, d := range list.Items {
 			disk := &Disk{
@@ -289,7 +332,7 @@ func (g *GCloud) ListDisks() ([]*Disk, error) {
 
 // getDiskStatus returns the current status of the disk.
 func (g *GCloud) getDiskStatus(name string) string {
-	d, err := g.s.Disks.Get(g.project, g.zone, name).Do()
+	d, err := g.service.Disks.Get(g.project, g.zone, name).Do()
 	if err != nil {
 		return diskStatusError
 	}
@@ -535,7 +578,7 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 	for k, v := range vm.Metadata {
 		metadata = append(metadata, &compute.MetadataItems{
 			Key:   k,
-			Value: v,
+			Value: &v,
 		})
 	}
 	i := &compute.Instance{
@@ -578,7 +621,7 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 			},
 		}
 	}
-	op, err := g.s.Instances.Insert(g.project, g.zone, i).Do()
+	err := g.checkOperation(g.service.Instances.Insert(g.project, g.zone, i).Do())
 	if err != nil {
 		if strings.Contains(err.Error(), errAlreadyExists) {
 			if ignoreExists {
@@ -587,10 +630,8 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 				return fmt.Errorf("Instance %q already exists.", vm.Name)
 			}
 		} else {
-			return err
+			return fmt.Errorf("Failed to insert instance: %v", err)
 		}
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to insert instance: %v", op.Error)
 	} else {
 		if err := g.waitForInstance(vm.Name, instanceStatusRunning, maxWaitTime); err != nil {
 			return err
@@ -614,7 +655,7 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 // DeleteInstance deletes the given GCE VM instance.
 func (g *GCloud) DeleteInstance(name string, ignoreNotExists bool) error {
 	sklog.Infof("Deleting instance %q", name)
-	op, err := g.s.Instances.Delete(g.project, g.zone, name).Do()
+	err := g.checkOperation(g.service.Instances.Delete(g.project, g.zone, name).Do())
 	if err != nil {
 		if strings.Contains(err.Error(), errNotFound) {
 			if ignoreNotExists {
@@ -625,8 +666,6 @@ func (g *GCloud) DeleteInstance(name string, ignoreNotExists bool) error {
 		} else {
 			return fmt.Errorf("Failed to delete instance %q: %s", name, err)
 		}
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to delete instance: %v", op.Error)
 	} else {
 		if err := g.waitForInstance(name, instanceStatusError, maxWaitTime); err != nil {
 			return err
@@ -643,7 +682,7 @@ func (g *GCloud) IsInstanceRunning(name string) bool {
 
 // getInstanceStatus returns the current status of the instance.
 func (g *GCloud) getInstanceStatus(name string) string {
-	i, err := g.s.Instances.Get(g.project, g.zone, name).Do()
+	i, err := g.service.Instances.Get(g.project, g.zone, name).Do()
 	if err != nil {
 		return instanceStatusError
 	}
@@ -665,7 +704,7 @@ func (g *GCloud) waitForInstance(name, status string, timeout time.Duration) err
 
 // GetIpAddress obtains the IP address for the Instance.
 func (g *GCloud) GetIpAddress(vm *Instance) (string, error) {
-	inst, err := g.s.Instances.Get(g.project, g.zone, vm.Name).Do()
+	inst, err := g.service.Instances.Get(g.project, g.zone, vm.Name).Do()
 	if err != nil {
 		return "", err
 	}
@@ -753,11 +792,9 @@ func (g *GCloud) Scp(vm *Instance, src, dst string) error {
 
 // Stop stops the instance and returns when the operation completes.
 func (g *GCloud) Stop(vm *Instance) error {
-	op, err := g.s.Instances.Stop(g.project, g.zone, vm.Name).Do()
+	err := g.checkOperation(g.service.Instances.Stop(g.project, g.zone, vm.Name).Do())
 	if err != nil {
-		return err
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to stop instance: %v", op.Error)
+		return fmt.Errorf("Failed to stop instance: %s", err)
 	}
 	return g.waitForInstance(vm.Name, instanceStatusStopped, maxWaitTime)
 }
@@ -765,11 +802,9 @@ func (g *GCloud) Stop(vm *Instance) error {
 // StartWithoutReadyCheck starts the instance and returns when the instance is in RUNNING state.
 // Note: This method does not wait for the instance to be ready (ssh-able).
 func (g *GCloud) StartWithoutReadyCheck(vm *Instance) error {
-	op, err := g.s.Instances.Start(g.project, g.zone, vm.Name).Do()
+	err := g.checkOperation(g.service.Instances.Start(g.project, g.zone, vm.Name).Do())
 	if err != nil {
-		return err
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to start instance: %v", op.Error)
+		return fmt.Errorf("Failed to start instance: %s", err)
 	}
 	if err := g.waitForInstance(vm.Name, instanceStatusRunning, maxWaitTime); err != nil {
 		return err
@@ -806,7 +841,7 @@ func (g *GCloud) Reboot(vm *Instance) error {
 // IsInstanceReady returns true iff the instance is ready.
 func (g *GCloud) IsInstanceReady(vm *Instance) (bool, error) {
 	if vm.Os == OS_WINDOWS {
-		serial, err := g.s.Instances.GetSerialPortOutput(g.project, g.zone, vm.Name).Do()
+		serial, err := g.service.Instances.GetSerialPortOutput(g.project, g.zone, vm.Name).Do()
 		if err != nil {
 			return false, err
 		}
@@ -899,12 +934,12 @@ func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 	for k, v := range md {
 		items = append(items, &compute.MetadataItems{
 			Key:   k,
-			Value: v,
+			Value: &v,
 		})
 	}
 	// Retrieve the existing instance metadata fingerprint, which is
 	// required in order to update the metadata.
-	inst, err := g.s.Instances.Get(g.project, g.zone, vm.Name).Do()
+	inst, err := g.service.Instances.Get(g.project, g.zone, vm.Name).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve instance before setting metadata: %s", err)
 	}
@@ -915,11 +950,9 @@ func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 		m.Fingerprint = inst.Metadata.Fingerprint
 	}
 	// Set the metadata.
-	op, err := g.s.Instances.SetMetadata(g.project, g.zone, vm.Name, m).Do()
+	err = g.checkOperation(g.service.Instances.SetMetadata(g.project, g.zone, vm.Name, m).Do())
 	if err != nil {
 		return fmt.Errorf("Failed to set instance metadata: %s", err)
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to set instance metadata: %v", op.Error)
 	}
 	return nil
 }
@@ -1062,7 +1095,7 @@ func (g *GCloud) GetImages() ([]*compute.Image, error) {
 	rv := []*compute.Image{}
 	page := ""
 	for {
-		images, err := g.s.Images.List(g.project).PageToken(page).Do()
+		images, err := g.service.Images.List(g.project).PageToken(page).Do()
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load the list of images: %s", err)
 		}
@@ -1097,11 +1130,9 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 
 	// Set auto-delete to off for the boot disk.
 	sklog.Infof("Turning off auto-delete for %q", vm.BootDisk.Name)
-	op, err := g.s.Instances.SetDiskAutoDelete(g.project, g.zone, vm.Name, false, vm.BootDisk.Name).Do()
-	if err != nil {
+	op, err := g.service.Instances.SetDiskAutoDelete(g.project, g.zone, vm.Name, false, vm.BootDisk.Name).Do()
+	if err := g.checkOperation(op, err); err != nil {
 		return fmt.Errorf("Failed to set auto-delete on disk %q: %s", vm.BootDisk.Name, err)
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to set auto-delete on disk %q: %s", vm.BootDisk.Name, op.Error)
 	}
 	user := strings.Split(op.User, "@")[0]
 
@@ -1109,7 +1140,7 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 	started := time.Now()
 	for {
 		time.Sleep(5 * time.Second)
-		inst, err := g.s.Instances.Get(g.project, g.zone, vm.Name).Do()
+		inst, err := g.service.Instances.Get(g.project, g.zone, vm.Name).Do()
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve instance details: %s", err)
 		}
@@ -1139,7 +1170,7 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 
 	// Capture the image.
 	sklog.Infof("Capturing disk image.")
-	op, err = g.s.Images.Insert(g.project, &compute.Image{
+	err = g.checkOperation(g.service.Images.Insert(g.project, &compute.Image{
 		Description: description,
 		Family:      family,
 		Labels: map[string]string{
@@ -1148,11 +1179,9 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 		},
 		Name:       imageName,
 		SourceDisk: fmt.Sprintf("projects/%s/zones/%s/disks/%s", g.project, g.zone, vm.BootDisk.Name),
-	}).Do()
+	}).Do())
 	if err != nil {
 		return fmt.Errorf("Failed to capture image of %q: %s", vm.BootDisk.Name, err)
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to capture image of %q: %s", vm.BootDisk.Name, op.Error)
 	}
 	// Wait for the image capture to complete.
 	started = time.Now()
@@ -1177,11 +1206,9 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 
 	// Delete the boot disk.
 	sklog.Infof("Deleting disk %q", vm.BootDisk.Name)
-	op, err = g.s.Disks.Delete(g.project, g.zone, vm.BootDisk.Name).Do()
+	err = g.checkOperation(g.service.Disks.Delete(g.project, g.zone, vm.BootDisk.Name).Do())
 	if err != nil {
 		return fmt.Errorf("Failed to delete disk %q: %s", vm.BootDisk.Name, err)
-	} else if op.Error != nil {
-		return fmt.Errorf("Failed to delete disk %q: %s", vm.BootDisk.Name, op.Error)
 	}
 	sklog.Infof("Successfully captured image %q", imageName)
 	return nil
