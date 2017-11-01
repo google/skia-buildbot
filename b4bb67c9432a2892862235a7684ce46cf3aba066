@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f90f43c_33983d58",
+        "filename": "leasing/res/imp/leasing-list-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "use one-way bindings [[]] where-ever possible.  Only use {{}} when we actually care about the value we get from the binding - it helps readibility.",
+      "range": {
+        "startLine": 43,
+        "startChar": 56,
+        "endLine": 43,
+        "endChar": 58
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab7d79a3_909b7517",
+        "filename": "leasing/res/imp/leasing-list-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "Comment on why you use const here?  Why not just var?",
+      "range": {
+        "startLine": 64,
+        "startChar": 6,
+        "endLine": 64,
+        "endChar": 11
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bbdc0f9_8e565e17",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "Same comment about using [[]] vs {{}}",
+      "range": {
+        "startLine": 106,
+        "startChar": 47,
+        "endLine": 106,
+        "endChar": 49
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7944f93_6feb7f6c",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "1. that seemed unused\n2. I prefer .bind(this) to using that",
+      "range": {
+        "startLine": 226,
+        "startChar": 6,
+        "endLine": 226,
+        "endChar": 14
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cc857fe_c773faf8",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "Consider using !this.desc",
+      "range": {
+        "startLine": 237,
+        "startChar": 11,
+        "endLine": 237,
+        "endChar": 27
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f91eb74_f1e2d8f8",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "Again, why use const here instead of var?  If it\u0027s important, a comment will help.",
+      "range": {
+        "startLine": 255,
+        "startChar": 7,
+        "endLine": 255,
+        "endChar": 12
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bb4d09b_0007f5b2",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "Consider !Object.keys(newValue).length",
+      "range": {
+        "startLine": 279,
+        "startChar": 30,
+        "endLine": 279,
+        "endChar": 64
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0bf941d_b535b5af",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "{{}} -\u003e [[]] where appropriate",
+      "range": {
+        "startLine": 76,
+        "startChar": 21,
+        "endLine": 76,
+        "endChar": 23
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a290a531_70fd5d5f",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "Same comment of .bind(this) over that",
+      "range": {
+        "startLine": 137,
+        "startChar": 6,
+        "endLine": 137,
+        "endChar": 22
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "765c86fa_630ebed8",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "!task.swarmingBotId",
+      "range": {
+        "startLine": 187,
+        "startChar": 10,
+        "endLine": 187,
+        "endChar": 35
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46dd24b2_227f7264",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "either \u003d\u003d\u003d or !timestamp",
+      "range": {
+        "startLine": 219,
+        "startChar": 10,
+        "endLine": 219,
+        "endChar": 24
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6939d287_011e1c65",
+        "filename": "leasing/res/js/leasing.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:39:30Z",
+      "side": 1,
+      "message": "This is the second place we are using the alias code in the skia-buildbot repo (the other place is status-capacity).  We should really combine them so as to avoid skew.",
+      "range": {
+        "startLine": 6,
+        "startChar": 6,
+        "endLine": 6,
+        "endChar": 21
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
