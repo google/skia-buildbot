@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f88226fe_e79bf0a5",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:29:33Z",
+      "side": 1,
+      "message": "This contradicts the help text on line 60 (or appears to)",
+      "range": {
+        "startLine": 82,
+        "startChar": 66,
+        "endLine": 82,
+        "endChar": 84
+      },
+      "revId": "8ac540c88b85ec7bc750710fdfd60f93bc705286",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "992ebdce_09bfc810",
+        "filename": "leasing/go/leasing/poller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-01T20:29:33Z",
+      "side": 1,
+      "message": "These functions could use some docs.  Check out other files too.",
+      "revId": "8ac540c88b85ec7bc750710fdfd60f93bc705286",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
