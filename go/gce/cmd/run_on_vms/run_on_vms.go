@@ -18,7 +18,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/workerpool"
-	compute "google.golang.org/api/compute/v0.alpha"
+	compute "google.golang.org/api/compute/v0.beta"
 )
 
 var (
