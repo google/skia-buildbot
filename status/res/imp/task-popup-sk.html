@@ -57,6 +57,9 @@
       background-color: inherit;
       text-decoration:none;
     }
+    td {
+      padding: 5px;
+    }
   </style>
   <template>
     <div class="horizontal layout wrap">
@@ -79,11 +82,13 @@
         <td class$="[[_taskResultClass(task)]]">[[_taskResultString(task)]]</td>
       </tr>
       <tr>
+        <td>Context:</td>
+        <td><a href$="[[_taskUrl(task_scheduler_url, task)]]" target="_blank">View on Task Scheduler</a></td>
+      </tr>
+      <tr>
         <td>Other Tasks Like This:</td>
         <td>
-          <a target="_blank" rel="noopener" href$="[[swarming_url]]/tasklist?f=sk_name%3A[[task.name]]">
-            <span>view on Swarming</span>
-          </a>
+          <a target="_blank" rel="noopener" href$="[[swarming_url]]/tasklist?f=sk_name%3A[[task.name]]">View on Swarming</a>
         </td>
       </tr>
     </table>
@@ -162,6 +167,10 @@
         if (!task || !task.name || !task_scheduler_url) {
           return "";
         }
+        // TODO(borenet): This is not correct in some cases. Now that we have a
+        // link from Task to Job in the scheduler, we should be able to come up
+        // with a better way to "re-open" a failed Job, essentially resetting
+        // the attempt counts so that we can retry the failed task(s).
         var job = task.name;
         var uploadPrefix = "Upload-"
         if (job.indexOf(uploadPrefix) == 0) {
@@ -174,6 +183,12 @@
       },
       _taskResultString: function(task) {
         return task.status;
+      },
+      _taskUrl: function(task_scheduler_url, task) {
+        if (!task || !task.name || !task_scheduler_url) {
+          return "";
+        }
+        return this.task_scheduler_url + "/task/" + task.id;
       },
     });
   </script>
