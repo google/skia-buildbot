@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "21f73790_5d1691d2",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T13:14:24Z",
+      "side": 1,
+      "message": "Changed to \"service\"",
+      "parentUuid": "8dfa6909_110fe88b",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 25
+      },
+      "revId": "dfb805922a0470d7d75fe8c4fc859bb9045aa848",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "15218772_42e58d53",
         "filename": "go/gce/gce.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-11-01T13:02:25Z",
       "side": 1,
       "message": "Nits: This seems to be only used within this package, so maybe should be private until we need it in other packages? \n\nAlso could it be combined with CheckOperation below.",
+      "range": {
+        "startLine": 155,
+        "startChar": 17,
+        "endLine": 155,
+        "endChar": 33
+      },
+      "revId": "dfb805922a0470d7d75fe8c4fc859bb9045aa848",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4716426a_a47e8723",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-01T13:14:24Z",
+      "side": 1,
+      "message": "Made both WaitForOperation and CheckOperation private.  We don\u0027t use waitForOperation independently at the moment, but I could see wanting to do so at some point, which is why I left them separate.  I can combine them if you feel strongly.",
+      "parentUuid": "15218772_42e58d53",
       "range": {
         "startLine": 155,
         "startChar": 17,
