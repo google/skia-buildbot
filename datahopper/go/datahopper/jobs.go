@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -26,12 +27,25 @@ var (
 	TIME_PERIODS = []time.Duration{24 * time.Hour, 7 * 24 * time.Hour}
 )
 
+const (
+	STREAM = "job_metrics"
+)
+
+// jobTypeString is an enum of the types of Jobs that computeAvgDuration will aggregate separately.
+// The string value is the same as the job_type tag value returned by computeAvgDuration.
+type jobTypeString string
+
+const (
+	NORMAL jobTypeString = "normal"
+	FORCED jobTypeString = "forced"
+	TRYJOB jobTypeString = "tryjob"
+)
+
 // jobEventDB implements the events.EventDB interface.
 type jobEventDB struct {
-	cached  map[string][]*events.Event
-	db      db.JobReader
-	em      *events.EventMetrics
-	metrics map[string]bool // Only update() may read/write this map.
+	cached []*events.Event
+	db     db.JobReader
+	em     *events.EventMetrics
 	// Do not lock mtx when calling methods on em. Otherwise deadlock can occur.
 	// E.g. (now fixed):
 	// 1. Thread 1: EventManager.updateMetrics locks EventMetrics.mtx
@@ -63,12 +77,22 @@ func (j *jobEventDB) Insert(*events.Event) error {
 func (j *jobEventDB) Range(stream string, start, end time.Time) ([]*events.Event, error) {
 	j.mtx.Lock()
 	defer j.mtx.Unlock()
-	rv := make([]*events.Event, 0, len(j.cached[stream]))
-	for _, ev := range j.cached[stream] {
-		if !start.After(ev.Timestamp) && ev.Timestamp.Before(end) {
-			rv = append(rv, ev)
-		}
+
+	n := len(j.cached)
+	if n == 0 {
+		return []*events.Event{}, nil
 	}
+
+	first := sort.Search(n, func(i int) bool {
+		return !j.cached[i].Timestamp.Before(start)
+	})
+
+	last := first + sort.Search(n-first, func(i int) bool {
+		return !j.cached[i+first].Timestamp.Before(end)
+	})
+
+	rv := make([]*events.Event, last-first, last-first)
+	copy(rv[:], j.cached[first:last])
 	return rv, nil
 }
 
@@ -83,7 +107,7 @@ func (j *jobEventDB) update() error {
 		return fmt.Errorf("Failed to load jobs from %s to %s: %s", now.Add(-longestPeriod), now, err)
 	}
 	sklog.Debugf("jobEventDB.update: Processing %d jobs for time range %s to %s.", len(jobs), now.Add(-longestPeriod), now)
-	cached := map[string][]*events.Event{}
+	cached := make([]*events.Event, 0, len(jobs))
 	for _, job := range jobs {
 		if !job.Done() {
 			continue
@@ -93,25 +117,11 @@ func (j *jobEventDB) update() error {
 			return fmt.Errorf("Failed to encode %#v to GOB: %s", job, err)
 		}
 		ev := &events.Event{
-			Stream:    job.Name,
+			Stream:    STREAM,
 			Timestamp: job.Created,
 			Data:      buf.Bytes(),
 		}
-		cached[job.Name] = append(cached[job.Name], ev)
-
-		// TODO(borenet): Need to think about what happens when jobs are
-		// removed or renamed. As written, we'll continue to report
-		// metrics on defunct jobs until datahopper is restarted. There
-		// isn't currently a way to remove metrics from EventMetrics. If
-		// we added that, we could diff the jobs before and after and
-		// remove metrics for those we don't see in the window.
-		if !j.metrics[job.Name] {
-			s := j.em.GetEventStream(job.Name)
-			if err := addAggregates(s); err != nil {
-				return err
-			}
-			j.metrics[job.Name] = true
-		}
+		cached = append(cached, ev)
 	}
 	j.mtx.Lock()
 	defer j.mtx.Unlock()
@@ -119,85 +129,134 @@ func (j *jobEventDB) update() error {
 	return nil
 }
 
+// computeAvgDuration is an events.DynamicAggregateFn that returns metrics for average Job duration
+// for Jobs with status SUCCESS or FAILURE, given a slice of Events created by jobEventDB.update.
+// The first return value will contain the tags "job_name" (db.Job.Name) and "job_type" (one of
+// "normal", "tryjob", "forced"), and the second return value will be the corresponding average Job
+// duration. Returns an error if Event.Data can't be GOB-decoded as a db.Job.
+func computeAvgDuration(ev []*events.Event) ([]map[string]string, []float64, error) {
+	if len(ev) > 0 {
+		// ev should be ordered by timestamp
+		sklog.Debugf("Calculating avg-duration for %d jobs since %s.", len(ev), ev[0].Timestamp)
+	}
+	type sum struct {
+		count int
+		total time.Duration
+	}
+	type jobSums struct {
+		normal sum
+		tryjob sum
+		forced sum
+	}
+	byJob := map[string]*jobSums{}
+	for _, e := range ev {
+		var job db.Job
+		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
+			return nil, nil, err
+		}
+		if !(job.Status == db.JOB_STATUS_SUCCESS || job.Status == db.JOB_STATUS_FAILURE) {
+			continue
+		}
+		entry, ok := byJob[job.Name]
+		if !ok {
+			entry = &jobSums{}
+			byJob[job.Name] = entry
+		}
+		var jobSum *sum
+		if job.IsForce {
+			jobSum = &entry.forced
+		} else if job.IsTryJob() {
+			jobSum = &entry.tryjob
+		} else {
+			jobSum = &entry.normal
+		}
+		jobSum.count++
+		jobSum.total += job.Finished.Sub(job.Created)
+	}
+
+	rvTags := make([]map[string]string, 0, len(byJob)*3)
+	rvVals := make([]float64, 0, len(byJob)*3)
+	add := func(jobName string, jobType jobTypeString, jobSum sum) {
+		if jobSum.count == 0 {
+			return
+		}
+		value := float64(jobSum.total) / float64(jobSum.count)
+		rvTags = append(rvTags, map[string]string{
+			"job_name": jobName,
+			"job_type": string(jobType),
+		})
+		rvVals = append(rvVals, value)
+	}
+	for jobName, jobSums := range byJob {
+		add(jobName, NORMAL, jobSums.normal)
+		add(jobName, TRYJOB, jobSums.tryjob)
+		add(jobName, FORCED, jobSums.forced)
+	}
+	return rvTags, rvVals, nil
+}
+
+// computeAvgDuration is an events.DynamicAggregateFn that returns metrics for Job failure rate and
+// mishap rate, given a slice of Events created by jobEventDB.update. The first return value will
+// contain the tags "job_name" (db.Job.Name) and "metric" (one of "failure-rate", "mishap-rate"),
+// and the second return value will be the corresponding ratio of failed/mishap Jobs to all
+// completed Jobs. Returns an error if Event.Data can't be GOB-decoded as a db.Job.
+func computeFailureMishapRate(ev []*events.Event) ([]map[string]string, []float64, error) {
+	if len(ev) > 0 {
+		// ev should be ordered by timestamp
+		sklog.Debugf("Calculating failure-rate for %d jobs since %s.", len(ev), ev[0].Timestamp)
+	}
+	type jobSum struct {
+		fails   int
+		mishaps int
+		count   int
+	}
+	byJob := map[string]*jobSum{}
+	for _, e := range ev {
+		var job db.Job
+		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
+			return nil, nil, err
+		}
+		entry, ok := byJob[job.Name]
+		if !ok {
+			entry = &jobSum{}
+			byJob[job.Name] = entry
+		}
+		entry.count++
+		if job.Status == db.JOB_STATUS_FAILURE {
+			entry.fails++
+		} else if job.Status == db.JOB_STATUS_MISHAP {
+			entry.mishaps++
+		}
+	}
+
+	rvTags := make([]map[string]string, 0, len(byJob)*2)
+	rvVals := make([]float64, 0, len(byJob)*2)
+	add := func(jobName, metric string, value float64) {
+		rvTags = append(rvTags, map[string]string{
+			"job_name": jobName,
+			"metric":   metric,
+		})
+		rvVals = append(rvVals, value)
+	}
+	for jobName, jobSum := range byJob {
+		if jobSum.count == 0 {
+			continue
+		}
+		add(jobName, "failure-rate", float64(jobSum.fails)/float64(jobSum.count))
+		add(jobName, "mishap-rate", float64(jobSum.mishaps)/float64(jobSum.count))
+	}
+	return rvTags, rvVals, nil
+}
+
 // addAggregates adds aggregation functions for job events to the EventStream.
 func addAggregates(s *events.EventStream) error {
 	for _, period := range TIME_PERIODS {
-		// Average Job duration.
-		if err := s.AggregateMetric(map[string]string{"metric": "avg-duration"}, period, func(ev []*events.Event) (float64, error) {
-			if len(ev) > 0 {
-				// ev should be ordered by timestamp
-				sklog.Debugf("Calculating avg-duration for %s for %d jobs since %s.", ev[0].Stream, len(ev), ev[0].Timestamp)
-			}
-			count := 0
-			total := time.Duration(0)
-			for _, e := range ev {
-				var job db.Job
-				if err := gob.NewDecoder(bytes.NewBuffer(e.Data)).Decode(&job); err != nil {
-					return 0.0, err
-				}
-				if !(job.Status == db.JOB_STATUS_SUCCESS || job.Status == db.JOB_STATUS_FAILURE) {
-					continue
-				}
-				count++
-				total += job.Finished.Sub(job.Created)
-			}
-			if count == 0 {
-				return 0.0, nil
-			}
-			return float64(total) / float64(count), nil
-		}); err != nil {
+		if err := s.DynamicMetric(map[string]string{"metric": "avg-duration"}, period, computeAvgDuration); err != nil {
 			return err
 		}
 
-		// Job failure rate.
-		if err := s.AggregateMetric(map[string]string{"metric": "failure-rate"}, period, func(ev []*events.Event) (float64, error) {
-			if len(ev) > 0 {
-				// ev should be ordered by timestamp
-				sklog.Debugf("Calculating failure-rate for %s for %d jobs since %s.", ev[0].Stream, len(ev), ev[0].Timestamp)
-			}
-			count := 0
-			fails := 0
-			for _, e := range ev {
-				var job db.Job
-				if err := gob.NewDecoder(bytes.NewBuffer(e.Data)).Decode(&job); err != nil {
-					return 0.0, err
-				}
-				count++
-				if job.Status == db.JOB_STATUS_FAILURE {
-					fails++
-				}
-			}
-			if count == 0 {
-				return 0.0, nil
-			}
-			return float64(fails) / float64(count), nil
-		}); err != nil {
-			return err
-		}
-
-		// Job mishap rate.
-		if err := s.AggregateMetric(map[string]string{"metric": "mishap-rate"}, period, func(ev []*events.Event) (float64, error) {
-			if len(ev) > 0 {
-				// ev should be ordered by timestamp
-				sklog.Debugf("Calculating mishap-rate for %s for %d jobs since %s.", ev[0].Stream, len(ev), ev[0].Timestamp)
-			}
-			count := 0
-			mishap := 0
-			for _, e := range ev {
-				var job db.Job
-				if err := gob.NewDecoder(bytes.NewBuffer(e.Data)).Decode(&job); err != nil {
-					return 0.0, err
-				}
-				count++
-				if job.Status == db.JOB_STATUS_MISHAP {
-					mishap++
-				}
-			}
-			if count == 0 {
-				return 0.0, nil
-			}
-			return float64(mishap) / float64(count), nil
-		}); err != nil {
+		// Job failure/mishap rate.
+		if err := s.DynamicMetric(nil, period, computeFailureMishapRate); err != nil {
 			return err
 		}
 	}
@@ -211,15 +270,20 @@ func StartJobMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
 		return err
 	}
 	edb := &jobEventDB{
-		cached:  map[string][]*events.Event{},
-		db:      db,
-		metrics: map[string]bool{},
+		cached: []*events.Event{},
+		db:     db,
 	}
 	em, err := events.NewEventMetrics(edb, "job_metrics")
 	if err != nil {
 		return err
 	}
 	edb.em = em
+
+	s := em.GetEventStream(STREAM)
+	if err := addAggregates(s); err != nil {
+		return err
+	}
+
 	lv := metrics2.NewLiveness("last_successful_job_metrics_update")
 	go util.RepeatCtx(5*time.Minute, ctx, func() {
 		if err := edb.update(); err != nil {
