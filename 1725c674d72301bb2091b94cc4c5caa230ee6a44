@@ -34,6 +34,24 @@
       "revId": "1725c674d72301bb2091b94cc4c5caa230ee6a44",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "459e29d7_f80683cc",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-01T17:44:03Z",
+      "side": 1,
+      "message": "Not sure what you mean -- maybe you can just send a CL?",
+      "parentUuid": "28fb96b2_b1b2022b",
+      "revId": "1725c674d72301bb2091b94cc4c5caa230ee6a44",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
