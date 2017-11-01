@@ -2,6 +2,7 @@ package blame
 
 import (
 	"sort"
+	"sync"
 
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
@@ -21,6 +22,7 @@ type Blamer struct {
 	// testBlameLists are the blamelists keyed by testName and digest.
 	testBlameLists map[string]map[string]*BlameDistribution
 	storages       *storage.Storage
+	mutex          sync.Mutex
 }
 
 // BlameDistribution contains a rough estimation of the probabilities that
@@ -61,6 +63,8 @@ func New(storages *storage.Storage) *Blamer {
 }
 
 func (b *Blamer) GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*tiling.Commit) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	return b.testBlameLists, b.commits
 }
 
@@ -239,6 +243,8 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 	}
 
 	// Swap out the old blame lists for the new ones.
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
 	b.testBlameLists, b.commits = ret, commits
 	return nil
 }
