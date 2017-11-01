@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dfa6909_110fe88b",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-01T13:02:25Z",
+      "side": 1,
+      "message": "Super-nit: \u0027s\u0027 is not a good name, it makes reading code harder IMO. All other names in this type are still short, but descriptive.",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 25
+      },
+      "revId": "dfb805922a0470d7d75fe8c4fc859bb9045aa848",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15218772_42e58d53",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-01T13:02:25Z",
+      "side": 1,
+      "message": "Nits: This seems to be only used within this package, so maybe should be private until we need it in other packages? \n\nAlso could it be combined with CheckOperation below.",
+      "range": {
+        "startLine": 155,
+        "startChar": 17,
+        "endLine": 155,
+        "endChar": 33
+      },
+      "revId": "dfb805922a0470d7d75fe8c4fc859bb9045aa848",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
