@@ -4,7 +4,7 @@ package taskname
 
 var SCHEMA_FROM_GIT = map[string][]string{
 	"Build":       {"os", "compiler", "target_arch", "configuration"},
-	"Calmbench":   {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration"},
+	"Calmbench":   {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
 	"Canary":      {"project", "os", "compiler", "target_arch", "configuration"},
 	"Housekeeper": {"frequency"},
 	"Infra":       {"frequency"},
