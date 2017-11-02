@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -123,7 +124,17 @@ func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx conte
 	lv := metrics2.NewLiveness("last_successful_autoroll_tick")
 	go util.RepeatCtx(tickFrequency, ctx, func() {
 		if err := r.Tick(); err != nil {
-			sklog.Errorf("Failed to run autoroll: %s", err)
+			// Hack: we frequently get failures from GoB which trigger error-rate alerts.
+			// These alerts are noise and sometimes hide real failures. If the error is
+			// due to a sync failure, log it as a warning instead of an error. We'll rely
+			// on the liveness alert in the case where we see persistent sync failures.
+			if strings.Contains(err.Error(), "Invalid revision range") ||
+				strings.Contains(err.Error(), "The remote end hung up unexpectedly") ||
+				strings.Contains(err.Error(), "remote error: internal server error") {
+				sklog.Warningf("Failed to run autoroll: %s", err)
+			} else {
+				sklog.Errorf("Failed to run autoroll: %s", err)
+			}
 		} else {
 			lv.Reset()
 		}
