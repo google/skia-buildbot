@@ -7,7 +7,9 @@ import (
 
 func Prod() *gce.Instance {
 	vm := server.Server20170928("skia-leasing")
-	vm.DataDisks = nil
+	vm.DataDisks[0].SizeGb = 100
+	vm.DataDisks[0].MountPath = "/mnt/pd0"
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_2
 	vm.Metadata["owner_primary"] = "rmistry"
 	vm.Metadata["owner_secondary"] = "kjlubick"

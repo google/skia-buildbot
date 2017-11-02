@@ -7,6 +7,7 @@ After=network-online.target
 ExecStart=/usr/local/bin/leasing \
     --workdir=/mnt/pd0 \
     --host=leasing.skia.org \
+    --resources_dir=/usr/local/share/leasingd/ \
     --logtostderr
 Restart=always
 User=default
