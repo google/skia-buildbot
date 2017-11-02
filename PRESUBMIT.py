@@ -81,7 +81,6 @@ def _CheckBannedGoAPIs(input_api, output_api):
   # that API.
   banned_replacements = [
     (r'\breflect\.DeepEqual\b', 'DeepEqual in go.skia.org/infra/go/testutils'),
-    (r'\bassert\.Equal\b', 'AssertDeepEqual in go.skia.org/infra/go/testutils'),
     (r'\bgithub\.com/golang/glog\b', 'go.skia.org/infra/go/sklog'),
     (r'\bgithub\.com/skia-dev/glog\b', 'go.skia.org/infra/go/sklog'),
     (r'\bhttp\.Get\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
