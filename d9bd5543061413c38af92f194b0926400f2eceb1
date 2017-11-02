@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "01493e82_1b79a8e0",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T18:56:11Z",
+      "side": 1,
+      "message": "Don\u0027t const normally look like BACKING_FILE and BUSY_FILE ?",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 12
+      },
+      "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38a65eb8_2a886a04",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T18:56:11Z",
+      "side": 1,
+      "message": "How do we fix this when we see this error?",
+      "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
