@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d4bd9f34_15b03c62",
+        "filename": "leasing/res/imp/leasing-list-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f90f43c_33983d58",
+      "range": {
+        "startLine": 43,
+        "startChar": 56,
+        "endLine": 43,
+        "endChar": 58
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ab7d79a3_909b7517",
         "filename": "leasing/res/imp/leasing-list-sk.html",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f696805_67baa968",
+        "filename": "leasing/res/imp/leasing-list-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Gerrit JS readability said not to use vars and to use const or let instead. I do not really have a preference, changed to var to be consistent with what we use in other places.",
+      "parentUuid": "ab7d79a3_909b7517",
+      "range": {
+        "startLine": 64,
+        "startChar": 6,
+        "endLine": 64,
+        "endChar": 11
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3599eb35_50d6f725",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7bbdc0f9_8e565e17",
+      "range": {
+        "startLine": 106,
+        "startChar": 47,
+        "endLine": 106,
+        "endChar": 49
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c7944f93_6feb7f6c",
         "filename": "leasing/res/imp/leasing-selections-sk.html",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d78f391e_21569603",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7944f93_6feb7f6c",
+      "range": {
+        "startLine": 226,
+        "startChar": 6,
+        "endLine": 226,
+        "endChar": 14
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7cb56752_c2c4e125",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8cc857fe_c773faf8",
+      "range": {
+        "startLine": 237,
+        "startChar": 11,
+        "endLine": 237,
+        "endChar": 27
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5f91eb74_f1e2d8f8",
         "filename": "leasing/res/imp/leasing-selections-sk.html",
         "patchSetId": 1
@@ -137,6 +257,30 @@
       "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1c2d3c4_94ce5fc6",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5f91eb74_f1e2d8f8",
+      "range": {
+        "startLine": 255,
+        "startChar": 7,
+        "endLine": 255,
+        "endChar": 12
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "f6bb5f85_91b70068",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4bb4d09b_0007f5b2",
+      "range": {
+        "startLine": 279,
+        "startChar": 30,
+        "endLine": 279,
+        "endChar": 64
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a0bf941d_b535b5af",
         "filename": "leasing/res/imp/leasing-task-sk.html",
         "patchSetId": 1
@@ -183,6 +351,30 @@
       "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00535b2b_9c6d7d21",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0bf941d_b535b5af",
+      "range": {
+        "startLine": 76,
+        "startChar": 21,
+        "endLine": 76,
+        "endChar": 23
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "536efcba_e493e111",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a290a531_70fd5d5f",
+      "range": {
+        "startLine": 137,
+        "startChar": 6,
+        "endLine": 137,
+        "endChar": 22
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "765c86fa_630ebed8",
         "filename": "leasing/res/imp/leasing-task-sk.html",
         "patchSetId": 1
@@ -229,6 +445,30 @@
       "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6506d906_d49f6b6f",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "765c86fa_630ebed8",
+      "range": {
+        "startLine": 187,
+        "startChar": 10,
+        "endLine": 187,
+        "endChar": 35
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "d607f262_88c3ec70",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46dd24b2_227f7264",
+      "range": {
+        "startLine": 219,
+        "startChar": 10,
+        "endLine": 219,
+        "endChar": 24
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6939d287_011e1c65",
         "filename": "leasing/res/js/leasing.js",
         "patchSetId": 1
@@ -275,6 +539,30 @@
       "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ba0c93f_9a471fa5",
+        "filename": "leasing/res/js/leasing.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:13:57Z",
+      "side": 1,
+      "message": "Added a TODO. Will think about the best way to accomplish this.",
+      "parentUuid": "6939d287_011e1c65",
+      "range": {
+        "startLine": 6,
+        "startChar": 6,
+        "endLine": 6,
+        "endChar": 21
+      },
+      "revId": "b4bb67c9432a2892862235a7684ce46cf3aba066",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
