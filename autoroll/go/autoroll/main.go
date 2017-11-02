@@ -22,6 +22,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/webhook"
@@ -29,6 +30,7 @@ import (
 	"go.skia.org/infra/autoroll/go/google3"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
@@ -62,6 +64,8 @@ var (
 	resourcesDir    = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	sheriff         = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
 	strategy        = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
+	throttleCount   = flag.Int64("throttle_count", 0, "Maximum number of attempts before throttling.")
+	throttleTime    = flag.String("throttle_time", "", "Time window for throttle attempts, eg. \"30m\" or \"1h10m\"")
 	useMetadata     = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir         = flag.String("workdir", ".", "Directory to use for scratch work.")
 	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
@@ -383,14 +387,25 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	var tc *state_machine.ThrottleConfig
+	if *throttleTime != "" && *throttleCount != 0 {
+		parsed, err := human.ParseDuration(*throttleTime)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		tc = &state_machine.ThrottleConfig{
+			AttemptCount: *throttleCount,
+			TimeWindow:   parsed,
+		}
+	}
 	if *rollIntoAndroid {
-		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps, serverURL)
+		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps, serverURL, tc)
 	} else if *rollIntoGoogle3 {
 		arb, err = google3.NewAutoRoller(*workdir, common.REPO_SKIA, *childBranch)
 	} else if *useManifest {
-		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, serverURL)
+		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, serverURL, tc)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars, serverURL)
+		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars, serverURL, tc)
 	}
 	if err != nil {
 		sklog.Fatal(err)
