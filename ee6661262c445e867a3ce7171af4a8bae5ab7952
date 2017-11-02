@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da57fb83_e505ad85",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T15:16:28Z",
+      "side": 1,
+      "message": "\"Eg: {example of what this looks like}\"",
+      "range": {
+        "startLine": 68,
+        "startChar": 87,
+        "endLine": 68,
+        "endChar": 88
+      },
+      "revId": "ee6661262c445e867a3ce7171af4a8bae5ab7952",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
