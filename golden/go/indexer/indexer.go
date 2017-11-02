@@ -211,10 +211,10 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	}
 
 	// When the expecations change, update the blamer and its dependents.
-	expCh := make(chan []string)
+	expCh := make(chan map[string]types.TestClassification)
 	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
-		expCh <- e.([]string)
+		expCh <- e.(map[string]types.TestClassification)
 	})
 
 	// Keep building indices as tiles become available and expecations change.
@@ -234,7 +234,9 @@ func (ixr *Indexer) start(interval time.Duration) error {
 			for !done {
 				select {
 				case tn := <-expCh:
-					testNames = append(testNames, tn...)
+					for testName := range tn {
+						testNames = append(testNames, testName)
+					}
 				default:
 					done = true
 				}
@@ -291,7 +293,7 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 	defer ixr.mutex.Unlock()
 	ixr.lastIndex = newIndex
 	if ixr.storages.EventBus != nil {
-		ixr.storages.EventBus.Publish(EV_INDEX_UPDATED, state)
+		ixr.storages.EventBus.Publish(EV_INDEX_UPDATED, state, false)
 	}
 	return nil
 }
