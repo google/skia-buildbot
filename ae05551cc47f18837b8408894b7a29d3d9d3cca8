@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "99e8a550_c34b0ecc",
+        "filename": "fuzzer/go/storage/client.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-02T16:32:27Z",
+      "side": 1,
+      "message": "This totally fine, but in some cases preferable. But you could also do \nwg.Add(processes)\nbefore the loop.",
+      "range": {
+        "startLine": 112,
+        "startChar": 2,
+        "endLine": 112,
+        "endChar": 11
+      },
+      "revId": "ae05551cc47f18837b8408894b7a29d3d9d3cca8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c74b017e_fa3bb5ad",
+        "filename": "fuzzer/go/storage/client.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-02T16:32:27Z",
+      "side": 1,
+      "message": "IMO this would also create a data race instead you should use the return value of the AddInt32 call above, which is the new value of completedCounter.",
+      "range": {
+        "startLine": 157,
+        "startChar": 2,
+        "endLine": 157,
+        "endChar": 33
+      },
+      "revId": "ae05551cc47f18837b8408894b7a29d3d9d3cca8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
