@@ -415,10 +415,17 @@ ALERT AutoRollLatency
   }
 
 ALERT AutoRollErrorRate
-  IF rate(num_log_lines{level="ERROR",log_source="autoroll"}[10m]) > 0.001
+  IF rate(num_log_lines{level="ERROR",log_source="autoroll"}[1h]) > 0.001
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate."
+  }
+
+ALERT AutoRollLastTransition
+  IF liveness_last_successful_autoroll_tick_s > 10*60
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    description = "Autoroll on {{ $labels.instance }} has failed to transition for more than 10 minutes. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}"
   }
 
 # Gold
