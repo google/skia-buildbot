@@ -70,6 +70,7 @@ func (g *fuzzerclient) DeleteAllFilesInFolder(folder string, processes int) erro
 	var wg sync.WaitGroup
 	toDelete := make(chan string, 1000)
 	for i := 0; i < processes; i++ {
+		wg.Add(1)
 		go g.deleteHelper(&wg, toDelete, &errCount)
 	}
 	del := func(item *storage.ObjectAttrs) {
@@ -90,7 +91,6 @@ func (g *fuzzerclient) DeleteAllFilesInFolder(folder string, processes int) erro
 // deleteHelper spins and waits for work to come in on the toDelete channel.  When it does, it
 // uses the storage client to delete the file from the given bucket.
 func (g *fuzzerclient) deleteHelper(wg *sync.WaitGroup, toDelete <-chan string, errCount *int32) {
-	wg.Add(1)
 	defer wg.Done()
 	for file := range toDelete {
 		if err := g.DeleteFile(context.Background(), file); err != nil {
@@ -109,6 +109,7 @@ func (g *fuzzerclient) DownloadAllFuzzes(downloadPath, category, revision, archi
 	var wg sync.WaitGroup
 	toDownload := make(chan string, 1000)
 	for i := 0; i < processes; i++ {
+		wg.Add(1)
 		go g.downloadHelper(toDownload, downloadPath, &wg, &completedCount)
 	}
 	fuzzPaths := []string{}
@@ -138,7 +139,6 @@ func (g *fuzzerclient) DownloadAllFuzzes(downloadPath, category, revision, archi
 // them to downloadPath.  When it is done (on error or when the channel is closed), it signals to
 // the WaitGroup that it is done. It also logs the progress on downloading the fuzzes.
 func (g *fuzzerclient) downloadHelper(toDownload <-chan string, downloadPath string, wg *sync.WaitGroup, completedCounter *int32) {
-	wg.Add(1)
 	defer wg.Done()
 	for file := range toDownload {
 		hash := file[strings.LastIndex(file, "/")+1:]
@@ -153,9 +153,9 @@ func (g *fuzzerclient) downloadHelper(toDownload <-chan string, downloadPath str
 				sklog.Warningf("Problem writing fuzz to %s, continuing anyway: %s", onDisk, err)
 			}
 		}
-		atomic.AddInt32(completedCounter, 1)
-		if *completedCounter%100 == 0 {
-			sklog.Infof("%d fuzzes downloaded", *completedCounter)
+		i := atomic.AddInt32(completedCounter, 1)
+		if i%100 == 0 {
+			sklog.Infof("%d fuzzes downloaded", i)
 		}
 	}
 }
