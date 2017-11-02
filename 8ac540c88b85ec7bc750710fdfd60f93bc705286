@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "63dc606c_b8bac4ef",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:51:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f88226fe_e79bf0a5",
+      "range": {
+        "startLine": 82,
+        "startChar": 66,
+        "endLine": 82,
+        "endChar": 84
+      },
+      "revId": "8ac540c88b85ec7bc750710fdfd60f93bc705286",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "992ebdce_09bfc810",
         "filename": "leasing/go/leasing/poller.go",
         "patchSetId": 3
@@ -39,6 +63,24 @@
       "revId": "8ac540c88b85ec7bc750710fdfd60f93bc705286",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70672c82_214e2987",
+        "filename": "leasing/go/leasing/poller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T13:51:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "992ebdce_09bfc810",
+      "revId": "8ac540c88b85ec7bc750710fdfd60f93bc705286",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
