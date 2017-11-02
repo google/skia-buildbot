@@ -1287,3 +1287,28 @@ server {
     server_name coverage.skia.org;
     return 301 https://coverage.skia.org$request_uri;
 }
+
+#####   leasing.skia.org   ###########################
+server {
+    listen      443;
+    server_name leasing.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/leasing.access.log;
+    error_log /var/log/nginx/leasing.error.log error;
+
+    location / {
+        proxy_pass https://skia-leasing-8002-proxy.skia.org;
+    }
+
+    location /_/get_task_status {
+        proxy_pass http://skia-leasing:8002/_/get_task_status;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name leasing.skia.org;
+    return 301 https://leasing.skia.org$request_uri;
+}
