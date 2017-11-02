@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a debian package for leasing.
+APPNAME=leasingd
+DESCRIPTION="Leasing Server for Swarming Bots"
+SYSTEMD=${APPNAME}.service
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=755 -T ${GOPATH}/bin/leasing ${ROOT}/usr/local/bin/leasing
+}
+
+source ../bash/release.sh
