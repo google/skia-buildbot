@@ -141,6 +141,31 @@
       "revId": "ae05551cc47f18837b8408894b7a29d3d9d3cca8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f4b8fe8e_e3edcb1a",
+        "filename": "fuzzer/go/storage/client.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2017-11-02T16:54:13Z",
+      "side": 1,
+      "message": "On Thu, Nov 2, 2017 at 12:52 PM Mike Klein (Gerrit) \u003c\u003e wrote:",
+      "parentUuid": "0bda0b8e_0c30ac81",
+      "range": {
+        "startLine": 157,
+        "startChar": 2,
+        "endLine": 157,
+        "endChar": 33
+      },
+      "tag": "mailMessageId\u003d\u003cCAD\u003dHvMtLp-WQqndSgNEVb+Z6R4C9igYx-FG7Un+1twTdQ\u003dtZiw@mail.gmail.com\u003e",
+      "revId": "ae05551cc47f18837b8408894b7a29d3d9d3cca8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
