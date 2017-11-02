@@ -1,0 +1,467 @@
+/*
+	Leasing Server for Swarming Bots.
+*/
+
+package main
+
+import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"html/template"
+	"net/http"
+	"os/user"
+	"path/filepath"
+	"runtime"
+	"sort"
+	"strconv"
+	"time"
+
+	"github.com/gorilla/mux"
+	"google.golang.org/api/iterator"
+
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
+)
+
+const (
+	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
+	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
+
+	MAX_LEASE_DURATION_HRS = 23
+
+	SWARMING_HARD_TIMEOUT = 24 * time.Hour
+
+	LEASE_TASK_PRIORITY = 50
+
+	MY_LEASES_URI         = "/my_leases"
+	ALL_LEASES_URI        = "/all_leases"
+	GET_TASK_STATUS_URI   = "/_/get_task_status"
+	POOL_DETAILS_POST_URI = "/_/pooldetails"
+	ADD_TASK_POST_URI     = "/_/add_leasing_task"
+	EXTEND_TASK_POST_URI  = "/_/extend_leasing_task"
+	EXPIRE_TASK_POST_URI  = "/_/expire_leasing_task"
+	PROD_URI              = "https://leasing.skia.org"
+)
+
+var (
+	// Flags
+	host         = flag.String("host", "localhost", "HTTP service host")
+	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	port         = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	workdir      = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
+	pollInterval = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
+
+	// Datastore params
+	namespace   = flag.String("namespace", "leasing-server", "The Cloud Datastore namespace, such as 'leasing-server'.")
+	projectName = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
+
+	// OAUTH params
+	authWhiteList = flag.String("auth_whitelist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
+	redirectURL   = flag.String("redirect_url", "https://leasing.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+
+	// indexTemplate is the main index.html page we serve.
+	indexTemplate *template.Template = nil
+
+	// leasesListTemplate is the page we serve on the my-leases and all-leases pages.
+	leasesListTemplate *template.Template = nil
+
+	serverURL string
+)
+
+func reloadTemplates() {
+	if *resourcesDir == "" {
+		// If resourcesDir is not specified then consider the directory two directories up from this
+		// source file as the resourcesDir.
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+	}
+	indexTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	leasesListTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/leases_list.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
+	return
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		reloadTemplates()
+	}
+	w.Header().Set("Content-Type", "text/html")
+
+	if err := indexTemplate.Execute(w, nil); err != nil {
+		httputils.ReportError(w, r, err, "Failed to expand template")
+		return
+	}
+	return
+}
+
+type Status struct {
+	TaskId  int64
+	Expired bool
+}
+
+func statusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	taskParam := r.FormValue("task")
+	if taskParam == "" {
+		httputils.ReportError(w, r, nil, "Missing task parameter")
+		return
+	}
+	taskID, err := strconv.ParseInt(taskParam, 10, 64)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid task parameter")
+		return
+	}
+
+	k, t, err := GetDSTask(taskID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not find task")
+		return
+	}
+
+	status := Status{
+		TaskId:  k.ID,
+		Expired: t.Done,
+	}
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode JSON")
+		return
+
+	}
+
+	return
+}
+
+func poolDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	poolParam := r.FormValue("pool")
+	if poolParam == "" {
+		httputils.ReportError(w, r, nil, "Missing pool parameter")
+		return
+	}
+	poolDetails, err := GetPoolDetails(poolParam)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Error getting pool details from swarming: %v", err))
+		return
+	}
+	fmt.Println(poolDetails)
+	if err := json.NewEncoder(w).Encode(poolDetails); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
+type Task struct {
+	Requester          string    `json:"requester"`
+	OsType             string    `json:"osType"`
+	DeviceType         string    `json:"deviceType"`
+	InitialDurationHrs string    `json:"duration"`
+	Created            time.Time `json:"created"`
+	LeaseStartTime     time.Time `json:"leaseStartTime"`
+	LeaseEndTime       time.Time `json:"leaseEndTime"`
+	Description        string    `json:"description"`
+	Done               bool      `json:"done"`
+	WarningSent        bool      `json:"warningSent"`
+
+	SwarmingPool      string `json:"pool"`
+	SwarmingBotId     string `json:"botId"`
+	SwarmingServer    string `json:"swarmingServer"`
+	SwarmingTaskId    string `json:"swarmingTaskId"`
+	SwarmingTaskState string `json:"swarmingTaskState"`
+
+	DatastoreId int64 `json:"datastoreId"`
+}
+
+type sortTasks []*Task
+
+func (a sortTasks) Len() int      { return len(a) }
+func (a sortTasks) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a sortTasks) Less(i, j int) bool {
+	return a[i].Created.After(a[j].Created)
+}
+
+func getLeasingTasks(filterUser string) ([]*Task, error) {
+	tasks := []*Task{}
+	it := GetAllDSTasks(filterUser)
+	for {
+		t := &Task{}
+		k, err := it.Next(t)
+		if err == iterator.Done {
+			fmt.Println("Iterator is done")
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+		t.DatastoreId = k.ID
+		tasks = append(tasks, t)
+	}
+	sort.Sort(sortTasks(tasks))
+
+	return tasks, nil
+}
+
+func leasesHandlerHelper(w http.ResponseWriter, r *http.Request, filterUser string) {
+	if *local {
+		reloadTemplates()
+	}
+	w.Header().Set("Content-Type", "text/html")
+
+	tasks, err := getLeasingTasks(filterUser)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to expand template")
+		return
+	}
+
+	var templateTasks = struct {
+		Tasks []*Task
+	}{
+		Tasks: tasks,
+	}
+	if err := leasesListTemplate.Execute(w, templateTasks); err != nil {
+		httputils.ReportError(w, r, err, "Failed to expand template")
+		return
+	}
+	return
+}
+
+func myLeasesHandler(w http.ResponseWriter, r *http.Request) {
+	leasesHandlerHelper(w, r, login.LoggedInAs(r))
+}
+
+func allLeasesHandler(w http.ResponseWriter, r *http.Request) {
+	leasesHandlerHelper(w, r, "" /* filterUser */)
+}
+
+func extendTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	taskParam := r.FormValue("task")
+	if taskParam == "" {
+		httputils.ReportError(w, r, nil, "Missing task parameter")
+		return
+	}
+	taskID, err := strconv.ParseInt(taskParam, 10, 64)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid task parameter")
+		return
+	}
+
+	durationParam := r.FormValue("duration")
+	if durationParam == "" {
+		httputils.ReportError(w, r, nil, "Missing duration parameter")
+		return
+	}
+	durationHrs, err := strconv.Atoi(durationParam)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to parse %s", durationParam))
+		return
+	}
+
+	k, t, err := GetDSTask(taskID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not find task")
+		return
+	}
+
+	// Add duration hours to the task's lease end time only if ends up being
+	// less than 23 hours after the task's creation time.
+	newLeaseEndTime := t.LeaseEndTime.Add(time.Hour * time.Duration(durationHrs))
+	maxPossibleLeaseEndTime := t.Created.Add(time.Hour * time.Duration(MAX_LEASE_DURATION_HRS))
+	if newLeaseEndTime.After(maxPossibleLeaseEndTime) {
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Can not extend lease beyond %d hours of the task creation time", MAX_LEASE_DURATION_HRS))
+		return
+	}
+
+	// Change the lease end time.
+	t.LeaseEndTime = newLeaseEndTime
+	// Reset the warning sent flag since the lease has been extended.
+	t.WarningSent = false
+	if _, err := UpdateDSTask(k, t); err != nil {
+		httputils.ReportError(w, r, err, "Error updating task in datastore")
+		return
+	}
+}
+
+func expireTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	taskParam := r.FormValue("task")
+	if taskParam == "" {
+		httputils.ReportError(w, r, nil, "Missing task parameter")
+		return
+	}
+	taskID, err := strconv.ParseInt(taskParam, 10, 64)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid task parameter")
+		return
+	}
+
+	k, t, err := GetDSTask(taskID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not find task")
+		return
+	}
+
+	// Change the task to Done and change the lease end time to now.
+	t.LeaseEndTime = time.Now()
+	t.Done = true
+	if _, err := UpdateDSTask(k, t); err != nil {
+		httputils.ReportError(w, r, err, "Error updating task in datastore")
+		return
+	}
+}
+
+func addTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	task := &Task{}
+	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add %T task", task))
+		return
+	}
+	defer util.Close(r.Body)
+
+	key := GetNewDSKey()
+	// Populate deviceType only if Android is the osType.
+	if task.OsType != "Android" {
+		task.DeviceType = ""
+	}
+	// Add the username of the requester.
+	task.Requester = login.LoggedInAs(r)
+	// Add the created time.
+	task.Created = time.Now()
+
+	// Trigger the swarming task.
+	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(key.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, serverURL)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Error when triggering swarming task: %v", err))
+		return
+	}
+
+	// Populate the swarming fields in the struct.
+	swarmingInstance := GetSwarmingInstance(task.SwarmingPool)
+	task.SwarmingServer = swarmingInstance.SwarmingServer
+	task.SwarmingTaskId = swarmingTaskId
+	task.SwarmingTaskState = swarming.TASK_STATE_PENDING
+
+	datastoreKey, err := PutDSTask(key, task)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Error putting task in datastore: %v", err))
+		return
+
+	}
+	sklog.Infof("Added %v task into the datastore with key %s", task, datastoreKey)
+}
+
+func runServer() {
+	r := mux.NewRouter()
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
+
+	r.HandleFunc("/", indexHandler)
+	r.HandleFunc(MY_LEASES_URI, myLeasesHandler)
+	r.HandleFunc(ALL_LEASES_URI, allLeasesHandler)
+	r.HandleFunc(GET_TASK_STATUS_URI, statusHandler)
+	r.HandleFunc(POOL_DETAILS_POST_URI, poolDetailsHandler).Methods("POST")
+	r.HandleFunc(ADD_TASK_POST_URI, addTaskHandler).Methods("POST")
+	r.HandleFunc(EXTEND_TASK_POST_URI, extendTaskHandler).Methods("POST")
+	r.HandleFunc(EXPIRE_TASK_POST_URI, expireTaskHandler).Methods("POST")
+
+	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
+	r.HandleFunc("/login/", loginHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	sklog.Infof("Ready to serve on %s", serverURL)
+	sklog.Fatal(http.ListenAndServe(*port, nil))
+}
+
+func main() {
+	flag.Parse()
+	defer common.LogPanic()
+
+	if *local {
+		// Dont log to cloud or use cached templates in local mode.
+		common.InitWithMust(
+			"leasing",
+			common.PrometheusOpt(promPort),
+		)
+		reloadTemplates()
+	} else {
+		common.InitWithMust(
+			"leasing",
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingOpt(),
+		)
+	}
+
+	v, err := skiaversion.GetVersion()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+
+	reloadTemplates()
+	serverURL = "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
+	}
+
+	// Initialize mailing library.
+	usr, err := user.Current()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := MailInit(filepath.Join(usr.HomeDir, "email.data")); err != nil {
+		sklog.Fatalf("Failed to init mail library: %s", err)
+	}
+
+	useRedirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	if !*local {
+		useRedirectURL = *redirectURL
+	}
+	if err := login.Init(useRedirectURL, *authWhiteList); err != nil {
+		sklog.Fatal(fmt.Errorf("Problem setting up server OAuth: %s", err))
+	}
+
+	// Initialize isolate and swarming.
+	if err := SwarmingInit(); err != nil {
+		sklog.Fatalf("Failed to init isolate and swarming: %s", err)
+	}
+
+	// Initialize cloud datastore.
+	if err := DatastoreInit(*projectName, *namespace); err != nil {
+		sklog.Fatalf("Failed to init cloud datastore: %s", err)
+	}
+
+	healthyGauge := metrics2.GetInt64Metric("healthy")
+	go func() {
+		for range time.Tick(*pollInterval) {
+			healthyGauge.Update(1)
+			if err := pollSwarmingTasks(); err != nil {
+				sklog.Errorf("Error when checking for expired tasks: %v", err)
+			}
+		}
+	}()
+
+	runServer()
+}
