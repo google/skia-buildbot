@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c834f75e_b2484b39",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-02T19:11:31Z",
+      "side": 1,
+      "message": "Yeah, I wanted them to be private though.  I could do bACKING_FILE and bUSY_FILE if you want :P",
+      "parentUuid": "01493e82_1b79a8e0",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 12
+      },
+      "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "38a65eb8_2a886a04",
         "filename": "go/state_machine/state_machine.go",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2017-11-02T18:56:11Z",
       "side": 1,
       "message": "How do we fix this when we see this error?",
+      "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f0d97a1_20a0ff45",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-02T19:11:31Z",
+      "side": 1,
+      "message": "Manually remove the file, after investigating and fixing anything that needs fixing.  In the case which inspired this change, I had to delete the recent rolls DB.  If I\u0027d noticed in time, manually setting the state to \"active\" might have fixed it too.  The idea here is just to detect that we may be in an undefined \"in-between\" state and someone needs to take a look.  I\u0027m hoping this will be really rare, but I guess with some slower transitions (eg. syncing repos) we may see this more often.  In that case we may need to automate a way out of this.  But for now I want it to be a manual investigate+fix process.",
+      "parentUuid": "38a65eb8_2a886a04",
       "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
