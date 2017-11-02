@@ -26,6 +26,7 @@ const (
 	TEST_N_DIGESTS = 20
 
 	// Prefix for the image url handler.
+	// REMOVE !
 	IMAGE_URL_PREFIX = "/img/"
 )
 
