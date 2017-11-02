@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9d762cef_0428c0cc",
+        "filename": "fuzzer/go/storage/client.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2017-11-02T16:48:34Z",
+      "side": 1,
+      "message": "Yeah, generally I think you\u0027re going to find code to be less error prone if you stick to always wg.Add(1) inside the loop.  You don\u0027t have to think about whether the loop logic and work group counting are in sync that way.",
+      "parentUuid": "44689f7d_e0e084fe",
+      "range": {
+        "startLine": 112,
+        "startChar": 2,
+        "endLine": 112,
+        "endChar": 11
+      },
+      "revId": "ae05551cc47f18837b8408894b7a29d3d9d3cca8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c74b017e_fa3bb5ad",
         "filename": "fuzzer/go/storage/client.go",
         "patchSetId": 1
