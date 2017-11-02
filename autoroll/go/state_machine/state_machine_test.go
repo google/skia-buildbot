@@ -261,7 +261,7 @@ func setup(t *testing.T) (*AutoRollStateMachine, *TestAutoRollerImpl, func()) {
 	rollerImpl := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	sm, err := New(rollerImpl, workdir)
+	sm, err := New(rollerImpl, workdir, nil)
 	assert.NoError(t, err)
 	return sm, rollerImpl, func() {
 		testutils.RemoveAll(t, workdir)
@@ -408,12 +408,12 @@ func TestStopped(t *testing.T) {
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 }
 
-func testThrottle(t *testing.T, mode string) {
+func testThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
 	testutils.MediumTest(t)
 	r := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	sm, err := New(r, workdir)
+	sm, err := New(r, workdir, tc)
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
@@ -422,7 +422,7 @@ func testThrottle(t *testing.T, mode string) {
 	r.SetMode(mode)
 	assert.NoError(t, sm.NextTransition())
 	r.SetNextRollRev("HEAD+1")
-	for i := 0; i < ROLL_ATTEMPT_THROTTLE_NUM; i++ {
+	for i := int64(0); i < sm.tc.AttemptCount; i++ {
 		assert.NoError(t, sm.NextTransition())
 		roll := r.GetActiveRoll().(*TestRollCLImpl)
 		if mode == modes.MODE_DRY_RUN {
@@ -457,7 +457,7 @@ func testThrottle(t *testing.T, mode string) {
 	assert.NoError(t, os.Remove(counterFile))
 	_, err = util.NewPersistentAutoDecrementCounter(counterFile, time.Minute)
 	assert.NoError(t, err)
-	sm2, err := New(r, workdir)
+	sm2, err := New(r, workdir, tc)
 	assert.NoError(t, err)
 	assert.Equal(t, throttled, sm2.Current())
 	idle := S_NORMAL_IDLE
@@ -468,11 +468,18 @@ func testThrottle(t *testing.T, mode string) {
 }
 
 func TestThrottle(t *testing.T) {
-	testThrottle(t, modes.MODE_RUNNING)
+	testThrottle(t, modes.MODE_RUNNING, nil)
 }
 
 func TestThrottleDryRun(t *testing.T) {
-	testThrottle(t, modes.MODE_DRY_RUN)
+	testThrottle(t, modes.MODE_DRY_RUN, nil)
+}
+
+func TestThrottleNonDefault(t *testing.T) {
+	testThrottle(t, modes.MODE_RUNNING, &ThrottleConfig{
+		AttemptCount: 15,
+		TimeWindow:   3 * time.Hour,
+	})
 }
 
 func TestPersistence(t *testing.T) {
@@ -481,12 +488,12 @@ func TestPersistence(t *testing.T) {
 	r := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	sm, err := New(r, workdir)
+	sm, err := New(r, workdir, nil)
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
 	check := func() {
-		sm2, err := New(r, workdir)
+		sm2, err := New(r, workdir, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, sm.Current(), sm2.Current())
 	}

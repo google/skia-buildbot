@@ -18,8 +18,8 @@ import (
 
 const (
 	// Throttling parameters.
-	ROLL_ATTEMPT_THROTTLE_TIME = 30 * time.Minute
-	ROLL_ATTEMPT_THROTTLE_NUM  = 3
+	DEFAULT_THROTTLE_ATTEMPT_COUNT = 3
+	DEFAULT_THROTTLE_TIME_WINDOW   = 30 * time.Minute
 
 	// State names.
 	S_NORMAL_IDLE                  = "idle"
@@ -53,6 +53,13 @@ const (
 	// arbitrary limit just to keep us from performing an unbounded number
 	// of transitions at a time.
 	MAX_NOOP_TRANSITIONS = 10
+)
+
+var (
+	THROTTLE_CONFIG_DEFAULT = &ThrottleConfig{
+		AttemptCount: DEFAULT_THROTTLE_ATTEMPT_COUNT,
+		TimeWindow:   DEFAULT_THROTTLE_TIME_WINDOW,
+	}
 )
 
 // Interface for interacting with a single autoroll CL.
@@ -116,23 +123,34 @@ type AutoRollerImpl interface {
 
 // AutoRollStateMachine is a StateMachine for the AutoRoller.
 type AutoRollStateMachine struct {
-	a AutoRollerImpl
-	c *util.PersistentAutoDecrementCounter
-	s *state_machine.StateMachine
+	a  AutoRollerImpl
+	c  *util.PersistentAutoDecrementCounter
+	s  *state_machine.StateMachine
+	tc *ThrottleConfig
+}
+
+// ThrottleConfig determines the throttling behavior for the roller.
+type ThrottleConfig struct {
+	AttemptCount int64
+	TimeWindow   time.Duration
 }
 
 // New returns a StateMachine for the autoroller.
-func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
+func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStateMachine, error) {
 	// Global state.
-	attemptCounter, err := util.NewPersistentAutoDecrementCounter(path.Join(workdir, "attempt_counter"), ROLL_ATTEMPT_THROTTLE_TIME)
+	if tc == nil {
+		tc = THROTTLE_CONFIG_DEFAULT
+	}
+	attemptCounter, err := util.NewPersistentAutoDecrementCounter(path.Join(workdir, "attempt_counter"), tc.TimeWindow)
 	if err != nil {
 		return nil, err
 	}
 
 	s := &AutoRollStateMachine{
-		a: impl,
-		c: attemptCounter,
-		s: nil, // Filled in later.
+		a:  impl,
+		c:  attemptCounter,
+		s:  nil, // Filled in later.
+		tc: tc,
 	}
 
 	b := state_machine.NewBuilder()
@@ -289,7 +307,7 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		next := s.a.GetNextRollRev()
 		if current == next {
 			return S_NORMAL_IDLE, nil
-		} else if s.c.Get() >= ROLL_ATTEMPT_THROTTLE_NUM {
+		} else if s.c.Get() >= s.tc.AttemptCount {
 			return S_NORMAL_THROTTLED, nil
 		} else {
 			return S_NORMAL_ACTIVE, nil
@@ -319,7 +337,7 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 	case S_NORMAL_FAILURE:
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_THROTTLED:
-		if s.c.Get() < ROLL_ATTEMPT_THROTTLE_NUM {
+		if s.c.Get() < s.tc.AttemptCount {
 			return S_NORMAL_IDLE, nil
 		} else {
 			return S_NORMAL_THROTTLED, nil
@@ -336,7 +354,7 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		next := s.a.GetNextRollRev()
 		if current == next {
 			return S_DRY_RUN_IDLE, nil
-		} else if s.c.Get() >= ROLL_ATTEMPT_THROTTLE_NUM {
+		} else if s.c.Get() >= s.tc.AttemptCount {
 			return S_DRY_RUN_THROTTLED, nil
 		} else {
 			return S_DRY_RUN_ACTIVE, nil
@@ -386,7 +404,7 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 	case S_DRY_RUN_FAILURE:
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_THROTTLED:
-		if s.c.Get() < ROLL_ATTEMPT_THROTTLE_NUM {
+		if s.c.Get() < s.tc.AttemptCount {
 			return S_DRY_RUN_IDLE, nil
 		} else {
 			return S_DRY_RUN_THROTTLED, nil
