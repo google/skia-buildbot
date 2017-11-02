@@ -107,6 +107,10 @@ scrape_configs:
         labels:
           corpus: pdf
 
+  - job_name: 'leasing'
+    static_configs:
+      - targets: ['skia-leasing:20000']
+
   - job_name: 'logmetrics'
     static_configs:
       - targets: ['skia-monitoring:20001']
