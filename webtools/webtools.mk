@@ -73,7 +73,7 @@ debug_elements_html:
 	ln -sf ../../$(BOWER_DIR) res/imp/bower_components
 
 res/vul/elements.html: res/imp/*.html elements.html ./node_modules/.bin/vulcanize
-	../webtools/vulcanize.sh
+	$(WEBTOOLS_DIR)/vulcanize.sh
 
 #### clean_webtools ####
 

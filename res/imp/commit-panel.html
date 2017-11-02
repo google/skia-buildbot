@@ -18,6 +18,9 @@
     repo - The URL of the underlying git repo. This assumes a
            googlesource repo when deriving URLs from this value.
 
+    commitinfo - A list of commits that are passed to setCommitInfo (see below).
+           This is the direct way to set commits.
+
   Methods:
     setCommitInfo - Sets the commit info, an array of *types.Commit. See the
       description for the commits Mailbox for more details.
@@ -123,6 +126,11 @@
           type: String,
           value: "https://skia.googlesource.com/skia",
           notify: true
+        },
+        commitinfo: {
+          type: Array,
+          value: null,
+          observer: "setCommitInfo"
         }
       },
 
@@ -142,8 +150,10 @@
       },
 
       setCommitInfo: function(commitinfo) {
-        this._commitinfo = commitinfo;
-        this._processCommitInfo();
+        if (commitinfo) {
+          this._commitinfo = commitinfo;
+          this._processCommitInfo();
+        }
       },
 
       selectHash: function(hash) {

@@ -20,6 +20,6 @@
     "wcstamp": "^1.0.0",
     "iron-elements": "^1.0.8",
     "paper-elements": "^1.0.7",
-    "polymer": "^1.3.0"
+    "polymer": "Polymer/polymer#1.9.1"
   }
 }
