@@ -117,6 +117,30 @@
       "revId": "ae05551cc47f18837b8408894b7a29d3d9d3cca8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0bda0b8e_0c30ac81",
+        "filename": "fuzzer/go/storage/client.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2017-11-02T16:52:00Z",
+      "side": 1,
+      "message": "Yes, this was a race.  If you ever use an atomic operation on a value, every operation must be atomic or you will have created a race.\n\nHonestly, Go\u0027s atomic APIs are pretty error prone.  You shouldn\u0027t feel bad about making this kind of mistake.  You should however consider writing an AtomicInt32 type that guarantees all operations are safe, so that you can\u0027t make mistakes.  It\u0027s probably not a good idea for you to use sync/atomic except to implement those wrappers.",
+      "parentUuid": "1226dfb3_038cc291",
+      "range": {
+        "startLine": 157,
+        "startChar": 2,
+        "endLine": 157,
+        "endChar": 33
+      },
+      "revId": "ae05551cc47f18837b8408894b7a29d3d9d3cca8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
