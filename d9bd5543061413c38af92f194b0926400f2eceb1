@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "72df1ce9_c953ee5f",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T20:45:27Z",
+      "side": 1,
+      "message": "__BUSY_FILE is the obviously correct choice, but what you have works too I guess :)",
+      "parentUuid": "c834f75e_b2484b39",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 12
+      },
+      "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "38a65eb8_2a886a04",
         "filename": "go/state_machine/state_machine.go",
         "patchSetId": 2
@@ -81,6 +105,24 @@
       "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8605f14f_a4241332",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-02T20:45:27Z",
+      "side": 1,
+      "message": "Makes sense. Would it help to document this in PROD.md ?",
+      "parentUuid": "8f0d97a1_20a0ff45",
+      "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
