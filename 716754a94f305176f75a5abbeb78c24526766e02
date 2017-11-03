@@ -46,6 +46,30 @@
       "revId": "716754a94f305176f75a5abbeb78c24526766e02",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9af3520c_b2c8771d",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-03T14:56:12Z",
+      "side": 1,
+      "message": "Ok, so in the case of persistent git failures, the state machine will error on every tick?\n\nDoes that mean we are relying on the 1h ERROR log alert to catch cases like the problem Wednesday night / Thursday morning?",
+      "parentUuid": "6ea14996_17bf9c7c",
+      "range": {
+        "startLine": 425,
+        "startChar": 5,
+        "endLine": 425,
+        "endChar": 53
+      },
+      "revId": "716754a94f305176f75a5abbeb78c24526766e02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
