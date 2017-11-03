@@ -25,16 +25,15 @@ def main():
                       help='The Os Type this script is running on.')
   args = parser.parse_args()
 
-  print args.leasing_server
-  print args.task_id
-  print args.os_type
-
   while True:
     get_task_status_url = '%s/_/get_task_status?task=%s' % (
         args.leasing_server, args.task_id)
     r = requests.get(get_task_status_url)
+
     output = r.json()
     print 'Response from %s is: %s' % (get_task_status_url, output)
+    sys.stdout.flush()
+
     if output['Expired']:
       break
     time.sleep(POLLING_WAIT_TIME_SECS)

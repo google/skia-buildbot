@@ -46,6 +46,7 @@ func populateRunningTask(newState, botId string, t *Task, k *datastore.Key) erro
 // expireTask marks the provided Task struct as Done and sends a completion email.
 func expireTask(t *Task, k *datastore.Key) error {
 	t.Done = true
+	t.SwarmingTaskState = getCompletedStateStr(false)
 	if _, err := UpdateDSTask(k, t); err != nil {
 		return fmt.Errorf("Error updating task in datastore: %v", err)
 	}
@@ -69,6 +70,14 @@ func taskExpiringSoon(t *Task, k *datastore.Key) error {
 	return nil
 }
 
+func getCompletedStateStr(failure bool) string {
+	if failure {
+		return swarming.TASK_STATE_COMPLETED + " (FAILURE)"
+	} else {
+		return swarming.TASK_STATE_COMPLETED + " (SUCCESS)"
+	}
+}
+
 // checkForUnexpectedStates checks to see if the new state falls in a list of unexpected states.
 // If it does then the Task is marked as Done, the lease ended and a failure email it sent.
 func checkForUnexpectedStates(newState string, failure bool, t *Task, k *datastore.Key) error {
@@ -83,12 +92,7 @@ func checkForUnexpectedStates(newState string, failure bool, t *Task, k *datasto
 		if newState == unexpectedState {
 			// Update the state.
 			if newState == swarming.TASK_STATE_COMPLETED {
-				// If completed state then append success or failure as well.
-				if failure {
-					newState += " (FAILURE)"
-				} else {
-					newState += " (SUCCESS)"
-				}
+				newState = getCompletedStateStr(failure)
 			}
 			t.SwarmingTaskState = newState
 			// Something unexpected happened so mark the leasing task as done and end the lease.
