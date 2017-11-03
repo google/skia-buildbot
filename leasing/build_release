@@ -28,4 +28,7 @@ ${INSTALL}     --mode=644    ./isolates/*                  ${ROOT}/usr/local/sha
 
 }
 
+rm ./res/vul/elements.html
+make leasing
+
 source ../bash/release.sh
