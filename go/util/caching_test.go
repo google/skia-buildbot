@@ -29,6 +29,14 @@ func TestJSONCodec(t *testing.T) {
 	assert.NoError(t, err)
 	assert.IsType(t, []*myTestType{}, decodedArr)
 	assert.Equal(t, testArr, decodedArr)
+
+	mapCodec := JSONCodec(map[string]map[string]int{})
+	testMap := map[string]map[string]int{"hello": {"world": 55}}
+	jsonBytes, err = mapCodec.Encode(testMap)
+	assert.NoError(t, err)
+	found, err := mapCodec.Decode(jsonBytes)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, testMap, found)
 }
 
 func TestMemLRUCache(t *testing.T) {

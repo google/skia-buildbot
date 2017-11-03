@@ -108,23 +108,23 @@ func (m *MemLRUCache) Keys() []interface{} {
 }
 
 type jsonCodec struct {
-	targetType reflect.Type
-	isSlice    bool
+	targetType reflect.Type // the type we want to encode/decode.
+	stripPtr   bool         // indicates whether to derefence the pointer of the result.
 }
 
 // JSONCodec implements the LRUCodec interface by serializing and
 // deserializing instances of the underlying type of 'instance'.
 // Generally it's assumed that 'instance' is a struct, a pointer to
-// a struct or a slice.
+// a struct, a slice or a map.
 func JSONCodec(instance interface{}) LRUCodec {
 	targetType := reflect.TypeOf(instance)
 	if targetType.Kind() == reflect.Ptr {
 		targetType = targetType.Elem()
 	}
-	isSlice := targetType.Kind() == reflect.Slice
+	kind := targetType.Kind()
 	return &jsonCodec{
 		targetType: targetType,
-		isSlice:    isSlice,
+		stripPtr:   (kind == reflect.Slice) || (kind == reflect.Map),
 	}
 }
 
@@ -135,13 +135,14 @@ func (j *jsonCodec) Encode(data interface{}) ([]byte, error) {
 
 // See LRUCodec interface.
 func (j *jsonCodec) Decode(byteData []byte) (interface{}, error) {
+	// Get a pointer to a new instance, because that's what Unmarshal needs.
 	ret := reflect.New(j.targetType).Interface()
 	err := json.Unmarshal(byteData, ret)
 	if err != nil {
 		return nil, err
-	} else if j.isSlice {
+	} else if j.stripPtr {
+		// Strip the pointer for slices and maps.
 		return reflect.ValueOf(ret).Elem().Interface(), nil
 	}
-
 	return ret, nil
 }
