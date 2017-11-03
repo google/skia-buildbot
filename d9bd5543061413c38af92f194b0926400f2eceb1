@@ -123,6 +123,24 @@
       "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c01be281_a1807704",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-03T12:40:31Z",
+      "side": 1,
+      "message": "Good idea, done.",
+      "parentUuid": "8605f14f_a4241332",
+      "revId": "d9bd5543061413c38af92f194b0926400f2eceb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
