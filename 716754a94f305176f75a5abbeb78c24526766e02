@@ -70,6 +70,30 @@
       "revId": "716754a94f305176f75a5abbeb78c24526766e02",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39737096_a2a9aae2",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-03T14:59:15Z",
+      "side": 1,
+      "message": "No, for persistent git failures, the \"failed to transition for 10 minutes in a row\" alert will fire, but we won\u0027t have errors in the log.  The error rate alert will be for other problems like the PDFium issue.",
+      "parentUuid": "9af3520c_b2c8771d",
+      "range": {
+        "startLine": 425,
+        "startChar": 5,
+        "endLine": 425,
+        "endChar": 53
+      },
+      "revId": "716754a94f305176f75a5abbeb78c24526766e02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
