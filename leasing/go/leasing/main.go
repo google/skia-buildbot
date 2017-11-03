@@ -350,25 +350,29 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Add the created time.
 	task.Created = time.Now()
 
+	datastoreKey, err := PutDSTask(key, task)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Error putting task in datastore: %v", err))
+		return
+	}
+
 	// Trigger the swarming task.
-	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(key.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, serverURL)
+	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, serverURL)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Error when triggering swarming task: %v", err))
 		return
 	}
 
-	// Populate the swarming fields in the struct.
+	// Update the task with swarming fields.
 	swarmingInstance := GetSwarmingInstance(task.SwarmingPool)
 	task.SwarmingServer = swarmingInstance.SwarmingServer
 	task.SwarmingTaskId = swarmingTaskId
 	task.SwarmingTaskState = swarming.TASK_STATE_PENDING
-
-	datastoreKey, err := PutDSTask(key, task)
-	if err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Error putting task in datastore: %v", err))
+	if _, err = UpdateDSTask(datastoreKey, task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Error updating task with swarming fields in datastore: %v", err))
 		return
-
 	}
+
 	sklog.Infof("Added %v task into the datastore with key %s", task, datastoreKey)
 }
 
