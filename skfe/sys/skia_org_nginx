@@ -361,6 +361,10 @@ server {
 
     location / {
         proxy_pass https://android-master-autoroll-8000-proxy.skia.org;
+        proxy_hide_header Strict-Transport-Security;
+        proxy_hide_header X-XSS-Protection;
+        proxy_hide_header X-Content-Type-Options;
+        proxy_hide_header X-Frame-Options;
     }
 
     location /json/status {
