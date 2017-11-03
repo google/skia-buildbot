@@ -142,10 +142,10 @@ func GetPoolDetails(pool string) (*PoolDetails, error) {
 
 func getIsolateHash(osType string) (string, error) {
 	isolateTask := &isolate.Task{
-		BaseDir:     "isolates",
+		BaseDir:     path.Join(*resourcesDir, "isolates"),
 		Blacklist:   []string{},
 		Deps:        []string{},
-		IsolateFile: path.Join("isolates", "leasing.isolate"),
+		IsolateFile: path.Join(*resourcesDir, "isolates", "leasing.isolate"),
 		OsType:      osType,
 	}
 	isolateTasks := []*isolate.Task{isolateTask}
