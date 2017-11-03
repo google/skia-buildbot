@@ -22,6 +22,30 @@
       "revId": "716754a94f305176f75a5abbeb78c24526766e02",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ea14996_17bf9c7c",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-03T12:04:08Z",
+      "side": 1,
+      "message": "This is intended to catch the \"failed to sync\" case when it occurs for 10 minutes in a row.  That is rare, from what I can tell, when it\u0027s due to GoB flakes, but we still want to be alerted when something else is wrong, like the local copy being in a bad state or something.",
+      "parentUuid": "4cb21456_7d938fd9",
+      "range": {
+        "startLine": 425,
+        "startChar": 5,
+        "endLine": 425,
+        "endChar": 53
+      },
+      "revId": "716754a94f305176f75a5abbeb78c24526766e02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
