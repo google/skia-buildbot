@@ -269,7 +269,7 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 
 	// Build the state machine.
 	b.SetInitial(S_NORMAL_IDLE)
-	sm, err := b.Build(path.Join(workdir, "state_machine"))
+	sm, err := b.Build(workdir)
 	if err != nil {
 		return nil, err
 	}

@@ -40,3 +40,10 @@ error_rate
 The AutoRoll server on the given host is logging errors at a higher-than-normal
 rate. This warrants investigation in the logs.
 
+The state machine may throw errors like this: "Transition is already in
+progress; did a previous transition get interrupted?"  That is intended to
+detect the case where we interrupted the process during a state transition, and
+we may be in an undefined state. This requires manual investigation, after which
+you should remove the /mnt/pd0/autoroll_workdir/state_machine_transitioning
+file. This error may also prevent the roller from starting up, which is by
+design.

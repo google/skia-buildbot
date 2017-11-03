@@ -8,7 +8,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"sync"
+
+	"go.skia.org/infra/go/sklog"
+)
+
+const (
+	backingFile = "state_machine"
+	busyFile    = "state_machine_transitioning"
 )
 
 // TransitionFn is a function to run when attempting to transition from one
@@ -59,7 +67,7 @@ func (b *Builder) SetInitial(s string) {
 }
 
 // Build and return a StateMachine instance.
-func (b *Builder) Build(file string) (*StateMachine, error) {
+func (b *Builder) Build(workdir string) (*StateMachine, error) {
 	// Build and validate.
 	transitions := map[string]map[string]string{}
 	states := make(map[string]bool, len(b.transitions))
@@ -81,6 +89,7 @@ func (b *Builder) Build(file string) (*StateMachine, error) {
 	}
 
 	// Get the previous state (if any) from the file.
+	file := path.Join(workdir, backingFile)
 	cachedState := b.initialState
 	contents, err := ioutil.ReadFile(file)
 	if err == nil {
@@ -110,12 +119,19 @@ func (b *Builder) Build(file string) (*StateMachine, error) {
 		}
 	}
 
+	// Check that we didn't interrupt a previous transition.
+	busy := path.Join(workdir, busyFile)
+	if _, err := os.Stat(busy); !os.IsNotExist(err) {
+		return nil, fmt.Errorf("Transition is already in progress; did a previous transition get interrupted?")
+	}
+
 	// Create and return the StateMachine.
 	sm := &StateMachine{
 		current:     cachedState,
 		funcs:       b.funcs,
 		transitions: transitions,
 		file:        file,
+		busyFile:    busy,
 	}
 	// Write initial state back to file, in case it wasn't there before.
 	if err := ioutil.WriteFile(file, []byte(sm.Current()), os.ModePerm); err != nil {
@@ -131,6 +147,7 @@ type StateMachine struct {
 	funcs       map[string]TransitionFn
 	transitions map[string]map[string]string
 	file        string
+	busyFile    string
 	mtx         sync.RWMutex
 }
 
@@ -157,6 +174,20 @@ func (sm *StateMachine) Transition(dest string) error {
 	if !ok {
 		return fmt.Errorf("Undefined transition function %q", fName)
 	}
+
+	// Write the busy file.
+	if _, err := os.Stat(sm.busyFile); !os.IsNotExist(err) {
+		return fmt.Errorf("Transition is already in progress; did a previous transition get interrupted?")
+	}
+	if err := ioutil.WriteFile(sm.busyFile, []byte{}, os.ModePerm); err != nil {
+		return err
+	}
+	defer func() {
+		if err := os.Remove(sm.busyFile); err != nil {
+			sklog.Errorf("Failed to remove busy file: %s", err)
+		}
+	}()
+
 	if err := fn(); err != nil {
 		return fmt.Errorf("Failed to transition from %q to %q: %s", sm.current, dest, err)
 	}

@@ -3,6 +3,7 @@ package state_machine
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 
@@ -16,7 +17,6 @@ func TestStateMachine(t *testing.T) {
 
 	w, err := ioutil.TempDir("", "")
 	defer testutils.RemoveAll(t, w)
-	file := path.Join(w, "state_machine")
 
 	b := NewBuilder()
 	b.T("15", "16", "noop")
@@ -27,17 +27,17 @@ func TestStateMachine(t *testing.T) {
 		return fmt.Errorf("nope")
 	})
 	b.SetInitial("85")
-	s, err := b.Build(file)
+	s, err := b.Build(w)
 	assert.EqualError(t, err, "Initial state \"85\" is not defined!")
 	b.SetInitial("15")
-	s, err = b.Build(file)
+	s, err = b.Build(w)
 	assert.EqualError(t, err, "No transitions defined from state \"17\"")
 	b.T("17", "17", "noop")
 	b.T("18", "17", "noop")
-	s, err = b.Build(file)
+	s, err = b.Build(w)
 	assert.EqualError(t, err, "No transitions defined to state \"18\"")
 	b.T("15", "18", "noop")
-	s, err = b.Build(file)
+	s, err = b.Build(w)
 	assert.NoError(t, err)
 	assert.Equal(t, "15", s.Current())
 	name, err := s.GetTransitionName("16")
@@ -52,7 +52,7 @@ func TestStateMachine(t *testing.T) {
 	assert.Equal(t, "16", s.Current())
 
 	b.T("16", "17", "noop")
-	p, err := b.Build(file)
+	p, err := b.Build(w)
 	assert.EqualError(t, err, "Multiple defined transitions from \"16\" to \"17\": \"err\", \"noop\"")
 	splitIdx := -1
 	for i, t := range b.transitions {
@@ -63,7 +63,7 @@ func TestStateMachine(t *testing.T) {
 	}
 	assert.False(t, splitIdx < 0)
 	b.transitions = append(b.transitions[:splitIdx], b.transitions[splitIdx+1:]...)
-	p, err = b.Build(file)
+	p, err = b.Build(w)
 	assert.NoError(t, err)
 
 	assert.Equal(t, "16", p.Current())
@@ -72,7 +72,15 @@ func TestStateMachine(t *testing.T) {
 	assert.Equal(t, "noop", name)
 	assert.NoError(t, p.Transition("17"))
 	assert.Equal(t, "17", p.Current())
-	p2, err := b.Build(file)
+	p2, err := b.Build(w)
 	assert.NoError(t, err)
 	assert.Equal(t, p.Current(), p2.Current())
+
+	// Verify that we refuse to transition when the busy file exists.
+	busy := path.Join(w, busyFile)
+	assert.NoError(t, ioutil.WriteFile(busy, []byte{}, os.ModePerm))
+	expectErr := "Transition is already in progress; did a previous transition get interrupted?"
+	_, err = b.Build(w)
+	assert.EqualError(t, err, expectErr)
+	assert.EqualError(t, p2.Transition("17"), expectErr)
 }
