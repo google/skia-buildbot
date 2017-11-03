@@ -10,6 +10,7 @@ func Prod() *gce.Instance {
 	vm.DataDisks[0].SizeGb = 100
 	vm.DataDisks[0].MountPath = "/mnt/pd0"
 	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
+	vm.ExternalIpAddress = "35.194.27.131" /* Whitelisted in swarming and isolate servers */
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_2
 	vm.Metadata["owner_primary"] = "rmistry"
 	vm.Metadata["owner_secondary"] = "kjlubick"
