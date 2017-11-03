@@ -34,11 +34,13 @@ Run the emulator: gcloud beta emulators pubsub start`)
 	}
 
 	testCodec := util.JSONCodec(&testType{})
+	RegisterCodec("channel1", testCodec)
+	RegisterCodec("channel2", testCodec)
 
-	eventBus, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1, testCodec)
+	eventBus, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1)
 	assert.NoError(t, err)
 
-	eventBusTwo, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2, testCodec)
+	eventBusTwo, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2)
 	assert.NoError(t, err)
 
 	ch := make(chan int, 5)
@@ -59,12 +61,12 @@ Run the emulator: gcloud beta emulators pubsub start`)
 		ID:        1,
 		Value:     "value 1",
 		TimeStamp: now,
-	})
+	}, true)
 	eventBusTwo.Publish("channel2", &testType{
 		ID:        2,
 		Value:     "value 2",
 		TimeStamp: now + 10,
-	})
+	}, true)
 
 	// Give the messages 10 seconds to process.
 	startTime := time.Now()

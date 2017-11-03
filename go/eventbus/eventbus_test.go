@@ -23,8 +23,8 @@ func TestEventBus(t *testing.T) {
 	eventBus.SubscribeAsync("channel2", func(e interface{}) { ch <- (e.(int)) + 1 })
 	eventBus.SubscribeAsync("channel2", func(e interface{}) { ch <- e.(int) })
 
-	eventBus.Publish("channel1", nil)
-	eventBus.Publish("channel2", 2)
+	eventBus.Publish("channel1", nil, false)
+	eventBus.Publish("channel2", 2, false)
 	eventBus.(*MemEventBus).Wait("channel1")
 	eventBus.(*MemEventBus).Wait("channel2")
 	assert.Equal(t, 3, len(ch))

@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -165,8 +168,9 @@ func insertWithPrep(insertStmt string, tx *sql.Tx, valsArr ...[]interface{}) err
 	return nil
 }
 
-// RemoveChange, see ExpectationsStore interface.
-func (s *SQLExpectationsStore) RemoveChange(changedDigests map[string][]string) (retErr error) {
+// removeChange, see ExpectationsStore interface.
+func (s *SQLExpectationsStore) removeChange(changedDigests map[string]types.TestClassification) (retErr error) {
+	sklog.Infof("Removing: %s", spew.Sdump(changedDigests))
 	defer timer.New("removing exp change").Stop()
 
 	const markRemovedStmt = `UPDATE exp_test_change
@@ -184,7 +188,7 @@ func (s *SQLExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 	// Mark all the digests as removed.
 	now := util.TimeStampMs()
 	for testName, digests := range changedDigests {
-		for _, digest := range digests {
+		for digest := range digests {
 			if _, err = tx.Exec(markRemovedStmt, now, testName, digest); err != nil {
 				return err
 			}
@@ -409,12 +413,17 @@ type CachingExpectationStore struct {
 }
 
 func NewCachingExpectationStore(store ExpectationsStore, eventBus eventbus.EventBus) ExpectationsStore {
-	return &CachingExpectationStore{
+	ret := &CachingExpectationStore{
 		store:    store,
 		cache:    NewMemExpectationsStore(nil),
 		eventBus: eventBus,
 		refresh:  true,
 	}
+
+	// Register the events to update the cache.
+	ret.eventBus.SubscribeAsync(EV_EXPSTORAGE_CHANGED, ret.addChangeToCache)
+
+	return ret
 }
 
 // See ExpectationsStore interface.
@@ -425,6 +434,7 @@ func (c *CachingExpectationStore) Get() (exp *Expectations, err error) {
 		if err != nil {
 			return nil, err
 		}
+
 		if err = c.cache.AddChange(tempExp.Tests, ""); err != nil {
 			return nil, err
 		}
@@ -437,36 +447,72 @@ func (c *CachingExpectationStore) AddChange(changedTests map[string]types.TestCl
 	if err := c.store.AddChange(changedTests, userId); err != nil {
 		return err
 	}
-	return c.addChangeToCache(changedTests, userId)
+	// Fire an event that will trigger the addition to the cache.
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedTests, true)
+	return nil
 }
 
 // addChangeToCache updates the cache and fires the change event.
-func (c *CachingExpectationStore) addChangeToCache(changedTests map[string]types.TestClassification, userId string) error {
-	ret := c.cache.AddChange(changedTests, userId)
-	if ret == nil {
-		testNames := make([]string, 0, len(changedTests))
-		for testName := range changedTests {
-			testNames = append(testNames, testName)
+func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) {
+	changedTests := (evtChangedTests).(map[string]types.TestClassification)
+
+	// Split the changes into removal and addition.
+	forRemoval := make(map[string]types.TestClassification, len(changedTests))
+	forAddition := make(map[string]types.TestClassification, len(changedTests))
+	for test, digests := range changedTests {
+		for digest, label := range digests {
+			if label == types.UNTRIAGED {
+				if foundTest, ok := forRemoval[test]; ok {
+					foundTest[digest] = label
+				} else {
+					forRemoval[test] = types.TestClassification{digest: label}
+				}
+			} else {
+				if foundTest, ok := forAddition[test]; ok {
+					foundTest[digest] = label
+				} else {
+					forAddition[test] = types.TestClassification{digest: label}
+				}
+			}
 		}
-		c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, testNames)
 	}
-	return ret
+
+	if len(forRemoval) > 0 {
+		if err := c.cache.removeChange(forRemoval); err != nil {
+			sklog.Errorf("Error removing changed expectations to cache: %s", err)
+		}
+	}
+
+	if len(forAddition) > 0 {
+		if err := c.cache.AddChange(forAddition, ""); err != nil {
+			sklog.Errorf("Error adding changed expectations to cache: %s", err)
+		}
+	}
+	sklog.Infof("Expectations change has been added to the cache.")
 }
 
-func (c *CachingExpectationStore) RemoveChange(changedDigests map[string][]string) error {
-	if err := c.store.RemoveChange(changedDigests); err != nil {
+// removeChange implements the ExpectationsStore interface.
+func (c *CachingExpectationStore) removeChange(changedDigests map[string]types.TestClassification) error {
+	if err := c.store.removeChange(changedDigests); err != nil {
 		return err
 	}
 
-	err := c.cache.RemoveChange(changedDigests)
-	if err == nil {
-		testNames := make([]string, 0, len(changedDigests))
-		for testName := range changedDigests {
-			testNames = append(testNames, testName)
-		}
-		c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, testNames)
-	}
-	return err
+	// Fire an event that will trigger the addition to the cache.
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedDigests, true)
+
+	// // Copy the data
+	// evtData := make(map[string]types.TestClassification, len(changedDigests))
+	// for testName, digests := range changedDigests {
+	// 	if _, ok := evtData[testName]; !ok {
+	// 		evtData[testName] = types.TestClassification{}
+	// 	}
+	// 	for _, digest := range digests {
+	// 		// Setting the label to untriaged indicates that the test was removed.
+	// 		evtData[testName][digest] = types.UNTRIAGED
+	// 	}
+	// }
+
+	return nil
 }
 
 // See ExpectationsStore interface.
@@ -481,7 +527,9 @@ func (c *CachingExpectationStore) UndoChange(changeID int, userID string) (map[s
 		return nil, err
 	}
 
-	return changedTests, c.addChangeToCache(changedTests, userID)
+	// Fire an event that will trigger the addition to the cache.
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedTests, true)
+	return changedTests, nil
 }
 
 // See ExpectationsStore interface.

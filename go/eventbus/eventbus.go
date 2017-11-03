@@ -14,7 +14,10 @@ type EventBus interface {
 	// Publish sends the given data to all functions that have
 	// registered for the given channel. Each callback function is
 	// called on a separate go-routine.
-	Publish(channel string, data interface{})
+	// globally indicates whether the event should distributed across machines
+	// if the event bus implementation support this. It is ignored otherwise.
+	// If the message cannot be sent for some reason an error will be logged.
+	Publish(channel string, data interface{}, globally bool)
 
 	// SubscribeAsync allows to register a callback function for the given
 	// channel. It is assumed that the subscriber and publisher know what
@@ -47,7 +50,7 @@ func New() EventBus {
 }
 
 // Publish implements the EventBus interface.
-func (e *MemEventBus) Publish(channel string, arg interface{}) {
+func (e *MemEventBus) Publish(channel string, arg interface{}, globally bool) {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	if th, ok := e.handlers[channel]; ok {

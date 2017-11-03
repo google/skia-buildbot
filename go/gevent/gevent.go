@@ -3,6 +3,7 @@ package gevent
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"cloud.google.com/go/pubsub"
 
@@ -11,6 +12,15 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+// codecMap holds codecs for the different event channels. Values are added
+// via the RegisterCodec function.
+var codecMap = sync.Map{}
+
+// RegisterCodec defines a codec for the given event channel.
+func RegisterCodec(channel string, codec util.LRUCodec) {
+	codecMap.Store(channel, codec)
+}
+
 // DistEventBus implements the eventbus.EventBus interfase on top of Cloud PubSub.
 type distEventBus struct {
 	localEventBus eventbus.EventBus
@@ -18,7 +28,6 @@ type distEventBus struct {
 	clientID      string
 	topic         *pubsub.Topic
 	sub           *pubsub.Subscription
-	codec         util.LRUCodec
 	wrapperCodec  util.LRUCodec
 }
 
@@ -40,11 +49,9 @@ type channelWrapper struct {
 //   event bus.
 // - subscriberName is an id that uniquely identifies this node within the
 //   event bus network.
-// - codec encodes/decodes event data for transportation on the PubSub topic.
-func New(projectID, topicName, subscriberName string, codec util.LRUCodec) (eventbus.EventBus, error) {
+func New(projectID, topicName, subscriberName string) (eventbus.EventBus, error) {
 	ret := &distEventBus{
 		localEventBus: eventbus.New(),
-		codec:         codec,
 		wrapperCodec:  util.JSONCodec(&channelWrapper{}),
 	}
 
@@ -59,23 +66,31 @@ func New(projectID, topicName, subscriberName string, codec util.LRUCodec) (even
 }
 
 // Publish implements the eventbus.EventBus interface.
-func (d *distEventBus) Publish(channel string, arg interface{}) {
-	// publish to pubsub in the background.
-	go func() {
-		msg, err := d.encodeMsg(channel, arg)
-		if err != nil {
-			sklog.Errorf("Error encoding outgoing message: %s", err)
-			return
-		}
-		ctx := context.Background()
-		pubResult := d.topic.Publish(ctx, msg)
-		if _, err = pubResult.Get(ctx); err != nil {
-			sklog.Errorf("Error publishing message: %s", err)
-			return
-		}
-	}()
+func (d *distEventBus) Publish(channel string, arg interface{}, globally bool) {
+	if globally {
+		// publish to pubsub in the background.
+		go func() {
+			codecInstance, ok := codecMap.Load(channel)
+			if !ok {
+				sklog.Errorf("Unable to publish on channel '%s'. No codec defined.", channel)
+				return
+			}
+
+			msg, err := d.encodeMsg(channel, arg, codecInstance.(util.LRUCodec))
+			if err != nil {
+				sklog.Errorf("Error encoding outgoing message: %s", err)
+				return
+			}
+			ctx := context.Background()
+			pubResult := d.topic.Publish(ctx, msg)
+			if _, err = pubResult.Get(ctx); err != nil {
+				sklog.Errorf("Error publishing message: %s", err)
+				return
+			}
+		}()
+	}
 	// Publish the event locally.
-	d.localEventBus.Publish(channel, arg)
+	d.localEventBus.Publish(channel, arg, false)
 }
 
 // SubscribeAsync implements the eventbus.EventBus interface.
@@ -149,7 +164,7 @@ func (d *distEventBus) processReceivedMsg(ctx context.Context, msg *pubsub.Messa
 	}
 	// Publish the event locally if it hasn't been sent by this instance.
 	if wrapper.Sender != d.clientID {
-		d.localEventBus.Publish(wrapper.Channel, data)
+		d.localEventBus.Publish(wrapper.Channel, data, true)
 	}
 }
 
@@ -159,6 +174,7 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) (*channelWrapper, interfac
 	// Unwrap the payload if this was wrapped in a channel wrapper.
 	var wrapper *channelWrapper = nil
 	payload := msg.Data
+	var codec util.LRUCodec = nil
 	if d.wrapperCodec != nil {
 		tempWrapper, err := d.wrapperCodec.Decode(payload)
 		if err != nil {
@@ -166,10 +182,15 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) (*channelWrapper, interfac
 		}
 		wrapper = tempWrapper.(*channelWrapper)
 		payload = wrapper.Data
+		codecInst, ok := codecMap.Load(wrapper.Channel)
+		if !ok {
+			return nil, nil, fmt.Errorf("Unable to decode message for channel '%s'. No codec registered.", wrapper.Channel)
+		}
+		codec = codecInst.(util.LRUCodec)
 	}
 
 	// Deserialize the payload.
-	data, err := d.codec.Decode(payload)
+	data, err := codec.Decode(payload)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Unable to decode payload of pubsub event: %s", err)
 	}
@@ -178,8 +199,8 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) (*channelWrapper, interfac
 
 // encodeMsg wraps the given payload into an instance of channelWrapper and
 // creates the necessary pubsub message to send it to the cloud.
-func (d *distEventBus) encodeMsg(channel string, data interface{}) (*pubsub.Message, error) {
-	payload, err := d.codec.Encode(data)
+func (d *distEventBus) encodeMsg(channel string, data interface{}, codec util.LRUCodec) (*pubsub.Message, error) {
+	payload, err := codec.Encode(data)
 	if err != nil {
 		return nil, err
 	}
