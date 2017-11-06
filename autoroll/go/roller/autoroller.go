@@ -117,6 +117,24 @@ func NewManifestAutoRoller(workdir, parentRepo, parentBranch, childPath, childBr
 	return newAutoRoller(workdir, childPath, cqExtraTrybots, emails, gerrit, rm, retrieveRoll, tc)
 }
 
+// isSyncError returns true iff the error looks like a sync error.
+func isSyncError(err error) bool {
+	// TODO(borenet): Remove extra logging.
+	sklog.Infof("Encountered error: %q", err.Error())
+	if strings.Contains(err.Error(), "Invalid revision range") {
+		sklog.Infof("Is sync error (invalid revision range)")
+		return true
+	} else if strings.Contains(err.Error(), "The remote end hung up unexpectedly") {
+		sklog.Infof("Is sync error (remote hung up)")
+		return true
+	} else if strings.Contains(err.Error(), "remote error: internal server error") {
+		sklog.Infof("Is sync error (internal server error)")
+		return true
+	}
+	sklog.Infof("Not a sync error.")
+	return false
+}
+
 // Start initiates the AutoRoller's loop.
 func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx context.Context) {
 	sklog.Infof("Starting autoroller.")
@@ -128,9 +146,7 @@ func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx conte
 			// These alerts are noise and sometimes hide real failures. If the error is
 			// due to a sync failure, log it as a warning instead of an error. We'll rely
 			// on the liveness alert in the case where we see persistent sync failures.
-			if strings.Contains(err.Error(), "Invalid revision range") ||
-				strings.Contains(err.Error(), "The remote end hung up unexpectedly") ||
-				strings.Contains(err.Error(), "remote error: internal server error") {
+			if isSyncError(err) {
 				sklog.Warningf("Failed to run autoroll: %s", err)
 			} else {
 				sklog.Errorf("Failed to run autoroll: %s", err)
