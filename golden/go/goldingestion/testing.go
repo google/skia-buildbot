@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/testhelpers"
 	"google.golang.org/grpc"
 )
 
@@ -44,7 +45,7 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(testCommits, nil)
-	server, serverAddr := ingestion.StartTraceDBTestServer(t, traceDBFile, shareDBDir)
+	server, serverAddr := testhelpers.StartTraceDBTestServer(t, traceDBFile, shareDBDir)
 
 	ingesterConf := &sharedconfig.IngesterConfig{
 		ExtraParams: map[string]string{
