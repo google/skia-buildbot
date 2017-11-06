@@ -16,6 +16,24 @@
       "revId": "61ee4e7e5993deae682ad8deaa9e3d96277004ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eeaab3e1_25a1ad9e",
+        "filename": "go/repeat_cleanup/repeat_cleanup.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-06T20:54:32Z",
+      "side": 1,
+      "message": "Hmm, but tests passed, so maybe not. /shrug",
+      "parentUuid": "95987ade_df368eb7",
+      "revId": "61ee4e7e5993deae682ad8deaa9e3d96277004ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
