@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -22,6 +23,8 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
+// Don't download the raw coverage data, which is put in a .tar.gz file for storage.
+// We can't make anything out of it without the original binaries.
 var INGEST_BLACKLIST = []*regexp.Regexp{regexp.MustCompile(`.+tar\.gz`)}
 
 // The Ingester interface abstracts the logic for ingesting results from a source
@@ -35,21 +38,21 @@ type Ingester interface {
 }
 
 // The IngestedResults links information about a commit with the coverage information
-// produced by a list of jobs.  TODO(kjlubick): Add a combined view here (?) that
-// shows a total coverage figure.
+// produced by a list of jobs.
 type IngestedResults struct {
-	Commit *vcsinfo.ShortCommit `json:"info"`
-	Jobs   []JobSummary         `json:"jobs"`
+	Commit        *vcsinfo.ShortCommit `json:"info"`
+	Jobs          []CoverageSummary    `json:"jobs"`
+	TotalCoverage CoverageSummary      `json:"combined"`
 }
 
-// JobSummary represents the parsed coverage data for a coverage Job.
-type JobSummary struct {
+// CoverageSummary represents the parsed coverage data for a coverage job.
+type CoverageSummary struct {
 	Name        string `json:"name"`
 	TotalLines  int    `json:"lines"`
 	MissedLines int    `json:"missed_lines"`
 }
 
-type JobSummarySlice []JobSummary
+type CoverageSummarySlice []CoverageSummary
 
 // The gcsingester implements the Ingester interface with Google Cloud Storage (GCS)
 type gcsingester struct {
@@ -84,32 +87,57 @@ func defaultUnTar(tarpath, outpath string) error {
 	})
 }
 
-// The function parseSummary looks at a text summary file produced by a
-// Coverage bot running with LLVM and extracts the JobSummary from it.
-// It is a variable for easier mocking.
-var parseSummary = defaultParseSummary
-
-// This regex works for output from Clang/LLVM 5.0
-var totalSummaryLine = regexp.MustCompile(`TOTAL\s+(?P<total_regions>\d+)\s+(?P<missed_regions>\d+)\s+(?P<regions_covered>[0-9\.]+%)\s+(?P<total_functions>\d+)\s+(?P<missed_functions>\d+)\s+(?P<functions_executed>[0-9\.]+%)\s+(?P<total_instantiations>\d+)\s+(?P<missed_instantiations>\d+)\s+(?P<instantiations_executed>[0-9\.]+%)\s+(?P<total_lines>\d+)\s+(?P<missed_lines>\d+)\s+(?P<lines_covered>[0-9\.]+%)`)
-
-func defaultParseSummary(content string) JobSummary {
-	if match := totalSummaryLine.FindStringSubmatch(content); match != nil {
-		tl := match[indexForSubexpName("total_lines", totalSummaryLine)]
-		ml := match[indexForSubexpName("missed_lines", totalSummaryLine)]
-		return JobSummary{
-			TotalLines:  util.SafeAtoi(tl),
-			MissedLines: util.SafeAtoi(ml),
-		}
-	}
-	sklog.Errorf("Could not parse summary from file: %s", content)
-	return JobSummary{TotalLines: -1, MissedLines: -1}
-}
-
 // indexForSubexpName returns the index of a named regex subexpression. It's not
 // complicated but reduces "magic numbers" and makes the logic of complicated
 // regexes easier to follow.
 func indexForSubexpName(name string, r *regexp.Regexp) int {
 	return util.Index(name, r.SubexpNames())
+}
+
+var calculateTotalCoverage = defaultCalculateTotalCoverage
+
+func defaultCalculateTotalCoverage(folders ...string) (CoverageSummary, error) {
+	if len(folders) == 0 {
+		return CoverageSummary{}, nil
+	}
+	totalLines := 0
+	missedLines := 0
+
+	relPaths := util.StringSet{}
+
+	// Make a list of all files in all folders
+	for _, f := range folders {
+		err := filepath.Walk(f, func(p string, info os.FileInfo, err error) error {
+			if fi, err := os.Stat(p); err != nil {
+				return fmt.Errorf("Could not get file info for %s: %s", p, err)
+			} else if fi.IsDir() {
+				return nil
+			}
+			relPath := strings.TrimPrefix(p, f)
+			relPaths[relPath] = true
+			return nil
+		})
+		if err != nil {
+			sklog.Warningf("Possible error while walking directory %s: %s", f, err)
+		}
+	}
+
+	for rp, _ := range relPaths {
+		linesCovered := &coverageData{}
+		for _, f := range folders {
+			p := path.Join(f, rp)
+			contents, err := ioutil.ReadFile(p)
+			if err != nil {
+				continue // file might not exist for all configurations
+			}
+			newlyCovered := parseLinesCovered(string(contents))
+			linesCovered = linesCovered.Union(newlyCovered)
+		}
+		totalLines += linesCovered.Total()
+		missedLines += linesCovered.Missed()
+	}
+
+	return CoverageSummary{TotalLines: totalLines, MissedLines: missedLines}, nil
 }
 
 // IngestCommits fulfills the Ingester interface.
@@ -126,7 +154,7 @@ func (n *gcsingester) IngestCommits(commits []*vcsinfo.LongCommit) {
 			sklog.Warningf("Problem ingesting for commit %s: %s", c, err)
 			continue
 		}
-		ingestedJobs := map[string]JobSummary{}
+		toSummarize := map[string]string{}
 	outer:
 		for _, name := range toDownload {
 			for _, b := range INGEST_BLACKLIST {
@@ -152,24 +180,34 @@ func (n *gcsingester) IngestCommits(commits []*vcsinfo.LongCommit) {
 			}
 			job := parts[0]
 			ext := parts[1]
-			if ext == "summary" {
-				content, err := ioutil.ReadFile(outpath)
-				if err != nil {
-					sklog.Errorf("Problem reading summary file: %s", err)
-					continue
-				}
-				js := parseSummary(string(content))
-				js.Name = job
-				ingestedJobs[job] = js
+			if ext == "text" {
+				// This is where the .text.tar gets extracted to.
+				toSummarize[job] = path.Join(n.dir, c.Hash, job, ext, "coverage")
 			}
 		}
-		jobs := JobSummarySlice{}
-		for _, j := range ingestedJobs {
-			jobs = append(jobs, j)
+		jobs := CoverageSummarySlice{}
+		toCombine := []string{}
+		for job, folder := range toSummarize {
+			cov, err := calculateTotalCoverage(folder)
+			if err != nil {
+				sklog.Warningf("Was unable to create a coverage data: %s", err)
+				continue
+			}
+			cov.Name = job
+			jobs = append(jobs, cov)
+			if !strings.Contains(job, "CPU") {
+				toCombine = append(toCombine, folder)
+			}
 		}
 		// Sort jobs alphabetically for determinism
 		sort.Sort(jobs)
-		newResults = append(newResults, IngestedResults{Commit: c.ShortCommit, Jobs: jobs})
+
+		totalCoverage, err := calculateTotalCoverage(toCombine...)
+		if err != nil {
+			sklog.Warningf("Was unable to create a combined summary: %s", err)
+		}
+		newResults = append(newResults, IngestedResults{Commit: c.ShortCommit, Jobs: jobs, TotalCoverage: totalCoverage})
+		sklog.Infof("Ingestion completed for commit %s - %s", c.ShortCommit.Hash, c.ShortCommit.Author)
 	}
 
 	n.results = newResults
@@ -182,7 +220,7 @@ func (n *gcsingester) getIngestableFilesFromGCS(basePath string) ([]string, erro
 		name := strings.TrimPrefix(item.Name, basePath)
 		toDownload = append(toDownload, name)
 	}); err != nil {
-		return nil, fmt.Errorf("Could not get ingestable files from path %s: %s", basePath, err)
+		return nil, fmt.Errorf("Could not get ingestible files from path %s: %s", basePath, err)
 	}
 	return toDownload, nil
 }
@@ -237,6 +275,6 @@ func fileExists(path string) bool {
 }
 
 // The following 3 lines implement sort.Interface
-func (s JobSummarySlice) Len() int           { return len(s) }
-func (s JobSummarySlice) Less(i, j int) bool { return s[i].Name < s[j].Name }
-func (s JobSummarySlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s CoverageSummarySlice) Len() int           { return len(s) }
+func (s CoverageSummarySlice) Less(i, j int) bool { return s[i].Name < s[j].Name }
+func (s CoverageSummarySlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }

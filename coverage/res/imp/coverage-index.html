@@ -32,7 +32,10 @@
 <dom-module id="coverage-index">
   <template>
     <style is="custom-style" include="iron-positioning coverage-app-style">
-
+    .combined {
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
     </style>
 
     <app-sk class="fit" drawer_width="250px">
@@ -42,6 +45,7 @@
 
       <template is="dom-repeat" items="[[_ingested]]" as="commit">
         <h3>[[_header(commit.info, commit.info.*)]]</h3>
+        <div class="combined" hidden$="[[!commit.combined.coverage]]">Combined - [[commit.combined.coverage]]%</div>
         <template is="dom-repeat" items="[[commit.jobs]]" as="job">
           <div>
             <a href="coverage?commit=[[commit.info.hash]]&job=[[job.name]]">[[job.name]]</a>
@@ -77,7 +81,6 @@
       },
 
       _reload: function(){
-        console.log("Query for ingested");
         sk.get("/ingested").then(JSON.parse).then(function(json){
           json.list = json.list || [];
           json.list.forEach(function(c){
@@ -87,6 +90,10 @@
                 j.coverage = (100 * (j.lines - j.missed_lines)/j.lines).toFixed(2);
               }
             });
+            if (c.combined && c.combined.lines) {
+              let j = c.combined;
+              j.coverage = (100 * (j.lines - j.missed_lines)/j.lines).toFixed(2);
+            }
 
           });
           this.set("_ingested", json.list);

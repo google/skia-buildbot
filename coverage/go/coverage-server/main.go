@@ -42,6 +42,10 @@ var (
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	nCommits     = flag.Int("n_commits", 50, "The last N commits to ingest coverage data for.")
 	bucket       = flag.String("bucket", "skia-coverage", "The GCS bucket that will house the coverage data.")
+
+	// OAUTH params
+	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	redirectURL   = flag.String("redirect_url", "https://fuzzer.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 )
 
 var (
@@ -69,6 +73,14 @@ func main() {
 
 	if err := setupFileIngestion(); err != nil {
 		sklog.Fatalf("Could not set up ingestion: %s", err)
+	}
+
+	useRedirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	if !*local {
+		useRedirectURL = *redirectURL
+	}
+	if err := login.Init(useRedirectURL, *authWhiteList); err != nil {
+		sklog.Fatalf("Problem setting up server OAuth: %s", err)
 	}
 
 	r := mux.NewRouter()
