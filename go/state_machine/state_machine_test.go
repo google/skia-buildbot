@@ -78,8 +78,8 @@ func TestStateMachine(t *testing.T) {
 
 	// Verify that we refuse to transition when the busy file exists.
 	busy := path.Join(w, busyFile)
-	assert.NoError(t, ioutil.WriteFile(busy, []byte{}, os.ModePerm))
-	expectErr := "Transition is already in progress; did a previous transition get interrupted?"
+	assert.NoError(t, ioutil.WriteFile(busy, []byte("anotherstate"), os.ModePerm))
+	expectErr := "Transition to \"anotherstate\" already in progress; did a previous transition get interrupted?"
 	_, err = b.Build(w)
 	assert.EqualError(t, err, expectErr)
 	assert.EqualError(t, p2.Transition("17"), expectErr)
