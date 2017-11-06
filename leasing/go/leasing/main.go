@@ -321,9 +321,11 @@ func expireTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Change the task to Done and change the lease end time to now.
-	t.LeaseEndTime = time.Now()
+	// Change the task to Done, change the lease end time to now, and mark the
+	// state as successfully completed.
 	t.Done = true
+	t.LeaseEndTime = time.Now()
+	t.SwarmingTaskState = getCompletedStateStr(false)
 	if _, err := UpdateDSTask(k, t); err != nil {
 		httputils.ReportError(w, r, err, "Error updating task in datastore")
 		return
