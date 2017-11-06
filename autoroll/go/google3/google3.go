@@ -7,7 +7,6 @@
 package google3
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -25,6 +24,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/quitquitquit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -73,17 +73,15 @@ func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*Au
 }
 
 // Start ensures DBs are closed when ctx is canceled.
-func (a *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx context.Context) {
-	go func() {
-		<-ctx.Done()
-		util.LogErr(a.recent.Close())
-	}()
-	go util.RepeatCtx(repoFrequency, ctx, func() {
+func (a *AutoRoller) Start(tickFrequency, repoFrequency time.Duration) {
+	go quitquitquit.Repeat(repoFrequency, func() {
 		if err := a.childRepo.Update(); err != nil {
 			sklog.Error(err)
 			return
 		}
 		util.LogErr(a.UpdateStatus("", true))
+	}, func() {
+		util.LogErr(a.recent.Close())
 	})
 }
 
