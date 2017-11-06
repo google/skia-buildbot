@@ -6,10 +6,11 @@
 """This script should be run on a Swarming bot as part of leasing.skia.org."""
 
 import argparse
+import json
 import os
 import sys
-import requests
 import time
+import urllib2
 
 
 POLLING_WAIT_TIME_SECS = 60
@@ -28,9 +29,9 @@ def main():
   while True:
     get_task_status_url = '%s/_/get_task_status?task=%s' % (
         args.leasing_server, args.task_id)
-    r = requests.get(get_task_status_url)
+    resp = urllib2.urlopen(get_task_status_url)
 
-    output = r.json()
+    output = json.load(resp)
     print 'Response from %s is: %s' % (get_task_status_url, output)
     sys.stdout.flush()
 
