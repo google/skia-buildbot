@@ -15,6 +15,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/golden/go/testhelpers"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -114,7 +115,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(TEST_COMMITS, nil)
-	server, serverAddr := ingestion.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
+	server, serverAddr := testhelpers.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
 	defer server.Stop()
 	defer testutils.Remove(t, TRACE_DB_FILENAME)
 
