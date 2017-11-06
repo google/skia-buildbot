@@ -26,6 +26,10 @@
 					"Bucket": "skia-perf",
 					"Dir": "task-duration",
 				},
+				{
+					"Bucket": "skia-calmbench",
+					"Dir": "calmbench-v1",
+				},
 			],
 		},
 		// Nanobench Trybot ingester
