@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c24ac0f_53a5edfe",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-11-06T19:48:55Z",
+      "side": 1,
+      "message": "cancelContext context.CancelFunc",
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
