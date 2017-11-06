@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "d3eaf6b4_745530d8",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-06T20:05:52Z",
+      "side": 1,
+      "message": "nit: name is a little misleading, maybe \"with_cleanup\" or \"repeat_cleanup\" or \"at_exit\"",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0c24ac0f_53a5edfe",
         "filename": "go/quitquitquit/quitquitquit.go",
         "patchSetId": 2
@@ -13,6 +36,69 @@
       "writtenOn": "2017-11-06T19:48:55Z",
       "side": 1,
       "message": "cancelContext context.CancelFunc",
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc18d807_306dd95a",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-06T20:05:52Z",
+      "side": 1,
+      "message": "nit: unneeded?",
+      "range": {
+        "startLine": 16,
+        "startChar": 30,
+        "endLine": 16,
+        "endChar": 53
+      },
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "710d8222_f27ea794",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-06T20:05:52Z",
+      "side": 1,
+      "message": "ISTM you just need a sync.WaitGroup.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 0
+      },
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "518b1abb_30781b6c",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-06T20:05:52Z",
+      "side": 1,
+      "message": "nit: move logging to Cancel so we know the app isn\u0027t just hanging when Cancel is called directly (in the defer).",
       "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true

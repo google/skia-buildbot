@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "912dcf5f_092ca616",
+        "filename": "go/quitquitquit/quitquitquit_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-06T20:05:52Z",
+      "side": 1,
+      "message": "nit: maybe add assert.False(t, cleanup)",
+      "revId": "950acbc7d445fdcf94010a77da4add3de18e7aae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
