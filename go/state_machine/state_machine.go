@@ -119,20 +119,20 @@ func (b *Builder) Build(workdir string) (*StateMachine, error) {
 		}
 	}
 
-	// Check that we didn't interrupt a previous transition.
-	busy := path.Join(workdir, busyFile)
-	if _, err := os.Stat(busy); !os.IsNotExist(err) {
-		return nil, fmt.Errorf("Transition is already in progress; did a previous transition get interrupted?")
-	}
-
 	// Create and return the StateMachine.
 	sm := &StateMachine{
 		current:     cachedState,
 		funcs:       b.funcs,
 		transitions: transitions,
 		file:        file,
-		busyFile:    busy,
+		busyFile:    path.Join(workdir, busyFile),
 	}
+
+	// Check that we didn't interrupt a previous transition.
+	if err := sm.checkBusy(); err != nil {
+		return nil, err
+	}
+
 	// Write initial state back to file, in case it wasn't there before.
 	if err := ioutil.WriteFile(file, []byte(sm.Current()), os.ModePerm); err != nil {
 		return nil, err
@@ -158,6 +158,16 @@ func (sm *StateMachine) Current() string {
 	return sm.current
 }
 
+// checkBusy returns an error if the "transitioning" file exists, indicating
+// that a previous transition was interrupted.
+func (sm *StateMachine) checkBusy() error {
+	contents, err := ioutil.ReadFile(sm.busyFile)
+	if err == nil {
+		return fmt.Errorf("Transition to %q already in progress; did a previous transition get interrupted?", string(contents))
+	}
+	return nil
+}
+
 // Attempt to transition to the given state, using the transition function.
 func (sm *StateMachine) Transition(dest string) error {
 	sm.mtx.Lock()
@@ -176,10 +186,10 @@ func (sm *StateMachine) Transition(dest string) error {
 	}
 
 	// Write the busy file.
-	if _, err := os.Stat(sm.busyFile); !os.IsNotExist(err) {
-		return fmt.Errorf("Transition is already in progress; did a previous transition get interrupted?")
+	if err := sm.checkBusy(); err != nil {
+		return err
 	}
-	if err := ioutil.WriteFile(sm.busyFile, []byte{}, os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(sm.busyFile, []byte(dest), os.ModePerm); err != nil {
 		return err
 	}
 	defer func() {
