@@ -45,10 +45,12 @@ var (
 	}
 
 	PoolsToSwarmingInstance = map[string]*SwarmingInstanceClients{
-		"Skia":         PublicSwarming,
-		"SkiaCT":       PublicSwarming,
-		"SkiaInternal": InternalSwarming,
-		"CT":           InternalSwarming,
+		"Skia":             PublicSwarming,
+		"SkiaCT":           PublicSwarming,
+		"SkiaInternal":     InternalSwarming,
+		"CT":               InternalSwarming,
+		"CTAndroidBuilder": InternalSwarming,
+		"CTLinuxBuilder":   InternalSwarming,
 	}
 )
 
