@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "4b7e59a9_37cacb09",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-06T20:08:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0c24ac0f_53a5edfe",
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dc18d807_306dd95a",
         "filename": "go/quitquitquit/quitquitquit.go",
         "patchSetId": 2
