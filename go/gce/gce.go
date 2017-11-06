@@ -576,6 +576,7 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 	}
 	metadata := make([]*compute.MetadataItems, 0, len(vm.Metadata))
 	for k, v := range vm.Metadata {
+		v := v
 		metadata = append(metadata, &compute.MetadataItems{
 			Key:   k,
 			Value: &v,
@@ -932,6 +933,7 @@ func (g *GCloud) SafeFormatAndMount(vm *Instance) error {
 func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 	items := make([]*compute.MetadataItems, 0, len(md))
 	for k, v := range md {
+		v := v
 		items = append(items, &compute.MetadataItems{
 			Key:   k,
 			Value: &v,
