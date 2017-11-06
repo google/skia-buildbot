@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6b5382eb_ccdea1ae",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-06T20:16:45Z",
+      "side": 1,
+      "message": "or \"until_exit\" or \"clean_repeat\"",
+      "parentUuid": "d3eaf6b4_745530d8",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0c24ac0f_53a5edfe",
         "filename": "go/quitquitquit/quitquitquit.go",
         "patchSetId": 2
