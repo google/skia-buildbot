@@ -33,7 +33,7 @@
   <template>
     <style is="custom-style" include="iron-positioning coverage-app-style">
       .innerframe {
-        width: 80vw;
+        width: 100vw;
         height: 87vh;
       }
 
@@ -42,9 +42,8 @@
     <url-param-sk name="commit" value="{{_commit}}"></url-param-sk>
     <url-param-sk name="job" value="{{_job}}"></url-param-sk>
 
-    <app-sk class="fit" drawer_width="250px">
+    <app-sk class="fit" drawer_width="0">
       <div header class="header">Code Coverage</div>
-      <coverage-menu navigation></coverage-menu>
       <h2>{{_job}} @ {{_commit}}</h2>
       <iframe class="innerframe" src$="/cov_html/[[_commit]]/[[_job]]/html/index.html"></iframe>
 
