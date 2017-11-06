@@ -107,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "9f6d9098_4733375c",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-06T20:44:01Z",
+      "side": 1,
+      "message": "It\u0027s needed so that tests don\u0027t have to call Init().  Otherwise, they\u0027d have to deal with stopping the http endpoint so that they could call Init() repeatedly, which is just a pain.",
+      "parentUuid": "dc18d807_306dd95a",
+      "range": {
+        "startLine": 16,
+        "startChar": 30,
+        "endLine": 16,
+        "endChar": 53
+      },
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "710d8222_f27ea794",
         "filename": "go/quitquitquit/quitquitquit.go",
         "patchSetId": 2
@@ -118,6 +142,30 @@
       "writtenOn": "2017-11-06T20:05:52Z",
       "side": 1,
       "message": "ISTM you just need a sync.WaitGroup.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 0
+      },
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0de1b871_fd452a6f",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-06T20:44:01Z",
+      "side": 1,
+      "message": "Huh. Yep, that\u0027s way better, thanks!",
+      "parentUuid": "710d8222_f27ea794",
       "range": {
         "startLine": 24,
         "startChar": 0,
@@ -144,6 +192,24 @@
       "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73e4188c_d5bfe55d",
+        "filename": "go/quitquitquit/quitquitquit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-06T20:44:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "518b1abb_30781b6c",
+      "revId": "04579fea8374669dfd8c795924e7e04da39db5cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
