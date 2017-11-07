@@ -5,6 +5,7 @@ import (
 	"image"
 	"net"
 	"net/http/httptest"
+	"path"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -33,9 +34,10 @@ func TestMemDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
 
 	// Get a small tile and get them cached.
-	baseDir := TEST_DATA_BASE_DIR + "-diffstore"
+	w, cleanup := testutils.TempDir(t)
+	defer cleanup()
+	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-diffstore")
 	client, tile := getSetupAndTile(t, baseDir)
-	defer testutils.RemoveAll(t, baseDir)
 
 	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
 	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
@@ -56,9 +58,10 @@ func (d DummyDiffStoreMapper) DiffFn(leftImg *image.NRGBA, rightImg *image.NRGBA
 func TestDiffFn(t *testing.T) {
 	testutils.LargeTest(t)
 
-	baseDir := TEST_DATA_BASE_DIR + "-difffn"
+	w, cleanup := testutils.TempDir(t)
+	defer cleanup()
+	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-difffn")
 	client, _ := getSetupAndTile(t, baseDir)
-	defer testutils.RemoveAll(t, baseDir)
 
 	// Instantiate a new MemDiffStore with the DummyDiffFn.
 	mapper := DummyDiffStoreMapper{GoldDiffStoreMapper: NewGoldDiffStoreMapper(&diff.DiffMetrics{}).(GoldDiffStoreMapper)}
@@ -78,9 +81,10 @@ func TestDiffFn(t *testing.T) {
 func TestNetDiffStore(t *testing.T) {
 	testutils.LargeTest(t)
 
-	baseDir := TEST_DATA_BASE_DIR + "-netdiffstore"
+	w, cleanup := testutils.TempDir(t)
+	defer cleanup()
+	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-netdiffstore")
 	client, tile := getSetupAndTile(t, baseDir)
-	defer testutils.RemoveAll(t, baseDir)
 
 	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
 	memDiffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)

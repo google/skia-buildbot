@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"path"
 	"strings"
 	"testing"
 
@@ -91,9 +92,10 @@ func TestGCSSupport(t *testing.T) {
 func TestCodec(t *testing.T) {
 	testutils.MediumTest(t)
 
-	baseDir := TEST_DATA_BASE_DIR + "-codec"
+	w, cleanup := testutils.TempDir(t)
+	defer cleanup()
+	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-codec")
 	client, _ := getSetupAndTile(t, baseDir)
-	defer testutils.RemoveAll(t, baseDir)
 
 	// Instantiate a new MemDiffStore with a codec for the test struct defined above.
 	mapper := NewGoldDiffStoreMapper(&DummyDiffMetrics{})
