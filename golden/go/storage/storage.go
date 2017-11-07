@@ -305,8 +305,9 @@ func NewGStorageClient(client *http.Client, bucketName, hashFilePath string) (*G
 // WriteKnownDigests writes the given list of digests to GS as newline
 // separated strings.
 func (g *GStorageClient) WriteKownDigests(digests []string) error {
+	// Only write the known digests if a target path was given.
 	if (g.bucketName == "") || (g.hashFilePath == "") {
-		return fmt.Errorf("Cannot write known digests file. Either bucket or path missing.")
+		return nil
 	}
 
 	ctx := context.Background()
