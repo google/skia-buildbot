@@ -46,6 +46,30 @@
       "revId": "cc18141411f3d2b9bd2495744bcfb9682c009068",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc865a77_46a9e77b",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-07T19:36:35Z",
+      "side": 1,
+      "message": "Huh. What I don\u0027t know could fill a book.",
+      "parentUuid": "831a257f_b33a86b3",
+      "range": {
+        "startLine": 97,
+        "startChar": 10,
+        "endLine": 97,
+        "endChar": 11
+      },
+      "revId": "cc18141411f3d2b9bd2495744bcfb9682c009068",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
