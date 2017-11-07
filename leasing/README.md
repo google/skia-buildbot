@@ -1,4 +1,4 @@
 Leasing Server
 ==============
 
-TODO add link to Design doc.
+Design doc is available here: https://goto.google.com/skolo-leasing

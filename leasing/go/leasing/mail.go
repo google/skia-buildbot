@@ -19,6 +19,8 @@ const (
 	LEASING_EMAIL_DISPLAY_NAME = "Leasing Server"
 
 	GMAIL_CACHED_TOKEN = "leasing_gmail_cached_token"
+
+	CONNECTION_INSTRUCTIONS_PAGE = "https://skia.org/dev/testing/swarmingbots#connecting-to-swarming-bots"
 )
 
 var (
@@ -55,13 +57,12 @@ func getRecipients(taskOwner string) []string {
 	return append(recipients, trooper)
 }
 
-// TODO(rmistry): Add link to instructions when a document is created.
 func SendStartEmail(taskOwner, swarmingServer, swarmingId, swarmingBot string) error {
 	subject := fmt.Sprintf("Your leasing task is now active (id:%s)", swarmingId)
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has been picked up by the swarming bot %s.
 		<br/><br/>
-		Please see this document for instructions on how to connect to the bot.
+		Please see <a href="%s">this page</a> for instructions on how to connect to the bot.
 		<br/>
 		Contact the CC'ed trooper if you have any questions.
 		<br/><br/>
@@ -71,7 +72,7 @@ func SendStartEmail(taskOwner, swarmingServer, swarmingId, swarmingBot string) e
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, GetSwarmingTaskLink(swarmingServer, swarmingId), swarmingBot, fmt.Sprintf("%s%s", PROD_URI, MY_LEASES_URI))
+	body := fmt.Sprintf(bodyTemplate, GetSwarmingTaskLink(swarmingServer, swarmingId), swarmingBot, CONNECTION_INSTRUCTIONS_PAGE, fmt.Sprintf("%s%s", PROD_URI, MY_LEASES_URI))
 	if err := gmail.Send(LEASING_EMAIL_DISPLAY_NAME, getRecipients(taskOwner), subject, body); err != nil {
 		return fmt.Errorf("Could not send start email: %s", err)
 	}
