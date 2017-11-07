@@ -1,7 +1,6 @@
 package repo_manager
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path"
@@ -9,12 +8,12 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -111,17 +110,17 @@ func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 }
 
 // Start makes the RepoManager begin the periodic update process.
-func Start(r RepoManager, frequency time.Duration, ctx context.Context) {
+func Start(r RepoManager, frequency time.Duration) {
 	sklog.Infof("Starting repo_manager")
 	lv := metrics2.NewLiveness("last_successful_repo_manager_update")
-	go util.RepeatCtx(frequency, ctx, func() {
+	cleanup.Repeat(frequency, func() {
 		sklog.Infof("Running repo_manager update.")
 		if err := r.Update(); err != nil {
 			sklog.Errorf("Failed to update repo manager: %s", err)
 		} else {
 			lv.Reset()
 		}
-	})
+	}, nil)
 }
 
 func (r *commonRepoManager) User() string {

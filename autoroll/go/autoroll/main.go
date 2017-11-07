@@ -5,7 +5,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -21,6 +20,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metadata"
@@ -53,6 +53,7 @@ var (
 	childBranch     = flag.String("child_branch", "master", "Branch of the project we want to roll.")
 	cqExtraTrybots  = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
 	depsCustomVars  = common.NewMultiStringFlag("deps_custom_var", nil, "Custom vars to pass to gclient, in the form \"key=value\"")
+	gerritUrl       = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
 	host            = flag.String("host", "localhost", "HTTP service host")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	noLog           = flag.Bool("no_log", false, "If true, roll CLs do not include a git log (DEPS rollers only).")
@@ -60,25 +61,24 @@ var (
 	parentBranch    = flag.String("parent_branch", "master", "Branch of the parent repo we want to roll into.")
 	parentWaterfall = flag.String("parent_waterfall", "", "Waterfall URL of the parent repo.")
 	port            = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	preUploadSteps  = common.NewMultiStringFlag("pre_upload_step", nil, "Named steps to run before uploading roll CLs. Pre-upload steps and their names are available in https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go")
 	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir    = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
+	rollIntoGoogle3 = flag.Bool("roll_into_google3", false, "Roll into Google3; do not do a Gerrit roll.")
 	sheriff         = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
 	strategy        = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
 	throttleCount   = flag.Int64("throttle_count", 0, "Maximum number of attempts before throttling.")
 	throttleTime    = flag.String("throttle_time", "", "Time window for throttle attempts, eg. \"30m\" or \"1h10m\"")
+	useManifest     = flag.Bool("use_manifest", false, "Do a Manifest roll.")
 	useMetadata     = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir         = flag.String("workdir", ".", "Directory to use for scratch work.")
-	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
-	rollIntoGoogle3 = flag.Bool("roll_into_google3", false, "Roll into Google3; do not do a Gerrit roll.")
-	useManifest     = flag.Bool("use_manifest", false, "Do a Manifest roll.")
-	gerritUrl       = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
-	preUploadSteps  = common.NewMultiStringFlag("pre_upload_step", nil, "Named steps to run before uploading roll CLs. Pre-upload steps and their names are available in https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
 type AutoRollerI interface {
 	// Start initiates the AutoRoller's loop.
-	Start(tickFrequency, repoFrequency time.Duration, ctx context.Context)
+	Start(tickFrequency, repoFrequency time.Duration)
 	// AddHandlers allows the AutoRoller to respond to specific HTTP requests.
 	AddHandlers(r *mux.Router)
 	// SetMode sets the desired mode of the bot. This forces the bot to run and
@@ -275,6 +275,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
+	defer cleanup.Cleanup()
 
 	Init()
 
@@ -382,7 +383,7 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	// Start the autoroller.
+	// Create the autoroller.
 	strat, err := repo_manager.GetNextRollStrategy(*strategy, *childBranch, "")
 	if err != nil {
 		sklog.Fatal(err)
@@ -410,33 +411,29 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	arb.Start(time.Minute /* tickFrequency */, 15*time.Minute /* repoFrequency */, ctx)
+
+	// Start the roller.
+	arb.Start(time.Minute /* tickFrequency */, 15*time.Minute /* repoFrequency */)
 
 	// Feed AutoRoll stats into metrics.
-	go func() {
-		for range time.Tick(time.Minute) {
-			status := arb.GetStatus(false)
-			v := int64(0)
-			if status.LastRoll != nil && status.LastRoll.Closed && status.LastRoll.Committed {
-				v = int64(1)
-			}
-			metrics2.GetInt64Metric("autoroll_last_roll_result", map[string]string{"child_path": *childPath}).Update(v)
+	cleanup.Repeat(time.Minute, func() {
+		status := arb.GetStatus(false)
+		v := int64(0)
+		if status.LastRoll != nil && status.LastRoll.Closed && status.LastRoll.Committed {
+			v = int64(1)
 		}
-	}()
+		metrics2.GetInt64Metric("autoroll_last_roll_result", map[string]string{"child_path": *childPath}).Update(v)
+	}, nil)
 
 	// Update the current sheriff in a loop.
-	go func() {
-		for range time.Tick(30 * time.Minute) {
-			emails, err := getSheriff()
-			if err != nil {
-				sklog.Errorf("Failed to retrieve current sheriff: %s", err)
-			} else {
-				arb.SetEmails(emails)
-			}
+	cleanup.Repeat(30*time.Minute, func() {
+		emails, err := getSheriff()
+		if err != nil {
+			sklog.Errorf("Failed to retrieve current sheriff: %s", err)
+		} else {
+			arb.SetEmails(emails)
 		}
-	}()
+	}, nil)
 
 	if g != nil {
 		// Periodically delete old roll CLs.

@@ -1,7 +1,6 @@
 package roller
 
 import (
-	"context"
 	"fmt"
 	"path"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/metrics2"
@@ -136,11 +136,11 @@ func isSyncError(err error) bool {
 }
 
 // Start initiates the AutoRoller's loop.
-func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx context.Context) {
+func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration) {
 	sklog.Infof("Starting autoroller.")
-	repo_manager.Start(r.rm, repoFrequency, ctx)
+	repo_manager.Start(r.rm, repoFrequency)
 	lv := metrics2.NewLiveness("last_successful_autoroll_tick")
-	go util.RepeatCtx(tickFrequency, ctx, func() {
+	cleanup.Repeat(tickFrequency, func() {
 		if err := r.Tick(); err != nil {
 			// Hack: we frequently get failures from GoB which trigger error-rate alerts.
 			// These alerts are noise and sometimes hide real failures. If the error is
@@ -154,17 +154,10 @@ func (r *AutoRoller) Start(tickFrequency, repoFrequency time.Duration, ctx conte
 		} else {
 			lv.Reset()
 		}
+	}, func() {
+		util.LogErr(r.recent.Close())
+		util.LogErr(r.modeHistory.Close())
 	})
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				util.LogErr(r.recent.Close())
-				util.LogErr(r.modeHistory.Close())
-			default:
-			}
-		}
-	}()
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
