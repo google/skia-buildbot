@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e97b9715_067b2441",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-07T14:31:30Z",
+      "side": 1,
+      "message": "Does it make more sense to return nil, err here? it will make sure the caller does not accidentally try to read the ret when there is an error.",
+      "revId": "52da502391c6c639bbdf1482cc40f96deb8270e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0203652_7e503a59",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-07T14:31:30Z",
+      "side": 1,
+      "message": "Why not return an error here? or maybe this should be logged as an error so that you can set an error alert threshold if needed.\nIf we do not want to return an error here I do not think defaultCalcaulateTotalCoverage is returning error anywhere.",
+      "range": {
+        "startLine": 132,
+        "startChar": 9,
+        "endLine": 132,
+        "endChar": 17
+      },
+      "revId": "52da502391c6c639bbdf1482cc40f96deb8270e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "021df03a_9d467890",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-07T14:31:30Z",
+      "side": 1,
+      "message": "Log as an error?",
+      "range": {
+        "startLine": 226,
+        "startChar": 9,
+        "endLine": 226,
+        "endChar": 17
+      },
+      "revId": "52da502391c6c639bbdf1482cc40f96deb8270e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
