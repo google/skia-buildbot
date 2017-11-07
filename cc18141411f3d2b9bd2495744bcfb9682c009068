@@ -22,6 +22,30 @@
       "revId": "cc18141411f3d2b9bd2495744bcfb9682c009068",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "831a257f_b33a86b3",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-07T19:30:30Z",
+      "side": 1,
+      "message": "Do we expect a program to exit with code zero when it is interrupted?  Anecdotally, I get code 130 on Linux when I use ctrl+c.",
+      "parentUuid": "8a6a2f61_b9565be4",
+      "range": {
+        "startLine": 97,
+        "startChar": 10,
+        "endLine": 97,
+        "endChar": 11
+      },
+      "revId": "cc18141411f3d2b9bd2495744bcfb9682c009068",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
