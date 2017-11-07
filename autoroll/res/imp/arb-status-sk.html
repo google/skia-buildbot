@@ -127,6 +127,9 @@
                   <template is="dom-if" if="{{!_exists(item.url)}}">
                     <span class="nowrap" class$="{{_trybotClass(item)}}">{{item.builder}}</span>
                   </template>
+                  <template is="dom-if" if="{{!_isCQ(item)}}">
+                    <span class="nowrap small">({{item.category}})</span>
+                  </template>
                 </div>
               </template>
             </div>
@@ -357,6 +360,10 @@
             "stopped": "stop",
           },
         }[currentMode][mode];
+      },
+
+      _isCQ: function(tryjob) {
+        return tryjob.category === "cq";
       },
 
       _reloadChanged: function() {
