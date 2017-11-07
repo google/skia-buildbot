@@ -207,6 +207,8 @@ func runChromiumAnalysis() error {
 	var mutex sync.RWMutex
 
 	timeoutTracker := util.TimeoutTracker{}
+	// How many times the run_benchmark binary should be retried if there are any errors.
+	retryNum := util.GetNumAnalysisRetriesValue(*benchmarkExtraArgs, 2)
 
 	// Loop through workers in the worker pool.
 	for i := 0; i < numWorkers; i++ {
@@ -221,8 +223,7 @@ func runChromiumAnalysis() error {
 			for pagesetName := range pagesetRequests {
 
 				mutex.RLock()
-				// Retry run_benchmark binary 3 times if there are any errors.
-				retryAttempts := 3
+				retryAttempts := retryNum
 				for i := 0; ; i++ {
 					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1)
 					if err == nil {
@@ -231,8 +232,8 @@ func runChromiumAnalysis() error {
 					} else if exec.IsTimeout(err) {
 						timeoutTracker.Increment()
 					}
-					if i >= (retryAttempts - 1) {
-						sklog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetName, err)
+					if i >= retryAttempts {
+						sklog.Errorf("%s failed inspite of %d retries. Last error: %s", retryNum, pagesetName, err)
 						break
 					}
 					time.Sleep(time.Second)
