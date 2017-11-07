@@ -2,6 +2,8 @@ package cleanup
 
 import (
 	"context"
+	"os"
+	"os/signal"
 	"sync"
 	"time"
 
@@ -18,6 +20,14 @@ var (
 // Initialize the package.
 func init() {
 	resetContext()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		_ = <-c
+		Cleanup()
+		os.Exit(1)
+	}()
 }
 
 // Reset the context. This is in a non-init function for testing purposes.
