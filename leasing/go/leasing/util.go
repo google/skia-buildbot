@@ -22,6 +22,5 @@ func GetTrooperEmail(httpClient *http.Client) (string, error) {
 		return "", fmt.Errorf("Could not get trooper data: %s", err)
 	}
 
-	// TODO(rmistry): Use trooper.Username here
-	return "rmistry@google.com", nil
+	return trooper.Username, nil
 }
