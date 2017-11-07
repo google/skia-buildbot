@@ -1020,6 +1020,12 @@ func GetCustomPages(customWebPagesFilePath string) ([]string, error) {
 	return customPages, nil
 }
 
+func GetCustomPagesWithinRange(startRange, num int, customWebpages []string) []string {
+	startIndex := startRange - 1
+	endIndex := util.MinInt(startIndex+num, len(customWebpages))
+	return customWebpages[startIndex:endIndex]
+}
+
 func CreateCustomPagesets(webpages []string, pagesetsDir string) error {
 	// Empty the local dir.
 	util.RemoveAll(pagesetsDir)
