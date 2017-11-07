@@ -6,8 +6,10 @@ import (
 	"flag"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/auth"
@@ -48,6 +50,9 @@ var (
 		REPO_SKIA_INTERNAL:      "skia-internal",
 		REPO_SKIA_INTERNAL_TEST: "skia-internal-test",
 	}
+
+	sigIntHandlers []func()
+	sigIntMtx      sync.Mutex
 )
 
 // init runs setup for the common package.
@@ -79,6 +84,20 @@ func Init() {
 
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		_ = <-c
+		sigIntMtx.Lock()
+		defer sigIntMtx.Unlock()
+		for _, fn := range sigIntHandlers {
+			fn()
+		}
+		// Special code for interrupt, according to
+		// http://tldp.org/LDP/abs/html/exitcodes.html
+		os.Exit(130)
+	}()
 }
 
 // StartCloudLogging initializes cloud logging. It is assumed to be running in GCE where the
@@ -167,4 +186,11 @@ func (m *MultiString) Set(value string) error {
 		*m = append(*m, s)
 	}
 	return nil
+}
+
+// OnSigInt adds a handler func which runs if SIGINT is received.
+func OnSigInt(fn func()) {
+	sigIntMtx.Lock()
+	defer sigIntMtx.Unlock()
+	sigIntHandlers = append(sigIntHandlers, fn)
 }
