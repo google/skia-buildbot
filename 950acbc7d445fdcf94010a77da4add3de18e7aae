@@ -16,6 +16,24 @@
       "revId": "950acbc7d445fdcf94010a77da4add3de18e7aae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86100b9e_8b8c02eb",
+        "filename": "go/quitquitquit/quitquitquit_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-07T16:15:27Z",
+      "side": 1,
+      "message": "I still think this would be a good idea. Repeat contract says that the functions passed to Repeat will never be called concurrently, but your test doesn\u0027t check that.",
+      "parentUuid": "912dcf5f_092ca616",
+      "revId": "950acbc7d445fdcf94010a77da4add3de18e7aae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
