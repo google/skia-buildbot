@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "92d02d31_864e4cb8",
+        "filename": "go/common/common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-07T22:58:18Z",
+      "side": 1,
+      "message": "Do we need to change our systemd service configs to send SIGINT rather than SIGTERM?\n\nhttps://www.freedesktop.org/software/systemd/man/systemd.kill.html#",
+      "range": {
+        "startLine": 182,
+        "startChar": 18,
+        "endLine": 182,
+        "endChar": 30
+      },
+      "revId": "dd6d4d22d2a9445e3aefe5f6c54f6ce8e1b3cfed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
