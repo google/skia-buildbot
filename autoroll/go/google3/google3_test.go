@@ -1,7 +1,6 @@
 package google3
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -21,10 +20,8 @@ func setup(t *testing.T) (*AutoRoller, []string, func()) {
 	tmpDir, cleanup := testutils.TempDir(t)
 	a, err := NewAutoRoller(tmpDir, gb.RepoUrl(), "master")
 	assert.NoError(t, err)
-	ctx, cancel := context.WithCancel(context.Background())
-	a.Start(time.Second, time.Second, ctx)
+	a.Start(time.Second, time.Second)
 	return a, commits, func() {
-		cancel()
 		cleanup()
 		gb.Cleanup()
 	}
