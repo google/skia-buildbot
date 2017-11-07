@@ -275,7 +275,6 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
-	defer cleanup.Cleanup()
 
 	Init()
 
