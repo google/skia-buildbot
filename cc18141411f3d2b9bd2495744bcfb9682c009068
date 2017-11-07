@@ -94,6 +94,30 @@
       "revId": "cc18141411f3d2b9bd2495744bcfb9682c009068",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dd45d822_f054f02f",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-07T19:55:29Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "ad705fe5_d177775e",
+      "range": {
+        "startLine": 97,
+        "startChar": 10,
+        "endLine": 97,
+        "endChar": 11
+      },
+      "revId": "cc18141411f3d2b9bd2495744bcfb9682c009068",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
