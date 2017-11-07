@@ -34,6 +34,24 @@
       "revId": "950acbc7d445fdcf94010a77da4add3de18e7aae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f47f4f3_6e5109c5",
+        "filename": "go/quitquitquit/quitquitquit_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-07T16:29:55Z",
+      "side": 1,
+      "message": "Whoops, I missed this the first time!  Done.",
+      "parentUuid": "86100b9e_8b8c02eb",
+      "revId": "950acbc7d445fdcf94010a77da4add3de18e7aae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
