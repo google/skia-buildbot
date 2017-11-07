@@ -135,9 +135,7 @@ func runChromiumPerf() error {
 		return fmt.Errorf("Could not read custom webpages file %s: %s", customWebpagesName, err)
 	}
 	if len(customWebpages) > 0 {
-		startIndex := *startRange - 1
-		endIndex := skutil.MinInt(*startRange+*num, len(customWebpages))
-		customWebpages = customWebpages[startIndex:endIndex]
+		customWebpages = util.GetCustomPagesWithinRange(*startRange, *num, customWebpages)
 	}
 
 	chromiumBuilds := []string{*chromiumBuildNoPatch}
