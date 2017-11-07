@@ -130,7 +130,7 @@ func runChromiumAnalysis() error {
 	}
 	if len(customWebpages) > 0 {
 		startIndex := *startRange - 1
-		endIndex := skutil.MinInt(*startRange+*num, len(customWebpages))
+		endIndex := skutil.MinInt(startIndex+*num, len(customWebpages))
 		customWebpages = customWebpages[startIndex:endIndex]
 	}
 
