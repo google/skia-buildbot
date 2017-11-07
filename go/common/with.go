@@ -76,6 +76,7 @@ func (b *baseInitOpt) init(appName string) error {
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	setupSigIntHandlers()
 	return nil
 }
 

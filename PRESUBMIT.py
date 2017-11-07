@@ -88,6 +88,7 @@ def _CheckBannedGoAPIs(input_api, output_api):
     (r'\bhttp\.Post\b', 'NewTimeoutClient in go.skia.org/infra/go/httputils'),
     (r'\bhttp\.PostForm\b',
         'NewTimeoutClient in go.skia.org/infra/go/httputils'),
+    (r'\bos\.Interrupt\b', 'OnSigInt in go.skia.org/go/common'),
   ]
 
   compiled_replacements = []
