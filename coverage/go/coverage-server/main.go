@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/coverage/go/coverageingest"
+	"go.skia.org/infra/coverage/go/db"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
@@ -32,8 +33,10 @@ const (
 )
 
 var (
-	extractDir   = flag.String("extract_dir", "./extract", "The directory that the coverage data should be extracted to.")
-	gitDir       = flag.String("git_dir", "./git", "The directory that the git repo should live in.")
+	extractDir = flag.String("extract_dir", "./extract", "The directory that the coverage data should be extracted to.")
+	gitDir     = flag.String("git_dir", "./git", "The directory that the git repo should live in.")
+	cachePath  = flag.String("cache_path", "./boltdb", "The path to where the cached coverage data should be stored.")
+
 	ingestPeriod = flag.Duration("ingest_period", 10*time.Minute, "How often to check for new data.")
 
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -42,6 +45,10 @@ var (
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	nCommits     = flag.Int("n_commits", 50, "The last N commits to ingest coverage data for.")
 	bucket       = flag.String("bucket", "skia-coverage", "The GCS bucket that will house the coverage data.")
+
+	// OAUTH params
+	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	redirectURL   = flag.String("redirect_url", "https://fuzzer.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 )
 
 var (
@@ -69,6 +76,14 @@ func main() {
 
 	if err := setupFileIngestion(); err != nil {
 		sklog.Fatalf("Could not set up ingestion: %s", err)
+	}
+
+	useRedirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	if !*local {
+		useRedirectURL = *redirectURL
+	}
+	if err := login.Init(useRedirectURL, *authWhiteList); err != nil {
+		sklog.Fatalf("Problem setting up server OAuth: %s", err)
 	}
 
 	r := mux.NewRouter()
@@ -173,7 +188,11 @@ func setupFileIngestion() error {
 	}
 
 	gcsClient := gcs.NewGCSClient(storageClient, *bucket)
-	coverageIngester = coverageingest.New(*extractDir, gcsClient)
+	boltDB, err := db.NewBoltDB(*cachePath)
+	if err != nil {
+		return fmt.Errorf("could not set up bolt db cache: %s", err)
+	}
+	coverageIngester = coverageingest.New(*extractDir, gcsClient, boltDB)
 
 	cycle := func(v vcsinfo.VCS, coverageIngester coverageingest.Ingester) {
 		sklog.Info("Begin coverage ingest cycle")

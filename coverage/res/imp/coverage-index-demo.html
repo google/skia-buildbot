@@ -32,15 +32,20 @@
             author: "nobody whozit (nobody@example.com)",
             subject: "This is a really obnixiously long commit subject.  The author didn't read the guidlines on keeping it short."
           },
+          combined: {
+            name: "",
+            total_lines: 20000,
+            missed_lines: 6000,
+          },
           jobs: [
             {
               name: "Test-Some-Config-Release",
-              lines: 10000,
+              total_lines: 10000,
               missed_lines: 4500,
             },
             {
               name: "Test-Some-Config-Debug",
-              lines: 11000,
+              total_lines: 11000,
               missed_lines: 4500,
             }
           ],
@@ -51,25 +56,30 @@
             author: "Nobody Whozit Junior (nobodyjr@example.com)",
             subject: "Terse commit",
           },
+          combined: {
+            name: "",
+            total_lines: 20000,
+            missed_lines: 6000,
+          },
           jobs: [
             {
               name: "Test-Other-Config-Release",
-              lines: 13000,
+              total_lines: 13000,
               missed_lines: 4500,
             },
             {
               name: "Test-Other-Config-Debug",
-              lines: 8000,
+              total_lines: 8000,
               missed_lines: 4500,
             },
             {
               name: "Test-Some-Config-Release",
-              lines: 9000,
+              total_lines: 9000,
               missed_lines: 4500,
             },
             {
               name: "Test-Some-Config-Debug-ASAN",
-              lines: 7000,
+              total_lines: 7000,
               missed_lines: 4500,
             }
           ],
