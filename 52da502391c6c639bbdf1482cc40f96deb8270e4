@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eaf473de_16e5a521",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-07T14:56:13Z",
+      "side": 1,
+      "message": "Can\u0027t return nil because I\u0027m not returning a pointer.",
+      "parentUuid": "e97b9715_067b2441",
+      "revId": "52da502391c6c639bbdf1482cc40f96deb8270e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c0203652_7e503a59",
         "filename": "coverage/go/coverageingest/ingester.go",
         "patchSetId": 5
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "6c7f3748_0085bbbd",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-07T14:56:13Z",
+      "side": 1,
+      "message": "Returning error now.",
+      "parentUuid": "c0203652_7e503a59",
+      "range": {
+        "startLine": 132,
+        "startChar": 9,
+        "endLine": 132,
+        "endChar": 17
+      },
+      "revId": "52da502391c6c639bbdf1482cc40f96deb8270e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "021df03a_9d467890",
         "filename": "coverage/go/coverageingest/ingester.go",
         "patchSetId": 5
@@ -62,6 +104,30 @@
       "revId": "52da502391c6c639bbdf1482cc40f96deb8270e4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0fcc246_cf58f570",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-07T14:56:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "021df03a_9d467890",
+      "range": {
+        "startLine": 226,
+        "startChar": 9,
+        "endLine": 226,
+        "endChar": 17
+      },
+      "revId": "52da502391c6c639bbdf1482cc40f96deb8270e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
