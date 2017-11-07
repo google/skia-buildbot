@@ -2,6 +2,7 @@ package diffstore
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 
@@ -28,8 +29,8 @@ func TestImageLoader(t *testing.T) {
 	testutils.LargeTest(t)
 
 	mapper := GoldDiffStoreMapper{}
-	baseDir, workingDir, tile, imageLoader := getImageLoaderAndTile(t, mapper)
-	defer testutils.RemoveAll(t, baseDir)
+	workingDir, tile, imageLoader, cleanup := getImageLoaderAndTile(t, mapper)
+	defer cleanup()
 
 	// Iterate over the tile and get all the digests
 	digestSet := util.NewStringSet()
@@ -83,8 +84,9 @@ func DefaultImagePath(baseDir, imageID string) string {
 	return fileutil.TwoLevelRadixPath(baseDir, imagePath)
 }
 
-func getImageLoaderAndTile(t assert.TestingT, mapper DiffStoreMapper) (string, string, *tiling.Tile, *ImageLoader) {
-	baseDir := TEST_DATA_BASE_DIR + "-imgloader"
+func getImageLoaderAndTile(t assert.TestingT, mapper DiffStoreMapper) (string, *tiling.Tile, *ImageLoader, func()) {
+	w, cleanup := testutils.TempDir(t)
+	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-imgloader")
 	client, tile := getSetupAndTile(t, baseDir)
 
 	workingDir := filepath.Join(baseDir, "images")
@@ -94,5 +96,5 @@ func getImageLoaderAndTile(t assert.TestingT, mapper DiffStoreMapper) (string, s
 	gsBuckets := []string{TEST_GCS_BUCKET_NAME, TEST_GCS_SECONDARY_BUCKET}
 	imgLoader, err := NewImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GCS_IMAGE_DIR, imgCacheCount, mapper)
 	assert.NoError(t, err)
-	return baseDir, workingDir, tile, imgLoader
+	return workingDir, tile, imgLoader, cleanup
 }

@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"path"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -15,9 +16,10 @@ func TestFailureHandling(t *testing.T) {
 	testutils.MediumTest(t)
 
 	// Get a small tile and get them cached.
-	baseDir := TEST_DATA_BASE_DIR + "-diffstore-failure"
+	w, cleanup := testutils.TempDir(t)
+	defer cleanup()
+	baseDir := path.Join(w, TEST_DATA_BASE_DIR+"-diffstore-failure")
 	client, tile := getSetupAndTile(t, baseDir)
-	defer testutils.RemoveAll(t, baseDir)
 
 	mapper := NewGoldDiffStoreMapper(&diff.DiffMetrics{})
 	diffStore, err := NewMemDiffStore(client, baseDir, []string{TEST_GCS_BUCKET_NAME}, TEST_GCS_IMAGE_DIR, 10, mapper)
