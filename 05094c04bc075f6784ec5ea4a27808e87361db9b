@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd606eb3_cd4ecb3c",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-08T15:44:56Z",
+      "side": 1,
+      "message": "Could you add a comment with a note near the \u0027proxy_pass\u0027 statement in the actual definition of the *proxy.skia.org server, saying that any change there also needs to be reflected in the other locations where we proxy to skia-proxy:8000",
+      "range": {
+        "startLine": 363,
+        "startChar": 5,
+        "endLine": 364,
+        "endChar": 76
+      },
+      "revId": "05094c04bc075f6784ec5ea4a27808e87361db9b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
