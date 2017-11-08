@@ -46,6 +46,30 @@
       "revId": "c130da861c9c3074c4653b618adaeb595036f1f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "894bf5ea_dfe87eb1",
+        "filename": "go/cleanup/cleanup.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-08T15:26:19Z",
+      "side": 1,
+      "message": "I respectfully disagree.  I don\u0027t think it\u0027s realistic to ensure that all state for a program is written in one atomic operation.  In the case of the autoroller which was the impetus for this, each of the components writes its state atomically, but since they don\u0027t do it all at once we can still be interrupted in between writes and cause problems.  Redesigning the program to write all of its state in one atomic operation would make things unnecessarily complicated.\n\nWe also have several programs designed to run interactively: powercycle, lots of things under scripts/.  Personally I\u0027d like to be able to use the same mechanism to ensure that things don\u0027t end up in a weird state, even if the risk is lower in that case.",
+      "parentUuid": "a66d38d0_673871d7",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 26
+      },
+      "revId": "c130da861c9c3074c4653b618adaeb595036f1f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
