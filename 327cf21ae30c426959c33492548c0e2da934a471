@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b780b809_9af22531",
+        "filename": "debugger/go/skdebugger/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-08T16:16:31Z",
+      "side": 1,
+      "message": "Agreed, that seems like a good solution if StopAll knows when everything is done.  In the interest of keeping this CL relatively small and not changing behavior too much, I\u0027d like to leave that up to Joe for his code.",
+      "parentUuid": "bcbfd944_61b10a66",
+      "range": {
+        "startLine": 217,
+        "startChar": 1,
+        "endLine": 217,
+        "endChar": 13
+      },
+      "revId": "327cf21ae30c426959c33492548c0e2da934a471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3f174091_c944b812",
         "filename": "go/common/signal.go",
         "patchSetId": 8
@@ -36,6 +60,24 @@
       "writtenOn": "2017-11-08T15:15:18Z",
       "side": 1,
       "message": "IMO, move this file to cleanup package.",
+      "revId": "327cf21ae30c426959c33492548c0e2da934a471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56eb3f94_715960fc",
+        "filename": "go/common/signal.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-08T16:16:31Z",
+      "side": 1,
+      "message": "I was thinking of this as independent from the cleanup package, although I guess any handling of signals should be used for cleanup.  I have a slight preference for keeping it here, but could easily be convinced otherwise.",
+      "parentUuid": "3f174091_c944b812",
       "revId": "327cf21ae30c426959c33492548c0e2da934a471",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "d20ee1c7_9f49730e",
+        "filename": "go/common/signal.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-08T16:16:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec13b250_112f20f8",
+      "range": {
+        "startLine": 55,
+        "startChar": 2,
+        "endLine": 55,
+        "endChar": 26
+      },
+      "revId": "327cf21ae30c426959c33492548c0e2da934a471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "65af7ec8_d481cba8",
         "filename": "go/common/signal.go",
         "patchSetId": 8
@@ -76,6 +142,30 @@
       "writtenOn": "2017-11-08T15:36:41Z",
       "side": 1,
       "message": "IMO this and AddCallback should be private if only used within the common package. \n\nOnSigTerm and OnSigInt are the interface of this functionality. \nsuper nit: maybe \"setup\", \"setupHandler\" or \"trapSignal\" would be a bit more descriptive.",
+      "range": {
+        "startLine": 61,
+        "startChar": 25,
+        "endLine": 61,
+        "endChar": 31
+      },
+      "revId": "327cf21ae30c426959c33492548c0e2da934a471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71853ab7_91c15eef",
+        "filename": "go/common/signal.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-08T16:16:31Z",
+      "side": 1,
+      "message": "Done. Renamed \"Handle\" to \"enable\".",
+      "parentUuid": "65af7ec8_d481cba8",
       "range": {
         "startLine": 61,
         "startChar": 25,
@@ -108,6 +198,30 @@
       "revId": "327cf21ae30c426959c33492548c0e2da934a471",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3b08f30_768068a2",
+        "filename": "go/common/signal.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-08T16:16:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a99cb40_96c74cb2",
+      "range": {
+        "startLine": 70,
+        "startChar": 3,
+        "endLine": 70,
+        "endChar": 7
+      },
+      "revId": "327cf21ae30c426959c33492548c0e2da934a471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
