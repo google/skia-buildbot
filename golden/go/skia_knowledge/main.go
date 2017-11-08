@@ -63,7 +63,7 @@ func main() {
 	client := &http.Client{}
 
 	// load the test meta data from Gold.
-	testRecords, err := loadMetaData(client, *baseURL, DEFAULT_QUERY, META_DATA_FILE)
+	testRecords, err := loadMetaData(client, *baseURL, *imgBaseURL, DEFAULT_QUERY, META_DATA_FILE)
 	if err != nil {
 		sklog.Fatalf("Error loading meta data: %s", err)
 	}
@@ -77,7 +77,7 @@ func main() {
 
 	// If an output directory was given, download the images referenced in the index file.
 	if *outputDir != "" {
-		if err := downloadImages(*outputDir, *imgBaseURL, client, testRecords); err != nil {
+		if err := downloadImages(*outputDir, client, testRecords); err != nil {
 			sklog.Fatalf("Error downloading images: %s", err)
 		}
 	}
@@ -87,7 +87,7 @@ func main() {
 
 // loadMetaData makes a query to a Gold instance and parses the JSON response.
 // It then groups images/digests by tests and returns them.
-func loadMetaData(client *http.Client, baseURL, query, metaDataFileName string) ([]*export.TestRecord, error) {
+func loadMetaData(client *http.Client, baseURL, imgBaseURL, query, metaDataFileName string) ([]*export.TestRecord, error) {
 	url := strings.TrimRight(baseURL, "/") + SEARCH_PATH + "?" + query
 	sklog.Infof("Requesting url: %s", url)
 	resp, err := client.Get(url)
@@ -113,7 +113,7 @@ func loadMetaData(client *http.Client, baseURL, query, metaDataFileName string) 
 
 		digestInfo := &export.DigestInfo{
 			SRDigest: oneDigest,
-			URL:      export.DigestUrl(baseURL, oneDigest.Digest),
+			URL:      export.DigestUrl(imgBaseURL, oneDigest.Digest),
 		}
 
 		testName := oneDigest.ParamSet[types.PRIMARY_KEY_FIELD][0]
@@ -138,7 +138,7 @@ func loadMetaData(client *http.Client, baseURL, query, metaDataFileName string) 
 
 // downloadImages downloads all images referenced in the meta data to disk.
 // One directory is created for each test.
-func downloadImages(baseDir, baseURL string, client *http.Client, testRecs []*export.TestRecord) error {
+func downloadImages(baseDir string, client *http.Client, testRecs []*export.TestRecord) error {
 	for _, testRec := range testRecs {
 		testDir := filepath.Join(baseDir, testRec.TestName)
 		absDirPath, err := fileutil.EnsureDirExists(testDir)
