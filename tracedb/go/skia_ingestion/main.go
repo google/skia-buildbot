@@ -7,7 +7,6 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"runtime/pprof"
 	"time"
@@ -90,12 +89,7 @@ func main() {
 
 		// Write the profile after the given time or whenever we get a SIGINT signal.
 		time.AfterFunc(*memProfile, writeProfileFn)
-		ch := make(chan os.Signal)
-		signal.Notify(ch, os.Interrupt)
-		go func() {
-			<-ch
-			writeProfileFn()
-		}()
+		common.OnSigInt(writeProfileFn)
 	}
 
 	// Run the ingesters forever.
