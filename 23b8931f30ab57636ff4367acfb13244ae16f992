@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6d07420_5b194196",
+        "filename": "fuzzer/res/imp/bower.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-08T21:10:35Z",
+      "side": 0,
+      "message": "Why can this be deleted?\n\nWas it duplicated with fuzzer/bower.json?",
+      "revId": "23b8931f30ab57636ff4367acfb13244ae16f992",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
