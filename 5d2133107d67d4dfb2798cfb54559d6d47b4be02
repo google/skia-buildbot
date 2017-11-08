@@ -22,6 +22,30 @@
       "revId": "5d2133107d67d4dfb2798cfb54559d6d47b4be02",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c13c538a_8bb8383a",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-08T14:19:59Z",
+      "side": 1,
+      "message": "Dunno. Joe?",
+      "parentUuid": "bc1f926e_af930cb7",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 28
+      },
+      "revId": "5d2133107d67d4dfb2798cfb54559d6d47b4be02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

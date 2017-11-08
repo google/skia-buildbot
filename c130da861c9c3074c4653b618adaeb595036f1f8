@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "567baef3_4154eb17",
+        "filename": "go/cleanup/cleanup.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-08T14:19:59Z",
+      "side": 1,
+      "message": "I\u0027m having trouble imagining a scenario where we want to perform some cleanup on SIGINT but not SIGTERM or vice versa.  Should this just be common.OnInterrupt() and we handle both signals?  For that matter, should we include others like SIGHUP, just in case?",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 26
+      },
+      "revId": "c130da861c9c3074c4653b618adaeb595036f1f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
