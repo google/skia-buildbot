@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -18,6 +19,9 @@ var (
 // Initialize the package.
 func init() {
 	resetContext()
+
+	common.OnSigInt(Cleanup)
+	common.OnSigTerm(Cleanup)
 }
 
 // Reset the context. This is in a non-init function for testing purposes.

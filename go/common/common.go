@@ -79,6 +79,8 @@ func Init() {
 
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	setupSignalHandlers()
 }
 
 // StartCloudLogging initializes cloud logging. It is assumed to be running in GCE where the
