@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "acc29c33_abf1925d",
+        "filename": "go/common/signal.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-08T18:03:20Z",
+      "side": 1,
+      "message": "My thinking is:\n1. For cases where we just want to run something when the program exits, using the cleanup package seems like the best abstraction. I don\u0027t really care about signals at all, or how the cleanup package works.\n2. For other cases, I think it\u0027s better to use the golang signal package directly. (OTOH, if I want to trap SIGINT or SIGTERM and do something other than exit, I would need to disable the signal handlers in this file somehow.)",
+      "parentUuid": "56eb3f94_715960fc",
+      "revId": "327cf21ae30c426959c33492548c0e2da934a471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ec13b250_112f20f8",
         "filename": "go/common/signal.go",
         "patchSetId": 8

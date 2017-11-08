@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09b492f4_ff06ddd6",
+        "filename": "go/common/signal.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-08T18:03:20Z",
+      "side": 1,
+      "message": "nit: \"enable\"",
+      "range": {
+        "startLine": 59,
+        "startChar": 3,
+        "endLine": 59,
+        "endChar": 9
+      },
+      "revId": "a65972070e6d3c96772c0c72374309c591e38cce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32a16660_a6cb5700",
+        "filename": "go/common/signal.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-08T18:03:20Z",
+      "side": 1,
+      "message": "nit: provide a bit more context.",
+      "range": {
+        "startLine": 72,
+        "startChar": 20,
+        "endLine": 72,
+        "endChar": 25
+      },
+      "revId": "a65972070e6d3c96772c0c72374309c591e38cce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f17d877_d76f1774",
+        "filename": "go/common/signal.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-08T18:03:20Z",
+      "side": 1,
+      "message": "uber-nit: http://tldp.org/LDP/abs/html/exitcodes.html says the exit code is 128+[signal number], although we probably don\u0027t care.",
+      "range": {
+        "startLine": 81,
+        "startChar": 10,
+        "endLine": 81,
+        "endChar": 13
+      },
+      "revId": "a65972070e6d3c96772c0c72374309c591e38cce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
