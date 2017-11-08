@@ -25,10 +25,10 @@ add_header Strict-Transport-Security "max-age=31536000; preload;";
 # Enforce browser XSS protection
 add_header X-XSS-Protection "1; mode=block";
 # Disable content sniffing
-add_header X-Content-Type-Options nosniff;
+add_header X-Content-Type-Options "nosniff";
 
 # Prevent clickjacking.
-add_header X-Frame-Options SAMEORIGIN always;
+add_header X-Frame-Options "SAMEORIGIN" always;
 
 #####   skia.org   ################################
 server {
@@ -360,7 +360,8 @@ server {
     error_log /var/log/nginx/android-master-roll.error.log error;
 
     location / {
-        proxy_pass https://android-master-autoroll-8000-proxy.skia.org;
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host "android-master-autoroll-8000-proxy.skia.org";
     }
 
     location /json/status {
@@ -389,7 +390,8 @@ server {
     error_log /var/log/nginx/android-o-roll.error.log error;
 
     location / {
-        proxy_pass https://android-o-autoroll-8000-proxy.skia.org;
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host "android-o-autoroll-8000-proxy.skia.org";
     }
 
     location /json/status {
@@ -503,7 +505,8 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass https://google3-autoroll-8000-proxy.skia.org;
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host "google3-autoroll-8000-proxy.skia.org";
     }
 
     location /json/status {
@@ -789,7 +792,8 @@ server {
     error_log /var/log/nginx/status-internal.error.log error;
 
     location / {
-        proxy_pass https://skia-status-internal-8002-proxy.skia.org;
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host "skia-status-internal-8002-proxy.skia.org";
     }
 }
 server {
@@ -1080,7 +1084,8 @@ server {
     error_log /var/log/nginx/task-scheduler-internal.error.log error;
 
     location / {
-        proxy_pass https://skia-task-scheduler-internal-8000-proxy.skia.org;
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host "skia-task-scheduler-internal-8000-proxy.skia.org";
     }
     location /google2c59f97e1ced9fdc.html {
         add_header Content-Type text/html;
@@ -1214,6 +1219,9 @@ server {
     client_max_body_size 500M;
 
     location / {
+        # If there are substantial changes the following 2 lines, be sure to
+        # duplicate those changes to the other places where we do
+        # a proxy_pass to skia-proxy.
         proxy_pass http://skia-proxy:8000;
         proxy_set_header Host $host;
     }
@@ -1299,7 +1307,8 @@ server {
     error_log /var/log/nginx/leasing.error.log error;
 
     location / {
-        proxy_pass https://skia-leasing-8002-proxy.skia.org;
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host "skia-leasing-8002-proxy.skia.org";
     }
 
     location /_/get_task_status {
