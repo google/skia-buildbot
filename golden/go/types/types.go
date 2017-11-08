@@ -76,6 +76,10 @@ func (tc *TestClassification) DeepCopy() TestClassification {
 	return result
 }
 
+// BaseLine captures the tests and digests and the labels assinged
+// to them.
+type BaseLine map[string]TestClassification
+
 // TilePair contains two tiles of the underlying data.
 type TilePair struct {
 	// Tile is the current tile without ignored traces.

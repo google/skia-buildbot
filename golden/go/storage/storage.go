@@ -358,3 +358,7 @@ func (g *GStorageClient) RemoveKownDigests() error {
 	target := g.storageClient.Bucket(g.bucketName).Object(g.hashFilePath)
 	return target.Delete(context.Background())
 }
+
+func (g *GStorageClient) WriteBaseLine(commit string, baseLine types.BaseLine) error {
+	return nil
+}
