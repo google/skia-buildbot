@@ -92,6 +92,8 @@ const (
 	RUN_BENCHMARK_TIMEOUT_FLAG = "--run-benchmark-timeout"
 	// Max pages per bot flag.
 	MAX_PAGES_PER_BOT = "--max-pages-per-bot"
+	// Num of retries used by analysis task.
+	NUM_ANALYSIS_RETRIES = "--num-analysis-retries"
 
 	// Defaults for custom webpages.
 	DEFAULT_CUSTOM_PAGE_USERAGENT   = "desktop"
