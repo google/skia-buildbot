@@ -22,6 +22,30 @@
       "revId": "68e0b6f7bf5795632f3b7a95ea78a2e9bbedf3e2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcd70375_9a686e72",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-08T13:16:22Z",
+      "side": 1,
+      "message": "I tried out num-analysis-attempts but struggled to come up with a good help text here. Used \"0 calls run_benchmark once\".\nAlso removed the \"If you specify pageset-repeat...\" line, I don\u0027t think it is that useful.",
+      "parentUuid": "4b42f883_1e16c88c",
+      "range": {
+        "startLine": 134,
+        "startChar": 142,
+        "endLine": 134,
+        "endChar": 158
+      },
+      "revId": "68e0b6f7bf5795632f3b7a95ea78a2e9bbedf3e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
