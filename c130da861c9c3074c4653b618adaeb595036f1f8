@@ -22,6 +22,30 @@
       "revId": "c130da861c9c3074c4653b618adaeb595036f1f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a66d38d0_673871d7",
+        "filename": "go/cleanup/cleanup.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-08T15:15:18Z",
+      "side": 1,
+      "message": "IMO:\n1. We don\u0027t care much how this works except when it\u0027s run under systemd. systemd would only use SIGINT if we configure it to do so.\n2. We don\u0027t care if it works cross-platform, so using only the syscall signal should be OK.\n3. It\u0027s not clear to me how things should work if I\u0027m running something interactively. I think it\u0027s rare that we run something interactively where we would expect that Ctrl-C would result in a clean exit. (It\u0027s also rare that something we expect to run interactively would need any cleanup in the first place.)\n4. In an ideal world, none of our programs would need cleanup because we\u0027ve coded things carefully so that if the machine loses power or segfaults or whatever, the persisted state is still consistent.\n\nSo, I suggest:\n1. Look for ways to avoid using signal handlers at all. Maybe we can do something like WithWriteFile for a directory, and write all state to that directory?\n2. Assume the program will be killed with SIGTERM.",
+      "parentUuid": "567baef3_4154eb17",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 26
+      },
+      "revId": "c130da861c9c3074c4653b618adaeb595036f1f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
