@@ -70,6 +70,30 @@
       "revId": "5d2133107d67d4dfb2798cfb54559d6d47b4be02",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "237bf8cb_a431d0f2",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-08T15:58:31Z",
+      "side": 1,
+      "message": "Yep, that should be removed. Not a good pattern.",
+      "parentUuid": "3d9c42f9_b7456bc4",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 28
+      },
+      "revId": "5d2133107d67d4dfb2798cfb54559d6d47b4be02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
