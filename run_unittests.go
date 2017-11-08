@@ -150,7 +150,7 @@ func polylintTest(cwd, fileName string) *test {
 
 // buildPolymerFolder runs the Makefile in the given folder.  This sets up the symbolic links so dependencies can be located for polylint.
 func buildPolymerFolder(cwd string) error {
-	cmd := cmdTest([]string{"make"}, cwd, fmt.Sprintf("Polymer build in %s", cwd), testutils.LARGE_TEST)
+	cmd := cmdTest([]string{"make", "deps"}, cwd, fmt.Sprintf("Polymer build in %s", cwd), testutils.LARGE_TEST)
 	return cmd.Run()
 }
 

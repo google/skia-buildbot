@@ -8,6 +8,6 @@
   "author": "",
   "license": "BSD",
   "devDependencies": {
-    "http-server": "^0.8.5"
+    "http-server": "^0.10.0"
   }
 }
