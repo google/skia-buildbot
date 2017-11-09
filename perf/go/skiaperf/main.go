@@ -42,6 +42,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
+	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/cid"
@@ -843,9 +844,10 @@ func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
 //
 // Begin and End are Unix timestamps in seconds.
 type RegressionRangeRequest struct {
-	Begin  int64             `json:"begin"`
-	End    int64             `json:"end"`
-	Subset regression.Subset `json:"subset"`
+	Begin       int64                   `json:"begin"`
+	End         int64                   `json:"end"`
+	Subset      regression.Subset       `json:"subset"`
+	AlertFilter alertfilter.AlertFilter `json:"alert_filter"`
 }
 
 // RegressionRow are all the Regression's for a specific commit. It is used in
@@ -895,6 +897,20 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve alert configs.")
 		return
+	}
+	if rr.AlertFilter == alertfilter.OWNER {
+		user := login.LoggedInAs(r)
+		filteredHeaders := []*alerts.Config{}
+		for _, a := range headers {
+			if a.Owner == user {
+				filteredHeaders = append(filteredHeaders, a)
+			}
+		}
+		if len(filteredHeaders) > 0 {
+			headers = filteredHeaders
+		} else {
+			sklog.Infof("User doesn't own any alerts.")
+		}
 	}
 
 	// Get a list of commits for the range.
