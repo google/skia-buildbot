@@ -7,12 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/signal"
 	"sort"
 	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/signal"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/skolo/go/powercycle"
@@ -126,16 +126,12 @@ func tailPower(devGroup powercycle.DeviceGroup, outputPath string, sampleRate ti
 	writer := csv.NewWriter(f)
 
 	// Catch Ctrl-C to flush the file.
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
+	signal.OnInterrupt(func() {
 		sklog.Infof("Closing cvs file.")
 		sklog.Flush()
 		writer.Flush()
 		util.LogErr(f.Close())
-		os.Exit(0)
-	}()
+	})
 
 	var ids []string = nil
 	lastFlush := time.Now()
