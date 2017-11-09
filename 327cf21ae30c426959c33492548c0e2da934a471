@@ -120,6 +120,24 @@
     },
     {
       "key": {
+        "uuid": "b5d84fa9_5e21c075",
+        "filename": "go/common/signal.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-09T15:55:31Z",
+      "side": 1,
+      "message": "Sorry, I think I wasn\u0027t clear. I think this file should either be part of the cleanup package or part of the common package. My preference for the cleanup package is just because I can\u0027t think of another reason to handle signals. Either way, common.Init should initialize the signal handlers.\n\nRe: \"defer cleanup.Cleanup()\": maybe we should add a \"common.Defer()\" that we expect all apps to defer in main()?\n\nFor #2, I think if it ends up being needed, adding a cleanup.Disable() function would be the easiest solution if we need to avoid exiting.",
+      "parentUuid": "90331a51_572fb34e",
+      "revId": "327cf21ae30c426959c33492548c0e2da934a471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ec13b250_112f20f8",
         "filename": "go/common/signal.go",
         "patchSetId": 8

@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "286d5864_714ba538",
+        "filename": "go/signal/signal.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-09T15:55:31Z",
+      "side": 1,
+      "message": "nit: Sorry, I didn\u0027t realize os.Interrupt \u003d\u003d syscall.SIGINT. Don\u0027t need both.",
+      "range": {
+        "startLine": 85,
+        "startChar": 26,
+        "endLine": 85,
+        "endChar": 71
+      },
+      "revId": "51f51341d2d8566e69b9d7ae48e3c94087e07101",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d003a6da_b4354146",
+        "filename": "go/signal/signal.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-09T15:55:31Z",
+      "side": 1,
+      "message": "Seems like you need a mutex or sync.Once, assuming it could be called from multiple goroutines.",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 12
+      },
+      "revId": "51f51341d2d8566e69b9d7ae48e3c94087e07101",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
