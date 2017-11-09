@@ -94,6 +94,30 @@
       "revId": "c130da861c9c3074c4653b618adaeb595036f1f8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6da654cc_2b556bbc",
+        "filename": "go/cleanup/cleanup.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-09T13:59:57Z",
+      "side": 1,
+      "message": "SGTM, done.",
+      "parentUuid": "030ea5e6_f13b9d7b",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 26
+      },
+      "revId": "c130da861c9c3074c4653b618adaeb595036f1f8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
