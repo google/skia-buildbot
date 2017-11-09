@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6aa77de0_02feeedb",
+        "filename": "autoroll/sys/skia-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5010
+      },
+      "writtenOn": "2017-11-09T15:29:55Z",
+      "side": 1,
+      "message": "Do we have a way to demote a bot to FYI / 100% experimental?\n\nIf we need to remove a bot temporarily, it\u0027d be a nice reminder to see it still running and whether it\u0027s passing or failing.",
+      "revId": "88f4ca96b0e094fe273ed07a83341c978fa948ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
