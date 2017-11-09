@@ -75,7 +75,7 @@ type StatusWatcher struct {
 	corpusGauges map[string]map[types.Label]metrics2.Int64Metric
 }
 
-func New(storages *storage.Storage) (*StatusWatcher, error) {
+func New(storages *storage.Storage, dumpBaseLine bool) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
 		storages:          storages,
 		allUntriagedGauge: metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.UNTRIAGED.String()}),
