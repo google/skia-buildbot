@@ -9,11 +9,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"os/signal"
 	"path/filepath"
 	"runtime"
-	"syscall"
 	"time"
 
 	"github.com/fiorix/go-web/autogzip"
@@ -21,6 +18,7 @@ import (
 	"go.skia.org/infra/debugger/go/containers"
 	"go.skia.org/infra/debugger/go/runner"
 	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
@@ -209,25 +207,18 @@ func buildSkiaServe(checkout, depotTools string) error {
 	return nil
 }
 
-// cleanShutdown listens for SIGTERM and then shuts down every container in an
-// orderly manner before exiting. If we don't do this then we get systemd
-// .scope files left behind which block starting new containers, and the only
-// solution is to reboot the instance.
+// cleanShutdown shuts down every container in an orderly manner before exiting
+// when SIGTERM is received. If we don't do this then we get systemd .scope
+// files left behind which block starting new containers, and the only solution
+// is to reboot the instance.
 //
 // See https://github.com/docker/docker/issues/7015 for more details.
 func cleanShutdown() {
-	c := make(chan os.Signal, 1)
-	// We listen for SIGTERM, which is the first signal that systemd sends when
-	// trying to stop a service. It will later follow-up with SIGKILL if the
-	// process fails to stop.
-	signal.Notify(c, syscall.SIGTERM)
-	s := <-c
-	sklog.Infof("Orderly shutdown after receiving signal: %s", s)
+	sklog.Infof("Orderly shutdown after receiving SIGTERM")
 	co.StopAll()
 	// In theory all the containers should be exiting by now, but let's wait a
 	// little before exiting ourselves.
 	time.Sleep(10 * time.Second)
-	os.Exit(0)
 }
 
 func main() {
@@ -266,7 +257,7 @@ func main() {
 		run := runner.New(*workRoot, *imageDir, getHash, *local)
 		co = containers.New(run)
 
-		go cleanShutdown()
+		cleanup.AtExit(cleanShutdown)
 	}
 
 	router := mux.NewRouter()

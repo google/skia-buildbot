@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 
@@ -79,6 +80,9 @@ func Init() {
 
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Enable signal handling for the cleanup package.
+	cleanup.Enable()
 }
 
 // StartCloudLogging initializes cloud logging. It is assumed to be running in GCE where the
@@ -120,6 +124,12 @@ func startCloudLoggingWithClient(authClient *http.Client, logGrouping, defaultRe
 	if err := sklog.InitCloudLogging(authClient, logGrouping, defaultReport, metricsCallback); err != nil {
 		sklog.Fatal(err)
 	}
+}
+
+// Any programs which use a variant of common.Init should do `defer common.Defer()` in main.
+func Defer() {
+	cleanup.Cleanup()
+	sklog.Flush()
 }
 
 // LogPanic, when deferred from main, logs any panics and flush the log to local disk using glog.
