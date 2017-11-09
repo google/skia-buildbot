@@ -52,6 +52,24 @@
       "revId": "88f4ca96b0e094fe273ed07a83341c978fa948ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "263c94cd_da09af17",
+        "filename": "autoroll/sys/skia-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-09T16:13:04Z",
+      "side": 1,
+      "message": "https://bugs.chromium.org/p/skia/issues/detail?id\u003d7283",
+      "parentUuid": "6a2d6d6a_1aed2aad",
+      "revId": "88f4ca96b0e094fe273ed07a83341c978fa948ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
