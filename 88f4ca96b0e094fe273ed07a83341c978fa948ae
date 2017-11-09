@@ -16,6 +16,24 @@
       "revId": "88f4ca96b0e094fe273ed07a83341c978fa948ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c95932af_87f1924a",
+        "filename": "autoroll/sys/skia-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5036
+      },
+      "writtenOn": "2017-11-09T15:32:06Z",
+      "side": 1,
+      "message": "yeah that is what we wanted to do yesterday, but Eric and anyone who really knows about the auto-roller was gone so we went with the quick nuclear options.\n\nOn a side not I think they may have fixed the bot last night (or so emails may suggest), so we may be able to revert this CL now...",
+      "parentUuid": "6aa77de0_02feeedb",
+      "revId": "88f4ca96b0e094fe273ed07a83341c978fa948ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
