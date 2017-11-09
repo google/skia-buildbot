@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a0d6bda4_5e0fbd41",
+        "filename": "go/cleanup/cleanup.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-09T18:21:17Z",
+      "side": 1,
+      "message": "Hmm, actually, I think if the panic isn\u0027t caught, all goroutines will die. Which is probably OK.",
+      "parentUuid": "d13a1d46_b8d75c73",
+      "range": {
+        "startLine": 47,
+        "startChar": 2,
+        "endLine": 47,
+        "endChar": 11
+      },
+      "revId": "3a03ff5bfae24f0fe08b8112c57d3ecd10761173",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "588029bb_46dee9de",
         "filename": "go/cleanup/signal.go",
         "patchSetId": 15
