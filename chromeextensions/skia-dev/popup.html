@@ -15,11 +15,6 @@
       text-align: center;
     }
 
-    #status-table {
-      margin-left: auto;
-      margin-right: auto;
-    }
-
     a {
       text-decoration: underline;
       color: #444;
@@ -30,17 +25,21 @@
       cursor: pointer;
     }
 
-    #info-table {
+    #info-table, #gerrit-changes {
       margin-left: auto;
       margin-right: auto;
       border: 1px solid black;
       border-collapse: collapse;
     }
-    #info-table td {
+    #info-table td, #gerrit-changes td {
       padding: 7px 10px;
       width: 25%;
       text-align: center;
       border: 1px solid black;
+    }
+
+    .change-subject {
+      padding-left: 10px;
     }
 
     .trunk-status-cell {
@@ -117,8 +116,8 @@
         </td>
       </tr>
     </table>
-    <br/>
-    <table id="status-table"></table>
+    <br/><br/><br/>
+    <table id="gerrit-changes"></table>
     <div id="errors"></div>
     <script src="node_modules/skia-common-js/common.js"></script>
     <script src="popup.js"></script>

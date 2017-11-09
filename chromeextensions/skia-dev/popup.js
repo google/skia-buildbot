@@ -4,6 +4,15 @@
 
 (function(){
 
+
+  function loggedInAs() {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", "https://skia.org/loginstatus/", false);
+    xmlHttp.send(null);
+    var loginStatus = JSON.parse(xmlHttp.responseText);
+    return loginStatus["Email"];
+  }
+
   function linkify(wrapMe, link) {
     return '<a href="' + link + '" target="_blank">' + wrapMe + '</a>'
   }
@@ -130,42 +139,91 @@
     });
   }
 
-  function addMasterStatusRow(master) {
-    var table = document.getElementById('status-table');
+  function addGerritChanges() {
+    var username = loggedInAs();
+    if (!username) {
+      document.getElementById('errors').innerHTML += 'Log in to skia.org to view your Gerrit changes</br>';
+      return
+    }
 
-    var baseURL = 'http://build.chromium.org/p/' + master;
-    var consoleURL = baseURL + '/console';
-    var statusURL = baseURL + '/horizontal_one_box_per_builder';
+    var waitingForReview = [] // Will need a separate query for this: "is:open -owner:self -is:wip -is:ignored (reviewer:self OR assignee:self)"
 
-    var row = table.insertRow(-1);
-    row.className = 'trunk-status-row ' + master;
-    var label = row.insertCell(-1);
-    label.className = 'status-label';
-    var labelAnchor = document.createElement('a');
-    labelAnchor.href = consoleURL;
-    labelAnchor.target = '_blank';
-    labelAnchor.id = 'link_' + master;
-    labelAnchor.textContent = master;
-    label.appendChild(labelAnchor);
+    // TODO(rmistry): Make constant.
+    var listChangesURL = "http://skia-review.googlesource.com/changes/?q=status:open+owner:" + loggedInAs() + "&o=LABELS";
 
-    var status = row.insertCell(-1);
-    status.className = 'trunk-status-cell';
-    var statusIframe = document.createElement('iframe');
-    statusIframe.scrolling = 'no';
-    statusIframe.src = statusURL;
-    status.appendChild(statusIframe);
+    // In the order that it will be displayed.
+    var inCQChanges = []
+    var approvedChanges = []
+    var waitingForApprovalChanges = []
+    var wipChanges = []
+
+    sk.get(listChangesURL).then(function(resp) {
+      // Remove JSON anti-hijacking prefix.
+      var responseText = resp.substring(')]}\'\n'.length);
+      var json = JSON.parse(responseText);
+      console.log(listChangesURL);
+      console.log(responseText);
+      console.log(json);
+
+      json.forEach(function(change) {
+        if (change.has_review_started) {
+          // Review has started so it is in one of 3 states:
+          // * CQ running.
+          // * Approved but not sent to CQ yet.
+          // * Waiting for approval.
+          if (change.labels) {
+            if(change.labels["Commit-Queue"] && change.labels["Commit-Queue"].approved) {
+              inCQChanges.push(change);
+            } else if(change.labels["Code-Review"] && change.labels["Code-Review"].approved) {
+              approvedChanges.push(change);
+            } else {
+              waitingForApprovalChanges.push(change);
+            }
+          }
+        } else {
+          // Review has not started so it is WIP.
+          wipChanges.push(change);
+        }
+      });
+
+      var table = document.getElementById('gerrit-changes');
+
+      // Add Header row if it exists.
+      addChangesSection('Changes in Commit Queue', inCQChanges, table)
+      addChangesSection('Approved Changes', approvedChanges, table)
+      addChangesSection('Waiting for Review Changes', waitingForApprovalChanges, table)
+      addChangesSection('WIP Changes', wipChanges, table)
+
+    }).catch(function(err) {
+      console.log(err);
+      document.getElementById('errors').innerHTML += 'Error connecting to skia-review</br>';
+    });
+
   }
 
-  function addMasterStatusRows() {
-    var masters = [
-      'client.skia',
-      'client.skia.android',
-      'client.skia.compile',
-      'client.skia.fyi'
-    ];
-
-    masters.forEach(function(master) {
-      addMasterStatusRow(master);
+  function addChangesSection(title, changes, table) {
+    if (!changes.length) {
+      return
+    }
+    // Add the title row.
+    var row = table.insertRow(-1);
+    var label = row.insertCell(-1);
+    label.textContent = title;
+    // Add the changes.
+    changes.forEach(function(change) {
+      var row = table.insertRow(-1);
+      var label = row.insertCell(-1);
+      // Create link to the change.
+      var linkAnchor = document.createElement('a');
+      linkAnchor.href = 'https://skia-review.googlesource.com/c/' + change._number;
+      linkAnchor.target = '_blank';
+      linkAnchor.textContent = 'skrev/' + change._number;
+      label.appendChild(linkAnchor);
+      // Add subject.
+      var subjAnchor = document.createElement('span');
+      subjAnchor.className = 'change-subject';
+      subjAnchor.textContent = change.subject.substring(0, 50); // Add ellipsis
+      label.appendChild(subjAnchor);
     });
   }
 
@@ -177,7 +235,7 @@
     setCrRollStatus();
     setAndroidRollStatus();
     setInfraAlerts();
-    // addMasterStatusRows();
+    addGerritChanges();
   }
 
   main();
