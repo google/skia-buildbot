@@ -90,7 +90,7 @@
     }
   </style>
   <template>
-    <details-sk>
+    <details-sk open="{{_statusOpen}}">
       <summary-sk>
         <h2>Status</h2>
       </summary-sk>
@@ -224,6 +224,10 @@
         _currentState: {
           type: Object,
           value: function() { return {}; },
+        },
+        _statusOpen: {
+          type: Boolean,
+          value: false,
         }
       },
 
@@ -233,12 +237,16 @@
       },
 
       _poll: function() {
-        sk.get('/_/reg/current').then(JSON.parse).then(function (json) {
-          this.set('_currentState', json);
+        if (this._statusOpen) {
+          sk.get('/_/reg/current').then(JSON.parse).then(function (json) {
+            this.set('_currentState', json);
+            window.setTimeout(this._poll.bind(this), 1000);
+          }.bind(this)).catch(function() {
+            window.setTimeout(this._poll.bind(this), 1000);
+          }.bind(this));
+        } else {
           window.setTimeout(this._poll.bind(this), 1000);
-        }.bind(this)).catch(function() {
-          window.setTimeout(this._poll.bind(this), 1000);
-        }.bind(this));
+        }
       },
 
       _openKeys: function(e) {
