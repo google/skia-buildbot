@@ -34,6 +34,24 @@
       "revId": "88f4ca96b0e094fe273ed07a83341c978fa948ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a2d6d6a_1aed2aad",
+        "filename": "autoroll/sys/skia-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-09T16:11:55Z",
+      "side": 1,
+      "message": "I was about to say that it\u0027s not possible, but instead I\u0027ll say that the autoroller doesn\u0027t know how to do that right now. The way it currently works, the autoroller puts these tryjobs in the CL description, which causes the CQ to require them to pass before submitting. In theory, the autoroller could do the equivalent of \"git cl try ...\" to add additional tryjobs that the CQ would ignore. I don\u0027t know how hard it would be to add that, but if you think it\u0027s useful, please file a feature request in Monorail.",
+      "parentUuid": "c95932af_87f1924a",
+      "revId": "88f4ca96b0e094fe273ed07a83341c978fa948ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
