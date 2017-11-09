@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
@@ -222,7 +221,7 @@ func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("addTaskCommentHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	defer util.Close(r.Body)
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
@@ -268,7 +267,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("deleteTaskCommentHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -309,7 +308,7 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("addTaskSpecCommentHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -357,7 +356,7 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("deleteTaskSpecCommentHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -394,7 +393,7 @@ func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("addCommitCommentHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -435,7 +434,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("deleteCommitCommentHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	if !userHasEditRights(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -480,7 +479,7 @@ func defaultRedirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("commitsHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	repoName, repoUrl, err := getRepo(r)
@@ -507,7 +506,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func capacityHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("capacityHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.
@@ -526,7 +525,7 @@ func capacityHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("capacityStatsHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(capacityClient.CapacityMetrics()); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
@@ -537,7 +536,7 @@ func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
 // buildProgressHandler returns the number of finished builds at the given
 // commit, compared to that of an older commit.
 func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("buildProgressHandler").Stop()
+	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 

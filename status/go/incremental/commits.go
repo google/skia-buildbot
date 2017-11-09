@@ -6,6 +6,7 @@ import (
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -28,6 +29,7 @@ func newCommitsCache(repos repograph.Map) *commitsCache {
 // heads will be provided for a given repo only if there are new commits for
 // that repo, or if reset is true.
 func (c *commitsCache) Update(w *window.Window, reset bool, n int) (map[string][]*gitinfo.GitBranch, map[string][]*vcsinfo.LongCommit, error) {
+	defer metrics2.FuncTimer().Stop()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if err := c.repos.Update(); err != nil {
