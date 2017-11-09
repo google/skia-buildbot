@@ -26,7 +26,7 @@
      "mimetype": "text/plain"
    },
    "skiagold_public": {
-     "urls": ["https://gold-public.skia.org"],
+     "urls": ["https://public-gold.skia.org"],
      "method": "GET",
      "expected": [200],
      "body": "",
