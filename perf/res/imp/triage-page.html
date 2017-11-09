@@ -112,6 +112,7 @@
       <summary-sk>
         <h2 id="filter">Filter</h2>
       </summary-sk>
+      <h3>Which regressions to display.</h3>
       <iron-selector
         attr-for-selected="value"
         selected="{{state.subset}}"
@@ -121,6 +122,17 @@
         <div value=all title="Show results for all commits in the time range.">All</div>
         <div value=flagged title="Show only the commits with regressions in the given time range regardless of triage status.">Regressions</div>
         <div value=untriaged title="Show all the untriaged regressions regardless of the time range.">Untriaged</div>
+      </iron-selector>
+
+      <h3>Which alerts to display.</h3>
+      <iron-selector
+        attr-for-selected="value"
+        selected="{{state.filter}}"
+        fallback-selection="ALL"
+        on-selected-item-changed="_updateRange"
+        >
+        <div value=ALL title="Show all alerts.">All</div>
+        <div value=OWNER title="Show only the alerts owner by the logged in user (or all alerts if the user doesn't own any alerts).">Owner</div>
       </iron-selector>
     </details-sk>
     <details-sk>
@@ -210,6 +222,7 @@
               begin: now - 4*24*60*60,
               end: now,
               subset: "untriaged",
+              filter: "ALL",
             };
           },
         },
@@ -281,6 +294,7 @@
           begin: this.state.begin,
           end: this.state.end,
           subset: this.state.subset,
+          alert_filter: this.state.filter,
         };
         this.$.spinner.active = true;
         this.$.table.classList.toggle("hidden", true);
