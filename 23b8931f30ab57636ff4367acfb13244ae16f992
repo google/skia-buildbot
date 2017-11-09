@@ -16,6 +16,24 @@
       "revId": "23b8931f30ab57636ff4367acfb13244ae16f992",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdaff7ff_faca9e48",
+        "filename": "fuzzer/res/imp/bower.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-09T12:11:10Z",
+      "side": 0,
+      "message": "Yes, it\u0027s a duplicate.  AFAICT the other servers only have the one in their top-level dir.",
+      "parentUuid": "e6d07420_5b194196",
+      "revId": "23b8931f30ab57636ff4367acfb13244ae16f992",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
