@@ -221,22 +221,25 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	go func() {
 		var tilePair *types.TilePair
 		for {
-			// See if there is a tile.
+			testChanges := []map[string]types.TestClassification{}
+
+			// See if there is a tile or changed tests.
 			tilePair = nil
 			select {
+			// Catch a new tile.
 			case tilePair = <-tileStream:
-			default:
+
+			// Catch any test changes.
+			case tn := <-expCh:
+				testChanges = append(testChanges, tn)
 			}
 
-			// Drain all the tests that might have changed.
-			var testNames []string = nil
+			// Drain all the tests that might have changed in the meantime.
 			done := false
 			for !done {
 				select {
 				case tn := <-expCh:
-					for testName := range tn {
-						testNames = append(testNames, testName)
-					}
+					testChanges = append(testChanges, tn)
 				default:
 					done = true
 				}
@@ -248,9 +251,9 @@ func (ixr *Indexer) start(interval time.Duration) error {
 				if err := ixr.indexTilePair(tilePair); err != nil {
 					sklog.Errorf("Unable to index tile: %s", err)
 				}
-			} else if len(testNames) > 0 {
+			} else if len(testChanges) > 0 {
 				// Only index the tests that have changed.
-				ixr.indexTests(testNames)
+				ixr.indexTests(testChanges)
 			}
 		}
 	}()
@@ -265,8 +268,16 @@ func (ixr *Indexer) indexTilePair(tilePair *types.TilePair) error {
 	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, tilePair))
 }
 
-// indexTest creates an updated index by indexing the given list of tests.
-func (ixr *Indexer) indexTests(testNames []string) {
+// indexTest creates an updated index by indexing the given list of expectation changes.
+func (ixr *Indexer) indexTests(testChanges []map[string]types.TestClassification) {
+	// Get all the testnames
+	testNames := util.StringSet{}
+	for _, testChange := range testChanges {
+		for testName := range testChange {
+			testNames[testName] = true
+		}
+	}
+
 	defer timer.New("indexTests").Stop()
 	lastIdx := ixr.GetIndex()
 	newIdx := &SearchIndex{
@@ -278,7 +289,7 @@ func (ixr *Indexer) indexTests(testNames []string) {
 		paramsetSummary:      lastIdx.paramsetSummary,
 		blamer:               blame.New(ixr.storages),
 		warmer:               warmer.New(ixr.storages),
-		testNames:            testNames,
+		testNames:            testNames.Keys(),
 	}
 
 	if err := ixr.blamerNode.Trigger(newIdx); err != nil {

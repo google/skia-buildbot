@@ -65,6 +65,7 @@ var (
 	hashFileBucket      = flag.String("hash_file_bucket", "", "Bucket where the file with the known list of hashes should be written.")
 	hashFilePath        = flag.String("hash_file_path", "", "Path of the file with know hashes.")
 	imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
 	internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
 	issueTrackerKey     = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
 	local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -316,7 +317,7 @@ func main() {
 	}
 
 	// Rebuild the index every two minutes.
-	ixr, err = indexer.New(storages, 2*time.Minute)
+	ixr, err = indexer.New(storages, *indexInterval)
 	if err != nil {
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
