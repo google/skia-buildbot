@@ -10,6 +10,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -75,6 +76,9 @@ func (b *baseInitOpt) init(appName string) error {
 
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Enable signal handling for the cleanup package.
+	cleanup.Enable()
 
 	return nil
 }

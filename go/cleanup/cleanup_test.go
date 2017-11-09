@@ -30,7 +30,7 @@ func TestCleanup(t *testing.T) {
 	assert.True(t, cleanup)
 
 	// Multiple registered funcs.
-	resetContext()
+	reset()
 
 	n := 5
 	counts := make([]int, 0, n)

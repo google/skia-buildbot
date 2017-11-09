@@ -3,14 +3,12 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"runtime/pprof"
-	"syscall"
 
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sharedb"
 	"go.skia.org/infra/go/sklog"
@@ -76,10 +74,11 @@ func main() {
 	}()
 
 	// Handle SIGINT and SIGTERM.
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-	log.Println(<-ch)
 	if *cpuprofile != "" {
-		pprof.StopCPUProfile()
+		cleanup.AtExit(func() {
+			pprof.StopCPUProfile()
+		})
 	}
+
+	select {}
 }
