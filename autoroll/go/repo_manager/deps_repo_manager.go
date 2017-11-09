@@ -8,6 +8,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/sklog"
 
@@ -240,10 +241,11 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 
 	// Upload the CL.
 	uploadCmd := &exec.Command{
-		Dir:  dr.parentDir,
-		Env:  dr.GetEnvForDepotTools(),
-		Name: "git",
-		Args: []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
+		Dir:     dr.parentDir,
+		Env:     dr.GetEnvForDepotTools(),
+		Name:    "git",
+		Args:    []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
+		Timeout: 2 * time.Minute,
 	}
 	if dryRun {
 		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
