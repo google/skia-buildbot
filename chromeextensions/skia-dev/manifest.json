@@ -5,10 +5,12 @@
    "permissions": [
      "notifications",
      "storage",
+     "*://skia.org/*",
      "https://gold.skia.org/",
      "https://perf.skia.org/",
      "https://promalerts.skia.org/",
-     "http://skia-tree-status.appspot.com/"
+     "http://skia-tree-status.appspot.com/",
+     "*://skia-review.googlesource.com/"
    ],
    "background": {
      "scripts": [
