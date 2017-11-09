@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -136,6 +137,7 @@ func (c *commentsCache) Reset() {
 // Update returns any sets of comments which have changed since the last call
 // to Update.
 func (c *commentsCache) Update(w *window.Window) (map[string]RepoComments, error) {
+	defer metrics2.FuncTimer().Stop()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	repoComments, err := c.db.GetCommentsForRepos(c.repos, w.EarliestStart())

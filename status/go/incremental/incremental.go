@@ -102,6 +102,7 @@ func (c *IncrementalCache) getUpdatesInRange(repo string, from, to time.Time) []
 // GetRange returns all newly-obtained data in the given time range, trimmed
 // to maxCommits.
 func (c *IncrementalCache) GetRange(repo string, from, to time.Time, maxCommits int) (*Update, error) {
+	defer metrics2.FuncTimer().Stop()
 	updates := c.getUpdatesInRange(repo, from, to)
 	// Merge the updates.
 	rv := &Update{
@@ -179,6 +180,7 @@ func (c *IncrementalCache) GetAll(repo string, maxCommits int) (*Update, error) 
 
 // Update obtains new data and stores it internally keyed by the current time.
 func (c *IncrementalCache) Update(reset bool) error {
+	defer metrics2.FuncTimer().Stop()
 	c.updateMtx.Lock()
 	defer c.updateMtx.Unlock()
 	if err := c.w.Update(); err != nil {

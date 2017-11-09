@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -68,6 +69,7 @@ func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 // lost connection to the remote database, all tasks from the desired window are
 // returned, and the boolean return value is set to true.
 func (c *taskCache) Update(w *window.Window) (map[string][]*Task, bool, error) {
+	defer metrics2.FuncTimer().Stop()
 	if c.queryId == "" {
 		// Initial update, or if we failed to reconnect after a previous
 		// lost connection.
