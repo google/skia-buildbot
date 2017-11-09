@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 
 	assert "github.com/stretchr/testify/require"
 )
@@ -159,6 +160,18 @@ func TestComplexCallOrder(t *testing.T) {
 	}
 	o = o[0:dPos] + o[dPos+1:]
 	assert.True(t, results[o])
+
+	// Make a call an node in the DAG and make the call order works.
+	data = make(chan string, 100)
+	b.verbose = true
+	assert.NoError(t, b.Trigger(data))
+	close(data)
+	o = ""
+	for c := range data {
+		o += c
+	}
+	expSet := util.NewStringSet([]string{"bedfg", "bdefg", "bedgf", "bdegf"})
+	assert.True(t, expSet[o])
 }
 
 func orderFn(msg string) ProcessFn {
