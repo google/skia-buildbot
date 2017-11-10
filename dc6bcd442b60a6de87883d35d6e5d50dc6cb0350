@@ -22,6 +22,30 @@
       "revId": "dc6bcd442b60a6de87883d35d6e5d50dc6cb0350",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32d10e7b_b0fc6f26",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-10T18:34:37Z",
+      "side": 1,
+      "message": "no - I just prefer to not clog up the normal logs with my local stuff.  It\u0027s not super necessary.",
+      "parentUuid": "19b05a97_f32cabda",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 2
+      },
+      "revId": "dc6bcd442b60a6de87883d35d6e5d50dc6cb0350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
