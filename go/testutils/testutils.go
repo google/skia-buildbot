@@ -37,8 +37,8 @@ var (
 	}
 
 	TIMEOUT_SMALL  = "4s"
-	TIMEOUT_MEDIUM = "15s"
-	TIMEOUT_LARGE  = "2m"
+	TIMEOUT_MEDIUM = "1m"
+	TIMEOUT_LARGE  = "5m"
 
 	// TEST_TYPES lists all of the types of tests.
 	TEST_TYPES = []string{
