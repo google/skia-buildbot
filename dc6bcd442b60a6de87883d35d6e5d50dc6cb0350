@@ -46,6 +46,30 @@
       "revId": "dc6bcd442b60a6de87883d35d6e5d50dc6cb0350",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00f5594a_d32785f3",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-10T18:36:39Z",
+      "side": 1,
+      "message": "We could probably detect this or use the same --local switch to make the decision whether to actually enable Cloud Logging inside of common.",
+      "parentUuid": "32d10e7b_b0fc6f26",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 2
+      },
+      "revId": "dc6bcd442b60a6de87883d35d6e5d50dc6cb0350",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
