@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/golden/go/baseline"
+
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
@@ -164,8 +166,14 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	// Set up the processing pipeline.
 	root := pdag.NewNode(pdag.NoOp)
 
+	// Node that triggers blame and writing baseslines.
+	// This is used to trigger when expectations change.
+	indexTestsNode := root.Child(pdag.NoOp)
+
+	blamerNode := indexTestsNode.Child(calcBlame)
+	pdag.NewNode(writeBaseline, indexTestsNode)
+
 	// Add the blamer and tallies
-	blamerNode := root.Child(calcBlame)
 	tallyNode := root.Child(calcTallies)
 	tallyIgnoresNode := root.Child(calcTalliesWithIgnores)
 
@@ -391,6 +399,31 @@ func writeKnownHashesList(state interface{}) error {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
 	}()
+	return nil
+}
+
+func writeBaseline(state interface{}) error {
+	idx := state.(*SearchIndex)
+
+	// Only write the hash file if a storage client is available.
+	if idx.storages.GStorageClient == nil {
+		return nil
+	}
+
+	go func() {
+		exps, err := idx.storages.ExpectationsStore.Get()
+		if err != nil {
+			sklog.Errorf("Error retrieving expectations: %s", err)
+			return
+		}
+
+		// Write the baseline to disk.
+		baseLine := baseline.GetBaseline(exps, idx.GetTile(false))
+		if err := idx.storages.GStorageClient.WriteBaseLine(baseLine); err != nil {
+			sklog.Errorf("Error writing baseline to GCS: %s", err)
+		}
+	}()
+
 	return nil
 }
 
