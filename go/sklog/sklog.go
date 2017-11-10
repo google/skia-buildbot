@@ -8,6 +8,7 @@ package sklog
 import (
 	"fmt"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -142,26 +143,18 @@ func Errorln(msg ...interface{}) {
 // and the counter will be reset to 0.
 func Fatal(msg ...interface{}) {
 	log(0, ALERT, defaultReportName, fmt.Sprint(msg...))
-	Flush()
-	panic(fmt.Sprint(msg...))
 }
 
 func Fatalf(format string, v ...interface{}) {
 	log(0, ALERT, defaultReportName, fmt.Sprintf(format, v...))
-	Flush()
-	panic(fmt.Sprintf(format, v...))
 }
 
 func FatalfWithDepth(depth int, format string, v ...interface{}) {
 	log(depth, ALERT, defaultReportName, fmt.Sprintf(format, v...))
-	Flush()
-	panic(fmt.Sprintf(format, v...))
 }
 
 func Fatalln(msg ...interface{}) {
 	log(0, ALERT, defaultReportName, fmt.Sprintln(msg...))
-	Flush()
-	panic(fmt.Sprintln(msg...))
 }
 
 func Flush() {
@@ -192,17 +185,27 @@ func log(depthOffset int, severity, reportName, payload string) {
 	// sklog.Infof (or whatever). Otherwise, we'll be including unneeded stack lines.
 	stackDepth := 3 + depthOffset
 	stacks := CallStack(5, stackDepth)
-	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)
-	if logger == nil {
-		logToGlog(stackDepth, severity, payload)
+
+	// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
+	if severity == ALERT {
+		// Include the stacktrace.
+		payload += "\n\n" + string(debug.Stack())
+
+		// First log directly to glog as an error, in case the write to
+		// cloud logging fails to ensure that the message does get
+		// logged to disk. ALERT, aka, Fatal* will be logged to glog
+		// after the call to CloudLog. If we called logToGlog with
+		// alert, it will die before reporting the fatal to CloudLog.
+		logToGlog(stackDepth, ERROR, fmt.Sprintf("FATAL: %s", payload))
 	} else {
-		// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
-		if severity != ALERT {
-			// ALERT, aka, Fatal* will be logged to glog after the call to CloudLog.
-			// If we called logToGlog with alert, it will die before reporting the fatal
-			// to CloudLog.
-			logToGlog(stackDepth, severity, payload)
-		}
+		// In the non-ALERT case, log using glog before CloudLog, in
+		// case something goes wrong.
+		logToGlog(stackDepth, severity, payload)
+	}
+
+	prettyPayload := fmt.Sprintf("%s %v", stacks[0].String(), payload)
+
+	if logger != nil {
 		stack := map[string]string{
 			"stacktrace_0": stacks[0].String(),
 			"stacktrace_1": stacks[1].String(),
@@ -216,6 +219,10 @@ func log(depthOffset int, severity, reportName, payload string) {
 			Payload:     prettyPayload,
 			ExtraLabels: stack,
 		})
+	}
+	if severity == ALERT {
+		Flush()
+		logToGlog(stackDepth, ALERT, payload)
 	}
 }
 

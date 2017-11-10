@@ -128,6 +128,11 @@ func startCloudLoggingWithClient(authClient *http.Client, logGrouping, defaultRe
 
 // Any programs which use a variant of common.Init should do `defer common.Defer()` in main.
 func Defer() {
+	if r := recover(); r != nil {
+		// sklog.Fatal doesn't actually panic (glog does os.Exit(255)),
+		// so we don't need to worry about double-printing those here.
+		sklog.Fatal(r)
+	}
 	cleanup.Cleanup()
 	sklog.Flush()
 }
