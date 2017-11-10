@@ -29,7 +29,9 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
+
 	matches, err := filepath.Glob(filepath.Join(*dir, "*.cpp"))
 	if err != nil {
 		sklog.Fatalf("Failed searching for files: %s", err)

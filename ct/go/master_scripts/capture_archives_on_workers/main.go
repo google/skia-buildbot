@@ -61,7 +61,7 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	master_common.Init("capture_archives")
 
 	// Send start email.

@@ -29,6 +29,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	// Parse the options. So we can configure logging.
 	flag.Parse()
 

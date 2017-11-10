@@ -26,6 +26,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	dbConf := idb.DBConfigFromFlags()
 	common.Init()
 	if *namespace == "" {

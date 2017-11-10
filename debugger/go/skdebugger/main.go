@@ -222,7 +222,7 @@ func cleanShutdown() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"debugger",
 		common.PrometheusOpt(promPort),

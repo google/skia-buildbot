@@ -17,8 +17,9 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.Init()
+
 	if flag.NArg() != 2 {
 		log.Fatal("Usage: imagediff [--out filename] imagepath1.png imagepath2.png\n")
 	}

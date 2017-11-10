@@ -22,6 +22,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	// Collect all files named skiapush.json5.
 	files := []string{}

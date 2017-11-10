@@ -540,6 +540,7 @@ func startDirtyMonitoring() {
 }
 
 func main() {
+	defer common.Defer()
 	common.InitWithMust(
 		"push",
 		common.PrometheusOpt(promPort),

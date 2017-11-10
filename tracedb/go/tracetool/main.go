@@ -362,6 +362,7 @@ func value_grep(client traceservice.TraceServiceClient) {
 }
 
 func main() {
+	defer common.Defer()
 	rand.Seed(time.Now().Unix())
 	// Grab the first argument off of os.Args, the command, before we call flag.Parse.
 	if len(os.Args) < 2 {

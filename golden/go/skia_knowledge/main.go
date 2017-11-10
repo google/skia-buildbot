@@ -46,6 +46,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 
 	// We need at least the index file or an output directory.

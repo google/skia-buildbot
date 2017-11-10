@@ -18,6 +18,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 
 	if (*jobsFile == "") || (*outputFile == "") {

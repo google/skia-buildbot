@@ -79,6 +79,7 @@ func diff(tile *tiling.Tile, ts db.DB) error {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	grpclog.Init()
 

@@ -169,6 +169,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 
 // load retrieves the last tile, the expectations and the ignore store.
 func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
+	defer common.Defer()
 	// Set up flags and the database.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
 	common.Init()

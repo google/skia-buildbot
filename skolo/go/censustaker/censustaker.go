@@ -54,8 +54,8 @@ func enumerateBots(names BotNameGetter, ports BotPortGetter) ([]Bot, error) {
 }
 
 func main() {
-	defer common.LogPanic()
-	flag.Parse()
+	defer common.Defer()
+	common.Init()
 
 	if *scriptDir == "" || *switchAddress == "" {
 		sklog.Fatal("--script_dir and --switch_address cannot be empty")

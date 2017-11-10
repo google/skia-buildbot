@@ -259,7 +259,7 @@ func runServer(serverURL string) {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"swarming_logger",
 		common.PrometheusOpt(promPort),

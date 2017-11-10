@@ -67,7 +67,7 @@ func step() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"logmetrics",
 		common.PrometheusOpt(promPort),

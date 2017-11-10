@@ -28,6 +28,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	if *workRoot == "" {
 		sklog.Fatal("The --work_root flag is required.")

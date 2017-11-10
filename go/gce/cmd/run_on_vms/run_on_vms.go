@@ -95,6 +95,7 @@ func RunOnInstances(re *regexp.Regexp, cmd []string) (map[string]map[string]*res
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	if *command == "" {
 		sklog.Fatal("--cmd is required.")

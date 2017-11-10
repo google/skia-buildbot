@@ -109,8 +109,8 @@ func addFile(repoDir, subPath, contents string) {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
-	defer common.LogPanic()
 
 	// Create a repo with lots of commits.
 	workdir, err := ioutil.TempDir("", "")

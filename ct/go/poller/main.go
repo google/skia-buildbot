@@ -480,7 +480,7 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
 	if *dryRun {

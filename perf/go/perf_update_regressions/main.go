@@ -43,7 +43,7 @@ func intx(f func(tx *sql.Tx) error) (err error) {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	// Set up flags.
 	dbConf := idb.DBConfigFromFlags()
 

@@ -62,7 +62,7 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	master_common.Init("create_pagesets")
 
 	// Send start email.

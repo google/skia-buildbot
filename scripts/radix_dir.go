@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.Init()
 
 	fileInfos, err := ioutil.ReadDir(".")

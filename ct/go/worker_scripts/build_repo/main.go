@@ -30,7 +30,7 @@ var (
 )
 
 func buildRepo() error {
-	defer common.LogPanic()
+	defer common.Defer()
 	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Building Repo")
 	defer sklog.Flush()

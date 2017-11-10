@@ -48,7 +48,7 @@ var (
 )
 
 func pixelDiff() error {
-	defer common.LogPanic()
+	defer common.Defer()
 	worker_common.Init()
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()

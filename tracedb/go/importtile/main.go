@@ -54,6 +54,7 @@ func _main(ts db.DB) {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	grpclog.Init()
 

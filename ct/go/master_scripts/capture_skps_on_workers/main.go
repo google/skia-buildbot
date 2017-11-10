@@ -68,7 +68,7 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	master_common.Init("capture_skps")
 
 	// Send start email.

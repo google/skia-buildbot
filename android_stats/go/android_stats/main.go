@@ -97,7 +97,7 @@ func generateStats() error {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"android_stats",
 		common.PrometheusOpt(promPort),

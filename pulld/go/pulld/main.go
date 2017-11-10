@@ -301,7 +301,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	flag.Parse()
 	if *onGCE {
 		common.InitWithMust(

@@ -210,7 +210,7 @@ func startServing() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"hotspare",
 		common.PrometheusOpt(promPort),

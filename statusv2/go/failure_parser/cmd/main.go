@@ -35,6 +35,7 @@ step returned non-zero exit code: 2
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 
 	if *local {

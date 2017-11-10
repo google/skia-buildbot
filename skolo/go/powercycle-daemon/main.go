@@ -51,7 +51,7 @@ func powercycledHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	flag.Parse()
 	if *local {
 		common.InitWithMust(

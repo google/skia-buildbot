@@ -623,6 +623,7 @@ func runServer(serverURL string) {
 
 func main() {
 	// Setup flags.
+	defer common.Defer()
 	common.InitWithMust(
 		"status",
 		common.PrometheusOpt(promPort),

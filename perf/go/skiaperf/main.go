@@ -1297,7 +1297,7 @@ func internalOnlyHandler(h http.Handler) http.Handler {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	// Setup DB flags.
 	dbConf := idb.DBConfigFromFlags()
 

@@ -30,6 +30,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 
 	devices := DevicesConfig{}

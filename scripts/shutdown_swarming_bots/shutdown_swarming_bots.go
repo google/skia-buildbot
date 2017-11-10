@@ -33,7 +33,7 @@ var (
 
 func main() {
 	// Setup, parse args.
-	defer common.LogPanic()
+	defer common.Defer()
 	common.Init()
 
 	if *pool == "" {

@@ -80,6 +80,7 @@ func migrateCode(db *sql.DB, st *store.Store, ts time.Time, hash string) error {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	if *gitHash == "" {
 		sklog.Fatalf("The --git_hash flag is required.")

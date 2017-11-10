@@ -27,7 +27,9 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
+
 	args := flag.Args()
 	if len(args) < 1 {
 		fmt.Println("Usage: issues_helper <mode> [OPTIONS]")

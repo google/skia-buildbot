@@ -13,6 +13,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	config, err := sharedconfig.ConfigFromJson5File(*configFilename)
 	if err != nil {

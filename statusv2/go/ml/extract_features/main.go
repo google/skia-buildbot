@@ -17,6 +17,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 
 	d, err := remote_db.NewClient(*taskSchedulerDbUrl)

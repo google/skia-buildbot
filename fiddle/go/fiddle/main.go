@@ -602,7 +602,7 @@ func StartSMI() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"fiddle",
 		common.PrometheusOpt(promPort),

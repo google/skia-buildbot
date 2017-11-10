@@ -35,8 +35,8 @@ func printResult(desc string, result []*analysis.Flake) {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
-	defer common.LogPanic()
 
 	// Setup.
 	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)

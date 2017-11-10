@@ -403,8 +403,8 @@ func runServer() {
 }
 
 func main() {
+	defer common.Defer()
 	flag.Parse()
-	defer common.LogPanic()
 
 	if *local {
 		// Dont log to cloud or use cached templates in local mode.

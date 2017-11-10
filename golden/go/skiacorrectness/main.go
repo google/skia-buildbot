@@ -95,7 +95,7 @@ const (
 )
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	var err error
 
 	mainTimer := timer.New("main init")

@@ -106,6 +106,7 @@ func (a *ArduinoClient) Close() error {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	ports := flag.Args()
 

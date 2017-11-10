@@ -131,8 +131,9 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
-	defer common.LogPanic()
+
 	Init()
 
 	router := mux.NewRouter()

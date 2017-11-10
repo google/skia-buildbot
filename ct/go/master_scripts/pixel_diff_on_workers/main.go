@@ -101,7 +101,7 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	master_common.Init("pixel_diff")
 
 	// Send start email.

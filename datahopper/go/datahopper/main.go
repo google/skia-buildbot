@@ -51,6 +51,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.InitWithMust(
 		"datahopper",
 		common.PrometheusOpt(promPort),

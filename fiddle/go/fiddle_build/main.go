@@ -24,6 +24,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	if *fiddleRoot == "" {
 		sklog.Fatal("The --fiddle_root flag is required.")

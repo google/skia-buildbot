@@ -40,7 +40,7 @@ const (
 var diffStore diff.DiffStore = nil
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 
 	// Parse the options, so we can configure logging.
 	flag.Parse()

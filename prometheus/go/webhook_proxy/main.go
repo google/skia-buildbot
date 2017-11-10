@@ -108,8 +108,7 @@ func publicWebhookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
-
+	defer common.Defer()
 	common.InitWithMust(
 		"webhook_proxy",
 		common.PrometheusOpt(promPort),

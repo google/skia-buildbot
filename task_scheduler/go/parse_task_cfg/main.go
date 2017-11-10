@@ -18,8 +18,8 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
-	defer common.LogPanic()
 
 	b, err := ioutil.ReadFile(*cfgFile)
 	if err != nil {

@@ -51,6 +51,7 @@ func serializeOutput(res *types.Result) {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	res := &types.Result{
 		Compile: types.Compile{},

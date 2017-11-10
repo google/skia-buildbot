@@ -34,8 +34,8 @@ func findCheckoutRoot() (string, error) {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
-	defer common.LogPanic()
 
 	root, err := findCheckoutRoot()
 	if err != nil {

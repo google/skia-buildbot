@@ -66,6 +66,7 @@ func migrateSources(db *sql.DB, st *storage.Client) error {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	if !*confirm {
 		sklog.Fatalf("The --i_really_want_to_run_this_despite_the_consequences flag is required.")

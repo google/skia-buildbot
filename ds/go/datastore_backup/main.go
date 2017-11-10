@@ -88,6 +88,7 @@ func step(client *http.Client) error {
 }
 
 func main() {
+	defer common.Defer()
 	common.InitWithMust(
 		"datastore_backup",
 		common.PrometheusOpt(promPort),

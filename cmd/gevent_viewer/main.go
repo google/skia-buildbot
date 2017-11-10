@@ -21,6 +21,7 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 
 	if (*projectID == "") || (*topic == "") || (*subscriberName == "") || (*channels == "") {

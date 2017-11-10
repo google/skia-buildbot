@@ -509,7 +509,7 @@ func reportStats() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 
 	// Global init.
 	common.InitWithMust(

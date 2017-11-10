@@ -118,7 +118,7 @@ func get(client *http.Client, cert *cert) error {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"certpoller",
 		common.CloudLoggingOpt(),

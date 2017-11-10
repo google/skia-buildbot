@@ -173,6 +173,7 @@ func rollRepo(repoUrl string) (string, error) {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
 
 	uploaded := []string{}

@@ -43,7 +43,7 @@ func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		filepath.Base(os.Args[0]),
 		common.PrometheusOpt(promPort),

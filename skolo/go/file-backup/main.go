@@ -105,7 +105,7 @@ func step(storageClient *storage.Client) {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"file-backup",
 		common.PrometheusOpt(promPort),

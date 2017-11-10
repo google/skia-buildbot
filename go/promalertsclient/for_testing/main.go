@@ -12,6 +12,7 @@ import (
 var alertsEndpoint = flag.String("alerts_endpoint", "skia-prom:8001", "The Prometheus GCE name and port")
 
 func main() {
+	defer common.Defer()
 	common.Init()
 
 	ac := promalertsclient.New(&http.Client{}, *alertsEndpoint)

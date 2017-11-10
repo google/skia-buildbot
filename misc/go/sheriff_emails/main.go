@@ -88,7 +88,7 @@ func sendEmail(tokenPath string, recipients []string, senderDisplayName, subject
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.Init()
 
 	tokenPath := *emailTokenPath

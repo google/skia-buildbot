@@ -28,8 +28,8 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
-	defer common.LogPanic()
 
 	// Validation.
 	if *create == *delete {

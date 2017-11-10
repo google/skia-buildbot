@@ -111,7 +111,7 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	master_common.Init("run_chromium_analysis")
 
 	// Send start email.

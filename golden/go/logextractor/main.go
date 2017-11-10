@@ -28,7 +28,7 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.Init()
 
 	if (*logInputDir == "") || (!fileutil.FileExists(*logInputDir)) {

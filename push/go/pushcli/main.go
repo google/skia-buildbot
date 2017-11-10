@@ -48,7 +48,7 @@ the next most recent package, regardless of the version of the package currently
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.Init()
 
 	// Parse out the non-flag arguments.

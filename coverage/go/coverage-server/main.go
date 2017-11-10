@@ -59,7 +59,7 @@ var (
 
 func main() {
 	flag.Parse()
-	defer common.LogPanic()
+	defer common.Defer()
 
 	if *local {
 		common.InitWithMust(

@@ -33,6 +33,7 @@ const (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
 	// Open input file (alert.rules)
 	b, err := ioutil.ReadFile(*in)

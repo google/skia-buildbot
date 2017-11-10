@@ -270,12 +270,12 @@ func runServer(serverURL string) {
 }
 
 func main() {
+	defer common.Defer()
 	common.InitWithMust(
 		"autoroll",
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
-	defer common.Defer()
 
 	Init()
 

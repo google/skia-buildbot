@@ -238,7 +238,8 @@ func resultsProxyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
+
 	// Setup flags.
 	dbConf := db.DBConfigFromFlags()
 
@@ -250,6 +251,7 @@ func main() {
 	}
 
 	common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)

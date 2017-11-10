@@ -21,7 +21,7 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.Init()
 	if flag.NArg() < 2 {
 		sklog.Fatalf("Usage: %s digest1 digest2 [digest3 ... digestN]\n", os.Args[0])

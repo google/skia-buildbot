@@ -74,7 +74,7 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	// Calls flag.Parse()
 	common.InitWithMust(
 		"fuzzer-be",

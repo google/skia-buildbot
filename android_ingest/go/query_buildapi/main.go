@@ -20,7 +20,9 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
+
 	// Create a new auth'd client.
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
 	if err != nil {

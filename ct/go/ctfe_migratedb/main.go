@@ -19,7 +19,7 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	// Set up flags.
 	dbConf := db.DBConfigFromFlags()
 

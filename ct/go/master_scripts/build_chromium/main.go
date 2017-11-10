@@ -57,7 +57,7 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	master_common.Init("build_chromium")
 
 	// Send start email.

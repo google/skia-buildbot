@@ -33,7 +33,9 @@ message is displayed. Must be run within the git repo.
 	}
 }
 func main() {
+	defer common.Defer()
 	common.Init()
+
 	match_found := false
 	for i := 0; i < *num; i++ {
 		res, err := exec.RunSimple(fmt.Sprintf("git show HEAD~%d..HEAD~%d", i+1, i))

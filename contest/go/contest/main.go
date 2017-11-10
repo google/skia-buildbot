@@ -187,7 +187,7 @@ func step() error {
 }
 
 func main() {
-	defer common.LogPanic()
+	defer common.Defer()
 	common.InitWithMust(
 		"contest",
 		common.PrometheusOpt(promPort),

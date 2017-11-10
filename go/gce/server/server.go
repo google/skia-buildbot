@@ -112,8 +112,8 @@ func SetGitCredsReadWrite(vm *gce.Instance, gitUser string) *gce.Instance {
 // The string keys are nicknames for the instances (e.g. "prod", "staging").
 //  Only the instance specified by the --instance flag will be created.
 func Main(zone string, instances map[string]*gce.Instance) {
+	defer common.Defer()
 	common.Init()
-	defer common.LogPanic()
 
 	vm, ok := instances[*instance]
 	if !ok {

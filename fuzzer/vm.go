@@ -8,7 +8,6 @@ import (
 	logging "google.golang.org/api/logging/v2"
 
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -42,7 +41,6 @@ func BackEnd(num int) *gce.Instance {
 }
 
 func main() {
-	common.Init()
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"fe":   FrontEnd(),
 		"be-1": BackEnd(1),

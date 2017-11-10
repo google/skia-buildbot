@@ -22,8 +22,7 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
-
+	defer common.Defer()
 	common.InitWithMust(
 		"cloudlogger",
 		common.PrometheusOpt(promPort),

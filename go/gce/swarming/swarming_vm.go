@@ -209,8 +209,8 @@ func getWindowsStuff(workdir string) (string, string, string, string, error) {
 }
 
 func main() {
+	defer common.Defer()
 	common.Init()
-	defer common.LogPanic()
 
 	// Validation.
 	if *create == *delete {

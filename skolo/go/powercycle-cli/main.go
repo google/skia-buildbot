@@ -39,7 +39,9 @@ var (
 )
 
 func main() {
+	defer common.Defer()
 	common.Init()
+
 	args := flag.Args()
 	if !*connect && !*autoFix && len(args) == 0 {
 		sklog.Info("Skipping connection test. Use --connect flag to force connection testing.")
