@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "74f5cfe8_8c17be94",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 889,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-13T16:13:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd776e79_3f56a83c",
+      "range": {
+        "startLine": 889,
+        "startChar": 9,
+        "endLine": 889,
+        "endChar": 14
+      },
+      "revId": "dc066e0438b605236590f7776e45fc782b179f61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e1c0af93_aa522f47",
         "filename": "go/gce/swarming/swarming_vm.go",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2017-11-13T12:59:04Z",
       "side": 1,
       "message": "So we actually see logs from our scripts in the serial log?  IIUC that hasn\u0027t been the case before.",
+      "range": {
+        "startLine": 319,
+        "startChar": 5,
+        "endLine": 319,
+        "endChar": 94
+      },
+      "revId": "dc066e0438b605236590f7776e45fc782b179f61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df9f6b5d_d746b62a",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-13T16:13:55Z",
+      "side": 1,
+      "message": "This CL adds logging to the serial port. Sometimes this doesn\u0027t work because something else is also writing to the serial port, but so far this particular message has always appeared.",
+      "parentUuid": "e1c0af93_aa522f47",
       "range": {
         "startLine": 319,
         "startChar": 5,
@@ -68,6 +116,30 @@
       "revId": "dc066e0438b605236590f7776e45fc782b179f61",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d3cbc21_449be02b",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-13T16:13:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "581d4505_8ca3dc29",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 12
+      },
+      "revId": "dc066e0438b605236590f7776e45fc782b179f61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
