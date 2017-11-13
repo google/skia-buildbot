@@ -46,6 +46,30 @@
       "revId": "33d309539517869df8b9b34ea7b3284967d14eaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90ef89cc_ac1db4c9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-13T19:00:25Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s that big of a deal.  The retry should only get prioritized behind other try jobs, not normal jobs.  But this decays quickly in the case where we have more than two retries, which we don\u0027t do at the moment.",
+      "parentUuid": "715454be_954006c4",
+      "range": {
+        "startLine": 45,
+        "startChar": 44,
+        "endLine": 45,
+        "endChar": 48
+      },
+      "revId": "33d309539517869df8b9b34ea7b3284967d14eaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
