@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd776e79_3f56a83c",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 889,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-13T12:59:04Z",
+      "side": 1,
+      "message": "Nit: why not error?",
+      "range": {
+        "startLine": 889,
+        "startChar": 9,
+        "endLine": 889,
+        "endChar": 14
+      },
+      "revId": "dc066e0438b605236590f7776e45fc782b179f61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1c0af93_aa522f47",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-13T12:59:04Z",
+      "side": 1,
+      "message": "So we actually see logs from our scripts in the serial log?  IIUC that hasn\u0027t been the case before.",
+      "range": {
+        "startLine": 319,
+        "startChar": 5,
+        "endLine": 319,
+        "endChar": 94
+      },
+      "revId": "dc066e0438b605236590f7776e45fc782b179f61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "581d4505_8ca3dc29",
+        "filename": "scripts/chromebot-schtask.ps1",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-13T12:59:04Z",
+      "side": 1,
+      "message": "Nice!  Can you add a \"Write to serial console\" or some such comment?",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 12
+      },
+      "revId": "dc066e0438b605236590f7776e45fc782b179f61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
