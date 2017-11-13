@@ -94,6 +94,30 @@
       "revId": "8a705d92f97efdee100d40380603a912b0eafec0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa6199f6_6afde32c",
+        "filename": "run_unittests.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-13T14:28:08Z",
+      "side": 1,
+      "message": "Up to you.  My feeling is that, if we\u0027re not waiting on this bot for the CQ, there\u0027s no harm in taking a few more minutes to catch a deadlock, which should be rare.  IMO that\u0027s less human effort than chasing timeouts when tests are slow, which has been a pain in the past with the non-race tests.",
+      "parentUuid": "359dd046_65d76e94",
+      "range": {
+        "startLine": 365,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 2
+      },
+      "revId": "8a705d92f97efdee100d40380603a912b0eafec0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
