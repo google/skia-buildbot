@@ -46,6 +46,30 @@
       "revId": "8a705d92f97efdee100d40380603a912b0eafec0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9138072_a73be5bb",
+        "filename": "run_unittests.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-13T14:18:38Z",
+      "side": 1,
+      "message": "We\u0027d still have the default timeout of 10 minutes.",
+      "parentUuid": "d68eabea_0538b729",
+      "range": {
+        "startLine": 365,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 2
+      },
+      "revId": "8a705d92f97efdee100d40380603a912b0eafec0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
