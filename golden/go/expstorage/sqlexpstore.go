@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 
@@ -71,7 +72,7 @@ func (s *SQLExpectationsStore) Get() (exp *Expectations, err error) {
 
 // See ExpectationsStore interface.
 func (s *SQLExpectationsStore) AddChange(changedTests map[string]types.TestClassification, userId string) error {
-	return s.AddChangeWithTimeStamp(changedTests, userId, 0, util.TimeStampMs())
+	return s.AddChangeWithTimeStamp(changedTests, userId, 0, util.TimeStamp(time.Millisecond))
 }
 
 // TOOD(stephana): Remove the AddChangeWithTimeStamp if we remove the
@@ -186,7 +187,7 @@ func (s *SQLExpectationsStore) removeChange(changedDigests map[string]types.Test
 	defer func() { retErr = database.CommitOrRollback(tx, retErr) }()
 
 	// Mark all the digests as removed.
-	now := util.TimeStampMs()
+	now := util.TimeStamp(time.Millisecond)
 	for testName, digests := range changedDigests {
 		for digest := range digests {
 			if _, err = tx.Exec(markRemovedStmt, now, testName, digest); err != nil {
@@ -376,7 +377,7 @@ func (s *SQLExpectationsStore) UndoChange(changeID int, userID string) (map[stri
 		return nil, err
 	}
 
-	return changes, s.AddChangeWithTimeStamp(changes, userID, changeID, util.TimeStampMs())
+	return changes, s.AddChangeWithTimeStamp(changes, userID, changeID, util.TimeStamp(time.Millisecond))
 }
 
 // Loads a single change entry with all details from the DB.
