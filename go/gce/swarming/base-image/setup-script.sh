@@ -84,18 +84,18 @@ sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 col
 sudo /etc/init.d/collectd restart
 
 # Setup unattended upgrades.
-cat <<EOF | sudo tee /etc/apt/apt.conf.d/20auto-upgrades
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Unattended-Upgrade "1";
-EOF
+#cat <<EOF | sudo tee /etc/apt/apt.conf.d/20auto-upgrades
+#APT::Periodic::Update-Package-Lists "1";
+#APT::Periodic::Unattended-Upgrade "1";
+#EOF
 
-cat <<EOF | sudo tee /etc/apt/apt.conf.d/50unattended-upgrades
-Unattended-Upgrade::Origins-Pattern {
-      "\${distro_id}:\${distro_codename}-security";
-};
-Unattended-Upgrade::Remove-Unused-Dependencies "true";
-EOF
+#cat <<EOF | sudo tee /etc/apt/apt.conf.d/50unattended-upgrades
+#Unattended-Upgrade::Origins-Pattern {
+#      "\${distro_id}:\${distro_codename}-security";
+#};
+#Unattended-Upgrade::Remove-Unused-Dependencies "true";
+#EOF
 
 # Check the output to confirm that the config is working.
-sudo unattended-upgrades -d --dry-run
+#sudo unattended-upgrades -d --dry-run
 

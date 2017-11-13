@@ -50,7 +50,7 @@ func Swarming20170731(name, serviceAccount string) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
-			SourceImage: "skia-swarming-base-v2017-07-31-000",
+			SourceImage: "skia-swarming-base-v2017-11-08-002",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		DataDisks: []*gce.Disk{{
@@ -250,7 +250,7 @@ func main() {
 	} else if *skylake {
 		zone = gce.ZONE_SKYLAKE
 	}
-	g, err := gce.NewGCloud(zone, wdAbs)
+	g, err := gce.NewGCloud(gce.PROJECT_ID_SWARMING, zone, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
