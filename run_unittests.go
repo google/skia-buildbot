@@ -362,6 +362,14 @@ func main() {
 	_, filename, _, _ := runtime.Caller(0)
 	rootDir := path.Dir(filename)
 
+	if *race {
+		// Use alternative timeouts when --race is enabled because the tests
+		// inherently take longer with the extra instrumentation.
+		testutils.TIMEOUT_SMALL = testutils.TIMEOUT_RACE
+		testutils.TIMEOUT_MEDIUM = testutils.TIMEOUT_RACE
+		testutils.TIMEOUT_LARGE = testutils.TIMEOUT_RACE
+	}
+
 	// If we are running full tests make sure we have the latest
 	// pdfium_test installed.
 	if testutils.ShouldRun(testutils.MEDIUM_TEST) || testutils.ShouldRun(testutils.LARGE_TEST) {
