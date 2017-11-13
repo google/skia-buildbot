@@ -36,9 +36,11 @@ func TestCleanup(t *testing.T) {
 	counts := make([]int, 0, n)
 	cleanups := make([]bool, 0, n)
 	for i := 0; i < n; i++ {
-		idx := i
 		counts = append(counts, 0)
 		cleanups = append(cleanups, false)
+	}
+	for i := 0; i < n; i++ {
+		idx := i
 		Repeat(interval, func() {
 			counts[idx]++
 			assert.False(t, cleanups[idx])
