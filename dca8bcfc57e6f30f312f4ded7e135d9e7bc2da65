@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "985c8093_39a859bb",
+        "filename": "task_scheduler/go/db/local_db/local_db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-13T19:48:52Z",
+      "side": 1,
+      "message": "Do we need this at all if we\u0027re returning ErrConcurrentUpdate?  The logs will be just as spammy with this at Info level.",
+      "range": {
+        "startLine": 575,
+        "startChar": 6,
+        "endLine": 575,
+        "endChar": 102
+      },
+      "revId": "dca8bcfc57e6f30f312f4ded7e135d9e7bc2da65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
