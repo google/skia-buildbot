@@ -35,7 +35,7 @@ func main() {
 	}
 
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(*zone, wdAbs)
+	g, err := gce.NewGCloud(gce.PROJECT_ID_SERVER, *zone, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
