@@ -22,6 +22,7 @@ services/bugdroid/bugdroid_log.txt
 .project
 .pydevproject
 **/client_secret.json
+**/client_secret_swarming.json
 **/service-account.json
 **/google_storage_token.data
 **/gcloud_token.data
