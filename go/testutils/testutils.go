@@ -40,6 +40,8 @@ var (
 	TIMEOUT_MEDIUM = "15s"
 	TIMEOUT_LARGE  = "2m"
 
+	TIMEOUT_RACE = "5m"
+
 	// TEST_TYPES lists all of the types of tests.
 	TEST_TYPES = []string{
 		SMALL_TEST,
