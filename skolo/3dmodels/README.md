@@ -50,4 +50,4 @@ raspirack_*_narrow.stl : A variant of the rack with the same size "payload"
 
 
 raspirack_pi_holder.stl : Holder for the RPi. This is incorporated into
-                  all version starting with raspirack_v4.
+                          all versions starting with raspirack_v4.
