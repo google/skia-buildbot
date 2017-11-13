@@ -634,6 +634,26 @@ func TestProcessTaskCandidate(t *testing.T) {
 	assert.Equal(t, CANDIDATE_SCORE_TRY_JOB+1.0, c.Score)
 	assert.Nil(t, c.Commits)
 
+	// Retries are scored lower.
+	c = &taskCandidate{
+		Attempt:    1,
+		JobCreated: now.Add(-1 * time.Hour),
+		TaskKey: db.TaskKey{
+			RepoState: db.RepoState{
+				Patch: db.Patch{
+					Server:   "my-server",
+					Issue:    "my-issue",
+					Patchset: "my-patchset",
+				},
+				Repo:     gb.RepoUrl(),
+				Revision: c1,
+			},
+		},
+	}
+	assert.NoError(t, s.processTaskCandidate(c, now, cache, commitsBuf))
+	assert.Equal(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score)
+	assert.Nil(t, c.Commits)
+
 	// Manually forced candidates have a blamelist and a specific score.
 	c = &taskCandidate{
 		JobCreated: now.Add(-2 * time.Hour),
