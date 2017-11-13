@@ -39,6 +39,10 @@ def main():
       break
     time.sleep(POLLING_WAIT_TIME_SECS)
 
+  # Fail the task so that swarming reboots the bot. This will force all SSH'ed
+  # users to disconnect.
+  return 1
+
 
 if __name__ == '__main__':
   sys.exit(main())
