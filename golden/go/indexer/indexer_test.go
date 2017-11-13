@@ -47,11 +47,8 @@ const (
 	// Database user used by benchmarks.
 	DB_USER = "readwrite"
 
-	// TEST_BUCKET_NAME is the bucket where the test file will be written.
-	TEST_BUCKET_NAME = "skia-infra-testdata"
-
-	// TEST_HASH_FILE_PATH is the path to the test hash file.
-	TEST_HASH_FILE_PATH = "hash_files/testing-known-hashes.txt"
+	// TEST_HASHES_PATH is the GCS path where the file will be written.
+	TEST_HASHES_PATH = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
 )
 
 // Flags used by benchmarks. Everything else uses reasonable assumptions based
@@ -72,8 +69,12 @@ func TestIndexer(t *testing.T) {
 	eventBus := eventbus.New()
 	expStore := expstorage.NewMemExpectationsStore(eventBus)
 
-	gsClient, err := storage.NewGStorageClient(mocks.GetHTTPClient(t), TEST_BUCKET_NAME, TEST_HASH_FILE_PATH)
+	opts := &storage.GSClientOptions{
+		HashesGSPath: TEST_HASHES_PATH,
+	}
+	gsClient, err := storage.NewGStorageClient(mocks.GetHTTPClient(t), opts)
 	assert.NoError(t, err)
+	assert.NotNil(t, gsClient)
 
 	storages := &storage.Storage{
 		ExpectationsStore: expStore,

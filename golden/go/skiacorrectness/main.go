@@ -62,8 +62,8 @@ var (
 	eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 	forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
 	gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
-	hashFileBucket      = flag.String("hash_file_bucket", "", "Bucket where the file with the known list of hashes should be written.")
-	hashFilePath        = flag.String("hash_file_path", "", "Path of the file with know hashes.")
+	hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
+	baselineGSPath      = flag.String("baseline_gs_path", "", "GS path, where the baseline file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
 	imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
 	internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
@@ -279,7 +279,12 @@ func main() {
 		sklog.Fatalf("Unable to open ingestion store: %s", err)
 	}
 
-	gsClient, err := storage.NewGStorageClient(client, *hashFileBucket, *hashFilePath)
+	gsClientOpt := &storage.GSClientOptions{
+		HashesGSPath:   *hashesGSPath,
+		BaselineGSPath: *baselineGSPath,
+	}
+
+	gsClient, err := storage.NewGStorageClient(client, gsClientOpt)
 	if err != nil {
 		sklog.Fatalf("Unable to create GStorageClient: %s", err)
 	}

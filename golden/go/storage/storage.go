@@ -3,18 +3,18 @@ package storage
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/flynn/json5"
-
-	"google.golang.org/api/option"
-
 	gstorage "cloud.google.com/go/storage"
+	"github.com/flynn/json5"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -279,58 +280,66 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 	return ret
 }
 
-// GStorageClient provides read/write to Google storage for one-off
-// use cases. Currently only for writing the list of known digests.
-type GStorageClient struct {
-	storageClient *gstorage.Client
-	bucketName    string
-	hashFilePath  string
+// GSClientOptions is used to define input parameters to the GStorageClient.
+type GSClientOptions struct {
+	HashesGSPath   string // bucket and path for storing the list of known digests.
+	BaselineGSPath string // bucket and path for storing the base line information.
 }
 
-// NewGStorageClient creates a new instance of GStorage client. bucket
-// contains the name of the bucket where to store the know digests file and
-// hashFilePath provices the path from the bucket root.
-func NewGStorageClient(client *http.Client, bucketName, hashFilePath string) (*GStorageClient, error) {
+// GStorageClient provides read/write to Google storage for one-off
+// use cases, i.e. the list of known hash files or the base line.
+type GStorageClient struct {
+	storageClient *gstorage.Client
+	options       GSClientOptions
+}
+
+// NewGStorageClient creates a new instance of GStorage client. The various
+// output paths are set in GSClientOptions.
+func NewGStorageClient(client *http.Client, options *GSClientOptions) (*GStorageClient, error) {
 	storageClient, err := gstorage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}
+
 	return &GStorageClient{
 		storageClient: storageClient,
-		bucketName:    bucketName,
-		hashFilePath:  hashFilePath,
+		options:       *options,
 	}, nil
 }
 
 // WriteKnownDigests writes the given list of digests to GS as newline
 // separated strings.
-func (g *GStorageClient) WriteKownDigests(digests []string) error {
-	// Only write the known digests if a target path was given.
-	if (g.bucketName == "") || (g.hashFilePath == "") {
+func (g *GStorageClient) WriteKnownDigests(digests []string) error {
+	writeFn := func(w *gstorage.Writer) error {
+		for _, digest := range digests {
+			if _, err := w.Write([]byte(digest + "\n")); err != nil {
+				return fmt.Errorf("Error writing digests: %s", err)
+			}
+		}
 		return nil
 	}
 
-	ctx := context.Background()
-	target := g.storageClient.Bucket(g.bucketName).Object(g.hashFilePath)
-	writer := target.NewWriter(ctx)
-	writer.ObjectAttrs.ContentType = "text/plain"
-	writer.ObjectAttrs.ACL = []gstorage.ACLRule{{Entity: gstorage.AllUsers, Role: gstorage.RoleReader}}
-	defer util.Close(writer)
-
-	for _, digest := range digests {
-		if _, err := writer.Write([]byte(digest + "\n")); err != nil {
-			return err
-		}
-	}
-	sklog.Infof("Known hashes written to %s/%s", g.bucketName, g.hashFilePath)
-	return nil
+	return g.writeToPath(g.options.HashesGSPath, "text/plain", writeFn)
 }
 
-// LoadKnownDigests loads the digests that have previously been written
-// to GS via WriteKnownDigests.
-func (g *GStorageClient) LoadKownDigests() ([]string, error) {
+// WriteBaseLine writes the given baseline to GCS.
+func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) error {
+	writeFn := func(w *gstorage.Writer) error {
+		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
+			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
+		}
+		return nil
+	}
+	return g.writeToPath(g.options.BaselineGSPath, "application/json", writeFn)
+}
+
+// loadKnownDigests loads the digests that have previously been written
+// to GS via WriteKnownDigests. Used for testing.
+func (g *GStorageClient) loadKnownDigests() ([]string, error) {
+	bucketName, storagePath := splitGSPath(g.options.HashesGSPath)
+
 	ctx := context.Background()
-	target := g.storageClient.Bucket(g.bucketName).Object(g.hashFilePath)
+	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 
 	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
 	_, err := target.Attrs(ctx)
@@ -352,9 +361,45 @@ func (g *GStorageClient) LoadKownDigests() ([]string, error) {
 	return ret, nil
 }
 
-// RemoveKownDigests removes the file with know digests. Primarily used
-// for testing.
-func (g *GStorageClient) RemoveKownDigests() error {
-	target := g.storageClient.Bucket(g.bucketName).Object(g.hashFilePath)
+// removeGSPath removes the given file. Primarily used for testing.
+func (g *GStorageClient) removeGSPath(targetPath string) error {
+	bucketName, storagePath := splitGSPath(targetPath)
+	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 	return target.Delete(context.Background())
+}
+
+// writeToPath is a generic function that allows to write data to the given
+// target path in GCS. The actual writing is done in the passed write function.
+func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(w *gstorage.Writer) error) error {
+	bucketName, storagePath := splitGSPath(targetPath)
+
+	// Only write the known digests if a target path was given.
+	if (bucketName == "") || (storagePath == "") {
+		return nil
+	}
+
+	ctx := context.Background()
+	target := g.storageClient.Bucket(bucketName).Object(storagePath)
+	writer := target.NewWriter(ctx)
+	writer.ObjectAttrs.ContentType = contentType
+	writer.ObjectAttrs.ACL = []gstorage.ACLRule{{Entity: gstorage.AllUsers, Role: gstorage.RoleReader}}
+	defer util.Close(writer)
+
+	// Write the actual data.
+	if err := wrtFn(writer); err != nil {
+		return err
+	}
+
+	sklog.Infof("File written to GS path %s", targetPath)
+	return nil
+}
+
+// splitGSPath takes a GCS path and splits it into a <bucket,path> pair.
+// It assumes the format: {bucket_name}/{path_within_bucket}.
+func splitGSPath(path string) (string, string) {
+	parts := strings.SplitN(strings.TrimLeft(path, "/"), "/", 2)
+	if len(parts) > 1 {
+		return parts[0], parts[1]
+	}
+	return path, ""
 }
