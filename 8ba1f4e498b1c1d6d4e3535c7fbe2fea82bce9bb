@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7e72ae36_5dfa0014",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-13T16:18:38Z",
+      "side": 1,
+      "message": "This might me missing a word.  What are test names?  Like, Test-ChromeOS-Release-Vulkan, etc?",
+      "range": {
+        "startLine": 11,
+        "startChar": 12,
+        "endLine": 11,
+        "endChar": 49
+      },
+      "revId": "8ba1f4e498b1c1d6d4e3535c7fbe2fea82bce9bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44cf4fdf_d49bf331",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-13T16:18:38Z",
+      "side": 1,
+      "message": "How often is this going to run writeBaseline? If it can be estimated, a comment estimating the temporal or commit-based timing of the backups would be useful.",
+      "range": {
+        "startLine": 174,
+        "startChar": 1,
+        "endLine": 174,
+        "endChar": 27
+      },
+      "revId": "8ba1f4e498b1c1d6d4e3535c7fbe2fea82bce9bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5511318d_4c8dbf2d",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-13T16:18:38Z",
+      "side": 1,
+      "message": "nit cleanup spacing in imports",
+      "revId": "8ba1f4e498b1c1d6d4e3535c7fbe2fea82bce9bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "357ad00e_8ac88274",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-13T16:18:38Z",
+      "side": 1,
+      "message": "Kown -\u003e Known",
+      "range": {
+        "startLine": 315,
+        "startChar": 30,
+        "endLine": 315,
+        "endChar": 34
+      },
+      "revId": "8ba1f4e498b1c1d6d4e3535c7fbe2fea82bce9bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4985514c_678ac952",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-13T16:18:38Z",
+      "side": 1,
+      "message": "Consider augmenting this error so we know it came from this function. Here and on line 332, as well.",
+      "range": {
+        "startLine": 319,
+        "startChar": 11,
+        "endLine": 319,
+        "endChar": 14
+      },
+      "revId": "8ba1f4e498b1c1d6d4e3535c7fbe2fea82bce9bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9ff84b1_724c0779",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-13T16:18:38Z",
+      "side": 1,
+      "message": "Kown -\u003e Known",
+      "range": {
+        "startLine": 341,
+        "startChar": 29,
+        "endLine": 341,
+        "endChar": 33
+      },
+      "revId": "8ba1f4e498b1c1d6d4e3535c7fbe2fea82bce9bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "712ab6ee_c2cd793f",
+        "filename": "golden/sys/skiacorrectness-pdfium.service",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-13T16:18:38Z",
+      "side": 1,
+      "message": "If this is a backup, should it go in a backup \"directory\" for easier locating?",
+      "range": {
+        "startLine": 31,
+        "startChar": 37,
+        "endLine": 31,
+        "endChar": 47
+      },
+      "revId": "8ba1f4e498b1c1d6d4e3535c7fbe2fea82bce9bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
