@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -28,6 +29,14 @@ const (
 	GS_URL_NETRC_INTERNAL = "gs://skia-buildbots/artifacts/bots/.netrc_bots-internal"
 
 	USER_CHROME_BOT = "chrome-bot"
+
+	OS_DEBIAN_9 = "Debian9"
+	OS_WIN_2K8  = "Win2k8"
+	OS_WIN_2016 = "Win2016"
+)
+
+var (
+	VALID_OS = []string{OS_DEBIAN_9, OS_WIN_2K8, OS_WIN_2016}
 )
 
 var (
@@ -40,8 +49,8 @@ var (
 	gpu            = flag.Bool("gpu", false, "Whether or not to add an NVIDIA Tesla k80 GPU on the instance(s)")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
+	opsys          = flag.String("os", OS_DEBIAN_9, fmt.Sprintf("OS identifier; one of %s", strings.Join(VALID_OS, ", ")))
 	skylake        = flag.Bool("skylake", false, "Whether or not the instance(s) should use Intel Skylake CPUs.")
-	windows        = flag.Bool("windows", false, "Whether or not the bots run Windows.")
 	workdir        = flag.String("workdir", ".", "Working directory.")
 )
 
@@ -114,9 +123,17 @@ func SkiaCTBot(num int) *gce.Instance {
 }
 
 // Configs for Windows GCE instances.
-func AddWinConfigs(vm *gce.Instance, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+func AddWinConfigs(vm *gce.Instance, opsys, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm.BootDisk.SizeGb = 300
-	vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
+	switch opsys {
+	case OS_WIN_2K8:
+		vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
+	case OS_WIN_2016:
+		vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2016-dc-internal-v20171010"
+	default:
+		// Shouldn't happen.
+		sklog.Fatalf("Invalid os %q", opsys)
+	}
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.DataDisks = nil
 	// Most of the Windows setup, including the gitconfig/netrc, occurs in
@@ -124,22 +141,21 @@ func AddWinConfigs(vm *gce.Instance, pw, setupScriptPath, startupScriptPath, chr
 	// chrome-bot scheduled task script.
 	vm.Metadata["chromebot-schtask-ps1"] = chromebotScript
 	vm.Os = gce.OS_WINDOWS
-	vm.Password = pw
 	vm.SetupScript = setupScriptPath
 	vm.StartupScript = startupScriptPath
 	return vm
 }
 
 // Windows GCE instances.
-func WinSwarmingBot(num int, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+func WinSwarmingBot(num int, opsys, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm := Swarming20170731(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM)
-	return AddWinConfigs(vm, pw, setupScriptPath, startupScriptPath, chromebotScript)
+	return AddWinConfigs(vm, opsys, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // Internal Windows GCE instances.
-func InternalWinSwarmingBot(num int, pw, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+func InternalWinSwarmingBot(num int, opsys, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm := Swarming20170731(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING)
-	return AddWinConfigs(vm, pw, setupScriptPath, startupScriptPath, chromebotScript)
+	return AddWinConfigs(vm, opsys, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // GCE instances with GPUs.
@@ -156,12 +172,11 @@ func AddSkylakeConfigs(vm *gce.Instance) *gce.Instance {
 	return vm
 }
 
-// Returns the initial chrome-bot password, plus setup, startup, and
-// chrome-bot scripts.
-func getWindowsStuff(workdir string) (string, string, string, string, error) {
+// Returns the setup, startup, and chrome-bot scripts.
+func getWindowsScripts(workdir string) (string, string, string, error) {
 	pw, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/win-chrome-bot.txt")
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 	pw = strings.TrimSpace(pw)
 
@@ -169,43 +184,43 @@ func getWindowsStuff(workdir string) (string, string, string, string, error) {
 	repoRoot := path.Dir(path.Dir(path.Dir(path.Dir(filename))))
 	setupBytes, err := ioutil.ReadFile(path.Join(repoRoot, "scripts", "win_setup.ps1"))
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 	setupScript := strings.Replace(string(setupBytes), "CHROME_BOT_PASSWORD", pw, -1)
 
 	netrcContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.netrc_bots")
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 	setupScript = strings.Replace(setupScript, "INSERTFILE(/tmp/.netrc)", string(netrcContents), -1)
 
 	gitconfigContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.gitconfig")
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 	setupScript = strings.Replace(setupScript, "INSERTFILE(/tmp/.gitconfig)", string(gitconfigContents), -1)
 	setupPath := path.Join(workdir, "setup-script.ps1")
 	if err := ioutil.WriteFile(setupPath, []byte(setupScript), os.ModePerm); err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 
 	startupBytes, err := ioutil.ReadFile(path.Join(repoRoot, "scripts", "win_startup.ps1"))
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 	startupScript := strings.Replace(string(startupBytes), "CHROME_BOT_PASSWORD", pw, -1)
 	startupPath := path.Join(workdir, "startup-script.ps1")
 	if err := ioutil.WriteFile(startupPath, []byte(startupScript), os.ModePerm); err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 
 	// Return the chrome-bot script itself, not its path.
 	chromebotBytes, err := ioutil.ReadFile(path.Join(repoRoot, "scripts", "chromebot-schtask.ps1"))
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 	chromebotScript := util.ToDos(string(chromebotBytes))
-	return pw, setupPath, startupPath, chromebotScript, nil
+	return setupPath, startupPath, chromebotScript, nil
 }
 
 func main() {
@@ -217,8 +232,13 @@ func main() {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
 	}
 
-	if *ct && *windows {
-		sklog.Fatal("--skia-ct and --windows are mutually exclusive.")
+	if !util.In(*opsys, VALID_OS) {
+		sklog.Fatalf("Unknown --os %q", *opsys)
+	}
+	windows := strings.HasPrefix(*opsys, "Win")
+
+	if *ct && windows {
+		sklog.Fatalf("--skia-ct does not support %q.", *opsys)
 	}
 	if *skylake && *gpu {
 		sklog.Fatal("--skylake and --gpu are mutually exclusive.")
@@ -256,9 +276,9 @@ func main() {
 	}
 
 	// Read the various Windows scripts.
-	var pw, setupScript, startupScript, chromebotScript string
-	if *windows {
-		pw, setupScript, startupScript, chromebotScript, err = getWindowsStuff(wdAbs)
+	var setupScript, startupScript, chromebotScript string
+	if windows {
+		setupScript, startupScript, chromebotScript, err = getWindowsScripts(wdAbs)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -270,11 +290,11 @@ func main() {
 		var vm *gce.Instance
 		if *ct {
 			vm = SkiaCTBot(num)
-		} else if *windows {
+		} else if windows {
 			if *internal {
-				vm = InternalWinSwarmingBot(num, pw, setupScript, startupScript, chromebotScript)
+				vm = InternalWinSwarmingBot(num, *opsys, setupScript, startupScript, chromebotScript)
 			} else {
-				vm = WinSwarmingBot(num, pw, setupScript, startupScript, chromebotScript)
+				vm = WinSwarmingBot(num, *opsys, setupScript, startupScript, chromebotScript)
 			}
 		} else {
 			if *internal {
@@ -295,14 +315,10 @@ func main() {
 					return err
 				}
 
-				if *windows {
-					// Reboot. The startup script enabled auto-login as chrome-bot
-					// on boot. Reboot in order to run chrome-bot's scheduled task.
-					if err := g.Reboot(vm); err != nil {
+				if windows {
+					if err := g.WaitForLogMessage(vm, "*** Start Swarming. ***", 5*time.Minute); err != nil {
 						return err
 					}
-				} else {
-					// Nothing to do.
 				}
 			} else {
 				return g.Delete(vm, *ignoreExists, *deleteDataDisk)

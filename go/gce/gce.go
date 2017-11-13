@@ -70,7 +70,7 @@ const (
 	SERVICE_ACCOUNT_CHROMIUM_SWARM  = "chromium-swarm-bots@skia-buildbots.google.com.iam.gserviceaccount.com"
 
 	SETUP_SCRIPT_KEY_LINUX  = "setup-script"
-	SETUP_SCRIPT_KEY_WIN    = "sysprep-oobe-script-ps1"
+	SETUP_SCRIPT_KEY_WIN    = "sysprep-specialize-script-ps1"
 	SETUP_SCRIPT_PATH_LINUX = "/tmp/setup-script.sh"
 
 	USER_CHROME_BOT = "chrome-bot"
@@ -395,9 +395,6 @@ type Instance struct {
 	// Operating system of the instance.
 	Os string
 
-	// Password is the default user's password. Only used for Windows.
-	Password string
-
 	// Auth scopes for the instance.
 	Scopes []string
 
@@ -545,13 +542,6 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 		disks = append(disks, d)
 	}
 
-	if vm.Os == OS_WINDOWS && vm.User != "" && vm.Password != "" {
-		if vm.Metadata == nil {
-			vm.Metadata = map[string]string{}
-		}
-		vm.Metadata["gce-initial-windows-user"] = vm.User
-		vm.Metadata["gce-initial-windows-password"] = vm.Password
-	}
 	if vm.MaintenancePolicy == "" {
 		vm.MaintenancePolicy = MAINTENANCE_POLICY_MIGRATE
 	}
@@ -849,9 +839,6 @@ func (g *GCloud) IsInstanceReady(vm *Instance) (bool, error) {
 		if strings.Contains(serial.Contents, winStartupFinishedText) {
 			return true, nil
 		}
-		if strings.Contains(serial.Contents, winSetupFinishedText) {
-			return true, nil
-		}
 		return false, nil
 	} else {
 		if _, err := g.Ssh(vm, "true"); err != nil {
@@ -879,6 +866,31 @@ func (g *GCloud) WaitForInstanceReady(vm *Instance, timeout time.Duration) error
 			return nil
 		}
 		sklog.Infof("Waiting for instance %q to be ready.", vm.Name)
+		time.Sleep(5 * time.Second)
+	}
+}
+
+// WaitForLogMessage waits until the given string appears in the instance's log.
+// Currently only implemented for Windows.
+func (g *GCloud) WaitForLogMessage(vm *Instance, logText string, timeout time.Duration) error {
+	if vm.Os != OS_WINDOWS {
+		return fmt.Errorf("WaitForLogMessage only implemented for Windows.")
+	}
+	start := time.Now()
+	if err := g.waitForInstance(vm.Name, instanceStatusRunning, timeout); err != nil {
+		return err
+	}
+	for {
+		if time.Now().Sub(start) > timeout {
+			return fmt.Errorf("Log message %q did not appear in instance log for %q within timeout of %s", logText, vm.Name, timeout)
+		}
+		serial, err := g.service.Instances.GetSerialPortOutput(g.project, g.zone, vm.Name).Do()
+		if err != nil {
+			sklog.Errorf("GetSerialPortOutput returned error: %s", err)
+		} else if strings.Contains(serial.Contents, logText) {
+			return nil
+		}
+		sklog.Infof("Waiting for instance %q log output %q.", vm.Name, logText)
 		time.Sleep(5 * time.Second)
 	}
 }
@@ -1054,11 +1066,11 @@ func (g *GCloud) CreateAndSetup(vm *Instance, ignoreExists bool) error {
 				return err
 			}
 		}
-	}
-
-	// Reboot the instance. On Windows, this will cause the startup script to run.
-	if err := g.Reboot(vm); err != nil {
-		return err
+		// Reboot to run the startup script. (Can't do this on Windows or we will
+		// interrupt the scheduled task script.)
+		if err := g.Reboot(vm); err != nil {
+			return err
+		}
 	}
 
 	return nil

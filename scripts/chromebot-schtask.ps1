@@ -17,6 +17,13 @@ Set-Location -Path $userDir
 Function log($msg) {
   Write-Debug $msg
   Add-Content $logFile "$msg`n"
+  try {
+    # Write to GCE serial port output (console), if available.
+    $port= new-Object System.IO.Ports.SerialPort COM1,9600,None,8,one
+    $port.open()
+    $port.WriteLine($msg)
+    $port.close()
+  } catch {}
 }
 
 Function unzip($fileName, $folder = "C:\") {
@@ -54,6 +61,9 @@ Function banner($title) {
   log "".PadRight($bannerWidth, $padChar)
   log ""
 }
+
+try
+{
 
 # Create temp directory.
 $tmp = "$userDir\tmp"
@@ -126,9 +136,18 @@ if (!(Test-Path ($swarm_slave_dir))) {
   if ($hostname.StartsWith("skia-i-")) {
     $swarming = "https://chrome-swarming.appspot.com"
   }
-  $metadataJson = Invoke-WebRequest -Uri http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -Headers @{"Metadata-Flavor"="Google"} | ConvertFrom-Json
+  $metadataJson = Invoke-WebRequest -Uri http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -Headers @{"Metadata-Flavor"="Google"} -UseBasicParsing | ConvertFrom-Json
   curl $swarming/bot_code?bot_id=$hostname -Headers @{"Authorization"="Bearer " + $metadataJson.access_token} -OutFile $swarm_slave_dir/swarming_bot.zip
 }
 cmd /c "python $swarm_slave_dir/swarming_bot.zip start_bot"
 
 banner "The Task ended"
+
+}
+catch
+{
+
+log "Caught an exception: $($_.Exception.GetType().FullName)"
+log "$($_.Exception.Message)"
+
+}
