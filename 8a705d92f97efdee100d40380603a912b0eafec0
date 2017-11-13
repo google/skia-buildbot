@@ -22,6 +22,30 @@
       "revId": "8a705d92f97efdee100d40380603a912b0eafec0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d68eabea_0538b729",
+        "filename": "run_unittests.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-13T14:17:55Z",
+      "side": 1,
+      "message": "I think we should have a timeout, to avoid deadlocks from taking hours to discover.",
+      "parentUuid": "055206cc_6451c845",
+      "range": {
+        "startLine": 365,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 2
+      },
+      "revId": "8a705d92f97efdee100d40380603a912b0eafec0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
