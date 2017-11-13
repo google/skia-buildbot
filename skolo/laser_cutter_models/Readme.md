@@ -19,11 +19,18 @@ and a Power Over Ethernet (POE) adapter like this:
 
 The side pieces fit into the base and should be secured by hot glue or adhesive.
 
+These files can be edited with software like Tinkercad, Inkscape, or any other
+SVG editor.
+
 Contents:
 =========
 
-24x12_set.*.svg : A full print set of the pieces needed to make a rack on a
+24x12_set.*.svg : A full print set of the pieces needed to make a single rack on a
                   24x12 inch piece of material.
+
+18xside.*.svg + 4xbase.*.svg: By printing 2 of the 18x and 1 of the 4x sheets, enough
+                              pieces will be printed to make 4 racks (enough for 16
+                              RPIs and devices).
 
 base.*.svg : The base piece. Has holes enough for 4 slots.
 
