@@ -14,9 +14,9 @@ var (
 // interrupted if the timeout takes place.
 func Run(fn func() error, timeout time.Duration) error {
 	c := make(chan error, 1)
-	defer close(c)
 	go func() {
 		c <- fn()
+		close(c)
 	}()
 	t := time.NewTimer(timeout)
 	defer t.Stop()
