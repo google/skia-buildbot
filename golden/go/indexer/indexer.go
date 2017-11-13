@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/golden/go/baseline"
+
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 
@@ -145,12 +147,12 @@ func (idx *SearchIndex) GetBlame(test, digest string, commits []*tiling.Commit) 
 // different components of an index and creates a processing pipeline on top
 // of it.
 type Indexer struct {
-	storages   *storage.Storage
-	pipeline   *pdag.Node
-	blamerNode *pdag.Node
-	lastIndex  *SearchIndex
-	testNames  []string
-	mutex      sync.RWMutex
+	storages       *storage.Storage
+	pipeline       *pdag.Node
+	indexTestsNode *pdag.Node
+	lastIndex      *SearchIndex
+	testNames      []string
+	mutex          sync.RWMutex
 }
 
 // New returns a new Indexer instance. It synchronously indexes the initiallly
@@ -164,8 +166,17 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	// Set up the processing pipeline.
 	root := pdag.NewNode(pdag.NoOp)
 
+	// Node that triggers blame and writing baseslines.
+	// This is used to trigger when expectations change.
+	indexTestsNode := root.Child(pdag.NoOp)
+
+	blamerNode := indexTestsNode.Child(calcBlame)
+
+	// write baselines whenever a new tile is processed or when the expectations
+	// change.
+	pdag.NewNode(writeBaseline, indexTestsNode)
+
 	// Add the blamer and tallies
-	blamerNode := root.Child(calcBlame)
 	tallyNode := root.Child(calcTallies)
 	tallyIgnoresNode := root.Child(calcTalliesWithIgnores)
 
@@ -185,7 +196,7 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 	pdag.NewNode(ret.setIndex, summaryNode, summaryIgnoresNode, paramsNode)
 
 	ret.pipeline = root
-	ret.blamerNode = blamerNode
+	ret.indexTestsNode = indexTestsNode
 
 	// Process the first tile and start the indexing process.
 	return ret, ret.start(interval)
@@ -290,9 +301,10 @@ func (ixr *Indexer) indexTests(testChanges []map[string]types.TestClassification
 		blamer:               blame.New(ixr.storages),
 		warmer:               warmer.New(ixr.storages),
 		testNames:            testNames.Keys(),
+		storages:             lastIdx.storages,
 	}
 
-	if err := ixr.blamerNode.Trigger(newIdx); err != nil {
+	if err := ixr.indexTestsNode.Trigger(newIdx); err != nil {
 		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames, err)
 	}
 }
@@ -387,10 +399,37 @@ func writeKnownHashesList(state interface{}) error {
 		// Keep track of the number of known hashes since this directly affects how
 		// many images the bots have to upload.
 		metrics2.GetInt64Metric(METRIC_KNOWN_HASHES).Update(int64(len(hashes)))
-		if err := idx.storages.GStorageClient.WriteKownDigests(hashes.Keys()); err != nil {
+		if err := idx.storages.GStorageClient.WriteKnownDigests(hashes.Keys()); err != nil {
 			sklog.Errorf("Error writing known digests list: %s", err)
 		}
 	}()
+	return nil
+}
+
+// writeBaseline asynchronously writes the baseline to GCS.
+func writeBaseline(state interface{}) error {
+	idx := state.(*SearchIndex)
+
+	// Only write the hash file if a storage client is available.
+	if idx.storages.GStorageClient == nil {
+		return nil
+	}
+
+	// Write the baseline asynchronously.
+	go func() {
+		exps, err := idx.storages.ExpectationsStore.Get()
+		if err != nil {
+			sklog.Errorf("Error retrieving expectations: %s", err)
+			return
+		}
+
+		// Write the baseline to disk.
+		baseLine := baseline.GetBaseline(exps, idx.GetTile(false))
+		if err := idx.storages.GStorageClient.WriteBaseLine(baseLine); err != nil {
+			sklog.Errorf("Error writing baseline to GCS: %s", err)
+		}
+	}()
+
 	return nil
 }
 

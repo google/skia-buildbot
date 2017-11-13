@@ -12,11 +12,8 @@ import (
 )
 
 const (
-	// TEST_BUCKET_NAME is the bucket where the test file will be written.
-	TEST_BUCKET_NAME = "skia-infra-testdata"
-
-	// TEST_HASH_FILE_PATH is the path to the test hash file.
-	TEST_HASH_FILE_PATH = "hash_files/testing-known-hashes.txt"
+	// TEST_HASHES_GS_PATH is the bucket/path combination where the test file will be written.
+	TEST_HASHES_GS_PATH = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
 )
 
 func TestGStorageClient(t *testing.T) {
@@ -24,10 +21,12 @@ func TestGStorageClient(t *testing.T) {
 
 	client := mocks.GetHTTPClient(t)
 	timeStamp := fmt.Sprintf("%032d", time.Now().UnixNano())
-	gsClient, err := NewGStorageClient(client, TEST_BUCKET_NAME, TEST_HASH_FILE_PATH+"-"+timeStamp)
+
+	opt := &GSClientOptions{HashesGSPath: TEST_HASHES_GS_PATH + "-" + timeStamp}
+	gsClient, err := NewGStorageClient(client, opt)
 	assert.NoError(t, err)
 	defer func() {
-		assert.NoError(t, gsClient.RemoveKownDigests())
+		assert.NoError(t, gsClient.removeGSPath(opt.HashesGSPath))
 	}()
 
 	knownDigests := []string{
@@ -43,9 +42,9 @@ func TestGStorageClient(t *testing.T) {
 		"f1eb049dac1cfa3c70aac8fc6ad5496f",
 		timeStamp,
 	}
-	assert.NoError(t, gsClient.WriteKownDigests(knownDigests))
+	assert.NoError(t, gsClient.WriteKnownDigests(knownDigests))
 
-	found, err := gsClient.LoadKownDigests()
+	found, err := gsClient.loadKnownDigests()
 	assert.NoError(t, err)
 	assert.Equal(t, knownDigests, found)
 }
