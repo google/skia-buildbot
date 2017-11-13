@@ -122,6 +122,9 @@ func isSyncError(err error) bool {
 	// TODO(borenet): Remove extra logging.
 	sklog.Infof("Encountered error: %q", err.Error())
 	if strings.Contains(err.Error(), "Invalid revision range") {
+		// Not really an error in the sync itself but indicates that
+		// the repo is not up to date, likely due to a server frontend
+		// lagging behind.
 		sklog.Infof("Is sync error (invalid revision range)")
 		return true
 	} else if strings.Contains(err.Error(), "The remote end hung up unexpectedly") {
@@ -129,6 +132,15 @@ func isSyncError(err error) bool {
 		return true
 	} else if strings.Contains(err.Error(), "remote error: internal server error") {
 		sklog.Infof("Is sync error (internal server error)")
+		return true
+	} else if strings.Contains(err.Error(), "The requested URL returned error: 502") {
+		sklog.Infof("Is sync error (URL returned 502)")
+		return true
+	} else if strings.Contains(err.Error(), "fatal: bad object") {
+		// Not really an error in the sync itself but indicates that
+		// the repo is not up to date, likely due to a server frontend
+		// lagging behind.
+		sklog.Infof("Is sync error (bad object)")
 		return true
 	}
 	sklog.Infof("Not a sync error.")
