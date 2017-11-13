@@ -22,6 +22,30 @@
       "revId": "33d309539517869df8b9b34ea7b3284967d14eaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "715454be_954006c4",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-13T18:56:35Z",
+      "side": 1,
+      "message": "I\u0027m slightly worried about Upload tasks failing spuriously, but we usually have enough bot capacity that the retries would be scheduled regardless of the task score. Other than that, I think most failing trybot Build tasks are real failures where the retry will fail exactly the same way.\n\nDo you think I should send an email telling people about this change and asking to let me know if they notice a problem?",
+      "parentUuid": "f97d8642_97a99040",
+      "range": {
+        "startLine": 45,
+        "startChar": 44,
+        "endLine": 45,
+        "endChar": 48
+      },
+      "revId": "33d309539517869df8b9b34ea7b3284967d14eaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
