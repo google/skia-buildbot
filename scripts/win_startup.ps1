@@ -10,6 +10,13 @@ $logFile = "C:\gce_startup.log"
 Function log($msg) {
   Write-Debug $msg
   Add-Content $logFile "$msg`n"
+  try {
+    # Write to GCE serial port output (console), if available.
+    $port= new-Object System.IO.Ports.SerialPort COM1,9600,None,8,one
+    $port.open()
+    $port.WriteLine($msg)
+    $port.close()
+  } catch {}
 }
 
 Function banner($title) {
@@ -69,6 +76,9 @@ Function addToRegistryPath($dir) {
   $ENV:PATH = $actualPath
 }
 
+try
+{
+
 banner "Add to registry PATH"
 addToRegistryPath "$userDir\depot_tools\python276_bin\Scripts"
 addToRegistryPath "$userDir\depot_tools\python276_bin"
@@ -77,3 +87,14 @@ addToRegistryPath "C:\Program` Files` (x86)\CMake\bin"
 
 banner "Set up Auto-Logon"
 setupAutoLogon
+
+banner "Startup script complete"
+
+}
+catch
+{
+
+log "Caught an exception: $($_.Exception.GetType().FullName)"
+log "$($_.Exception.Message)"
+
+}

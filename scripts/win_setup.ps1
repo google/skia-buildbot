@@ -12,6 +12,13 @@ $logFile = "C:\gce_setup.log"
 Function log($msg) {
   Write-Debug $msg
   Add-Content $logFile "$msg`n"
+  try {
+    # Write to GCE serial port output (console), if available.
+    $port= new-Object System.IO.Ports.SerialPort COM1,9600,None,8,one
+    $port.open()
+    $port.WriteLine($msg)
+    $port.close()
+  } catch {}
 }
 
 Function banner($title) {
@@ -92,6 +99,20 @@ $gitconfig_contents = @"
 INSERTFILE(/tmp/.gitconfig)
 "@
 Set-Content C:\.gitconfig $gitconfig_contents
+
+banner "Create user $username"
+# Win2k8 has an older Powershell that doesn't support New-LocalUser.
+If (($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -ge 1) -or
+    $PSVersionTable.PSVersion.Major -gt 5) {
+  $sspassword = ConvertTo-SecureString $password -AsPlainText -Force
+  New-LocalUser -Name $username -Password $sspassword -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires
+  Add-LocalGroupMember -Group "Administrators" -Member "$username"
+} Else {
+  # /y seems to bypass the warning about passwords longer than 14 characters not working in Win2000.
+  net user "$username" "$password" /add /y
+  net localgroup "Administrators" "$username" /add
+  wmic useraccount where "Name='$username" set PasswordExpires=FALSE
+}
 
 banner "Download chrome-bot's scheduled task powershell script"
 $metadataclient = New-Object System.Net.WebClient
