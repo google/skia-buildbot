@@ -2,7 +2,7 @@
 
 package alerts
 
-import "fmt"
+import "strconv"
 
 const _Direction_name = "BOTHUPDOWNDIRECTION_EOL"
 
@@ -10,7 +10,7 @@ var _Direction_index = [...]uint8{0, 4, 6, 10, 23}
 
 func (i Direction) String() string {
 	if i < 0 || i >= Direction(len(_Direction_index)-1) {
-		return fmt.Sprintf("Direction(%d)", i)
+		return "Direction(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _Direction_name[_Direction_index[i]:_Direction_index[i+1]]
 }

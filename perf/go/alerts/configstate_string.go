@@ -2,7 +2,7 @@
 
 package alerts
 
-import "fmt"
+import "strconv"
 
 const _ConfigState_name = "ACTIVEDELETEDEOL"
 
@@ -10,7 +10,7 @@ var _ConfigState_index = [...]uint8{0, 6, 13, 16}
 
 func (i ConfigState) String() string {
 	if i < 0 || i >= ConfigState(len(_ConfigState_index)-1) {
-		return fmt.Sprintf("ConfigState(%d)", i)
+		return "ConfigState(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _ConfigState_name[_ConfigState_index[i]:_ConfigState_index[i+1]]
 }
