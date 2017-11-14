@@ -150,16 +150,45 @@ func (g *GCloud) Service() *compute.Service {
 	return g.service
 }
 
+// opService abstracts the differences between compute.GlobalOperationsService
+// and compute.ZoneOperationsService.
+type opService interface {
+	// Make the compute API call to obtain information about the operation.
+	get(id string) (*compute.Operation, error)
+}
+
+// gOpService wraps a compute.GlobalOperationsService to implement opService.
+type gOpService struct {
+	project string
+	service *compute.GlobalOperationsService
+}
+
+// See documentation for opService.
+func (s *gOpService) get(id string) (*compute.Operation, error) {
+	return s.service.Get(s.project, id).Do()
+}
+
+// zOpService wraps a compute.ZoneOperationsService to implement opService.
+type zOpService struct {
+	project string
+	zone    string
+	service *compute.ZoneOperationsService
+}
+
+// See documentation for opService.
+func (s *zOpService) get(id string) (*compute.Operation, error) {
+	return s.service.Get(s.project, s.zone, id).Do()
+}
+
 // waitForOperation waits for the given operation to complete. Returns an error
 // if the operation failed.
-func (g *GCloud) waitForOperation(id string, timeout time.Duration) error {
-	s := compute.NewZoneOperationsService(g.service)
+func (g *GCloud) waitForOperation(s opService, id string, timeout time.Duration) error {
 	start := time.Now()
 	for {
 		if time.Now().Sub(start) > timeout {
 			return fmt.Errorf("Operation %q did not complete within %s", id, timeout)
 		}
-		op, err := s.Get(g.project, g.zone, id).Do()
+		op, err := s.get(id)
 		if err != nil {
 			return err
 		}
@@ -188,8 +217,20 @@ func (g *GCloud) checkOperation(op *compute.Operation, err error) error {
 	if err != nil {
 		return err
 	}
-
-	return g.waitForOperation(op.Name, maxWaitTime)
+	var s opService
+	if op.Zone == "" {
+		s = &gOpService{
+			project: g.project,
+			service: compute.NewGlobalOperationsService(g.service),
+		}
+	} else {
+		s = &zOpService{
+			project: g.project,
+			service: compute.NewZoneOperationsService(g.service),
+			zone:    g.zone,
+		}
+	}
+	return g.waitForOperation(s, op.Name, maxWaitTime)
 }
 
 // Disk is a struct describing a disk resource in GCE.
