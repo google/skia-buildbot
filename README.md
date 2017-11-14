@@ -44,6 +44,36 @@ $ cd $GOPATH/src/go.skia.org/infra/
 $ make all
 ```
 
+Generated Code
+==============
+
+Some code is generated using `go generate` with external binaries. First, install dependencies:
+
+```
+$ go get golang.org/x/tools/cmd/stringer
+```
+
+To compile the proto buffers definition you need to install version 4.0 of
+protocol buffers. Get the source code with `git clone
+https://github.com/google/protobuf`, then follow the [instructions for building
+from source](https://github.com/google/protobuf/blob/master/src/README.md),
+passing `--disable-shared` to the `configure` script. The 'disabled-shared'
+option is necessary if an older version of protoc is already installed on your
+system.
+
+Install the necessary go packages:
+
+```
+$ go get -u github.com/golang/protobuf/protoc-gen-go
+$ go get -u google.golang.org/grpc
+```
+
+To generate code run in this directory:
+
+```
+$ go generate ./...
+```
+
 Database Setup for Testing
 ==========================
 
