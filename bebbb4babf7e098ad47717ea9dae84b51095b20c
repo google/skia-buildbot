@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bc4ab46_60b94d34",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-14T19:09:23Z",
+      "side": 1,
+      "message": "I think the latest version is 3.5.0 but there is no binary there. I installed the 3.4.0 binary. \nI would instead say the latest version of protoc/protobuf and add a link to \nhttps://github.com/google/protobuf/releases",
+      "range": {
+        "startLine": 56,
+        "startChar": 60,
+        "endLine": 56,
+        "endChar": 73
+      },
+      "revId": "bebbb4babf7e098ad47717ea9dae84b51095b20c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
