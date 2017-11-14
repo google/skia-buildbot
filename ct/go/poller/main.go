@@ -483,33 +483,36 @@ func main() {
 	defer common.LogPanic()
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
+	runFn := exec.DefaultRun
 	if *dryRun {
-		exec.SetRunForTesting(func(command *exec.Command) error {
+		runFn = func(command *exec.Command) error {
 			sklog.Infof("dry_run: %s", exec.DebugString(command))
 			return nil
-		})
+		}
 	}
+	exec.WithRun(runFn, func() {
 
-	autoscaler, err := ct_autoscaler.NewCTAutoscaler()
-	if err != nil {
-		sklog.Fatalf("Could not instantiate the CT autoscaler: %s", err)
-	}
-	healthyGauge := metrics2.GetInt64Metric("healthy")
+		autoscaler, err := ct_autoscaler.NewCTAutoscaler()
+		if err != nil {
+			sklog.Fatalf("Could not instantiate the CT autoscaler: %s", err)
+		}
+		healthyGauge := metrics2.GetInt64Metric("healthy")
 
-	// Terminate all tasks which were in running state when the poller was restarted.
-	// See skbug.com/7062.
-	if err := frontend.TerminateRunningTasks(); err != nil {
-		sklog.Fatalf("Could not terminate running tasks: %s", err)
-	}
+		// Terminate all tasks which were in running state when the poller was restarted.
+		// See skbug.com/7062.
+		if err := frontend.TerminateRunningTasks(); err != nil {
+			sklog.Fatalf("Could not terminate running tasks: %s", err)
+		}
 
-	// Run immediately, since pollTick will not fire until after pollInterval.
-	pollAndExecOnce(autoscaler)
-	for range time.Tick(*pollInterval) {
-		healthyGauge.Update(1)
+		// Run immediately, since pollTick will not fire until after pollInterval.
 		pollAndExecOnce(autoscaler)
-		// Sleeping for a second to avoid the small probability of ending up
-		// with 2 tasks with the same runID. For context see
-		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
-		time.Sleep(time.Second)
-	}
+		for range time.Tick(*pollInterval) {
+			healthyGauge.Update(1)
+			pollAndExecOnce(autoscaler)
+			// Sleeping for a second to avoid the small probability of ending up
+			// with 2 tasks with the same runID. For context see
+			// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
+			time.Sleep(time.Second)
+		}
+	})
 }

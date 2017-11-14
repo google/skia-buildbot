@@ -326,24 +326,23 @@ func TestTimeoutExceeded(t *testing.T) {
 func TestInjection(t *testing.T) {
 	testutils.SmallTest(t)
 	var actualCommand *Command
-	SetRunForTesting(func(command *Command) error {
+	WithRun(func(command *Command) error {
 		actualCommand = command
 		return nil
+	}, func() {
+		dir, err := ioutil.TempDir("", "exec_test")
+		assert.NoError(t, err)
+		defer RemoveAll(dir)
+		file := filepath.Join(dir, "ran")
+		assert.NoError(t, Run(&Command{
+			Name: "touch",
+			Args: []string{file},
+		}))
+		_, err = os.Stat(file)
+		expect.True(t, os.IsNotExist(err))
+
+		expect.Equal(t, "touch "+file, DebugString(actualCommand))
 	})
-	defer SetRunForTesting(DefaultRun)
-
-	dir, err := ioutil.TempDir("", "exec_test")
-	assert.NoError(t, err)
-	defer RemoveAll(dir)
-	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(&Command{
-		Name: "touch",
-		Args: []string{file},
-	}))
-	_, err = os.Stat(file)
-	expect.True(t, os.IsNotExist(err))
-
-	expect.Equal(t, "touch "+file, DebugString(actualCommand))
 }
 
 func TestRunSimple(t *testing.T) {
@@ -363,52 +362,52 @@ func TestRunCwd(t *testing.T) {
 func TestCommandCollector(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := CommandCollector{}
-	SetRunForTesting(mock.Run)
-	defer SetRunForTesting(DefaultRun)
-	assert.NoError(t, Run(&Command{
-		Name: "touch",
-		Args: []string{"foobar"},
-	}))
-	assert.NoError(t, Run(&Command{
-		Name: "echo",
-		Args: []string{"Hello Go!"},
-	}))
-	commands := mock.Commands()
-	assert.Len(t, commands, 2)
-	expect.Equal(t, "touch foobar", DebugString(commands[0]))
-	expect.Equal(t, "echo Hello Go!", DebugString(commands[1]))
-	mock.ClearCommands()
-	inputString := "foo\nbar\nbaz\n"
-	output := bytes.Buffer{}
-	assert.NoError(t, Run(&Command{
-		Name:   "grep",
-		Args:   []string{"-e", "^ba"},
-		Stdin:  bytes.NewReader([]byte(inputString)),
-		Stdout: &output,
-	}))
-	commands = mock.Commands()
-	assert.Len(t, commands, 1)
-	expect.Equal(t, "grep -e ^ba", DebugString(commands[0]))
-	actualInput, err := ioutil.ReadAll(commands[0].Stdin)
-	assert.NoError(t, err)
-	expect.Equal(t, inputString, string(actualInput))
-	expect.Equal(t, &output, commands[0].Stdout)
+	WithRun(mock.Run, func() {
+		assert.NoError(t, Run(&Command{
+			Name: "touch",
+			Args: []string{"foobar"},
+		}))
+		assert.NoError(t, Run(&Command{
+			Name: "echo",
+			Args: []string{"Hello Go!"},
+		}))
+		commands := mock.Commands()
+		assert.Len(t, commands, 2)
+		expect.Equal(t, "touch foobar", DebugString(commands[0]))
+		expect.Equal(t, "echo Hello Go!", DebugString(commands[1]))
+		mock.ClearCommands()
+		inputString := "foo\nbar\nbaz\n"
+		output := bytes.Buffer{}
+		assert.NoError(t, Run(&Command{
+			Name:   "grep",
+			Args:   []string{"-e", "^ba"},
+			Stdin:  bytes.NewReader([]byte(inputString)),
+			Stdout: &output,
+		}))
+		commands = mock.Commands()
+		assert.Len(t, commands, 1)
+		expect.Equal(t, "grep -e ^ba", DebugString(commands[0]))
+		actualInput, err := ioutil.ReadAll(commands[0].Stdin)
+		assert.NoError(t, err)
+		expect.Equal(t, inputString, string(actualInput))
+		expect.Equal(t, &output, commands[0].Stdout)
+	})
 }
 
 func TestMockRun(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := MockRun{}
-	SetRunForTesting(mock.Run)
-	defer SetRunForTesting(DefaultRun)
-	mock.AddRule("touch /tmp/bar", fmt.Errorf("baz"))
-	assert.NoError(t, Run(&Command{
-		Name: "touch",
-		Args: []string{"/tmp/foo"},
-	}))
-	err := Run(&Command{
-		Name: "touch",
-		Args: []string{"/tmp/bar"},
+	WithRun(mock.Run, func() {
+		mock.AddRule("touch /tmp/bar", fmt.Errorf("baz"))
+		assert.NoError(t, Run(&Command{
+			Name: "touch",
+			Args: []string{"/tmp/foo"},
+		}))
+		err := Run(&Command{
+			Name: "touch",
+			Args: []string{"/tmp/bar"},
+		})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "baz")
 	})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "baz")
 }

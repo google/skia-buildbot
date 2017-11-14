@@ -26,12 +26,12 @@
 
 	Inject a Run function for testing:
 	var actualCommand *Command
-	SetRunForTesting(func(command *Command) error {
+	WithRun(func(command *Command) error {
 		actualCommand = command
 		return nil
+	}, func() {
+		TestCodeCallingRun()
 	})
-	defer SetRunForTesting(DefaultRun)
-	TestCodeCallingRun()
 	expect.Equal(t, "touch", actualCommand.Name)
 	expect.Equal(t, 1, len(actualCommand.Args))
 	expect.Equal(t, file, actualCommand.Args[0])
@@ -45,6 +45,7 @@ import (
 	"os"
 	osexec "os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
@@ -64,7 +65,10 @@ const (
 )
 
 var (
-	runFn func(command *Command) error = DefaultRun
+	runFn  func(command *Command) error = DefaultRun
+	runMtx sync.RWMutex
+
+	withRunMtx sync.Mutex
 
 	WriteInfoLog  = WriteLog{LogFunc: sklog.Infof}
 	WriteErrorLog = WriteLog{LogFunc: sklog.Errorf}
@@ -255,7 +259,7 @@ func IsTimeout(err error) bool {
 	return strings.Contains(err.Error(), TIMEOUT_ERROR_PREFIX)
 }
 
-// DefaultRun can be passed to SetRunForTesting to go back to running commands as normal.
+// DefaultRun is the default value for runFn.
 func DefaultRun(command *Command) error {
 	cmd := createCmd(command)
 	if err := start(command, cmd); err != nil {
@@ -267,13 +271,31 @@ func DefaultRun(command *Command) error {
 // Run runs command and waits for it to finish. If any failure, returns non-nil. If a timeout was
 // specified, returns an error once the command has exceeded that timeout.
 func Run(command *Command) error {
-	return runFn(command)
+	return getRun()(command)
 }
 
-// SetRunForTesting replaces the Run function with a test version so that commands don't actually
-// run.
-func SetRunForTesting(testRun func(command *Command) error) {
-	runFn = testRun
+// getRun retrieves the runFn.
+func getRun() func(*Command) error {
+	runMtx.RLock()
+	defer runMtx.RUnlock()
+	return runFn
+}
+
+// setRun sets runFn.
+func setRun(fn func(command *Command) error) {
+	runMtx.Lock()
+	defer runMtx.Unlock()
+	runFn = fn
+}
+
+// WithRun replaces the Run function with a test version for the duration of the
+// given func, so that commands don't actually run.
+func WithRun(testRun func(command *Command) error, fn func()) {
+	withRunMtx.Lock()
+	defer withRunMtx.Unlock()
+	setRun(testRun)
+	defer setRun(DefaultRun)
+	fn()
 }
 
 // Run method is convenience for Run(command).
