@@ -137,6 +137,7 @@ func TestComplexCallOrder(t *testing.T) {
 	e := NewNode(eFn, b, c).setName("e")
 	NewNode(fFn, b, e).setName("f")
 	e.Child(gFn).setName("g")
+	fmt.Printf("NODES: %s", a.String())
 
 	// Create a context and trigger in the root node.
 	data := make(chan string, 100)
@@ -170,8 +171,8 @@ func TestComplexCallOrder(t *testing.T) {
 	for c := range data {
 		o += c
 	}
-	expSet := util.NewStringSet([]string{"bedfg", "bdefg", "bedgf", "bdegf"})
-	assert.True(t, expSet[o])
+	expSet := util.NewStringSet([]string{"bedfg", "bdefg", "bedgf", "bdegf"}) begdf
+	assert.True(t, expSet[o], "Instead got: "+o)
 }
 
 func orderFn(msg string) ProcessFn {
