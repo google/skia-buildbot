@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9e0c60a3_523e316a",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-14T21:56:44Z",
+      "side": 1,
+      "message": "Sorry, my comment was a little terse.\n\nLet\u0027s take a step back for a second. The Race bot found a bug in our testing code, and we\u0027re trying to fix the bug. But IMO the bug is not really that runFn can be accessed concurrently, rather that one goroutine can affect an unrelated goroutine by setting this global variable.\n\nMy understanding is that we\u0027ve decided not to refactor the package to avoid the global variable, since we don\u0027t use exec.SetRunForTesting (now exec.WithRun) outside of tests. Instead, we\u0027re going to keep the package\u0027s API simple and instead make our tests a bit more complicated.\n\nBut this means we\u0027re not really fixing the bug. Unless each test that invokes the exec package uses exec.WithRun, there\u0027s a chance that one test will affect a different test, either causing a test failure or possibly causing a test to succeed when it shouldn\u0027t.\n\nProtecting runFn with a mutex doesn\u0027t really make our fix better or worse. It does make it impossible for the Race bot to detect when we\u0027ve done something wrong. I\u0027m not sure whether an error on the Race bot is more or less useful than an error where we expected a command to do something and it doesn\u0027t because runFn is mocked out; but my guess is that detecting this with the Race bot is a bit more intuitive.",
+      "parentUuid": "ebbfe3f8_2958185d",
+      "revId": "70d861e148d56fe32b71d67d84c5224558d7b8ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d1866870_2163bc32",
         "filename": "go/exec/exec.go",
         "patchSetId": 2
