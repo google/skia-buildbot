@@ -31,7 +31,7 @@ Install other dependencies:
 
 ```
 $ sudo apt-get install python-django
-$ go get github.com/kisielk/errcheck \
+$ go get -u github.com/kisielk/errcheck \
   golang.org/x/tools/cmd/goimports \
   go.chromium.org/luci/client/cmd/isolate
 $ npm install -g polylint bower
@@ -42,6 +42,28 @@ Build from GOPATH:
 ```
 $ cd $GOPATH/src/go.skia.org/infra/
 $ make all
+```
+
+Generated Code
+==============
+
+Some code is generated using `go generate` with external binaries. First,
+install the version of protoc referenced in the [asset creation
+script](https://skia.googlesource.com/skia/+/master/infra/bots/assets/protoc/create.py)
+and ensure it is on your PATH before other versions of protoc.
+
+Install the necessary go packages:
+```
+$ go get -u \
+  github.com/golang/protobuf/protoc-gen-go \
+  golang.org/x/tools/cmd/stringer \
+  google.golang.org/grpc
+```
+
+To generate code run in this directory:
+
+```
+$ go generate ./...
 ```
 
 Database Setup for Testing
