@@ -28,7 +28,9 @@ ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --app_title="Pdfium Gold" \
     --prom_port=:20001 \
     --hashes_gs_path=skia-infra-gm/hash_files/gold-pdfium-hashes.txt \
-    --baseline_gs_path=skia-infra-gm/hash_files/gold-pdfium-baseline.json
+    --baseline_gs_path=skia-infra-gm/hash_files/gold-pdfium-baseline.json \
+    --public_whitelist=${RESOURCE_DIR}/skiacorrectness-pdfium-whitelist.json5 \
+    --force_login=false
 
 Restart=always
 User=default
