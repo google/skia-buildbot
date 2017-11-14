@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "ebbfe3f8_2958185d",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-14T21:20:18Z",
+      "side": 1,
+      "message": "That only works if every test which may call into code which uses exec is wrapped in WithRun, right?",
+      "parentUuid": "73d982d3_b5130aec",
+      "revId": "70d861e148d56fe32b71d67d84c5224558d7b8ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d1866870_2163bc32",
         "filename": "go/exec/exec.go",
         "patchSetId": 2
@@ -47,6 +65,24 @@
       "writtenOn": "2017-11-14T20:48:36Z",
       "side": 1,
       "message": "This no longer makes sense. We can\u0027t call WithRun within WithRun.",
+      "revId": "70d861e148d56fe32b71d67d84c5224558d7b8ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59b25ced_5a97d6f7",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-14T21:20:18Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "d1866870_2163bc32",
       "revId": "70d861e148d56fe32b71d67d84c5224558d7b8ce",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
