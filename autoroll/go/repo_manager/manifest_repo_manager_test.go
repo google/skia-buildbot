@@ -21,12 +21,14 @@ var (
 	manifestEmails = []string{"reviewer@chromium.org"}
 )
 
-func setupManifest(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, func()) {
+func testManifest(t *testing.T, fn func(string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder)) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, wd)
 
 	// Create child and parent repos.
 	child := git_testutils.GitInit(t)
+	defer child.Cleanup()
 	f := "somefile.txt"
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
@@ -34,6 +36,7 @@ func setupManifest(t *testing.T) (string, *git_testutils.GitBuilder, []string, *
 	}
 
 	parent := git_testutils.GitInit(t)
+	defer parent.Cleanup()
 	parent.Add(manifestFileName, fmt.Sprintf(`
 <manifest>
   <projects>
@@ -82,16 +85,9 @@ func setupManifest(t *testing.T) (string, *git_testutils.GitBuilder, []string, *
 		}
 		return exec.DefaultRun(cmd)
 	})
-	exec.SetRunForTesting(mockRun.Run)
-
-	cleanup := func() {
-		exec.SetRunForTesting(exec.DefaultRun)
-		testutils.RemoveAll(t, wd)
-		child.Cleanup()
-		parent.Cleanup()
-	}
-
-	return wd, child, childCommits, parent, cleanup
+	exec.WithRun(mockRun.Run, func() {
+		fn(wd, child, childCommits, parent)
+	})
 }
 
 func setupManifestFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
@@ -128,24 +124,24 @@ func setupManifestFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 func TestManifestRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 
-	wd, child, childCommits, parent, cleanup := setupManifest(t)
-	defer cleanup()
+	testManifest(t, func(wd string, child *git_testutils.GitBuilder, childCommits []string, parent *git_testutils.GitBuilder) {
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
-	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
-	assert.NoError(t, err)
-	assert.Equal(t, childCommits[0], rm.LastRollRev())
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
+		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+		assert.NoError(t, err)
+		g := setupManifestFakeGerrit(t, wd)
+		rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
+		assert.NoError(t, err)
+		assert.Equal(t, childCommits[0], rm.LastRollRev())
+		assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
-	// Test update.
-	lastCommit := child.CommitGen("abc.txt")
-	assert.NoError(t, rm.Update())
-	assert.Equal(t, lastCommit, rm.NextRollRev())
+		// Test update.
+		lastCommit := child.CommitGen("abc.txt")
+		assert.NoError(t, rm.Update())
+		assert.Equal(t, lastCommit, rm.NextRollRev())
 
-	// User, name only.
-	assert.Equal(t, mockUser, rm.User())
+		// User, name only.
+		assert.Equal(t, mockUser, rm.User())
+	})
 }
 
 // TestCreateNewManifestRoll tests that CreateNewRoll returns the expected issueNum by mocking out
@@ -153,45 +149,41 @@ func TestManifestRepoManager(t *testing.T) {
 func TestCreateNewManifestRoll(t *testing.T) {
 	testutils.LargeTest(t)
 
-	wd, _, _, parent, cleanup := setupManifest(t)
-	defer cleanup()
+	testManifest(t, func(wd string, child *git_testutils.GitBuilder, childCommits []string, parent *git_testutils.GitBuilder) {
+		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+		assert.NoError(t, err)
+		g := setupManifestFakeGerrit(t, wd)
+		rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
+		assert.NoError(t, err)
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
-	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
-	assert.NoError(t, err)
-
-	// Create a roll, assert that it's at tip of tree.
-	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), manifestEmails, "", false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+		// Create a roll, assert that it's at tip of tree.
+		issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), manifestEmails, "", false)
+		assert.NoError(t, err)
+		assert.Equal(t, issueNum, issue)
+	})
 }
 
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsManifest(t *testing.T) {
 	testutils.LargeTest(t)
 
-	testutils.LargeTest(t)
+	testManifest(t, func(wd string, child *git_testutils.GitBuilder, childCommits []string, parent *git_testutils.GitBuilder) {
+		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+		assert.NoError(t, err)
+		g := setupManifestFakeGerrit(t, wd)
+		rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
+		assert.NoError(t, err)
+		ran := false
+		rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{
+			func(string) error {
+				ran = true
+				return nil
+			},
+		}
 
-	wd, _, _, parent, cleanup := setupManifest(t)
-	defer cleanup()
-
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
-	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
-	assert.NoError(t, err)
-	ran := false
-	rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{
-		func(string) error {
-			ran = true
-			return nil
-		},
-	}
-
-	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), manifestEmails, "", false)
-	assert.NoError(t, err)
-	assert.True(t, ran)
+		// Create a roll, assert that we ran the PreUploadSteps.
+		_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), manifestEmails, "", false)
+		assert.NoError(t, err)
+		assert.True(t, ran)
+	})
 }

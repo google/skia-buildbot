@@ -12,13 +12,13 @@ import (
 // multiple goroutines as long as the function passed to SetDelegateRun is.
 // Example usage:
 // 	mock := CommandCollector{}
-//	SetRunForTesting(mock.Run)
-//	defer SetRunForTesting(DefaultRun)
-//	err := Run(&Command{
-//		Name: "touch",
-//		Args: []string{"/tmp/file"},
+//	WithRun(mock.Run, func() {
+//		err := Run(&Command{
+//			Name: "touch",
+//			Args: []string{"/tmp/file"},
+//		})
+//		assert.Equal(t, "touch /tmp/file"", DebugString(mock.Commands()[0]))
 //	})
-//	assert.Equal(t, "touch /tmp/file"", DebugString(mock.Commands()[0]))
 type CommandCollector struct {
 	mutex       sync.RWMutex
 	commands    []*Command
@@ -65,19 +65,19 @@ func (c *CommandCollector) Run(command *Command) error {
 // in multiple goroutines.
 // Example usage:
 // 	mock := MockRun{}
-//	SetRunForTesting(mock.Run)
-//	defer SetRunForTesting(DefaultRun)
 //	mock.AddRule("touch /tmp/bar", fmt.Errorf("baz"))
-//	assert.NoError(t, Run(&Command{
-//		Name: "touch",
-//		Args: []string{"/tmp/foo"},
-//	}))
-//	err := Run(&Command{
-//		Name: "touch",
-//		Args: []string{"/tmp/bar"},
+//	WithRun(mock.Run, func() {
+//		assert.NoError(t, Run(&Command{
+//			Name: "touch",
+//			Args: []string{"/tmp/foo"},
+//		}))
+//		err := Run(&Command{
+//			Name: "touch",
+//			Args: []string{"/tmp/bar"},
+//		})
+//		assert.Error(t, err)
+//		assert.Contains(t, err.Error(), "baz")
 //	})
-//	assert.Error(t, err)
-//	assert.Contains(t, err.Error(), "baz")
 type MockRun struct {
 	mutex    sync.RWMutex
 	matchers []*regexp.Regexp

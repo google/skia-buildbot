@@ -84,34 +84,34 @@ func TestChromiumPerfExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingChromiumPerfTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	exec.WithRun(mockRun.Run, func() {
+		mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+			runId := getRunId(t, cmd)
+			assertFileContents(t, filepath.Join(os.TempDir(), runId+".chromium.patch"),
+				"chromiumpatch\n")
+			assertFileContents(t, filepath.Join(os.TempDir(), runId+".skia.patch"),
+				"skiapatch\n")
+			return nil
+		})
+		err := task.Execute()
+		assert.NoError(t, err)
+		assert.Len(t, mockRun.Commands(), 1)
+		cmd := mockRun.Commands()[0]
+		expect.Equal(t, "run_chromium_perf_on_workers", cmd.Name)
+		expect.Contains(t, cmd.Args, "--gae_task_id=42")
+		expect.Contains(t, cmd.Args, "--description=description")
+		expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+		expect.Contains(t, cmd.Args, "--benchmark_name=benchmark")
+		expect.Contains(t, cmd.Args, "--target_platform=Linux")
+		expect.Contains(t, cmd.Args, "--pageset_type=All")
+		expect.Contains(t, cmd.Args, "--repeat_benchmark=1")
+		expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
+		expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
+		expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
 		runId := getRunId(t, cmd)
-		assertFileContents(t, filepath.Join(os.TempDir(), runId+".chromium.patch"),
-			"chromiumpatch\n")
-		assertFileContents(t, filepath.Join(os.TempDir(), runId+".skia.patch"),
-			"skiapatch\n")
-		return nil
+		expect.Contains(t, cmd.Args, "--log_id="+runId)
+		expect.NotNil(t, cmd.Timeout)
 	})
-	err := task.Execute()
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "run_chromium_perf_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
-	expect.Contains(t, cmd.Args, "--description=description")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args, "--benchmark_name=benchmark")
-	expect.Contains(t, cmd.Args, "--target_platform=Linux")
-	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	expect.Contains(t, cmd.Args, "--repeat_benchmark=1")
-	expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
-	expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
-	expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
 }
 
 func pendingPixelDiffTask() PixelDiffTask {
@@ -133,28 +133,28 @@ func TestPixelDiffExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingPixelDiffTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "pixel_diff_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 12)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
-	expect.Contains(t, cmd.Args, "--description=description")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
-	expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
-	expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
-	expect.Contains(t, cmd.Args, "--logtostderr")
-	expect.Contains(t, cmd.Args, "--local=false")
-	expect.Contains(t, cmd.Args, "--run_on_gce="+strconv.FormatBool(task.RunsOnGCEWorkers()))
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--run_id="+runId)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
+	exec.WithRun(mockRun.Run, func() {
+		err := task.Execute()
+		assert.NoError(t, err)
+		assert.Len(t, mockRun.Commands(), 1)
+		cmd := mockRun.Commands()[0]
+		expect.Equal(t, "pixel_diff_on_workers", cmd.Name)
+		expect.Equal(t, len(cmd.Args), 12)
+		expect.Contains(t, cmd.Args, "--gae_task_id=42")
+		expect.Contains(t, cmd.Args, "--description=description")
+		expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+		expect.Contains(t, cmd.Args, "--pageset_type=All")
+		expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
+		expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
+		expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
+		expect.Contains(t, cmd.Args, "--logtostderr")
+		expect.Contains(t, cmd.Args, "--local=false")
+		expect.Contains(t, cmd.Args, "--run_on_gce="+strconv.FormatBool(task.RunsOnGCEWorkers()))
+		runId := getRunId(t, cmd)
+		expect.Contains(t, cmd.Args, "--run_id="+runId)
+		expect.Contains(t, cmd.Args, "--log_id="+runId)
+		expect.NotNil(t, cmd.Timeout)
+	})
 }
 
 func pendingCaptureSkpsTask() CaptureSkpsTask {
@@ -173,21 +173,21 @@ func TestCaptureSkpsExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingCaptureSkpsTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "capture_skps_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
-	expect.Contains(t, cmd.Args, "--description=description")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
+	exec.WithRun(mockRun.Run, func() {
+		err := task.Execute()
+		assert.NoError(t, err)
+		assert.Len(t, mockRun.Commands(), 1)
+		cmd := mockRun.Commands()[0]
+		expect.Equal(t, "capture_skps_on_workers", cmd.Name)
+		expect.Contains(t, cmd.Args, "--gae_task_id=42")
+		expect.Contains(t, cmd.Args, "--description=description")
+		expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+		expect.Contains(t, cmd.Args, "--pageset_type=All")
+		expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
+		runId := getRunId(t, cmd)
+		expect.Contains(t, cmd.Args, "--log_id="+runId)
+		expect.NotNil(t, cmd.Timeout)
+	})
 }
 
 func pendingLuaScriptTaskWithAggregator() LuaScriptTask {
@@ -208,29 +208,29 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingLuaScriptTaskWithAggregator()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+	exec.WithRun(mockRun.Run, func() {
+		mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+			runId := getRunId(t, cmd)
+			assertFileContents(t, filepath.Join(os.TempDir(), runId+".lua"),
+				`print("lualualua")`)
+			assertFileContents(t, filepath.Join(os.TempDir(), runId+".aggregator"),
+				`print("aaallluuu")`)
+			return nil
+		})
+		err := task.Execute()
+		assert.NoError(t, err)
+		assert.Len(t, mockRun.Commands(), 1)
+		cmd := mockRun.Commands()[0]
+		expect.Equal(t, "run_lua_on_workers", cmd.Name)
+		expect.Contains(t, cmd.Args, "--gae_task_id=42")
+		expect.Contains(t, cmd.Args, "--description=description")
+		expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+		expect.Contains(t, cmd.Args, "--pageset_type=All")
+		expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
 		runId := getRunId(t, cmd)
-		assertFileContents(t, filepath.Join(os.TempDir(), runId+".lua"),
-			`print("lualualua")`)
-		assertFileContents(t, filepath.Join(os.TempDir(), runId+".aggregator"),
-			`print("aaallluuu")`)
-		return nil
+		expect.Contains(t, cmd.Args, "--log_id="+runId)
+		expect.NotNil(t, cmd.Timeout)
 	})
-	err := task.Execute()
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "run_lua_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
-	expect.Contains(t, cmd.Args, "--description=description")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
 }
 
 func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
@@ -247,8 +247,6 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 		},
 	}
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".lua"),
@@ -257,18 +255,20 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 		expect.True(t, os.IsNotExist(err))
 		return nil
 	})
-	err := task.Execute()
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "run_lua_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
+	exec.WithRun(mockRun.Run, func() {
+		err := task.Execute()
+		assert.NoError(t, err)
+		assert.Len(t, mockRun.Commands(), 1)
+		cmd := mockRun.Commands()[0]
+		expect.Equal(t, "run_lua_on_workers", cmd.Name)
+		expect.Contains(t, cmd.Args, "--gae_task_id=42")
+		expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+		expect.Contains(t, cmd.Args, "--pageset_type=All")
+		expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
+		runId := getRunId(t, cmd)
+		expect.Contains(t, cmd.Args, "--log_id="+runId)
+		expect.NotNil(t, cmd.Timeout)
+	})
 }
 
 func pendingChromiumBuildTask() ChromiumBuildTask {
@@ -286,22 +286,22 @@ func TestChromiumBuildExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingChromiumBuildTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "build_chromium", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args,
-		"--chromium_hash=c14d891d44f0afff64e56ed7c9702df1d807b1ee")
-	expect.Contains(t, cmd.Args,
-		"--skia_hash=586101c79b0490b50623e76c71a5fd67d8d92b08")
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
+	exec.WithRun(mockRun.Run, func() {
+		err := task.Execute()
+		assert.NoError(t, err)
+		assert.Len(t, mockRun.Commands(), 1)
+		cmd := mockRun.Commands()[0]
+		expect.Equal(t, "build_chromium", cmd.Name)
+		expect.Contains(t, cmd.Args, "--gae_task_id=42")
+		expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+		expect.Contains(t, cmd.Args,
+			"--chromium_hash=c14d891d44f0afff64e56ed7c9702df1d807b1ee")
+		expect.Contains(t, cmd.Args,
+			"--skia_hash=586101c79b0490b50623e76c71a5fd67d8d92b08")
+		runId := getRunId(t, cmd)
+		expect.Contains(t, cmd.Args, "--log_id="+runId)
+		expect.NotNil(t, cmd.Timeout)
+	})
 }
 
 func pendingRecreatePageSetsTask() RecreatePageSetsTask {
@@ -317,19 +317,19 @@ func TestRecreatePageSetsExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingRecreatePageSetsTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "create_pagesets_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
+	exec.WithRun(mockRun.Run, func() {
+		err := task.Execute()
+		assert.NoError(t, err)
+		assert.Len(t, mockRun.Commands(), 1)
+		cmd := mockRun.Commands()[0]
+		expect.Equal(t, "create_pagesets_on_workers", cmd.Name)
+		expect.Contains(t, cmd.Args, "--gae_task_id=42")
+		expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+		expect.Contains(t, cmd.Args, "--pageset_type=All")
+		runId := getRunId(t, cmd)
+		expect.Contains(t, cmd.Args, "--log_id="+runId)
+		expect.NotNil(t, cmd.Timeout)
+	})
 }
 
 func pendingRecreateWebpageArchivesTask() RecreateWebpageArchivesTask {
@@ -347,19 +347,19 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	task := pendingRecreateWebpageArchivesTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
-	assert.NoError(t, err)
-	assert.Len(t, mockRun.Commands(), 1)
-	cmd := mockRun.Commands()[0]
-	expect.Equal(t, "capture_archives_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
-	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
-	expect.NotNil(t, cmd.Timeout)
+	exec.WithRun(mockRun.Run, func() {
+		err := task.Execute()
+		assert.NoError(t, err)
+		assert.Len(t, mockRun.Commands(), 1)
+		cmd := mockRun.Commands()[0]
+		expect.Equal(t, "capture_archives_on_workers", cmd.Name)
+		expect.Contains(t, cmd.Args, "--gae_task_id=42")
+		expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+		expect.Contains(t, cmd.Args, "--pageset_type=All")
+		runId := getRunId(t, cmd)
+		expect.Contains(t, cmd.Args, "--log_id="+runId)
+		expect.NotNil(t, cmd.Timeout)
+	})
 }
 
 func TestAsPollerTask(t *testing.T) {
@@ -445,23 +445,23 @@ func TestPollAndExecOnce(t *testing.T) {
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	mockExec := exec.CommandCollector{}
-	exec.SetRunForTesting(mockExec.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	wg := pollAndExecOnce(mockCTAutoscaler)
-	wg.Wait()
-	// Expect only one poll.
-	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
-	// Expect three commands: git pull; make all; capture_archives_on_workers ...
-	commands := mockExec.Commands()
-	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
-	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
-	// No updates expected. (capture_archives_on_workers would send updates if it were
-	// executed.)
-	expect.Empty(t, mockServer.UpdateTaskReqs())
+	exec.WithRun(mockExec.Run, func() {
+		wg := pollAndExecOnce(mockCTAutoscaler)
+		wg.Wait()
+		// Expect only one poll.
+		expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
+		expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+		expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+		// Expect three commands: git pull; make all; capture_archives_on_workers ...
+		commands := mockExec.Commands()
+		assert.Len(t, commands, 3)
+		expect.Equal(t, "git pull", exec.DebugString(commands[0]))
+		expect.Equal(t, "make all", exec.DebugString(commands[1]))
+		expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
+		// No updates expected. (capture_archives_on_workers would send updates if it were
+		// executed.)
+		expect.Empty(t, mockServer.UpdateTaskReqs())
+	})
 }
 
 func TestPollAndExecOnceMultipleTasks(t *testing.T) {
@@ -472,34 +472,34 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	mockServer.SetCurrentTask(&task1.RecreateWebpageArchivesDBTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	mockExec := exec.CommandCollector{}
-	exec.SetRunForTesting(mockExec.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	// Poll frontend and execute the first task.
-	wg1 := pollAndExecOnce(mockCTAutoscaler)
-	wg1.Wait() // Wait for task to return to make asserting commands deterministic.
-	// Update current task.
-	task2 := pendingChromiumPerfTask()
-	mockServer.SetCurrentTask(&task2.DBTask)
-	// Poll frontend and execute the second task.
-	wg2 := pollAndExecOnce(mockCTAutoscaler)
-	wg2.Wait() // Wait for task to return to make asserting commands deterministic.
+	exec.WithRun(mockExec.Run, func() {
+		// Poll frontend and execute the first task.
+		wg1 := pollAndExecOnce(mockCTAutoscaler)
+		wg1.Wait() // Wait for task to return to make asserting commands deterministic.
+		// Update current task.
+		task2 := pendingChromiumPerfTask()
+		mockServer.SetCurrentTask(&task2.DBTask)
+		// Poll frontend and execute the second task.
+		wg2 := pollAndExecOnce(mockCTAutoscaler)
+		wg2.Wait() // Wait for task to return to make asserting commands deterministic.
 
-	// Expect two pending task requests.
-	expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
-	// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
-	// make all; run_chromium_perf_on_workers ...
-	commands := mockExec.Commands()
-	assert.Len(t, commands, 6)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
-	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
-	expect.Equal(t, "git pull", exec.DebugString(commands[3]))
-	expect.Equal(t, "make all", exec.DebugString(commands[4]))
-	expect.Equal(t, "run_chromium_perf_on_workers", commands[5].Name)
-	// No updates expected when commands succeed.
-	expect.Empty(t, mockServer.UpdateTaskReqs())
+		// Expect two pending task requests.
+		expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
+		expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+		expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+		// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
+		// make all; run_chromium_perf_on_workers ...
+		commands := mockExec.Commands()
+		assert.Len(t, commands, 6)
+		expect.Equal(t, "git pull", exec.DebugString(commands[0]))
+		expect.Equal(t, "make all", exec.DebugString(commands[1]))
+		expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
+		expect.Equal(t, "git pull", exec.DebugString(commands[3]))
+		expect.Equal(t, "make all", exec.DebugString(commands[4]))
+		expect.Equal(t, "run_chromium_perf_on_workers", commands[5].Name)
+		// No updates expected when commands succeed.
+		expect.Empty(t, mockServer.UpdateTaskReqs())
+	})
 }
 
 func TestPollAndExecOnceError(t *testing.T) {
@@ -512,32 +512,32 @@ func TestPollAndExecOnceError(t *testing.T) {
 	commandCollector := exec.CommandCollector{}
 	mockRun := exec.MockRun{}
 	commandCollector.SetDelegateRun(mockRun.Run)
-	exec.SetRunForTesting(commandCollector.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	mockRun.AddRule("capture_archives_on_workers", fmt.Errorf("workers too lazy"))
-	wg := pollAndExecOnce(mockCTAutoscaler)
-	wg.Wait()
-	// Expect only one poll.
-	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
-	// Expect three commands: git pull; make all; capture_archives_on_workers ...
-	commands := commandCollector.Commands()
-	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
-	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
-	// Expect an update marking task failed when command fails to execute.
-	assert.Len(t, mockServer.UpdateTaskReqs(), 1)
-	updateReq := mockServer.UpdateTaskReqs()[0]
-	assert.Equal(t, "/"+ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, updateReq.Url)
-	assert.NoError(t, updateReq.Error)
-	assert.False(t, updateReq.Vars.TsStarted.Valid)
-	assert.True(t, updateReq.Vars.TsCompleted.Valid)
-	assert.True(t, updateReq.Vars.Failure.Valid)
-	assert.True(t, updateReq.Vars.Failure.Bool)
-	assert.False(t, updateReq.Vars.RepeatAfterDays.Valid)
-	assert.Equal(t, int64(42), updateReq.Vars.Id)
+	exec.WithRun(commandCollector.Run, func() {
+		mockRun.AddRule("capture_archives_on_workers", fmt.Errorf("workers too lazy"))
+		wg := pollAndExecOnce(mockCTAutoscaler)
+		wg.Wait()
+		// Expect only one poll.
+		expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
+		expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+		expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+		// Expect three commands: git pull; make all; capture_archives_on_workers ...
+		commands := commandCollector.Commands()
+		assert.Len(t, commands, 3)
+		expect.Equal(t, "git pull", exec.DebugString(commands[0]))
+		expect.Equal(t, "make all", exec.DebugString(commands[1]))
+		expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
+		// Expect an update marking task failed when command fails to execute.
+		assert.Len(t, mockServer.UpdateTaskReqs(), 1)
+		updateReq := mockServer.UpdateTaskReqs()[0]
+		assert.Equal(t, "/"+ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, updateReq.Url)
+		assert.NoError(t, updateReq.Error)
+		assert.False(t, updateReq.Vars.TsStarted.Valid)
+		assert.True(t, updateReq.Vars.TsCompleted.Valid)
+		assert.True(t, updateReq.Vars.Failure.Valid)
+		assert.True(t, updateReq.Vars.Failure.Bool)
+		assert.False(t, updateReq.Vars.RepeatAfterDays.Valid)
+		assert.Equal(t, int64(42), updateReq.Vars.Id)
+	})
 }
 
 func TestPollAndExecOnceNoTasks(t *testing.T) {
@@ -547,21 +547,21 @@ func TestPollAndExecOnceNoTasks(t *testing.T) {
 	mockServer.SetCurrentTask(nil)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	mockExec := exec.CommandCollector{}
-	exec.SetRunForTesting(mockExec.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	// Poll frontend, no tasks.
-	wg1 := pollAndExecOnce(mockCTAutoscaler)
-	wg2 := pollAndExecOnce(mockCTAutoscaler)
-	wg3 := pollAndExecOnce(mockCTAutoscaler)
-	// Expect three polls.
-	wg1.Wait()
-	wg2.Wait()
-	wg3.Wait()
-	expect.Equal(t, 3, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 0, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 0, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
-	// Expect no commands.
-	expect.Empty(t, mockExec.Commands())
-	// No updates expected.
-	expect.Empty(t, mockServer.UpdateTaskReqs())
+	exec.WithRun(mockExec.Run, func() {
+		// Poll frontend, no tasks.
+		wg1 := pollAndExecOnce(mockCTAutoscaler)
+		wg2 := pollAndExecOnce(mockCTAutoscaler)
+		wg3 := pollAndExecOnce(mockCTAutoscaler)
+		// Expect three polls.
+		wg1.Wait()
+		wg2.Wait()
+		wg3.Wait()
+		expect.Equal(t, 3, mockServer.OldestPendingTaskReqCount())
+		expect.Equal(t, 0, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+		expect.Equal(t, 0, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+		// Expect no commands.
+		expect.Empty(t, mockExec.Commands())
+		// No updates expected.
+		expect.Empty(t, mockServer.UpdateTaskReqs())
+	})
 }
