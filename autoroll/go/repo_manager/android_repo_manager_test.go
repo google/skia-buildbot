@@ -25,7 +25,7 @@ var (
 		"1234444444444444444444444444444444444444"}
 )
 
-func setupAndroid(t *testing.T) (string, func()) {
+func testAndroid(t *testing.T, fn func(string)) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	mockRun := exec.CommandCollector{}
@@ -50,44 +50,42 @@ func setupAndroid(t *testing.T) (string, func()) {
 		}
 		return nil
 	})
-	exec.SetRunForTesting(mockRun.Run)
-	cleanup := func() {
-		exec.SetRunForTesting(exec.DefaultRun)
-		testutils.RemoveAll(t, wd)
-	}
-	return wd, cleanup
+	defer testutils.RemoveAll(t, wd)
+	exec.WithRun(mockRun.Run, func() {
+		fn(wd)
+	})
 }
 
 // TestAndroidRepoManager tests all aspects of the RepoManager except for CreateNewRoll.
 func TestAndroidRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
-	wd, cleanup := setupAndroid(t)
-	defer cleanup()
-	g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
-	assert.NoError(t, err)
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
-	assert.NoError(t, err)
+	testAndroid(t, func(wd string) {
+		g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
+		assert.NoError(t, err)
+		rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
+		assert.NoError(t, err)
 
-	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
-	assert.Equal(t, "https://mock-server.googlesource.com", rm.(*androidRepoManager).repoUrl)
-	assert.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev())
-	assert.Equal(t, childCommits[0], rm.NextRollRev())
-	assert.Equal(t, SERVICE_ACCOUNT, rm.User())
+		assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
+		assert.Equal(t, "https://mock-server.googlesource.com", rm.(*androidRepoManager).repoUrl)
+		assert.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev())
+		assert.Equal(t, childCommits[0], rm.NextRollRev())
+		assert.Equal(t, SERVICE_ACCOUNT, rm.User())
+	})
 }
 
 // TestCreateNewAndroidRoll tests creating a new roll.
 func TestCreateNewAndroidRoll(t *testing.T) {
 	testutils.LargeTest(t)
-	wd, cleanup := setupAndroid(t)
-	defer cleanup()
+	testAndroid(t, func(wd string) {
 
-	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
-	assert.NoError(t, err)
+		g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
+		rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
+		assert.NoError(t, err)
 
-	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
-	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
+		issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
+		assert.NoError(t, err)
+		assert.Equal(t, issueNum, issue)
+	})
 }
 
 func TestExtractBugNumbers(t *testing.T) {
@@ -144,23 +142,23 @@ here
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsAndroid(t *testing.T) {
 	testutils.LargeTest(t)
-	wd, cleanup := setupAndroid(t)
-	defer cleanup()
+	testAndroid(t, func(wd string) {
 
-	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
-	assert.NoError(t, err)
+		g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
+		rm, err := NewAndroidRepoManager(wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
+		assert.NoError(t, err)
 
-	ran := false
-	rm.(*androidRepoManager).preUploadSteps = []PreUploadStep{
-		func(string) error {
-			ran = true
-			return nil
-		},
-	}
+		ran := false
+		rm.(*androidRepoManager).preUploadSteps = []PreUploadStep{
+			func(string) error {
+				ran = true
+				return nil
+			},
+		}
 
-	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
-	assert.NoError(t, err)
-	assert.True(t, ran)
+		// Create a roll, assert that we ran the PreUploadSteps.
+		_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
+		assert.NoError(t, err)
+		assert.True(t, ran)
+	})
 }
