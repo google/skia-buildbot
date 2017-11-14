@@ -3,6 +3,7 @@ package coverageingest
 import (
 	"bufio"
 	"bytes"
+	"html/template"
 	"regexp"
 
 	"go.skia.org/infra/go/util"
@@ -18,9 +19,11 @@ import (
 // picture to be calculated.
 type coverageData struct {
 	executableLines map[int]bool // maps line number -> was run at least once
+	totalLines      int
+	sourceLines     map[int]string // maps line number -> string that has the code
 }
 
-var executedLine = regexp.MustCompile(`^\s*(?P<line_num>\d+)\|\s+(?P<count>[^\|\s]+?)\|(?P<code>.*)$`)
+var executedLine = regexp.MustCompile(`^\s*(?P<line_num>\d+)\|\s+(?P<count>[^\|\s]+?)?\|(?P<code>.*)\s*$`)
 
 // parseLinesCovered looks through the contents of a coverage output by
 // a Source-based LLVM5 coverage run and returns a coverageData
@@ -28,16 +31,21 @@ var executedLine = regexp.MustCompile(`^\s*(?P<line_num>\d+)\|\s+(?P<count>[^\|\
 func parseLinesCovered(contents string) *coverageData {
 	retval := coverageData{
 		executableLines: map[int]bool{},
+		sourceLines:     map[int]string{},
 	}
 
 	scanner := bufio.NewScanner(bytes.NewBufferString(contents))
 	for scanner.Scan() {
 		line := scanner.Text()
 		if match := executedLine.FindStringSubmatch(line); match != nil {
-			lineNum := util.SafeAtoi(match[indexForSubexpName("line_num", executedLine)])
+			ln := match[indexForSubexpName("line_num", executedLine)]
+			lineNum := util.SafeAtoi(ln)
 
-			counts := match[indexForSubexpName("count", executedLine)]
-			retval.executableLines[lineNum] = counts != "0"
+			count := match[indexForSubexpName("count", executedLine)]
+			if count != "" {
+				retval.executableLines[lineNum] = count != "0"
+			}
+			retval.sourceLines[lineNum] = match[indexForSubexpName("code", executedLine)]
 		}
 	}
 
@@ -54,7 +62,8 @@ func indexForSubexpName(name string, r *regexp.Regexp) int {
 // Union joins two coverageData structs together. The operation is
 // an OR operation, such that iff either coverageData report a line
 // as executed, the result of this function call will have that line
-// as executed.
+// as executed. It is assumed that both structs have the same source
+// lines seen as
 func (c *coverageData) Union(o *coverageData) *coverageData {
 	if o == nil {
 		return c
@@ -75,17 +84,22 @@ func (c *coverageData) Union(o *coverageData) *coverageData {
 		}
 	}
 
-	return &coverageData{executableLines: resultSet}
+	return &coverageData{executableLines: resultSet, sourceLines: c.sourceLines}
 }
 
-// Total returns the total number of lines that are potentially
+// TotalSource returns the total number of source lines in this file.
+func (c *coverageData) TotalSource() int {
+	return len(c.sourceLines)
+}
+
+// TotalExecutable returns the total number of lines that are potentially
 // executable in this file.
-func (c *coverageData) Total() int {
+func (c *coverageData) TotalExecutable() int {
 	return len(c.executableLines)
 }
 
-// Missed returns how many lines were not executed in this file.
-func (c *coverageData) Missed() int {
+// MissedExecutable returns how many lines were not executed in this file.
+func (c *coverageData) MissedExecutable() int {
 	missed := 0
 	for _, v := range c.executableLines {
 		if !v {
@@ -94,3 +108,76 @@ func (c *coverageData) Missed() int {
 	}
 	return missed
 }
+
+type TemplateData struct {
+	FileName string
+	Commit   string
+	JobName  string
+}
+
+type lineData struct {
+	Number  int
+	Covered string
+	Source  string
+}
+
+type coverageTemplateData struct {
+	TemplateData
+	Lines []lineData
+}
+
+// Missed returns how many lines were not executed in this file.
+func (c *coverageData) ToHTMLPage(td TemplateData) (string, error) {
+	ctd := coverageTemplateData{
+		TemplateData: td,
+	}
+	for i := 1; i <= c.TotalSource(); i++ {
+		cov := ""
+		if covered, executable := c.executableLines[i]; executable {
+			if covered {
+				cov = "yes"
+			} else {
+				cov = "no"
+			}
+		}
+		ctd.Lines = append(ctd.Lines, lineData{
+			Number:  i,
+			Covered: cov,
+			Source:  c.sourceLines[i],
+		})
+	}
+	b := bytes.Buffer{}
+	err := HTML_TEMPLATE.Execute(&b, ctd)
+	return b.String(), err
+}
+
+var HTML_TEMPLATE = template.Must(template.New("page").Parse(`<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1">
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="/res/css/coverage-style.css">
+	</head>
+	<body>
+		<h1 class="coverage-header">{{.JobName}}</h1>
+		<div class="coverage-subheader">{{.FileName}} @ <a href="https://skia.googlesource.com/skia/+/{{.Commit}}">{{.Commit}}</a></div>
+		<table class="coverage-table">
+		<thead>
+			<tr>
+				<th>Line</th>
+				<th>Covered?</th>
+				<th>Source</th>
+			</tr>
+		</thead>
+		<tbody>
+{{range .Lines}}
+			<tr>
+				<td>{{.Number}}</td>
+				<td class="covered-{{.Covered}}">{{.Covered}}</td>
+				<td><pre>{{.Source}}</pre></td>
+			</tr>
+{{end}}
+		</tbody>
+		</table>
+	</body>
+</html>`))

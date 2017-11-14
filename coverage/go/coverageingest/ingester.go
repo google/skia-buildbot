@@ -91,7 +91,7 @@ func (n *gcsingester) getCoverage(cacheKey string, folders ...string) (common.Co
 	if obj, ok := n.cache.CheckCache(cacheKey); ok {
 		return obj, nil
 	}
-	if cov, err := calculateCoverage(folders...); err != nil {
+	if cov, err := calculateCoverage("", folders...); err != nil {
 		return common.CoverageSummary{}, err
 	} else {
 		return cov, n.cache.StoreToCache(cacheKey, cov)
@@ -102,7 +102,7 @@ func (n *gcsingester) getCoverage(cacheKey string, folders ...string) (common.Co
 // to get a complete picture of the coverage. It is a variable for easier mocking.
 var calculateCoverage = defaultCalculateTotalCoverage
 
-func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, error) {
+func defaultCalculateTotalCoverage(outputPath string, folders ...string) (common.CoverageSummary, error) {
 	if len(folders) == 0 {
 		return common.CoverageSummary{}, nil
 	}
@@ -150,8 +150,8 @@ func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, e
 			newlyCovered := parseLinesCovered(string(contents))
 			linesCovered = linesCovered.Union(newlyCovered)
 		}
-		totalLines += linesCovered.Total()
-		missedLines += linesCovered.Missed()
+		totalLines += linesCovered.TotalExecutable()
+		missedLines += linesCovered.MissedExecutable()
 	}
 
 	return common.CoverageSummary{TotalLines: totalLines, MissedLines: missedLines}, nil
