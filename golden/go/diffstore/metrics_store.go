@@ -23,9 +23,6 @@ const (
 var (
 	// metricsRecIndices are the indices supported by the metricsRec type.
 	metricsRecIndices = []string{METRICS_DIGEST_INDEX}
-
-	// metricsRecSplitFn is called to get the two image IDs from a metricsRec ID.
-	metricsRecSplitFn func(string) (string, string) = nil
 )
 
 // metricsStore stores diff metrics on disk.
@@ -39,12 +36,17 @@ type metricsStore struct {
 	// TODO(stephana): Remove mapper field once we don't need the legacy code anymore.
 	// mapper is an instance of DiffStoreMapper.
 	mapper DiffStoreMapper
+
+	factory *metricsRecFactory
 }
 
 // metricsRec implements the boltutil.Record interface.
 type metricsRec struct {
 	ID          string `json:"id"`
 	DiffMetrics []byte
+
+	// Split function that configurable. Needs to be injected when deserialized.
+	metricsRecSplitFn func(string) (string, string)
 }
 
 // Key see the boltutil.Record interface.
@@ -54,24 +56,50 @@ func (m *metricsRec) Key() string {
 
 // IndexValues see the boltutil.Record interface.
 func (m *metricsRec) IndexValues() map[string][]string {
-	d1, d2 := metricsRecSplitFn(m.ID)
+	d1, d2 := m.metricsRecSplitFn(m.ID)
 	return map[string][]string{METRICS_DIGEST_INDEX: {d1, d2}}
+}
+
+type metricsRecFactory struct {
+	util.LRUCodec
+	metricsRecSplitFn func(string) (string, string)
+}
+
+func (m *metricsRecFactory) newRec(id string, diffMetrics []byte) *metricsRec {
+	return &metricsRec{
+		ID:                id,
+		DiffMetrics:       diffMetrics,
+		metricsRecSplitFn: m.metricsRecSplitFn,
+	}
+}
+
+// Decode overrides the Decode function in LRUCodec.
+func (m *metricsRecFactory) Decode(data []byte) (interface{}, error) {
+	ret, err := m.LRUCodec.Decode(data)
+	if err != nil {
+		return nil, err
+	}
+	ret.(*metricsRec).metricsRecSplitFn = m.metricsRecSplitFn
+	return ret, nil
 }
 
 // newMetricsStore returns a new instance of metricsStore.
 func newMetricsStore(baseDir string, mapper DiffStoreMapper, codec util.LRUCodec) (*metricsStore, error) {
-	metricsRecSplitFn = mapper.SplitDiffID
-
 	db, err := openBoltDB(baseDir, METRICSDB_NAME+".db")
 	if err != nil {
 		return nil, err
+	}
+
+	factoryCodec := &metricsRecFactory{
+		LRUCodec:          util.JSONCodec(&metricsRec{}),
+		metricsRecSplitFn: mapper.SplitDiffID,
 	}
 
 	config := &boltutil.Config{
 		DB:      db,
 		Name:    METRICSDB_NAME,
 		Indices: metricsRecIndices,
-		Codec:   util.JSONCodec(&metricsRec{}),
+		Codec:   factoryCodec,
 	}
 
 	store, err := boltutil.NewIndexedBucket(config)
@@ -80,9 +108,10 @@ func newMetricsStore(baseDir string, mapper DiffStoreMapper, codec util.LRUCodec
 	}
 
 	return &metricsStore{
-		store:  store,
-		codec:  codec,
-		mapper: mapper,
+		store:   store,
+		codec:   codec,
+		mapper:  mapper,
+		factory: factoryCodec,
 	}, nil
 }
 
@@ -126,7 +155,7 @@ func (m *metricsStore) saveDiffMetrics(id string, diffMetrics interface{}) error
 		return fmt.Errorf("Got empty string for encoded diff metric.")
 	}
 
-	rec := &metricsRec{ID: id, DiffMetrics: bytes}
+	rec := m.factory.newRec(id, bytes)
 	return m.store.Insert([]boltutil.Record{rec})
 }
 

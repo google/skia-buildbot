@@ -88,6 +88,18 @@ func (n *Node) Child(fn ProcessFn) *Node {
 	return NewNode(fn, n)
 }
 
+func (n *Node) String() string {
+	return n.recurseString("")
+}
+
+func (n *Node) recurseString(prefix string) string {
+	ret := prefix + n.name + "\n"
+	for _, nextNode := range n.children {
+		ret += nextNode.recurseString(prefix + "    ")
+	}
+	return ret
+}
+
 // Trigger starts execution at the current node and
 // executes all functions that descendents of this node.
 // It blocks until all nodes have been executed. If any
