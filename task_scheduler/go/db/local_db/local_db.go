@@ -568,11 +568,6 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 						return err
 					}
 					if !modTs.Equal(t.DbModified) {
-						var existing db.Task
-						if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&existing); err != nil {
-							return err
-						}
-						sklog.Warningf("Cached Task has been modified in the DB. Current:\n%#v\nCached:\n%#v", existing, t)
 						return db.ErrConcurrentUpdate
 					}
 				}
@@ -747,11 +742,6 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 						return err
 					}
 					if !modTs.Equal(job.DbModified) {
-						var existing db.Job
-						if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&existing); err != nil {
-							return err
-						}
-						sklog.Warningf("Cached Job has been modified in the DB. Current:\n%#v\nCached:\n%#v", existing, job)
 						return db.ErrConcurrentUpdate
 					}
 				}
