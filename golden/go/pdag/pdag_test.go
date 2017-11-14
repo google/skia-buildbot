@@ -161,6 +161,11 @@ func TestComplexCallOrder(t *testing.T) {
 	o = o[0:dPos] + o[dPos+1:]
 	assert.True(t, results[o])
 
+	// Enumerate the possible outcome and count how often each occurs.
+	posOutcome := []string{"bdegf", "bdefg", "bedgf", "bedfg", "befdg", "begdf", "begfd", "befgd"}
+	expSet := util.NewStringSet(posOutcome)
+	assert.Equal(t, len(posOutcome), len(expSet))
+
 	// Make a call an node in the DAG and make the call order works.
 	data = make(chan string, 100)
 	b.verbose = true
@@ -170,8 +175,8 @@ func TestComplexCallOrder(t *testing.T) {
 	for c := range data {
 		o += c
 	}
-	expSet := util.NewStringSet([]string{"bedfg", "bdefg", "bedgf", "bdegf"})
-	assert.True(t, expSet[o])
+
+	assert.True(t, expSet[o], "Instead got: "+o)
 }
 
 func orderFn(msg string) ProcessFn {
