@@ -45,6 +45,7 @@ import (
 	"os"
 	osexec "os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
@@ -64,7 +65,8 @@ const (
 )
 
 var (
-	runFn func(command *Command) error = DefaultRun
+	runFn  func(command *Command) error = DefaultRun
+	runMtx sync.RWMutex
 
 	WriteInfoLog  = WriteLog{LogFunc: sklog.Infof}
 	WriteErrorLog = WriteLog{LogFunc: sklog.Errorf}
@@ -267,12 +269,17 @@ func DefaultRun(command *Command) error {
 // Run runs command and waits for it to finish. If any failure, returns non-nil. If a timeout was
 // specified, returns an error once the command has exceeded that timeout.
 func Run(command *Command) error {
-	return runFn(command)
+	runMtx.RLock()
+	r := runFn
+	runMtx.RUnlock()
+	return r(command)
 }
 
 // SetRunForTesting replaces the Run function with a test version so that commands don't actually
 // run.
 func SetRunForTesting(testRun func(command *Command) error) {
+	runMtx.Lock()
+	defer runMtx.Unlock()
 	runFn = testRun
 }
 
