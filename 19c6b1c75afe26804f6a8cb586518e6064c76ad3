@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "3e1bbc06_d0fb89f1",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-15T21:09:56Z",
+      "side": 1,
+      "message": "Removed the default and returned an error when ServiceAccount is not set.  Removed this constant, since it\u0027s unused.",
+      "parentUuid": "36002d67_6bbb93c4",
+      "revId": "19c6b1c75afe26804f6a8cb586518e6064c76ad3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d1b3756_0ffa4b2b",
         "filename": "go/gce/gce.go",
         "patchSetId": 8
@@ -123,6 +141,30 @@
       "revId": "19c6b1c75afe26804f6a8cb586518e6064c76ad3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14ca5b65_2b77a13a",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-15T21:09:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7a4aec2_be3b71fe",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 56
+      },
+      "revId": "19c6b1c75afe26804f6a8cb586518e6064c76ad3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
