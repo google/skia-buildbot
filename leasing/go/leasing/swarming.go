@@ -4,15 +4,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path"
+	"strings"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/isolate"
-
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 )
 
 type SwarmingInstanceClients struct {
@@ -142,16 +146,53 @@ func GetPoolDetails(pool string) (*PoolDetails, error) {
 	}, nil
 }
 
-func getIsolateHash(osType string) (string, error) {
+type IsolateDetails struct {
+	Command     []string `json:"command"`
+	RelativeCwd string   `json:"relative_cwd"`
+	IsolateDep  string
+}
+
+func GetIsolateDetails(inputsRef *swarming_api.SwarmingRpcsFilesRef) (*IsolateDetails, error) {
+	details := &IsolateDetails{}
+
+	f, err := ioutil.TempFile(*workdir, inputsRef.Isolated+"_")
+	if err != nil {
+		return details, fmt.Errorf("Could not create tmp file in %s: %s", *workdir, err)
+	}
+	defer util.Remove(f.Name())
+	cmd := []string{
+		"isolateserver.py", "download",
+		"-I", inputsRef.Isolatedserver,
+		"--namespace", inputsRef.Namespace,
+		"-f", inputsRef.Isolated, path.Base(f.Name()),
+		"-t", *workdir,
+	}
+	output, err := exec.RunCwd(*workdir, cmd...)
+	if err != nil {
+		return details, fmt.Errorf("Failed to run cmd %s: %s", cmd, err)
+	}
+
+	if err := json.NewDecoder(f).Decode(&details); err != nil {
+		return details, fmt.Errorf("Could not decode %s: %s", output, err)
+	}
+	details.IsolateDep = inputsRef.Isolated
+
+	return details, nil
+}
+
+func GetIsolateHash(pool, osType, isolateDep string) (string, error) {
+	isolateClient := *GetIsolateClient(pool)
 	isolateTask := &isolate.Task{
 		BaseDir:     path.Join(*resourcesDir, "isolates"),
 		Blacklist:   []string{},
-		Deps:        []string{},
 		IsolateFile: path.Join(*resourcesDir, "isolates", "leasing.isolate"),
 		OsType:      osType,
 	}
+	if isolateDep != "" {
+		isolateTask.Deps = []string{isolateDep}
+	}
 	isolateTasks := []*isolate.Task{isolateTask}
-	hashes, err := isolateClientPublic.IsolateTasks(isolateTasks)
+	hashes, err := isolateClient.IsolateTasks(isolateTasks)
 	if err != nil {
 		return "", fmt.Errorf("Could not isolate leasing task: %s", err)
 	}
@@ -166,12 +207,12 @@ func GetSwarmingTask(pool, taskId string) (*swarming_api.SwarmingRpcsTaskResult,
 	return swarmingClient.GetTask(taskId, false)
 }
 
-func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId, serverURL string) (string, error) {
-	isolateHash, err := getIsolateHash(osType)
-	if err != nil {
-		return "", fmt.Errorf("Could not get isolate hash: %s", err)
-	}
+func GetSwarmingTaskMetadata(pool, taskId string) (*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
+	swarmingClient := *GetSwarmingClient(pool)
+	return swarmingClient.GetTaskMetadata(taskId)
+}
 
+func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId, serverURLstring, isolateHash string, isolateDetails *IsolateDetails) (string, error) {
 	dimsMap := map[string]string{
 		"pool": pool,
 		"os":   osType,
@@ -195,10 +236,13 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 		"--task-id", datastoreId,
 		"--os-type", osType,
 		"--leasing-server", serverURL,
+		"--debug-command", strings.Join(isolateDetails.Command, " "),
+		"--command-relative-dir", isolateDetails.RelativeCwd,
 	}
+	isolateServer := GetSwarmingInstance(pool).IsolateServer
 	expirationSecs := int64(swarming.RECOMMENDED_EXPIRATION.Seconds())
 	executionTimeoutSecs := int64(SWARMING_HARD_TIMEOUT.Seconds())
-	ioTimeoutSecs := int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds())
+	ioTimeoutSecs := int64(SWARMING_HARD_TIMEOUT.Seconds())
 	taskName := fmt.Sprintf("Leased by %s using leasing.skia.org", requester)
 	taskRequest := &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
@@ -210,7 +254,7 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 			ExtraArgs:            extraArgs,
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated:       isolateHash,
-				Isolatedserver: isolate.ISOLATE_SERVER_URL,
+				Isolatedserver: isolateServer,
 				Namespace:      isolate.DEFAULT_NAMESPACE,
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
