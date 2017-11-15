@@ -24,7 +24,26 @@ def main():
                       help='The taskID of this swarming task.')
   parser.add_argument('-o', '--os-type', required=True, type=str,
                       help='The Os Type this script is running on.')
+  parser.add_argument('-c', '--debug-command', required=True, type=str,
+                      help='The command users can use to run the debug task.')
+  parser.add_argument('-r', '--command-relative-dir', required=True, type=str,
+                      help='The directory the command should be run in.')
   args = parser.parse_args()
+
+  if args.debug_command:
+    print 'Files are mapped into: '
+    print os.getcwd()
+    print
+    print 'Original command: '
+    print args.debug_command
+    print
+    print 'Dir to run command in: '
+    print os.path.join(os.getcwd(), args.command_relative_dir)
+    print
+  print
+  print ('Please cleanup after you are done debugging or when you get the '
+         '15 min warning email!')
+  sys.stdout.flush()
 
   while True:
     get_task_status_url = '%s/_/get_task_status?task=%s' % (
@@ -32,13 +51,12 @@ def main():
     resp = urllib2.urlopen(get_task_status_url)
 
     output = json.load(resp)
-    print 'Response from %s is: %s' % (get_task_status_url, output)
-    sys.stdout.flush()
-
     if output['Expired']:
       break
     time.sleep(POLLING_WAIT_TIME_SECS)
 
+  print 'The lease time has expired.'
+  print 'Failing the task so that swarming reboots the bot.'
   # Fail the task so that swarming reboots the bot. This will force all SSH'ed
   # users to disconnect.
   return 1
