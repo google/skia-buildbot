@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "9ce10861_c972bff4",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-15T13:52:35Z",
+      "side": 1,
+      "message": "I agree with all of the above. I can\u0027t think of a real fix aside from what you brought up before, ie. to pass around an exec context which each test can override individually, instead of the global variable.  AFAICT anything short of that will leave us subject to flaky test failures, either at race detection or due to mocks clobbering each other.",
+      "parentUuid": "9e0c60a3_523e316a",
+      "revId": "70d861e148d56fe32b71d67d84c5224558d7b8ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d1866870_2163bc32",
         "filename": "go/exec/exec.go",
         "patchSetId": 2
