@@ -2,6 +2,15 @@ package main
 
 /*
    Program for automating creation and setup of Swarming bot VMs.
+
+   Bot numbers should be assigned as follows:
+     1-99 (skia-gce-0..): Temporary or experimental bots.
+     100-499 (skia-gce-[1234]..): Linux
+       400-499: Skylake
+     500-699 (skia-gce-[56]..): Windows
+       500-599: Win2016
+       600-699: Win2k8
+     700-999: unassigned
 */
 
 import (
