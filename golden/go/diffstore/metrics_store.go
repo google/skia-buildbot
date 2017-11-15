@@ -46,7 +46,7 @@ type metricsRec struct {
 	ID          string `json:"id"`
 	DiffMetrics []byte
 
-	// Split function that configurable. Needs to be injected.
+	// Split function that is configurable and injected by metricsRecFactory.
 	splitFn func(string) (string, string)
 }
 
