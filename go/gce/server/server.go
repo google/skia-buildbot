@@ -71,8 +71,9 @@ func Server20170928(name string) *gce.Instance {
 			auth.SCOPE_USERINFO_EMAIL,
 			auth.SCOPE_USERINFO_PROFILE,
 		},
-		Tags: []string{"http-server", "https-server"},
-		User: gce.USER_DEFAULT,
+		ServiceAccount: gce.SERVICE_ACCOUNT_DEFAULT,
+		Tags:           []string{"http-server", "https-server"},
+		User:           gce.USER_DEFAULT,
 	}
 }
 
@@ -135,7 +136,7 @@ func Main(zone string, instances map[string]*gce.Instance) {
 	}
 
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(zone, wdAbs)
+	g, err := gce.NewGCloud(gce.PROJECT_ID_SERVER, zone, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
