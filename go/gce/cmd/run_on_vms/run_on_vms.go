@@ -45,12 +45,12 @@ func RunOnInstances(re *regexp.Regexp, cmd []string) (map[string]map[string]*res
 	results := map[string]map[string]*result{}
 	pool := workerpool.New(50)
 	for _, zone := range gce.VALID_ZONES {
-		g, err := gce.NewGCloud(zone, *workdir)
+		g, err := gce.NewGCloud(gce.PROJECT_ID_SERVER, zone, *workdir)
 		if err != nil {
 			return nil, err
 		}
 		s := g.Service()
-		call := s.Instances.List(gce.PROJECT_ID, zone)
+		call := s.Instances.List(gce.PROJECT_ID_SERVER, zone)
 		instances := []string{}
 		if err := call.Pages(context.Background(), func(list *compute.InstanceList) error {
 			for _, i := range list.Items {
