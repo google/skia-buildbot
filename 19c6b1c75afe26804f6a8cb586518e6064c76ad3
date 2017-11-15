@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7c43f1e8_a7d44fff",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-15T19:48:39Z",
+      "side": 1,
+      "message": "So we do override this in swarming_vm.go (we use the chromium-swarm-bots or chrome-swarming-bots accounts).  Would you rather not set a default service account at all?",
+      "parentUuid": "15f4b2ce_806cebcd",
+      "revId": "19c6b1c75afe26804f6a8cb586518e6064c76ad3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d1b3756_0ffa4b2b",
         "filename": "go/gce/gce.go",
         "patchSetId": 8
@@ -30,6 +48,30 @@
       "writtenOn": "2017-11-15T19:29:56Z",
       "side": 1,
       "message": "Would it make sense to generate the filename based on project name?",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 56
+      },
+      "revId": "19c6b1c75afe26804f6a8cb586518e6064c76ad3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3556b4c5_6cd209ae",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-15T19:48:39Z",
+      "side": 1,
+      "message": "Sure, I can do that.  Only ugly thing is that the current project has the \"google.com:\" prefix.",
+      "parentUuid": "3d1b3756_0ffa4b2b",
       "range": {
         "startLine": 126,
         "startChar": 0,
