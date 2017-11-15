@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "318cad96_62a7ade8",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-15T20:04:05Z",
+      "side": 1,
+      "message": "I will send another CL to fix this.",
+      "revId": "2b026fe2a0049797c2e2e9cbcf3862e6e4ec7a35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e5ae797_01fd7ac5",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-15T20:04:05Z",
+      "side": 1,
+      "message": "I will send another CL to fix this.",
+      "revId": "2b026fe2a0049797c2e2e9cbcf3862e6e4ec7a35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
