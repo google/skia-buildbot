@@ -57,7 +57,7 @@ func main() {
 	}
 
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(gce.ZONE_DEFAULT, wdAbs)
+	g, err := gce.NewGCloud(gce.PROJECT_ID_SWARMING, gce.ZONE_DEFAULT, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
