@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "f9a6be74_59d466b8",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-15T21:25:50Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3e1bbc06_d0fb89f1",
+      "revId": "19c6b1c75afe26804f6a8cb586518e6064c76ad3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3d1b3756_0ffa4b2b",
         "filename": "go/gce/gce.go",
         "patchSetId": 8
