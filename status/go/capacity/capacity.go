@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/cq"
@@ -24,8 +25,8 @@ type CapacityClient struct {
 	tasks db.TaskCache
 	repos repograph.Map
 	// The cached measurements
-	// TODO(benjaminwagner): Needs a mutex?
 	lastMeasurements map[string]BotConfig
+	mtx              sync.Mutex
 }
 
 // Caller is responsible for periodically updating the arguments.
@@ -257,6 +258,8 @@ func (c *CapacityClient) QueryAll() error {
 	// CPU type. I expect that to be a rare case.)
 	mergeBotConfigs(botConfigs)
 
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	c.lastMeasurements = botConfigs
 	return err
 }
@@ -274,5 +277,7 @@ func (c *CapacityClient) StartLoading(interval time.Duration) {
 }
 
 func (c *CapacityClient) CapacityMetrics() map[string]BotConfig {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	return c.lastMeasurements
 }
