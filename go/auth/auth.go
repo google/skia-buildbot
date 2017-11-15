@@ -9,20 +9,23 @@ import (
 	"os"
 
 	"cloud.google.com/go/pubsub"
+
+	compute "google.golang.org/api/compute/v1"
+	storage "google.golang.org/api/storage/v1"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/compute/v1"
 	oauth2_api "google.golang.org/api/oauth2/v2"
-	storage "google.golang.org/api/storage/v1"
 )
 
 const (
-	DEFAULT_JWT_FILENAME           = "service-account.json"
-	DEFAULT_CLIENT_SECRET_FILENAME = "client_secret.json"
+	CLIENT_SECRET_FILENAME_DEFAULT  = "client_secret.json"
+	CLIENT_SECRET_FILENAME_SWARMING = "client_secret_swarming.json"
+	DEFAULT_JWT_FILENAME            = "service-account.json"
 )
 
 // NewDefaultClient creates a new OAuth 2.0 authorized client with all the
@@ -70,7 +73,7 @@ func NewClientWithTransport(local bool, oauthCacheFile string, oauthConfigFile s
 	var config *oauth2.Config = nil
 	if local {
 		if oauthConfigFile == "" {
-			oauthConfigFile = DEFAULT_CLIENT_SECRET_FILENAME
+			oauthConfigFile = CLIENT_SECRET_FILENAME_DEFAULT
 		}
 		body, err := ioutil.ReadFile(oauthConfigFile)
 		if err != nil {
