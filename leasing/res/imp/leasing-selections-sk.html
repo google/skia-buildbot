@@ -20,6 +20,7 @@
     deviceTypes - All available device types for the above OS type.
     loadingDetails - Whether we are waiting to hear back from the server.
     botId - The bot Id that should be leased. Eg: skia-gce-001.
+    taskIdForIsolates - The task Id whose isolates should be kept ready on bot.
     desc - Description of the leasing task.
     duration - How long the bot will be leased for.
 
@@ -134,6 +135,13 @@
       </tr>
 
       <tr>
+        <td class="step-title">Specify Task Id to keep<br/>artifacts ready on bot<br/>(optional)</td>
+        <td>
+          <paper-input value="{{taskIdForIsolates}}" disabled="[[loadingDetails]]"></paper-input>
+        </td>
+      </tr>
+
+      <tr>
         <td class="step-title">Lease Duration</td>
         <td>
           <paper-dropdown-menu disabled="[[loadingDetails]]">
@@ -170,7 +178,7 @@
      properties: {
        pool: {
          type: String,
-         value: "Skia",
+         value: "CT",
          observer: "poolChanged",
        },
        osTypes: {
@@ -187,6 +195,10 @@
          value: true,
        },
        botId: {
+         type: String,
+         value: "",
+       },
+       taskIdForIsolates: {
          type: String,
          value: "",
        },
@@ -222,6 +234,7 @@
         params["deviceType"] = this.$.device_listbox.selectedItem.value;
       }
       params["botId"] = this.botId;
+      params["taskIdForIsolates"] = this.taskIdForIsolates;
       params["duration"] = this.duration;
       params["description"] = this.desc;
 
