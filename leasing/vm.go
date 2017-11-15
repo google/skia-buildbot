@@ -3,6 +3,8 @@ package main
 import (
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
+	"path"
+	"runtime"
 )
 
 func Prod() *gce.Instance {
@@ -14,6 +16,9 @@ func Prod() *gce.Instance {
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_2
 	vm.Metadata["owner_primary"] = "rmistry"
 	vm.Metadata["owner_secondary"] = "kjlubick"
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Dir(filename)
+	vm.SetupScript = path.Join(dir, "setup-script.sh")
 	return vm
 }
 

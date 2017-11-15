@@ -59,11 +59,21 @@ func getRecipients(taskOwner string) []string {
 	return append(recipients, trooper)
 }
 
-func SendStartEmail(taskOwner, swarmingServer, swarmingId, swarmingBot string) error {
+func SendStartEmail(taskOwner, swarmingServer, swarmingId, swarmingBot, TaskIdForIsolates string) error {
+	sectionAboutIsolates := ""
+	if TaskIdForIsolates != "" {
+		sectionAboutIsolatesTemplate := `
+			Isolates downloaded from the <a href="%s">specified task</a> will be available on the bot.<br/>
+			See the stdout of your <a href="%s">leasing task</a> for location of the artifacts and the command to run.<br/><br/>
+		`
+		sectionAboutIsolates = fmt.Sprintf(sectionAboutIsolatesTemplate, GetSwarmingTaskLink(swarmingServer, TaskIdForIsolates), GetSwarmingTaskLink(swarmingServer, swarmingId))
+	}
+
 	subject := fmt.Sprintf("Your leasing task is now active (id:%s)", swarmingId)
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has been picked up by the swarming bot %s.
 		<br/><br/>
+		%s
 		Please see <a href="%s">this page</a> for instructions on how to connect to the bot.
 		<br/>
 		Contact the CC'ed trooper if you have any questions.
@@ -74,7 +84,7 @@ func SendStartEmail(taskOwner, swarmingServer, swarmingId, swarmingBot string) e
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, GetSwarmingTaskLink(swarmingServer, swarmingId), swarmingBot, CONNECTION_INSTRUCTIONS_PAGE, fmt.Sprintf("%s%s", PROD_URI, MY_LEASES_URI))
+	body := fmt.Sprintf(bodyTemplate, GetSwarmingTaskLink(swarmingServer, swarmingId), swarmingBot, sectionAboutIsolates, CONNECTION_INSTRUCTIONS_PAGE, fmt.Sprintf("%s%s", PROD_URI, MY_LEASES_URI))
 	if err := gmail.Send(LEASING_EMAIL_DISPLAY_NAME, getRecipients(taskOwner), subject, body); err != nil {
 		return fmt.Errorf("Could not send start email: %s", err)
 	}
