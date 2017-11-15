@@ -9,6 +9,7 @@
   Attributes:
     name - The name/fiddlehash of the fiddle.
     gpu  - If true then use the GPU image/webm output instead of the CPU output. Defaults to false.
+    cpu  - Force showing the cpu image output even if 'gpu' is true. I.e. both cpu and gpu will be displayed.
 
   Events:
     None.
@@ -44,6 +45,7 @@
       animated="[[context.options.animated]]"
       domain="https://fiddle.skia.org"
       gpu_embedded="[[gpu]]"
+      cpu_embedded="[[cpu]]"
       embedded
       >
       <textarea-numbers-sk id=numbers>
@@ -71,6 +73,11 @@
         value: function() { return {}; },
       },
       gpu: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      cpu: {
         type: Boolean,
         value: false,
         reflectToAttribute: true,
