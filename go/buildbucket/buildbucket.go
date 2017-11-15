@@ -234,7 +234,7 @@ func (c *Client) getOnePage(url string) ([]*Build, string, error) {
 }
 
 // Search retrieves results based on the given criteria.
-func (c *Client) Search(url string) ([]*Build, error) {
+func (c *Client) search(url string) ([]*Build, error) {
 	rv := []*Build{}
 	cursor := ""
 	for {
@@ -266,7 +266,7 @@ func (c *Client) GetTrybotsForCL(issueID, patchsetID int64, patchStorage, crUrl 
 	q := url.Values{"tag": []string{fmt.Sprintf("buildset:patch/%s/%s/%d/%d", patchStorage, host, issueID, patchsetID)}}
 	url := apiUrl + "/search?" + q.Encode()
 
-	builds, err := c.Search(url)
+	builds, err := c.search(url)
 	if err != nil {
 		return nil, err
 	}
