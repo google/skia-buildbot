@@ -89,7 +89,13 @@
             Dimensions: [[ displayDimensions(task) ]]
           </td>
           <td>
-	    Task Log: <a href="[[ getSwarmingTaskLink(task) ]]" target="_blank">Link</a>
+	    Task Log:
+            <template is="dom-if" if="[[task.swarmingTaskId]]">
+              <a href="[[ getSwarmingTaskLink(task) ]]" target='_blank'>Link</a>
+            </template>
+            <template is="dom-if" if="[[!task.swarmingTaskId]]">
+              Processing
+            </template>
             <br/>
             Task Status: [[task.swarmingTaskState]]
           </td>

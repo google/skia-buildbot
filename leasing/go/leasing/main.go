@@ -182,6 +182,7 @@ type Task struct {
 	Done               bool      `json:"done"`
 	WarningSent        bool      `json:"warningSent"`
 
+	TaskIdForIsolates string `json:"taskIdForIsolates"`
 	SwarmingPool      string `json:"pool"`
 	SwarmingBotId     string `json:"botId"`
 	SwarmingServer    string `json:"swarmingServer"`
@@ -330,6 +331,11 @@ func expireTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Error updating task in datastore")
 		return
 	}
+	// Inform the requester that the task has completed.
+	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId); err != nil {
+		httputils.ReportError(w, r, err, "Error sending completion email")
+		return
+	}
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -354,14 +360,35 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Set to pending.
 	task.SwarmingTaskState = swarming.TASK_STATE_PENDING
 
+	// Isolate artifacts.
+	var isolateDetails *IsolateDetails
+	if task.TaskIdForIsolates != "" {
+		t, err := GetSwarmingTaskMetadata("CT", task.TaskIdForIsolates)
+		if err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
+			return
+		}
+		isolateDetails, err = GetIsolateDetails(t.Request.Properties.InputsRef)
+		if err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Could not get isolate details of task %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
+			return
+		}
+	} else {
+		isolateDetails = &IsolateDetails{}
+	}
+
 	datastoreKey, err := PutDSTask(key, task)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Error putting task in datastore: %v", err))
 		return
 	}
-
+	isolateHash, err := GetIsolateHash(task.SwarmingPool, task.OsType, isolateDetails.IsolateDep)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Error when getting isolate hash: %v", err))
+		return
+	}
 	// Trigger the swarming task.
-	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, serverURL)
+	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, serverURL, isolateHash, isolateDetails)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Error when triggering swarming task: %v", err))
 		return

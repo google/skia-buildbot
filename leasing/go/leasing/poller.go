@@ -36,7 +36,7 @@ func populateRunningTask(newState, botId string, t *Task, k *datastore.Key) erro
 	}
 
 	// Inform the requester that the task has been picked up
-	if err := SendStartEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId); err != nil {
+	if err := SendStartEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.TaskIdForIsolates); err != nil {
 		return fmt.Errorf("Error sending start email: %s", err)
 	}
 
@@ -122,10 +122,14 @@ func pollSwarmingTasks() error {
 		t := &Task{}
 		k, err := it.Next(t)
 		if err == iterator.Done {
-			fmt.Println("Iterator is done")
 			break
 		} else if err != nil {
 			return fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+
+		if t.SwarmingTaskId == "" {
+			// This task is not ready to be looked at yet.
+			continue
 		}
 
 		// Get the swarming task from swarming server.
