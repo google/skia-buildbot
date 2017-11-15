@@ -16,6 +16,24 @@
       "revId": "74050ed110af6646e5200b4bd2802821e4083c9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96950f27_978c7c4a",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-15T21:40:27Z",
+      "side": 1,
+      "message": "Fixed in separate CL.",
+      "parentUuid": "be527549_ab1ea47e",
+      "revId": "74050ed110af6646e5200b4bd2802821e4083c9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
