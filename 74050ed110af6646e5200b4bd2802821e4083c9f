@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "be527549_ab1ea47e",
+        "filename": "golden/go/diffstore/metrics_store.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-15T00:23:46Z",
+      "side": 1,
+      "message": "This comment is confusing to me.  I\u0027m not sure what needs to be injected where.",
+      "revId": "74050ed110af6646e5200b4bd2802821e4083c9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
