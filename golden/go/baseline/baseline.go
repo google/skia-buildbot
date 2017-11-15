@@ -30,7 +30,7 @@ func (b BaseLine) add(testName, digest string) {
 // commit queue.
 type CommitableBaseLine struct {
 	// Commit is the commit for which this baseline was collected.
-	Commit *tiling.Commit `json:"commmit"`
+	Commit *tiling.Commit `json:"commit"`
 
 	// Master captures the baseline of the current commit.
 	Master BaseLine `json:"master"`
