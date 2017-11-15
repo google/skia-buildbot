@@ -1,0 +1,2724 @@
+<html>
+ <style> section { margin-left: 2em; }</style>  <body>
+<h1 id=''>Schema: #</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>assets</h3>
+<section>
+<h4>Title: Assets - source items that can be used in multiple places. Comps and Images for now.</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/sources/image'>#/sources/image</a>
+</section>
+<section>
+<a href='#/sources/precomp'>#/sources/precomp</a>
+</section>
+</section>
+</section>
+<h3>chars</h3>
+<section>
+<h4>Title: Chars - source chars for text layers</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/sources/chars'>#/sources/chars</a>
+</section>
+</section>
+</section>
+<h3>fr</h3>
+<section>
+<h4>Title: Frame Rate - Frame Rate</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>h</h3>
+<section>
+<h4>Title: Height - Composition Height</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ip</h3>
+<section>
+<h4>Title: In Point - In Point of the Time Ruler. Sets the initial Frame of the animation.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>layers</h3>
+<section>
+<h4>Title: Layers - List of Composition Layers</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/layers/shape'>#/layers/shape</a>
+</section>
+<section>
+<a href='#/layers/solid'>#/layers/solid</a>
+</section>
+<section>
+<a href='#/layers/comp'>#/layers/comp</a>
+</section>
+<section>
+<a href='#/layers/image'>#/layers/image</a>
+</section>
+<section>
+<a href='#/layers/null'>#/layers/null</a>
+</section>
+<section>
+<a href='#/layers/text'>#/layers/text</a>
+</section>
+</section>
+</section>
+<h3>op</h3>
+<section>
+<h4>Title: Out Point - Out Point of the Time Ruler. Sets the final Frame of the animation</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>v</h3>
+<section>
+<h4>Title: Version - Bodymovin Version</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>w</h3>
+<section>
+<h4>Title: Width - Composition Width</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/effects/angle'>Schema: #/effects/angle</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions. NOT USED. EQUALS SLIDER.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:0.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>v</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/effects/checkbox'>Schema: #/effects/checkbox</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:7.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>v</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='./properties/value'>./properties/value</a>
+</section>
+<section>
+<a href='./properties/valueKeyframed'>./properties/valueKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/effects/color'>Schema: #/effects/color</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:2.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>v</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/effects/customValue'>Schema: #/effects/customValue</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+</section>
+<h1 id='/effects/dropDown'>Schema: #/effects/dropDown</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:7.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>v</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/effects/fill'>Schema: #/effects/fill</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - Effect List of properties.</h4>
+<div><b>Type:</b> array </div>
+<section>
+<a href='#/effects/point'>#/effects/point</a>
+</section>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:21.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/effects/group'>Schema: #/effects/group</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - Effect List of properties.</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/effects/index'>#/effects/index</a>
+</section>
+</section>
+</section>
+<h3>en</h3>
+<section>
+<h4>Title:  - Enabled AE property value</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:5.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/effects/index'>Schema: #/effects/index</h1><section>
+<h2>One Of</h2>
+<section>
+<a href='#/effects/slider'>#/effects/slider</a>
+</section>
+<section>
+<a href='#/effects/angle'>#/effects/angle</a>
+</section>
+<section>
+<a href='#/effects/color'>#/effects/color</a>
+</section>
+<section>
+<a href='#/effects/point'>#/effects/point</a>
+</section>
+<section>
+<a href='#/effects/checkbox'>#/effects/checkbox</a>
+</section>
+<section>
+<a href='#/effects/group'>#/effects/group</a>
+</section>
+<section>
+<a href='#/effects/noValue'>#/effects/noValue</a>
+</section>
+<section>
+<a href='#/effects/dropDown'>#/effects/dropDown</a>
+</section>
+<section>
+<a href='#/effects/customValue'>#/effects/customValue</a>
+</section>
+<section>
+<a href='#/effects/index'>#/effects/index</a>
+</section>
+<section>
+<a href='#/effects/tint'>#/effects/tint</a>
+</section>
+<section>
+<a href='#/effects/fill'>#/effects/fill</a>
+</section>
+<section>
+<a href='#/effects/stroke'>#/effects/stroke</a>
+</section>
+<section>
+<a href='#/effects/tritone'>#/effects/tritone</a>
+</section>
+<section>
+<a href='#/effects/proLevels'>#/effects/proLevels</a>
+</section>
+</section>
+<h1 id='/effects/noValue'>Schema: #/effects/noValue</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b>  </div>
+</section>
+<h1 id='/effects/point'>Schema: #/effects/point</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:2.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>v</h3>
+<section>
+<h4>Title: Value - Effect value.</h4>
+<div><b>Type:</b> object </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/effects/proLevels'>Schema: #/effects/proLevels</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - ffect List of properties.</h4>
+<div><b>Type:</b> array </div>
+<section>
+<a href='#/effects/dropDown'>#/effects/dropDown</a>
+</section>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:23.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/effects/slider'>Schema: #/effects/slider</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:0.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>v</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/effects/stroke'>Schema: #/effects/stroke</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - Effect List of properties.</h4>
+<div><b>Type:</b> array </div>
+<section>
+<a href='#/effects/color'>#/effects/color</a>
+</section>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:22.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/effects/tint'>Schema: #/effects/tint</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - ffect List of properties.</h4>
+<div><b>Type:</b> array </div>
+<section>
+<a href='#/effects/color'>#/effects/color</a>
+</section>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:20.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/effects/tritone'>Schema: #/effects/tritone</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - Effect List of properties.</h4>
+<div><b>Type:</b> array </div>
+<section>
+<a href='#/effects/color'>#/effects/color</a>
+</section>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title: Effect Index - Effect Index. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Effect type. Value:23.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/helpers/blendMode'>Schema: #/helpers/blendMode</h1><section>
+<h2>One Of</h2>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+</section>
+<h1 id='/helpers/boolean'>Schema: #/helpers/boolean</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+</section>
+<h1 id='/helpers/lineCap'>Schema: #/helpers/lineCap</h1><section>
+<h2>One Of</h2>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+</section>
+<h1 id='/helpers/lineJoin'>Schema: #/helpers/lineJoin</h1><section>
+<h2>One Of</h2>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h3>Title:  - </h3>
+<div><b>Type:</b>  </div>
+</section>
+</section>
+<h1 id='/helpers/mask'>Schema: #/helpers/mask</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>inv</h3>
+<section>
+<h4>Title: Inverted - Inverted Mask flag</h4>
+<div><b>Type:</b> boolean </div>
+</section>
+<h3>mode</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - Mask name. Used for expressions and effects.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>o</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>pt</h3>
+<section>
+<h4>Title: Points - Mask vertices</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/properties/shape'>#/properties/shape</a>
+</section>
+<section>
+<a href='#/properties/shapeKeyframed'>#/properties/shapeKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/helpers/transform'>Schema: #/helpers/transform</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>o</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>p</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>px</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>py</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>r</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>s</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/layers/comp'>Schema: #/layers/comp</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ao</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>bm</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/blendMode'>#/helpers/blendMode</a>
+</section>
+</section>
+<h3>cl</h3>
+<section>
+<h4>Title: Class - Parsed layer name used as html class on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ddd</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - List of Effects</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/effects/index'>#/effects/index</a>
+</section>
+</section>
+</section>
+<h3>hasMask</h3>
+<section>
+<h4>Title: Has Masks - Boolean when layer has a mask. Will be deprecated in favor of checking maskProperties.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ind</h3>
+<section>
+<h4>Title: Index - Layer index in AE. Used for parenting and expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ip</h3>
+<section>
+<h4>Title: In Point - In Point of layer. Sets the initial frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ks</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/transform'>#/helpers/transform</a>
+</section>
+</section>
+<h3>ln</h3>
+<section>
+<h4>Title: layer HTML ID - Parsed layer name used as html id on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>maskProperties</h3>
+<section>
+<h4>Title: Mask Properties - List of Masks</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/helpers/mask'>#/helpers/mask</a>
+</section>
+</section>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effects Layer Name. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>op</h3>
+<section>
+<h4>Title: Out Point - Out Point of layer. Sets the final frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>parent</h3>
+<section>
+<h4>Title: Parent - Layer Parent. Uses ind of parent.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>refId</h3>
+<section>
+<h4>Title: Reference ID - id pointing to the source composition defined on 'assets' object</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>sr</h3>
+<section>
+<h4>Title: Stretch - Layer Time Stretching</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>st</h3>
+<section>
+<h4>Title: Start Time - Start Time of layer. Sets the start time of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>tm</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Type of layer: Precomp. Value 0.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/layers/image'>Schema: #/layers/image</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ao</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>bm</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/blendMode'>#/helpers/blendMode</a>
+</section>
+</section>
+<h3>cl</h3>
+<section>
+<h4>Title: Class - Parsed layer name used as html class on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ddd</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - List of Effects</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/effects/index'>#/effects/index</a>
+</section>
+</section>
+</section>
+<h3>hasMask</h3>
+<section>
+<h4>Title: Has Masks - Boolean when layer has a mask. Will be deprecated in favor of checking maskProperties.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ind</h3>
+<section>
+<h4>Title: Index - Layer index in AE. Used for parenting and expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ip</h3>
+<section>
+<h4>Title: In Point - In Point of layer. Sets the initial frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ks</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/transform'>#/helpers/transform</a>
+</section>
+</section>
+<h3>ln</h3>
+<section>
+<h4>Title: layer HTML ID - Parsed layer name used as html id on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>maskProperties</h3>
+<section>
+<h4>Title: Mask Properties - List of Masks</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/helpers/mask'>#/helpers/mask</a>
+</section>
+</section>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effects Layer Name. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>op</h3>
+<section>
+<h4>Title: Out Point - Out Point of layer. Sets the final frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>parent</h3>
+<section>
+<h4>Title: Parent - Layer Parent. Uses ind of parent.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>refId</h3>
+<section>
+<h4>Title: Reference ID - id pointing to the source image defined on 'assets' object</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>sr</h3>
+<section>
+<h4>Title: Stretch - Layer Time Stretching</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>st</h3>
+<section>
+<h4>Title: Start Time - Start Time of layer. Sets the start time of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Type of layer: Image. Value 2.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/layers/null'>Schema: #/layers/null</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ao</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>cl</h3>
+<section>
+<h4>Title: Class - Parsed layer name used as html class on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ddd</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - List of Effects</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/effects/index'>#/effects/index</a>
+</section>
+</section>
+</section>
+<h3>ind</h3>
+<section>
+<h4>Title: Index - Layer index in AE. Used for parenting and expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ip</h3>
+<section>
+<h4>Title: In Point - In Point of layer. Sets the initial frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ks</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/transform'>#/helpers/transform</a>
+</section>
+</section>
+<h3>ln</h3>
+<section>
+<h4>Title: layer HTML ID - Parsed layer name used as html id on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effects Layer Name. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>op</h3>
+<section>
+<h4>Title: Out Point - Out Point of layer. Sets the final frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>parent</h3>
+<section>
+<h4>Title: Parent - Layer Parent. Uses ind of parent.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>sr</h3>
+<section>
+<h4>Title: Stretch - Layer Time Stretching</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>st</h3>
+<section>
+<h4>Title: Start Time - Start Time of layer. Sets the start time of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Type of layer: Null. Value 3.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/layers/shape'>Schema: #/layers/shape</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ao</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>bm</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/blendMode'>#/helpers/blendMode</a>
+</section>
+</section>
+<h3>cl</h3>
+<section>
+<h4>Title: Class - Parsed layer name used as html class on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ddd</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>ef</h3>
+<section>
+<h4>Title: Effects - List of Effects</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/effects/index'>#/effects/index</a>
+</section>
+</section>
+</section>
+<h3>hasMask</h3>
+<section>
+<h4>Title: Has Masks - Boolean when layer has a mask. Will be deprecated in favor of checking maskProperties.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ind</h3>
+<section>
+<h4>Title: Index - Layer index in AE. Used for parenting and expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ip</h3>
+<section>
+<h4>Title: In Point - In Point of layer. Sets the initial frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>it</h3>
+<section>
+<h4>Title: Items - Shape list of items</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/shapes/shape'>#/shapes/shape</a>
+</section>
+<section>
+<a href='#/shapes/rect'>#/shapes/rect</a>
+</section>
+<section>
+<a href='#/shapes/ellipse'>#/shapes/ellipse</a>
+</section>
+<section>
+<a href='#/shapes/star'>#/shapes/star</a>
+</section>
+<section>
+<a href='#/shapes/fill'>#/shapes/fill</a>
+</section>
+<section>
+<a href='#/shapes/gFill'>#/shapes/gFill</a>
+</section>
+<section>
+<a href='#/shapes/gStroke'>#/shapes/gStroke</a>
+</section>
+<section>
+<a href='#/shapes/stroke'>#/shapes/stroke</a>
+</section>
+<section>
+<a href='#/shapes/merge'>#/shapes/merge</a>
+</section>
+<section>
+<a href='#/shapes/trim'>#/shapes/trim</a>
+</section>
+<section>
+<a href='#/shapes/group'>#/shapes/group</a>
+</section>
+<section>
+<a href='#/shapes/roundedCorners'>#/shapes/roundedCorners</a>
+</section>
+</section>
+</section>
+<h3>ks</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/transform'>#/helpers/transform</a>
+</section>
+</section>
+<h3>ln</h3>
+<section>
+<h4>Title: layer HTML ID - Parsed layer name used as html id on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>maskProperties</h3>
+<section>
+<h4>Title: Mask Properties - List of Masks</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/helpers/mask'>#/helpers/mask</a>
+</section>
+</section>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effects Layer Name. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>op</h3>
+<section>
+<h4>Title: Out Point - Out Point of layer. Sets the final frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>parent</h3>
+<section>
+<h4>Title: Parent - Layer Parent. Uses ind of parent.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>sr</h3>
+<section>
+<h4>Title: Stretch - Layer Time Stretching</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>st</h3>
+<section>
+<h4>Title: Start Time - Start Time of layer. Sets the start time of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Type of layer: Shape. Value 4.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/layers/solid'>Schema: #/layers/solid</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ao</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>bm</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/blendMode'>#/helpers/blendMode</a>
+</section>
+</section>
+<h3>cl</h3>
+<section>
+<h4>Title: Class - Parsed layer name used as html class on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ddd</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>ef</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>hasMask</h3>
+<section>
+<h4>Title: Has Masks - Boolean when layer has a mask. Will be deprecated in favor of checking maskProperties.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ind</h3>
+<section>
+<h4>Title: Index - Layer index in AE. Used for parenting and expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ip</h3>
+<section>
+<h4>Title: In Point - In Point of layer. Sets the initial frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ks</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/transform'>#/helpers/transform</a>
+</section>
+</section>
+<h3>ln</h3>
+<section>
+<h4>Title: layer HTML ID - Parsed layer name used as html id on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>maskProperties</h3>
+<section>
+<h4>Title: Mask Properties - List of Masks</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/helpers/mask'>#/helpers/mask</a>
+</section>
+</section>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effects Layer Name. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>op</h3>
+<section>
+<h4>Title: Out Point - Out Point of layer. Sets the final frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>parent</h3>
+<section>
+<h4>Title: Parent - Layer Parent. Uses ind of parent.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>sc</h3>
+<section>
+<h4>Title: Solid Color - Color of the solid in hex</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>sh</h3>
+<section>
+<h4>Title: Solid Height - Height of the solid.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>sr</h3>
+<section>
+<h4>Title: Stretch - Layer Time Stretching</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>st</h3>
+<section>
+<h4>Title: Start Time - Start Time of layer. Sets the start time of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>sw</h3>
+<section>
+<h4>Title: Solid Width - Width of the solid.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Type of layer: Solid. Value 1.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/layers/text'>Schema: #/layers/text</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ao</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>bm</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/blendMode'>#/helpers/blendMode</a>
+</section>
+</section>
+<h3>cl</h3>
+<section>
+<h4>Title: Class - Parsed layer name used as html class on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ddd</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>ef</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/boolean'>#/helpers/boolean</a>
+</section>
+</section>
+<h3>hasMask</h3>
+<section>
+<h4>Title: Has Masks - Boolean when layer has a mask. Will be deprecated in favor of checking maskProperties.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ind</h3>
+<section>
+<h4>Title: Index - Layer index in AE. Used for parenting and expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ip</h3>
+<section>
+<h4>Title: In Point - In Point of layer. Sets the initial frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ks</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/transform'>#/helpers/transform</a>
+</section>
+</section>
+<h3>ln</h3>
+<section>
+<h4>Title: layer HTML ID - Parsed layer name used as html id on SVG/HTML renderer</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>maskProperties</h3>
+<section>
+<h4>Title: Mask Properties - List of Masks</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/helpers/mask'>#/helpers/mask</a>
+</section>
+</section>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effects Layer Name. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>op</h3>
+<section>
+<h4>Title: Out Point - Out Point of layer. Sets the final frame of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>parent</h3>
+<section>
+<h4>Title: Parent - Layer Parent. Uses ind of parent.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>sr</h3>
+<section>
+<h4>Title: Stretch - Layer Time Stretching</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>st</h3>
+<section>
+<h4>Title: Start Time - Start Time of layer. Sets the start time of the layer.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>t</h3>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Type of layer: Text. Value 5.</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/properties/Value'>Schema: #/properties/Value</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<section>
+<h4>Title:  - Property Value</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/properties/multiDimensional'>Schema: #/properties/multiDimensional</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<section>
+<h4>Title:  - Property Value</h4>
+<div><b>Type:</b> array </div>
+</section>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/properties/multiDimensionalKeyframed'>Schema: #/properties/multiDimensionalKeyframed</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<h3>ti</h3>
+<section>
+<h4>Title:  - In Spatial Tangent. Only for spatial properties. Array of numbers.</h4>
+<div><b>Type:</b> array </div>
+</section>
+<h3>to</h3>
+<section>
+<h4>Title:  - Out Spatial Tangent. Only for spatial properties. Array of numbers.</h4>
+<div><b>Type:</b> array </div>
+</section>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/properties/shape'>Schema: #/properties/shape</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/properties/shapeKeyframed'>Schema: #/properties/shapeKeyframed</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<h3>ti</h3>
+<section>
+<h4>Title:  - In Spatial Tangent. Only for spatial properties. Array of numbers.</h4>
+<div><b>Type:</b> array </div>
+</section>
+<h3>to</h3>
+<section>
+<h4>Title:  - Out Spatial Tangent. Only for spatial properties. Array of numbers.</h4>
+<div><b>Type:</b> array </div>
+</section>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/properties/value'>Schema: #/properties/value</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<section>
+<h4>Title:  - Property Value</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/properties/valueKeyframed'>Schema: #/properties/valueKeyframed</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/ellipse'>Schema: #/shapes/ellipse</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>d</h3>
+<section>
+<h4>Title: Direction - After Effect's Direction. Direction how the shape is drawn. Used for trim path for example.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>p</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>s</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: el</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/fill'>Schema: #/shapes/fill</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>c</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>o</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: fl</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/gFill'>Schema: #/shapes/gFill</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>e</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>g</h3>
+<section>
+<h4>Title: Gradient Colors - Gradient Colors</h4>
+<div><b>Type:</b> object </div>
+</section>
+<h3>h</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>o</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>s</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>t</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: gf</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/gStroke'>Schema: #/shapes/gStroke</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>e</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>g</h3>
+<section>
+<h4>Title: Gradient Colors - Gradient Colors</h4>
+<div><b>Type:</b> object </div>
+</section>
+<h3>h</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>lc</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/lineCap'>#/helpers/lineCap</a>
+</section>
+</section>
+<h3>lj</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/lineJoin'>#/helpers/lineJoin</a>
+</section>
+</section>
+<h3>ml</h3>
+<section>
+<h4>Title: Miter Limit - Gradient Stroke Miter Limit. Only if Line Join is set to Miter.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>o</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>s</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>t</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: gs</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>w</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/shapes/group'>Schema: #/shapes/group</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>it</h3>
+<section>
+<h4>Title: Items - Group list of items</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/shapes/shape'>#/shapes/shape</a>
+</section>
+<section>
+<a href='#/shapes/rect'>#/shapes/rect</a>
+</section>
+<section>
+<a href='#/shapes/ellipse'>#/shapes/ellipse</a>
+</section>
+<section>
+<a href='#/shapes/star'>#/shapes/star</a>
+</section>
+<section>
+<a href='#/shapes/fill'>#/shapes/fill</a>
+</section>
+<section>
+<a href='#/shapes/gFill'>#/shapes/gFill</a>
+</section>
+<section>
+<a href='#/shapes/gStroke'>#/shapes/gStroke</a>
+</section>
+<section>
+<a href='#/shapes/stroke'>#/shapes/stroke</a>
+</section>
+<section>
+<a href='#/shapes/merge'>#/shapes/merge</a>
+</section>
+<section>
+<a href='#/shapes/trim'>#/shapes/trim</a>
+</section>
+<section>
+<a href='#/shapes/group'>#/shapes/group</a>
+</section>
+<section>
+<a href='#/shapes/roundedCorners'>#/shapes/roundedCorners</a>
+</section>
+<section>
+<a href='#/shapes/transform'>#/shapes/transform</a>
+</section>
+</section>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>np</h3>
+<section>
+<h4>Title: Number of Properties - Group number of properties. Used for expressions.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: gr</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/merge'>Schema: #/shapes/merge</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>mm</h3>
+<section>
+<h4>Title: Merge Mode - Merge Mode</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: tm. THIS FEATURE IS NOT SUPPORTED. It's exported because if you export it, they will come.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/rect'>Schema: #/shapes/rect</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>d</h3>
+<section>
+<h4>Title: Direction - After Effect's Direction. Direction how the shape is drawn. Used for trim path for example.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>p</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>r</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>s</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: rc</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/roundedCorners'>Schema: #/shapes/roundedCorners</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>r</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: rd</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/shape'>Schema: #/shapes/shape</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>d</h3>
+<section>
+<h4>Title: Direction - After Effect's Direction. Direction how the shape is drawn. Used for trim path for example.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ks</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/shape'>#/properties/shape</a>
+</section>
+<section>
+<a href='#/properties/shapeKeyframed'>#/properties/shapeKeyframed</a>
+</section>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: sh</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/star'>Schema: #/shapes/star</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>d</h3>
+<section>
+<h4>Title: Direction - After Effect's Direction. Direction how the shape is drawn. Used for trim path for example.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ir</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>is</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>p</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>pt</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>r</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>sy</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+<section>
+<h5>Title:  - </h5>
+<div><b>Type:</b>  </div>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: sr</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/shapes/stroke'>Schema: #/shapes/stroke</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>c</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>lc</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/lineCap'>#/helpers/lineCap</a>
+</section>
+</section>
+<h3>lj</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/helpers/lineJoin'>#/helpers/lineJoin</a>
+</section>
+</section>
+<h3>ml</h3>
+<section>
+<h4>Title: Miter Limit - Stroke Miter Limit. Only if Line Join is set to Miter.</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>o</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: st</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>w</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/shapes/transform'>Schema: #/shapes/transform</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>o</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>p</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>r</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>s</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/multiDimensional'>#/properties/multiDimensional</a>
+</section>
+<section>
+<a href='#/properties/multiDimensionalKeyframed'>#/properties/multiDimensionalKeyframed</a>
+</section>
+</section>
+<h3>sa</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>sk</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/value'>#/properties/value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/shapes/trim'>Schema: #/shapes/trim</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>e</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>mn</h3>
+<section>
+<h4>Title: Match Name - After Effect's Match Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>nm</h3>
+<section>
+<h4>Title: Name - After Effect's Name. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>o</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>s</h3>
+<section>
+<h4>One Of</h4>
+<section>
+<a href='#/properties/Value'>#/properties/Value</a>
+</section>
+<section>
+<a href='#/properties/valueKeyframed'>#/properties/valueKeyframed</a>
+</section>
+</section>
+<h3>ty</h3>
+<section>
+<h4>Title: Type - Shape content type. Value: tm</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/sources/chars'>Schema: #/sources/chars</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>ch</h3>
+<section>
+<h4>Title: Character - Character Value</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>data</h3>
+<h3>fFamily</h3>
+<section>
+<h4>Title: Font Family - Character Font Family</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>size</h3>
+<section>
+<h4>Title: Font Size - Character Font Size</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>style</h3>
+<section>
+<h4>Title: Font Style - Character Font Style</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>w</h3>
+<section>
+<h4>Title: Width - Character Width</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/sources/image'>Schema: #/sources/image</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>h</h3>
+<section>
+<h4>Title: Height - Image Height</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>id</h3>
+<section>
+<h4>Title: ID - Image ID</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>p</h3>
+<section>
+<h4>Title: Image name - Image name</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>u</h3>
+<section>
+<h4>Title: Image path - Image path</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>w</h3>
+<section>
+<h4>Title: Width - Image Width</h4>
+<div><b>Type:</b> number </div>
+</section>
+</section>
+</section>
+<h1 id='/sources/precomp'>Schema: #/sources/precomp</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>id</h3>
+<section>
+<h4>Title: ID - Precomp ID</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>layers</h3>
+<section>
+<h4>Title: Layers - List of Precomp Layers</h4>
+<div><b>Type:</b> array </div>
+<section>
+<h6>One Of</h6>
+<section>
+<a href='#/layers/shape'>#/layers/shape</a>
+</section>
+<section>
+<a href='#/layers/solid'>#/layers/solid</a>
+</section>
+<section>
+<a href='#/layers/comp'>#/layers/comp</a>
+</section>
+<section>
+<a href='#/layers/image'>#/layers/image</a>
+</section>
+<section>
+<a href='#/layers/null'>#/layers/null</a>
+</section>
+<section>
+<a href='#/layers/text'>#/layers/text</a>
+</section>
+</section>
+</section>
+</section>
+</section>
+<h1 id='/properties/value'>Schema: ./properties/value</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<section>
+<h4>Title:  - Property Value</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+<h1 id='/properties/valueKeyframed'>Schema: ./properties/valueKeyframed</h1><section>
+<h2>Title:  - </h2>
+<div><b>Type:</b> object </div>
+<section>
+<h2>Properties</h2>
+<h3>a</h3>
+<section>
+<h4>Title:  - Defines if property is animated</h4>
+<div><b>Type:</b> number </div>
+</section>
+<h3>ix</h3>
+<section>
+<h4>Title:  - Property Index. Used for expressions.</h4>
+<div><b>Type:</b> string </div>
+</section>
+<h3>k</h3>
+<h3>x</h3>
+<section>
+<h4>Title:  - Property Expression. An AE expression that modifies the value.</h4>
+<div><b>Type:</b> string </div>
+</section>
+</section>
+</section>
+  </body>
+</html>
