@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "36002d67_6bbb93c4",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-15T20:01:44Z",
+      "side": 1,
+      "message": "I see, so this is not actually used? In that case, maybe return an error when vm.ServiceAccount is not set for this project in createInstance?\n\nI thought this was the account used to create instances, but I see that\u0027s not correct.",
+      "parentUuid": "7c43f1e8_a7d44fff",
+      "revId": "19c6b1c75afe26804f6a8cb586518e6064c76ad3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d1b3756_0ffa4b2b",
         "filename": "go/gce/gce.go",
         "patchSetId": 8
@@ -72,6 +90,30 @@
       "side": 1,
       "message": "Sure, I can do that.  Only ugly thing is that the current project has the \"google.com:\" prefix.",
       "parentUuid": "3d1b3756_0ffa4b2b",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 56
+      },
+      "revId": "19c6b1c75afe26804f6a8cb586518e6064c76ad3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7a4aec2_be3b71fe",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-15T20:01:44Z",
+      "side": 1,
+      "message": "I think it would be good to have the project name if we expect to be creating additional projects. Otherwise, it doesn\u0027t matter much.",
+      "parentUuid": "3556b4c5_6cd209ae",
       "range": {
         "startLine": 126,
         "startChar": 0,
