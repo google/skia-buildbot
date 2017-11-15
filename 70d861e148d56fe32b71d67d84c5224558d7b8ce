@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eb3bf2f4_b7498c97",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-15T13:04:14Z",
+      "side": 1,
+      "message": "I don\u0027t think I have ever used the dry_run flag :)\nI vote to remove.",
+      "parentUuid": "cfc68441_d3dda867",
+      "revId": "70d861e148d56fe32b71d67d84c5224558d7b8ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "73d982d3_b5130aec",
         "filename": "go/exec/exec.go",
         "patchSetId": 2
