@@ -260,15 +260,13 @@ sk_sp&lt;SkImage> image;</pre>
     <template is="dom-if" if="{{_hasImages(fiddlehash, _compile_errors, _runtime_error, textonly)}}">
       <div id=results class="horizontal layout self-start">
 
-        <template is="dom-if" if="{{_showCpu(gpu_embedded,embedded)}}">
+        <template is="dom-if" if="{{_showCpu(cpu_embedded,gpu_embedded,embedded)}}">
           <template is="dom-if" if="{{_not(animated)}}">
             <div class="vertical layout center-justified">
               <img src="[[domain]]/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
-              <template is="dom-if" if="{{_not(embedded)}}">
-                <p>
-                  CPU
-                </p>
-              </template>
+              <p>
+                CPU
+              </p>
             </div>
           </template>
           <template is="dom-if" if="{{animated}}">
@@ -451,6 +449,11 @@ sk_sp&lt;SkImage> image;</pre>
         value: false,
         reflectToAttribute: true,
       },
+      cpu_embedded: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
       _compile_errors: {
         type: Array,
         value: function() { return []; },
@@ -612,8 +615,8 @@ sk_sp&lt;SkImage> image;</pre>
       return domain + "/i/" + fiddlehash + "_glinfo.txt";
     },
 
-    _showCpu: function(gpu_embedded, embedded) {
-      return !embedded || !gpu_embedded;
+    _showCpu: function(cpu_embedded, gpu_embedded, embedded) {
+      return cpu_embedded || (!embedded || !gpu_embedded);
     },
 
     _showGpu: function(gpu_embedded, embedded) {
