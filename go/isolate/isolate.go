@@ -24,7 +24,7 @@ import (
 const (
 	DEFAULT_NAMESPACE          = "default-gzip"
 	ISOLATE_EXE_SHA1           = "3c3d1bff685b4875937af0771f2f5b1c6a705a11"
-	ISOLATESERVER_EXE_SHA1     = "23dfc04c65f2ddf2f8dc8dce0fcdcf57ed6b98a3"
+	ISOLATESERVER_EXE_SHA1     = "14fbcbf14cc965be0527088cb683538ad5855ffb"
 	ISOLATE_SERVER_URL         = "https://isolateserver.appspot.com"
 	ISOLATE_SERVER_URL_FAKE    = "fake"
 	ISOLATE_SERVER_URL_PRIVATE = "https://chrome-isolated.appspot.com"
