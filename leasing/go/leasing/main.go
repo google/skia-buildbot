@@ -368,7 +368,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
 			return
 		}
-		isolateDetails, err = GetIsolateDetails(t.Request.Properties.InputsRef)
+		isolateDetails, err = GetIsolateDetails(t.Request.Properties)
 		if err != nil {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Could not get isolate details of task %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
 			return
