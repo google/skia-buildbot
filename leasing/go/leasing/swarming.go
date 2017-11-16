@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os/user"
 	"path"
 	"strings"
 
@@ -56,6 +57,8 @@ var (
 		"CTAndroidBuilder": InternalSwarming,
 		"CTLinuxBuilder":   InternalSwarming,
 	}
+
+	isolateServerPath string
 )
 
 func SwarmingInit() error {
@@ -87,6 +90,13 @@ func SwarmingInit() error {
 	if err != nil {
 		return fmt.Errorf("Failed to create private swarming client: %s", err)
 	}
+
+	// Set path to the isolateserver.py script.
+	usr, err := user.Current()
+	if err != nil {
+		return fmt.Errorf("Failed to find the current user: %s", err)
+	}
+	isolateServerPath = path.Join(usr.HomeDir, "client-py", "isolateserver.py")
 
 	return nil
 }
@@ -161,7 +171,7 @@ func GetIsolateDetails(inputsRef *swarming_api.SwarmingRpcsFilesRef) (*IsolateDe
 	}
 	defer util.Remove(f.Name())
 	cmd := []string{
-		"isolateserver.py", "download",
+		isolateServerPath, "download",
 		"-I", inputsRef.Isolatedserver,
 		"--namespace", inputsRef.Namespace,
 		"-f", inputsRef.Isolated, path.Base(f.Name()),
