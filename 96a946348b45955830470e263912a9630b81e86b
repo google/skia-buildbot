@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3de8b350_88fda042",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-16T13:35:43Z",
+      "side": 1,
+      "message": "nit: Skia Infra CQ bots",
+      "range": {
+        "startLine": 99,
+        "startChar": 32,
+        "endLine": 99,
+        "endChar": 36
+      },
+      "revId": "96a946348b45955830470e263912a9630b81e86b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46b89f6d_a91a5806",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-16T13:35:43Z",
+      "side": 1,
+      "message": "This for loop is a bit opaque for me.  A few comments would help make this more skimmable and easy to understand.",
+      "revId": "96a946348b45955830470e263912a9630b81e86b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
