@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79c2dcab_00e2a3e8",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-16T13:05:09Z",
+      "side": 1,
+      "message": "Would it be possible to put this in the email too?",
+      "range": {
+        "startLine": 38,
+        "startChar": 15,
+        "endLine": 38,
+        "endChar": 28
+      },
+      "revId": "ae30ce8d4e36833a0a6a59a58345d850d38e6fd6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c368431_90cf85cd",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 11
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-16T13:05:09Z",
+      "side": 1,
+      "message": "nit: double quotes preferred",
+      "range": {
+        "startLine": 94,
+        "startChar": 63,
+        "endLine": 94,
+        "endChar": 64
+      },
+      "revId": "ae30ce8d4e36833a0a6a59a58345d850d38e6fd6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
