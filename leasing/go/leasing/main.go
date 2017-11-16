@@ -363,7 +363,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Isolate artifacts.
 	var isolateDetails *IsolateDetails
 	if task.TaskIdForIsolates != "" {
-		t, err := GetSwarmingTaskMetadata("CT", task.TaskIdForIsolates)
+		t, err := GetSwarmingTaskMetadata(task.SwarmingPool, task.TaskIdForIsolates)
 		if err != nil {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
 			return
