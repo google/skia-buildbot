@@ -15,7 +15,6 @@ ${INSTALL} --mode=644 -T  ./sys/${APPNAME}.service   ${ROOT}/etc/systemd/system/
 ${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle       ${ROOT}/usr/local/bin/fiddle
 ${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle_build ${ROOT}/usr/local/bin/fiddle_build
 ${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle_run   ${ROOT}/mnt/pd0/fiddle/bin/fiddle_run
-${INSTALL} --mode=755 -T  fiddle_secwrap             ${ROOT}/mnt/pd0/fiddle/bin/fiddle_secwrap
 ${INSTALL_DIR} --mode=755 ${ROOT}/usr/local/share/fiddle/templates
 ${INSTALL} --mode=644     ./templates/*              ${ROOT}/usr/local/share/fiddle/templates
 ${INSTALL} --mode=644 -T  ./res/js/core.js           ${ROOT}/usr/local/share/fiddle/res/js/core.js
