@@ -4,6 +4,7 @@ package coverageingest
 // the results from our LLVM-based coverage tasks
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"fmt"
@@ -91,7 +92,7 @@ func (n *gcsingester) getCoverage(cacheKey string, folders ...string) (common.Co
 	if obj, ok := n.cache.CheckCache(cacheKey); ok {
 		return obj, nil
 	}
-	if cov, err := calculateCoverage(folders...); err != nil {
+	if cov, err := calculateCoverage("", folders...); err != nil {
 		return common.CoverageSummary{}, err
 	} else {
 		return cov, n.cache.StoreToCache(cacheKey, cov)
@@ -102,9 +103,14 @@ func (n *gcsingester) getCoverage(cacheKey string, folders ...string) (common.Co
 // to get a complete picture of the coverage. It is a variable for easier mocking.
 var calculateCoverage = defaultCalculateTotalCoverage
 
-func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, error) {
+func defaultCalculateTotalCoverage(outputPath string, folders ...string) (common.CoverageSummary, error) {
 	if len(folders) == 0 {
 		return common.CoverageSummary{}, nil
+	}
+	if outputPath != "" {
+		if _, err := fileutil.EnsureDirExists(path.Join(outputPath, "coverage")); err != nil {
+			return common.CoverageSummary{}, fmt.Errorf("Could not create output directories: %s", err)
+		}
 	}
 	totalLines := 0
 	missedLines := 0
@@ -133,6 +139,11 @@ func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, e
 		}
 	}
 
+	summaryData := coverageSummaryTemplateData{
+		Commit:  "TODO(kjlubick)",
+		JobName: "TODO(kjlubick",
+	}
+
 	// Go through all the relative files and figure out the coverage data for them.
 	// We union together all the data for the same relative file (e.g. the CPU config's
 	// coverage of DM.cpp and the GPU config's coverage of DM.cpp), then add that data
@@ -150,11 +161,53 @@ func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, e
 			newlyCovered := parseLinesCovered(string(contents))
 			linesCovered = linesCovered.Union(newlyCovered)
 		}
-		totalLines += linesCovered.Total()
-		missedLines += linesCovered.Missed()
+		totalLines += linesCovered.TotalExecutable()
+		missedLines += linesCovered.MissedExecutable()
+		percent := "--"
+		if tl, ml := linesCovered.TotalExecutable(), linesCovered.MissedExecutable(); tl != 0 {
+			percent = fmt.Sprintf("%1.2f", float32(tl-ml)/float32(tl))
+		}
+		summaryData.Files = append(summaryData.Files, summaryFile{
+			FileName:     trimRelPath(rp),
+			CoveredLines: linesCovered.TotalExecutable() - linesCovered.MissedExecutable(),
+			TotalLines:   linesCovered.TotalExecutable(),
+			PercentLines: percent,
+		})
+		if outputPath != "" {
+			toWrite := path.Join(outputPath, "coverage", trimRelPath(rp)+".html")
+			if err := fileutil.EnsureDirPathExists(toWrite); err != nil {
+				return common.CoverageSummary{}, err
+			}
+			content, err := linesCovered.ToHTMLPage(TemplateData{
+				FileName: rp,
+				Commit:   "TODO(kjlubick)",
+				JobName:  "Todo(kjlubick)",
+			})
+			if err != nil {
+				return common.CoverageSummary{}, err
+			}
+			if err := ioutil.WriteFile(toWrite, []byte(content), 0644); err != nil {
+				return common.CoverageSummary{}, err
+			}
+		}
+	}
+
+	if outputPath != "" {
+		sort.Sort(summaryData.Files)
+		b := bytes.Buffer{}
+		if err := HTML_TEMPLATE_SUMMARY.Execute(&b, summaryData); err != nil {
+			return common.CoverageSummary{}, err
+		}
+		if err := ioutil.WriteFile(path.Join(outputPath, "index.html"), []byte(b.String()), 0644); err != nil {
+			return common.CoverageSummary{}, err
+		}
 	}
 
 	return common.CoverageSummary{TotalLines: totalLines, MissedLines: missedLines}, nil
+}
+
+func trimRelPath(p string) string {
+	return strings.TrimPrefix(p, "/mnt/pd0/work/skia/")
 }
 
 // IngestCommits fulfills the Ingester interface.
