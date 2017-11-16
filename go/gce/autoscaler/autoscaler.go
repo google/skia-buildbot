@@ -39,7 +39,7 @@ func NewAutoscaler(zone, workdir string, minInstanceNum, maxInstanceNum int, get
 	if err != nil {
 		return nil, err
 	}
-	g, err := gce.NewGCloudWithClient(zone, wdAbs, httpClient)
+	g, err := gce.NewGCloudWithClient(gce.PROJECT_ID_SERVER, zone, wdAbs, httpClient)
 	if err != nil {
 		return nil, err
 	}
