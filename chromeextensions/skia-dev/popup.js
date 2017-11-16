@@ -4,6 +4,16 @@
 
 (function(){
 
+  var MAX_SUBJECT_LENGTH = 40;
+
+  function loggedInAs() {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", "https://skia.org/loginstatus/", false);
+    xmlHttp.send(null);
+    var loginStatus = JSON.parse(xmlHttp.responseText);
+    return loginStatus["Email"];
+  }
+
   function linkify(wrapMe, link) {
     return '<a href="' + link + '" target="_blank">' + wrapMe + '</a>'
   }
@@ -130,42 +140,93 @@
     });
   }
 
-  function addMasterStatusRow(master) {
-    var table = document.getElementById('status-table');
+  function addGerritChanges() {
+    var username = loggedInAs();
+    if (!username) {
+      document.getElementById('errors').innerHTML += 'Log in to skia.org to view your Gerrit changes</br>';
+      return
+    }
 
-    var baseURL = 'http://build.chromium.org/p/' + master;
-    var consoleURL = baseURL + '/console';
-    var statusURL = baseURL + '/horizontal_one_box_per_builder';
+    var listChangesURL =
+        "http://skia-review.googlesource.com/changes/?q=status:open+owner:" +
+        loggedInAs() + "&o=LABELS";
+    var inCQChanges = []
+    var approvedChanges = []
+    var waitingForApprovalChanges = []
+    var wipChanges = []
 
-    var row = table.insertRow(-1);
-    row.className = 'trunk-status-row ' + master;
-    var label = row.insertCell(-1);
-    label.className = 'status-label';
-    var labelAnchor = document.createElement('a');
-    labelAnchor.href = consoleURL;
-    labelAnchor.target = '_blank';
-    labelAnchor.id = 'link_' + master;
-    labelAnchor.textContent = master;
-    label.appendChild(labelAnchor);
+    sk.get(listChangesURL).then(function(resp) {
+      // Remove JSON anti-hijacking prefix.
+      var responseText = resp.substring(')]}\'\n'.length);
+      var json = JSON.parse(responseText);
 
-    var status = row.insertCell(-1);
-    status.className = 'trunk-status-cell';
-    var statusIframe = document.createElement('iframe');
-    statusIframe.scrolling = 'no';
-    statusIframe.src = statusURL;
-    status.appendChild(statusIframe);
+      json.forEach(function(change) {
+        if (change.has_review_started && !change.subject.startsWith("WIP: ")) {
+          // Review has started so it is in one of 3 states:
+          // * CQ running.
+          // * Approved but not sent to CQ yet.
+          // * Waiting for approval.
+          if (change.labels) {
+            if(change.labels["Commit-Queue"] && change.labels["Commit-Queue"].approved) {
+              inCQChanges.push(change);
+            } else if(change.labels["Code-Review"] && change.labels["Code-Review"].approved) {
+              approvedChanges.push(change);
+            } else {
+              console.log(change)
+              waitingForApprovalChanges.push(change);
+            }
+          }
+        } else {
+          // Review has not started so it is WIP.
+          wipChanges.push(change);
+        }
+      });
+
+      addChangesToTable('In Commit Queue', 'in-cq', inCQChanges)
+      addChangesToTable('Approved', 'approved', approvedChanges)
+      addChangesToTable('Under Review', 'under-review', waitingForApprovalChanges)
+      addChangesToTable('WIP', 'wip', wipChanges)
+
+    }).catch(function(err) {
+      console.log(err);
+      document.getElementById('errors').innerHTML += 'Error connecting to skia-review</br>';
+    });
+
   }
 
-  function addMasterStatusRows() {
-    var masters = [
-      'client.skia',
-      'client.skia.android',
-      'client.skia.compile',
-      'client.skia.fyi'
-    ];
+  function addChangesToTable(state, stateClassName, changes, table) {
+    if (!changes.length) {
+      return
+    }
+    var table = document.getElementById('gerrit-changes');
+    changes.forEach(function(change) {
+      var changeRow = table.insertRow(-1);
 
-    masters.forEach(function(master) {
-      addMasterStatusRow(master);
+      // Add link to the change
+      var linkCol = changeRow.insertCell(-1);
+      var linkAnchor = document.createElement('a');
+      linkAnchor.href = 'https://skia-review.googlesource.com/c/' + change._number;
+      linkAnchor.target = '_blank';
+      linkAnchor.textContent = 'skrev/' + change._number;
+      linkCol.appendChild(linkAnchor);
+
+      // Add subject.
+      var subjRow = changeRow.insertCell(-1);
+      var subjSpan = document.createElement('span');
+      if (change.subject.length > MAX_SUBJECT_LENGTH) {
+        subjSpan.textContent =
+            change.subject.substring(0, MAX_SUBJECT_LENGTH) + "...";
+      } else {
+        subjSpan.textContent = change.subject;
+      }
+      subjRow.appendChild(subjSpan);
+
+      // Add state.
+      var stateRow = changeRow.insertCell(-1);
+      var stateSpan = document.createElement('span');
+      stateSpan.className = stateClassName;
+      stateSpan.textContent = state;
+      stateRow.appendChild(stateSpan);
     });
   }
 
@@ -177,7 +238,7 @@
     setCrRollStatus();
     setAndroidRollStatus();
     setInfraAlerts();
-    // addMasterStatusRows();
+    addGerritChanges();
   }
 
   main();
