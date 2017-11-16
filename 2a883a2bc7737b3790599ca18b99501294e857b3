@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "59fbb0ae_731167b4",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-16T15:00:36Z",
+      "side": 1,
+      "message": "I think the json decoder ignores fields in the json that are not in the struct. I assume a particular json field will always be one type or the other.",
+      "parentUuid": "0bd13e78_36cd325a",
+      "range": {
+        "startLine": 146,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 30
+      },
+      "revId": "2a883a2bc7737b3790599ca18b99501294e857b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c7fa42bc_ec56b123",
         "filename": "datahopper/go/swarming_metrics/bots_test.go",
         "patchSetId": 4
