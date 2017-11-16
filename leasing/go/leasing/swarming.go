@@ -160,10 +160,12 @@ type IsolateDetails struct {
 	Command     []string `json:"command"`
 	RelativeCwd string   `json:"relative_cwd"`
 	IsolateDep  string
+	CipdInput   *swarming_api.SwarmingRpcsCipdInput
 }
 
-func GetIsolateDetails(inputsRef *swarming_api.SwarmingRpcsFilesRef) (*IsolateDetails, error) {
+func GetIsolateDetails(properties *swarming_api.SwarmingRpcsTaskProperties) (*IsolateDetails, error) {
 	details := &IsolateDetails{}
+	inputsRef := properties.InputsRef
 
 	f, err := ioutil.TempFile(*workdir, inputsRef.Isolated+"_")
 	if err != nil {
@@ -186,6 +188,9 @@ func GetIsolateDetails(inputsRef *swarming_api.SwarmingRpcsFilesRef) (*IsolateDe
 		return details, fmt.Errorf("Could not decode %s: %s", output, err)
 	}
 	details.IsolateDep = inputsRef.Isolated
+	details.CipdInput = properties.CipdInput
+	// Append extra arguments to the command.
+	details.Command = append(details.Command, properties.ExtraArgs...)
 
 	return details, nil
 }
@@ -259,6 +264,7 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 		Name:           taskName,
 		Priority:       LEASE_TASK_PRIORITY,
 		Properties: &swarming_api.SwarmingRpcsTaskProperties{
+			CipdInput:            isolateDetails.CipdInput,
 			Dimensions:           dims,
 			ExecutionTimeoutSecs: executionTimeoutSecs,
 			ExtraArgs:            extraArgs,
