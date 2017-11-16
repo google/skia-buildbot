@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -49,22 +50,23 @@ type RepoManager interface {
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
-	infoMtx          sync.RWMutex
-	lastRollRev      string
-	nextRollRev      string
-	repoMtx          sync.RWMutex
-	parentBranch     string
+	childBranch      string
 	childDir         string
 	childPath        string
 	childRepo        *git.Checkout
-	childBranch      string
 	commitsNotRolled int
+	ctx              context.Context
+	g                gerrit.GerritInterface
+	infoMtx          sync.RWMutex
+	lastRollRev      string
+	nextRollRev      string
+	parentBranch     string
 	preUploadSteps   []PreUploadStep
+	repoMtx          sync.RWMutex
 	serverURL        string
 	strategy         NextRollStrategy
 	user             string
 	workdir          string
-	g                gerrit.GerritInterface
 }
 
 // ChildRevList returns a slice of commit hashes from the child repo.
@@ -160,15 +162,15 @@ func (r *depotToolsRepoManager) GetEnvForDepotTools() []string {
 
 // cleanParent forces the parent checkout into a clean state.
 func (r *depotToolsRepoManager) cleanParent() error {
-	if _, err := exec.RunCwd(r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
+	if _, err := exec.Ctx(r.ctx).RunCwd(r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(r.parentDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(r.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", r.parentBranch), "-f"); err != nil {
+	_, _ = exec.Ctx(r.ctx).RunCwd(r.parentDir, "git", "rebase", "--abort")
+	if _, err := exec.Ctx(r.ctx).RunCwd(r.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", r.parentBranch), "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
-	if _, err := exec.RunCommand(&exec.Command{
+	_, _ = exec.Ctx(r.ctx).RunCwd(r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
+	if _, err := exec.Ctx(r.ctx).RunCommand(&exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
 		Name: r.gclient,
@@ -192,10 +194,10 @@ func (r *depotToolsRepoManager) createAndSyncParent() error {
 			return err
 		}
 		// Update the repo.
-		if _, err := exec.RunCwd(r.parentDir, "git", "fetch"); err != nil {
+		if _, err := exec.Ctx(r.ctx).RunCwd(r.parentDir, "git", "fetch"); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(r.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", r.parentBranch)); err != nil {
+		if _, err := exec.Ctx(r.ctx).RunCwd(r.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", r.parentBranch)); err != nil {
 			return err
 		}
 	}
@@ -204,7 +206,7 @@ func (r *depotToolsRepoManager) createAndSyncParent() error {
 	for _, v := range r.depsCustomVars {
 		args = append(args, "--custom-var", v)
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.Ctx(r.ctx).RunCommand(&exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
 		Name: r.gclient,
@@ -212,7 +214,7 @@ func (r *depotToolsRepoManager) createAndSyncParent() error {
 	}); err != nil {
 		return err
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.Ctx(r.ctx).RunCommand(&exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
 		Name: r.gclient,

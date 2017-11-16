@@ -5,6 +5,7 @@ package git
 */
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -27,10 +28,13 @@ type Branch struct {
 }
 
 // GitDir is a directory in which one may run Git commands.
-type GitDir string
+type GitDir struct {
+	ctx context.Context
+	dir string
+}
 
 // newGitDir creates a GitDir instance based in the given directory.
-func newGitDir(repoUrl, workdir string, mirror bool) (GitDir, error) {
+func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (*GitDir, error) {
 	dest := path.Join(workdir, strings.TrimSuffix(path.Base(repoUrl), ".git"))
 	if _, err := os.Stat(dest); err != nil {
 		if os.IsNotExist(err) {
@@ -47,12 +51,15 @@ func newGitDir(repoUrl, workdir string, mirror bool) (GitDir, error) {
 			return "", fmt.Errorf("There is a problem with the git directory: %s", err)
 		}
 	}
-	return GitDir(dest), nil
+	return &GitDir{
+		ctx: ctx,
+		dir: dest,
+	}, nil
 }
 
 // Dir returns the working directory of the GitDir.
-func (g GitDir) Dir() string {
-	return string(g)
+func (g *GitDir) Dir() string {
+	return g.dir
 }
 
 // Git runs the given git command in the GitDir.

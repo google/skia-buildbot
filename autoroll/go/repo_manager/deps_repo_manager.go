@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -29,7 +30,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool, []string, string) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool, []string, string) (RepoManager, error) = newDEPSRepoManager
 
 	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
@@ -49,7 +50,7 @@ type depsRepoManager struct {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool, depsCustomVars []string, serverURL string) (RepoManager, error) {
+func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool, depsCustomVars []string, serverURL string) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -82,6 +83,7 @@ func newDEPSRepoManager(workdir, parentRepo, parentBranch, childPath, childBranc
 				childPath:      childPath,
 				childRepo:      childRepo,
 				childBranch:    childBranch,
+				ctx:            ctx,
 				g:              g,
 				preUploadSteps: preUploadSteps,
 				serverURL:      serverURL,
@@ -142,7 +144,7 @@ func (dr *depsRepoManager) Update() error {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (dr *depsRepoManager) getLastRollRev() (string, error) {
-	output, err := exec.RunCwd(dr.parentDir, dr.gclient, "revinfo")
+	output, err := exec.Ctx(dr.ctx).RunCwd(dr.parentDir, dr.gclient, "revinfo")
 	if err != nil {
 		return "", err
 	}
@@ -169,7 +171,7 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 	if err := dr.cleanParent(); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(dr.parentDir, "git", "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
+	if _, err := exec.Ctx(dr.ctx).RunCwd(dr.parentDir, "git", "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
 		return 0, err
 	}
 
@@ -185,10 +187,10 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
 
-	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.name", dr.user); err != nil {
+	if _, err := exec.Ctx(dr.ctx).RunCwd(dr.parentDir, "git", "config", "user.name", dr.user); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(dr.parentDir, "git", "config", "user.email", dr.user); err != nil {
+	if _, err := exec.Ctx(dr.ctx).RunCwd(dr.parentDir, "git", "config", "user.email", dr.user); err != nil {
 		return 0, err
 	}
 
@@ -214,7 +216,7 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 		args = append(args, "--no-log")
 	}
 	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.Ctx(dr.ctx).RunCommand(&exec.Command{
 		Dir:  dr.parentDir,
 		Env:  dr.GetEnvForDepotTools(),
 		Name: dr.rollDep,
@@ -223,7 +225,7 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 		return 0, err
 	}
 	// Build the commit message, starting with the message provided by roll-dep.
-	commitMsg, err := exec.RunCwd(dr.parentDir, "git", "log", "-n1", "--format=%B", "HEAD")
+	commitMsg, err := exec.Ctx(dr.ctx).RunCwd(dr.parentDir, "git", "log", "-n1", "--format=%B", "HEAD")
 	if err != nil {
 		return 0, err
 	}
@@ -234,7 +236,7 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 
 	// Run the pre-upload steps.
 	for _, s := range dr.PreUploadSteps() {
-		if err := s(dr.parentDir); err != nil {
+		if err := s(dr.ctx, dr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}
@@ -264,7 +266,7 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 
 	// Upload the CL.
 	sklog.Infof("Running command: git %s", strings.Join(uploadCmd.Args, " "))
-	if _, err := exec.RunCommand(uploadCmd); err != nil {
+	if _, err := exec.Ctx(dr.ctx).RunCommand(uploadCmd); err != nil {
 		return 0, err
 	}
 
@@ -275,7 +277,7 @@ func (dr *depsRepoManager) CreateNewRoll(from, to string, emails []string, cqExt
 	}
 	defer util.RemoveAll(tmp)
 	jsonFile := path.Join(tmp, "issue.json")
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.Ctx(dr.ctx).RunCommand(&exec.Command{
 		Dir:  dr.parentDir,
 		Env:  dr.GetEnvForDepotTools(),
 		Name: "git",

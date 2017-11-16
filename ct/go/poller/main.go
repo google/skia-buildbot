@@ -40,7 +40,6 @@ import (
 
 // flags
 var (
-	dryRun       = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	pollInterval = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
 	// Mutex that controls updating and building of the local checkout.
@@ -459,10 +458,8 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 			sklog.Infof("Completed task %s", taskId)
 		} else {
 			sklog.Errorf("Task %s failed: %s", taskId, err)
-			if !*dryRun {
-				if err := updateWebappTaskSetFailed(task); err != nil {
-					sklog.Error(err)
-				}
+			if err := updateWebappTaskSetFailed(task); err != nil {
+				sklog.Error(err)
 			}
 		}
 		tasksMtx.Lock()
@@ -482,13 +479,6 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 func main() {
 	defer common.LogPanic()
 	master_common.InitWithMetrics2("ct-poller", promPort)
-
-	if *dryRun {
-		exec.SetRunForTesting(func(command *exec.Command) error {
-			sklog.Infof("dry_run: %s", exec.DebugString(command))
-			return nil
-		})
-	}
 
 	autoscaler, err := ct_autoscaler.NewCTAutoscaler()
 	if err != nil {

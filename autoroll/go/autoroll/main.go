@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -399,14 +400,15 @@ func main() {
 			TimeWindow:   parsed,
 		}
 	}
+	ctx := context.Background()
 	if *rollIntoAndroid {
-		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps, serverURL, tc)
+		arb, err = roller.NewAndroidAutoRoller(ctx, *workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps, serverURL, tc)
 	} else if *rollIntoGoogle3 {
 		arb, err = google3.NewAutoRoller(*workdir, common.REPO_SKIA, *childBranch)
 	} else if *useManifest {
-		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, serverURL, tc)
+		arb, err = roller.NewManifestAutoRoller(ctx, *workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, serverURL, tc)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars, serverURL, tc)
+		arb, err = roller.NewDEPSAutoRoller(ctx, *workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars, serverURL, tc)
 	}
 	if err != nil {
 		sklog.Fatal(err)

@@ -40,6 +40,8 @@ package exec
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -52,7 +54,12 @@ import (
 )
 
 const (
+	CONTEXT_KEY          = "ExecContext"
 	TIMEOUT_ERROR_PREFIX = "Command killed since it took longer than"
+)
+
+var (
+	ERR_NIL_CONTEXT = errors.New("Context is nil")
 )
 
 type Verbosity int
@@ -64,7 +71,7 @@ const (
 )
 
 var (
-	runFn func(command *Command) error = DefaultRun
+	defaultContext = &Context{DefaultRun}
 
 	WriteInfoLog  = WriteLog{LogFunc: sklog.Infof}
 	WriteErrorLog = WriteLog{LogFunc: sklog.Errorf}
@@ -264,31 +271,47 @@ func DefaultRun(command *Command) error {
 	return wait(command, cmd)
 }
 
+// Context is a struct used for controlling the execution context of Commands.
+type Context struct {
+	runFn func(*Command) error
+}
+
+// WithContext returns a context.Context instance which uses the given function
+// to run Commands.
+func NewContext(ctx context.Context, runFn func(*Command) error) context.Context {
+	newCtx := &Context{
+		runFn: runFn,
+	}
+	return context.WithValue(ctx, CONTEXT_KEY, newCtx)
+}
+
+// Ctx retrieves the Context associated with the context.Context.
+func Ctx(ctx context.Context) *Context {
+	if v := ctx.Value(CONTEXT_KEY); v != nil {
+		return v.(*Context)
+	}
+	// TODO(borenet): Return nil instead?
+	// All methods of Context check for nil, so this should be safe.
+	return defaultContext
+}
+
 // Run runs command and waits for it to finish. If any failure, returns non-nil. If a timeout was
 // specified, returns an error once the command has exceeded that timeout.
-func Run(command *Command) error {
-	return runFn(command)
-}
-
-// SetRunForTesting replaces the Run function with a test version so that commands don't actually
-// run.
-func SetRunForTesting(testRun func(command *Command) error) {
-	runFn = testRun
-}
-
-// Run method is convenience for Run(command).
-func (command *Command) Run() error {
-	return Run(command)
+func (c *Context) Run(command *Command) error {
+	if c == nil {
+		return ERR_NIL_CONTEXT
+	}
+	return c.runFn(command)
 }
 
 // runSimpleCommand executes the given command.  Returns the combined stdout and stderr. May also
 // return an error if the command exited with a non-zero status or there is any other error.
-func runSimpleCommand(command *Command) (string, error) {
+func (c *Context) runSimpleCommand(command *Command) (string, error) {
 	output := bytes.Buffer{}
 	command.CombinedOutput = &output
 	// Setting Verbose to Silent to maintain previous behavior.
 	command.Verbose = Silent
-	err := Run(command)
+	err := c.Run(command)
 	result := string(output.Bytes())
 	if err != nil {
 		return result, fmt.Errorf("%s; Stdout+Stderr:\n%s", err.Error(), result)
@@ -299,27 +322,56 @@ func runSimpleCommand(command *Command) (string, error) {
 // RunSimple executes the given command line string; the command being run is expected to not care
 // what its current working directory is. Returns the combined stdout and stderr. May also return
 // an error if the command exited with a non-zero status or there is any other error.
-func RunSimple(commandLine string) (string, error) {
+func (c *Context) RunSimple(commandLine string) (string, error) {
+	if c == nil {
+		return "", ERR_NIL_CONTEXT
+	}
 	cmd := ParseCommand(commandLine)
-	return runSimpleCommand(&cmd)
+	return c.runSimpleCommand(&cmd)
 }
 
 // RunCommand executes the given command and returns the combined stdout and stderr. May also
 // return an error if the command exited with a non-zero status or there is any other error.
-func RunCommand(command *Command) (string, error) {
-	return runSimpleCommand(command)
+func (c *Context) RunCommand(command *Command) (string, error) {
+	if c == nil {
+		return "", ERR_NIL_CONTEXT
+	}
+	return c.runSimpleCommand(command)
 }
 
 // RunCwd executes the given command in the given directory. Returns the combined stdout and
 // stderr. May also return an error if the command exited with a non-zero status or there is any
 // other error.
-func RunCwd(cwd string, args ...string) (string, error) {
+func (c *Context) RunCwd(cwd string, args ...string) (string, error) {
+	if c == nil {
+		return "", ERR_NIL_CONTEXT
+	}
 	command := &Command{
 		Name: args[0],
 		Args: args[1:],
 		Dir:  cwd,
 	}
-	return runSimpleCommand(command)
+	return c.runSimpleCommand(command)
+}
+
+// See documentation for Context.
+func Run(command *Command) error {
+	return defaultContext.Run(command)
+}
+
+// See documentation for Context.
+func RunSimple(commandLine string) (string, error) {
+	return defaultContext.RunSimple(commandLine)
+}
+
+// See documentation for Context.
+func RunCommand(command *Command) (string, error) {
+	return defaultContext.runSimpleCommand(command)
+}
+
+// See documentation for Context.
+func RunCwd(cwd string, args ...string) (string, error) {
+	return defaultContext.RunCwd(cwd, args...)
 }
 
 // RunIndefinitely starts the command and then returns. Clients can listen for

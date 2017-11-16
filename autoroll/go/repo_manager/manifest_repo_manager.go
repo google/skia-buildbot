@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -21,7 +22,7 @@ import (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewManifestRepoManager func(string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, string) (RepoManager, error) = newManifestRepoManager
+	NewManifestRepoManager func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, string) (RepoManager, error) = newManifestRepoManager
 
 	// TODO(rmistry): Make this configurable.
 	manifestFileName = filepath.Join("manifest", "skia")
@@ -34,7 +35,7 @@ type manifestRepoManager struct {
 
 // newManifestRepoManager returns a RepoManager instance which operates in the
 // given working directory and updates at the given frequency.
-func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, serverURL string) (RepoManager, error) {
+func newManifestRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, serverURL string) (RepoManager, error) {
 	wd := path.Join(workdir, "repo_manager")
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
@@ -63,6 +64,7 @@ func newManifestRepoManager(workdir, parentRepo, parentBranch, childPath, childB
 				childPath:      childPath,
 				childRepo:      childRepo,
 				childBranch:    childBranch,
+				ctx:            ctx,
 				preUploadSteps: preUploadSteps,
 				serverURL:      serverURL,
 				strategy:       strategy,
@@ -150,7 +152,7 @@ func (mr *manifestRepoManager) CreateNewRoll(from, to string, emails []string, c
 	if err := mr.cleanParent(); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(mr.parentDir, "git", "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", mr.parentBranch), "-f"); err != nil {
+	if _, err := exec.Ctx(mr.ctx).RunCwd(mr.parentDir, "git", "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", mr.parentBranch), "-f"); err != nil {
 		return 0, err
 	}
 
@@ -166,10 +168,10 @@ func (mr *manifestRepoManager) CreateNewRoll(from, to string, emails []string, c
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
 
-	if _, err := exec.RunCwd(mr.parentDir, "git", "config", "user.name", mr.user); err != nil {
+	if _, err := exec.Ctx(mr.ctx).RunCwd(mr.parentDir, "git", "config", "user.name", mr.user); err != nil {
 		return 0, err
 	}
-	if _, err := exec.RunCwd(mr.parentDir, "git", "config", "user.email", mr.user); err != nil {
+	if _, err := exec.Ctx(mr.ctx).RunCwd(mr.parentDir, "git", "config", "user.email", mr.user); err != nil {
 		return 0, err
 	}
 
@@ -180,7 +182,7 @@ func (mr *manifestRepoManager) CreateNewRoll(from, to string, emails []string, c
 
 	// Run the pre-upload steps.
 	for _, s := range mr.PreUploadSteps() {
-		if err := s(mr.parentDir); err != nil {
+		if err := s(mr.ctx, mr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}
@@ -210,10 +212,10 @@ https://%s.googlesource.com/%s.git/+log/%s
 `, mr.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"), fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, mr.serverURL))
 
 	// Commit the change with the above message.
-	if _, addErr := exec.RunCwd(mr.parentDir, "git", "add", manifestFileName); addErr != nil {
+	if _, addErr := exec.Ctx(mr.ctx).RunCwd(mr.parentDir, "git", "add", manifestFileName); addErr != nil {
 		return 0, fmt.Errorf("Failed to git add: %s", addErr)
 	}
-	if _, commitErr := exec.RunCwd(mr.parentDir, "git", "commit", "-m", commitMsg); commitErr != nil {
+	if _, commitErr := exec.Ctx(mr.ctx).RunCwd(mr.parentDir, "git", "commit", "-m", commitMsg); commitErr != nil {
 		return 0, fmt.Errorf("Failed to commit: %s", commitErr)
 	}
 
@@ -233,7 +235,7 @@ https://%s.googlesource.com/%s.git/+log/%s
 
 	// Upload the CL.
 	sklog.Infof("Running command: git %s", strings.Join(uploadCmd.Args, " "))
-	if _, err := exec.RunCommand(uploadCmd); err != nil {
+	if _, err := exec.Ctx(mr.ctx).RunCommand(uploadCmd); err != nil {
 		return 0, err
 	}
 
@@ -244,7 +246,7 @@ https://%s.googlesource.com/%s.git/+log/%s
 	}
 	defer util.RemoveAll(tmp)
 	jsonFile := path.Join(tmp, "issue.json")
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.Ctx(mr.ctx).RunCommand(&exec.Command{
 		Dir:  mr.parentDir,
 		Env:  mr.GetEnvForDepotTools(),
 		Name: "git",
