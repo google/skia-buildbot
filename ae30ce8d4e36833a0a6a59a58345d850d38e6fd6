@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5446f780_3a397e86",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-16T13:10:35Z",
+      "side": 1,
+      "message": "Yes, I originally wanted to do that. Here is why I did not:\nI thought it was of limited use to display the command without information about where to run the command and where the artifacts are stored.\nThe location where the files are mapped into is only available in the swarming task and cannot be sent by email. So I figured instead of having incomplete information in email it would be better to point users to the stdout of the leasing task which has all the information.",
+      "parentUuid": "79c2dcab_00e2a3e8",
+      "range": {
+        "startLine": 38,
+        "startChar": 15,
+        "endLine": 38,
+        "endChar": 28
+      },
+      "revId": "ae30ce8d4e36833a0a6a59a58345d850d38e6fd6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3c368431_90cf85cd",
         "filename": "leasing/res/imp/leasing-task-sk.html",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2017-11-16T13:05:09Z",
       "side": 1,
       "message": "nit: double quotes preferred",
+      "range": {
+        "startLine": 94,
+        "startChar": 63,
+        "endLine": 94,
+        "endChar": 64
+      },
+      "revId": "ae30ce8d4e36833a0a6a59a58345d850d38e6fd6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "909969f6_b7ad567b",
+        "filename": "leasing/res/imp/leasing-task-sk.html",
+        "patchSetId": 11
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-16T13:10:35Z",
+      "side": 1,
+      "message": "Weird. Not sure why I changed it. Coming in next CL.",
+      "parentUuid": "3c368431_90cf85cd",
       "range": {
         "startLine": 94,
         "startChar": 63,
