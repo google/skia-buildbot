@@ -15,11 +15,6 @@
       text-align: center;
     }
 
-    #status-table {
-      margin-left: auto;
-      margin-right: auto;
-    }
-
     a {
       text-decoration: underline;
       color: #444;
@@ -30,17 +25,31 @@
       cursor: pointer;
     }
 
-    #info-table {
+    #info-table, #gerrit-changes {
       margin-left: auto;
       margin-right: auto;
       border: 1px solid black;
       border-collapse: collapse;
     }
-    #info-table td {
+    #info-table td, #gerrit-changes td {
       padding: 7px 10px;
-      width: 25%;
       text-align: center;
       border: 1px solid black;
+    }
+    #info-table td {
+      width: 25%;
+    }
+
+    .title {
+      font-weight: bold;
+    }
+
+    .in-cq, .approved {
+      color: green;
+    }
+
+    .under-review, .wip {
+      color: black;
     }
 
     .trunk-status-cell {
@@ -117,8 +126,18 @@
         </td>
       </tr>
     </table>
+    <br/><br/>
+    <div id="alerts-link">
+      <a href="https://skia-review.googlesource.com/dashboard/self" target="_blank">Status of your open Skia CLs</a>
+    </div>
     <br/>
-    <table id="status-table"></table>
+    <table id="gerrit-changes">
+      <tr class="title">
+        <td>Change</td>
+        <td>Subject</td>
+        <td>Status</td>
+      </tr>
+    </table>
     <div id="errors"></div>
     <script src="node_modules/skia-common-js/common.js"></script>
     <script src="popup.js"></script>
