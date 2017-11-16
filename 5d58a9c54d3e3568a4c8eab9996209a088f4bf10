@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e91c992c_0cffe3a7",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-16T20:42:49Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "5bc839f9_d4772150",
+      "range": {
+        "startLine": 57,
+        "startChar": 1,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "5d58a9c54d3e3568a4c8eab9996209a088f4bf10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "df79d9cf_fe4db4b5",
         "filename": "go/exec/exec.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-11-16T20:26:01Z",
       "side": 1,
       "message": "nit: IMO, return non-pointer Context here, make methods below accept non-pointer Context, and remove ERR_NIL_CONTEXT.",
+      "range": {
+        "startLine": 289,
+        "startChar": 30,
+        "endLine": 289,
+        "endChar": 38
+      },
+      "revId": "5d58a9c54d3e3568a4c8eab9996209a088f4bf10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dcad577_ed21073a",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-16T20:42:49Z",
+      "side": 1,
+      "message": "As long as Ctx returns defaultContext, I could just remove the nil checks and ERR_NIL_CONTEXT.  A user would have to do something weird to end up trying to call one of those methods on a nil Context.",
+      "parentUuid": "df79d9cf_fe4db4b5",
       "range": {
         "startLine": 289,
         "startChar": 30,
