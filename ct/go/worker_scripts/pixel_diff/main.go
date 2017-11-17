@@ -123,7 +123,7 @@ func pixelDiff() error {
 	var pathToPagesets string
 	if len(customWebpages) > 0 {
 		pathToPagesets = filepath.Join(util.PagesetsDir, "custom")
-		if err := util.CreateCustomPagesets(customWebpages, pathToPagesets); err != nil {
+		if err := util.CreateCustomPagesets(customWebpages, pathToPagesets, util.PLATFORM_LINUX); err != nil {
 			return fmt.Errorf("Could not create custom pagesets: %s", err)
 		}
 	} else {

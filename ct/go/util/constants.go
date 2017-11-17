@@ -96,7 +96,6 @@ const (
 	NUM_ANALYSIS_RETRIES = "--num-analysis-retries"
 
 	// Defaults for custom webpages.
-	DEFAULT_CUSTOM_PAGE_USERAGENT   = "desktop"
 	DEFAULT_CUSTOM_PAGE_ARCHIVEPATH = "dummy_path"
 
 	// Timeouts

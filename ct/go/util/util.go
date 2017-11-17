@@ -1031,14 +1031,21 @@ func GetCustomPagesWithinRange(startRange, num int, customWebpages []string) []s
 	return customWebpages[startIndex:endIndex]
 }
 
-func CreateCustomPagesets(webpages []string, pagesetsDir string) error {
+func CreateCustomPagesets(webpages []string, pagesetsDir, targetPlatform string) error {
 	// Empty the local dir.
 	util.RemoveAll(pagesetsDir)
 	// Create the local dir.
 	util.MkdirAll(pagesetsDir, 0700)
+	// Figure out which user agent to use.
+	var userAgent string
+	if targetPlatform == PLATFORM_ANDROID {
+		userAgent = "mobile"
+	} else {
+		userAgent = "desktop"
+	}
 	for i, w := range webpages {
 		pagesetPath := filepath.Join(pagesetsDir, fmt.Sprintf("%d.py", i+1))
-		if err := WritePageset(pagesetPath, DEFAULT_CUSTOM_PAGE_USERAGENT, DEFAULT_CUSTOM_PAGE_ARCHIVEPATH, w); err != nil {
+		if err := WritePageset(pagesetPath, userAgent, DEFAULT_CUSTOM_PAGE_ARCHIVEPATH, w); err != nil {
 			return err
 		}
 	}
