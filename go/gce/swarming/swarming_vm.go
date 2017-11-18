@@ -138,7 +138,7 @@ func AddWinConfigs(vm *gce.Instance, opsys, setupScriptPath, startupScriptPath, 
 	case OS_WIN_2K8:
 		vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
 	case OS_WIN_2016:
-		vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2016-dc-internal-v20171010"
+		vm.BootDisk.SourceImage = "projects/windows-cloud/global/images/windows-server-2016-dc-v20171114"
 	default:
 		// Shouldn't happen.
 		sklog.Fatalf("Invalid os %q", opsys)
