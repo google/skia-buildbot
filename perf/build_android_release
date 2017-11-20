@@ -16,9 +16,7 @@ INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=ro
 
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/skiaperf                ${ROOT}/usr/local/bin/skiaperf
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/ptracequery             ${ROOT}/usr/local/bin/ptracequery
-${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb          ${ROOT}/usr/local/bin/perf_migratedb
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_update_regressions ${ROOT}/usr/local/bin/perf_update_regressions
-${INSTALL} --mode=755 -T ${GOPATH}/bin/migrate_ds              ${ROOT}/usr/local/bin/migrate_ds
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service              ${ROOT}/etc/systemd/system/${APPNAME}.service
 ${INSTALL} --mode=644 -T ./sys/android-perf.json5              ${ROOT}/etc/skiaperf/ingest.json5
 

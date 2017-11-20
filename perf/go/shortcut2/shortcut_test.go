@@ -15,8 +15,6 @@ func TestShortcut(t *testing.T) {
 	testutils.MediumTest(t)
 	cleanup := dstestutil.InitDatastore(t, ds.SHORTCUT)
 
-	Init(true)
-	defer Init(false)
 	defer cleanup()
 
 	// Write a shortcut.
