@@ -384,8 +384,8 @@ var (
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
-		PLATFORM_LINUX:   "Linux (100 Ubuntu14.04 machines)",
-		PLATFORM_ANDROID: "Android (100 N5 devices)",
+		PLATFORM_LINUX:   "Linux (Ubuntu14.04 machines)",
+		PLATFORM_ANDROID: "Android (N5X devices)",
 	}
 
 	// Swarming machine dimensions.
