@@ -8,6 +8,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -40,7 +41,6 @@ import (
 
 // flags
 var (
-	dryRun       = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	pollInterval = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
 	// Mutex that controls updating and building of the local checkout.
@@ -52,13 +52,13 @@ var (
 )
 
 // Runs "git pull; make all".
-func updateAndBuild() error {
+func updateAndBuild(ctx context.Context) error {
 	repoMtx.Lock()
 	defer repoMtx.Unlock()
 	makefilePath := ctutil.CtTreeDir
 
 	// TODO(benjaminwagner): Should this also do 'go get -u ...' and/or 'gclient sync'?
-	err := exec.Run(&exec.Command{
+	err := exec.Ctx(ctx).Run(&exec.Command{
 		Name:      "git",
 		Args:      []string{"pull"},
 		Dir:       makefilePath,
@@ -69,7 +69,7 @@ func updateAndBuild() error {
 	if err != nil {
 		return err
 	}
-	return exec.Run(&exec.Command{
+	return exec.Ctx(ctx).Run(&exec.Command{
 		Name:      "make",
 		Args:      []string{"all"},
 		Dir:       makefilePath,
@@ -83,7 +83,7 @@ func updateAndBuild() error {
 type Task interface {
 	GetTaskName() string
 	GetCommonCols() *task_common.CommonCols
-	// Writes any files required by the task and then uses exec.Run to run the task command.
+	// Writes any files required by the task and then uses exec.Ctx(task.ctx).Run to run the task command.
 	Execute() error
 	// Returns the corresponding UpdateTaskVars instance of this Task. The
 	// returned instance is not populated.
@@ -100,6 +100,7 @@ func runId(task Task) string {
 // Define frontend.ChromiumAnalysisDBTask here so we can add methods.
 type ChromiumAnalysisTask struct {
 	chromium_analysis.DBTask
+	ctx context.Context
 }
 
 func (task *ChromiumAnalysisTask) Execute() error {
@@ -120,7 +121,7 @@ func (task *ChromiumAnalysisTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Ctx(task.ctx).Run(&exec.Command{
 		Name: "run_chromium_analysis_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -144,6 +145,7 @@ func (task *ChromiumAnalysisTask) Execute() error {
 // Define frontend.ChromiumPerfDBTask here so we can add methods.
 type ChromiumPerfTask struct {
 	chromium_perf.DBTask
+	ctx context.Context
 }
 
 func (task *ChromiumPerfTask) Execute() error {
@@ -168,7 +170,7 @@ func (task *ChromiumPerfTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Ctx(task.ctx).Run(&exec.Command{
 		Name: "run_chromium_perf_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -194,6 +196,7 @@ func (task *ChromiumPerfTask) Execute() error {
 // Define frontend.PixelDiffDBTask here so we can add methods.
 type PixelDiffTask struct {
 	pixel_diff.DBTask
+	ctx context.Context
 }
 
 func (task *PixelDiffTask) Execute() error {
@@ -212,7 +215,7 @@ func (task *PixelDiffTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Ctx(task.ctx).Run(&exec.Command{
 		Name: "pixel_diff_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -234,12 +237,13 @@ func (task *PixelDiffTask) Execute() error {
 // Define frontend.CaptureSkpsDBTask here so we can add methods.
 type CaptureSkpsTask struct {
 	capture_skps.DBTask
+	ctx context.Context
 }
 
 func (task *CaptureSkpsTask) Execute() error {
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
-	return exec.Run(&exec.Command{
+	return exec.Ctx(task.ctx).Run(&exec.Command{
 		Name: "capture_skps_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -260,6 +264,7 @@ func (task *CaptureSkpsTask) Execute() error {
 // Define frontend.LuaScriptDBTask here so we can add methods.
 type LuaScriptTask struct {
 	lua_scripts.DBTask
+	ctx context.Context
 }
 
 func (task *LuaScriptTask) Execute() error {
@@ -282,7 +287,7 @@ func (task *LuaScriptTask) Execute() error {
 		}
 		defer skutil.Remove(luaAggregatorPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Ctx(task.ctx).Run(&exec.Command{
 		Name: "run_lua_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -302,13 +307,14 @@ func (task *LuaScriptTask) Execute() error {
 // Define frontend.ChromiumBuildDBTask here so we can add methods.
 type ChromiumBuildTask struct {
 	chromium_builds.DBTask
+	ctx context.Context
 }
 
 func (task *ChromiumBuildTask) Execute() error {
 	runId := runId(task)
 	// We do not pass --run_on_gce to the below because build tasks always run
 	// on GCE builders not GCE workers or bare-metal machines.
-	return exec.Run(&exec.Command{
+	return exec.Ctx(task.ctx).Run(&exec.Command{
 		Name: "build_chromium",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -327,11 +333,12 @@ func (task *ChromiumBuildTask) Execute() error {
 // Define frontend.RecreatePageSetsDBTask here so we can add methods.
 type RecreatePageSetsTask struct {
 	admin_tasks.RecreatePageSetsDBTask
+	ctx context.Context
 }
 
 func (task *RecreatePageSetsTask) Execute() error {
 	runId := runId(task)
-	return exec.Run(&exec.Command{
+	return exec.Ctx(task.ctx).Run(&exec.Command{
 		Name: "create_pagesets_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -349,11 +356,12 @@ func (task *RecreatePageSetsTask) Execute() error {
 // Define frontend.RecreateWebpageArchivesDBTask here so we can add methods.
 type RecreateWebpageArchivesTask struct {
 	admin_tasks.RecreateWebpageArchivesDBTask
+	ctx context.Context
 }
 
 func (task *RecreateWebpageArchivesTask) Execute() error {
 	runId := runId(task)
-	return exec.Run(&exec.Command{
+	return exec.Ctx(task.ctx).Run(&exec.Command{
 		Name: "capture_archives_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -369,27 +377,27 @@ func (task *RecreateWebpageArchivesTask) Execute() error {
 }
 
 // Returns a poller Task containing the given task_common.Task, or nil if otherTask is nil.
-func asPollerTask(otherTask task_common.Task) Task {
+func asPollerTask(ctx context.Context, otherTask task_common.Task) Task {
 	if otherTask == nil {
 		return nil
 	}
 	switch t := otherTask.(type) {
 	case *chromium_perf.DBTask:
-		return &ChromiumPerfTask{DBTask: *t}
+		return &ChromiumPerfTask{DBTask: *t, ctx: ctx}
 	case *pixel_diff.DBTask:
-		return &PixelDiffTask{DBTask: *t}
+		return &PixelDiffTask{DBTask: *t, ctx: ctx}
 	case *capture_skps.DBTask:
-		return &CaptureSkpsTask{DBTask: *t}
+		return &CaptureSkpsTask{DBTask: *t, ctx: ctx}
 	case *lua_scripts.DBTask:
-		return &LuaScriptTask{DBTask: *t}
+		return &LuaScriptTask{DBTask: *t, ctx: ctx}
 	case *chromium_builds.DBTask:
-		return &ChromiumBuildTask{DBTask: *t}
+		return &ChromiumBuildTask{DBTask: *t, ctx: ctx}
 	case *admin_tasks.RecreatePageSetsDBTask:
-		return &RecreatePageSetsTask{RecreatePageSetsDBTask: *t}
+		return &RecreatePageSetsTask{RecreatePageSetsDBTask: *t, ctx: ctx}
 	case *admin_tasks.RecreateWebpageArchivesDBTask:
-		return &RecreateWebpageArchivesTask{RecreateWebpageArchivesDBTask: *t}
+		return &RecreateWebpageArchivesTask{RecreateWebpageArchivesDBTask: *t, ctx: ctx}
 	case *chromium_analysis.DBTask:
-		return &ChromiumAnalysisTask{DBTask: *t}
+		return &ChromiumAnalysisTask{DBTask: *t, ctx: ctx}
 	default:
 		sklog.Errorf("Missing case for %T in asPollerTask", otherTask)
 		return nil
@@ -409,14 +417,14 @@ func updateWebappTaskSetFailed(task Task) error {
 // go routine. The function returns without waiting for the task to finish and the
 // WaitGroup of the goroutine is returned to the caller. The caller can then call
 // wg.Wait() if they would like to wait for the task to finish.
-func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
+func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 	pending, err := frontend.GetOldestPendingTaskV2()
 	var wg sync.WaitGroup
 	if err != nil {
 		sklog.Error(err)
 		return &wg
 	}
-	task := asPollerTask(pending)
+	task := asPollerTask(ctx, pending)
 	if task == nil {
 		return &wg
 	}
@@ -440,7 +448,7 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 	}
 
 	sklog.Infof("Preparing to execute task %s", taskId)
-	if err = updateAndBuild(); err != nil {
+	if err = updateAndBuild(ctx); err != nil {
 		sklog.Error(err)
 		if task.RunsOnGCEWorkers() {
 			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
@@ -459,10 +467,8 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 			sklog.Infof("Completed task %s", taskId)
 		} else {
 			sklog.Errorf("Task %s failed: %s", taskId, err)
-			if !*dryRun {
-				if err := updateWebappTaskSetFailed(task); err != nil {
-					sklog.Error(err)
-				}
+			if err := updateWebappTaskSetFailed(task); err != nil {
+				sklog.Error(err)
 			}
 		}
 		tasksMtx.Lock()
@@ -483,13 +489,6 @@ func main() {
 	defer common.LogPanic()
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
-	if *dryRun {
-		exec.SetRunForTesting(func(command *exec.Command) error {
-			sklog.Infof("dry_run: %s", exec.DebugString(command))
-			return nil
-		})
-	}
-
 	autoscaler, err := ct_autoscaler.NewCTAutoscaler()
 	if err != nil {
 		sklog.Fatalf("Could not instantiate the CT autoscaler: %s", err)
@@ -503,10 +502,11 @@ func main() {
 	}
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
-	pollAndExecOnce(autoscaler)
+	ctx := context.Background()
+	pollAndExecOnce(ctx, autoscaler)
 	for range time.Tick(*pollInterval) {
 		healthyGauge.Update(1)
-		pollAndExecOnce(autoscaler)
+		pollAndExecOnce(ctx, autoscaler)
 		// Sleeping for a second to avoid the small probability of ending up
 		// with 2 tasks with the same runID. For context see
 		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96

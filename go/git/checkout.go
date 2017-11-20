@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path"
@@ -14,15 +15,22 @@ import (
 
 // Checkout is a struct used for managing a local git checkout.
 type Checkout struct {
-	GitDir
+	*GitDir
+}
+
+// NewCheckoutNoSync returns a Checkout instance without syncing. It is assumed
+// that the given dir is the root of an existing checkout.
+func NewCheckoutNoSync(ctx context.Context, dir string) *Checkout {
+	return &Checkout{NewGitDirNoSync(ctx, dir)}
 }
 
 // NewCheckout returns a Checkout instance based in the given working directory.
-// Uses any existing checkout in the given directory, or clones one if
-// necessary. In general, servers should use Repo instead of Checkout unless it
-// is absolutely necessary to have a working copy.
-func NewCheckout(repoUrl, workdir string) (*Checkout, error) {
-	g, err := newGitDir(repoUrl, workdir, false)
+// Unlike NewCheckoutNoSync, the repo is expected to be in a subdirectory of
+// workdir, derived from repoUrl. Uses any existing checkout in the given
+// directory, or clones one if necessary. In general, servers should use Repo
+// instead of Checkout unless it is absolutely necessary to have a working copy.
+func NewCheckout(ctx context.Context, repoUrl, workdir string) (*Checkout, error) {
+	g, err := newGitDir(ctx, repoUrl, workdir, false)
 	if err != nil {
 		return nil, err
 	}
@@ -70,12 +78,12 @@ func (c *Checkout) Update() error {
 type TempCheckout Checkout
 
 // NewTempCheckout returns a TempCheckout instance.
-func NewTempCheckout(repoUrl string) (*TempCheckout, error) {
+func NewTempCheckout(ctx context.Context, repoUrl string) (*TempCheckout, error) {
 	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		return nil, err
 	}
-	c, err := NewCheckout(repoUrl, tmpDir)
+	c, err := NewCheckout(ctx, repoUrl, tmpDir)
 	if err != nil {
 		return nil, err
 	}

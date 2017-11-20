@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"math/rand"
 	"net/url"
@@ -187,7 +188,7 @@ func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt)
 
 	// Check out the repository.
-	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
+	git, err := gitinfo.CloneOrUpdate(context.Background(), *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}

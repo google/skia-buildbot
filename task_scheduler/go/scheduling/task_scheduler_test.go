@@ -1,6 +1,7 @@
 package scheduling
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -65,7 +66,7 @@ var (
 
 func getCommit(t *testing.T, gb *git_testutils.GitBuilder, commit string) string {
 	co := git.Checkout{
-		GitDir: git.GitDir(gb.Dir()),
+		GitDir: git.NewGitDirNoSync(context.Background(), gb.Dir()),
 	}
 	rv, err := co.RevParse(commit)
 	assert.NoError(t, err)
@@ -191,17 +192,17 @@ func setup(t *testing.T) (*git_testutils.GitBuilder, db.DB, *swarming_testutils.
 	assert.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
-	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewMap(context.Background(), []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}
-	depotTools := depot_tools_testutils.GetDepotTools(t)
+	depotTools := depot_tools_testutils.GetDepotTools(t, context.Background())
 	gitcookies := path.Join(tmp, "gitcookies_fake")
 	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
+	s, err := NewTaskScheduler(context.Background(), d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
 	assert.NoError(t, err)
 	return gb, d, swarmingClient, s, urlMock, func() {
 		testutils.RemoveAll(t, tmp)
@@ -1015,11 +1016,11 @@ func TestComputeBlamelist(t *testing.T) {
 
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
 
-	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewMap(context.Background(), []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 	repo := repos[gb.RepoUrl()]
-	depotTools := depot_tools_testutils.GetDepotTools(t)
-	tcc, err := specs.NewTaskCfgCache(repos, depotTools, tmp, 1)
+	depotTools := depot_tools_testutils.GetDepotTools(t, context.Background())
+	tcc, err := specs.NewTaskCfgCache(context.Background(), repos, depotTools, tmp, 1)
 	assert.NoError(t, err)
 
 	ids := []string{}
@@ -1950,19 +1951,19 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (*git_testuti
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
-	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, workdir)
+	repos, err := repograph.NewMap(context.Background(), []string{gb.RepoUrl()}, workdir)
 	assert.NoError(t, err)
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}
 	urlMock := mockhttpclient.NewURLMock()
-	depotTools := depot_tools_testutils.GetDepotTools(t)
+	depotTools := depot_tools_testutils.GetDepotTools(t, context.Background())
 	gitcookies := path.Join(workdir, "gitcookies_fake")
 	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
 
-	s, err := NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
+	s, err := NewTaskScheduler(context.Background(), d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}

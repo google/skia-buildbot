@@ -40,6 +40,7 @@ package docset
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -113,7 +114,7 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 			return nil, IssueCommittedErr
 		}
 	}
-	git, err := gitinfo.CloneOrUpdate(repo, repoDir, false)
+	git, err := gitinfo.CloneOrUpdate(context.Background(), repo, repoDir, false)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 	}

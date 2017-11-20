@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -103,7 +104,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	swarmClient, err := swarming.NewSwarmingClient(*workdir, swarmingServer, isolateServer)
+	swarmClient, err := swarming.NewSwarmingClient(context.Background(), *workdir, swarmingServer, isolateServer)
 	if err != nil {
 		sklog.Fatal(err)
 	}

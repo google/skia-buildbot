@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -70,7 +71,7 @@ func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, 
 	buildArgs = append(buildArgs, "skia_use_system_freetype2=false")
 
 	d := filepath.Join(config.Common.SkiaRoot, "skia")
-	gi, err := gitinfo.NewGitInfo(d, false, false)
+	gi, err := gitinfo.NewGitInfo(context.Background(), d, false, false)
 	if err != nil {
 		return "", fmt.Errorf("Could not locate git info about Skia Root %s: %s", d, err)
 	}
@@ -120,12 +121,12 @@ func buildHarness(buildType buildskia.ReleaseType, isClean bool, buildArgs []str
 		}
 	}
 
-	if err := buildskia.GNGen(config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), buildArgs); err != nil {
+	if err := buildskia.GNGen(context.Background(), config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), buildArgs); err != nil {
 		return "", fmt.Errorf("Failed GN: %s", err)
 	}
 
 	builtExe := filepath.Join(buildLocation, TEST_HARNESS_NAME)
 
-	_, err := buildskia.GNNinjaBuild(config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), TEST_HARNESS_NAME, config.Common.VerboseBuilds)
+	_, err := buildskia.GNNinjaBuild(context.Background(), config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), TEST_HARNESS_NAME, config.Common.VerboseBuilds)
 	return builtExe, err
 }

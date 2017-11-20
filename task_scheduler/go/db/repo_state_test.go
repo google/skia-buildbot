@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
@@ -60,7 +61,7 @@ func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map, func()) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repoMap, err := repograph.NewMap([]string{gb1.RepoUrl(), gb2.RepoUrl()}, tmp)
+	repoMap, err := repograph.NewMap(context.Background(), []string{gb1.RepoUrl(), gb2.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
 	cleanup := func() {

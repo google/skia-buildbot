@@ -1,6 +1,7 @@
 package buildskia
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -47,6 +48,7 @@ type PerBuild func(checkout, depotTools string) error
 // For each LKGR of Skia, that version of code will be checked out under
 // workDir/"versions"/<git hash>.
 type ContinuousBuilder struct {
+	ctx        context.Context
 	workRoot   string
 	depotTools string
 	repo       vcsinfo.VCS
@@ -81,8 +83,9 @@ type ContinuousBuilder struct {
 //    useGn - Use GN as the meta build system, as opposed to GYP.
 //
 // Call Start() to begin the continous build Go routine.
-func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int, timeBetweenBuilds time.Duration, useGn bool) *ContinuousBuilder {
+func New(ctx context.Context, workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int, timeBetweenBuilds time.Duration, useGn bool) *ContinuousBuilder {
 	b := &ContinuousBuilder{
+		ctx:               ctx,
 		workRoot:          workRoot,
 		depotTools:        depotTools,
 		repo:              repo,
@@ -183,12 +186,12 @@ func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*
 
 	var ret *vcsinfo.LongCommit
 	if b.useGn {
-		ret, err = GNDownloadSkia("", githash, checkout, b.depotTools, false, deps)
+		ret, err = GNDownloadSkia(b.ctx, "", githash, checkout, b.depotTools, false, deps)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to fetch: %s", err)
 		}
 	} else {
-		ret, err = DownloadSkia("", githash, checkout, b.depotTools, false, deps)
+		ret, err = DownloadSkia(b.ctx, "", githash, checkout, b.depotTools, false, deps)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to fetch: %s", err)
 		}

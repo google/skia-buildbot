@@ -3,6 +3,7 @@ package buildskia
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -172,14 +173,14 @@ func GetSkiaBranches(client *http.Client) (map[string]Branch, error) {
 //       sync-and-gyp. The calling user should be sudo capable.
 //
 // It returns an error on failure.
-func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
+func DownloadSkia(ctx context.Context, branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
 	sklog.Infof("Cloning Skia gitHash %s to %s, clean: %t", gitHash, path, clean)
 
 	if clean {
 		util.RemoveAll(filepath.Join(path))
 	}
 
-	repo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia", path, true)
+	repo, err := gitinfo.CloneOrUpdate(ctx, "https://skia.googlesource.com/skia", path, true)
 	if err != nil {
 		return nil, fmt.Errorf("Failed cloning Skia: %s", err)
 	}
@@ -194,6 +195,7 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 		return nil, fmt.Errorf("Problem setting Skia to gitHash %s: %s", gitHash, err)
 	}
 
+	ex := exec.Ctx(ctx)
 	env := []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")}
 	if installDeps {
 		depsCmd := &exec.Command{
@@ -206,7 +208,7 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 			LogStdout:   true,
 		}
 
-		if err := exec.Run(depsCmd); err != nil {
+		if err := ex.Run(depsCmd); err != nil {
 			return nil, fmt.Errorf("Failed installing dependencies: %s", err)
 		}
 	}
@@ -220,7 +222,7 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 		LogStdout:   true,
 	}
 
-	if err := exec.Run(syncCmd); err != nil {
+	if err := ex.Run(syncCmd); err != nil {
 		return nil, fmt.Errorf("Failed syncing and setting up gyp: %s", err)
 	}
 
@@ -244,7 +246,7 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 //       syncing. The calling user should be sudo capable.
 //
 // It returns an error on failure.
-func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
+func GNDownloadSkia(ctx context.Context, branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
 	sklog.Infof("Cloning Skia gitHash %s to %s, clean: %t", gitHash, path, clean)
 
 	if clean {
@@ -266,13 +268,14 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		LogStdout:   true,
 	}
 
-	if err := exec.Run(fetchCmd); err != nil {
+	ex := exec.Ctx(ctx)
+	if err := ex.Run(fetchCmd); err != nil {
 		// Failing to fetch might be because we already have Skia checked out here.
 		sklog.Warningf("Failed to fetch skia: %s", err)
 	}
 
 	repoPath := filepath.Join(path, "skia")
-	repo, err := gitinfo.NewGitInfo(repoPath, false, true)
+	repo, err := gitinfo.NewGitInfo(ctx, repoPath, false, true)
 	if err != nil {
 		return nil, fmt.Errorf("Failed working with Skia repo: %s", err)
 	}
@@ -292,7 +295,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 			LogStdout:   true,
 		}
 
-		if err := exec.Run(depsCmd); err != nil {
+		if err := ex.Run(depsCmd); err != nil {
 			return nil, fmt.Errorf("Failed installing dependencies: %s", err)
 		}
 	}
@@ -307,7 +310,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		LogStdout:   true,
 	}
 
-	if err := exec.Run(syncCmd); err != nil {
+	if err := ex.Run(syncCmd); err != nil {
 		return nil, fmt.Errorf("Failed syncing: %s", err)
 	}
 
@@ -321,7 +324,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		LogStdout:   true,
 	}
 
-	if err := exec.Run(fetchGn); err != nil {
+	if err := ex.Run(fetchGn); err != nil {
 		return nil, fmt.Errorf("Failed installing dependencies: %s", err)
 	}
 
@@ -342,7 +345,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 //                BUILD.gn and https://skia.org/user/quick/gn.
 //
 // The results of the build are stored in path/skia/out/<outSubDir>.
-func GNGen(path, depotTools, outSubDir string, args []string) error {
+func GNGen(ctx context.Context, path, depotTools, outSubDir string, args []string) error {
 	genCmd := &exec.Command{
 		Name:        filepath.Join(depotTools, "gn"),
 		Args:        []string{"gen", filepath.Join("out", outSubDir), fmt.Sprintf(`--args=%s`, strings.Join(args, " "))},
@@ -356,7 +359,7 @@ func GNGen(path, depotTools, outSubDir string, args []string) error {
 	}
 	sklog.Infof("About to run: %#v", *genCmd)
 
-	if err := exec.Run(genCmd); err != nil {
+	if err := exec.Ctx(ctx).Run(genCmd); err != nil {
 		return fmt.Errorf("Failed gn gen: %s", err)
 	}
 	return nil
@@ -371,7 +374,7 @@ func GNGen(path, depotTools, outSubDir string, args []string) error {
 //   verbose - If the build's std out should be logged (usally quite long)
 //
 // Returns the build logs and any errors on failure.
-func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) (string, error) {
+func GNNinjaBuild(ctx context.Context, path, depotToolsPath, outSubDir, target string, verbose bool) (string, error) {
 	args := []string{"-C", filepath.Join("out", outSubDir)}
 	if target != "" {
 		args = append(args, target)
@@ -390,7 +393,7 @@ func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) 
 	}
 	sklog.Infof("About to run: %#v", *buildCmd)
 
-	if err := exec.Run(buildCmd); err != nil {
+	if err := exec.Ctx(ctx).Run(buildCmd); err != nil {
 		return buf.String(), fmt.Errorf("Failed compile: %s", err)
 	}
 	return buf.String(), nil
@@ -406,7 +409,7 @@ func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) 
 //   verbose - If the build's std out should be logged (usally quite long)
 //
 // Returns an error on failure.
-func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build ReleaseType, target string, numCores int, verbose bool) error {
+func NinjaBuild(ctx context.Context, skiaPath, depotToolsPath string, extraEnv []string, build ReleaseType, target string, numCores int, verbose bool) error {
 	buildCmd := &exec.Command{
 		Name:        filepath.Join(depotToolsPath, "ninja"),
 		Args:        []string{"-C", "out/" + string(build), "-j", fmt.Sprintf("%d", numCores), target},
@@ -420,7 +423,7 @@ func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build Releas
 	}
 	sklog.Infof("About to run: %#v", *buildCmd)
 
-	if err := exec.Run(buildCmd); err != nil {
+	if err := exec.Ctx(ctx).Run(buildCmd); err != nil {
 		return fmt.Errorf("Failed ninja build: %s", err)
 	}
 	return nil
@@ -433,7 +436,7 @@ func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build Releas
 //   build      - Is the type of build to perform.
 //
 // The results of the build are stored in path/CMAKE_OUTDIR.
-func CMakeBuild(path, depotTools string, build ReleaseType) error {
+func CMakeBuild(ctx context.Context, path, depotTools string, build ReleaseType) error {
 	if build == "" {
 		build = "Release"
 	}
@@ -452,7 +455,7 @@ func CMakeBuild(path, depotTools string, build ReleaseType) error {
 	}
 	sklog.Infof("About to run: %#v", *buildCmd)
 
-	if err := exec.Run(buildCmd); err != nil {
+	if err := exec.Ctx(ctx).Run(buildCmd); err != nil {
 		return fmt.Errorf("Failed cmake build: %s", err)
 	}
 	return nil
@@ -474,7 +477,7 @@ func CMakeBuild(path, depotTools string, build ReleaseType) error {
 //         draw.cpp @skia_link_arguments.txt -lOSMesa \
 //         -o myexample
 //
-func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs []string, extraLinkFlags []string, build ReleaseType) (string, error) {
+func CMakeCompileAndLink(ctx context.Context, path, out string, filenames []string, extraIncludeDirs []string, extraLinkFlags []string, build ReleaseType) (string, error) {
 	if !filepath.IsAbs(out) {
 		out = filepath.Join(path, out)
 	}
@@ -514,7 +517,7 @@ func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs 
 	}
 	sklog.Infof("About to run: %#v", *compileCmd)
 
-	if err := exec.Run(compileCmd); err != nil {
+	if err := exec.Ctx(ctx).Run(compileCmd); err != nil {
 		return buf.String(), fmt.Errorf("Failed compile: %s", err)
 	}
 	return buf.String(), nil
@@ -531,7 +534,7 @@ func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs 
 //   $ c++ @skia_compile_arguments.txt fiddle_main.cpp \
 //         -o fiddle_main.o
 //
-func CMakeCompile(path, out string, filenames []string, extraIncludeDirs []string, build ReleaseType) error {
+func CMakeCompile(ctx context.Context, path, out string, filenames []string, extraIncludeDirs []string, build ReleaseType) error {
 	if !filepath.IsAbs(out) {
 		out = filepath.Join(path, out)
 	}
@@ -562,7 +565,7 @@ func CMakeCompile(path, out string, filenames []string, extraIncludeDirs []strin
 	}
 	sklog.Infof("About to run: %#v", *compileCmd)
 
-	if err := exec.Run(compileCmd); err != nil {
+	if err := exec.Ctx(ctx).Run(compileCmd); err != nil {
 		return fmt.Errorf("Failed compile: %s", err)
 	}
 	return nil

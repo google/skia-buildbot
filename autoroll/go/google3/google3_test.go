@@ -1,6 +1,7 @@
 package google3
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -18,7 +19,7 @@ func setup(t *testing.T) (*AutoRoller, []string, func()) {
 	gb := git_testutils.GitInit(t)
 	commits := []string{gb.CommitGen("a.txt"), gb.CommitGen("a.txt"), gb.CommitGen("a.txt")}
 	tmpDir, cleanup := testutils.TempDir(t)
-	a, err := NewAutoRoller(tmpDir, gb.RepoUrl(), "master")
+	a, err := NewAutoRoller(context.Background(), tmpDir, gb.RepoUrl(), "master")
 	assert.NoError(t, err)
 	a.Start(time.Second, time.Second)
 	return a, commits, func() {

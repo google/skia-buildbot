@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"html/template"
@@ -234,7 +235,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
+	git, err := gitinfo.CloneOrUpdate(context.Background(), *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}

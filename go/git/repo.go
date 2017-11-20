@@ -5,6 +5,7 @@ package git
 */
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -14,14 +15,21 @@ import (
 
 // Repo is a struct used for managing a local git repo.
 type Repo struct {
-	GitDir
+	*GitDir
 }
 
-// NewRepo returns a Repo instance based in the given working directory. Uses
-// any existing repo in the given directory, or clones one if necessary. Only
-// creates bare clones; Repo does not maintain a checkout.
-func NewRepo(repoUrl, workdir string) (*Repo, error) {
-	g, err := newGitDir(repoUrl, workdir, true)
+// NewRepoNoSync returns a Repo instance without syncing. It is assumed that the
+// given dir is the root of an existing repo.
+func NewRepoNoSync(ctx context.Context, dir string) *Repo {
+	return &Repo{NewGitDirNoSync(ctx, dir)}
+}
+
+// NewRepo returns a Repo instance based in the given working directory. Unlike
+// NewRepoNoSync, the repo is expected to be in a subdirectory of workdir,
+// derived from repoUrl. Uses any existing repo in the directory, or clones one
+// if necessary. Only creates bare clones; Repo does not maintain a checkout.
+func NewRepo(ctx context.Context, repoUrl, workdir string) (*Repo, error) {
+	g, err := newGitDir(ctx, repoUrl, workdir, true)
 	if err != nil {
 		return nil, err
 	}
@@ -46,10 +54,10 @@ func (r *Repo) Update() error {
 
 // Checkout returns a Checkout of the Repo in the given working directory.
 func (r *Repo) Checkout(workdir string) (*Checkout, error) {
-	return NewCheckout(r.Dir(), workdir)
+	return NewCheckout(r.ctx, r.Dir(), workdir)
 }
 
 // TempCheckout returns a TempCheckout of the repo.
 func (r *Repo) TempCheckout() (*TempCheckout, error) {
-	return NewTempCheckout(r.Dir())
+	return NewTempCheckout(r.ctx, r.Dir())
 }

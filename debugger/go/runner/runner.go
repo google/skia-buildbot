@@ -2,6 +2,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -17,6 +18,9 @@ type GetCurrentGitHash func() string
 
 // Runner runs skiaserve either in or outside of a chroot jail container.
 type Runner struct {
+	// exec is the execution context used by the exec package.
+	exec *exec.Context
+
 	// workRoot is the directory where we check out versions of Skia.
 	//
 	// See the description of how workRoot is used by
@@ -73,7 +77,7 @@ func (c *Runner) Start(port int) error {
 		LogStderr: true,
 		LogStdout: true,
 	}
-	if err := exec.Run(runCmd); err != nil {
+	if err := c.exec.Run(runCmd); err != nil {
 		return fmt.Errorf("skaiserve failed to run %#v: %s", *runCmd, err)
 	}
 	sklog.Infof("Returned from running skiaserve.")
@@ -88,8 +92,9 @@ func (c *Runner) Start(port int) error {
 //       run in a container.
 //   getHash - A func that returns the last good git hash that skiaserve
 //       was built at.
-func New(workRoot, imageDir string, getHash GetCurrentGitHash, local bool) *Runner {
+func New(ctx context.Context, workRoot, imageDir string, getHash GetCurrentGitHash, local bool) *Runner {
 	return &Runner{
+		exec:     exec.Ctx(ctx),
 		workRoot: workRoot,
 		imageDir: imageDir,
 		local:    local,

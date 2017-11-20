@@ -1,6 +1,7 @@
 package incremental
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -26,7 +27,7 @@ func setup(t *testing.T) (string, *IncrementalCache, repograph.Map, db.DB, *git_
 	c0 := gb.CommitGen("dummy")
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	repo, err := repograph.NewGraph(gb.Dir(), workdir)
+	repo, err := repograph.NewGraph(context.Background(), gb.Dir(), workdir)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,

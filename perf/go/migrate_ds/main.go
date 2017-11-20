@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"time"
 
@@ -83,7 +84,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
+	git, err := gitinfo.CloneOrUpdate(context.Background(), *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}

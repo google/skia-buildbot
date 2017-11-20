@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -326,17 +327,17 @@ func TestTimeoutExceeded(t *testing.T) {
 func TestInjection(t *testing.T) {
 	testutils.SmallTest(t)
 	var actualCommand *Command
-	SetRunForTesting(func(command *Command) error {
+	ctx := NewContext(context.Background(), func(command *Command) error {
 		actualCommand = command
 		return nil
 	})
-	defer SetRunForTesting(DefaultRun)
+	e := Ctx(ctx)
 
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, e.Run(&Command{
 		Name: "touch",
 		Args: []string{file},
 	}))
@@ -363,13 +364,13 @@ func TestRunCwd(t *testing.T) {
 func TestCommandCollector(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := CommandCollector{}
-	SetRunForTesting(mock.Run)
-	defer SetRunForTesting(DefaultRun)
-	assert.NoError(t, Run(&Command{
+	ctx := NewContext(context.Background(), mock.Run)
+	e := Ctx(ctx)
+	assert.NoError(t, e.Run(&Command{
 		Name: "touch",
 		Args: []string{"foobar"},
 	}))
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, e.Run(&Command{
 		Name: "echo",
 		Args: []string{"Hello Go!"},
 	}))
@@ -380,7 +381,7 @@ func TestCommandCollector(t *testing.T) {
 	mock.ClearCommands()
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, e.Run(&Command{
 		Name:   "grep",
 		Args:   []string{"-e", "^ba"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
@@ -398,14 +399,14 @@ func TestCommandCollector(t *testing.T) {
 func TestMockRun(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := MockRun{}
-	SetRunForTesting(mock.Run)
-	defer SetRunForTesting(DefaultRun)
+	ctx := NewContext(context.Background(), mock.Run)
+	e := Ctx(ctx)
 	mock.AddRule("touch /tmp/bar", fmt.Errorf("baz"))
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, e.Run(&Command{
 		Name: "touch",
 		Args: []string{"/tmp/foo"},
 	}))
-	err := Run(&Command{
+	err := e.Run(&Command{
 		Name: "touch",
 		Args: []string{"/tmp/bar"},
 	})

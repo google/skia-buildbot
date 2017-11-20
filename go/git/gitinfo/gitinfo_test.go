@@ -1,6 +1,7 @@
 package gitinfo
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -18,7 +19,7 @@ func TestDisplay(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +58,7 @@ func TestFrom(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +99,7 @@ func TestLastN(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +137,7 @@ func TestByIndex(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,7 +156,7 @@ func TestLastNIndex(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +204,7 @@ func TestIndexOf(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -224,7 +225,7 @@ func TestRange(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +297,7 @@ func TestLog(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -345,7 +346,7 @@ func TestLogFine(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -376,7 +377,7 @@ func TestLogArgs(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,7 +397,7 @@ func TestShortList(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -447,7 +448,7 @@ func TestTileAddressFromHash(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -490,7 +491,7 @@ func TestNumCommits(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -505,7 +506,7 @@ func TestRevList(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -555,7 +556,7 @@ func TestBranchInfo(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -610,7 +611,7 @@ func TestSetBranch(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	r, err := NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, true)
 	if err != nil {
 		t.Fatal(err)
 	}

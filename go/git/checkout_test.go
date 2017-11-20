@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path"
@@ -19,7 +20,7 @@ func TestCheckout(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	c, err := NewCheckout(gb.Dir(), tmp)
+	c, err := NewCheckout(context.Background(), gb.Dir(), tmp)
 	assert.NoError(t, err)
 
 	// Verify that we can run git commands.
@@ -104,7 +105,7 @@ func TestTempCheckout(t *testing.T) {
 	gb, _ := setup(t)
 	defer gb.Cleanup()
 
-	c, err := NewTempCheckout(gb.Dir())
+	c, err := NewTempCheckout(context.Background(), gb.Dir())
 	assert.NoError(t, err)
 
 	// Verify that we can run git commands.

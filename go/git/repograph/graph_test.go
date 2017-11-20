@@ -1,6 +1,7 @@
 package repograph
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -27,7 +28,7 @@ func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func(
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repo, err := NewGraph(g.Dir(), tmp)
+	repo, err := NewGraph(context.Background(), g.Dir(), tmp)
 	assert.NoError(t, err)
 
 	c1 := repo.Get("master")
@@ -100,7 +101,7 @@ func TestGraph(t *testing.T) {
 	tmp2, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
-	repo2, err := NewGraph(g.Dir(), tmp2)
+	repo2, err := NewGraph(context.Background(), g.Dir(), tmp2)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
@@ -116,7 +117,7 @@ func TestSerialize(t *testing.T) {
 	g, repo, _, cleanup := gitSetup(t)
 	defer cleanup()
 
-	repo2, err := NewGraph(g.Dir(), path.Dir(repo.repo.Dir()))
+	repo2, err := NewGraph(context.Background(), g.Dir(), path.Dir(repo.repo.Dir()))
 	assert.NoError(t, err)
 
 	testutils.AssertDeepEqual(t, repo, repo2)

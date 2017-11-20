@@ -74,7 +74,7 @@ func Init() {
 	}
 
 	// The repo we're adding commits to.
-	checkout, err := git.NewCheckout(*repoUrl, *workRoot)
+	checkout, err := git.NewCheckout(context.Background(), *repoUrl, *workRoot)
 	if err != nil {
 		sklog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
 	}

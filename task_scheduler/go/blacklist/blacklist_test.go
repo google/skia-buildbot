@@ -1,6 +1,7 @@
 package blacklist
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -236,7 +237,7 @@ func TestValidation(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+	repo, err := repograph.NewGraph(context.Background(), gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
 
@@ -370,7 +371,7 @@ func TestCommitRange(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+	repo, err := repograph.NewGraph(context.Background(), gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
 	f := path.Join(tmp, "blacklist.json")

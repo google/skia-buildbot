@@ -1,6 +1,7 @@
 package cid
 
 import (
+	"context"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -107,7 +108,7 @@ func TestLookup(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	git, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	git, err := gitinfo.NewGitInfo(context.Background(), filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}

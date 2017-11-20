@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"context"
 	"flag"
 	"math/rand"
 	"sync"
@@ -167,7 +168,7 @@ func setupStorages(t assert.TestingT) (*storage.Storage, expstorage.Expectations
 	assert.NoError(t, err)
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt)
 
-	git, err := gitinfo.CloneOrUpdate(REPO_URL, REPO_DIR, false)
+	git, err := gitinfo.CloneOrUpdate(context.Background(), REPO_URL, REPO_DIR, false)
 	assert.NoError(t, err)
 
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(*traceService, types.GoldenTraceBuilder)

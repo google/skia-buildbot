@@ -7,6 +7,7 @@
 package google3
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -40,13 +41,13 @@ type AutoRoller struct {
 	liveness    metrics2.Liveness
 }
 
-func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, workdir string, childRepoUrl string, childBranch string) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(path.Join(workdir, "recent_rolls.bdb"))
 	if err != nil {
 		return nil, err
 	}
 
-	childRepo, err := git.NewRepo(childRepoUrl, workdir)
+	childRepo, err := git.NewRepo(ctx, childRepoUrl, workdir)
 	if err != nil {
 		util.LogErr(recent.Close())
 		return nil, err

@@ -1,6 +1,7 @@
 package specs
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -72,13 +73,13 @@ func TestTaskSpecs(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+	repo, err := repograph.NewGraph(context.Background(), gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
 
-	cache, err := NewTaskCfgCache(repos, depot_tools_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(context.Background(), repos, depot_tools_testutils.GetDepotTools(t, context.Background()), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
 	rs1 := db.RepoState{
@@ -133,13 +134,13 @@ func TestAddedTaskSpecs(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+	repo, err := repograph.NewGraph(context.Background(), gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
 
-	cache, err := NewTaskCfgCache(repos, depot_tools_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(context.Background(), repos, depot_tools_testutils.GetDepotTools(t, context.Background()), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
 	rs1 := db.RepoState{
@@ -244,12 +245,12 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+	repo, err := repograph.NewGraph(context.Background(), gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
-	cache, err := NewTaskCfgCache(repos, depot_tools_testutils.GetDepotTools(t), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(context.Background(), repos, depot_tools_testutils.GetDepotTools(t, context.Background()), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
@@ -269,7 +270,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.Equal(t, 2, len(cache.addedTasksCache))
 
 	// Cleanup, with a period intentionally designed to remove c1 but not c2.
-	r, err := git.NewRepo(gb.RepoUrl(), tmp)
+	r, err := git.NewRepo(context.Background(), gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	d1, err := r.Details(c1)
 	assert.NoError(t, err)
@@ -413,9 +414,9 @@ func tempGitRepoBotUpdateTests(t *testing.T, cases map[db.RepoState]error) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	cacheDir := path.Join(tmp, "cache")
-	depotTools := depot_tools_testutils.GetDepotTools(t)
+	depotTools := depot_tools_testutils.GetDepotTools(t, context.Background())
 	for rs, expectErr := range cases {
-		c, err := tempGitRepoBotUpdate(rs, depotTools, cacheDir, tmp)
+		c, err := tempGitRepoBotUpdate(context.Background(), rs, depotTools, cacheDir, tmp)
 		if expectErr != nil {
 			assert.Error(t, err)
 			if expectErr != ERR_DONT_CARE {
@@ -507,10 +508,10 @@ func TestTempGitRepoParallel(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewMap(context.Background(), []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	cache, err := NewTaskCfgCache(repos, depot_tools_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(context.Background(), repos, depot_tools_testutils.GetDepotTools(t, context.Background()), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
 	rs := db.RepoState{
@@ -541,10 +542,10 @@ func TestTempGitRepoErr(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewMap(context.Background(), []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	cache, err := NewTaskCfgCache(repos, depot_tools_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	cache, err := NewTaskCfgCache(context.Background(), repos, depot_tools_testutils.GetDepotTools(t, context.Background()), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
 	// bot_update will fail to apply the issue if we don't fake it in Git.
@@ -607,14 +608,14 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewMap([]string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewMap(context.Background(), []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	c, err := NewTaskCfgCache(repos, depot_tools_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+	c, err := NewTaskCfgCache(context.Background(), repos, depot_tools_testutils.GetDepotTools(t, context.Background()), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
 	check := func() {
-		c2, err := NewTaskCfgCache(repos, depot_tools_testutils.GetDepotTools(t), tmp, DEFAULT_NUM_WORKERS)
+		c2, err := NewTaskCfgCache(context.Background(), repos, depot_tools_testutils.GetDepotTools(t, context.Background()), tmp, DEFAULT_NUM_WORKERS)
 		assert.NoError(t, err)
 
 		// We can't use reflect.DeepEqual on channels, so temporarily

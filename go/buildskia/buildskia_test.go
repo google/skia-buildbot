@@ -1,6 +1,7 @@
 package buildskia
 
 import (
+	"context"
 	"encoding/base64"
 	"io/ioutil"
 	"os"
@@ -8,9 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -158,10 +160,9 @@ func TestGetSkiaHeadEmpty(t *testing.T) {
 func TestGNGen(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := exec.CommandCollector{}
-	exec.SetRunForTesting(mock.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
+	ctx := exec.NewContext(context.Background(), mock.Run)
 
-	err := GNGen("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", []string{"is_debug=true"})
+	err := GNGen(ctx, "/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", []string{"is_debug=true"})
 	assert.NoError(t, err)
 
 	got, want := exec.DebugString(mock.Commands()[0]), `gn gen out/Debug --args=is_debug=true`
@@ -173,10 +174,9 @@ func TestGNGen(t *testing.T) {
 func TestGNNinjaBuild(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := exec.CommandCollector{}
-	exec.SetRunForTesting(mock.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
+	ctx := exec.NewContext(context.Background(), mock.Run)
 
-	_, err := GNNinjaBuild("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "", false)
+	_, err := GNNinjaBuild(ctx, "/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "", false)
 	assert.NoError(t, err)
 	got, want := exec.DebugString(mock.Commands()[0]), "/mnt/pd0/depot_tools/ninja -C out/Debug"
 	if !strings.HasSuffix(got, want) {
@@ -187,8 +187,7 @@ func TestGNNinjaBuild(t *testing.T) {
 func TestGNDownloadSkia(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := exec.CommandCollector{}
-	exec.SetRunForTesting(mock.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
+	ctx := exec.NewContext(context.Background(), mock.Run)
 
 	checkout, err := ioutil.TempDir("", "download-test")
 	assert.NoError(t, err)
@@ -201,7 +200,7 @@ func TestGNDownloadSkia(t *testing.T) {
 	err = os.MkdirAll(filepath.Join(checkout, "skia"), 0777)
 	assert.NoError(t, err)
 
-	_, err = GNDownloadSkia("master", "aabbccddeeff", checkout, "/mnt/pd0/fiddle/depot_tools", false, false)
+	_, err = GNDownloadSkia(ctx, "master", "aabbccddeeff", checkout, "/mnt/pd0/fiddle/depot_tools", false, false)
 	// Not all of exec is mockable, so GNDownloadSkia will fail, but check the correctness
 	// of the commands we did issue before hitting the failure point.
 	assert.Error(t, err)
@@ -213,6 +212,9 @@ func TestGNDownloadSkia(t *testing.T) {
 		"gclient sync",
 		"fetch-gn",
 		"git log -n 1 --format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b aabbccddeeff",
+	}
+	for _, c := range mock.Commands() {
+		sklog.Errorf(exec.DebugString(c))
 	}
 	assert.Equal(t, len(expectedCommands), len(mock.Commands()))
 	for i, want := range expectedCommands {
@@ -226,10 +228,9 @@ func TestGNDownloadSkia(t *testing.T) {
 func TestGNNinjaBuildTarget(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := exec.CommandCollector{}
-	exec.SetRunForTesting(mock.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
+	ctx := exec.NewContext(context.Background(), mock.Run)
 
-	_, err := GNNinjaBuild("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "fiddle", false)
+	_, err := GNNinjaBuild(ctx, "/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "fiddle", false)
 	assert.NoError(t, err)
 	got, want := exec.DebugString(mock.Commands()[0]), "/mnt/pd0/depot_tools/ninja -C out/Debug fiddle"
 	if !strings.HasSuffix(got, want) {

@@ -80,6 +80,7 @@ type TaskScheduler struct {
 	busyBots            *busyBots
 	candidateMetrics    map[string]metrics2.Int64Metric
 	candidateMetricsMtx sync.Mutex
+	ctx                 context.Context
 	db                  db.DB
 	depotToolsDir       string
 	isolate             *isolate.Client
@@ -105,7 +106,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create blacklist from file: %s", err)
@@ -127,7 +128,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
 
-	taskCfgCache, err := specs.NewTaskCfgCache(repos, depotTools, path.Join(workdir, "taskCfgCache"), specs.DEFAULT_NUM_WORKERS)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), specs.DEFAULT_NUM_WORKERS)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
@@ -145,6 +146,7 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 		bl:               bl,
 		busyBots:         newBusyBots(),
 		candidateMetrics: map[string]metrics2.Int64Metric{},
+		ctx:              ctx,
 		db:               d,
 		depotToolsDir:    depotTools,
 		isolate:          isolateClient,
@@ -171,10 +173,10 @@ func NewTaskScheduler(d db.DB, period time.Duration, numCommits int, workdir, ho
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks. beforeMainLoop
 // will be run before each scheduling iteration.
-func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
-	s.tryjobs.Start(ctx)
+func (s *TaskScheduler) Start(beforeMainLoop func()) {
+	s.tryjobs.Start(s.ctx)
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
-	go util.RepeatCtx(5*time.Second, ctx, func() {
+	go util.RepeatCtx(5*time.Second, s.ctx, func() {
 		beforeMainLoop()
 		if err := s.MainLoop(); err != nil {
 			sklog.Errorf("Failed to run the task scheduler: %s", err)
@@ -183,7 +185,7 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 		}
 	})
 	lvUpdate := metrics2.NewLiveness("last_successful_tasks_update")
-	go util.RepeatCtx(5*time.Minute, ctx, func() {
+	go util.RepeatCtx(5*time.Minute, s.ctx, func() {
 		if err := s.updateUnfinishedTasks(); err != nil {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {

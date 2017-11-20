@@ -40,11 +40,11 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 			return nil, fmt.Errorf("There is a problem with the workdir: %s", err)
 		}
 	}
-	repos, err := repograph.NewMap(repoUrls, wd)
+	repos, err := repograph.NewMap(ctx, repoUrls, wd)
 	if err != nil {
 		return nil, err
 	}
-	depotTools, err := git.NewCheckout(common.REPO_DEPOT_TOOLS, wd)
+	depotTools, err := git.NewCheckout(ctx, common.REPO_DEPOT_TOOLS, wd)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 		return nil, err
 	}
 	gitCache := path.Join(wd, "cache")
-	tcc, err := specs.NewTaskCfgCache(repos, depotTools.Dir(), gitCache, 3)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools.Dir(), gitCache, 3)
 	if err != nil {
 		return nil, err
 	}

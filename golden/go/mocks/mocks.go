@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -132,7 +133,7 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 	gitRepoDir, err := ioutil.TempDir("", "gitrepo")
 	assert.NoError(t, err)
 
-	git, err := gitinfo.CloneOrUpdate(gitURL, gitRepoDir, false)
+	git, err := gitinfo.CloneOrUpdate(context.Background(), gitURL, gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -25,6 +25,7 @@ package main
 */
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -115,14 +116,14 @@ func rollOnce(repoUrl, cwd string) (map[string][]string, error) {
 
 // rollRepo performs a DEPS roll and uploads a CL if the repo is not up-to-date.
 // Returns the URL of the uploaded CL, if any.
-func rollRepo(repoUrl string) (string, error) {
+func rollRepo(ctx context.Context, repoUrl string) (string, error) {
 	sklog.Infof("  Creating checkout...")
 	tmpDir, err := ioutil.TempDir("", "recipe_roll_")
 	if err != nil {
 		return "", err
 	}
 	defer util.RemoveAll(tmpDir)
-	repo, err := git.NewCheckout(repoUrl, tmpDir)
+	repo, err := git.NewCheckout(ctx, repoUrl, tmpDir)
 	if err != nil {
 		return "", err
 	}
@@ -176,6 +177,7 @@ func main() {
 	common.Init()
 
 	uploaded := []string{}
+	ctx := context.Background()
 
 	// Traverse the dependency graph of repos. If any repo is not
 	// up-to-date, create a recipe roll for that repo. If any of a repo's
@@ -193,7 +195,7 @@ func main() {
 			}
 		}
 		sklog.Infof("Rolling %s...", repoUrl)
-		rollIssue, err := rollRepo(repoUrl)
+		rollIssue, err := rollRepo(ctx, repoUrl)
 		if err != nil {
 			sklog.Fatal(err)
 		}
