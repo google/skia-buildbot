@@ -16,6 +16,24 @@
       "revId": "6e57f108167e9422eebe9c30b1772bc591a6506b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb9c5c5c_2342f973",
+        "filename": "prometheus/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-11-20T22:00:11Z",
+      "side": 1,
+      "message": "That was a typo, now fixed.",
+      "parentUuid": "e6c80b34_4333c49f",
+      "revId": "6e57f108167e9422eebe9c30b1772bc591a6506b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
