@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5e8f32a7_1c03fe0e",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-20T21:20:05Z",
+      "side": 1,
+      "message": "nit: os.MkdirAll (does nothing if dir already exists)",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 2
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad08308c_2b85bd83",
+        "filename": "autoroll/go/repo_manager/manifest_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-20T21:20:05Z",
+      "side": 1,
+      "message": "nit: ditto",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 2
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "504094a1_23799090",
+        "filename": "autoroll/go/repo_manager/manifest_repo_manager_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-20T21:20:05Z",
+      "side": 1,
+      "message": "Not sure why this changed.",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 3
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64115aae_b6921619",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-20T21:20:05Z",
+      "side": 1,
+      "message": "nit: https://golang.org/pkg/context/ says \"Do not store Contexts inside a struct type; instead, pass a Context explicitly to each function that needs it. The Context should be the first parameter, typically named ctx...\"\n\nI think generally what you\u0027ve done in this CL is fine and I\u0027m ok if you submit as-is. What I fear is that later someone will have a function call that looks something like:\n\nfunc (x *myStruct) doStuff(contextForTimeout context.Context, ...) {\n  util.RepeatCtx(contextForTimeout, func() error {\n    return exec.Ctx(x.contextForExec).Run(...)\n  })\n}\n\nwhich seems pretty awful -- there should be only one context.",
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a09e8a4_6e295654",
+        "filename": "go/buildskia/buildskia_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-20T21:20:05Z",
+      "side": 1,
+      "message": "nit: remove or t.Logf",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 2
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6926272c_5ff38ce3",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-20T21:20:05Z",
+      "side": 1,
+      "message": "nit: delete",
+      "range": {
+        "startLine": 288,
+        "startChar": 0,
+        "endLine": 289,
+        "endChar": 65
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

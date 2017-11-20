@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f0552bcd_d423aa48",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-20T21:20:05Z",
+      "side": 0,
+      "message": "nit: IMO, pass in the context, even if it happens to be the same. (Related to comment above.)",
+      "range": {
+        "startLine": 174,
+        "startChar": 30,
+        "endLine": 174,
+        "endChar": 51
+      },
+      "revId": "d4fc37dcd4022427104ad0c7415e0be22d515613",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
