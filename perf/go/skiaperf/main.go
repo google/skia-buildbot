@@ -49,7 +49,6 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
-	idb "go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/ds"
 	"go.skia.org/infra/perf/go/notify"
 	_ "go.skia.org/infra/perf/go/ptraceingest"
@@ -104,7 +103,6 @@ var (
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	stepUpOnly            = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
 	subdomain             = flag.String("subdomain", "perf", "The public subdomain of the server, i.e. 'perf' for perf.skia.org.")
-	useCloudDatastore     = flag.Bool("use_cloud_datastore", false, "If false use MySQL, otherwise use Cloud Datastore.")
 )
 
 var (
@@ -202,17 +200,12 @@ func Init() {
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
-	if *useCloudDatastore && *namespace == "" {
-		sklog.Fatal("The --namespace flag must be specified when using the Cloud Datastore. See infra/DATASTORE.md for format details.\n")
+	if *namespace == "" {
+		sklog.Fatal("The --namespace flag is required. See infra/DATASTORE.md for format details.\n")
 	}
 	if err := ds.Init(*projectName, *namespace); err != nil {
 		sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
 	}
-
-	shortcut2.Init(*useCloudDatastore)
-	activitylog.Init(*useCloudDatastore)
-	regression.Init(*useCloudDatastore)
-	alerts.Init(*useCloudDatastore)
 
 	clusterAlgo, err := clustering2.ToClusterAlgo(*algo)
 	if err != nil {
@@ -1298,8 +1291,6 @@ func internalOnlyHandler(h http.Handler) http.Handler {
 
 func main() {
 	defer common.LogPanic()
-	// Setup DB flags.
-	dbConf := idb.DBConfigFromFlags()
 
 	common.InitWithMust(
 		"skiaperf",
@@ -1308,15 +1299,6 @@ func main() {
 	)
 
 	Init()
-	if !*local {
-		if err := dbConf.GetPasswordFromMetadata(); err != nil {
-			sklog.Fatal(err)
-		}
-	}
-	if err := dbConf.InitDB(); err != nil {
-		sklog.Fatal(err)
-	}
-
 	login.SimpleInitMust(*port, *local)
 
 	// Resources are served directly.

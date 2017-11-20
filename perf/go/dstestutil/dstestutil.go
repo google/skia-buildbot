@@ -40,8 +40,19 @@ func InitDatastore(t *testing.T, kind ds.Kind) CleanupFunc {
 	if os.Getenv("DATASTORE_EMULATOR_HOST") == "" {
 		t.Skip(`Skipping tests that require a local Cloud Datastore emulator.
 
-Run "gcloud beta emulators datastore start --no-store-on-disk"
-and set the environment variable DATASTORE_EMULATOR_HOST to run these tests.`)
+Run
+
+	"gcloud beta emulators datastore start --no-store-on-disk --host-port=localhost:8888"
+
+and then run
+
+  $(gcloud beta emulators datastore env-init)
+
+to set the environment variables. When done running tests you can unset the env variables:
+
+  $(gcloud beta emulators datastore env-unset)
+
+`)
 	}
 	err := ds.InitForTesting("test-project", fmt.Sprintf("test-namespace-%d", r.Uint64()))
 	assert.NoError(t, err)

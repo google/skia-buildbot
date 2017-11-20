@@ -14,8 +14,6 @@ func TestActivity(t *testing.T) {
 	testutils.MediumTest(t)
 	cleanup := dstestutil.InitDatastore(t, ds.ACTIVITY)
 
-	Init(true)
-	defer Init(false)
 	defer cleanup()
 
 	// Add one activity.

@@ -12,7 +12,6 @@ ExecStart=/usr/local/bin/skiaperf  \
     --logtostderr \
     --config_filename=/etc/skiaperf/ingest.json5 \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store \
-    --use_cloud_datastore \
     --namespace=perf-androidmaster \
     --dataframe_size=256 \
     --num_continuous=500 \

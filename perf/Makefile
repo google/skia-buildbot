@@ -10,7 +10,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: skiaperf web ptracequery perf_migratedb perf_update_regressions ingest_json_validator migrate_ds
+build: skiaperf web ptracequery perf_update_regressions ingest_json_validator
 
 .PHONY: validate
 validate: ingest_json_validator
@@ -28,9 +28,6 @@ ptracequery:
 
 ingest_json_validator:
 	go install -v ./go/ingest_json_validator
-
-migrate_ds:
-	go install -v ./go/migrate_ds
 
 .PHONY: web
 web: clean_webtools elements_html core_js
@@ -65,10 +62,6 @@ push_android_master: build
 	go install -v ../push/go/pushcli
 	pushcli android-master-skiaperfd skia-android-master-perf
 
-.PHONY: perf_migratedb
-perf_migratedb:
-	go install -v ./go/perf_migratedb
-
 .PHONY: perf_update_regressions
 perf_update_regressions:
 	go install -v ./go/perf_update_regressions
@@ -78,7 +71,7 @@ perf_update_regressions:
 debug: clean_webtools debug_core_js debug_elements_html
 
 .PHONY: all
-all: build perf_migratedb
+all: build
 
 .PHONY: tags
 tags:

@@ -11,7 +11,6 @@ ExecStart=/usr/local/bin/skiaperf  \
     --config_filename=/etc/skiaperf/ingest.json5 \
     --logtostderr \
     --commit_range_url=https://skia.googlesource.com/skia/+log/{begin}..{end} \
-    --use_cloud_datastore \
     --namespace=perf \
     --ptrace_store_dir=/mnt/pd0/skiaperf/store
 

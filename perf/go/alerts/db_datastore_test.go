@@ -14,8 +14,6 @@ func TestDS(t *testing.T) {
 	testutils.MediumTest(t)
 	cleanup := dstestutil.InitDatastore(t, ds.ALERT)
 
-	Init(true)
-	defer Init(false)
 	defer cleanup()
 
 	// Test saving one alert.

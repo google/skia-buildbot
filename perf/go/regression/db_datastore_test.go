@@ -19,8 +19,6 @@ func TestDS(t *testing.T) {
 
 	cleanup := dstestutil.InitDatastore(t, ds.REGRESSION)
 
-	Init(true)
-	defer Init(false)
 	defer cleanup()
 
 	st := NewStore()
