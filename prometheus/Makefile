@@ -9,17 +9,17 @@ prom:
 	-mkdir -p tmp
 	curl -L https://github.com/prometheus/prometheus/releases/download/v1.8.0/prometheus-1.8.0.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
 	cp ./tmp/prometheus-1.8.0.linux-amd64/prometheus ./tmp/prometheus
-	cp ./tmp/prometheus-1.8.0.linux-amd64/prometheus ./tmp/promtool
+	cp ./tmp/prometheus-1.8.0.linux-amd64/promtool ./tmp/promtool
 
 testgo:
 	go test -v ./...
 
-promtool:
-	go get github.com/prometheus/prometheus/cmd/promtool
+promtool: prom
+	cp ./tmp/prometheus-1.8.0.linux-amd64/promtool ./tmp/promtool
 
 validate: build promtool
 	absent
-	promtool check-config sys/prometheus.yml
+	./tmp/promtool check-config sys/prometheus.yml
 
 push: validate
 	./build_config_release "`git log -n1 --format=%s`"
@@ -32,8 +32,8 @@ push_binaries: build prom alertmanager pushgateway validate
 	pushcli prometheus skia-prom
 
 push_skolo: build prom
-	promtool check-config sys/jumphost-rpi-01/prometheus.yml
-	promtool check-config sys/jumphost-linux-01/prometheus.yml
+	./tmp/promtool check-config sys/jumphost-rpi-01/prometheus.yml
+	./tmp/promtool check-config sys/jumphost-linux-01/prometheus.yml
 	CONFIG=rpi-01 ./build_skolo_release "`git log -n1 --format=%s`"
 	CONFIG=linux-01 ./build_skolo_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
