@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "573347a8_ae53ecd8",
+        "filename": "chromeextensions/skia-dev/popup.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-20T15:25:33Z",
+      "side": 1,
+      "message": "Include rel\u003dnoopener https://mathiasbynens.github.io/rel-noopener/, even though we do kindof trust skia-review.",
+      "range": {
+        "startLine": 131,
+        "startChar": 68,
+        "endLine": 131,
+        "endChar": 83
+      },
+      "revId": "bbdd05bf1595bd9e0b0eb42712248de6fc7b04bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

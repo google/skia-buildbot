@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c952508c_7878be7a",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-20T15:25:33Z",
+      "side": 1,
+      "message": "nit: use double quotes to avoid escaping the single quote",
+      "range": {
+        "startLine": 155,
+        "startChar": 40,
+        "endLine": 155,
+        "endChar": 49
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58ab2adc_42487375",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-20T15:25:33Z",
+      "side": 1,
+      "message": "double quotes",
+      "range": {
+        "startLine": 174,
+        "startChar": 42,
+        "endLine": 174,
+        "endChar": 51
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80f1f711_c34872af",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-20T15:25:33Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 182,
+        "startChar": 35,
+        "endLine": 182,
+        "endChar": 37
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "929d4a7f_17ff8ceb",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-20T15:25:33Z",
+      "side": 1,
+      "message": "semi-colons are missing in many places (I know they are optional in a lot of places, but at least be consistent.",
+      "range": {
+        "startLine": 206,
+        "startChar": 22,
+        "endLine": 206,
+        "endChar": 23
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd95a83a_1e86d4fc",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-20T15:25:33Z",
+      "side": 1,
+      "message": "Consider using template literals here and in other places - it might be cleaner https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals",
+      "range": {
+        "startLine": 266,
+        "startChar": 31,
+        "endLine": 266,
+        "endChar": 120
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f29d2f17_2ddb3590",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-20T15:25:33Z",
+      "side": 1,
+      "message": "On any links to external sites, use rel\u003dnoopener https://mathiasbynens.github.io/rel-noopener/",
+      "range": {
+        "startLine": 280,
+        "startChar": 17,
+        "endLine": 280,
+        "endChar": 23
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
