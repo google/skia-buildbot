@@ -1,14 +1,16 @@
 {
    "name": "Assorted Tools for Skia Developers",
-   "version": "2.0",
+   "version": "3.0",
    "description": "Assorted Tools for Skia Developers.",
    "permissions": [
      "notifications",
      "storage",
+     "*://skia.org/*",
      "https://gold.skia.org/",
      "https://perf.skia.org/",
      "https://promalerts.skia.org/",
-     "http://skia-tree-status.appspot.com/"
+     "http://skia-tree-status.appspot.com/",
+     "*://skia-review.googlesource.com/"
    ],
    "background": {
      "scripts": [
