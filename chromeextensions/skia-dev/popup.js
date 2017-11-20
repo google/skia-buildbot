@@ -4,6 +4,16 @@
 
 (function(){
 
+  var MAX_SUBJECT_LENGTH = 80;
+
+  function loggedInAs() {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", "https://skia.org/loginstatus/", false);
+    xmlHttp.send(null);
+    var loginStatus = JSON.parse(xmlHttp.responseText);
+    return loginStatus["Email"];
+  }
+
   function linkify(wrapMe, link) {
     return '<a href="' + link + '" target="_blank">' + wrapMe + '</a>'
   }
@@ -130,43 +140,157 @@
     });
   }
 
-  function addMasterStatusRow(master) {
-    var table = document.getElementById('status-table');
+  function addGerritChanges() {
+    var username = loggedInAs();
+    if (!username) {
+      document.getElementById('errors').innerHTML += 'Log in to skia.org to view your Gerrit changes</br>';
+      return
+    }
 
-    var baseURL = 'http://build.chromium.org/p/' + master;
-    var consoleURL = baseURL + '/console';
-    var statusURL = baseURL + '/horizontal_one_box_per_builder';
+    var queryAccountURL =
+        "http://skia-review.googlesource.com/accounts/?q=email:" + username;
+    sk.get(queryAccountURL).then(function(resp) {
+      // Remove JSON anti-hijacking prefix.
+      var responseText = resp.substring(')]}\'\n'.length);
+      var json = JSON.parse(responseText);
 
-    var row = table.insertRow(-1);
-    row.className = 'trunk-status-row ' + master;
-    var label = row.insertCell(-1);
-    label.className = 'status-label';
-    var labelAnchor = document.createElement('a');
-    labelAnchor.href = consoleURL;
-    labelAnchor.target = '_blank';
-    labelAnchor.id = 'link_' + master;
-    labelAnchor.textContent = master;
-    label.appendChild(labelAnchor);
+      var userAccountId = "";
+      json.forEach(function(accountSection) {
+        userAccountId = accountSection._account_id;
+      });
+      if (!userAccountId) {
+        document.getElementById('errors').innerHTML += 'Could not find accountId from skia-review</br>';
+        return
+      }
 
-    var status = row.insertCell(-1);
-    status.className = 'trunk-status-cell';
-    var statusIframe = document.createElement('iframe');
-    statusIframe.scrolling = 'no';
-    statusIframe.src = statusURL;
-    status.appendChild(statusIframe);
+      var reviewerChangesURL =
+          "http://skia-review.googlesource.com/changes/?q=status:open+reviewer:" +
+          username + "+-owner:" + username + "&o=DETAILED_LABELS";
+      var pendingReviewChanges = []
+      sk.get(reviewerChangesURL).then(function(resp) {
+        // Remove JSON anti-hijacking prefix.
+        var responseText = resp.substring(')]}\'\n'.length);
+        var json = JSON.parse(responseText);
+
+        json.forEach(function(change) {
+          // See if you already have a +1.
+          var approved = false;
+          if (change.labels["Code-Review"] && change.labels["Code-Review"].all) {
+            change.labels["Code-Review"].all.forEach(function(vote) {
+              if (vote._account_id == userAccountId && vote.value === 1) {
+                approved = true;
+              }
+            });
+          }
+          if (!approved) {
+            pendingReviewChanges.push(change);
+          }
+        });
+        addChangesToTable(pendingReviewChanges, "gerrit-reviewer", "Pending your review", "red",
+                          "status:open+reviewer:" + username + "+-owner:" + username)
+      });
+    }).catch(function(err) {
+      console.log(err);
+      document.getElementById('errors').innerHTML += 'Error connecting to skia-review</br>';
+    });
+
+    var listChangesURL =
+        "http://skia-review.googlesource.com/changes/?q=status:open+owner:" +
+        username + "&o=LABELS";
+    var inCQChanges = []
+    var approvedChanges = []
+    var waitingForApprovalChanges = []
+    var wipChanges = []
+
+    sk.get(listChangesURL).then(function(resp) {
+      // Remove JSON anti-hijacking prefix.
+      var responseText = resp.substring(')]}\'\n'.length);
+      var json = JSON.parse(responseText);
+
+      json.forEach(function(change) {
+        if (change.has_review_started && !change.subject.startsWith("WIP: ")) {
+          // Review has started so it is in one of 3 states:
+          // * CQ running.
+          // * Approved but not sent to CQ yet.
+          // * Waiting for approval.
+          if (change.labels) {
+            if(change.labels["Commit-Queue"] && change.labels["Commit-Queue"].approved) {
+              inCQChanges.push(change);
+            } else if(change.labels["Code-Review"] && change.labels["Code-Review"].approved) {
+              approvedChanges.push(change);
+            } else {
+              waitingForApprovalChanges.push(change);
+            }
+          }
+        } else {
+          // Review has not started so it is WIP.
+          wipChanges.push(change);
+        }
+      });
+
+      addChangesToTable(inCQChanges, "gerrit-cq", "In CQ", "green",
+                        "status:open+owner:" + username + "+label:Commit-Queue=2");
+      addChangesToTable(approvedChanges, "gerrit-approved", "Approved, ready to submit", "green",
+                        "status:open+owner:" + username + "+-label:Commit-Queue=2+label:Code-Review=1");
+      addChangesToTable(waitingForApprovalChanges, "gerrit-under-review", "Under review", "yellow",
+                        "status:open+-is:wip+owner:" + username + "+-label:Code-Review=1");
+      addChangesToTable(wipChanges, "gerrit-wip", "WIP", "yellow",
+                        "status:open+is:wip+owner:" + username);
+
+    }).catch(function(err) {
+      console.log(err);
+      document.getElementById('errors').innerHTML += 'Error connecting to skia-review</br>';
+    });
+
   }
 
-  function addMasterStatusRows() {
-    var masters = [
-      'client.skia',
-      'client.skia.android',
-      'client.skia.compile',
-      'client.skia.fyi'
-    ];
+  function addChangesToTable(changes, tableId, title, titleClassName, query) {
+    if (!changes.length) {
+      return
+    }
+    var table = document.getElementById(tableId);
 
-    masters.forEach(function(master) {
-      addMasterStatusRow(master);
+    // Add title row.
+    var titleRow = table.insertRow(-1);
+    var titleCol = titleRow.insertCell(-1);
+    titleCol.colSpan = 2;
+    titleCol.className = titleClassName;
+    var titleBold = document.createElement('b');
+    titleBold.textContent = title;
+    var newLine = document.createElement('br');
+    var titleQueryLink = document.createElement('span');
+    titleQueryLink.innerHTML = '(<a href="https://skia-review.googlesource.com/q/' + query + '">query</a> limited to 5)';
+    titleCol.appendChild(titleBold);
+    titleCol.appendChild(newLine);
+    titleCol.appendChild(titleQueryLink);
+
+    // Truncate number of changes to 5.
+    changes = changes.splice(0, 5);
+    changes.forEach(function(change) {
+      var changeRow = table.insertRow(-1);
+
+      // Add link to the change
+      var linkCol = changeRow.insertCell(-1);
+      var linkAnchor = document.createElement('a');
+      linkAnchor.href = 'https://skia-review.googlesource.com/c/' + change._number;
+      linkAnchor.target = '_blank';
+      linkAnchor.textContent = 'skrev/' + change._number;
+      linkCol.appendChild(linkAnchor);
+
+      // Add subject.
+      var subjRow = changeRow.insertCell(-1);
+      var subjSpan = document.createElement('span');
+      if (change.subject.length > MAX_SUBJECT_LENGTH) {
+        subjSpan.textContent =
+            change.subject.substring(0, MAX_SUBJECT_LENGTH) + "...";
+      } else {
+        subjSpan.textContent = change.subject;
+      }
+      subjRow.appendChild(subjSpan);
     });
+
+    table.parentNode.insertBefore(document.createElement('br'), table);
+    table.parentNode.insertBefore(document.createElement('br'), table);
   }
 
   function main() {
@@ -177,7 +301,7 @@
     setCrRollStatus();
     setAndroidRollStatus();
     setInfraAlerts();
-    // addMasterStatusRows();
+    addGerritChanges();
   }
 
   main();

@@ -15,11 +15,6 @@
       text-align: center;
     }
 
-    #status-table {
-      margin-left: auto;
-      margin-right: auto;
-    }
-
     a {
       text-decoration: underline;
       color: #444;
@@ -30,17 +25,31 @@
       cursor: pointer;
     }
 
-    #info-table {
+    table {
       margin-left: auto;
       margin-right: auto;
       border: 1px solid black;
       border-collapse: collapse;
     }
-    #info-table td {
+    table td {
       padding: 7px 10px;
-      width: 25%;
       text-align: center;
       border: 1px solid black;
+    }
+    #info-table td {
+      width: 25%;
+    }
+
+    .red {
+      background-color: #ef9b9b;
+    }
+
+    .green {
+      background-color: #c2fcc2;
+    }
+
+    .yellow {
+      background-color: #ffe4af;
     }
 
     .trunk-status-cell {
@@ -117,8 +126,12 @@
         </td>
       </tr>
     </table>
-    <br/>
-    <table id="status-table"></table>
+    <table id="gerrit-reviewer"></table>
+    <table id="gerrit-cq"></table>
+    <table id="gerrit-approved"></table>
+    <table id="gerrit-under-review"></table>
+    <table id="gerrit-wip"></table>
+    <br/><br/>
     <div id="errors"></div>
     <script src="node_modules/skia-common-js/common.js"></script>
     <script src="popup.js"></script>
