@@ -17,7 +17,6 @@ import (
 	compute "google.golang.org/api/compute/v0.beta"
 
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
@@ -63,13 +62,12 @@ const (
 	OS_LINUX   = "Linux"
 	OS_WINDOWS = "Windows"
 
-	PROJECT_ID_SERVER   = common.PROJECT_ID
-	PROJECT_ID_SWARMING = "skia-swarming-bots"
+	PROJECT_ID = "google.com:skia-buildbots"
 
 	SERVICE_ACCOUNT_DEFAULT         = "31977622648@project.gserviceaccount.com"
 	SERVICE_ACCOUNT_COMPUTE         = "31977622648-compute@developer.gserviceaccount.com"
-	SERVICE_ACCOUNT_CHROME_SWARMING = "chrome-swarming-bots@skia-swarming-bots.iam.gserviceaccount.com"
-	SERVICE_ACCOUNT_CHROMIUM_SWARM  = "chromium-swarm-bots@skia-swarming-bots.iam.gserviceaccount.com"
+	SERVICE_ACCOUNT_CHROME_SWARMING = "chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com"
+	SERVICE_ACCOUNT_CHROMIUM_SWARM  = "chromium-swarm-bots@skia-buildbots.google.com.iam.gserviceaccount.com"
 
 	SETUP_SCRIPT_KEY_LINUX  = "setup-script"
 	SETUP_SCRIPT_KEY_WIN    = "sysprep-specialize-script-ps1"
@@ -118,19 +116,17 @@ type GCloud struct {
 
 // NewGCloud returns a GCloud instance with a default http client. The
 // default client expects a local gcloud_token.data and client_secret.json.
-func NewGCloud(project, zone, workdir string) (*GCloud, error) {
-	projectTrimmed := strings.TrimPrefix(project, "google.com:")
-	oauthCacheFile := path.Join(workdir, fmt.Sprintf("gcloud_token_%s.data", projectTrimmed))
-	oauthConfigFile := fmt.Sprintf("client_secret_%s.json", projectTrimmed)
-	httpClient, err := auth.NewClientWithTransport(true, oauthCacheFile, oauthConfigFile, nil, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
+func NewGCloud(zone, workdir string) (*GCloud, error) {
+	oauthCacheFile := path.Join(workdir, "gcloud_token.data")
+	httpClient, err := auth.NewClient(true, oauthCacheFile, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
 	if err != nil {
 		return nil, err
 	}
-	return NewGCloudWithClient(project, zone, workdir, httpClient)
+	return NewGCloudWithClient(zone, workdir, httpClient)
 }
 
 // NewGCloudWithClient returns a GCloud instance with the specified http client.
-func NewGCloudWithClient(project, zone, workdir string, httpClient *http.Client) (*GCloud, error) {
+func NewGCloudWithClient(zone, workdir string, httpClient *http.Client) (*GCloud, error) {
 	s, err := compute.New(httpClient)
 	if err != nil {
 		return nil, err
@@ -142,7 +138,7 @@ func NewGCloudWithClient(project, zone, workdir string, httpClient *http.Client)
 	}
 
 	return &GCloud{
-		project: project,
+		project: PROJECT_ID,
 		service: s,
 		workdir: workdir,
 		zone:    zone,
@@ -451,7 +447,8 @@ type Instance struct {
 	// a shebang for Python scripts).
 	SetupScript string
 
-	// The service account to use for this instance. Required.
+	// The service account to use for this instance. Will default to
+	// SERVICE_ACCOUNT_DEFAULT if unspecified.
 	ServiceAccount string
 
 	// Path to a startup script for the instance, optional. Should be either
@@ -595,7 +592,7 @@ func (g *GCloud) createInstance(vm *Instance, ignoreExists bool) error {
 		}
 	}
 	if vm.ServiceAccount == "" {
-		return fmt.Errorf("ServiceAccount is required.")
+		vm.ServiceAccount = SERVICE_ACCOUNT_DEFAULT
 	}
 	if vm.Os == OS_WINDOWS && vm.StartupScript != "" {
 		// On Windows, the setup script runs automatically during
