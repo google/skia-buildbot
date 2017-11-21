@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"sort"
@@ -923,7 +924,7 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
-	repo, err := repograph.NewGraph(g.Dir(), workdir)
+	repo, err := repograph.NewGraph(context.Background(), g.Dir(), workdir)
 	assert.NoError(t, err)
 
 	grt := GitRepoGetRevisionTimestamp(repograph.Map{

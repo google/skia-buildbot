@@ -1,6 +1,7 @@
 package buildlib
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -14,12 +15,12 @@ import (
 // and fiddle_main.o.
 func BuildLib(checkout, depotTools string) error {
 	sklog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
+	if err := buildskia.GNGen(context.Background(), checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
 	sklog.Info("Building fiddle")
-	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "fiddle", true); err != nil {
+	if msg, err := buildskia.GNNinjaBuild(context.Background(), checkout, depotTools, "Release", "fiddle", true); err != nil {
 		return fmt.Errorf("Failed ninja build of fiddle: %q %s", msg, err)
 	}
 

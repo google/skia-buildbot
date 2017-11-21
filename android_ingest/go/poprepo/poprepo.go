@@ -137,7 +137,7 @@ func (p *PopRepo) Add(buildid int64, ts int64) error {
 		rollback = true
 		return fmt.Errorf("Failed to add updated file %q: %s", msg, err)
 	}
-	if err := cmd.Run(); err != nil {
+	if err := exec.Run(&cmd); err != nil {
 		rollback = true
 		return fmt.Errorf("Failed to commit updated file %q: %s", output.String(), err)
 	}

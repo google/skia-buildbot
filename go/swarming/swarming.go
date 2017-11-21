@@ -5,6 +5,7 @@ package swarming
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -211,7 +212,7 @@ func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
 
 // NewSwarmingClient returns an instance of Swarming populated with default
 // values.
-func NewSwarmingClient(workDir, swarmingServer, isolateServer string) (*SwarmingClient, error) {
+func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServer string) (*SwarmingClient, error) {
 	if _, err := os.Stat(workDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(workDir, 0700); err != nil {
 			return nil, fmt.Errorf("Could not create %s: %s", workDir, err)
@@ -219,7 +220,7 @@ func NewSwarmingClient(workDir, swarmingServer, isolateServer string) (*Swarming
 	}
 	// Checkout luci client-py to get access to swarming.py for triggering and
 	// collecting tasks.
-	luciClient, err := git.NewCheckout(LUCI_CLIENT_REPO, workDir)
+	luciClient, err := git.NewCheckout(ctx, LUCI_CLIENT_REPO, workDir)
 	if err != nil {
 		return nil, fmt.Errorf("Could not checkout %s: %s", LUCI_CLIENT_REPO, err)
 	}

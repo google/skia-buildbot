@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -91,7 +92,8 @@ func main() {
 	}
 
 	// Re-run GN since the directory changes under overlayfs.
-	if err := buildskia.GNGen(*checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
+	ctx := context.Background()
+	if err := buildskia.GNGen(ctx, *checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
 		glog.Errorf("gn gen failed: %s", err)
 		res.Compile.Errors = err.Error()
 		serializeOutput(res)
@@ -99,7 +101,7 @@ func main() {
 	}
 
 	// Compile draw.cpp into 'fiddle'.
-	if output, err := buildskia.GNNinjaBuild(*checkout, depotTools, "Release", "fiddle", true); err != nil {
+	if output, err := buildskia.GNNinjaBuild(ctx, *checkout, depotTools, "Release", "fiddle", true); err != nil {
 		res.Compile.Errors = err.Error()
 		res.Compile.Output = output
 		serializeOutput(res)

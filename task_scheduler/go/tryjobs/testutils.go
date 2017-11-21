@@ -1,6 +1,7 @@
 package tryjobs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -100,13 +101,14 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	rm, err := repograph.NewMap([]string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
+	ctx := context.Background()
+	rm, err := repograph.NewMap(ctx, []string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
 	assert.NoError(t, err)
 
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
-	taskCfgCache, err := specs.NewTaskCfgCache(rm, depot_tools_testutils.GetDepotTools(t), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
 	assert.NoError(t, err)

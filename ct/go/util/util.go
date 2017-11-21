@@ -3,6 +3,7 @@ package util
 
 import (
 	"bytes"
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -395,7 +396,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	if err != nil {
 		return 0, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	s, err := swarming.NewSwarmingClient(context.Background(), workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {
@@ -847,7 +848,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	if err != nil {
 		return nil, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	s, err := swarming.NewSwarmingClient(context.Background(), workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {

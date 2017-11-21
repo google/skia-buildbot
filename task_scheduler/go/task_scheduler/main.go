@@ -642,7 +642,7 @@ func main() {
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
 	}
-	repos, err = repograph.NewMap(*repoUrls, wdAbs)
+	repos, err = repograph.NewMap(ctx, *repoUrls, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -685,7 +685,7 @@ func main() {
 	}
 
 	// Find depot_tools.
-	depotTools, err := depot_tools.Sync(wdAbs)
+	depotTools, err := depot_tools.Sync(ctx, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -699,13 +699,13 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
 	sklog.Infof("Created task scheduler. Starting loop.")
-	ts.Start(ctx, b.Tick)
+	ts.Start(b.Tick)
 
 	// Start up the web server.
 	login.SimpleInitMust(*port, *local)

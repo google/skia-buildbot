@@ -5,6 +5,7 @@ package main
 */
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -250,7 +251,8 @@ func main() {
 	}
 
 	// Create the task scheduler.
-	repo, err := repograph.NewGraph(repoName, workdir)
+	ctx := context.Background()
+	repo, err := repograph.NewGraph(ctx, repoName, workdir)
 	assertNoError(err)
 	head, err := repo.Repo().RevParse("HEAD")
 	assertNoError(err)
@@ -276,14 +278,14 @@ func main() {
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assertNoError(err)
 	swarmingClient := testutils.NewTestClient()
-	depotTools, err := depot_tools.Sync(workdir)
+	depotTools, err := depot_tools.Sync(ctx, workdir)
 	assertNoError(err)
 	urlMock := mockhttpclient.NewURLMock()
 	gitcookies := path.Join(workdir, "gitcookies_fake")
 	assertNoError(ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit("https://fake-skia-review.googlesource.com", gitcookies, urlMock.Client())
 	assertNoError(err)
-	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repograph.Map{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName}, swarming.POOLS_PUBLIC, "", depotTools, g)
+	s, err := scheduling.NewTaskScheduler(ctx, d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repograph.Map{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName}, swarming.POOLS_PUBLIC, "", depotTools, g)
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

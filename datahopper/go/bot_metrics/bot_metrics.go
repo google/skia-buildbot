@@ -396,17 +396,17 @@ func Start(dbUrl, workdir string, ctx context.Context) error {
 		return fmt.Errorf("Failed to create new DB client: %s", err)
 	}
 
-	repos, err := repograph.NewMap(common.PUBLIC_REPOS, workdir)
+	repos, err := repograph.NewMap(ctx, common.PUBLIC_REPOS, workdir)
 	if err != nil {
 		return fmt.Errorf("Failed to sync repograph: %s", err)
 	}
 
-	depotTools, err := depot_tools.Sync(workdir)
+	depotTools, err := depot_tools.Sync(ctx, workdir)
 	if err != nil {
 		return fmt.Errorf("Failed to sync depot_tools: %s", err)
 	}
 
-	tcc, err := specs.NewTaskCfgCache(repos, depotTools, path.Join(workdir, "taskCfgCache"), 1)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), 1)
 	if err != nil {
 		return fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}

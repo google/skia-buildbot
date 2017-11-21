@@ -172,7 +172,7 @@ func ingestedHandler(w http.ResponseWriter, r *http.Request) {
 // completed coverage tasks and ingest their data.
 func setupFileIngestion() error {
 	sklog.Info("Checking out skia")
-	repo, err := gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*gitDir, "skia"), false)
+	repo, err := gitinfo.CloneOrUpdate(context.Background(), common.REPO_SKIA, filepath.Join(*gitDir, "skia"), false)
 	if err != nil {
 		return fmt.Errorf("Could not clone skia repo: %s", err)
 	}

@@ -1,6 +1,7 @@
 package find_breaks
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -27,7 +28,7 @@ func setupHelper(t *testing.T, setup func(*git_testutils.GitBuilder)) (*repograp
 		gb.Cleanup()
 		testutils.RemoveAll(t, wd)
 	}
-	repo, err := repograph.NewGraph(gb.RepoUrl(), wd)
+	repo, err := repograph.NewGraph(context.Background(), gb.RepoUrl(), wd)
 	assert.NoError(t, err)
 	return repo, cleanup
 }
@@ -148,7 +149,7 @@ func TestCommitSlices3(t *testing.T) {
 		ts = ts.Add(2 * time.Minute)
 		gb.CheckoutBranch("master")
 		c = gb.MergeBranch("branch2")
-		_, err := git.GitDir(gb.Dir()).Git("branch", "-D", "branch2")
+		_, err := git.NewGitDirNoSync(context.Background(), gb.Dir()).Git("branch", "-D", "branch2")
 		assert.NoError(t, err)
 
 		ts = ts.Add(2 * time.Minute)
@@ -199,7 +200,7 @@ func TestCommitSlices4(t *testing.T) {
 		ts = ts.Add(2 * time.Minute)
 		gb.CheckoutBranch("master")
 		e = gb.MergeBranch("branch2")
-		_, err := git.GitDir(gb.Dir()).Git("branch", "-D", "branch2")
+		_, err := git.NewGitDirNoSync(context.Background(), gb.Dir()).Git("branch", "-D", "branch2")
 		assert.NoError(t, err)
 
 		ts = ts.Add(2 * time.Minute)

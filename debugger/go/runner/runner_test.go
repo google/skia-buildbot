@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,10 +25,8 @@ func testRun(cmd *exec.Command) error {
 func TestRunContainer(t *testing.T) {
 	testutils.SmallTest(t)
 	// Now test local runs, first set up exec for testing.
-	exec.SetRunForTesting(testRun)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-
-	runner := New("/mnt/pd0/debugger", "/mnt/pd0/container", mockGetCurrentHash, false)
+	ctx := exec.NewContext(context.Background(), testRun)
+	runner := New(ctx, "/mnt/pd0/debugger", "/mnt/pd0/container", mockGetCurrentHash, false)
 	err := runner.Start(20003)
 	assert.NoError(t, err)
 	assert.NotNil(t, runner)
@@ -37,10 +36,8 @@ func TestRunContainer(t *testing.T) {
 func TestRunLocal(t *testing.T) {
 	testutils.SmallTest(t)
 	// Now test local runs, first set up exec for testing.
-	exec.SetRunForTesting(testRun)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-
-	runner := New("/mnt/pd0/debugger", "/mnt/pd0/container", mockGetCurrentHash, true)
+	ctx := exec.NewContext(context.Background(), testRun)
+	runner := New(ctx, "/mnt/pd0/debugger", "/mnt/pd0/container", mockGetCurrentHash, true)
 	err := runner.Start(20003)
 	assert.NoError(t, err)
 	assert.NotNil(t, runner)

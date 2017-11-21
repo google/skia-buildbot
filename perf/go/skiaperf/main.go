@@ -214,7 +214,7 @@ func Init() {
 
 	loadTemplates()
 
-	git, err = gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
+	git, err = gitinfo.CloneOrUpdate(context.Background(), *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}

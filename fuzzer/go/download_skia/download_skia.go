@@ -89,7 +89,7 @@ func revisionHelper(storageClient fstorage.FuzzerGCSClient, prefix string) (stri
 // dependencies needed to compile Skia have been installed (e.g. the latest revision of gyp).
 // It returns an error on failure.
 func AtRevision(revision, path string, v config.VersionSetter, clean bool) error {
-	if lc, err := buildskia.GNDownloadSkia("master", revision, path, config.Common.DepotToolsPath, clean, false); err != nil {
+	if lc, err := buildskia.GNDownloadSkia(context.Background(), "master", revision, path, config.Common.DepotToolsPath, clean, false); err != nil {
 		return fmt.Errorf("Could not buildskia.GNDownloadSkia for skia revision %s: %s", revision, err)
 	} else {
 		v.SetSkiaVersion(lc)

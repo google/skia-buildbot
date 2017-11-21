@@ -577,7 +577,7 @@ func getCommitInfo(revision string) (*vcsinfo.LongCommit, error) {
 	repoLock.Lock()
 	defer repoLock.Unlock()
 	var err error
-	repo, err = gitinfo.NewGitInfo(filepath.Join(config.Common.SkiaRoot, "skia"), false, false)
+	repo, err = gitinfo.NewGitInfo(context.Background(), filepath.Join(config.Common.SkiaRoot, "skia"), false, false)
 	if err != nil {
 		return nil, fmt.Errorf("Could not create Skia repo: %s", err)
 	}

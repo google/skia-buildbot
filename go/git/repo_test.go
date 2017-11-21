@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -32,7 +33,7 @@ func TestRepo(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	r, err := NewRepo(gb.Dir(), tmp)
+	r, err := NewRepo(context.Background(), gb.Dir(), tmp)
 	assert.NoError(t, err)
 
 	// Verify that we can run git commands.

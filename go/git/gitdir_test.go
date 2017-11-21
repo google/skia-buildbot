@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -18,7 +19,7 @@ func TestGitDetails(t *testing.T) {
 	gb, commits := setup(t)
 	defer gb.Cleanup()
 
-	g := GitDir(gb.Dir())
+	g := NewGitDirNoSync(context.Background(), gb.Dir())
 	for i, c := range commits {
 		d, err := g.Details(c)
 		assert.NoError(t, err)
@@ -45,7 +46,7 @@ func TestGitBranch(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
-	g, err := newGitDir(gb.Dir(), tmpDir, false)
+	g, err := newGitDir(context.Background(), gb.Dir(), tmpDir, false)
 	assert.NoError(t, err)
 	branches, err := g.Branches()
 	assert.NoError(t, err)
@@ -112,7 +113,7 @@ func TestIsAncestor(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
-	g, err := newGitDir(gb.Dir(), tmpDir, false)
+	g, err := newGitDir(context.Background(), gb.Dir(), tmpDir, false)
 	assert.NoError(t, err)
 
 	// Commits are in decreasing chronological order; commits[0] is the most

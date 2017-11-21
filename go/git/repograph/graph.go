@@ -5,6 +5,7 @@ package repograph
 */
 
 import (
+	"context"
 	"encoding/gob"
 	"fmt"
 	"os"
@@ -176,8 +177,8 @@ func New(repo *git.Repo) (*Graph, error) {
 }
 
 // NewGraph returns a Graph instance, creating a git.Repo from the repoUrl and workdir.
-func NewGraph(repoUrl, workdir string) (*Graph, error) {
-	repo, err := git.NewRepo(repoUrl, workdir)
+func NewGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error) {
+	repo, err := git.NewRepo(ctx, repoUrl, workdir)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create git repo: %s", err)
 	}
@@ -472,10 +473,10 @@ func (r *Graph) GetLastNCommits(n int) ([]*vcsinfo.LongCommit, error) {
 type Map map[string]*Graph
 
 // NewMap returns a Map instance with Graphs for the given repo URLs.
-func NewMap(repos []string, workdir string) (Map, error) {
+func NewMap(ctx context.Context, repos []string, workdir string) (Map, error) {
 	rv := make(map[string]*Graph, len(repos))
 	for _, r := range repos {
-		g, err := NewGraph(r, workdir)
+		g, err := NewGraph(ctx, r, workdir)
 		if err != nil {
 			return nil, err
 		}

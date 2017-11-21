@@ -2,6 +2,7 @@ package specs
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -310,6 +311,7 @@ func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
 type TaskCfgCache struct {
 	// protected by mtx
 	cache         map[db.RepoState]*cacheEntry
+	ctx           context.Context
 	depotToolsDir string
 	file          string
 	mtx           sync.RWMutex
@@ -337,10 +339,11 @@ type gobTaskCfgCache struct {
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*TaskCfgCache, error) {
+func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*TaskCfgCache, error) {
 	file := path.Join(workdir, "taskCfgCache.gob")
 	queue := make(chan func(int))
 	c := &TaskCfgCache{
+		ctx:           ctx,
 		depotToolsDir: depotToolsDir,
 		file:          file,
 		queue:         queue,
@@ -828,7 +831,7 @@ func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, botUpdate bool, fn func(*git
 			}
 			defer util.RemoveAll(tmp)
 			cacheDir := path.Join(c.workdir, "cache", fmt.Sprintf("%d", workerId))
-			gr, err = tempGitRepoBotUpdate(rs, c.depotToolsDir, cacheDir, tmp)
+			gr, err = tempGitRepoBotUpdate(c.ctx, rs, c.depotToolsDir, cacheDir, tmp)
 		} else {
 			repo, ok := c.repos[rs.Repo]
 			if !ok {
@@ -875,7 +878,7 @@ func tempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 
 // tempGitRepoBotUpdate creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
+func tempGitRepoBotUpdate(ctx context.Context, rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	// Run bot_update to obtain a checkout of the repo and its DEPS.
 	botUpdatePath := path.Join(depotToolsDir, "recipes", "recipe_modules", "bot_update", "resources", "bot_update.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
@@ -926,7 +929,7 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 	t := metrics2.NewTimer("bot_update", map[string]string{
 		"patchRepo": patchRepo,
 	})
-	out, err := exec.RunCommand(&exec.Command{
+	out, err := exec.Ctx(ctx).RunCommand(&exec.Command{
 		Name: cmd[0],
 		Args: cmd[1:],
 		Dir:  tmp,
@@ -947,9 +950,7 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 	// bot_update points the upstream to a local cache. Point back to the
 	// "real" upstream, in case the caller cares about the remote URL. Note
 	// that this doesn't change the remote URLs for the DEPS.
-	co := &git.TempCheckout{
-		GitDir: git.GitDir(path.Join(tmp, projectName)),
-	}
+	co := git.NewCheckoutNoSync(ctx, path.Join(tmp, projectName))
 	if _, err := co.Git("remote", "set-url", "origin", rs.Repo); err != nil {
 		return nil, err
 	}
@@ -963,5 +964,5 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 		return nil, fmt.Errorf("TempGitRepo ended up at the wrong revision. Wanted %q but got %q", rs.Revision, head)
 	}
 
-	return co, nil
+	return (*git.TempCheckout)(co), nil
 }

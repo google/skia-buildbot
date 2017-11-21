@@ -1,6 +1,7 @@
 package poprepo
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -37,7 +38,7 @@ func TestAdd(t *testing.T) {
 	}()
 
 	// Start testing.
-	checkout, err := git.NewCheckout(gb.Dir(), workdir)
+	checkout, err := git.NewCheckout(context.Background(), gb.Dir(), workdir)
 	assert.NoError(t, err)
 	err = checkout.Cleanup()
 	assert.NoError(t, err)

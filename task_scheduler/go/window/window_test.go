@@ -1,6 +1,7 @@
 package window
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -52,7 +53,7 @@ func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	repo, err := repograph.NewGraph(gb.Dir(), tmp)
+	repo, err := repograph.NewGraph(context.Background(), gb.Dir(), tmp)
 	assert.NoError(t, err)
 	return gb.Dir(), repo, commits, func() {
 		gb.Cleanup()

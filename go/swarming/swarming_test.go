@@ -1,6 +1,7 @@
 package swarming
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -27,7 +28,7 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 	testutils.LargeTest(t)
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
-	s, err := NewSwarmingClient(workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
+	s, err := NewSwarmingClient(context.Background(), workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	defer s.Cleanup()
 
@@ -79,7 +80,7 @@ func E2E_Success(t *testing.T) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
-	s, err := NewSwarmingClient(workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
+	s, err := NewSwarmingClient(context.Background(), workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	defer s.Cleanup()
 
@@ -138,7 +139,7 @@ func E2E_OneFailure(t *testing.T) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
-	s, err := NewSwarmingClient(workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
+	s, err := NewSwarmingClient(context.Background(), workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	defer s.Cleanup()
 
