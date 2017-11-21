@@ -178,6 +178,24 @@
     },
     {
       "key": {
+        "uuid": "a6086695_778883c5",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-21T15:09:23Z",
+      "side": 1,
+      "message": "It seems like this CL is taking us in the direction of every function taking a Context.",
+      "parentUuid": "3805da92_7fa1a4b7",
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6a09e8a4_6e295654",
         "filename": "go/buildskia/buildskia_test.go",
         "patchSetId": 2

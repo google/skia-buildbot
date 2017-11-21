@@ -46,6 +46,30 @@
       "revId": "d4fc37dcd4022427104ad0c7415e0be22d515613",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb8be037_e4fc179e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-21T15:09:23Z",
+      "side": 0,
+      "message": "Yuck, yes, if the context passed to s.tryjobs.Start needs the exec Context, then it should be using s.ctx.",
+      "parentUuid": "86dc4029_675b6c57",
+      "range": {
+        "startLine": 174,
+        "startChar": 30,
+        "endLine": 174,
+        "endChar": 51
+      },
+      "revId": "d4fc37dcd4022427104ad0c7415e0be22d515613",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
