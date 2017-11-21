@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -238,24 +239,77 @@ func legacySearchImpl(w http.ResponseWriter, r *http.Request, query *search.Quer
 
 // jsonSearchHandler is the endpoint for all searches.
 func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
-	query := search.Query{Limit: 50}
-	if err := search.ParseQuery(r, &query); err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
+	query, ok := parseSearchQuery(w, r)
+	if !ok {
 		return
 	}
 
 	// If a trybot issue is provided revert to the legacy search.
 	if query.Issue != "" {
-		legacySearchImpl(w, r, &query)
+		legacySearchImpl(w, r, query)
 		return
 	}
 
-	searchResponse, err := searchAPI.Search(&query)
+	searchResponse, err := searchAPI.Search(query)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
 	sendJsonResponse(w, searchResponse)
+}
+
+// jsonExportHandler is the endpoint to export the Gold knowledge base.
+// It has the same interface as the search endpoint.
+func jsonExportHandler(w http.ResponseWriter, r *http.Request) {
+	query, ok := parseSearchQuery(w, r)
+	if !ok {
+		return
+	}
+
+	if (query.Issue != "") || (query.BlameGroupID != "") {
+		msg := "Search query cannot contain blame or issue information."
+		httputils.ReportError(w, r, errors.New(msg), msg)
+		return
+	}
+
+	// Mark the query to avoid expensive diffs.
+	query.NoDiff = true
+
+	// Execute the search
+	searchResponse, err := searchAPI.Search(query)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+
+	// Figure out the base URL. This will work in most situations and doesn't
+	// require to pass along additional headers.
+	var baseURL string
+	if strings.Contains(r.Host, "localhost") {
+		baseURL = "http://" + r.Host
+	} else {
+		baseURL = "https://" + r.Host
+	}
+
+	ret := search.GetExportRecords(searchResponse, baseURL)
+
+	// Set it up so that it triggers a save in the browser.
+	setJSONHeaders(w)
+	w.Header().Set("Content-Disposition", "attachment; filename=meta.json")
+
+	if err := search.WriteExportTestRecords(ret, w); err != nil {
+		httputils.ReportError(w, r, err, "Unable to serialized knowledge base.")
+	}
+}
+
+// parseSearchQuery extracts the search query from request.
+func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search.Query, bool) {
+	query := search.Query{Limit: 50}
+	if err := search.ParseQuery(r, &query); err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return nil, false
+	}
+	return &query, true
 }
 
 // SearchResult encapsulates the results of a search request.
