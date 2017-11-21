@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "5ec6f122_cf399de6",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-21T19:00:49Z",
+      "side": 1,
+      "message": "My reading of the docs is that they want you to do something like:\ntype execContextKey struct{}\nvar contextKey \u003d execContextKey{}\n\nIt\u0027s pretty explicit that they don\u0027t want you to use a string, and they suggest an empty struct.",
+      "parentUuid": "43ea8b95_0437b69f",
+      "range": {
+        "startLine": 68,
+        "startChar": 18,
+        "endLine": 68,
+        "endChar": 29
+      },
+      "revId": "02bc0d66ceb0a7c6cb1b585f2bd13b475042da6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9401ddb6_e58d3b1a",
         "filename": "go/exec/exec.go",
         "patchSetId": 3
