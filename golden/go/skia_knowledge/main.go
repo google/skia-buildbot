@@ -3,7 +3,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -16,9 +15,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/export"
 	"go.skia.org/infra/golden/go/search"
-	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -29,7 +26,7 @@ const (
 	GOLD_URL = "https://gold.skia.org"
 
 	// Search endpoint of Gold.
-	SEARCH_PATH = "/json/search"
+	SEARCH_PATH = "/json/export"
 
 	// Template for image file names. Generally the digest is filled in.
 	IMG_FILENAME_TMPL = "%s.png"
@@ -39,10 +36,9 @@ const (
 )
 
 var (
-	baseURL    = flag.String("base_url", GOLD_URL, "Query URL to retrieve meta data.")
-	imgBaseURL = flag.String("img_url", GOLD_URL, "Url to retrieve the images.")
-	indexFile  = flag.String("index_file", "./"+META_DATA_FILE, "Path of the index file.")
-	outputDir  = flag.String("output_dir", "", "Directory where images should be written. If empty no images will be written.")
+	baseURL   = flag.String("base_url", GOLD_URL, "Query URL to retrieve meta data.")
+	indexFile = flag.String("index_file", "./"+META_DATA_FILE, "Path of the index file.")
+	outputDir = flag.String("output_dir", "", "Directory where images should be written. If empty no images will be written.")
 )
 
 func main() {
@@ -63,15 +59,15 @@ func main() {
 	client := &http.Client{}
 
 	// load the test meta data from Gold.
-	testRecords, err := loadMetaData(client, *baseURL, *imgBaseURL, DEFAULT_QUERY, META_DATA_FILE)
+	testRecords, err := loadMetaData(client, *baseURL, DEFAULT_QUERY, META_DATA_FILE)
 	if err != nil {
 		sklog.Fatalf("Error loading meta data: %s", err)
 	}
 	sklog.Infoln("Meta data loaded from Gold.")
 
 	// Write the index file to disk.
-	if err := export.WriteTestRecords(useIndexPath, testRecords); err != nil {
-		sklog.Fatalf("Error writing output file '%s': %s", filepath.Join(*outputDir, META_DATA_FILE), err)
+	if err := search.WriteExportTestRecordsFile(testRecords, useIndexPath); err != nil {
+		sklog.Fatalf("Error writing index file: %s", err)
 	}
 	sklog.Infoln("Index file written to disk.")
 
@@ -86,8 +82,7 @@ func main() {
 }
 
 // loadMetaData makes a query to a Gold instance and parses the JSON response.
-// It then groups images/digests by tests and returns them.
-func loadMetaData(client *http.Client, baseURL, imgBaseURL, query, metaDataFileName string) ([]*export.TestRecord, error) {
+func loadMetaData(client *http.Client, baseURL, query, metaDataFileName string) ([]*search.ExportTestRecord, error) {
 	url := strings.TrimRight(baseURL, "/") + SEARCH_PATH + "?" + query
 	sklog.Infof("Requesting url: %s", url)
 	resp, err := client.Get(url)
@@ -95,50 +90,12 @@ func loadMetaData(client *http.Client, baseURL, imgBaseURL, query, metaDataFileN
 		return nil, err
 	}
 	defer util.Close(resp.Body)
-
-	searchResp := &search.NewSearchResponse{}
-	if err := json.NewDecoder(resp.Body).Decode(searchResp); err != nil {
-		return nil, err
-	}
-	sklog.Infof("Meta data decoded successfully.")
-
-	// Group the results by test.
-	retMap := map[string]*export.TestRecord{}
-	for _, oneDigest := range searchResp.Digests {
-		testNameVal := oneDigest.ParamSet[types.PRIMARY_KEY_FIELD]
-		if len(testNameVal) == 0 {
-			sklog.Errorf("Error: Digest '%s' has no primaryKey in paramset", oneDigest.Digest)
-			continue
-		}
-
-		digestInfo := &export.DigestInfo{
-			SRDigest: oneDigest,
-			URL:      export.DigestUrl(imgBaseURL, oneDigest.Digest),
-		}
-
-		testName := oneDigest.ParamSet[types.PRIMARY_KEY_FIELD][0]
-		if found, ok := retMap[testName]; ok {
-			found.Digests = append(found.Digests, digestInfo)
-		} else {
-			retMap[testName] = &export.TestRecord{
-				TestName: testName,
-				Digests:  []*export.DigestInfo{digestInfo},
-			}
-		}
-	}
-
-	// Put the records into an array and return them.
-	ret := make([]*export.TestRecord, 0, len(retMap))
-	for _, oneTestRec := range retMap {
-		ret = append(ret, oneTestRec)
-	}
-
-	return ret, nil
+	return search.ReadExportTestRecords(resp.Body)
 }
 
 // downloadImages downloads all images referenced in the meta data to disk.
 // One directory is created for each test.
-func downloadImages(baseDir string, client *http.Client, testRecs []*export.TestRecord) error {
+func downloadImages(baseDir string, client *http.Client, testRecs []*search.ExportTestRecord) error {
 	for _, testRec := range testRecs {
 		testDir := filepath.Join(baseDir, testRec.TestName)
 		absDirPath, err := fileutil.EnsureDirExists(testDir)

@@ -122,6 +122,7 @@
             <paper-menu class="dropdown-content">
               <paper-item on-tap="_handleSwitchToByTest">Switch To Test View</paper-item>
               <paper-item on-tap="_handleBulkButton">Bulk Triage</paper-item>
+              <paper-item on-tap="_handleExport">Export</paper-item>
               <paper-item on-tap="_handleNewSearchButton">New Search</paper-item>
               <paper-item on-tap="_openHelpDialog">Help</paper-item>
             </paper-menu>
@@ -226,6 +227,11 @@
       _handleBulkButton: function(ev) {
         this.set("_bulkStatus", "");
         this.$.bulkDialog.open();
+      },
+
+      _handleExport: function(ev) {
+        var url = this._getRedirectURL({}, "/json/export");
+        window.open(url, "_blank");
       },
 
       _handleNewSearchButton: function(ev) {
