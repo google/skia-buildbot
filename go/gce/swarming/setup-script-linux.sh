@@ -60,6 +60,8 @@ sudo npm install --global polylint@2.10.4
 
 # Python Coverage.
 sudo pip install coverage
+# Install psutil python module. See skbug.com/7328.
+sudo pip install psutil
 
 # Increase nofile limit.
 echo '* - nofile 500000' | sudo tee --append /etc/security/limits.conf
