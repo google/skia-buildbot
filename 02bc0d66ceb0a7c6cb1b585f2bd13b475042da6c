@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "43ea8b95_0437b69f",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-21T18:30:27Z",
+      "side": 1,
+      "message": "Anonymous struct?\n\nI think the docs recommend something like:\ntype execContextKey string\n\nvar OVERWRITE_EXEC_KEY \u003d execContextKey(\"overwrite\")\n\nwhich may make the context object more inspectable.",
+      "range": {
+        "startLine": 68,
+        "startChar": 18,
+        "endLine": 68,
+        "endChar": 29
+      },
+      "revId": "02bc0d66ceb0a7c6cb1b585f2bd13b475042da6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9401ddb6_e58d3b1a",
         "filename": "go/exec/exec.go",
         "patchSetId": 3
