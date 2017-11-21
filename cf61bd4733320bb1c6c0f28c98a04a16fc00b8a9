@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f3917076_72486df3",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-21T19:27:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c952508c_7878be7a",
+      "range": {
+        "startLine": 155,
+        "startChar": 40,
+        "endLine": 155,
+        "endChar": 49
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58ab2adc_42487375",
         "filename": "chromeextensions/skia-dev/popup.js",
         "patchSetId": 10
@@ -45,6 +69,30 @@
       "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "755eb006_cd612fb2",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-21T19:27:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58ab2adc_42487375",
+      "range": {
+        "startLine": 174,
+        "startChar": 42,
+        "endLine": 174,
+        "endChar": 51
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7116c588_477b766f",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-21T19:27:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "80f1f711_c34872af",
+      "range": {
+        "startLine": 182,
+        "startChar": 35,
+        "endLine": 182,
+        "endChar": 37
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "929d4a7f_17ff8ceb",
         "filename": "chromeextensions/skia-dev/popup.js",
         "patchSetId": 10
@@ -91,6 +163,30 @@
       "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d410abba_b81574e8",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-21T19:27:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "929d4a7f_17ff8ceb",
+      "range": {
+        "startLine": 206,
+        "startChar": 22,
+        "endLine": 206,
+        "endChar": 23
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "f59c75d8_c2670544",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-21T19:27:36Z",
+      "side": 1,
+      "message": "That is cool. Done.",
+      "parentUuid": "dd95a83a_1e86d4fc",
+      "range": {
+        "startLine": 266,
+        "startChar": 31,
+        "endLine": 266,
+        "endChar": 120
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f29d2f17_2ddb3590",
         "filename": "chromeextensions/skia-dev/popup.js",
         "patchSetId": 10
@@ -128,6 +248,30 @@
       "writtenOn": "2017-11-20T15:25:33Z",
       "side": 1,
       "message": "On any links to external sites, use rel\u003dnoopener https://mathiasbynens.github.io/rel-noopener/",
+      "range": {
+        "startLine": 280,
+        "startChar": 17,
+        "endLine": 280,
+        "endChar": 23
+      },
+      "revId": "cf61bd4733320bb1c6c0f28c98a04a16fc00b8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84803ea3_31741933",
+        "filename": "chromeextensions/skia-dev/popup.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-21T19:27:36Z",
+      "side": 1,
+      "message": "I tried this but then clicking on links in the popup does not do anything unless I also right click on say open on new tab. Maybe the reasons for using rel\u003dnoopener does not apply in extension popups?",
+      "parentUuid": "f29d2f17_2ddb3590",
       "range": {
         "startLine": 280,
         "startChar": 17,
