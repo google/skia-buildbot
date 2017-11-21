@@ -77,6 +77,7 @@ scrape_configs:
   - job_name: 'diffserver'
     static_configs:
       - targets: ['skia-diffserver-prod:20000']
+      - targets: ['skia-diffserver-stage:20000']
 
   - job_name: 'docserver'
     static_configs:
@@ -100,6 +101,8 @@ scrape_configs:
     static_configs:
       - targets: ['skia-gold-pdfium:20001']
       - targets: ['skia-gold-prod:20001']
+      - targets: ['skia-gold-stage:20001']
+      - targets: ['skia-gold-public:20001']
 
   - job_name: 'ingestion'
     static_configs:
@@ -188,6 +191,7 @@ scrape_configs:
       - targets: ['skia-datahopper2:11000']
       - targets: ['skia-debugger:11000']
       - targets: ['skia-diffserver-prod:11000']
+      - targets: ['skia-diffserver-stage:11000']
       - targets: ['skia-docs:11000']
       - targets: ['skia-fiddle:11000']
       - targets: ['skia-fuzzer-be-1:11000']

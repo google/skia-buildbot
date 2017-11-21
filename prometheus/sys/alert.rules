@@ -462,14 +462,14 @@ ALERT GoldIngestionStalled
   IF liveness_gold_s{metric="since-last-run",source="poll"} > 750
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "At least two rounds of gold ingestion have failed back to back for {{ $labels.corpus }}. See https://mon.skia.org/dashboard/db/ingestion.",
+    description = "At least two rounds of gold ingestion have failed back to back for {{ $labels.corpus }}. See https://mon.skia.org/dashboard/db/gold-panel.",
   }
 
 ALERT GoldIngestionErrorRate
   IF rate(num_log_lines{level="ERROR",job="ingestion"}[2m]) > 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See https://mon.skia.org/dashboard/db/ingestion. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
+    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See https://mon.skia.org/dashboard/db/gold-panel. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 # Task Scheduler
