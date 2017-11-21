@@ -129,6 +129,7 @@
             <paper-menu class="dropdown-content">
               <paper-item id="actionTestView">Switch To Test View</paper-item>
               <paper-item id="actionBulkTriage">Bulk Triage</paper-item>
+              <paper-item id="actionExport">Export</paper-item>
               <paper-item id="actionLegacySearch">Legacy Search</paper-item>
               <paper-item id="actionHelpDialog">Help</paper-item>
             </paper-menu>
@@ -208,6 +209,7 @@
         this.listen(this.$.triggerSearchButton, 'tap', '_handleSearchButton');
         this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
         this.listen(this.$.actionBulkTriage, 'tap', '_handleBulkButton');
+        this.listen(this.$.actionExport, 'tap', '_handleExport');
         this.listen(this.$.actionLegacySearch, 'tap', '_handleLegacySearchButton');
         this.listen(this.$.actionHelpDialog, 'tap', '_openHelpDialog');
         this._setDefaultState(gold.defaultSearchState, false);
@@ -252,6 +254,11 @@
         this.set("_bulkStatus", "");
         this.set("_triageAll", false);
         this.$.bulkDialog.open();
+      },
+
+      _handleExport: function(ev) {
+        var url = this._getRedirectURL({}, "/json/export");
+        window.open(url, "_blank");
       },
 
       _handleLegacySearchButton: function(ev) {

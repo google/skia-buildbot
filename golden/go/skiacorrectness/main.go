@@ -380,6 +380,7 @@ func main() {
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
 	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
 	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
+	router.HandleFunc("/json/export", jsonExportHandler).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app.
 	if *forceLogin {
