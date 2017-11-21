@@ -94,6 +94,8 @@ scrape_configs:
     static_configs:
       - targets: ['skia-gold-pdfium:20001']
       - targets: ['skia-gold-prod:20001']
+      - targets: ['skia-gold-stage:20001']
+      - targets: ['skia-gold-public:20001']
 
   - job_name: 'ingestion'
     static_configs:
