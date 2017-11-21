@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e05b7ba_9e28444b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-21T18:06:58Z",
+      "side": 1,
+      "message": "Could you add a bit more context why you are adding this ?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 16
+      },
+      "revId": "02bc0d66ceb0a7c6cb1b585f2bd13b475042da6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9401ddb6_e58d3b1a",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-11-21T18:06:58Z",
+      "side": 1,
+      "message": "Nit: Instead of calling it context, can we call it something different, especially since we are wrapping an exec.Context into a context.Context ?",
+      "range": {
+        "startLine": 270,
+        "startChar": 5,
+        "endLine": 270,
+        "endChar": 12
+      },
+      "revId": "02bc0d66ceb0a7c6cb1b585f2bd13b475042da6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
