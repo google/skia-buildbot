@@ -369,6 +369,12 @@ var gold = gold || {};
     _redirectToState: function(updates, newTargetPath) {
       // Save the current history entry before the redirect.
       this._ctx.pushState();
+      page.redirect(this._getRedirectPath(updates, newTargetPath));
+    },
+
+    // Calculates a new path given the state update and an optional new target
+    // path.
+    _getRedirectPath: function(updates, newTargetPath) {
       var newState = this._addCorpus(sk.object.applyDelta(updates, this._state));
       var targetPath = newTargetPath ||  window.location.pathname;
 
@@ -382,7 +388,15 @@ var gold = gold || {};
           this._redirectHome();
         }
       }
-      page.redirect(targetPath + gold.queryFromState(newState));
+      return targetPath + gold.queryFromState(newState);
+    },
+
+    // _getRedirectURL returns a new URL based on the current state and
+    // target path.
+    _getRedirectURL: function(updates, newTargetPath) {
+      var path = this._getRedirectPath(updates, newTargetPath);
+      var host = window.location.protocol + '//' + window.location.hostname;
+      return host + ':' + window.location.port + path;
     },
 
     // _redirectHome unconditionally redirects to home.
