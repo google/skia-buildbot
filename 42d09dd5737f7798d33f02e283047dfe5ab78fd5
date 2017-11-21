@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "84ccd6a8_05177605",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-21T14:52:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e8f32a7_1c03fe0e",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 2
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad08308c_2b85bd83",
         "filename": "autoroll/go/repo_manager/manifest_repo_manager.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "36f778ee_57484597",
+        "filename": "autoroll/go/repo_manager/manifest_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-21T14:52:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad08308c_2b85bd83",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 2
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "504094a1_23799090",
         "filename": "autoroll/go/repo_manager/manifest_repo_manager_test.go",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2017-11-20T21:20:05Z",
       "side": 1,
       "message": "Not sure why this changed.",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 3
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23f73a71_518ab2ce",
+        "filename": "autoroll/go/repo_manager/manifest_repo_manager_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-21T14:52:52Z",
+      "side": 1,
+      "message": "The manifest repo manager unconditionally checks out skia.git, which is supposed to be replaced with this fake repo for testing.  It was conflicting, so I made the clone a no-op and create a checkout of the fake repo in its place.",
+      "parentUuid": "504094a1_23799090",
       "range": {
         "startLine": 78,
         "startChar": 0,
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "3805da92_7fa1a4b7",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-21T14:52:52Z",
+      "side": 1,
+      "message": "Yeah... that would require a LOT more plumbing :( I can do it, but we\u0027d be well on our way to having every non-util function accepting a Context as a parameter.",
+      "parentUuid": "64115aae_b6921619",
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6a09e8a4_6e295654",
         "filename": "go/buildskia/buildskia_test.go",
         "patchSetId": 2
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "5408bef3_82dd0117",
+        "filename": "go/buildskia/buildskia_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-21T14:52:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6a09e8a4_6e295654",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 2
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6926272c_5ff38ce3",
         "filename": "go/exec/exec.go",
         "patchSetId": 2
@@ -131,6 +245,30 @@
       "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e051bc55_4b5cb08a",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-21T14:52:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6926272c_5ff38ce3",
+      "range": {
+        "startLine": 288,
+        "startChar": 0,
+        "endLine": 289,
+        "endChar": 65
+      },
+      "revId": "42d09dd5737f7798d33f02e283047dfe5ab78fd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

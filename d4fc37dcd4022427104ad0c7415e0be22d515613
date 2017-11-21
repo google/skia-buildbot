@@ -22,6 +22,30 @@
       "revId": "d4fc37dcd4022427104ad0c7415e0be22d515613",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86dc4029_675b6c57",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-21T14:52:52Z",
+      "side": 0,
+      "message": "Doesn\u0027t it make sense to ensure that there\u0027s only one context in play?",
+      "parentUuid": "f0552bcd_d423aa48",
+      "range": {
+        "startLine": 174,
+        "startChar": 30,
+        "endLine": 174,
+        "endChar": 51
+      },
+      "revId": "d4fc37dcd4022427104ad0c7415e0be22d515613",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
