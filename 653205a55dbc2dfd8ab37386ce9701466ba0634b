@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9b672df_c8f4d390",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-21T14:36:33Z",
+      "side": 1,
+      "message": "Aren\u0027t these duplicated?",
+      "range": {
+        "startLine": 97,
+        "startChar": 6,
+        "endLine": 98,
+        "endChar": 41
+      },
+      "revId": "653205a55dbc2dfd8ab37386ce9701466ba0634b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
