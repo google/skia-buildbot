@@ -51,14 +51,14 @@ type FuzzerInfo struct {
 var fuzzers = map[string]FuzzerInfo{
 	"api_draw_functions": {
 		PrettyName:          "API - CanvasDrawFunctions",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "hcm",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "DrawFunctions", "--bytes"},
 	},
 	"api_gradient": {
 		PrettyName:          "API - Gradients",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "fmalita",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "Gradients", "--bytes"},
@@ -87,14 +87,14 @@ var fuzzers = map[string]FuzzerInfo{
 	"color_deserialize": {
 		PrettyName:          "SkColorSpace - Deserialize",
 		Status:              STABLE_FUZZER,
-		Groomer:             "msarett",
+		Groomer:             "scroggo",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "color_deserialize", "--bytes"},
 	},
 	"color_icc": {
 		PrettyName:          "SkColorSpace - ICC",
 		Status:              STABLE_FUZZER,
-		Groomer:             "msarett",
+		Groomer:             "scroggo",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "icc", "--bytes"},
 	},
@@ -143,14 +143,14 @@ var fuzzers = map[string]FuzzerInfo{
 	"skcodec_scale": {
 		PrettyName:          "SkCodec (Scaling)",
 		Status:              STABLE_FUZZER,
-		Groomer:             "msarett",
+		Groomer:             "scroggo",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "image_scale", "--bytes"},
 	},
 	"skcodec_mode": {
 		PrettyName:          "SkCodec (Modes)",
 		Status:              STABLE_FUZZER,
-		Groomer:             "msarett",
+		Groomer:             "scroggo",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "image_mode", "--bytes"},
 	},
@@ -160,6 +160,13 @@ var fuzzers = map[string]FuzzerInfo{
 		Groomer:             "ethannicholas",
 		ExtraBugLabels:      []string{},
 		ArgsAfterExecutable: []string{"--type", "sksl2glsl", "--bytes"},
+	},
+	"textblob": {
+		PrettyName:          "TextBlob deserialize",
+		Status:              STABLE_FUZZER,
+		Groomer:             "fmalita",
+		ExtraBugLabels:      []string{},
+		ArgsAfterExecutable: []string{"--type", "textblob", "--bytes"},
 	},
 }
 
