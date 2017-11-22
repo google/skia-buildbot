@@ -19,12 +19,12 @@ import (
 // AtGCSRevision downloads the revision of Skia specified in Google Storage
 // to the given path. On sucess, the given VersionSetter is set to be the current revision.
 // It returns the revision it found in GCS and any errors.
-func AtGCSRevision(storageClient fstorage.FuzzerGCSClient, path string, v config.VersionSetter, clean bool) error {
+func AtGCSRevision(ctx context.Context, storageClient fstorage.FuzzerGCSClient, path string, v config.VersionSetter, clean bool) error {
 	skiaVersion, _, err := GetCurrentSkiaVersionFromGCS(storageClient)
 	if err != nil {
 		return fmt.Errorf("Could not get Skia revision from GCS: %s", err)
 	}
-	if err := AtRevision(skiaVersion, path, v, clean); err != nil {
+	if err := AtRevision(ctx, skiaVersion, path, v, clean); err != nil {
 		return fmt.Errorf("Problem downloading skia: %s", err)
 	}
 	// Always clean out the build directory, to mitigate potential build
@@ -88,8 +88,8 @@ func revisionHelper(storageClient fstorage.FuzzerGCSClient, prefix string) (stri
 // revision. Upon sucess, the SkiaVersion in config is set to be the current revision and any
 // dependencies needed to compile Skia have been installed (e.g. the latest revision of gyp).
 // It returns an error on failure.
-func AtRevision(revision, path string, v config.VersionSetter, clean bool) error {
-	if lc, err := buildskia.GNDownloadSkia("master", revision, path, config.Common.DepotToolsPath, clean, false); err != nil {
+func AtRevision(ctx context.Context, revision, path string, v config.VersionSetter, clean bool) error {
+	if lc, err := buildskia.GNDownloadSkia(ctx, "master", revision, path, config.Common.DepotToolsPath, clean, false); err != nil {
 		return fmt.Errorf("Could not buildskia.GNDownloadSkia for skia revision %s: %s", revision, err)
 	} else {
 		v.SetSkiaVersion(lc)

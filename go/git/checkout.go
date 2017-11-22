@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path"
@@ -21,8 +22,8 @@ type Checkout struct {
 // Uses any existing checkout in the given directory, or clones one if
 // necessary. In general, servers should use Repo instead of Checkout unless it
 // is absolutely necessary to have a working copy.
-func NewCheckout(repoUrl, workdir string) (*Checkout, error) {
-	g, err := newGitDir(repoUrl, workdir, false)
+func NewCheckout(ctx context.Context, repoUrl, workdir string) (*Checkout, error) {
+	g, err := newGitDir(ctx, repoUrl, workdir, false)
 	if err != nil {
 		return nil, err
 	}
@@ -30,24 +31,24 @@ func NewCheckout(repoUrl, workdir string) (*Checkout, error) {
 }
 
 // Fetch syncs refs from the remote without modifying the working copy.
-func (c *Checkout) Fetch() error {
-	_, err := c.Git("fetch", "origin")
+func (c *Checkout) Fetch(ctx context.Context) error {
+	_, err := c.Git(ctx, "fetch", "origin")
 	return err
 }
 
 // Cleanup forcibly resets all changes and checks out the master branch at
 // origin/master. All local changes will be lost.
-func (c *Checkout) Cleanup() error {
-	if _, err := c.Git("reset", "--hard", "HEAD"); err != nil {
+func (c *Checkout) Cleanup(ctx context.Context) error {
+	if _, err := c.Git(ctx, "reset", "--hard", "HEAD"); err != nil {
 		return err
 	}
-	if _, err := c.Git("clean", "-d", "-f"); err != nil {
+	if _, err := c.Git(ctx, "clean", "-d", "-f"); err != nil {
 		return err
 	}
-	if _, err := c.Git("checkout", "master", "-f"); err != nil {
+	if _, err := c.Git(ctx, "checkout", "master", "-f"); err != nil {
 		return err
 	}
-	if _, err := c.Git("reset", "--hard", "origin/master"); err != nil {
+	if _, err := c.Git(ctx, "reset", "--hard", "origin/master"); err != nil {
 		return err
 	}
 	return nil
@@ -56,11 +57,11 @@ func (c *Checkout) Cleanup() error {
 // Update syncs the Checkout from its remote. Forcibly resets and checks out
 // the master branch at origin/master. All local changes will be lost.
 // Equivalent to c.Fetch() + c.Cleanup().
-func (c *Checkout) Update() error {
-	if err := c.Fetch(); err != nil {
+func (c *Checkout) Update(ctx context.Context) error {
+	if err := c.Fetch(ctx); err != nil {
 		return err
 	}
-	if err := c.Cleanup(); err != nil {
+	if err := c.Cleanup(ctx); err != nil {
 		return err
 	}
 	return nil
@@ -70,12 +71,12 @@ func (c *Checkout) Update() error {
 type TempCheckout Checkout
 
 // NewTempCheckout returns a TempCheckout instance.
-func NewTempCheckout(repoUrl string) (*TempCheckout, error) {
+func NewTempCheckout(ctx context.Context, repoUrl string) (*TempCheckout, error) {
 	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		return nil, err
 	}
-	c, err := NewCheckout(repoUrl, tmpDir)
+	c, err := NewCheckout(ctx, repoUrl, tmpDir)
 	if err != nil {
 		return nil, err
 	}

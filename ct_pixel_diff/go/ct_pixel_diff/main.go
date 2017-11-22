@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"html/template"
 	"net/http"
@@ -77,6 +78,8 @@ func main() {
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
 
+	ctx := context.Background()
+
 	// Get the version of the repo.
 	v, err := skiaversion.GetVersion()
 	if err != nil {
@@ -142,7 +145,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Unable to initialize Ingester: %s", err)
 	}
-	ingester.Start()
+	ingester.Start(ctx)
 
 	router := mux.NewRouter()
 

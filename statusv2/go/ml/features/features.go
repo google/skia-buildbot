@@ -23,7 +23,7 @@ import (
 // ExtractRangeV0 extracts features for tasks within the given time range.
 // Downloads all tasks in range from the task DB, stores in a convenient format
 // and calls into PySpark to perform the actual work.
-func ExtractRangeV0(d db.TaskReader, start, end time.Time) error {
+func ExtractRangeV0(ctx context.Context, d db.TaskReader, start, end time.Time) error {
 	tasks, err := d.GetTasksFromDateRange(start, end)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve tasks: %s", err)
@@ -49,19 +49,19 @@ func ExtractRangeV0(d db.TaskReader, start, end time.Time) error {
 		Args:    []string{"--tasks-json", "tasks.json"},
 		Cluster: dataproc.CLUSTER_SKIA,
 	}
-	out, err := job.Run()
+	out, err := job.Run(ctx)
 	sklog.Infof("Output from job:\n%s", out)
 	return err
 }
 
-func StartV0(workdir string, d db.TaskReader, ctx context.Context) error {
+func StartV0(ctx context.Context, workdir string, d db.TaskReader) error {
 	p := processor.Processor{
 		BeginningOfTime: time.Date(2016, time.September, 1, 0, 0, 0, 0, time.UTC),
 		ChunkSize:       time.Hour,
 		Name:            "swarming_log_feature_extraction_v0",
 		Frequency:       time.Hour,
-		ProcessFn: func(start, end time.Time) error {
-			return ExtractRangeV0(d, start, end)
+		ProcessFn: func(ctx context.Context, start, end time.Time) error {
+			return ExtractRangeV0(ctx, d, start, end)
 		},
 		Window:  24 * time.Hour,
 		Workdir: workdir,

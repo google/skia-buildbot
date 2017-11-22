@@ -240,8 +240,8 @@ func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.
 }
 
 // GetTileFromTimeRange returns a tile that contains the commits in the given time range.
-func (s *Storage) GetTileFromTimeRange(begin, end time.Time) (*tiling.Tile, error) {
-	commitIDs, err := s.BranchTileBuilder.ListLong(begin, end, "master")
+func (s *Storage) GetTileFromTimeRange(ctx context.Context, begin, end time.Time) (*tiling.Tile, error) {
+	commitIDs, err := s.BranchTileBuilder.ListLong(ctx, begin, end, "master")
 	if err != nil {
 		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
 	}

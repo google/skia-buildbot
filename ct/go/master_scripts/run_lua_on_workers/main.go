@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -91,6 +92,8 @@ func main() {
 	defer common.LogPanic()
 	master_common.Init("run_lua")
 
+	ctx := context.Background()
+
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
@@ -145,7 +148,7 @@ func main() {
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if _, err := util.TriggerSwarmingTask(*pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
@@ -213,7 +216,7 @@ func main() {
 			sklog.Errorf("Could not create %s: %s", luaAggregatorOutputFilePath, err)
 			return
 		}
-		err = util.ExecuteCmd(util.BINARY_LUA, []string{luaAggregatorPath}, []string{},
+		err = util.ExecuteCmd(ctx, util.BINARY_LUA, []string{luaAggregatorPath}, []string{},
 			util.LUA_AGGREGATOR_TIMEOUT, luaAggregatorOutputFile, nil)
 		if err != nil {
 			sklog.Errorf("Could not execute the lua aggregator %s: %s", luaAggregatorPath, err)

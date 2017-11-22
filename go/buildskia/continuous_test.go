@@ -1,6 +1,7 @@
 package buildskia
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -24,7 +25,7 @@ func setupTemp(t *testing.T, testData []string, repo vcsinfo.VCS) (*ContinuousBu
 	err = fi.Close()
 	assert.NoError(t, err)
 
-	return New(tempDir, "", repo, nil, 2, time.Hour, false), func() {
+	return New(context.Background(), tempDir, "", repo, nil, 2, time.Hour, false), func() {
 		util.RemoveAll(tempDir)
 	}
 }
@@ -69,20 +70,24 @@ type mockVcs struct {
 	commits map[string]*vcsinfo.LongCommit
 }
 
-func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit             { return nil }
-func (m *mockVcs) Update(pull, allBranches bool) error                 { return nil }
-func (m *mockVcs) From(start time.Time) []string                       { return nil }
-func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit   { return nil }
-func (m *mockVcs) IndexOf(hash string) (int, error)                    { return 0, nil }
-func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error)          { return nil, nil }
-func (m *mockVcs) GetFile(fileName, commitHash string) (string, error) { return "", nil }
-func (m *mockVcs) ResolveCommit(commitHash string) (string, error)     { return "", nil }
+func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit                         { return nil }
+func (m *mockVcs) Update(ctx context.Context, pull, allBranches bool) error        { return nil }
+func (m *mockVcs) From(start time.Time) []string                                   { return nil }
+func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit               { return nil }
+func (m *mockVcs) IndexOf(ctx context.Context, hash string) (int, error)           { return 0, nil }
+func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) { return nil, nil }
+func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
+	return "", nil
+}
+func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
+	return "", nil
+}
 
 // Details returns the full commit information for the given hash.
 // If includeBranchInfo is true the Branches field of the returned
 // result will contain all branches that contain the given commit,
 // otherwise Branches will be empty.
-func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
+func (m *mockVcs) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	if c, ok := m.commits[hash]; ok {
 		return c, nil
 	} else {
@@ -118,40 +123,41 @@ func TestDecimate(t *testing.T) {
 			},
 		},
 	}
+	ctx := context.Background()
 
 	// No change if number if items < limit.
-	keep, remove, err := decimate([]string{"eee", "fff", "ggg"}, mock, 4)
+	keep, remove, err := decimate(ctx, []string{"eee", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
 	assert.Equal(t, keep, []string{"eee", "fff", "ggg"}, "")
 	assert.Equal(t, remove, []string{})
 
 	// Proper decimation if items == limit.
-	keep, remove, err = decimate([]string{"ddd", "eee", "fff", "ggg"}, mock, 4)
+	keep, remove, err = decimate(ctx, []string{"ddd", "eee", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
 	assert.Equal(t, keep, []string{"ddd", "fff", "ggg"})
 	assert.Equal(t, remove, []string{"eee"})
 
 	// Proper decimation if items > limit.
-	keep, remove, err = decimate([]string{"ccc", "ddd", "eee", "fff", "ggg"}, mock, 4)
+	keep, remove, err = decimate(ctx, []string{"ccc", "ddd", "eee", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
 	assert.Equal(t, keep, []string{"ccc", "eee", "ggg"})
 	assert.Equal(t, remove, []string{"ddd", "fff"})
 
 	// Proper decimation (none) if we end up with less than 'limit' items after removing keepers.
-	keep, remove, err = decimate([]string{"bbb", "ddd", "eee"}, mock, 4)
+	keep, remove, err = decimate(ctx, []string{"bbb", "ddd", "eee"}, mock, 4)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"bbb", "ddd", "eee"}, keep)
 	assert.Equal(t, []string{}, remove)
 
 	// Proper decimation (none) if we end up with less than 'limit' items after removing keepers.
 	// "ccc", "fff", and "ggg" are keepers, leaving just 3 to decimate.
-	keep, remove, err = decimate([]string{"aaa", "bbb", "ccc", "fff", "ggg"}, mock, 4)
+	keep, remove, err = decimate(ctx, []string{"aaa", "bbb", "ccc", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"aaa", "bbb", "ccc", "fff", "ggg"}, keep)
 	assert.Equal(t, []string{}, remove)
 
 	// Proper decimation if we end up with enough 'limit' items after removing keepers.
-	keep, remove, err = decimate([]string{"aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"}, mock, 4)
+	keep, remove, err = decimate(ctx, []string{"aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"aaa", "bbb", "ccc", "eee", "ggg"}, keep)
 	assert.Equal(t, []string{"ddd", "fff"}, remove)

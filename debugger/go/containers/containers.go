@@ -2,6 +2,7 @@
 package containers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -121,7 +122,7 @@ func New(runner *runner.Runner) *Containers {
 // and skiaserve will be sent the URL.Path "/foo", i.e. with the instance
 // number prefix stripped. If there is no prefix then the instance number is
 // considered to be 0.
-func (s *Containers) startContainer(user string) error {
+func (s *Containers) startContainer(ctx context.Context, user string) error {
 	s.mutex.Lock()
 	// Find first open container in the pool.
 	var co *container = nil
@@ -148,7 +149,7 @@ func (s *Containers) startContainer(user string) error {
 		counter.Inc(1)
 		co.started = time.Now()
 		// This call to s.runner.Start() doesn't return until the container exits.
-		if err := s.runner.Start(co.port); err != nil {
+		if err := s.runner.Start(ctx, co.port); err != nil {
 			sklog.Errorf("Failed to start container at port %d: %s", co.port, err)
 		}
 		s.mutex.Lock()
@@ -226,7 +227,7 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	co := s.getContainer(containerID)
 	if co == nil {
 		// If no container then start one up.
-		if err := s.startContainer(containerID); err != nil {
+		if err := s.startContainer(context.Background(), containerID); err != nil {
 			httputils.ReportError(w, r, err, "Failed to start new container.")
 			return
 		}

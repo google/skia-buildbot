@@ -4,6 +4,7 @@
 package continuous
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -48,19 +49,19 @@ func New(branch string, checkout *git.Checkout, lookupCache *lookup.Cache, clien
 
 // Last returns the last buildid, its timestamp, and git hash, or a non-nil
 // error if and error occurred.
-func (c *Process) Last() (int64, int64, string, error) {
-	return c.Repo.GetLast()
+func (c *Process) Last(ctx context.Context) (int64, int64, string, error) {
+	return c.Repo.GetLast(ctx)
 }
 
 // Start a Go routine that does the work.
-func (c *Process) Start() {
+func (c *Process) Start(ctx context.Context) {
 	go func() {
 		t := metrics2.NewTimer("repobuilder")
 		liveness := metrics2.NewLiveness("last_successful_add")
 		failures := metrics2.GetCounter("process_failures", nil)
 		for range time.Tick(time.Minute) {
 			t.Start()
-			buildid, _, _, err := c.Repo.GetLast()
+			buildid, _, _, err := c.Repo.GetLast(ctx)
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get last buildid: %s", err)
@@ -73,7 +74,7 @@ func (c *Process) Start() {
 				continue
 			}
 			for _, b := range builds {
-				if err := c.Repo.Add(b.BuildId, b.TS); err != nil {
+				if err := c.Repo.Add(ctx, b.BuildId, b.TS); err != nil {
 					failures.Inc(1)
 					sklog.Errorf("Failed to add new buildid to repo: %s", err)
 					// Break since we don't want to add anymore buildids until this one
@@ -81,7 +82,7 @@ func (c *Process) Start() {
 					break
 				}
 				// Keep lookup.Cache up to date.
-				buildid, _, hash, err := c.Repo.GetLast()
+				buildid, _, hash, err := c.Repo.GetLast(ctx)
 				if err != nil {
 					failures.Inc(1)
 					sklog.Errorf("Failed to lookup newly added buildid to repo: %s", err)

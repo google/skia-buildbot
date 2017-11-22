@@ -2,6 +2,7 @@
 package lookup
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -30,13 +31,13 @@ type Cache struct {
 // New returns a newly populated *Cache with buildids for the last 2 weeks.
 //
 // The 'checkout' is only used during the construction of *Cache.
-func New(checkout *git.Checkout) (*Cache, error) {
+func New(ctx context.Context, checkout *git.Checkout) (*Cache, error) {
 	// Runs
 	//
 	//   git log master --format=oneline --since="4 weeks ago"
 	//
 	// to prepopulate hashes.
-	log, err := checkout.Git("log", "master", "--format=oneline", "--since=\"2 weeks ago\"")
+	log, err := checkout.Git(ctx, "log", "master", "--format=oneline", "--since=\"2 weeks ago\"")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to prime cache from checkout: %s", err)
 	}

@@ -1,6 +1,7 @@
 package clustering2
 
 import (
+	"context"
 	"crypto/md5"
 	"errors"
 	"fmt"
@@ -128,9 +129,9 @@ func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLoo
 	}
 }
 
-func newRunningProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *ClusterRequestProcess {
+func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *ClusterRequestProcess {
 	ret := newProcess(req, git, cidl)
-	go ret.Run()
+	go ret.Run(ctx)
 	return ret
 }
 
@@ -186,7 +187,7 @@ func (fr *RunningClusterRequests) background() {
 // Add starts a new running ClusterRequestProcess and returns
 // the ID of the process to be used in calls to Status() and
 // Response().
-func (fr *RunningClusterRequests) Add(req *ClusterRequest) string {
+func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) string {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	if req.Interesting == 0 {
@@ -200,7 +201,7 @@ func (fr *RunningClusterRequests) Add(req *ClusterRequest) string {
 		}
 	}
 	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = newRunningProcess(req, fr.git, fr.cidl)
+		fr.inProcess[id] = newRunningProcess(ctx, req, fr.git, fr.cidl)
 	}
 	return id
 }
@@ -382,7 +383,7 @@ func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWi
 
 // Run does the work in a ClusterRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *ClusterRequestProcess) Run() {
+func (p *ClusterRequestProcess) Run(ctx context.Context) {
 	if p.request.Algo == "" {
 		p.request.Algo = KMEANS_ALGO
 	}
@@ -408,7 +409,7 @@ func (p *ClusterRequestProcess) Run() {
 				Offset: i,
 			})
 		}
-		df, err := dataframe.NewFromCommitIDsAndQuery(c, p.cidl, ptracestore.Default, q, nil)
+		df, err := dataframe.NewFromCommitIDsAndQuery(ctx, c, p.cidl, ptracestore.Default, q, nil)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load data searching for commit ids: %s", err)
 		}
@@ -420,7 +421,7 @@ func (p *ClusterRequestProcess) Run() {
 		p.reportError(err, "Could not calculate the commits to run a cluster over.")
 		return
 	}
-	df, err := dataframe.NewFromCommitIDsAndQuery(p.cids, p.cidl, ptracestore.Default, q, p.progress)
+	df, err := dataframe.NewFromCommitIDsAndQuery(ctx, p.cids, p.cidl, ptracestore.Default, q, p.progress)
 	if err != nil {
 		p.reportError(err, "Invalid range of commits.")
 		return
@@ -453,7 +454,7 @@ func (p *ClusterRequestProcess) Run() {
 	}
 
 	df.TraceSet = ptracestore.TraceSet{}
-	frame, err := dataframe.ResponseFromDataFrame(df, p.git, false, p.request.TZ)
+	frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.git, false, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 		return

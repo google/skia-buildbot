@@ -1,6 +1,7 @@
 package find_breaks
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -16,18 +17,18 @@ import (
 // setupHelper is a shared function used for reducing boilerplate when setting
 // up test inputs. The provided func is used to build the git repo which will
 // be used by the test.
-func setupHelper(t *testing.T, setup func(*git_testutils.GitBuilder)) (*repograph.Graph, func()) {
+func setupHelper(t *testing.T, setup func(context.Context, *git_testutils.GitBuilder)) (*repograph.Graph, func()) {
 	testutils.MediumTest(t)
-
-	gb := git_testutils.GitInit(t)
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	setup(gb)
+	setup(ctx, gb)
 	cleanup := func() {
 		gb.Cleanup()
 		testutils.RemoveAll(t, wd)
 	}
-	repo, err := repograph.NewGraph(gb.RepoUrl(), wd)
+	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), wd)
 	assert.NoError(t, err)
 	return repo, cleanup
 }
@@ -47,21 +48,21 @@ func setupHelper(t *testing.T, setup func(*git_testutils.GitBuilder)) (*repograp
 func TestCommitSlices1(t *testing.T) {
 	now := time.Now().Round(time.Second)
 	var a, b, c, d, e string
-	repo, cleanup := setupHelper(t, func(gb *git_testutils.GitBuilder) {
+	repo, cleanup := setupHelper(t, func(ctx context.Context, gb *git_testutils.GitBuilder) {
 		ts := now.Add(-30 * time.Minute)
-		a = gb.CommitGenAt("file", ts)
+		a = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		b = gb.CommitGenAt("file", ts)
+		b = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		c = gb.CommitGenAt("file", ts)
+		c = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		d = gb.CommitGenAt("file", ts)
+		d = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		e = gb.CommitGenAt("file", ts)
+		e = gb.CommitGenAt(ctx, "file", ts)
 	})
 	defer cleanup()
 
@@ -100,20 +101,20 @@ func TestCommitSlices1(t *testing.T) {
 //
 func TestCommitSlices2(t *testing.T) {
 	var a, b, c, d string
-	repo, cleanup := setupHelper(t, func(gb *git_testutils.GitBuilder) {
+	repo, cleanup := setupHelper(t, func(ctx context.Context, gb *git_testutils.GitBuilder) {
 		ts := time.Now().Add(-30 * time.Minute)
-		a = gb.CommitGenAt("file", ts)
+		a = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		b = gb.CommitGenAt("file", ts)
+		b = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		gb.CreateBranchTrackBranch("otherBranch", "master")
-		c = gb.CommitGenAt("file", ts)
+		gb.CreateBranchTrackBranch(ctx, "otherBranch", "master")
+		c = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		gb.CheckoutBranch("master")
-		d = gb.CommitGenAt("file", ts)
+		gb.CheckoutBranch(ctx, "master")
+		d = gb.CommitGenAt(ctx, "file", ts)
 	})
 	defer cleanup()
 
@@ -136,23 +137,23 @@ func TestCommitSlices2(t *testing.T) {
 //
 func TestCommitSlices3(t *testing.T) {
 	var a, b, c, d string
-	repo, cleanup := setupHelper(t, func(gb *git_testutils.GitBuilder) {
+	repo, cleanup := setupHelper(t, func(ctx context.Context, gb *git_testutils.GitBuilder) {
 		ts := time.Now().Add(-30 * time.Minute)
-		a = gb.CommitGenAt("file", ts)
+		a = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		gb.CreateOrphanBranch("branch2")
-		gb.AddGen("file2")
-		b = gb.CommitGenAt("file2", ts)
+		gb.CreateOrphanBranch(ctx, "branch2")
+		gb.AddGen(ctx, "file2")
+		b = gb.CommitGenAt(ctx, "file2", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		gb.CheckoutBranch("master")
-		c = gb.MergeBranch("branch2")
-		_, err := git.GitDir(gb.Dir()).Git("branch", "-D", "branch2")
+		gb.CheckoutBranch(ctx, "master")
+		c = gb.MergeBranch(ctx, "branch2")
+		_, err := git.GitDir(gb.Dir()).Git(ctx, "branch", "-D", "branch2")
 		assert.NoError(t, err)
 
 		ts = ts.Add(2 * time.Minute)
-		d = gb.CommitGenAt("file", ts)
+		d = gb.CommitGenAt(ctx, "file", ts)
 	})
 	defer cleanup()
 
@@ -182,28 +183,28 @@ func TestCommitSlices3(t *testing.T) {
 //
 func TestCommitSlices4(t *testing.T) {
 	var a, b, c, d, e, f string
-	repo, cleanup := setupHelper(t, func(gb *git_testutils.GitBuilder) {
+	repo, cleanup := setupHelper(t, func(ctx context.Context, gb *git_testutils.GitBuilder) {
 		ts := time.Now().Add(-30 * time.Minute)
-		a = gb.CommitGenAt("file", ts)
+		a = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		b = gb.CommitGenAt("file", ts)
+		b = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		c = gb.CommitGenAt("file", ts)
+		c = gb.CommitGenAt(ctx, "file", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		gb.CreateBranchAtCommit("branch2", b)
-		d = gb.CommitGenAt("file2", ts)
+		gb.CreateBranchAtCommit(ctx, "branch2", b)
+		d = gb.CommitGenAt(ctx, "file2", ts)
 
 		ts = ts.Add(2 * time.Minute)
-		gb.CheckoutBranch("master")
-		e = gb.MergeBranch("branch2")
-		_, err := git.GitDir(gb.Dir()).Git("branch", "-D", "branch2")
+		gb.CheckoutBranch(ctx, "master")
+		e = gb.MergeBranch(ctx, "branch2")
+		_, err := git.GitDir(gb.Dir()).Git(ctx, "branch", "-D", "branch2")
 		assert.NoError(t, err)
 
 		ts = ts.Add(2 * time.Minute)
-		f = gb.CommitGenAt("file", ts)
+		f = gb.CommitGenAt(ctx, "file", ts)
 	})
 	defer cleanup()
 

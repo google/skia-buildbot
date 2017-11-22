@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -33,53 +34,53 @@ be CC'd on the roll, and stop the roller if necessary.
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
-	ChildRevList(...string) ([]string, error)
+	ChildRevList(context.Context, ...string) ([]string, error)
 	CommitsNotRolled() int
-	CreateNewRoll(string, string, []string, string, bool) (int64, error)
-	FullChildHash(string) (string, error)
-	GetCommitsNotRolled(string) (int, error)
+	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
+	FullChildHash(context.Context, string) (string, error)
+	GetCommitsNotRolled(context.Context, string) (int, error)
 	LastRollRev() string
 	NextRollRev() string
 	PreUploadSteps() []PreUploadStep
-	RolledPast(string) (bool, error)
-	Update() error
+	RolledPast(context.Context, string) (bool, error)
+	Update(context.Context) error
 	User() string
 }
 
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
-	infoMtx          sync.RWMutex
-	lastRollRev      string
-	nextRollRev      string
-	repoMtx          sync.RWMutex
-	parentBranch     string
+	childBranch      string
 	childDir         string
 	childPath        string
 	childRepo        *git.Checkout
-	childBranch      string
 	commitsNotRolled int
+	g                gerrit.GerritInterface
+	infoMtx          sync.RWMutex
+	lastRollRev      string
+	nextRollRev      string
+	parentBranch     string
 	preUploadSteps   []PreUploadStep
+	repoMtx          sync.RWMutex
 	serverURL        string
 	strategy         NextRollStrategy
 	user             string
 	workdir          string
-	g                gerrit.GerritInterface
 }
 
 // ChildRevList returns a slice of commit hashes from the child repo.
-func (r *commonRepoManager) ChildRevList(args ...string) ([]string, error) {
+func (r *commonRepoManager) ChildRevList(ctx context.Context, args ...string) ([]string, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
-	return r.childRepo.RevList(args...)
+	return r.childRepo.RevList(ctx, args...)
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
 // child repo.
-func (r *commonRepoManager) FullChildHash(shortHash string) (string, error) {
+func (r *commonRepoManager) FullChildHash(ctx context.Context, shortHash string) (string, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
-	return r.childRepo.FullHash(shortHash)
+	return r.childRepo.FullHash(ctx, shortHash)
 }
 
 // LastRollRev returns the last-rolled child commit.
@@ -90,10 +91,10 @@ func (r *commonRepoManager) LastRollRev() string {
 }
 
 // RolledPast determines whether the repo has rolled past the given commit.
-func (r *commonRepoManager) RolledPast(hash string) (bool, error) {
+func (r *commonRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
-	return git.GitDir(r.childDir).IsAncestor(hash, r.lastRollRev)
+	return r.childRepo.IsAncestor(ctx, hash, r.lastRollRev)
 }
 
 // NextRollRev returns the revision of the next roll.
@@ -110,12 +111,12 @@ func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 }
 
 // Start makes the RepoManager begin the periodic update process.
-func Start(r RepoManager, frequency time.Duration) {
+func Start(ctx context.Context, r RepoManager, frequency time.Duration) {
 	sklog.Infof("Starting repo_manager")
 	lv := metrics2.NewLiveness("last_successful_repo_manager_update")
 	cleanup.Repeat(frequency, func() {
 		sklog.Infof("Running repo_manager update.")
-		if err := r.Update(); err != nil {
+		if err := r.Update(ctx); err != nil {
 			sklog.Errorf("Failed to update repo manager: %s", err)
 		} else {
 			lv.Reset()
@@ -159,16 +160,16 @@ func (r *depotToolsRepoManager) GetEnvForDepotTools() []string {
 }
 
 // cleanParent forces the parent checkout into a clean state.
-func (r *depotToolsRepoManager) cleanParent() error {
-	if _, err := exec.RunCwd(r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
+func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
+	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(r.parentDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(r.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", r.parentBranch), "-f"); err != nil {
+	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "rebase", "--abort")
+	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", r.parentBranch), "-f"); err != nil {
 		return err
 	}
-	_, _ = exec.RunCwd(r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
-	if _, err := exec.RunCommand(&exec.Command{
+	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
+	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
 		Name: r.gclient,
@@ -179,7 +180,7 @@ func (r *depotToolsRepoManager) cleanParent() error {
 	return nil
 }
 
-func (r *depotToolsRepoManager) createAndSyncParent() error {
+func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 	// Create the working directory if needed.
 	if _, err := os.Stat(r.workdir); err != nil {
 		if err := os.MkdirAll(r.workdir, 0755); err != nil {
@@ -188,14 +189,14 @@ func (r *depotToolsRepoManager) createAndSyncParent() error {
 	}
 
 	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
-		if err := r.cleanParent(); err != nil {
+		if err := r.cleanParent(ctx); err != nil {
 			return err
 		}
 		// Update the repo.
-		if _, err := exec.RunCwd(r.parentDir, "git", "fetch"); err != nil {
+		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "fetch"); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(r.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", r.parentBranch)); err != nil {
+		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", r.parentBranch)); err != nil {
 			return err
 		}
 	}
@@ -204,7 +205,7 @@ func (r *depotToolsRepoManager) createAndSyncParent() error {
 	for _, v := range r.depsCustomVars {
 		args = append(args, "--custom-var", v)
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
 		Name: r.gclient,
@@ -212,7 +213,7 @@ func (r *depotToolsRepoManager) createAndSyncParent() error {
 	}); err != nil {
 		return err
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
 		Name: r.gclient,
@@ -223,14 +224,14 @@ func (r *depotToolsRepoManager) createAndSyncParent() error {
 	return nil
 }
 
-func (r *depotToolsRepoManager) GetCommitsNotRolled(lastRollRev string) (int, error) {
-	head, err := r.childRepo.FullHash(fmt.Sprintf("origin/%s", r.childBranch))
+func (r *depotToolsRepoManager) GetCommitsNotRolled(ctx context.Context, lastRollRev string) (int, error) {
+	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
 	if err != nil {
 		return -1, err
 	}
 	notRolled := 0
 	if head != lastRollRev {
-		commits, err := r.childRepo.RevList(fmt.Sprintf("%s..%s", lastRollRev, head))
+		commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
 		if err != nil {
 			return -1, err
 		}

@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -18,11 +19,11 @@ const (
 
 // MockSwarmingBotsForAllTasksForTesting returns a list containing one swarming
 // bot for each TaskSpec in the given repos, or nil on error.
-func MockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.SwarmingRpcsBotInfo {
+func MockSwarmingBotsForAllTasksForTesting(ctx context.Context, repos repograph.Map) []*swarming_api.SwarmingRpcsBotInfo {
 	botId := 0
 	rv := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, repo := range repos {
-		branches, err := repo.Repo().Branches()
+		branches, err := repo.Repo().Branches(ctx)
 		if err != nil {
 			sklog.Error(err)
 			continue
@@ -31,7 +32,7 @@ func MockSwarmingBotsForAllTasksForTesting(repos repograph.Map) []*swarming_api.
 			if branch.Name != "master" {
 				continue
 			}
-			contents, err := repo.Repo().GetFile(specs.TASKS_CFG_FILE, branch.Head)
+			contents, err := repo.Repo().GetFile(ctx, specs.TASKS_CFG_FILE, branch.Head)
 			if err != nil {
 				sklog.Error(err)
 				continue

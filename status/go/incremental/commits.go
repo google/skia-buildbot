@@ -1,6 +1,7 @@
 package incremental
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -28,11 +29,11 @@ func newCommitsCache(repos repograph.Map) *commitsCache {
 // Return any new commits for each repo, or the last N if reset is true. Branch
 // heads will be provided for a given repo only if there are new commits for
 // that repo, or if reset is true.
-func (c *commitsCache) Update(w *window.Window, reset bool, n int) (map[string][]*gitinfo.GitBranch, map[string][]*vcsinfo.LongCommit, error) {
+func (c *commitsCache) Update(ctx context.Context, w *window.Window, reset bool, n int) (map[string][]*gitinfo.GitBranch, map[string][]*vcsinfo.LongCommit, error) {
 	defer metrics2.FuncTimer().Stop()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	if err := c.repos.Update(); err != nil {
+	if err := c.repos.Update(ctx); err != nil {
 		return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to update repos: %s", err)
 	}
 	branchHeads := make(map[string][]*gitinfo.GitBranch, len(c.repos))

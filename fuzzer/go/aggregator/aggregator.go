@@ -118,7 +118,7 @@ type bugReportingPackage struct {
 // StartAggregator creates and starts a Aggregator based on the Skia Revision in
 // config.Common.SkiaVersion.Hash.
 // If there is a problem starting up, an error is returned.  Other errors will be logged.
-func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReports map[string]<-chan data.FuzzReport) (*Aggregator, error) {
+func StartAggregator(ctx context.Context, s *storage.Client, im *issues.IssuesManager, startingReports map[string]<-chan data.FuzzReport) (*Aggregator, error) {
 	b := Aggregator{
 		storageClient:      s,
 		issueManager:       im,
@@ -143,18 +143,18 @@ func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReport
 		b.deduplicators[category] = d
 	}
 
-	return &b, b.start()
+	return &b, b.start(ctx)
 }
 
 // start starts up the Aggregator.  It refreshes all status it needs and builds a debug and a
 // release version of Skia for use in analysis.  It then spawns the aggregation pipeline and a
 // monitoring thread.
-func (agg *Aggregator) start() error {
+func (agg *Aggregator) start(ctx context.Context) error {
 	// Set the wait groups to fresh
 	agg.monitoringWaitGroup = &sync.WaitGroup{}
 	agg.aggregationWaitGroup = &sync.WaitGroup{}
 
-	if err := agg.buildAnalysisBinaries(); err != nil {
+	if err := agg.buildAnalysisBinaries(ctx); err != nil {
 		return err
 	}
 
@@ -168,7 +168,7 @@ func (agg *Aggregator) start() error {
 	}
 	for i := 0; i < numAnalysisProcesses; i++ {
 		agg.aggregationWaitGroup.Add(1)
-		go agg.waitForAnalysis(i)
+		go agg.waitForAnalysis(ctx, i)
 	}
 
 	numUploadProcesses := config.Aggregator.NumUploadProcesses
@@ -193,29 +193,29 @@ func (agg *Aggregator) start() error {
 // buildAnalysisBinaries creates the 4 executables we need to perform analysis and makes a copy of
 // them in the executablePath.  We need (Debug,Release) x (Clang,ASAN).  The copied binaries have
 // a suffix like _clang_debug
-func (agg *Aggregator) buildAnalysisBinaries() error {
+func (agg *Aggregator) buildAnalysisBinaries(ctx context.Context) error {
 	if _, err := fileutil.EnsureDirExists(config.Aggregator.FuzzPath); err != nil {
 		return err
 	}
 	if _, err := fileutil.EnsureDirExists(config.Aggregator.WorkingPath); err != nil {
 		return err
 	}
-	if srcExe, err := common.BuildClangHarness(buildskia.DEBUG_BUILD, true); err != nil {
+	if srcExe, err := common.BuildClangHarness(ctx, buildskia.DEBUG_BUILD, true); err != nil {
 		return err
 	} else if err := fileutil.CopyExecutable(srcExe, filepath.Join(config.Aggregator.WorkingPath, CLANG_DEBUG)); err != nil {
 		return err
 	}
-	if srcExe, err := common.BuildClangHarness(buildskia.RELEASE_BUILD, true); err != nil {
+	if srcExe, err := common.BuildClangHarness(ctx, buildskia.RELEASE_BUILD, true); err != nil {
 		return err
 	} else if err := fileutil.CopyExecutable(srcExe, filepath.Join(config.Aggregator.WorkingPath, CLANG_RELEASE)); err != nil {
 		return err
 	}
-	if srcExe, err := common.BuildASANHarness(buildskia.DEBUG_BUILD, false); err != nil {
+	if srcExe, err := common.BuildASANHarness(ctx, buildskia.DEBUG_BUILD, false); err != nil {
 		return err
 	} else if err := fileutil.CopyExecutable(srcExe, filepath.Join(config.Aggregator.WorkingPath, ASAN_DEBUG)); err != nil {
 		return err
 	}
-	if srcExe, err := common.BuildASANHarness(buildskia.RELEASE_BUILD, false); err != nil {
+	if srcExe, err := common.BuildASANHarness(ctx, buildskia.RELEASE_BUILD, false); err != nil {
 		return err
 	} else if err := fileutil.CopyExecutable(srcExe, filepath.Join(config.Aggregator.WorkingPath, ASAN_RELEASE)); err != nil {
 		return err
@@ -399,7 +399,7 @@ func collectFuzzerMetrics() error {
 // them in agg.fuzzPath with their hash as a file name. It then analyzes it using the supplied
 // AnalysisPackage and then signals the results should be uploaded. If any unrecoverable errors
 // happen, this method terminates.
-func (agg *Aggregator) waitForAnalysis(identifier int) {
+func (agg *Aggregator) waitForAnalysis(ctx context.Context, identifier int) {
 	defer agg.aggregationWaitGroup.Done()
 	defer metrics2.GetCounter("analysis_process_count", nil).Dec(int64(1))
 	sklog.Infof("Spawning analyzer %d", identifier)
@@ -413,7 +413,7 @@ func (agg *Aggregator) waitForAnalysis(identifier int) {
 	for {
 		select {
 		case badFuzz := <-agg.forAnalysis:
-			err := agg.analysisHelper(executableDir, badFuzz)
+			err := agg.analysisHelper(ctx, executableDir, badFuzz)
 			if err != nil {
 				sklog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
 				return
@@ -427,7 +427,7 @@ func (agg *Aggregator) waitForAnalysis(identifier int) {
 
 // analysisHelper performs the analysis on the given fuzz and returns an error if anything goes
 // wrong.  On success, the results will be placed in the upload queue.
-func (agg *Aggregator) analysisHelper(executableDir string, badFuzz analysisPackage) error {
+func (agg *Aggregator) analysisHelper(ctx context.Context, executableDir string, badFuzz analysisPackage) error {
 	hash, data, err := calculateHash(badFuzz.FilePath)
 	if err != nil {
 		return err
@@ -436,7 +436,7 @@ func (agg *Aggregator) analysisHelper(executableDir string, badFuzz analysisPack
 	if err := ioutil.WriteFile(newFuzzPath, data, 0644); err != nil {
 		return err
 	}
-	if upload, err := analyze(executableDir, hash, badFuzz.Category); err != nil {
+	if upload, err := analyze(ctx, executableDir, hash, badFuzz.Category); err != nil {
 		return fmt.Errorf("Problem analyzing %s, terminating: %s", newFuzzPath, err)
 	} else {
 		agg.forUpload <- upload
@@ -473,7 +473,7 @@ func setupAnalysis(workingDirPath string) error {
 
 // analyze simply invokes performAnalysis with a fuzz under both the Debug and Release build.  Upon
 // completion, it checks to see if the fuzz is a grey fuzz and sets the FuzzType accordingly.
-func analyze(workingDirPath, filename, category string) (uploadPackage, error) {
+func analyze(ctx context.Context, workingDirPath, filename, category string) (uploadPackage, error) {
 	upload := uploadPackage{
 		Data: data.GCSPackage{
 			Name:             filename,
@@ -485,25 +485,25 @@ func analyze(workingDirPath, filename, category string) (uploadPackage, error) {
 		Category: category,
 	}
 
-	if dump, stderr, err := performAnalysis(workingDirPath, CLANG_DEBUG, upload.FilePath, category); err != nil {
+	if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_DEBUG, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
 		upload.Data.Debug.Dump = dump
 		upload.Data.Debug.StdErr = stderr
 	}
-	if dump, stderr, err := performAnalysis(workingDirPath, CLANG_RELEASE, upload.FilePath, category); err != nil {
+	if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_RELEASE, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
 		upload.Data.Release.Dump = dump
 		upload.Data.Release.StdErr = stderr
 	}
 	// AddressSanitizer only outputs to stderr
-	if _, stderr, err := performAnalysis(workingDirPath, ASAN_DEBUG, upload.FilePath, category); err != nil {
+	if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_DEBUG, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
 		upload.Data.Debug.Asan = stderr
 	}
-	if _, stderr, err := performAnalysis(workingDirPath, ASAN_RELEASE, upload.FilePath, category); err != nil {
+	if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_RELEASE, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
 		upload.Data.Release.Asan = stderr
@@ -517,8 +517,7 @@ func analyze(workingDirPath, filename, category string) (uploadPackage, error) {
 // performAnalysis executes a command from the working dir specified using
 // AnalysisArgs for a given fuzz category. The crash dumps (which
 // come via standard out) and standard errors are recorded as strings.
-func performAnalysis(workingDirPath, executableName, pathToFile, category string) (string, string, error) {
-
+func performAnalysis(ctx context.Context, workingDirPath, executableName, pathToFile, category string) (string, string, error) {
 	var dump bytes.Buffer
 	var stdErr bytes.Buffer
 
@@ -538,7 +537,7 @@ func performAnalysis(workingDirPath, executableName, pathToFile, category string
 	}
 
 	//errors are fine/expected from this, as we are dealing with bad fuzzes
-	if err := exec.Run(cmd); err != nil {
+	if err := exec.Run(ctx, cmd); err != nil {
 		return dump.String(), stdErr.String(), nil
 	}
 	return dump.String(), stdErr.String(), nil
@@ -760,11 +759,11 @@ func (agg *Aggregator) ShutDown() {
 // is updated to the desired revision of Skia that should be analyzied.
 // Anything that is in the scanning directory should be cleared out,
 // lest it be rescanned/analyzed.
-func (agg *Aggregator) RestartAnalysis() error {
+func (agg *Aggregator) RestartAnalysis(ctx context.Context) error {
 	for _, d := range agg.deduplicators {
 		d.SetRevision(config.Common.SkiaVersion.Hash)
 	}
-	return agg.start()
+	return agg.start(ctx)
 }
 
 // WaitForEmptyQueues will return once there is nothing more in the analysis-upload-report

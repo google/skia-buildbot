@@ -65,7 +65,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 	// Set up the gitinfo object.
 	var vcs vcsinfo.VCS
 	var err error
-	if vcs, err = gitinfo.CloneOrUpdate(config.GitRepoURL, config.GitRepoDir, true); err != nil {
+	if vcs, err = gitinfo.CloneOrUpdate(context.Background(), config.GitRepoURL, config.GitRepoDir, true); err != nil {
 		return nil, err
 	}
 
@@ -73,7 +73,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 	var secondaryVCS vcsinfo.VCS
 	var extractor depot_tools.DEPSExtractor
 	if config.SecondaryRepoURL != "" {
-		if secondaryVCS, err = gitinfo.CloneOrUpdate(config.SecondaryRepoURL, config.SecondaryRepoDir, true); err != nil {
+		if secondaryVCS, err = gitinfo.CloneOrUpdate(context.Background(), config.SecondaryRepoURL, config.SecondaryRepoDir, true); err != nil {
 			return nil, err
 		}
 		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)

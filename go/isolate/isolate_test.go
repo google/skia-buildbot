@@ -1,6 +1,7 @@
 package isolate
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -22,8 +23,9 @@ func TestIsolateTasks(t *testing.T) {
 	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 
+	ctx := context.Background()
 	do := func(tasks []*Task, expectErr string) []string {
-		hashes, err := c.IsolateTasks(tasks)
+		hashes, err := c.IsolateTasks(ctx, tasks)
 		if expectErr == "" {
 			assert.NoError(t, err)
 			assert.Equal(t, len(tasks), len(hashes))

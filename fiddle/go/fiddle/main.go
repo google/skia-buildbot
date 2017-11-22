@@ -3,6 +3,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -402,7 +403,7 @@ func run(user string, req *types.FiddleContext) (*types.RunResults, error) {
 	if err != nil {
 		return resp, fmt.Errorf("Failed to write the fiddle.")
 	}
-	res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, &req.Options)
+	res, err := runner.Run(context.Background(), checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, &req.Options)
 	if !*local && !*preserveTemp {
 		if err := os.RemoveAll(tmpDir); err != nil {
 			sklog.Errorf("Failed to remove temp dir: %s", err)
@@ -540,7 +541,7 @@ func singleStepTryNamed() {
 			sklog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
 			continue
 		}
-		res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, options)
+		res, err := runner.Run(context.Background(), checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, options)
 		if err != nil {
 			sklog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
 			failing = append(failing, name)
@@ -574,7 +575,7 @@ func StartTryNamed() {
 	}()
 }
 
-func smi() {
+func smi(ctx context.Context) {
 	output := &bytes.Buffer{}
 	runCmd := &exec.Command{
 		Name:      "nvidia-smi",
@@ -583,7 +584,7 @@ func smi() {
 		Stdout:    output,
 	}
 	defer metrics2.FuncTimer().Stop()
-	if err := exec.Run(runCmd); err != nil {
+	if err := exec.Run(ctx, runCmd); err != nil {
 		sklog.Errorf("nvidia-smi failed %#v: %s", *runCmd, err)
 	}
 	sklog.Infof("nvidia-smi output: %s", output.String())
@@ -592,11 +593,11 @@ func smi() {
 
 // StartSMI starts a Go routine that periodically runs 'nvidia-smi' which seems
 // to knock the GPU back into a running state.
-func StartSMI() {
+func StartSMI(ctx context.Context) {
 	go func() {
-		smi()
+		smi(ctx)
 		for range time.Tick(5 * time.Minute) {
-			smi()
+			smi(ctx)
 		}
 	}()
 }
@@ -614,14 +615,15 @@ func main() {
 		sklog.Fatal("The --fiddle_root flag is required.")
 	}
 	if !*local {
-		if err := buildsecwrap.Build(*fiddleRoot); err != nil {
+		if err := buildsecwrap.Build(context.Background(), *fiddleRoot); err != nil {
 			sklog.Fatalf("Failed to compile fiddle_secwrap: %s", err)
 		}
 	}
 	depotTools = filepath.Join(*fiddleRoot, "depot_tools")
 	loadTemplates()
 	var err error
-	repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
+	ctx := context.Background()
+	repo, err = gitinfo.CloneOrUpdate(ctx, common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
 	if err != nil {
 		sklog.Fatalf("Failed to clone Skia: %s", err)
 	}
@@ -637,12 +639,12 @@ func main() {
 		sklog.Fatalf("Failed to initialize source images: %s", err)
 	}
 	names = named.New(fiddleStore)
-	build = buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 64, *timeBetweenBuilds, true)
-	build.Start()
+	build = buildskia.New(ctx, *fiddleRoot, depotTools, repo, buildlib.BuildLib, 64, *timeBetweenBuilds, true)
+	build.Start(ctx)
 	if *tryNamed {
 		StartTryNamed()
 	}
-	StartSMI()
+	StartSMI(ctx)
 
 	go func() {
 		sklog.Fatal(http.ListenAndServe("localhost:6060", nil))

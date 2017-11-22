@@ -1,6 +1,7 @@
 package regression
 
 import (
+	"context"
 	"net/url"
 	"sync"
 	"time"
@@ -89,7 +90,7 @@ func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 // commits.
 //
 // Note that it never returns so it should be called as a Go routine.
-func (c *Continuous) Run() {
+func (c *Continuous) Run(ctx context.Context) {
 	newClustersGauge := metrics2.GetInt64Metric("perf_clustering_untriaged", nil)
 	runsCounter := metrics2.GetCounter("perf_clustering_runs", nil)
 	clusteringLatency := metrics2.NewTimer("perf_clustering_latency", nil)
@@ -109,7 +110,7 @@ func (c *Continuous) Run() {
 				Source: "master",
 				Offset: commit.Index,
 			}
-			details, err := c.cidl.Lookup([]*cid.CommitID{id})
+			details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
 			if err != nil {
 				sklog.Errorf("Failed to look up commit %v: %s", *id, err)
 				continue
@@ -165,7 +166,7 @@ func (c *Continuous) Run() {
 						Sparse:      cfg.Sparse,
 					}
 					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
-					resp, err := clustering2.Run(req, c.git, c.cidl)
+					resp, err := clustering2.Run(ctx, req, c.git, c.cidl)
 					if err != nil {
 						sklog.Warningf("Failed while clustering %v %s", *req, err)
 						continue
