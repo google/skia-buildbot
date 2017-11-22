@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"io/ioutil"
@@ -82,10 +83,7 @@ func pendingChromiumPerfTask() ChromiumPerfTask {
 
 func TestChromiumPerfExecute(t *testing.T) {
 	testutils.SmallTest(t)
-	task := pendingChromiumPerfTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".chromium.patch"),
@@ -94,7 +92,9 @@ func TestChromiumPerfExecute(t *testing.T) {
 			"skiapatch\n")
 		return nil
 	})
-	err := task.Execute()
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	task := pendingChromiumPerfTask()
+	err := task.Execute(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -131,11 +131,10 @@ func pendingPixelDiffTask() PixelDiffTask {
 
 func TestPixelDiffExecute(t *testing.T) {
 	testutils.SmallTest(t)
-	task := pendingPixelDiffTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	task := pendingPixelDiffTask()
+	err := task.Execute(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -171,11 +170,10 @@ func pendingCaptureSkpsTask() CaptureSkpsTask {
 
 func TestCaptureSkpsExecute(t *testing.T) {
 	testutils.SmallTest(t)
-	task := pendingCaptureSkpsTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	task := pendingCaptureSkpsTask()
+	err := task.Execute(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -190,7 +188,7 @@ func TestCaptureSkpsExecute(t *testing.T) {
 	expect.NotNil(t, cmd.Timeout)
 }
 
-func pendingLuaScriptTaskWithAggregator() LuaScriptTask {
+func pendingLuaScriptTaskWithAggregator(ctx context.Context) LuaScriptTask {
 	return LuaScriptTask{
 		DBTask: lua_scripts.DBTask{
 			CommonCols:          pendingCommonCols(),
@@ -206,10 +204,9 @@ func pendingLuaScriptTaskWithAggregator() LuaScriptTask {
 
 func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 	testutils.SmallTest(t)
-	task := pendingLuaScriptTaskWithAggregator()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	task := pendingLuaScriptTaskWithAggregator(ctx)
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".lua"),
@@ -218,7 +215,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 			`print("aaallluuu")`)
 		return nil
 	})
-	err := task.Execute()
+	err := task.Execute(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -235,6 +232,16 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 
 func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 	testutils.SmallTest(t)
+	mockRun := exec.CommandCollector{}
+	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
+		runId := getRunId(t, cmd)
+		assertFileContents(t, filepath.Join(os.TempDir(), runId+".lua"),
+			`print("lualualua")`)
+		_, err := os.Stat(filepath.Join(os.TempDir(), runId+".aggregator"))
+		expect.True(t, os.IsNotExist(err))
+		return nil
+	})
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
 	task := LuaScriptTask{
 		DBTask: lua_scripts.DBTask{
 			CommonCols:          pendingCommonCols(),
@@ -246,18 +253,7 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 			Description:         "description",
 		},
 	}
-	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
-		runId := getRunId(t, cmd)
-		assertFileContents(t, filepath.Join(os.TempDir(), runId+".lua"),
-			`print("lualualua")`)
-		_, err := os.Stat(filepath.Join(os.TempDir(), runId+".aggregator"))
-		expect.True(t, os.IsNotExist(err))
-		return nil
-	})
-	err := task.Execute()
+	err := task.Execute(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -284,11 +280,10 @@ func pendingChromiumBuildTask() ChromiumBuildTask {
 
 func TestChromiumBuildExecute(t *testing.T) {
 	testutils.SmallTest(t)
-	task := pendingChromiumBuildTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	task := pendingChromiumBuildTask()
+	err := task.Execute(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -315,11 +310,10 @@ func pendingRecreatePageSetsTask() RecreatePageSetsTask {
 
 func TestRecreatePageSetsExecute(t *testing.T) {
 	testutils.SmallTest(t)
-	task := pendingRecreatePageSetsTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	task := pendingRecreatePageSetsTask()
+	err := task.Execute(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -345,11 +339,10 @@ func pendingRecreateWebpageArchivesTask() RecreateWebpageArchivesTask {
 
 func TestRecreateWebpageArchivesExecute(t *testing.T) {
 	testutils.SmallTest(t)
-	task := pendingRecreateWebpageArchivesTask()
 	mockRun := exec.CommandCollector{}
-	exec.SetRunForTesting(mockRun.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	err := task.Execute()
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	task := pendingRecreateWebpageArchivesTask()
+	err := task.Execute(ctx)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -364,35 +357,36 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 
 func TestAsPollerTask(t *testing.T) {
 	testutils.SmallTest(t)
-	expect.Nil(t, asPollerTask(nil))
+	ctx := context.Background()
+	expect.Nil(t, asPollerTask(ctx, nil))
 	{
 		taskStruct := pendingChromiumPerfTask()
-		taskInterface := asPollerTask(&taskStruct.DBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.DBTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*ChromiumPerfTask))
 	}
 	{
 		taskStruct := pendingCaptureSkpsTask()
-		taskInterface := asPollerTask(&taskStruct.DBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.DBTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*CaptureSkpsTask))
 	}
 	{
-		taskStruct := pendingLuaScriptTaskWithAggregator()
-		taskInterface := asPollerTask(&taskStruct.DBTask)
+		taskStruct := pendingLuaScriptTaskWithAggregator(ctx)
+		taskInterface := asPollerTask(ctx, &taskStruct.DBTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*LuaScriptTask))
 	}
 	{
 		taskStruct := pendingChromiumBuildTask()
-		taskInterface := asPollerTask(&taskStruct.DBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.DBTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*ChromiumBuildTask))
 	}
 	{
 		taskStruct := pendingRecreatePageSetsTask()
-		taskInterface := asPollerTask(&taskStruct.RecreatePageSetsDBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.RecreatePageSetsDBTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*RecreatePageSetsTask))
 	}
 	{
 		taskStruct := pendingRecreateWebpageArchivesTask()
-		taskInterface := asPollerTask(&taskStruct.RecreateWebpageArchivesDBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.RecreateWebpageArchivesDBTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*RecreateWebpageArchivesTask))
 	}
 }
@@ -439,15 +433,14 @@ func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
 
 func TestPollAndExecOnce(t *testing.T) {
 	testutils.SmallTest(t)
+	mockExec := exec.CommandCollector{}
+	ctx := exec.NewContext(context.Background(), mockExec.Run)
 	task := pendingRecreateWebpageArchivesTask()
 	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
-	mockExec := exec.CommandCollector{}
-	exec.SetRunForTesting(mockExec.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	wg := pollAndExecOnce(mockCTAutoscaler)
+	wg := pollAndExecOnce(ctx, mockCTAutoscaler)
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
@@ -466,22 +459,21 @@ func TestPollAndExecOnce(t *testing.T) {
 
 func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	testutils.SmallTest(t)
+	mockExec := exec.CommandCollector{}
+	ctx := exec.NewContext(context.Background(), mockExec.Run)
 	task1 := pendingRecreateWebpageArchivesTask()
 	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task1.RecreateWebpageArchivesDBTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
-	mockExec := exec.CommandCollector{}
-	exec.SetRunForTesting(mockExec.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
 	// Poll frontend and execute the first task.
-	wg1 := pollAndExecOnce(mockCTAutoscaler)
+	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler)
 	wg1.Wait() // Wait for task to return to make asserting commands deterministic.
 	// Update current task.
 	task2 := pendingChromiumPerfTask()
 	mockServer.SetCurrentTask(&task2.DBTask)
 	// Poll frontend and execute the second task.
-	wg2 := pollAndExecOnce(mockCTAutoscaler)
+	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler)
 	wg2.Wait() // Wait for task to return to make asserting commands deterministic.
 
 	// Expect two pending task requests.
@@ -504,18 +496,17 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 
 func TestPollAndExecOnceError(t *testing.T) {
 	testutils.SmallTest(t)
+	mockRun := exec.MockRun{}
+	commandCollector := exec.CommandCollector{}
+	commandCollector.SetDelegateRun(mockRun.Run)
+	ctx := exec.NewContext(context.Background(), commandCollector.Run)
 	task := pendingRecreateWebpageArchivesTask()
 	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
-	commandCollector := exec.CommandCollector{}
-	mockRun := exec.MockRun{}
-	commandCollector.SetDelegateRun(mockRun.Run)
-	exec.SetRunForTesting(commandCollector.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
 	mockRun.AddRule("capture_archives_on_workers", fmt.Errorf("workers too lazy"))
-	wg := pollAndExecOnce(mockCTAutoscaler)
+	wg := pollAndExecOnce(ctx, mockCTAutoscaler)
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
@@ -547,12 +538,11 @@ func TestPollAndExecOnceNoTasks(t *testing.T) {
 	mockServer.SetCurrentTask(nil)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	mockExec := exec.CommandCollector{}
-	exec.SetRunForTesting(mockExec.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
+	ctx := exec.NewContext(context.Background(), mockExec.Run)
 	// Poll frontend, no tasks.
-	wg1 := pollAndExecOnce(mockCTAutoscaler)
-	wg2 := pollAndExecOnce(mockCTAutoscaler)
-	wg3 := pollAndExecOnce(mockCTAutoscaler)
+	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler)
+	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler)
+	wg3 := pollAndExecOnce(ctx, mockCTAutoscaler)
 	// Expect three polls.
 	wg1.Wait()
 	wg2.Wait()

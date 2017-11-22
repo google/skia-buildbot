@@ -39,7 +39,7 @@ func NewVersionUpdater(s fstorage.FuzzerGCSClient, agg *aggregator.Aggregator, g
 // It will stop the Generator, pause the Aggregator, update to the new version, re-scan all previous
 // fuzzes and then start the Generator and the Aggregator again.  It re-uses the Aggregator pipeline
 // to do the re-analysis.
-func (v *VersionUpdater) UpdateToNewSkiaVersion(newRevision string) error {
+func (v *VersionUpdater) UpdateToNewSkiaVersion(ctx context.Context, newRevision string) error {
 	oldRevision := config.Common.SkiaVersion.Hash
 
 	// stop all afl-fuzz processes
@@ -48,17 +48,17 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newRevision string) error {
 	}
 
 	// sync skia to version, which sets config.Common.SkiaVersion
-	if err := download_skia.AtRevision(newRevision, config.Common.SkiaRoot, &config.Common, true); err != nil {
+	if err := download_skia.AtRevision(ctx, newRevision, config.Common.SkiaRoot, &config.Common, true); err != nil {
 		return fmt.Errorf("Could not sync skia to %s: %s", newRevision, err)
 	}
 
 	// Reanalyze all previous found fuzzes and restart with new version
-	if err := v.reanalyze(oldRevision); err != nil {
+	if err := v.reanalyze(ctx, oldRevision); err != nil {
 		sklog.Errorf("Problem reanalyzing and restarting aggregation pipeline: %s", err)
 	}
 
 	for _, g := range v.generators {
-		if err := g.Start(); err != nil {
+		if err := g.Start(ctx); err != nil {
 			return fmt.Errorf("Could not restart generator %s: %s", g.Category, err)
 		}
 	}
@@ -73,8 +73,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newRevision string) error {
 	return nil
 }
 
-func (v *VersionUpdater) reanalyze(oldRevision string) error {
-
+func (v *VersionUpdater) reanalyze(ctx context.Context, oldRevision string) error {
 	// This is a soft shutdown, i.e. it waits for aggregator's queues to be empty
 	v.aggregator.ShutDown()
 	for _, g := range v.generators {
@@ -88,7 +87,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 	}
 
 	// Recompile Skia at the new version.
-	if err := v.aggregator.RestartAnalysis(); err != nil {
+	if err := v.aggregator.RestartAnalysis(ctx); err != nil {
 		return fmt.Errorf("Had problem restarting analysis/upload chain: %s", err)
 	}
 

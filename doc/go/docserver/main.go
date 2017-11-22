@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"mime"
@@ -66,7 +67,7 @@ func Init() {
 	if *preview {
 		primary, err = docset.NewPreviewDocSet()
 	} else {
-		primary, err = docset.NewDocSet(*workDir, *docRepo)
+		primary, err = docset.NewDocSet(context.Background(), *workDir, *docRepo)
 	}
 	if err != nil {
 		sklog.Fatalf("Failed to load the docset: %s", err)
@@ -117,7 +118,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.")
 			return
 		}
-		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), *docRepo, issue)
+		d, err = docset.NewDocSetForIssue(context.Background(), filepath.Join(*workDir, "patches"), *docRepo, issue)
 		if err == docset.IssueCommittedErr {
 			httputils.ReportError(w, r, err, "Failed to load the given CL, that issue is closed.")
 			return

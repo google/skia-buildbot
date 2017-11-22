@@ -5,6 +5,7 @@ package main
 */
 
 import (
+	"context"
 	"flag"
 	"path/filepath"
 
@@ -66,6 +67,7 @@ func main() {
 	}
 
 	// Perform the requested operation.
+	ctx := context.Background()
 	group := util.NewNamedErrGroup()
 	for _, num := range instanceNums {
 		var vm *gce.Instance
@@ -79,7 +81,7 @@ func main() {
 
 		group.Go(vm.Name, func() error {
 			if *create {
-				return g.CreateAndSetup(vm, *ignoreExists)
+				return g.CreateAndSetup(ctx, vm, *ignoreExists)
 			} else {
 				return g.Delete(vm, *ignoreExists, *deleteDataDisk)
 			}

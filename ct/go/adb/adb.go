@@ -2,6 +2,7 @@
 package adb
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 
@@ -13,10 +14,10 @@ import (
 // VerifyLocalDevice does not throw an error if an Android device is connected and
 // online. An error is returned if either "adb" is not installed or if the Android
 // device is offline or missing.
-func VerifyLocalDevice() error {
+func VerifyLocalDevice(ctx context.Context) error {
 	// Run "adb version".
 	// Command should return without an error.
-	err := util.ExecuteCmd(util.BINARY_ADB, []string{"version"}, []string{},
+	err := util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"version"}, []string{},
 		util.ADB_VERSION_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("adb not installed or not found: %s", err)

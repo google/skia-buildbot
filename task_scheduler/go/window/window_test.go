@@ -1,6 +1,7 @@
 package window
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -39,20 +40,21 @@ func TestWindowNoRepos(t *testing.T) {
 // Returns the repo URL, a repograph.Graph instance, a slice of commit hashes,
 // and a cleanup function.
 func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string, func()) {
-	gb := git_testutils.GitInit(t)
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
 	f := "somefile"
 	commits := make([]string, 0, numCommits)
 	t0 := time.Unix(0, 1480437867192070480)
 	for i := 0; i < numCommits; i++ {
-		gb.AddGen(f)
+		gb.AddGen(ctx, f)
 		ts := t0.Add(time.Duration(int64(5) * int64(i) * int64(time.Second)))
-		h := gb.CommitMsgAt(fmt.Sprintf("C%d", i), ts)
+		h := gb.CommitMsgAt(ctx, fmt.Sprintf("C%d", i), ts)
 		commits = append(commits, h)
 	}
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	repo, err := repograph.NewGraph(gb.Dir(), tmp)
+	repo, err := repograph.NewGraph(ctx, gb.Dir(), tmp)
 	assert.NoError(t, err)
 	return gb.Dir(), repo, commits, func() {
 		gb.Cleanup()

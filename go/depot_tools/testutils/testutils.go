@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path"
@@ -18,14 +19,14 @@ var (
 )
 
 // Sync syncs depot_tools into the given dir.
-func Sync(t *testing.T, dir string) string {
-	d, err := depot_tools.Sync(dir)
+func Sync(t *testing.T, ctx context.Context, dir string) string {
+	d, err := depot_tools.Sync(ctx, dir)
 	assert.NoError(t, err)
 	return d
 }
 
 // GetDepotTools returns the path to depot_tools, syncing it if necessary.
-func GetDepotTools(t *testing.T) string {
+func GetDepotTools(t *testing.T, ctx context.Context) string {
 	depotToolsMtx.Lock()
 	defer depotToolsMtx.Unlock()
 
@@ -42,15 +43,15 @@ func GetDepotTools(t *testing.T) string {
 	// Sync to a special location.
 	workdir := path.Join(os.TempDir(), "sktest_depot_tools")
 	if _, err := os.Stat(workdir); err == nil {
-		return Sync(t, workdir)
+		return Sync(t, ctx, workdir)
 	}
 
 	// If "gclient" is in PATH, then we know where to get depot_tools.
 	gclient, err := exec.LookPath("gclient")
 	if err == nil && gclient != "" {
-		return Sync(t, path.Dir(path.Dir(gclient)))
+		return Sync(t, ctx, path.Dir(path.Dir(gclient)))
 	}
 
 	// Fall back to the special location.
-	return Sync(t, workdir)
+	return Sync(t, ctx, workdir)
 }

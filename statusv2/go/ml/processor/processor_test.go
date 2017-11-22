@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"context"
 	"errors"
 	"io/ioutil"
 	"testing"
@@ -15,6 +16,7 @@ func TestProcessor(t *testing.T) {
 	testutils.MediumTest(t)
 
 	// Setup.
+	ctx := context.Background()
 	now := time.Now()
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -28,7 +30,7 @@ func TestProcessor(t *testing.T) {
 		retVal error
 	}
 	expect := []*invocation{}
-	testProcess := func(start, end time.Time) error {
+	testProcess := func(ctx context.Context, start, end time.Time) error {
 		e := expect[0]
 		testutils.AssertDeepEqual(t, e.start, start)
 		if util.TimeIsZero(e.end) {
@@ -66,7 +68,7 @@ func TestProcessor(t *testing.T) {
 		})
 		start = end
 	}
-	assert.NoError(t, p.run(now))
+	assert.NoError(t, p.run(ctx, now))
 	assert.Empty(t, expect)
 	testutils.AssertDeepEqual(t, now, p.processedUpTo)
 
@@ -83,7 +85,7 @@ func TestProcessor(t *testing.T) {
 		})
 		start = end
 	}
-	assert.NoError(t, p.run(now))
+	assert.NoError(t, p.run(ctx, now))
 	assert.Empty(t, expect)
 	testutils.AssertDeepEqual(t, now, p.processedUpTo)
 
@@ -101,7 +103,7 @@ func TestProcessor(t *testing.T) {
 		})
 		start = end
 	}
-	assert.NoError(t, p.run(now))
+	assert.NoError(t, p.run(ctx, now))
 	assert.Empty(t, expect)
 	testutils.AssertDeepEqual(t, now, p.processedUpTo)
 
@@ -135,7 +137,7 @@ func TestProcessor(t *testing.T) {
 	failed := expect[2]
 	failed.retVal = errors.New("failed")
 	expectUpTo := expect[1].end
-	assert.EqualError(t, p.run(now), failed.retVal.Error())
+	assert.EqualError(t, p.run(ctx, now), failed.retVal.Error())
 	testutils.AssertDeepEqual(t, expectUpTo, p.processedUpTo)
 }
 
@@ -147,7 +149,7 @@ func TestValidate(t *testing.T) {
 		ChunkSize:       time.Hour,
 		Name:            "test_processor",
 		Frequency:       time.Millisecond,
-		ProcessFn:       func(time.Time, time.Time) error { return nil },
+		ProcessFn:       func(context.Context, time.Time, time.Time) error { return nil },
 		Window:          3 * time.Hour,
 		Workdir:         "my-dir",
 	}

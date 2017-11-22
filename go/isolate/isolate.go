@@ -266,7 +266,7 @@ func addIsolatedIncludes(filepath string, includes []string) error {
 }
 
 // BatchArchiveTasks runs `isolate batcharchive` for the tasks.
-func (c *Client) BatchArchiveTasks(genJsonFiles []string, jsonOutput string) error {
+func (c *Client) BatchArchiveTasks(ctx context.Context, genJsonFiles []string, jsonOutput string) error {
 	cmd := []string{
 		c.isolate, "batcharchive", "--verbose",
 		"--isolate-server", c.serverUrl,
@@ -275,7 +275,7 @@ func (c *Client) BatchArchiveTasks(genJsonFiles []string, jsonOutput string) err
 		cmd = append(cmd, "--dump-json", jsonOutput)
 	}
 	cmd = append(cmd, genJsonFiles...)
-	output, err := exec.RunCwd(c.workdir, cmd...)
+	output, err := exec.RunCwd(ctx, c.workdir, cmd...)
 	if err != nil {
 		return fmt.Errorf("Failed to run isolate: %s\nOutput:\n%s", err, output)
 	}
@@ -284,7 +284,7 @@ func (c *Client) BatchArchiveTasks(genJsonFiles []string, jsonOutput string) err
 
 // IsolateTasks uploads the necessary inputs for the task to the isolate server
 // and returns the isolated hashes.
-func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
+func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, error) {
 	// Validation.
 	if len(tasks) == 0 {
 		return []string{}, nil
@@ -317,7 +317,7 @@ func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
 	}
 
 	// Isolate the tasks.
-	if err := c.BatchArchiveTasks(genJsonFiles, ""); err != nil {
+	if err := c.BatchArchiveTasks(ctx, genJsonFiles, ""); err != nil {
 		return nil, err
 	}
 
@@ -339,7 +339,7 @@ func (c *Client) IsolateTasks(tasks []*Task) ([]string, error) {
 	for _, f := range isolatedFiles {
 		cmd = append(cmd, "--files", f)
 	}
-	output, err := exec.RunCwd(c.workdir, cmd...)
+	output, err := exec.RunCwd(ctx, c.workdir, cmd...)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run isolate: %s\nOutput:\n%s", err, output)
 	}

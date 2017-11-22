@@ -2,6 +2,7 @@
 package cid
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -109,8 +110,8 @@ func FromIssue(review *rietveld.Rietveld, issueStr, patchsetStr string) (*Commit
 }
 
 // FromHash returns a CommitID for the given git hash.
-func FromHash(vcs vcsinfo.VCS, hash string) (*CommitID, error) {
-	commit, err := vcs.Details(hash, true)
+func FromHash(ctx context.Context, vcs vcsinfo.VCS, hash string) (*CommitID, error) {
+	commit, err := vcs.Details(ctx, hash, true)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +119,7 @@ func FromHash(vcs vcsinfo.VCS, hash string) (*CommitID, error) {
 		sklog.Warningf("Commit %s is not in master branch.", hash)
 		return nil, ingestion.IgnoreResultsFileErr
 	}
-	offset, err := vcs.IndexOf(hash)
+	offset, err := vcs.IndexOf(ctx, hash)
 	if err != nil {
 		return nil, fmt.Errorf("Could not ingest, hash not found %q: %s", hash, err)
 	}
@@ -156,7 +157,7 @@ type CommitIDLookup struct {
 //
 // index is the index of the last commit id, or -1 if we don't know which
 // commit id we are on.
-func parseLogLine(s string, index *int, git *gitinfo.GitInfo) (*cacheEntry, error) {
+func parseLogLine(ctx context.Context, s string, index *int, git *gitinfo.GitInfo) (*cacheEntry, error) {
 	parts := strings.SplitN(s, " ", 4)
 	if len(parts) != 4 {
 		return nil, fmt.Errorf("Failed to parse parts of %q: %#v", s, parts)
@@ -170,7 +171,7 @@ func parseLogLine(s string, index *int, git *gitinfo.GitInfo) (*cacheEntry, erro
 		return nil, fmt.Errorf("Can't parse timestamp %q: %s", ts, err)
 	}
 	if *index == -1 {
-		*index, err = git.IndexOf(hash)
+		*index, err = git.IndexOf(ctx, hash)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get index of %q: %s", hash, err)
 		}
@@ -187,13 +188,13 @@ func parseLogLine(s string, index *int, git *gitinfo.GitInfo) (*cacheEntry, erro
 
 // warmCache populates c.cache with all the commits to "master"
 // in the past year.
-func (c *CommitIDLookup) warmCache() {
+func (c *CommitIDLookup) warmCache(ctx context.Context) {
 	defer timer.New("cid.warmCache time").Stop()
 	now := time.Now()
 
 	// Extract ts, hash, author email, and subject from the git log.
 	since := now.Add(-365 * 24 * time.Hour).Format("2006-01-02")
-	log, err := c.git.LogArgs("--since="+since, "--format=format:%ct %H %ae %s")
+	log, err := c.git.LogArgs(ctx, "--since="+since, "--format=format:%ct %H %ae %s")
 	if err != nil {
 		sklog.Errorf("Could not get log for --since=%q: %s", since, err)
 		return
@@ -204,7 +205,7 @@ func (c *CommitIDLookup) warmCache() {
 	var index int = -1
 	// Parse.
 	for _, s := range lines {
-		entry, err := parseLogLine(s, &index, c.git)
+		entry, err := parseLogLine(ctx, s, &index, c.git)
 		if err != nil {
 			sklog.Errorf("Failed to parse git log line %q: %s", s, err)
 			return
@@ -213,19 +214,19 @@ func (c *CommitIDLookup) warmCache() {
 	}
 }
 
-func New(git *gitinfo.GitInfo, rv *rietveld.Rietveld, gitRepoURL string) *CommitIDLookup {
+func New(ctx context.Context, git *gitinfo.GitInfo, rv *rietveld.Rietveld, gitRepoURL string) *CommitIDLookup {
 	cidl := &CommitIDLookup{
 		git:        git,
 		rv:         rv,
 		cache:      map[int]*cacheEntry{},
 		gitRepoURL: gitRepoURL,
 	}
-	cidl.warmCache()
+	cidl.warmCache(ctx)
 	return cidl
 }
 
 // Lookup returns a CommitDetail for each CommitID.
-func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
+func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*CommitDetail, error) {
 	now := time.Now()
 	ret := make([]*CommitDetail, len(cids), len(cids))
 	for i, cid := range cids {
@@ -272,7 +273,7 @@ func (c *CommitIDLookup) Lookup(cids []*CommitID) ([]*CommitDetail, error) {
 					Timestamp: entry.ts,
 				}
 			} else {
-				lc, err := c.git.ByIndex(cid.Offset)
+				lc, err := c.git.ByIndex(ctx, cid.Offset)
 				if err != nil {
 					return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
 				}

@@ -117,7 +117,7 @@ func deleteTriggerFile(triggerDir, basename string) error {
 
 // Triggerer is a struct which triggers certain actions on a timer.
 type Triggerer struct {
-	funcs      map[string][]func() error
+	funcs      map[string][]func(context.Context) error
 	metrics    *periodicTriggerMetrics
 	mtx        sync.RWMutex
 	triggerDir string
@@ -135,7 +135,7 @@ func NewTriggerer(workdir string) (*Triggerer, error) {
 		return nil, err
 	}
 	return &Triggerer{
-		funcs:      map[string][]func() error{},
+		funcs:      map[string][]func(context.Context) error{},
 		metrics:    metrics,
 		mtx:        sync.RWMutex{},
 		triggerDir: triggerDir,
@@ -144,14 +144,14 @@ func NewTriggerer(workdir string) (*Triggerer, error) {
 }
 
 // Register the given function to run at the given trigger.
-func (t *Triggerer) Register(trigger string, fn func() error) {
+func (t *Triggerer) Register(trigger string, fn func(context.Context) error) {
 	t.mtx.Lock()
 	defer t.mtx.Unlock()
 	t.funcs[trigger] = append(t.funcs[trigger], fn)
 }
 
 // RunPeriodicTriggers returns the set of triggers which have just fired.
-func (t *Triggerer) RunPeriodicTriggers() error {
+func (t *Triggerer) RunPeriodicTriggers(ctx context.Context) error {
 	triggers, err := findAndParseTriggerFiles(t.triggerDir)
 	if err != nil {
 		return err
@@ -165,7 +165,7 @@ func (t *Triggerer) RunPeriodicTriggers() error {
 	for _, trigger := range triggers {
 		errs := []error{}
 		for _, fn := range t.funcs[trigger] {
-			if err := fn(); err != nil {
+			if err := fn(ctx); err != nil {
 				errs = append(errs, err)
 			}
 		}
@@ -192,7 +192,7 @@ func (t *Triggerer) RunPeriodicTriggers() error {
 }
 
 // Start running periodic triggers in a loop.
-func Start(ctx context.Context, workdir string, triggers map[string][]func() error) error {
+func Start(ctx context.Context, workdir string, triggers map[string][]func(context.Context) error) error {
 	t, err := NewTriggerer(workdir)
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ func Start(ctx context.Context, workdir string, triggers map[string][]func() err
 	}
 	lv := metrics2.NewLiveness("last_successful_periodic_trigger_loop")
 	go util.RepeatCtx(time.Minute, ctx, func() {
-		if err := t.RunPeriodicTriggers(); err != nil {
+		if err := t.RunPeriodicTriggers(ctx); err != nil {
 			sklog.Errorf("Failed to run periodic triggers: %s", err)
 		} else {
 			lv.Reset()

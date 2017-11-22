@@ -18,7 +18,7 @@ import (
 // Verify that updateJobs sends heartbeats for unfinished try Jobs and
 // success/failure for finished Jobs.
 func TestUpdateJobs(t *testing.T) {
-	trybots, gb, mock, cleanup := setup(t)
+	_, trybots, gb, mock, cleanup := setup(t)
 	defer cleanup()
 
 	now := time.Now()
@@ -118,7 +118,7 @@ func TestUpdateJobs(t *testing.T) {
 }
 
 func TestGetRepo(t *testing.T) {
-	trybots, _, _, cleanup := setup(t)
+	_, trybots, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	props := &buildbucket.Properties{
@@ -149,7 +149,7 @@ func TestGetRepo(t *testing.T) {
 }
 
 func TestGetRevision(t *testing.T) {
-	trybots, _, mock, cleanup := setup(t)
+	ctx, trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
 	// Get the (only) commit from the repo.
@@ -158,7 +158,7 @@ func TestGetRevision(t *testing.T) {
 	}
 	_, r, _, err := trybots.getRepo(props)
 	assert.NoError(t, err)
-	c, err := r.Repo().RevParse("origin/master")
+	c, err := r.Repo().RevParse(ctx, "origin/master")
 	assert.NoError(t, err)
 
 	// Fake response from Gerrit.
@@ -192,7 +192,7 @@ func TestGetRevision(t *testing.T) {
 }
 
 func TestCancelBuild(t *testing.T) {
-	trybots, _, mock, cleanup := setup(t)
+	_, trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
 	id := int64(12345)
@@ -207,7 +207,7 @@ func TestCancelBuild(t *testing.T) {
 }
 
 func TestTryLeaseBuild(t *testing.T) {
-	trybots, _, mock, cleanup := setup(t)
+	_, trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
 	id := int64(12345)
@@ -226,7 +226,7 @@ func TestTryLeaseBuild(t *testing.T) {
 }
 
 func TestJobStarted(t *testing.T) {
-	trybots, gb, mock, cleanup := setup(t)
+	_, trybots, gb, mock, cleanup := setup(t)
 	defer cleanup()
 
 	j := tryjob(gb.RepoUrl())
@@ -245,7 +245,7 @@ func TestJobStarted(t *testing.T) {
 }
 
 func TestJobFinished(t *testing.T) {
-	trybots, gb, mock, cleanup := setup(t)
+	_, trybots, gb, mock, cleanup := setup(t)
 	defer cleanup()
 
 	j := tryjob(gb.RepoUrl())
@@ -297,7 +297,7 @@ func TestJobFinished(t *testing.T) {
 }
 
 func TestGetJobToSchedule(t *testing.T) {
-	trybots, _, mock, cleanup := setup(t)
+	ctx, trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
 	now := time.Now()
@@ -305,7 +305,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	// Normal job, Gerrit patch.
 	b1 := Build(t, now)
 	MockTryLeaseBuild(mock, b1.Id, now, nil)
-	result, err := trybots.getJobToSchedule(b1, now)
+	result, err := trybots.getJobToSchedule(ctx, b1, now)
 	assert.NoError(t, err)
 	assert.True(t, mock.Empty())
 	assert.Equal(t, result.BuildbucketBuildId, b1.Id)
@@ -315,7 +315,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	// Failed to lease build.
 	expectErr := fmt.Errorf("fail")
 	MockTryLeaseBuild(mock, b1.Id, now, expectErr)
-	result, err = trybots.getJobToSchedule(b1, now)
+	result, err = trybots.getJobToSchedule(ctx, b1, now)
 	assert.EqualError(t, err, expectErr.Error())
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
@@ -324,7 +324,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	b2 := Build(t, now)
 	b2.ParametersJson = "dklsadfklas"
 	MockCancelBuild(mock, b2.Id, "Invalid parameters_json: invalid character 'd' looking for beginning of value;\\\\n\\\\ndklsadfklas", nil)
-	result, err = trybots.getJobToSchedule(b2, now)
+	result, err = trybots.getJobToSchedule(ctx, b2, now)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
@@ -333,7 +333,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	b3 := Build(t, now)
 	b3.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", "bogus-repo", "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	MockCancelBuild(mock, b3.Id, "Unable to find repo: Unknown patch project \\\\\\\"bogus-repo\\\\\\\"", nil)
-	result, err = trybots.getJobToSchedule(b3, now)
+	result, err = trybots.getJobToSchedule(ctx, b3, now)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
@@ -342,7 +342,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	b4 := Build(t, now)
 	b4.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "abz", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	MockCancelBuild(mock, b4.Id, "Invalid revision: Unknown revision abz", nil)
-	result, err = trybots.getJobToSchedule(b4, now)
+	result, err = trybots.getJobToSchedule(ctx, b4, now)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
@@ -353,7 +353,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	p.Properties.PatchStorage = "???"
 	b6.ParametersJson = testutils.MarshalJSON(t, p)
 	MockCancelBuild(mock, b6.Id, "Invalid patch storage: ???", nil)
-	result, err = trybots.getJobToSchedule(b6, now)
+	result, err = trybots.getJobToSchedule(ctx, b6, now)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
@@ -362,7 +362,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	b7 := Build(t, now)
 	b7.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "bad-revision", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	MockCancelBuild(mock, b7.Id, "Invalid revision: Unknown revision bad-revision", nil)
-	result, err = trybots.getJobToSchedule(b7, now)
+	result, err = trybots.getJobToSchedule(ctx, b7, now)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
@@ -371,7 +371,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	b8 := Build(t, now)
 	b8.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	MockCancelBuild(mock, b8.Id, "Failed to obtain JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master  0 0 } \\\\u003cnil\\\\u003e}", nil)
-	result, err = trybots.getJobToSchedule(b8, now)
+	result, err = trybots.getJobToSchedule(ctx, b8, now)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
@@ -381,14 +381,14 @@ func TestGetJobToSchedule(t *testing.T) {
 	b9.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	expect := fmt.Errorf("no cancel!")
 	MockCancelBuild(mock, b9.Id, "Failed to obtain JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master  0 0 } \\\\u003cnil\\\\u003e}", expect)
-	result, err = trybots.getJobToSchedule(b9, now)
+	result, err = trybots.getJobToSchedule(ctx, b9, now)
 	assert.EqualError(t, err, expect.Error())
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 }
 
 func TestPoll(t *testing.T) {
-	trybots, _, mock, cleanup := setup(t)
+	ctx, trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
 	now := time.Now()
@@ -431,7 +431,7 @@ func TestPoll(t *testing.T) {
 	}
 
 	check := func(builds []*buildbucket_api.ApiCommonBuildMessage) {
-		assert.Nil(t, trybots.Poll(now))
+		assert.Nil(t, trybots.Poll(ctx, now))
 		assert.True(t, mock.Empty())
 		assertAdded(builds)
 	}
@@ -479,7 +479,7 @@ func TestPoll(t *testing.T) {
 	}
 	MockTryLeaseBuild(mock, failBuild.Id, now, nil)
 	MockJobStarted(mock, failBuild.Id, now, fmt.Errorf("Failed to start build."))
-	assert.EqualError(t, trybots.Poll(now), "Got errors loading builds from Buildbucket: [Failed to start build.]")
+	assert.EqualError(t, trybots.Poll(ctx, now), "Got errors loading builds from Buildbucket: [Failed to start build.]")
 	assert.True(t, mock.Empty())
 	assertAdded(builds)
 
@@ -494,7 +494,7 @@ func TestPoll(t *testing.T) {
 		MockTryLeaseBuild(mock, b.Id, now, nil)
 		MockJobStarted(mock, b.Id, now, nil)
 	}
-	assert.EqualError(t, trybots.Poll(now), "Got errors loading builds from Buildbucket: [Failed peek]")
+	assert.EqualError(t, trybots.Poll(ctx, now), "Got errors loading builds from Buildbucket: [Failed peek]")
 	assert.True(t, mock.Empty())
 	assertAdded(builds)
 }

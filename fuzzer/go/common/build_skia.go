@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,39 +16,39 @@ import (
 // BuildClangHarness builds the test harness for fuzzing using clang, pulling it from the executable
 // cache if possible.  It returns the path to the executable (which should be copied somewhere else)
 // and any error.
-func BuildClangHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
+func BuildClangHarness(ctx context.Context, buildType buildskia.ReleaseType, isClean bool) (string, error) {
 	sklog.Infof("Building %s clang harness, or fetching from cache", buildType)
 	buildArgs := []string{
 		fmt.Sprintf("cc=%q", config.Common.ClangPath),
 		fmt.Sprintf("cxx=%q", config.Common.ClangPlusPlusPath),
 	}
-	return buildOrGetCachedHarness("clang", buildType, isClean, buildArgs)
+	return buildOrGetCachedHarness(ctx, "clang", buildType, isClean, buildArgs)
 }
 
 // BuildASANHarness builds the test harness for fuzzing using clang and AddressSanitizer, pulling it
 // from the executable cache if possible.  It returns the path to the executable (which should be
 // copied somewhere else) and any error.
-func BuildASANHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
+func BuildASANHarness(ctx context.Context, buildType buildskia.ReleaseType, isClean bool) (string, error) {
 	sklog.Infof("Building %s ASAN harness, or fetching from cache", buildType)
 	buildArgs := []string{
 		fmt.Sprintf("cc=%q", config.Common.ClangPath),
 		fmt.Sprintf("cxx=%q", config.Common.ClangPlusPlusPath),
 		`sanitize="ASAN"`,
 	}
-	return buildOrGetCachedHarness("asan", buildType, isClean, buildArgs)
+	return buildOrGetCachedHarness(ctx, "asan", buildType, isClean, buildArgs)
 }
 
 // BuildFuzzingHarness builds the test harness for fuzzing using afl-instrumented clang, pulling it
 // from the executable cache if possible.  It returns the path to the executable (which should be
 // copied somewhere else) and any error.
-func BuildFuzzingHarness(buildType buildskia.ReleaseType, isClean bool) (string, error) {
+func BuildFuzzingHarness(ctx context.Context, buildType buildskia.ReleaseType, isClean bool) (string, error) {
 	sklog.Infof("Building %s fuzzing harness, or fetching from cache", buildType)
 	buildArgs := []string{
 		fmt.Sprintf("cc=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast")),
 		fmt.Sprintf("cxx=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast++")),
 	}
 
-	return buildOrGetCachedHarness("afl-instrumented", buildType, isClean, buildArgs)
+	return buildOrGetCachedHarness(ctx, "afl-instrumented", buildType, isClean, buildArgs)
 }
 
 // buildOrGetCachedHarness first looks into the ExecutableCache for a already built binary.  If it
@@ -58,7 +59,7 @@ func BuildFuzzingHarness(buildType buildskia.ReleaseType, isClean bool) (string,
 // buildName and buildType work together to identify a unique build (in the eyes of the cache, at
 // least).  isClean is whether the build output directory should be cleared before making a new
 // build.  buildArgs are the arguments passed to GN.
-func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, isClean bool, buildArgs []string) (string, error) {
+func buildOrGetCachedHarness(ctx context.Context, buildName string, buildType buildskia.ReleaseType, isClean bool, buildArgs []string) (string, error) {
 	if buildType == buildskia.RELEASE_BUILD {
 		buildArgs = append(buildArgs, "is_debug=false")
 	}
@@ -70,11 +71,11 @@ func buildOrGetCachedHarness(buildName string, buildType buildskia.ReleaseType, 
 	buildArgs = append(buildArgs, "skia_use_system_freetype2=false")
 
 	d := filepath.Join(config.Common.SkiaRoot, "skia")
-	gi, err := gitinfo.NewGitInfo(d, false, false)
+	gi, err := gitinfo.NewGitInfo(context.Background(), d, false, false)
 	if err != nil {
 		return "", fmt.Errorf("Could not locate git info about Skia Root %s: %s", d, err)
 	}
-	hashes := gi.LastN(1)
+	hashes := gi.LastN(ctx, 1)
 	if len(hashes) != 1 {
 		return "", fmt.Errorf("Could not get last git hash, instead got %q", hashes)
 	}
@@ -120,12 +121,12 @@ func buildHarness(buildType buildskia.ReleaseType, isClean bool, buildArgs []str
 		}
 	}
 
-	if err := buildskia.GNGen(config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), buildArgs); err != nil {
+	if err := buildskia.GNGen(context.Background(), config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), buildArgs); err != nil {
 		return "", fmt.Errorf("Failed GN: %s", err)
 	}
 
 	builtExe := filepath.Join(buildLocation, TEST_HARNESS_NAME)
 
-	_, err := buildskia.GNNinjaBuild(config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), TEST_HARNESS_NAME, config.Common.VerboseBuilds)
+	_, err := buildskia.GNNinjaBuild(context.Background(), config.Common.SkiaRoot, config.Common.DepotToolsPath, string(buildType), TEST_HARNESS_NAME, config.Common.VerboseBuilds)
 	return builtExe, err
 }

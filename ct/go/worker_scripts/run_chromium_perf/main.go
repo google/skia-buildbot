@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -72,27 +73,29 @@ func runChromiumPerf() error {
 		return errors.New("Must specify --benchmark_name")
 	}
 
+	ctx := context.Background()
+
 	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
+	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
 		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
+	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
 		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
-		if err := adb.VerifyLocalDevice(); err != nil {
+		if err := adb.VerifyLocalDevice(ctx); err != nil {
 			// Android device missing or offline.
 			return fmt.Errorf("Could not find Android device: %s", err)
 		}
 		// Kill adb server to make sure we start from a clean slate.
-		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"kill-server"}, []string{},
+		skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"kill-server"}, []string{},
 			util.ADB_ROOT_TIMEOUT, nil, nil))
 		// Make sure adb shell is running as root.
-		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{},
+		skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"root"}, []string{},
 			util.ADB_ROOT_TIMEOUT, nil, nil))
 	}
 	// Clean up any leftover "pseudo_lock" files from catapult repo.
@@ -109,19 +112,19 @@ func runChromiumPerf() error {
 
 	// Download the v8 patch for this run from Google storage.
 	v8PatchName := *runID + ".v8.patch"
-	if err := util.DownloadAndApplyPatch(v8PatchName, tmpDir, remotePatchesDir, util.V8SrcDir, gs); err != nil {
+	if err := util.DownloadAndApplyPatch(ctx, v8PatchName, tmpDir, remotePatchesDir, util.V8SrcDir, gs); err != nil {
 		return fmt.Errorf("Could not apply %s: %s", v8PatchName, err)
 	}
 
 	// Download the catapult patch for this run from Google storage.
 	catapultPatchName := *runID + ".catapult.patch"
-	if err := util.DownloadAndApplyPatch(catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
+	if err := util.DownloadAndApplyPatch(ctx, catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
 		return fmt.Errorf("Could not apply %s: %s", catapultPatchName, err)
 	}
 
 	// Download the benchmark patch for this run from Google storage.
 	benchmarkPatchName := *runID + ".benchmark.patch"
-	if err := util.DownloadAndApplyPatch(benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
+	if err := util.DownloadAndApplyPatch(ctx, benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
 		return fmt.Errorf("Could not apply %s: %s", benchmarkPatchName, err)
 	}
 
@@ -242,13 +245,13 @@ func runChromiumPerf() error {
 			for pagesetName := range pagesetRequests {
 
 				mutex.RLock()
-				noPatchErr := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark)
+				noPatchErr := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark)
 				if noPatchErr != nil && exec.IsTimeout(noPatchErr) {
 					timeoutTracker.Increment()
 				} else {
 					timeoutTracker.Reset()
 				}
-				withPatchErr := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark)
+				withPatchErr := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark)
 				if withPatchErr != nil && exec.IsTimeout(withPatchErr) {
 					timeoutTracker.Increment()
 				} else {
@@ -266,7 +269,7 @@ func runChromiumPerf() error {
 
 	if !*worker_common.Local {
 		// Start the cleaner.
-		go util.ChromeProcessesCleaner(&mutex, *chromeCleanerTimer)
+		go util.ChromeProcessesCleaner(ctx, &mutex, *chromeCleanerTimer)
 	}
 
 	// Wait for all spawned goroutines to complete.
@@ -278,10 +281,10 @@ func runChromiumPerf() error {
 
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, gs, *startRange, true /* handleStrings */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, gs, *startRange, true /* handleStrings */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
-		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, gs, *startRange, true /* handleStrings */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, gs, *startRange, true /* handleStrings */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
 	}

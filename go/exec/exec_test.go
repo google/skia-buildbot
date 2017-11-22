@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -98,7 +99,7 @@ func TestBasic(t *testing.T) {
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name: "touch",
 		Args: []string{file},
 	}))
@@ -122,7 +123,7 @@ func TestEnv(t *testing.T) {
 	script := filepath.Join(dir, "simple_script.sh")
 	assert.NoError(t, WriteScript(script, SimpleScript))
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name: script,
 		Env:  []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
 	}))
@@ -142,7 +143,7 @@ func TestInheritPath(t *testing.T) {
 	script := filepath.Join(dir, "path_script.sh")
 	assert.NoError(t, WriteScript(script, PathScript))
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name:        script,
 		Env:         []string{fmt.Sprintf("EXEC_TEST_FILE=%s", file)},
 		InheritPath: true,
@@ -169,7 +170,7 @@ func TestInheritEnv(t *testing.T) {
 	script := filepath.Join(dir, "path_script.sh")
 	assert.NoError(t, WriteScript(script, EnvScript))
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name: script,
 		Env: []string{
 			fmt.Sprintf("EXEC_TEST_FILE=%s", file),
@@ -203,7 +204,7 @@ func TestDir(t *testing.T) {
 	dir2, err := ioutil.TempDir("", "exec_test2")
 	assert.NoError(t, err)
 	defer RemoveAll(dir2)
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name: script,
 		Dir:  dir2,
 	}))
@@ -216,7 +217,7 @@ func TestSimpleIO(t *testing.T) {
 	testutils.SmallTest(t)
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name:   "grep",
 		Args:   []string{"-e", "^ba"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
@@ -231,7 +232,7 @@ func TestError(t *testing.T) {
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
 	output := bytes.Buffer{}
-	err = Run(&Command{
+	err = Run(context.Background(), &Command{
 		Name: "cp",
 		Args: []string{filepath.Join(dir, "doesnt_exist"),
 			filepath.Join(dir, "dest")},
@@ -257,7 +258,7 @@ func TestCombinedOutput(t *testing.T) {
 	script := filepath.Join(dir, "combined_output_script.sh")
 	assert.NoError(t, WriteScript(script, CombinedOutputScript))
 	combined := bytes.Buffer{}
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name:           script,
 		CombinedOutput: &combined,
 	}))
@@ -274,7 +275,7 @@ func TestCombinedOutput(t *testing.T) {
 func TestNilIO(t *testing.T) {
 	testutils.SmallTest(t)
 	inputString := "foo\nbar\nbaz\n"
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name:   "grep",
 		Args:   []string{"-e", "^ba"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
@@ -294,7 +295,7 @@ func TestTimeoutNotReached(t *testing.T) {
 	defer RemoveAll(dir)
 	script := filepath.Join(dir, "sleeper_script.sh")
 	assert.NoError(t, WriteScript(script, SleeperScript))
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(context.Background(), &Command{
 		Name:    script,
 		Dir:     dir,
 		Timeout: time.Minute,
@@ -311,7 +312,7 @@ func TestTimeoutExceeded(t *testing.T) {
 	defer RemoveAll(dir)
 	script := filepath.Join(dir, "sleeper_script.sh")
 	assert.NoError(t, WriteScript(script, SleeperScript))
-	err = Run(&Command{
+	err = Run(context.Background(), &Command{
 		Name:    script,
 		Dir:     dir,
 		Timeout: time.Second,
@@ -326,17 +327,16 @@ func TestTimeoutExceeded(t *testing.T) {
 func TestInjection(t *testing.T) {
 	testutils.SmallTest(t)
 	var actualCommand *Command
-	SetRunForTesting(func(command *Command) error {
+	ctx := NewContext(context.Background(), func(command *Command) error {
 		actualCommand = command
 		return nil
 	})
-	defer SetRunForTesting(DefaultRun)
 
 	dir, err := ioutil.TempDir("", "exec_test")
 	assert.NoError(t, err)
 	defer RemoveAll(dir)
 	file := filepath.Join(dir, "ran")
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(ctx, &Command{
 		Name: "touch",
 		Args: []string{file},
 	}))
@@ -348,14 +348,14 @@ func TestInjection(t *testing.T) {
 
 func TestRunSimple(t *testing.T) {
 	testutils.SmallTest(t)
-	output, err := RunSimple(`echo "Hello Go!"`)
+	output, err := RunSimple(context.Background(), `echo "Hello Go!"`)
 	assert.NoError(t, err)
 	expect.Equal(t, "\"Hello Go!\"\n", output)
 }
 
 func TestRunCwd(t *testing.T) {
 	testutils.SmallTest(t)
-	output, err := RunCwd("/", "pwd")
+	output, err := RunCwd(context.Background(), "/", "pwd")
 	assert.NoError(t, err)
 	expect.Equal(t, "/\n", output)
 }
@@ -363,13 +363,12 @@ func TestRunCwd(t *testing.T) {
 func TestCommandCollector(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := CommandCollector{}
-	SetRunForTesting(mock.Run)
-	defer SetRunForTesting(DefaultRun)
-	assert.NoError(t, Run(&Command{
+	ctx := NewContext(context.Background(), mock.Run)
+	assert.NoError(t, Run(ctx, &Command{
 		Name: "touch",
 		Args: []string{"foobar"},
 	}))
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(ctx, &Command{
 		Name: "echo",
 		Args: []string{"Hello Go!"},
 	}))
@@ -380,7 +379,7 @@ func TestCommandCollector(t *testing.T) {
 	mock.ClearCommands()
 	inputString := "foo\nbar\nbaz\n"
 	output := bytes.Buffer{}
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(ctx, &Command{
 		Name:   "grep",
 		Args:   []string{"-e", "^ba"},
 		Stdin:  bytes.NewReader([]byte(inputString)),
@@ -398,14 +397,13 @@ func TestCommandCollector(t *testing.T) {
 func TestMockRun(t *testing.T) {
 	testutils.SmallTest(t)
 	mock := MockRun{}
-	SetRunForTesting(mock.Run)
-	defer SetRunForTesting(DefaultRun)
+	ctx := NewContext(context.Background(), mock.Run)
 	mock.AddRule("touch /tmp/bar", fmt.Errorf("baz"))
-	assert.NoError(t, Run(&Command{
+	assert.NoError(t, Run(ctx, &Command{
 		Name: "touch",
 		Args: []string{"/tmp/foo"},
 	}))
-	err := Run(&Command{
+	err := Run(ctx, &Command{
 		Name: "touch",
 		Args: []string{"/tmp/bar"},
 	})

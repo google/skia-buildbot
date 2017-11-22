@@ -5,6 +5,7 @@ package main
 */
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -70,8 +71,8 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 
 var commitDate = time.Unix(1472647568, 0)
 
-func commit(repoDir, message string) {
-	assertNoError(exec.Run(&exec.Command{
+func commit(ctx context.Context, repoDir, message string) {
+	assertNoError(exec.Run(ctx, &exec.Command{
 		Name:        "git",
 		Args:        []string{"commit", "-m", message},
 		Env:         []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", commitDate.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", commitDate.Unix())},
@@ -82,30 +83,30 @@ func commit(repoDir, message string) {
 	commitDate = commitDate.Add(10 * time.Second)
 }
 
-func makeDummyCommits(repoDir string, numCommits int) {
-	_, err := exec.RunCwd(repoDir, "git", "checkout", "master")
+func makeDummyCommits(ctx context.Context, repoDir string, numCommits int) {
+	_, err := exec.RunCwd(ctx, repoDir, "git", "checkout", "master")
 	assertNoError(err)
 	dummyFile := path.Join(repoDir, "dummyfile.txt")
 	for i := 0; i < numCommits; i++ {
 		title := fmt.Sprintf("Dummy #%d", i)
 		assertNoError(ioutil.WriteFile(dummyFile, []byte(title), os.ModePerm))
-		_, err = exec.RunCwd(repoDir, "git", "add", dummyFile)
+		_, err = exec.RunCwd(ctx, repoDir, "git", "add", dummyFile)
 		assertNoError(err)
-		commit(repoDir, title)
-		_, err = exec.RunCwd(repoDir, "git", "push", "origin", "master")
+		commit(ctx, repoDir, title)
+		_, err = exec.RunCwd(ctx, repoDir, "git", "push", "origin", "master")
 		assertNoError(err)
 	}
 }
 
-func run(dir string, cmd ...string) {
-	if _, err := exec.RunCwd(dir, cmd...); err != nil {
+func run(ctx context.Context, dir string, cmd ...string) {
+	if _, err := exec.RunCwd(ctx, dir, cmd...); err != nil {
 		sklog.Fatal(err)
 	}
 }
 
-func addFile(repoDir, subPath, contents string) {
+func addFile(ctx context.Context, repoDir, subPath, contents string) {
 	assertNoError(ioutil.WriteFile(path.Join(repoDir, subPath), []byte(contents), os.ModePerm))
-	run(repoDir, "git", "add", subPath)
+	run(ctx, repoDir, "git", "add", subPath)
 }
 
 func main() {
@@ -120,20 +121,21 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}()
+	ctx := context.Background()
 	repoName := "skia.git"
 	repoDir := path.Join(workdir, repoName)
 	assertNoError(os.Mkdir(path.Join(workdir, repoName), os.ModePerm))
-	run(repoDir, "git", "init")
-	run(repoDir, "git", "remote", "add", "origin", ".")
+	run(ctx, repoDir, "git", "init")
+	run(ctx, repoDir, "git", "remote", "add", "origin", ".")
 
 	// Write some files.
 	assertNoError(ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("dummy"), os.ModePerm))
-	addFile(repoDir, "a.txt", "dummy2")
-	addFile(repoDir, "somefile.txt", "dummy3")
+	addFile(ctx, repoDir, "a.txt", "dummy2")
+	addFile(ctx, repoDir, "somefile.txt", "dummy3")
 	infraBotsSubDir := path.Join("infra", "bots")
 	infraBotsDir := path.Join(repoDir, infraBotsSubDir)
 	assertNoError(os.MkdirAll(infraBotsDir, os.ModePerm))
-	addFile(repoDir, path.Join(infraBotsSubDir, "compile_skia.isolate"), `{
+	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "compile_skia.isolate"), `{
   'includes': [
     'swarm_recipe.isolate',
   ],
@@ -143,7 +145,7 @@ func main() {
     ],
   },
 }`)
-	addFile(repoDir, path.Join(infraBotsSubDir, "perf_skia.isolate"), `{
+	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "perf_skia.isolate"), `{
   'includes': [
     'swarm_recipe.isolate',
   ],
@@ -153,7 +155,7 @@ func main() {
     ],
   },
 }`)
-	addFile(repoDir, path.Join(infraBotsSubDir, "test_skia.isolate"), `{
+	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "test_skia.isolate"), `{
   'includes': [
     'swarm_recipe.isolate',
   ],
@@ -163,7 +165,7 @@ func main() {
     ],
   },
 }`)
-	addFile(repoDir, path.Join(infraBotsSubDir, "swarm_recipe.isolate"), `{
+	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "swarm_recipe.isolate"), `{
   'variables': {
     'command': [
       'python', 'recipes.py', 'run',
@@ -229,10 +231,10 @@ func main() {
 	assertNoError(err)
 	assertNoError(json.NewEncoder(f).Encode(&cfg))
 	assertNoError(f.Close())
-	run(repoDir, "git", "add", specs.TASKS_CFG_FILE)
-	commit(repoDir, "Add more tasks!")
-	run(repoDir, "git", "push", "origin", "master")
-	run(repoDir, "git", "branch", "-u", "origin/master")
+	run(ctx, repoDir, "git", "add", specs.TASKS_CFG_FILE)
+	commit(ctx, repoDir, "Add more tasks!")
+	run(ctx, repoDir, "git", "push", "origin", "master")
+	run(ctx, repoDir, "git", "branch", "-u", "origin/master")
 
 	// Create a bunch of bots.
 	bots := make([]*swarming_api.SwarmingRpcsBotInfo, 100)
@@ -250,12 +252,12 @@ func main() {
 	}
 
 	// Create the task scheduler.
-	repo, err := repograph.NewGraph(repoName, workdir)
+	repo, err := repograph.NewGraph(ctx, repoName, workdir)
 	assertNoError(err)
-	head, err := repo.Repo().RevParse("HEAD")
+	head, err := repo.Repo().RevParse(ctx, "HEAD")
 	assertNoError(err)
 
-	commits, err := repo.Repo().RevList(head)
+	commits, err := repo.Repo().RevList(ctx, head)
 	assertNoError(err)
 	assertDeepEqual([]string{head}, commits)
 
@@ -276,19 +278,19 @@ func main() {
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assertNoError(err)
 	swarmingClient := testutils.NewTestClient()
-	depotTools, err := depot_tools.Sync(workdir)
+	depotTools, err := depot_tools.Sync(ctx, workdir)
 	assertNoError(err)
 	urlMock := mockhttpclient.NewURLMock()
 	gitcookies := path.Join(workdir, "gitcookies_fake")
 	assertNoError(ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit("https://fake-skia-review.googlesource.com", gitcookies, urlMock.Client())
 	assertNoError(err)
-	s, err := scheduling.NewTaskScheduler(d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repograph.Map{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName}, swarming.POOLS_PUBLIC, "", depotTools, g)
+	s, err := scheduling.NewTaskScheduler(ctx, d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repograph.Map{repoName: repo}, isolateClient, swarmingClient, http.DefaultClient, 0.9, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, map[string]string{"skia": repoName}, swarming.POOLS_PUBLIC, "", depotTools, g)
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
 		swarmingClient.MockBots(bots)
-		assertNoError(s.MainLoop())
+		assertNoError(s.MainLoop(ctx))
 		assertNoError(w.Update())
 		assertNoError(tCache.Update())
 		tasks, err := tCache.GetTasksForCommits(repoName, commits)
@@ -331,8 +333,8 @@ func main() {
 	}
 
 	// Add more commits to the repo.
-	makeDummyCommits(repoDir, 200)
-	commits, err = repo.Repo().RevList(fmt.Sprintf("%s..HEAD", head))
+	makeDummyCommits(ctx, repoDir, 200)
+	commits, err = repo.Repo().RevList(ctx, fmt.Sprintf("%s..HEAD", head))
 	assertNoError(err)
 
 	// Start the profiler.

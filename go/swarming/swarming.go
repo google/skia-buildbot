@@ -5,6 +5,7 @@ package swarming
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -115,8 +116,8 @@ func GetServiceAccountFromBotDims(dimsMap map[string][]string) string {
 	return serviceAccount
 }
 
-func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Duration) error {
-	if err := _VerifyBinaryExists(s.SwarmingPy); err != nil {
+func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeout, ioTimeout time.Duration) error {
+	if err := _VerifyBinaryExists(ctx, s.SwarmingPy); err != nil {
 		return fmt.Errorf("Could not find swarming binary: %s", err)
 	}
 
@@ -149,7 +150,7 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 	}
 	triggerArgs = append(triggerArgs, "--isolated", t.IsolatedHash)
 
-	err := exec.Run(&exec.Command{
+	err := exec.Run(ctx, &exec.Command{
 		Name: s.SwarmingPy,
 		Args: triggerArgs,
 		// Triggering a task should be immediate. Setting a 15m timeout incase
@@ -164,8 +165,8 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 	return nil
 }
 
-func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
-	if err := _VerifyBinaryExists(s.SwarmingPy); err != nil {
+func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient) (string, string, error) {
+	if err := _VerifyBinaryExists(ctx, s.SwarmingPy); err != nil {
 		return "", "", fmt.Errorf("Could not find swarming binary: %s", err)
 	}
 	dumpJSON := path.Join(t.OutputDir, fmt.Sprintf("%s-trigger-output.json", t.Title))
@@ -178,7 +179,7 @@ func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
 		"--task-output-dir", t.OutputDir,
 		"--verbose",
 	}
-	err := exec.Run(&exec.Command{
+	err := exec.Run(ctx, &exec.Command{
 		Name:      s.SwarmingPy,
 		Args:      collectArgs,
 		Timeout:   t.Expiration,
@@ -211,7 +212,7 @@ func (t *SwarmingTask) Collect(s *SwarmingClient) (string, string, error) {
 
 // NewSwarmingClient returns an instance of Swarming populated with default
 // values.
-func NewSwarmingClient(workDir, swarmingServer, isolateServer string) (*SwarmingClient, error) {
+func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServer string) (*SwarmingClient, error) {
 	if _, err := os.Stat(workDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(workDir, 0700); err != nil {
 			return nil, fmt.Errorf("Could not create %s: %s", workDir, err)
@@ -219,11 +220,11 @@ func NewSwarmingClient(workDir, swarmingServer, isolateServer string) (*Swarming
 	}
 	// Checkout luci client-py to get access to swarming.py for triggering and
 	// collecting tasks.
-	luciClient, err := git.NewCheckout(LUCI_CLIENT_REPO, workDir)
+	luciClient, err := git.NewCheckout(ctx, LUCI_CLIENT_REPO, workDir)
 	if err != nil {
 		return nil, fmt.Errorf("Could not checkout %s: %s", LUCI_CLIENT_REPO, err)
 	}
-	if err := luciClient.Update(); err != nil {
+	if err := luciClient.Update(ctx); err != nil {
 		return nil, err
 	}
 	swarmingPy := path.Join(luciClient.Dir(), "swarming.py")
@@ -267,10 +268,10 @@ func (s *SwarmingClient) CreateIsolatedGenJSON(isolatePath, baseDir, osType, tas
 }
 
 // BatchArchiveTargets batcharchives the specified isolated.gen.json files.
-func (s *SwarmingClient) BatchArchiveTargets(isolatedGenJSONs []string, d time.Duration) (map[string]string, error) {
+func (s *SwarmingClient) BatchArchiveTargets(ctx context.Context, isolatedGenJSONs []string, d time.Duration) (map[string]string, error) {
 	// Run isolate batcharchive.
 	dumpJSON := path.Join(s.WorkDir, "isolate-output.json")
-	if err := s.isolateClient.BatchArchiveTasks(isolatedGenJSONs, dumpJSON); err != nil {
+	if err := s.isolateClient.BatchArchiveTasks(ctx, isolatedGenJSONs, dumpJSON); err != nil {
 		return nil, err
 	}
 
@@ -288,7 +289,7 @@ func (s *SwarmingClient) BatchArchiveTargets(isolatedGenJSONs []string, d time.D
 }
 
 // Trigger swarming using the specified hashes and dimensions.
-func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent, addTaskNameAsTag bool, serviceAccount string) ([]*SwarmingTask, error) {
+func (s *SwarmingClient) TriggerSwarmingTasks(ctx context.Context, tasksToHashes, dimensions, tags map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent, addTaskNameAsTag bool, serviceAccount string) ([]*SwarmingTask, error) {
 	tasks := []*SwarmingTask{}
 
 	for taskName, hash := range tasksToHashes {
@@ -314,7 +315,7 @@ func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags ma
 			Idempotent:     idempotent,
 			ServiceAccount: serviceAccount,
 		}
-		if err := task.Trigger(s, hardTimeout, ioTimeout); err != nil {
+		if err := task.Trigger(ctx, s, hardTimeout, ioTimeout); err != nil {
 			return nil, fmt.Errorf("Could not trigger task %s: %s", taskName, err)
 		}
 		sklog.Infof("Triggered the task: %v", task)
@@ -330,8 +331,8 @@ func (s *SwarmingClient) Cleanup() {
 	}
 }
 
-func _VerifyBinaryExists(binary string) error {
-	err := exec.Run(&exec.Command{
+func _VerifyBinaryExists(ctx context.Context, binary string) error {
+	err := exec.Run(ctx, &exec.Command{
 		Name:      binary,
 		Args:      []string{"help"},
 		Timeout:   60 * time.Second,

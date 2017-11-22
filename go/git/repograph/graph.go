@@ -5,6 +5,7 @@ package repograph
 */
 
 import (
+	"context"
 	"encoding/gob"
 	"fmt"
 	"os"
@@ -145,7 +146,7 @@ type gobGraph struct {
 }
 
 // New returns a Graph instance which uses the given git.Graph.
-func New(repo *git.Repo) (*Graph, error) {
+func New(ctx context.Context, repo *git.Repo) (*Graph, error) {
 	rv := &Graph{
 		commits:     map[string]int{},
 		commitsData: []*Commit{},
@@ -169,19 +170,19 @@ func New(repo *git.Repo) (*Graph, error) {
 	} else if !os.IsNotExist(err) {
 		return nil, fmt.Errorf("Failed to read cache file: %s", err)
 	}
-	if err := rv.Update(); err != nil {
+	if err := rv.Update(ctx); err != nil {
 		return nil, err
 	}
 	return rv, nil
 }
 
 // NewGraph returns a Graph instance, creating a git.Repo from the repoUrl and workdir.
-func NewGraph(repoUrl, workdir string) (*Graph, error) {
-	repo, err := git.NewRepo(repoUrl, workdir)
+func NewGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error) {
+	repo, err := git.NewRepo(ctx, repoUrl, workdir)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create git repo: %s", err)
 	}
-	return New(repo)
+	return New(ctx, repo)
 }
 
 // Repo returns the underlying git.Repo object.
@@ -196,8 +197,8 @@ func (r *Graph) Len() int {
 	return len(r.commitsData)
 }
 
-func (r *Graph) addCommit(hash string) error {
-	d, err := r.repo.Details(hash)
+func (r *Graph) addCommit(ctx context.Context, hash string) error {
+	d, err := r.repo.Details(ctx, hash)
 	if err != nil {
 		return fmt.Errorf("repograph.Graph: Failed to obtain Git commit details: %s", err)
 	}
@@ -232,19 +233,19 @@ func (r *Graph) addCommit(hash string) error {
 
 // Update syncs the local copy of the repo and loads new commits/branches into
 // the Graph object.
-func (r *Graph) Update() error {
+func (r *Graph) Update(ctx context.Context) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
 	// Update the local copy.
 	sklog.Infof("Updating repograph.Graph...")
-	if err := r.repo.Update(); err != nil {
+	if err := r.repo.Update(ctx); err != nil {
 		return fmt.Errorf("Failed to update repograph.Graph: %s", err)
 	}
 
 	// Obtain the list of branches.
 	sklog.Info("  Getting branches...")
-	branches, err := r.repo.Branches()
+	branches, err := r.repo.Branches(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to get branches for repograph.Graph: %s", err)
 	}
@@ -264,12 +265,12 @@ func (r *Graph) Update() error {
 		newBranch := true
 		for _, old := range r.branches {
 			if old.Name == b.Name {
-				anc, err := r.repo.IsAncestor(old.Head, b.Head)
+				anc, err := r.repo.IsAncestor(ctx, old.Head, b.Head)
 				if err != nil {
 					return err
 				}
 				if anc {
-					commits, err = r.repo.RevList("--topo-order", fmt.Sprintf("%s..%s", old.Head, b.Head))
+					commits, err = r.repo.RevList(ctx, "--topo-order", fmt.Sprintf("%s..%s", old.Head, b.Head))
 					if err != nil {
 						return err
 					}
@@ -283,7 +284,7 @@ func (r *Graph) Update() error {
 		// load ALL commits reachable from the branch head.
 		if newBranch {
 			sklog.Infof("  Branch %s is new or its history has changed; loading all commits.", b.Name)
-			commits, err = r.repo.RevList("--topo-order", b.Head)
+			commits, err = r.repo.RevList(ctx, "--topo-order", b.Head)
 			if err != nil {
 				return fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
 			}
@@ -296,7 +297,7 @@ func (r *Graph) Update() error {
 			if _, ok := r.commits[hash]; ok {
 				continue
 			}
-			if err := r.addCommit(hash); err != nil {
+			if err := r.addCommit(ctx, hash); err != nil {
 				return err
 			}
 		}
@@ -472,10 +473,10 @@ func (r *Graph) GetLastNCommits(n int) ([]*vcsinfo.LongCommit, error) {
 type Map map[string]*Graph
 
 // NewMap returns a Map instance with Graphs for the given repo URLs.
-func NewMap(repos []string, workdir string) (Map, error) {
+func NewMap(ctx context.Context, repos []string, workdir string) (Map, error) {
 	rv := make(map[string]*Graph, len(repos))
 	for _, r := range repos {
-		g, err := NewGraph(r, workdir)
+		g, err := NewGraph(ctx, r, workdir)
 		if err != nil {
 			return nil, err
 		}
@@ -485,9 +486,9 @@ func NewMap(repos []string, workdir string) (Map, error) {
 }
 
 // Update updates all Graphs in the Map.
-func (m Map) Update() error {
+func (m Map) Update(ctx context.Context) error {
 	for _, g := range m {
-		if err := g.Update(); err != nil {
+		if err := g.Update(ctx); err != nil {
 			return err
 		}
 	}

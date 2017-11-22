@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"path/filepath"
@@ -35,13 +36,14 @@ func main() {
 	if *depotTools == "" {
 		sklog.Fatal("The --depot_tools flag is required.")
 	}
-	repo, err := gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
+	ctx := context.Background()
+	repo, err := gitinfo.CloneOrUpdate(ctx, common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
 	if err != nil {
 		sklog.Fatalf("Failed to clone Skia: %s", err)
 	}
 
-	b := buildskia.New(*workRoot, *depotTools, repo, nil, 2, time.Hour, *useGN)
-	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
+	b := buildskia.New(ctx, *workRoot, *depotTools, repo, nil, 2, time.Hour, *useGN)
+	res, err := b.BuildLatestSkia(ctx, *force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {
 			sklog.Info("Checkout already exists, no work done.")
