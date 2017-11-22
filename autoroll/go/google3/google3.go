@@ -60,11 +60,6 @@ func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*Au
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 
-	if err := a.childRepo.Update(); err != nil {
-		util.LogErr(recent.Close())
-		return nil, err
-	}
-
 	if err := a.UpdateStatus("", true); err != nil {
 		util.LogErr(recent.Close())
 		return nil, err
@@ -75,10 +70,6 @@ func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*Au
 // Start ensures DBs are closed when ctx is canceled.
 func (a *AutoRoller) Start(tickFrequency, repoFrequency time.Duration) {
 	go cleanup.Repeat(repoFrequency, func() {
-		if err := a.childRepo.Update(); err != nil {
-			sklog.Error(err)
-			return
-		}
 		util.LogErr(a.UpdateStatus("", true))
 	}, func() {
 		util.LogErr(a.recent.Close())
@@ -111,6 +102,12 @@ func (a *AutoRoller) GetMiniStatus() *roller.AutoRollMiniStatus {
 
 // UpdateStatus based on RecentRolls. errorMsg will be set unless preserveLastError is true.
 func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error {
+	// Update repo now to ensure that lastSuccessRev can be found in the repo and commitsNotRolled
+	// reflects the current state of the repo.
+	if err := a.childRepo.Update(); err != nil {
+		return err
+	}
+
 	recent := a.recent.GetRecentRolls()
 	numFailures := 0
 	lastSuccessRev := ""
