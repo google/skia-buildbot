@@ -13,15 +13,14 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func setup(t *testing.T) (*AutoRoller, []string, func()) {
+func setup(t *testing.T) (*AutoRoller, *git_testutils.GitBuilder, func()) {
 	testutils.LargeTest(t)
 	gb := git_testutils.GitInit(t)
-	commits := []string{gb.CommitGen("a.txt"), gb.CommitGen("a.txt"), gb.CommitGen("a.txt")}
 	tmpDir, cleanup := testutils.TempDir(t)
 	a, err := NewAutoRoller(tmpDir, gb.RepoUrl(), "master")
 	assert.NoError(t, err)
 	a.Start(time.Second, time.Second)
-	return a, commits, func() {
+	return a, gb, func() {
 		cleanup()
 		gb.Cleanup()
 	}
@@ -68,22 +67,30 @@ func closeIssue(issue *autoroll.AutoRollIssue, result string) {
 }
 
 func TestStatus(t *testing.T) {
-	a, commits, cleanup := setup(t)
+	a, gb, cleanup := setup(t)
 	defer cleanup()
+
+	commits := []string{gb.CommitGen("a.txt")}
 
 	issue1 := makeIssue(1, commits[0])
 	assert.NoError(t, a.AddOrUpdateIssue(issue1, http.MethodPost))
 	closeIssue(issue1, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(issue1, http.MethodPut))
 
+	// Ensure that repo update occurs when updating status.
+	commits = append(commits, gb.CommitGen("a.txt"))
+
 	assert.NoError(t, a.UpdateStatus("", true))
 	status := a.GetStatus(true)
 	assert.Equal(t, 0, status.NumFailedRolls)
-	assert.Equal(t, 2, status.NumNotRolledCommits)
+	assert.Equal(t, 1, status.NumNotRolledCommits)
 	assert.Equal(t, issue1.RollingTo, status.LastRollRev)
 	assert.Nil(t, status.CurrentRoll)
 	testutils.AssertDeepEqual(t, issue1, status.LastRoll)
 	testutils.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue1}, status.Recent)
+
+	// Ensure that repo update occurs when adding an issue.
+	commits = append(commits, gb.CommitGen("a.txt"))
 
 	issue2 := makeIssue(2, commits[2])
 	assert.NoError(t, a.AddOrUpdateIssue(issue2, http.MethodPost))
@@ -131,8 +138,10 @@ func TestStatus(t *testing.T) {
 }
 
 func TestAddOrUpdateIssue(t *testing.T) {
-	a, commits, cleanup := setup(t)
+	a, gb, cleanup := setup(t)
 	defer cleanup()
+
+	commits := []string{gb.CommitGen("a.txt"), gb.CommitGen("a.txt"), gb.CommitGen("a.txt")}
 
 	issue1 := makeIssue(1, commits[0])
 	assert.NoError(t, a.AddOrUpdateIssue(issue1, http.MethodPost))
