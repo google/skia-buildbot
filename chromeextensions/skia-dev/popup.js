@@ -111,6 +111,34 @@
     });
   }
 
+  function setFuchsiaRollStatus() {
+    var rollURL = 'https://fuchsia-roll.skia.org/json/status';
+    sk.get(rollURL).then(function(resp) {
+      var json = JSON.parse(resp);
+      var currentStatus = json.currentRoll ? json.currentRoll.result : 'up to date';
+      document.getElementById('current-fuchsia-roll').innerHTML =
+          linkify(currentStatus, 'https://fuchsia-roll.skia.org/');
+      document.getElementById('last-fuchsia-roll').innerHTML =
+          linkify(json.lastRoll.result, 'https://fuchsia-roll.skia.org/');
+    }).catch(function() {
+      document.getElementById('errors').innerHTML += 'Error connecting to Fuchsia autoroller</br>';
+    });
+  }
+
+  function setGoogle3RollStatus() {
+    var rollURL = 'https://google3-roll.skia.org/json/status';
+    sk.get(rollURL).then(function(resp) {
+      var json = JSON.parse(resp);
+      var currentStatus = json.currentRoll ? json.currentRoll.result : 'up to date';
+      document.getElementById('current-g3-roll').innerHTML =
+          linkify(currentStatus, 'https://google3-roll.skia.org/');
+      document.getElementById('last-g3-roll').innerHTML =
+          linkify(json.lastRoll.result, 'https://google3-roll.skia.org/');
+    }).catch(function() {
+      document.getElementById('errors').innerHTML += 'Error connecting to G3 autoroller</br>';
+    });
+  }
+
   function setInfraAlerts() {
     var alertsURL = 'https://promalerts.skia.org/api/v1/alerts/groups';
     sk.get(alertsURL).then(function(resp) {
@@ -303,6 +331,8 @@
     setGoldAlerts();
     setCrRollStatus();
     setAndroidRollStatus();
+    setFuchsiaRollStatus();
+    setGoogle3RollStatus();
     setInfraAlerts();
     addGerritChanges();
   }
