@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cc45711d_01b25514",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-22T16:01:29Z",
+      "side": 1,
+      "message": "The mutex is not necessary unless UpdateStatus will be called concurrently.",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 30
+      },
+      "revId": "9cde4a8eed6d3c701881b1d9bc83121c8752f1da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52a07ecb_78060f13",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-22T16:01:29Z",
+      "side": 1,
+      "message": "This won\u0027t run until UpdateStatus returns, which is probably not what you want.",
+      "range": {
+        "startLine": 134,
+        "startChar": 2,
+        "endLine": 134,
+        "endChar": 32
+      },
+      "revId": "9cde4a8eed6d3c701881b1d9bc83121c8752f1da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
