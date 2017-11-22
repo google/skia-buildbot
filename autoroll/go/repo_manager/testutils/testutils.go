@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -37,19 +38,19 @@ func NewRepoManager(t *testing.T, rollIntoAndroid bool) *MockRepoManager {
 
 // MockRepoManagers fakes out the New*RepoManager functions.
 func MockDEPSRepoManager(t *testing.T) {
-	repo_manager.NewDEPSRepoManager = func(string, string, string, string, string, string, *gerrit.Gerrit, repo_manager.NextRollStrategy, []string, bool, []string, string) (repo_manager.RepoManager, error) {
+	repo_manager.NewDEPSRepoManager = func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, repo_manager.NextRollStrategy, []string, bool, []string, string) (repo_manager.RepoManager, error) {
 		return NewRepoManager(t, false), nil
 	}
-	repo_manager.NewAndroidRepoManager = func(string, string, string, string, gerrit.GerritInterface, repo_manager.NextRollStrategy, []string, string) (repo_manager.RepoManager, error) {
+	repo_manager.NewAndroidRepoManager = func(context.Context, string, string, string, string, gerrit.GerritInterface, repo_manager.NextRollStrategy, []string, string) (repo_manager.RepoManager, error) {
 		return NewRepoManager(t, true), nil
 	}
-	repo_manager.NewManifestRepoManager = func(string, string, string, string, string, string, *gerrit.Gerrit, repo_manager.NextRollStrategy, []string, string) (repo_manager.RepoManager, error) {
+	repo_manager.NewManifestRepoManager = func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, repo_manager.NextRollStrategy, []string, string) (repo_manager.RepoManager, error) {
 		return NewRepoManager(t, false), nil
 	}
 }
 
 // Update pretends to update the MockRepoManager.
-func (r *MockRepoManager) Update() error {
+func (r *MockRepoManager) Update(ctx context.Context) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if r.updateCount == 0 {
@@ -81,7 +82,7 @@ func (r *MockRepoManager) getUpdateCount() int {
 }
 
 // ChildRevList returns a list of hashes.
-func (r *MockRepoManager) ChildRevList(args ...string) ([]string, error) {
+func (r *MockRepoManager) ChildRevList(ctx context.Context, args ...string) ([]string, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return nil, fmt.Errorf("Not implemented")
@@ -89,7 +90,7 @@ func (r *MockRepoManager) ChildRevList(args ...string) ([]string, error) {
 
 // FullChildHash returns the full hash of the given short hash or ref in the
 // mocked child repo.
-func (r *MockRepoManager) FullChildHash(shortHash string) (string, error) {
+func (r *MockRepoManager) FullChildHash(ctx context.Context, shortHash string) (string, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	h, ok := r.mockFullChildHashes[shortHash]
@@ -122,7 +123,7 @@ func (r *MockRepoManager) MockLastRollRev(last string) {
 
 // RolledPast determines whether DEPS has rolled past the given commit in the
 // mocked repo.
-func (r *MockRepoManager) RolledPast(hash string) (bool, error) {
+func (r *MockRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	rv, ok := r.rolledPast[hash]
@@ -155,7 +156,7 @@ func (r *MockRepoManager) mockNextRollRev(hash string) {
 
 // CreateNewRoll pretends to create a new DEPS roll from the mocked repo,
 // returning the fake issue number set by the test.
-func (r *MockRepoManager) CreateNewRoll(from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *MockRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.mockIssueNumber, nil
@@ -266,6 +267,6 @@ func (r *MockRepoManager) CommitsNotRolled() int {
 	return -1
 }
 
-func (r *MockRepoManager) GetCommitsNotRolled(string) (int, error) {
+func (r *MockRepoManager) GetCommitsNotRolled(context.Context, string) (int, error) {
 	return -1, fmt.Errorf("Not implemented")
 }

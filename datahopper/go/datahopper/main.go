@@ -56,6 +56,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
+	ctx := context.Background()
 
 	// Absolutify the workdir.
 	w, err := filepath.Abs(*workdir)
@@ -86,7 +87,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	gsClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(authClient))
+	gsClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -100,11 +101,11 @@ func main() {
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
 		sklog.Fatal(err)
 	}
-	repos, err := repograph.NewMap([]string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, reposDir)
+	repos, err := repograph.NewMap(ctx, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, reposDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := repos.Update(); err != nil {
+	if err := repos.Update(ctx); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -122,7 +123,7 @@ func main() {
 	swarming_metrics.StartSwarmingBotMetrics(swarmingClients, swarmingPools, metrics2.GetDefaultClient())
 
 	// Swarming tasks.
-	if err := swarming_metrics.StartSwarmingTaskMetrics(w, swarm, context.Background(), pc, tnp); err != nil {
+	if err := swarming_metrics.StartSwarmingTaskMetrics(w, swarm, ctx, pc, tnp); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -131,13 +132,13 @@ func main() {
 		skiaGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "skia"})
 		infraGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "infra"})
 		for range time.Tick(5 * time.Minute) {
-			nSkia, err := repos[common.REPO_SKIA].Repo().NumCommits()
+			nSkia, err := repos[common.REPO_SKIA].Repo().NumCommits(ctx)
 			if err != nil {
 				sklog.Errorf("Failed to get number of commits for Skia: %s", err)
 			} else {
 				skiaGauge.Update(nSkia)
 			}
-			nInfra, err := repos[common.REPO_SKIA_INFRA].Repo().NumCommits()
+			nInfra, err := repos[common.REPO_SKIA_INFRA].Repo().NumCommits(ctx)
 			if err != nil {
 				sklog.Errorf("Failed to get number of commits for Infra: %s", err)
 			} else {
@@ -147,12 +148,12 @@ func main() {
 	}()
 
 	// Jobs metrics.
-	if err := StartJobMetrics(*taskSchedulerDbUrl, context.Background()); err != nil {
+	if err := StartJobMetrics(*taskSchedulerDbUrl, ctx); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if err := bot_metrics.Start(*taskSchedulerDbUrl, *workdir, context.Background()); err != nil {
+	if err := bot_metrics.Start(*taskSchedulerDbUrl, *workdir, ctx); err != nil {
 		sklog.Fatal(err)
 	}
 

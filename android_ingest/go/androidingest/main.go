@@ -60,6 +60,7 @@ var (
 )
 
 func Init() {
+	ctx := context.Background()
 	loadTemplates()
 
 	uploads = metrics2.GetCounter("uploads", nil)
@@ -74,17 +75,17 @@ func Init() {
 	}
 
 	// The repo we're adding commits to.
-	checkout, err := git.NewCheckout(*repoUrl, *workRoot)
+	checkout, err := git.NewCheckout(ctx, *repoUrl, *workRoot)
 	if err != nil {
 		sklog.Fatalf("Unable to create the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
 	}
-	if err := checkout.Update(); err != nil {
+	if err := checkout.Update(ctx); err != nil {
 		sklog.Fatalf("Unable to update the checkout of %q at %q: %s", *repoUrl, *workRoot, err)
 	}
 
 	// checkout isn't go routine safe, but lookup.New() only uses it in New(), so this
 	// is safe, i.e. when we later pass checkout to continuous.New().
-	lookupCache, err = lookup.New(checkout)
+	lookupCache, err = lookup.New(ctx, checkout)
 	if err != nil {
 		sklog.Fatalf("Failed to create buildid lookup cache: %s", err)
 	}
@@ -94,13 +95,13 @@ func Init() {
 	if err != nil {
 		sklog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
 	}
-	process.Start()
+	process.Start(ctx)
 
 	storageHttpClient, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
 	if err != nil {
 		sklog.Fatalf("Problem setting up client OAuth: %s", err)
 	}
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(storageHttpClient))
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(storageHttpClient))
 	if err != nil {
 		sklog.Fatalf("Problem creating storage client: %s", err)
 	}
@@ -190,7 +191,7 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 	var lastBuildId int64 = -1
 	// process is nil when testing.
 	if process != nil {
-		lastBuildId, _, _, _ = process.Last()
+		lastBuildId, _, _, _ = process.Last(context.Background())
 	}
 
 	indexContent := &IndexContext{
@@ -222,12 +223,13 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	beginID, err := process.Repo.LookupBuildID(begin)
+	ctx := context.Background()
+	beginID, err := process.Repo.LookupBuildID(ctx, begin)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed looking up Build ID.")
 		return
 	}
-	endID, err := process.Repo.LookupBuildID(end)
+	endID, err := process.Repo.LookupBuildID(ctx, end)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed looking up Build ID.")
 		return

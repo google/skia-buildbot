@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"strings"
@@ -40,7 +41,7 @@ func differences(server, local []string) ([]string, []string) {
 	return newPackages, installedPackages
 }
 
-func step(client *http.Client, store *storage.Service, hostname string) {
+func step(ctx context.Context, client *http.Client, store *storage.Service, hostname string) {
 	sklog.Info("About to read package list.")
 	// Read the old and new packages from their respective storage locations.
 	serverList, err := packages.InstalledForServer(client, store, hostname)
@@ -69,7 +70,7 @@ func step(client *http.Client, store *storage.Service, hostname string) {
 			sklog.Errorf("Failed to write local package list: %s", err)
 			continue
 		}
-		if err := packages.Install(client, store, name); err != nil {
+		if err := packages.Install(ctx, client, store, name); err != nil {
 			failedInstallCounter.Inc(1)
 			sklog.Errorf("Failed to install package %s: %s", name, err)
 			// Pop last name from 'installed' then rewrite the file since the
@@ -138,7 +139,7 @@ func metadataWait() {
 	}
 }
 
-func pullInit(serviceAccountPath string) {
+func pullInit(ctx context.Context, serviceAccountPath string) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		sklog.Fatal(err)
@@ -165,7 +166,7 @@ func pullInit(serviceAccountPath string) {
 		go metadataWait()
 	}
 
-	step(client, store, hostname)
+	step(ctx, client, store, hostname)
 	timeCh := time.Tick(*pullPeriod)
 	go func() {
 		for {
@@ -173,7 +174,7 @@ func pullInit(serviceAccountPath string) {
 			case <-timeCh:
 			case <-metadataTriggerCh:
 			}
-			step(client, store, hostname)
+			step(ctx, client, store, hostname)
 		}
 	}()
 }

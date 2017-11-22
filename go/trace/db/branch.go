@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -42,7 +43,7 @@ type BranchTileBuilder interface {
 	// ListLong returns a slice of CommitIDLongs that appear in the given time
 	// range from begin to end, and may be filtered by the 'source' parameter. If
 	// 'source' is the empty string then no filtering is done.
-	ListLong(begin, end time.Time, source string) ([]*CommitIDLong, error)
+	ListLong(ctx context.Context, begin, end time.Time, source string) ([]*CommitIDLong, error)
 
 	// CachedTileFromCommits creates a tile from the given commits. The tile is cached.
 	CachedTileFromCommits(commits []*CommitID) (*tiling.Tile, error)
@@ -149,12 +150,12 @@ func (b *tileBuilder) CachedTileFromCommits(commits []*CommitID) (*tiling.Tile, 
 }
 
 // See the TileBuilder interface.
-func (b *tileBuilder) ListLong(begin, end time.Time, source string) ([]*CommitIDLong, error) {
+func (b *tileBuilder) ListLong(ctx context.Context, begin, end time.Time, source string) ([]*CommitIDLong, error) {
 	commitIDs, err := b.db.List(begin, end)
 	if err != nil {
 		return nil, fmt.Errorf("Error while looking up commits: %s", err)
 	}
-	return b.convertToLongCommits(commitIDs, source), nil
+	return b.convertToLongCommits(ctx, commitIDs, source), nil
 }
 
 // ShortFromLong converts a slice of CommitIDLong to a slice of CommitID.
@@ -168,7 +169,7 @@ func ShortFromLong(commitIDs []*CommitIDLong) []*CommitID {
 
 // convertToLongCommits converts the CommitIDs into CommitIDLong's, after
 // potentially filtering the slice based on the provided source.
-func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string) []*CommitIDLong {
+func (b *tileBuilder) convertToLongCommits(ctx context.Context, commitIDs []*CommitID, source string) []*CommitIDLong {
 	// Filter
 	if source != "" {
 		dst := make([]*CommitID, 0, len(commitIDs))
@@ -216,7 +217,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			c.Details = changeInfo
 		} else {
 			// vcsinfo
-			details, err := b.vcs.Details(c.ID, true)
+			details, err := b.vcs.Details(ctx, c.ID, true)
 			if err != nil {
 				sklog.Errorf("Failed to get details for commit from Git %s: %s", c.ID, err)
 				continue

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -53,6 +54,7 @@ func main() {
 	defer common.LogPanic()
 	common.Init()
 
+	ctx := context.Background()
 	if *script == "" {
 		sklog.Fatal("--script is required.")
 	}
@@ -103,7 +105,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	swarmClient, err := swarming.NewSwarmingClient(*workdir, swarmingServer, isolateServer)
+	swarmClient, err := swarming.NewSwarmingClient(ctx, *workdir, swarmingServer, isolateServer)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -129,7 +131,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	m, err := swarmClient.BatchArchiveTargets([]string{isolated}, 5*time.Minute)
+	m, err := swarmClient.BatchArchiveTargets(ctx, []string{isolated}, 5*time.Minute)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -158,7 +160,7 @@ func main() {
 				"id":   id,
 			}
 			sklog.Infof("Triggering on %s", id)
-			if _, err := swarmClient.TriggerSwarmingTasks(m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, swarming.GetServiceAccountFromBotDims(botDims)); err != nil {
+			if _, err := swarmClient.TriggerSwarmingTasks(ctx, m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, swarming.GetServiceAccountFromBotDims(botDims)); err != nil {
 				sklog.Fatal(err)
 			}
 		}(bot.BotId, botDims)

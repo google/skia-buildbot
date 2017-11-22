@@ -1,6 +1,7 @@
 package ptraceingest
 
 import (
+	"context"
 	"net/http"
 
 	"go.skia.org/infra/go/sklog"
@@ -42,7 +43,7 @@ func newPerfTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 }
 
 // See ingestion.Processor interface.
-func (p *perfTrybotProcessor) Process(resultsFile ingestion.ResultFileLocation) error {
+func (p *perfTrybotProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	r, err := resultsFile.Open()
 	if err != nil {
 		return err

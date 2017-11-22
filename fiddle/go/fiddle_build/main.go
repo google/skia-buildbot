@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"path/filepath"
@@ -29,12 +30,13 @@ func main() {
 		sklog.Fatal("The --fiddle_root flag is required.")
 	}
 	depotTools := filepath.Join(*fiddleRoot, "depot_tools")
-	repo, err := gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
+	ctx := context.Background()
+	repo, err := gitinfo.CloneOrUpdate(ctx, common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
 	if err != nil {
 		sklog.Fatalf("Failed to clone Skia: %s", err)
 	}
-	b := buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 2, time.Hour, true)
-	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
+	b := buildskia.New(ctx, *fiddleRoot, depotTools, repo, buildlib.BuildLib, 2, time.Hour, true)
+	res, err := b.BuildLatestSkia(ctx, *force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {
 			sklog.Info("Checkout already exists, no work done.")

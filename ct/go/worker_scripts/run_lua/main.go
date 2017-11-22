@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -44,11 +45,13 @@ func runLua() error {
 		return errors.New("Must specify --run_id")
 	}
 
+	ctx := context.Background()
+
 	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-	skutil.LogErr(util.SyncDir(util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
+	skutil.LogErr(util.SyncDir(ctx, util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
 
 	// Build lua_pictures.
-	if err := util.BuildSkiaLuaPictures(); err != nil {
+	if err := util.BuildSkiaLuaPictures(ctx); err != nil {
 		return err
 	}
 
@@ -107,8 +110,8 @@ func runLua() error {
 		"--luaFile", luaScriptLocalPath,
 	}
 	err = util.ExecuteCmd(
-		filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_LUA_PICTURES), args,
-		[]string{}, util.LUA_PICTURES_TIMEOUT, stdoutFile, stderrFile)
+		ctx, filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_LUA_PICTURES),
+		args, []string{}, util.LUA_PICTURES_TIMEOUT, stdoutFile, stderrFile)
 	if err != nil {
 		return err
 	}

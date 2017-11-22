@@ -229,7 +229,7 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 		defer util.Close(r.Body)
 		rule.AddedBy = login.LoggedInAs(r)
 		if len(rule.Commits) == 2 {
-			rangeRule, err := blacklist.NewCommitRangeRule(rule.Name, rule.AddedBy, rule.Description, rule.TaskSpecPatterns, rule.Commits[0], rule.Commits[1], repos)
+			rangeRule, err := blacklist.NewCommitRangeRule(context.Background(), rule.Name, rule.AddedBy, rule.Description, rule.TaskSpecPatterns, rule.Commits[0], rule.Commits[1], repos)
 			if err != nil {
 				httputils.ReportError(w, r, err, fmt.Sprintf("Failed to create commit range rule: %s", err))
 				return
@@ -278,7 +278,7 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, "Unable to find the given commit in any repo.")
 			return
 		}
-		id, err := ts.TriggerJob(repoName, j.Commit, j.Name)
+		id, err := ts.TriggerJob(context.Background(), repoName, j.Commit, j.Name)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to trigger jobs.")
 			return
@@ -466,7 +466,7 @@ func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		if err := ts.ValidateAndAddTask(&task); err != nil {
+		if err := ts.ValidateAndAddTask(context.Background(), &task); err != nil {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task: %s", err))
 			return
 		}
@@ -642,11 +642,11 @@ func main() {
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
 	}
-	repos, err = repograph.NewMap(*repoUrls, wdAbs)
+	repos, err = repograph.NewMap(ctx, *repoUrls, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := repos.Update(); err != nil {
+	if err := repos.Update(ctx); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -654,7 +654,7 @@ func main() {
 	var swarm swarming.ApiClient
 	if *local {
 		swarmTestClient := testutils.NewTestClient()
-		swarmTestClient.MockBots(testutils.MockSwarmingBotsForAllTasksForTesting(repos))
+		swarmTestClient.MockBots(testutils.MockSwarmingBotsForAllTasksForTesting(ctx, repos))
 		go testutils.PeriodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
 	} else {
@@ -685,7 +685,7 @@ func main() {
 	}
 
 	// Find depot_tools.
-	depotTools, err := depot_tools.Sync(wdAbs)
+	depotTools, err := depot_tools.Sync(ctx, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -699,7 +699,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}

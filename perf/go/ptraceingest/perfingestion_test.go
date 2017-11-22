@@ -1,6 +1,7 @@
 package ptraceingest
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -77,6 +78,7 @@ func TestBenchData(t *testing.T) {
 // Tests the processor in conjunction with the vcs.
 func TestPerfProcessor(t *testing.T) {
 	testutils.MediumTest(t)
+	ctx := context.Background()
 	orig := ptracestore.Default
 	dir, err := ioutil.TempDir("", "ptrace")
 	assert.NoError(t, err)
@@ -97,7 +99,7 @@ func TestPerfProcessor(t *testing.T) {
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(filepath.Join(TEST_DATA_DIR, TEST_INGESTION_FILE), TEST_DATA_DIR)
 	assert.NoError(t, err)
-	err = processor.Process(fsResult)
+	err = processor.Process(ctx, fsResult)
 	assert.NoError(t, err)
 
 	traceId := ",arch=x86,config=nonrendering,gpu=GTX660,model=ShuttleA,os=Ubuntu12,source_type=bench,sub_result=min_ms,system=UNIX,test=ChunkAlloc_Push_640_480,"

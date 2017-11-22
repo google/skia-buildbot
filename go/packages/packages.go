@@ -4,6 +4,7 @@ package packages
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -404,7 +405,7 @@ func ToLocalFile(packages []string, filename string) error {
 }
 
 // Install downloads and installs a debian package from Google Storage.
-func Install(client *http.Client, store *storage.Service, name string) error {
+func Install(ctx context.Context, client *http.Client, store *storage.Service, name string) error {
 	sklog.Infof("Installing: %s", name)
 	obj, err := store.Objects.Get(bucketName, "debs/"+name).Do()
 	if err != nil {
@@ -431,7 +432,7 @@ func Install(client *http.Client, store *storage.Service, name string) error {
 		return fmt.Errorf("Failed to download file: %s", copyErr)
 	}
 
-	if err := installDependencies(f.Name()); err != nil {
+	if err := installDependencies(ctx, f.Name()); err != nil {
 		return fmt.Errorf("Error installing dependencies: %s", err)
 	}
 
@@ -448,10 +449,10 @@ func Install(client *http.Client, store *storage.Service, name string) error {
 
 // getDependencies returns the value of the 'Depends' field in the control
 // file of the given package.
-func getDependencies(packageName string) (string, error) {
+func getDependencies(ctx context.Context, packageName string) (string, error) {
 	const DEPENDS_PREFIX = "Depends:"
 
-	output, err := iexec.RunSimple(fmt.Sprintf("dpkg -I %s", packageName))
+	output, err := iexec.RunSimple(ctx, fmt.Sprintf("dpkg -I %s", packageName))
 	if err != nil {
 		return "", err
 	}
@@ -470,19 +471,19 @@ func getDependencies(packageName string) (string, error) {
 
 // installDependencies installs all dependencies that are named in the
 // 'Depends' field of the control file via apt-get.
-func installDependencies(packageFileName string) error {
-	dependencies, err := getDependencies(packageFileName)
+func installDependencies(ctx context.Context, packageFileName string) error {
+	dependencies, err := getDependencies(ctx, packageFileName)
 	if err != nil {
 		return fmt.Errorf("Error getting dependencies for %s: %s", packageFileName, err)
 	}
 
 	if dependencies != "" {
-		if output, err := iexec.RunSimple("sudo apt-get update"); err != nil {
+		if output, err := iexec.RunSimple(ctx, "sudo apt-get update"); err != nil {
 			return fmt.Errorf("Unable to update package cache Got error  %s\n\n and output: %s\n\n", err, output)
 		}
 
 		sklog.Infof("Installing via apt-get: %s", dependencies)
-		if output, err := iexec.RunSimple(fmt.Sprintf("sudo apt-get -y install %s", dependencies)); err != nil {
+		if output, err := iexec.RunSimple(ctx, fmt.Sprintf("sudo apt-get -y install %s", dependencies)); err != nil {
 			return fmt.Errorf("Unable to install dependencies for %s. Got error: \n %s \n\n and output:\n\n%s", packageFileName, err, output)
 		}
 	} else {
