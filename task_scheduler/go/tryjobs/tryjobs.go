@@ -111,7 +111,7 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 		}
 	})
 	go util.RepeatCtx(POLL_INTERVAL, ctx, func() {
-		if err := t.Poll(time.Now()); err != nil {
+		if err := t.Poll(ctx, time.Now()); err != nil {
 			sklog.Errorf("Failed to poll for new try jobs: %s", err)
 		}
 	})
@@ -328,7 +328,7 @@ func (t *TryJobIntegrator) tryLeaseBuild(id int64, now time.Time) (int64, error)
 	return resp.Build.LeaseKey, nil
 }
 
-func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiCommonBuildMessage, now time.Time) (*db.Job, error) {
+func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_api.ApiCommonBuildMessage, now time.Time) (*db.Job, error) {
 	// Parse the build parameters.
 	var params buildbucket.Parameters
 	if err := json.NewDecoder(strings.NewReader(b.ParametersJson)).Decode(&params); err != nil {
@@ -368,7 +368,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiCommonBuildMes
 	}
 
 	// Create a Job.
-	j, err := t.taskCfgCache.MakeJob(rs, params.BuilderName)
+	j, err := t.taskCfgCache.MakeJob(ctx, rs, params.BuilderName)
 	if err != nil {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, params))
 	}
@@ -388,7 +388,7 @@ func (t *TryJobIntegrator) getJobToSchedule(b *buildbucket_api.ApiCommonBuildMes
 	return j, nil
 }
 
-func (t *TryJobIntegrator) Poll(now time.Time) error {
+func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 	// Grab all of the pending Builds from Buildbucket.
 	// TODO(borenet): Buildbot maintains a maximum lease count. Should we do
 	// that too?
@@ -407,7 +407,7 @@ func (t *TryJobIntegrator) Poll(now time.Time) error {
 			break
 		}
 		for _, b := range resp.Builds {
-			j, err := t.getJobToSchedule(b, now)
+			j, err := t.getJobToSchedule(ctx, b, now)
 			if err != nil {
 				errs = append(errs, err)
 			} else if j != nil {

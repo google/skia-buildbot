@@ -1,6 +1,7 @@
 package buildskia
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -39,7 +40,7 @@ var (
 
 // PerBuild is a callback function where ContinuousBuilder clients can
 // perform specific builds within the newest Skia checkout.
-type PerBuild func(checkout, depotTools string) error
+type PerBuild func(ctx context.Context, checkout, depotTools string) error
 
 // ContinuousBuilder is for building versions of the Skia library and then compiling and
 // running command-line apps against those built versions.
@@ -81,7 +82,7 @@ type ContinuousBuilder struct {
 //    useGn - Use GN as the meta build system, as opposed to GYP.
 //
 // Call Start() to begin the continous build Go routine.
-func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int, timeBetweenBuilds time.Duration, useGn bool) *ContinuousBuilder {
+func New(ctx context.Context, workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int, timeBetweenBuilds time.Duration, useGn bool) *ContinuousBuilder {
 	b := &ContinuousBuilder{
 		workRoot:          workRoot,
 		depotTools:        depotTools,
@@ -95,19 +96,19 @@ func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, prese
 		useGn:             useGn,
 	}
 	_, _ = b.AvailableBuilds() // Called for side-effect of loading hashes.
-	go b.startDecimation()
-	b.updateCurrent()
+	go b.startDecimation(ctx)
+	b.updateCurrent(ctx)
 
 	return b
 }
 
-func (b *ContinuousBuilder) singleBuildLatest() {
-	if err := b.repo.Update(true, true); err != nil {
+func (b *ContinuousBuilder) singleBuildLatest(ctx context.Context) {
+	if err := b.repo.Update(ctx, true, true); err != nil {
 		sklog.Errorf("Failed to update skia repo used to look up git hashes: %s", err)
 		b.repoSyncFailures.Inc(1)
 	}
 	b.repoSyncFailures.Reset()
-	ci, err := b.BuildLatestSkia(false, false, false)
+	ci, err := b.BuildLatestSkia(ctx, false, false, false)
 	if err != nil {
 		sklog.Errorf("Failed to build LKGR: %s", err)
 		// Only measure real build failures, not a failure if LKGR hasn't updated.
@@ -122,11 +123,11 @@ func (b *ContinuousBuilder) singleBuildLatest() {
 }
 
 // Start the continuous build latest LKGR Go routine.
-func (b *ContinuousBuilder) Start() {
+func (b *ContinuousBuilder) Start(ctx context.Context) {
 	go func() {
-		b.singleBuildLatest()
+		b.singleBuildLatest(ctx)
 		for range time.Tick(b.timeBetweenBuilds) {
-			b.singleBuildLatest()
+			b.singleBuildLatest(ctx)
 		}
 	}()
 }
@@ -156,7 +157,7 @@ func prepDirectory(workRoot string) (string, error) {
 //
 // In GN mode ninja files are not generated, the caller must call GNGen
 // in their PerBuild callback before calling GNNinjaBuild.
-func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.LongCommit, error) {
+func (b *ContinuousBuilder) BuildLatestSkia(ctx context.Context, force bool, head bool, deps bool) (*vcsinfo.LongCommit, error) {
 	versions, err := prepDirectory(b.workRoot)
 	if err != nil {
 		return nil, err
@@ -183,26 +184,26 @@ func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*
 
 	var ret *vcsinfo.LongCommit
 	if b.useGn {
-		ret, err = GNDownloadSkia("", githash, checkout, b.depotTools, false, deps)
+		ret, err = GNDownloadSkia(ctx, "", githash, checkout, b.depotTools, false, deps)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to fetch: %s", err)
 		}
 	} else {
-		ret, err = DownloadSkia("", githash, checkout, b.depotTools, false, deps)
+		ret, err = DownloadSkia(ctx, "", githash, checkout, b.depotTools, false, deps)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to fetch: %s", err)
 		}
 	}
 
 	if b.perBuild != nil {
-		if err := b.perBuild(checkout, b.depotTools); err != nil {
+		if err := b.perBuild(ctx, checkout, b.depotTools); err != nil {
 			return nil, err
 		}
 	}
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	b.hashes = append(b.hashes, githash)
-	b.updateCurrent()
+	b.updateCurrent(ctx)
 	fb, err := os.OpenFile(filepath.Join(b.workRoot, GOOD_BUILDS_FILENAME), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open %s for writing: %s", GOOD_BUILDS_FILENAME, err)
@@ -220,7 +221,7 @@ func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*
 // Or a mildly informative stand-in if somehow the update fails.
 //
 // updateCurrent presumes the caller already has a lock on the mutex.
-func (b *ContinuousBuilder) updateCurrent() {
+func (b *ContinuousBuilder) updateCurrent(ctx context.Context) {
 	fallback := &vcsinfo.LongCommit{ShortCommit: &vcsinfo.ShortCommit{Hash: "unknown"}}
 	if len(b.hashes) == 0 {
 		sklog.Errorf("There are no hashes.")
@@ -229,7 +230,7 @@ func (b *ContinuousBuilder) updateCurrent() {
 		}
 		return
 	}
-	details, err := b.repo.Details(b.hashes[len(b.hashes)-1], true)
+	details, err := b.repo.Details(ctx, b.hashes[len(b.hashes)-1], true)
 	if err != nil {
 		sklog.Errorf("Unable to retrieve build info: %s", err)
 		if b.current == nil {
@@ -297,7 +298,7 @@ func (b *ContinuousBuilder) writeNewGoodBuilds(hashes []string) error {
 	return nil
 }
 
-func (b *ContinuousBuilder) startDecimation() {
+func (b *ContinuousBuilder) startDecimation(ctx context.Context) {
 	decimateLiveness := metrics2.NewLiveness("decimate")
 	decimateFailures := metrics2.GetCounter("decimate_failed", nil)
 	for range time.Tick(DECIMATION_PERIOD) {
@@ -307,7 +308,7 @@ func (b *ContinuousBuilder) startDecimation() {
 			decimateFailures.Inc(1)
 			continue
 		}
-		keep, remove, err := decimate(hashes, b.repo, b.preserve)
+		keep, remove, err := decimate(ctx, hashes, b.repo, b.preserve)
 		if err != nil {
 			sklog.Errorf("Failed to calc removals while decimating: %s", err)
 			decimateFailures.Inc(1)
@@ -338,7 +339,7 @@ func (b *ContinuousBuilder) startDecimation() {
 //   Then if there are more than 'limit' remaining hashes
 //   remove every other one to bring the count down to 'limit'/2.
 //
-func decimate(hashes []string, vcs vcsinfo.VCS, limit int) ([]string, []string, error) {
+func decimate(ctx context.Context, hashes []string, vcs vcsinfo.VCS, limit int) ([]string, []string, error) {
 	keep := []string{}
 	remove := []string{}
 
@@ -347,13 +348,13 @@ func decimate(hashes []string, vcs vcsinfo.VCS, limit int) ([]string, []string, 
 	// PRESERVE_DURATION apart. Once we find that spot set oldiesEnd
 	// to that index.
 	oldiesEnd := 0
-	c, err := vcs.Details(hashes[0], true)
+	c, err := vcs.Details(ctx, hashes[0], true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
 	}
 	lastTS := time.Time{}
 	for i, h := range hashes {
-		c, err = vcs.Details(h, true)
+		c, err = vcs.Details(ctx, h, true)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
 		}

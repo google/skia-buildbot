@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -67,14 +68,16 @@ func pixelDiff() error {
 		return errors.New("Must specify --run_id")
 	}
 
+	ctx := context.Background()
+
 	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
+	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
 		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
+	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
 		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
@@ -151,7 +154,7 @@ func pixelDiff() error {
 
 	// Download telemetry binaries to get the numpy image impl which is faster than the pure python
 	// png decoder.
-	if err := downloadTelemetryDependencies(); err != nil {
+	if err := downloadTelemetryDependencies(ctx); err != nil {
 		return fmt.Errorf("Could not download telemetry dependencies: %s", err)
 	}
 
@@ -233,8 +236,8 @@ func pixelDiff() error {
 				sklog.Infof("===== Processing %s =====", pagesetPath)
 
 				mutex.RLock()
-				runScreenshotBenchmark(localOutputDirNoPatch, chromiumBinaryNoPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs, rank)
-				runScreenshotBenchmark(localOutputDirWithPatch, chromiumBinaryWithPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs, rank)
+				runScreenshotBenchmark(ctx, localOutputDirNoPatch, chromiumBinaryNoPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs, rank)
+				runScreenshotBenchmark(ctx, localOutputDirWithPatch, chromiumBinaryWithPatch, pagesetName, pathToPagesets, decodedPageset, timeoutSecs, rank)
 				mutex.RUnlock()
 			}
 		}()
@@ -242,7 +245,7 @@ func pixelDiff() error {
 
 	if !*worker_common.Local {
 		// Start the cleaner.
-		go util.ChromeProcessesCleaner(&mutex, *chromeCleanerTimer)
+		go util.ChromeProcessesCleaner(ctx, &mutex, *chromeCleanerTimer)
 	}
 
 	// Wait for all spawned goroutines to complete.
@@ -286,7 +289,7 @@ func pixelDiff() error {
 	return nil
 }
 
-func downloadTelemetryDependencies() error {
+func downloadTelemetryDependencies(ctx context.Context) error {
 	if err := os.Chdir(util.ChromiumSrcDir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", util.ChromiumSrcDir, err)
 	}
@@ -297,13 +300,13 @@ func downloadTelemetryDependencies() error {
 	env := []string{
 		"GYP_DEFINES=fetch_telemetry_dependencies=1",
 	}
-	if err := util.ExecuteCmd(util.BINARY_GCLIENT, hookCmd, env, util.GCLIENT_SYNC_TIMEOUT, nil, nil); err != nil {
+	if err := util.ExecuteCmd(ctx, util.BINARY_GCLIENT, hookCmd, env, util.GCLIENT_SYNC_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error running gclient runhook: %s", err)
 	}
 	return nil
 }
 
-func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs, rank int) {
+func runScreenshotBenchmark(ctx context.Context, outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs, rank int) {
 
 	args := []string{
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
@@ -333,7 +336,7 @@ func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPages
 	}
 
 	// Execute run_benchmark and log if there are any errors.
-	err := util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+	err := util.ExecuteCmd(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 	if err != nil {
 		sklog.Errorf("Error during run_benchmark: %s", err)
 	}

@@ -1,6 +1,7 @@
 package goldingestion
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -114,6 +115,7 @@ func TestGoldProcessor(t *testing.T) {
 	testutils.MediumTest(t)
 
 	// Set up mock VCS and run a servcer with the given data directory.
+	ctx := context.Background()
 	vcs := ingestion.MockVCS(TEST_COMMITS, nil)
 	server, serverAddr := testhelpers.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
 	defer server.Stop()
@@ -130,10 +132,10 @@ func TestGoldProcessor(t *testing.T) {
 	assert.NoError(t, err)
 	defer util.Close(processor.(*goldProcessor).traceDB)
 
-	_ = testProcessor(t, processor, TEST_INGESTION_FILE)
+	_ = testProcessor(t, ctx, processor, TEST_INGESTION_FILE)
 
 	// Fail when there is not secondary repo defined.
-	err = testProcessor(t, processor, TEST_SECONDARY_FILE)
+	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
 	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit"))
 
 	// Inject a secondary repo and test its use.
@@ -141,18 +143,18 @@ func TestGoldProcessor(t *testing.T) {
 	extractor := depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx)
 	vcs.(ingestion.MockVCSImpl).SetSecondaryRepo(secVCS, extractor)
 
-	_ = testProcessor(t, processor, TEST_SECONDARY_FILE)
-	err = testProcessor(t, processor, TEST_SECONDARY_FILE_INVALID)
+	_ = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
+	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE_INVALID)
 	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit "))
-	err = testProcessor(t, processor, TEST_SECONDARY_FILE_NO_DEPS)
+	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE_NO_DEPS)
 	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit "))
 }
 
-func testProcessor(t *testing.T, processor ingestion.Processor, testFileName string) error {
+func testProcessor(t *testing.T, ctx context.Context, processor ingestion.Processor, testFileName string) error {
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(testFileName, "./")
 	assert.NoError(t, err)
-	err = processor.Process(fsResult)
+	err = processor.Process(ctx, fsResult)
 	if err != nil {
 		return err
 	}

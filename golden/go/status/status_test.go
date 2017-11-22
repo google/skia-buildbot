@@ -1,6 +1,7 @@
 package status
 
 import (
+	"context"
 	"math/rand"
 	"testing"
 	"time"
@@ -40,9 +41,10 @@ func TestStatusWatcher(t *testing.T) {
 }
 
 func BenchmarkStatusWatcher(b *testing.B) {
+	ctx := context.Background()
 	// Get the TEST_TILE environment variable that points to the
 	// tile to read.
-	tileBuilder := mocks.GetTileBuilderFromEnv(b)
+	tileBuilder := mocks.GetTileBuilderFromEnv(b, ctx)
 
 	storages := &storage.Storage{
 		MasterTileBuilder: tileBuilder,

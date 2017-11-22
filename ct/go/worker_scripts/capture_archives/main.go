@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -42,12 +43,14 @@ func captureArchives() error {
 	defer util.TimeTrack(time.Now(), "Capturing Archives")
 	defer sklog.Flush()
 
+	ctx := context.Background()
+
 	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
+	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
 		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{}, []string{}); err != nil {
+	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{}, []string{}); err != nil {
 		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
@@ -138,7 +141,7 @@ func captureArchives() error {
 				// Retry record_wpr binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
-					err = util.ExecuteCmd(util.BINARY_PYTHON_2_7_11, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+					err = util.ExecuteCmd(ctx, util.BINARY_PYTHON_2_7_11, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 					if err == nil {
 						successfulCapture = true
 						break
@@ -157,7 +160,7 @@ func captureArchives() error {
 
 	if !*worker_common.Local {
 		// Start the cleaner.
-		go util.ChromeProcessesCleaner(&mutex, *chromeCleanerTimer)
+		go util.ChromeProcessesCleaner(ctx, &mutex, *chromeCleanerTimer)
 	}
 
 	// Wait for all spawned goroutines to complete.

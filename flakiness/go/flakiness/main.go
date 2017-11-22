@@ -5,6 +5,7 @@ package main
 */
 
 import (
+	"context"
 	"flag"
 	"time"
 
@@ -44,7 +45,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	repos, err := repograph.NewMap(common.PUBLIC_REPOS, *workdir)
+	repos, err := repograph.NewMap(context.Background(), common.PUBLIC_REPOS, *workdir)
 	if err != nil {
 		sklog.Fatal(err)
 	}

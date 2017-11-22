@@ -5,6 +5,7 @@
 package warmer
 
 import (
+	"context"
 	"sync"
 
 	"go.skia.org/infra/go/sklog"
@@ -81,8 +82,8 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 	// }
 }
 
-func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) error {
-	issues, _, err := storages.TrybotResults.ListTrybotIssues(0, 100)
+func warmTrybotDigests(ctx context.Context, storages *storage.Storage, traceDigests map[string]bool) error {
+	issues, _, err := storages.TrybotResults.ListTrybotIssues(ctx, 0, 100)
 	if err != nil {
 		return err
 	}
@@ -93,7 +94,7 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 	for _, oneIssue := range issues {
 		wg.Add(1)
 		go func(issueID string) {
-			_, tile, err := storages.TrybotResults.GetIssue(issueID, nil)
+			_, tile, err := storages.TrybotResults.GetIssue(ctx, issueID, nil)
 			if err != nil {
 				sklog.Errorf("Unable to retrieve issue %s. Got error: %s", issueID, err)
 				return

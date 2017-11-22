@@ -1,6 +1,7 @@
 package ctdiffingestion
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -103,7 +104,7 @@ func NewPixelDiffProcessor(diffStore diff.DiffStore, resultStore resultstore.Res
 }
 
 // See the ingestion.Processor interface.
-func (p *pixelDiffProcessor) Process(resultsFile ingestion.ResultFileLocation) error {
+func (p *pixelDiffProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	r, err := resultsFile.Open()
 	if err != nil {
 		return err
