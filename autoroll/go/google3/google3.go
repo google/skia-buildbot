@@ -34,12 +34,12 @@ import (
 // AutoRoller provides a handler for adding/updating Rolls, translating them into AutoRollIssue for
 // storage in RecentRolls. It also manages an AutoRollStatusCache for status handlers.
 type AutoRoller struct {
-	recent       *recent_rolls.RecentRolls
-	status       *roller.AutoRollStatusCache
-	childRepo    *git.Repo
-	childRepoMtx sync.RWMutex
-	childBranch  string
-	liveness     metrics2.Liveness
+	recent      *recent_rolls.RecentRolls
+	status      *roller.AutoRollStatusCache
+	childRepo   *git.Repo
+	childBranch string
+	mtx         sync.Mutex
+	liveness    metrics2.Liveness
 }
 
 func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*AutoRoller, error) {
@@ -102,17 +102,14 @@ func (a *AutoRoller) GetMiniStatus() *roller.AutoRollMiniStatus {
 	return a.status.GetMini()
 }
 
-func (a *AutoRoller) updateRepo() error {
-	a.childRepoMtx.Lock()
-	defer a.childRepoMtx.Unlock()
-	return a.childRepo.Update()
-}
-
 // UpdateStatus based on RecentRolls. errorMsg will be set unless preserveLastError is true.
 func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error {
+	a.mtx.Lock()
+	defer a.mtx.Unlock()
+
 	// Update repo now to ensure that lastSuccessRev can be found in the repo and commitsNotRolled
 	// reflects the current state of the repo.
-	if err := a.updateRepo(); err != nil {
+	if err := a.childRepo.Update(); err != nil {
 		return err
 	}
 
@@ -130,8 +127,6 @@ func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error
 
 	commitsNotRolled := 0
 	if lastSuccessRev != "" {
-		a.childRepoMtx.RLock()
-		defer a.childRepoMtx.RUnlock()
 		headRev, err := a.childRepo.RevParse(a.childBranch)
 		if err != nil {
 			return err
