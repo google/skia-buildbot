@@ -5,6 +5,7 @@ package server
 */
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"path/filepath"
@@ -143,7 +144,7 @@ func Main(zone string, instances map[string]*gce.Instance) {
 
 	// Perform the requested operation.
 	if *create {
-		if err := g.CreateAndSetup(vm, *ignoreExists); err != nil {
+		if err := g.CreateAndSetup(context.Background(), vm, *ignoreExists); err != nil {
 			sklog.Fatal(err)
 		}
 	} else {

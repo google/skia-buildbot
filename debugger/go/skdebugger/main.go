@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"html/template"
@@ -193,14 +194,14 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func buildSkiaServe(checkout, depotTools string) error {
+func buildSkiaServe(ctx context.Context, checkout, depotTools string) error {
 	sklog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
+	if err := buildskia.GNGen(ctx, checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
 	sklog.Info("Building skiaserve")
-	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "skiaserve", true); err != nil {
+	if msg, err := buildskia.GNNinjaBuild(ctx, checkout, depotTools, "Release", "skiaserve", true); err != nil {
 		return fmt.Errorf("Failed ninja build of skiaserve: %q %s", msg, err)
 	}
 
@@ -240,15 +241,16 @@ func main() {
 	Init()
 
 	if *hosted {
+		ctx := context.Background()
 		login.SimpleInitMust(*port, *local)
 
 		var err error
-		repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
+		repo, err = gitinfo.CloneOrUpdate(ctx, common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
 		if err != nil {
 			sklog.Fatalf("Failed to clone Skia: %s", err)
 		}
-		build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds, true)
-		build.Start()
+		build = buildskia.New(ctx, *workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds, true)
+		build.Start(ctx)
 
 		getHash := func() string {
 			return build.Current().Hash

@@ -31,9 +31,9 @@ func NewVersionUpdater(g *gcsloader.GCSLoader, syncer *syncer.FuzzSyncer) *Versi
 
 // HandleCurrentVersion sets the current version of Skia to be the specified value and calls
 // LoadFreshFromGoogleStorage.
-func (v *VersionUpdater) HandleCurrentVersion(currentHash string) error {
+func (v *VersionUpdater) HandleCurrentVersion(ctx context.Context, currentHash string) error {
 	// Make sure skia version is at the proper version.  This also sets config.Common.SkiaVersion.
-	if err := download_skia.AtRevision(currentHash, config.Common.SkiaRoot, &config.Common, false); err != nil {
+	if err := download_skia.AtRevision(ctx, currentHash, config.Common.SkiaRoot, &config.Common, false); err != nil {
 		return fmt.Errorf("Could not update Skia to current version %s: %s", currentHash, err)
 	}
 	if err := v.gcsLoader.LoadFreshFromGoogleStorage(); err != nil {

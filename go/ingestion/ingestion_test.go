@@ -1,6 +1,7 @@
 package ingestion
 
 import (
+	"context"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -31,6 +32,7 @@ func TestPollingIngester(t *testing.T) {
 func testIngester(t *testing.T, statusDir string) {
 	defer util.RemoveAll(statusDir)
 
+	ctx := context.Background()
 	now := time.Now()
 	beginningOfTime := now.Add(-time.Hour * 24 * 10).Unix()
 	const totalCommits = 100
@@ -73,7 +75,7 @@ func testIngester(t *testing.T, statusDir string) {
 	// Instantiate ingester and start it.
 	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor)
 	assert.NoError(t, err)
-	ingester.Start()
+	ingester.Start(ctx)
 
 	// Wait until we have collected the desired result, but no more than two seconds.
 	startTime := time.Now()
@@ -117,7 +119,7 @@ func MockProcessor(process func(ResultFileLocation) error, finish func() error) 
 	}
 }
 
-func (m *mockProcessor) Process(resultsFile ResultFileLocation) error {
+func (m *mockProcessor) Process(ctx context.Context, resultsFile ResultFileLocation) error {
 	return m.process(resultsFile)
 }
 
@@ -155,7 +157,7 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
 	hashes := vcs.From(time.Unix(0, 0))
 	ret := make([]ResultFileLocation, 0, len(hashes))
 	for _, h := range hashes {
-		detail, err := vcs.Details(h, true)
+		detail, err := vcs.Details(context.Background(), h, true)
 		assert.NoError(t, err)
 		ret = append(ret, rfLocation(detail.Timestamp, fmt.Sprintf("result-file-%s", h)))
 	}
@@ -222,8 +224,9 @@ func TestIngesterNilVcs(t *testing.T) {
 	}
 
 	// Instantiate ingester and call getCommitRangeOfInterest.
+	ctx := context.Background()
 	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil)
-	start, end, err := ingester.getCommitRangeOfInterest()
+	start, end, err := ingester.getCommitRangeOfInterest(ctx)
 	assert.NoError(t, err)
 
 	// Verify that start = end - MinDays.

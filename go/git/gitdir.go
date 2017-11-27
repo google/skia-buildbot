@@ -5,6 +5,7 @@ package git
 */
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -30,7 +31,7 @@ type Branch struct {
 type GitDir string
 
 // newGitDir creates a GitDir instance based in the given directory.
-func newGitDir(repoUrl, workdir string, mirror bool) (GitDir, error) {
+func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (GitDir, error) {
 	dest := path.Join(workdir, strings.TrimSuffix(path.Base(repoUrl), ".git"))
 	if _, err := os.Stat(dest); err != nil {
 		if os.IsNotExist(err) {
@@ -40,7 +41,7 @@ func newGitDir(repoUrl, workdir string, mirror bool) (GitDir, error) {
 				cmd = append(cmd, "--mirror")
 			}
 			cmd = append(cmd, repoUrl, dest)
-			if _, err := exec.RunCwd(workdir, cmd...); err != nil {
+			if _, err := exec.RunCwd(ctx, workdir, cmd...); err != nil {
 				return "", fmt.Errorf("Failed to clone repo: %s", err)
 			}
 		} else {
@@ -56,13 +57,13 @@ func (g GitDir) Dir() string {
 }
 
 // Git runs the given git command in the GitDir.
-func (g GitDir) Git(cmd ...string) (string, error) {
-	return exec.RunCwd(string(g), append([]string{"git"}, cmd...)...)
+func (g GitDir) Git(ctx context.Context, cmd ...string) (string, error) {
+	return exec.RunCwd(ctx, string(g), append([]string{"git"}, cmd...)...)
 }
 
 // Details returns a vcsinfo.LongCommit instance representing the given commit.
-func (g GitDir) Details(name string) (*vcsinfo.LongCommit, error) {
-	output, err := g.Git("log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%ct%n%b", name)
+func (g GitDir) Details(ctx context.Context, name string) (*vcsinfo.LongCommit, error) {
+	output, err := g.Git(ctx, "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%ct%n%b", name)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +92,8 @@ func (g GitDir) Details(name string) (*vcsinfo.LongCommit, error) {
 }
 
 // RevParse runs "git rev-parse <name>" and returns the result.
-func (g GitDir) RevParse(args ...string) (string, error) {
-	out, err := g.Git(append([]string{"rev-parse"}, args...)...)
+func (g GitDir) RevParse(ctx context.Context, args ...string) (string, error) {
+	out, err := g.Git(ctx, append([]string{"rev-parse"}, args...)...)
 	if err != nil {
 		return "", err
 	}
@@ -108,8 +109,8 @@ func (g GitDir) RevParse(args ...string) (string, error) {
 }
 
 // RevList runs "git rev-list <name>" and returns a slice of commit hashes.
-func (g GitDir) RevList(args ...string) ([]string, error) {
-	out, err := g.Git(append([]string{"rev-list"}, args...)...)
+func (g GitDir) RevList(ctx context.Context, args ...string) ([]string, error) {
+	out, err := g.Git(ctx, append([]string{"rev-list"}, args...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,13 +118,13 @@ func (g GitDir) RevList(args ...string) ([]string, error) {
 }
 
 // GetBranchHead returns the commit hash at the HEAD of the given branch.
-func (g GitDir) GetBranchHead(branchName string) (string, error) {
-	return g.RevParse("--verify", fmt.Sprintf("refs/heads/%s^{commit}", branchName))
+func (g GitDir) GetBranchHead(ctx context.Context, branchName string) (string, error) {
+	return g.RevParse(ctx, "--verify", fmt.Sprintf("refs/heads/%s^{commit}", branchName))
 }
 
 // Branches runs "git branch" and returns a slice of Branch instances.
-func (g GitDir) Branches() ([]*Branch, error) {
-	out, err := g.Git("branch")
+func (g GitDir) Branches(ctx context.Context) ([]*Branch, error) {
+	out, err := g.Git(ctx, "branch")
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +134,7 @@ func (g GitDir) Branches() ([]*Branch, error) {
 		if name == "*" {
 			continue
 		}
-		head, err := g.GetBranchHead(name)
+		head, err := g.GetBranchHead(ctx, name)
 		if err != nil {
 			return nil, err
 		}
@@ -146,13 +147,13 @@ func (g GitDir) Branches() ([]*Branch, error) {
 }
 
 // GetFile returns the contents of the given file at the given commit.
-func (g GitDir) GetFile(fileName, commit string) (string, error) {
-	return g.Git("show", commit+":"+fileName)
+func (g GitDir) GetFile(ctx context.Context, fileName, commit string) (string, error) {
+	return g.Git(ctx, "show", commit+":"+fileName)
 }
 
 // NumCommits returns the number of commits in the repo.
-func (g GitDir) NumCommits() (int64, error) {
-	out, err := g.Git("rev-list", "--all", "--count")
+func (g GitDir) NumCommits(ctx context.Context) (int64, error) {
+	out, err := g.Git(ctx, "rev-list", "--all", "--count")
 	if err != nil {
 		return 0, err
 	}
@@ -160,8 +161,8 @@ func (g GitDir) NumCommits() (int64, error) {
 }
 
 // IsAncestor returns true iff A is an ancestor of B.
-func (g GitDir) IsAncestor(a, b string) (bool, error) {
-	out, err := g.Git("merge-base", "--is-ancestor", a, b)
+func (g GitDir) IsAncestor(ctx context.Context, a, b string) (bool, error) {
+	out, err := g.Git(ctx, "merge-base", "--is-ancestor", a, b)
 	if err != nil {
 		// Either a is not an ancestor of b, or we got a real error. If
 		// the output is empty, assume it's the former case. Otherwise,
@@ -175,13 +176,13 @@ func (g GitDir) IsAncestor(a, b string) (bool, error) {
 }
 
 // Version returns the Git version.
-func (g GitDir) Version() (int, int, error) {
-	return git_common.Version()
+func (g GitDir) Version(ctx context.Context) (int, int, error) {
+	return git_common.Version(ctx)
 }
 
 // FullHash gives the full commit hash for the given ref.
-func (g GitDir) FullHash(ref string) (string, error) {
-	output, err := g.RevParse(fmt.Sprintf("%s^{commit}", ref))
+func (g GitDir) FullHash(ctx context.Context, ref string) (string, error) {
+	output, err := g.RevParse(ctx, fmt.Sprintf("%s^{commit}", ref))
 	if err != nil {
 		return "", fmt.Errorf("Failed to obtain full hash: %s", err)
 	}

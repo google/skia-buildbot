@@ -1,6 +1,7 @@
 package cid
 
 import (
+	"context"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -75,8 +76,9 @@ func TestFromIssue(t *testing.T) {
 
 func TestFromHash(t *testing.T) {
 	testutils.SmallTest(t)
+	ctx := context.Background()
 	vcs := ingestion.MockVCS(TEST_COMMITS, nil)
-	commitID, err := FromHash(vcs, "fe4a4029a080bc955e9588d05a6cd9eb490845d4")
+	commitID, err := FromHash(ctx, vcs, "fe4a4029a080bc955e9588d05a6cd9eb490845d4")
 	assert.NoError(t, err)
 
 	expected := &CommitID{
@@ -85,13 +87,14 @@ func TestFromHash(t *testing.T) {
 	}
 	assert.Equal(t, expected, commitID)
 
-	commitID, err = FromHash(vcs, "not-a-valid-hash")
+	commitID, err = FromHash(ctx, vcs, "not-a-valid-hash")
 	assert.Error(t, err)
 	assert.Nil(t, commitID)
 }
 
 func TestLookup(t *testing.T) {
 	testutils.SmallTest(t)
+	ctx := context.Background()
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
 	m := mockhttpclient.NewURLMock()
@@ -107,11 +110,11 @@ func TestLookup(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	git, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	git, err := gitinfo.NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	lookup := New(git, review, "https://skia.googlesource.com/skia")
+	lookup := New(ctx, git, review, "https://skia.googlesource.com/skia")
 	assert.NotNil(t, lookup)
 
 	cids := []*CommitID{
@@ -125,7 +128,7 @@ func TestLookup(t *testing.T) {
 		},
 	}
 
-	details, err := lookup.Lookup(cids)
+	details, err := lookup.Lookup(ctx, cids)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(details))
 
@@ -162,15 +165,16 @@ func TestLookup(t *testing.T) {
 	assert.Equal(t, expectedDetails, details)
 
 	cids[0].Offset = -1
-	details, err = lookup.Lookup(cids)
+	details, err = lookup.Lookup(ctx, cids)
 	assert.Error(t, err)
 }
 
 func TestParseLogLine(t *testing.T) {
 	testutils.SmallTest(t)
+	ctx := context.Background()
 	s := "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
 	var index int = 3
-	entry, err := parseLogLine(s, &index, nil)
+	entry, err := parseLogLine(ctx, s, &index, nil)
 	assert.NoError(t, err)
 	expected := &cacheEntry{
 		author:  "joel.liang@arm.com",
@@ -183,14 +187,14 @@ func TestParseLogLine(t *testing.T) {
 
 	// No subject.
 	s = "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com"
-	entry, err = parseLogLine(s, &index, nil)
+	entry, err = parseLogLine(ctx, s, &index, nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Failed to parse parts")
 	assert.Equal(t, 4, index)
 
 	// Invalid timestamp.
 	s = "1476870ZZZ e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
-	entry, err = parseLogLine(s, &index, nil)
+	entry, err = parseLogLine(ctx, s, &index, nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Can't parse timestamp")
 	assert.Equal(t, 4, index)

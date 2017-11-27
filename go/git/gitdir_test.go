@@ -15,12 +15,12 @@ import (
 
 func TestGitDetails(t *testing.T) {
 	start := time.Now().Add(-2 * time.Second) // Need a small buffer due to 1-second granularity.
-	gb, commits := setup(t)
+	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
 	g := GitDir(gb.Dir())
 	for i, c := range commits {
-		d, err := g.Details(c)
+		d, err := g.Details(ctx, c)
 		assert.NoError(t, err)
 
 		assert.Equal(t, c, d.Hash)
@@ -38,16 +38,16 @@ func TestGitDetails(t *testing.T) {
 }
 
 func TestGitBranch(t *testing.T) {
-	gb, commits := setup(t)
+	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
-	g, err := newGitDir(gb.Dir(), tmpDir, false)
+	g, err := newGitDir(ctx, gb.Dir(), tmpDir, false)
 	assert.NoError(t, err)
-	branches, err := g.Branches()
+	branches, err := g.Branches(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(branches))
 	master := branches[0]
@@ -55,13 +55,13 @@ func TestGitBranch(t *testing.T) {
 	assert.Equal(t, "master", master.Name)
 
 	// Add a branch.
-	gb.CreateBranchTrackBranch("newbranch", "master")
-	c10 := gb.CommitGen("branchfile")
-	_, err = g.Git("fetch", "origin")
+	gb.CreateBranchTrackBranch(ctx, "newbranch", "master")
+	c10 := gb.CommitGen(ctx, "branchfile")
+	_, err = g.Git(ctx, "fetch", "origin")
 	assert.NoError(t, err)
-	_, err = g.Git("checkout", "-b", "newbranch", "-t", "origin/newbranch")
+	_, err = g.Git(ctx, "checkout", "-b", "newbranch", "-t", "origin/newbranch")
 	assert.NoError(t, err)
-	branches, err = g.Branches()
+	branches, err = g.Branches(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(branches))
 	m, o := branches[0], branches[1]
@@ -75,23 +75,23 @@ func TestGitBranch(t *testing.T) {
 
 	// Add an ambiguous ref to ensure that Branches() doesn't have a
 	// problem with it.
-	exec_testutils.Run(t, gb.Dir(), "git", "update-ref", "refs/heads/meta/config", commits[6])
-	exec_testutils.Run(t, gb.Dir(), "git", "push", "origin", "refs/heads/meta/config")
-	exec_testutils.Run(t, gb.Dir(), "git", "update-ref", "refs/tags/meta/config", commits[3])
-	exec_testutils.Run(t, gb.Dir(), "git", "push", "origin", "refs/tags/meta/config")
-	_, err = g.Git("fetch")
+	exec_testutils.Run(t, ctx, gb.Dir(), "git", "update-ref", "refs/heads/meta/config", commits[6])
+	exec_testutils.Run(t, ctx, gb.Dir(), "git", "push", "origin", "refs/heads/meta/config")
+	exec_testutils.Run(t, ctx, gb.Dir(), "git", "update-ref", "refs/tags/meta/config", commits[3])
+	exec_testutils.Run(t, ctx, gb.Dir(), "git", "push", "origin", "refs/tags/meta/config")
+	_, err = g.Git(ctx, "fetch")
 	assert.NoError(t, err)
-	_, err = g.Git("checkout", "-b", "meta/config", "-t", "origin/meta/config")
+	_, err = g.Git(ctx, "checkout", "-b", "meta/config", "-t", "origin/meta/config")
 	assert.NoError(t, err)
 
 	// Verify that it's actually ambiguous. We're also testing that RevParse
 	// returns an error for ambiguous refs, since Git doesn't exit with non-
 	// zero code in that case.
-	_, err = g.RevParse("meta/config")
+	_, err = g.RevParse(ctx, "meta/config")
 	assert.Error(t, err)
 
 	// Make sure Branches() succeeds and uses the correct ref.
-	branches, err = g.Branches()
+	branches, err = g.Branches(ctx)
 	assert.NoError(t, err)
 	checked := false
 	for _, b := range branches {
@@ -105,28 +105,28 @@ func TestGitBranch(t *testing.T) {
 }
 
 func TestIsAncestor(t *testing.T) {
-	gb, commits := setup(t)
+	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
-	g, err := newGitDir(gb.Dir(), tmpDir, false)
+	g, err := newGitDir(ctx, gb.Dir(), tmpDir, false)
 	assert.NoError(t, err)
 
 	// Commits are in decreasing chronological order; commits[0] is the most
 	// recent and therefore is not an ancestor of commits[9].
-	b, err := g.IsAncestor(commits[0], commits[len(commits)-1])
+	b, err := g.IsAncestor(ctx, commits[0], commits[len(commits)-1])
 	assert.NoError(t, err)
 	assert.False(t, b)
 
 	for i := 0; i < len(commits)-1; i++ {
-		b, err := g.IsAncestor(commits[i], commits[i+1])
+		b, err := g.IsAncestor(ctx, commits[i], commits[i+1])
 		assert.NoError(t, err)
 		assert.False(t, b)
 
-		b, err = g.IsAncestor(commits[i+1], commits[i])
+		b, err = g.IsAncestor(ctx, commits[i+1], commits[i])
 		assert.NoError(t, err)
 		assert.True(t, b)
 	}

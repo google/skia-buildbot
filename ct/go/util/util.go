@@ -3,6 +3,7 @@ package util
 
 import (
 	"bytes"
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -43,15 +44,15 @@ func TimeTrack(start time.Time, name string) {
 }
 
 // ExecuteCmd calls ExecuteCmdWithConfigurableLogging with logStdout and logStderr set to true.
-func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer) error {
-	return ExecuteCmdWithConfigurableLogging(binary, args, env, timeout, stdout, stderr, true, true)
+func ExecuteCmd(ctx context.Context, binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer) error {
+	return ExecuteCmdWithConfigurableLogging(ctx, binary, args, env, timeout, stdout, stderr, true, true)
 }
 
 // ExecuteCmdWithConfigurableLogging executes the specified binary with the specified args and env.
 // Stdout and Stderr are written to stdout and stderr respectively if specified. If not specified
 // then Stdout and Stderr will be outputted only to sklog.
-func ExecuteCmdWithConfigurableLogging(binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer, logStdout, logStderr bool) error {
-	return exec.Run(&exec.Command{
+func ExecuteCmdWithConfigurableLogging(ctx context.Context, binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer, logStdout, logStderr bool) error {
+	return exec.Run(ctx, &exec.Command{
 		Name:        binary,
 		Args:        args,
 		Env:         env,
@@ -67,7 +68,7 @@ func ExecuteCmdWithConfigurableLogging(binary string, args, env []string, timeou
 // SyncDir runs "git pull" and "gclient sync" on the specified directory.
 // The revisions map enforces revision/hash for the solutions with the format
 // branch@rev.
-func SyncDir(dir string, revisions map[string]string, additionalArgs []string) error {
+func SyncDir(ctx context.Context, dir string, revisions map[string]string, additionalArgs []string) error {
 	err := os.Chdir(dir)
 	if err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
@@ -78,7 +79,7 @@ func SyncDir(dir string, revisions map[string]string, additionalArgs []string) e
 			sklog.Warningf("%d. retry for syncing %s", i, dir)
 		}
 
-		err = syncDirStep(revisions, additionalArgs)
+		err = syncDirStep(ctx, revisions, additionalArgs)
 		if err == nil {
 			break
 		}
@@ -91,8 +92,8 @@ func SyncDir(dir string, revisions map[string]string, additionalArgs []string) e
 	return err
 }
 
-func syncDirStep(revisions map[string]string, additionalArgs []string) error {
-	err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
+func syncDirStep(ctx context.Context, revisions map[string]string, additionalArgs []string) error {
+	err := ExecuteCmd(ctx, BINARY_GIT, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running git pull: %s", err)
 	}
@@ -102,7 +103,7 @@ func syncDirStep(revisions map[string]string, additionalArgs []string) error {
 		syncCmd = append(syncCmd, "--revision")
 		syncCmd = append(syncCmd, fmt.Sprintf("%s@%s", branch, rev))
 	}
-	err = ExecuteCmd(BINARY_GCLIENT, syncCmd, []string{}, GCLIENT_SYNC_TIMEOUT, nil, nil)
+	err = ExecuteCmd(ctx, BINARY_GCLIENT, syncCmd, []string{}, GCLIENT_SYNC_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running gclient sync: %s", err)
 	}
@@ -110,88 +111,88 @@ func syncDirStep(revisions map[string]string, additionalArgs []string) error {
 }
 
 // BuildSkiaSKPInfo builds "skpinfo" in the Skia trunk directory.
-func BuildSkiaSKPInfo() error {
+func BuildSkiaSKPInfo(ctx context.Context) error {
 	if err := os.Chdir(SkiaTreeDir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
 	// Run "bin/fetch-gn".
-	util.LogErr(ExecuteCmd("bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
+	util.LogErr(ExecuteCmd(ctx, "bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
 		nil))
 	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+	if err := ExecuteCmd(ctx, "buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 skpinfo".
 	// Use the full system env when building.
 	args := []string{"-C", "out/Release", "-j100", BINARY_SKPINFO}
-	return ExecuteCmd(filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
+	return ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 // BuildSkiaLuaPictures builds "lua_pictures" in the Skia trunk directory.
-func BuildSkiaLuaPictures() error {
+func BuildSkiaLuaPictures(ctx context.Context) error {
 	if err := os.Chdir(SkiaTreeDir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
 	// Run "bin/fetch-gn".
-	util.LogErr(ExecuteCmd("bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
+	util.LogErr(ExecuteCmd(ctx, "bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
 		nil))
 	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd("buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false skia_use_lua=true"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+	if err := ExecuteCmd(ctx, "buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false skia_use_lua=true"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 lua_pictures".
 	// Use the full system env when building.
 	args := []string{"-C", "out/Release", "-j100", BINARY_LUA_PICTURES}
-	return ExecuteCmd(filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
+	return ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 // BuildPDFium builds "pdfium_test" in the PDFium repo directory.
-func BuildPDFium() error {
+func BuildPDFium(ctx context.Context) error {
 	if err := os.Chdir(PDFiumTreeDir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
 
 	// Run "build/gyp_pdfium"
-	if err := ExecuteCmd(path.Join("build_gyp", "gyp_pdfium"), []string{},
+	if err := ExecuteCmd(ctx, path.Join("build_gyp", "gyp_pdfium"), []string{},
 		[]string{"GYP_DEFINES=\"pdf_use_skia=1\"", "CPPFLAGS=\"-Wno-error\""}, GYP_PDFIUM_TIMEOUT, nil, nil); err != nil {
 		return err
 	}
 
 	// Build pdfium_test.
-	return ExecuteCmd(BINARY_NINJA, []string{"-C", "out/Debug", BINARY_PDFIUM_TEST},
+	return ExecuteCmd(ctx, BINARY_NINJA, []string{"-C", "out/Debug", BINARY_PDFIUM_TEST},
 		[]string{}, NINJA_TIMEOUT, nil, nil)
 }
 
 // ResetCheckout resets the specified Git checkout.
-func ResetCheckout(dir, resetTo string) error {
+func ResetCheckout(ctx context.Context, dir, resetTo string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
 	// Clear out remnants of incomplete rebases from .git/rebase-apply.
 	rebaseArgs := []string{"rebase", "--abort"}
-	util.LogErr(ExecuteCmd(BINARY_GIT, rebaseArgs, []string{}, GIT_REBASE_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, rebaseArgs, []string{}, GIT_REBASE_TIMEOUT, nil, nil))
 	// Make sure we are on master branch and not stuck in a rebase branch for whatever reason.
 	branchArgs := []string{"checkout", "master"}
-	util.LogErr(ExecuteCmd(BINARY_GIT, branchArgs, []string{}, GIT_BRANCH_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, branchArgs, []string{}, GIT_BRANCH_TIMEOUT, nil, nil))
 	// Run "git reset --hard HEAD"
 	resetArgs := []string{"reset", "--hard", resetTo}
-	util.LogErr(ExecuteCmd(BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
 	// Run "git clean -f -d"
 	cleanArgs := []string{"clean", "-f", "-d"}
-	util.LogErr(ExecuteCmd(BINARY_GIT, cleanArgs, []string{}, GIT_CLEAN_TIMEOUT, nil, nil))
+	util.LogErr(ExecuteCmd(ctx, BINARY_GIT, cleanArgs, []string{}, GIT_CLEAN_TIMEOUT, nil, nil))
 
 	return nil
 }
 
 // ApplyPatch applies a patch to a Git checkout.
-func ApplyPatch(patch, dir string) error {
+func ApplyPatch(ctx context.Context, patch, dir string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
 	// Run "git apply --index -p1 --verbose --ignore-whitespace
 	//      --ignore-space-change ${PATCH_FILE}"
 	args := []string{"apply", "--index", "-p1", "--verbose", "--ignore-whitespace", "--ignore-space-change", patch}
-	return ExecuteCmd(BINARY_GIT, args, []string{}, GIT_APPLY_TIMEOUT, nil, nil)
+	return ExecuteCmd(ctx, BINARY_GIT, args, []string{}, GIT_APPLY_TIMEOUT, nil, nil)
 }
 
 // CleanTmpDir deletes all tmp files from the caller because telemetry tends to
@@ -233,12 +234,12 @@ func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
 // at the same time, when there are crashes chrome processes stick around which
 // can severely impact the machine's performance. To stop this from
 // happening chrome zombie processes are periodically killed.
-func ChromeProcessesCleaner(locker sync.Locker, chromeCleanerTimer time.Duration) {
+func ChromeProcessesCleaner(ctx context.Context, locker sync.Locker, chromeCleanerTimer time.Duration) {
 	for range time.Tick(chromeCleanerTimer) {
 		sklog.Info("The chromeProcessesCleaner goroutine has started")
 		sklog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
 		locker.Lock()
-		util.LogErr(ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, PKILL_TIMEOUT, nil, nil))
+		util.LogErr(ExecuteCmd(ctx, "pkill", []string{"-9", "chrome"}, []string{}, PKILL_TIMEOUT, nil, nil))
 		locker.Unlock()
 	}
 }
@@ -268,7 +269,7 @@ func ReadPageset(pagesetPath string) (PagesetVars, error) {
 
 // ValidateSKPs moves all root_dir/index/dir_name/*.skp into the root_dir/index
 // and validates them. SKPs that fail validation are logged and deleted.
-func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
+func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles string) error {
 	// This slice will be used to run remove_invalid_skp.py.
 	skps := []string{}
 	// List all directories in pathToSkps and copy out the skps.
@@ -327,9 +328,9 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 
 	sklog.Info("Calling remove_invalid_skp.py")
 	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-	util.LogErr(SyncDir(SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
+	util.LogErr(SyncDir(ctx, SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
 	// Build tools.
-	util.LogErr(BuildSkiaSKPInfo())
+	util.LogErr(BuildSkiaSKPInfo(ctx))
 	// Run remove_invalid_skp.py in parallel goroutines.
 	// Construct path to the python script.
 	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skp.py")
@@ -356,7 +357,7 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 				sklog.Infof("Executing remove_invalid_skp.py with goroutine#%d", i+1)
 				// Execute the command with stdout not logged. It otherwise outputs
 				// tons of log msgs.
-				util.LogErr(exec.Run(&exec.Command{
+				util.LogErr(exec.Run(ctx, &exec.Command{
 					Name:        "python",
 					Args:        args,
 					Env:         []string{},
@@ -389,13 +390,13 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int) (int, error) {
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int) (int, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
 		return 0, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {
@@ -434,7 +435,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	for i := 0; i < len(genJSONs); i += 1000 {
 		startRange := i
 		endRange := util.MinInt(len(genJSONs), i+1000)
-		t, err := s.BatchArchiveTargets(genJSONs[startRange:endRange], BATCHARCHIVE_TIMEOUT)
+		t, err := s.BatchArchiveTargets(ctx, genJSONs[startRange:endRange], BATCHARCHIVE_TIMEOUT)
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not batch archive targets: %s", err)
 		}
@@ -479,16 +480,16 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		// Save all retried tasks so that we can collect them at the end.
 		retriedTasks := []*swarming.SwarmingTask{}
 		// Trigger swarming using the isolate hashes.
-		tasks, err := s.TriggerSwarmingTasks(taskMap, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
 		}
 		// Collect all tasks and retrigger the ones that fail.
 		for _, task := range tasks {
-			if _, _, err := task.Collect(s); err != nil {
+			if _, _, err := task.Collect(ctx, s); err != nil {
 				sklog.Errorf("task %s failed: %s", task.Title, err)
 				sklog.Infof("Retrying task %s", task.Title)
-				t, err := s.TriggerSwarmingTasks(map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+				t, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 				if err != nil {
 					return numTasks, fmt.Errorf("Could not trigger retry of swarming tasks: %s", err)
 				}
@@ -500,7 +501,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		if len(retriedTasks) > 0 {
 			// Collect all retried tasks and log the ones that fail.
 			for _, task := range retriedTasks {
-				if _, _, err := task.Collect(s); err != nil {
+				if _, _, err := task.Collect(ctx, s); err != nil {
 					sklog.Errorf("task %s failed inspite of a retry: %s", task.Title, err)
 					continue
 				}
@@ -532,7 +533,7 @@ func GetPathToPyFiles(runOnSwarming bool) string {
 	}
 }
 
-func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, maxPagesPerBot int, handleStrings bool, repeatValue int) ([]string, error) {
+func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *GcsUtil, totalPages, maxPagesPerBot int, handleStrings bool, repeatValue int) ([]string, error) {
 	localOutputDir := filepath.Join(StorageDir, BenchmarkRunsDir, runID)
 	util.MkdirAll(localOutputDir, 0700)
 	noOutputSlaves := []string{}
@@ -581,7 +582,7 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GcsUtil, totalPages, m
 	if handleStrings {
 		args = append(args, "--handle_strings")
 	}
-	err := ExecuteCmd("python", args, []string{}, CSV_MERGER_TIMEOUT, nil, nil)
+	err := ExecuteCmd(ctx, "python", args, []string{}, CSV_MERGER_TIMEOUT, nil, nil)
 	if err != nil {
 		return noOutputSlaves, fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
@@ -643,7 +644,7 @@ func RemoveFlagsFromArgs(benchmarkArgs string, flags ...string) string {
 	return strings.Join(strings.Fields(benchmarkArgs), " ")
 }
 
-func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int) error {
+func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int) error {
 	pagesetBaseName := filepath.Base(fileInfoName)
 	if filepath.Ext(pagesetBaseName) == ".pyc" {
 		// Ignore .pyc files.
@@ -670,7 +671,7 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	args = append(args, "--output-dir="+outputDirArgValue)
 	// Figure out which browser and device should be used.
 	if targetPlatform == PLATFORM_ANDROID {
-		if err := InstallChromeAPK(chromiumBuildName); err != nil {
+		if err := InstallChromeAPK(ctx, chromiumBuildName); err != nil {
 			return fmt.Errorf("Error while installing APK: %s", err)
 		}
 		args = append(args, "--browser=android-chromium")
@@ -716,10 +717,10 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", pagesetPath)); err != nil {
 		return fmt.Errorf("Error writing to output buffer: %s", err)
 	}
-	if err := ExecuteCmdWithConfigurableLogging("python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
+	if err := ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		if targetPlatform == PLATFORM_ANDROID {
 			// Kill the port-forwarder to start from a clean slate.
-			util.LogErr(ExecuteCmdWithConfigurableLogging("pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))
+			util.LogErr(ExecuteCmdWithConfigurableLogging(ctx, "pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))
 		}
 		util.LogErr(printRunBenchmarkOutput(b, pagesetPath))
 		return fmt.Errorf("Run benchmark command failed with: %s", err)
@@ -735,7 +736,7 @@ func printRunBenchmarkOutput(b bytes.Buffer, pagesetPath string) error {
 	return nil
 }
 
-func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GcsUtil, startRange int, handleStrings bool) error {
+func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GcsUtil, startRange int, handleStrings bool) error {
 	// Move all results into a single directory.
 	fileInfos, err := ioutil.ReadDir(localOutputDir)
 	if err != nil {
@@ -781,8 +782,7 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 	if handleStrings {
 		args = append(args, "--handle_strings")
 	}
-	err = ExecuteCmd("python", args, []string{}, CSV_PIVOT_TABLE_MERGER_TIMEOUT, nil,
-		nil)
+	err = ExecuteCmd(ctx, "python", args, []string{}, CSV_PIVOT_TABLE_MERGER_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running csv_pivot_table_merger.py: %s", err)
 	}
@@ -836,13 +836,13 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
-func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, hashes, patches []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repo, targetPlatform string, hashes, patches []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
 		return nil, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {
@@ -868,7 +868,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 		return nil, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
 	// Batcharchive the task.
-	tasksToHashes, err := s.BatchArchiveTargets([]string{genJSON}, BATCHARCHIVE_TIMEOUT)
+	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
 	if err != nil {
 		return nil, fmt.Errorf("Could not batch archive target: %s", err)
 	}
@@ -879,7 +879,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -888,7 +888,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	}
 	// Collect all tasks and log the ones that fail.
 	task := tasks[0]
-	_, outputDir, err := task.Collect(s)
+	_, outputDir, err := task.Collect(ctx, s)
 	if err != nil {
 		return nil, fmt.Errorf("task %s failed: %s", task.Title, err)
 	}
@@ -939,7 +939,7 @@ func RemoveCatapultLockFiles(catapultSrcDir string) error {
 	return filepath.Walk(catapultSrcDir, visit)
 }
 
-func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout string, gs *GcsUtil) error {
+func DownloadAndApplyPatch(ctx context.Context, patchName, localDir, remotePatchesDir, checkout string, gs *GcsUtil) error {
 	patchLocalPath := filepath.Join(localDir, patchName)
 	patchRemotePath := filepath.Join(remotePatchesDir, patchName)
 	written, err := DownloadPatch(patchLocalPath, patchRemotePath, gs)
@@ -948,7 +948,7 @@ func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout strin
 	}
 	// Apply patch to the local checkout.
 	if written > 10 {
-		if err := ApplyPatch(patchLocalPath, checkout); err != nil {
+		if err := ApplyPatch(ctx, patchLocalPath, checkout); err != nil {
 			return fmt.Errorf("Could not apply patch in %s: %s", checkout, err)
 		}
 	}

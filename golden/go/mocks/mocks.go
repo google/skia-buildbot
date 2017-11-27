@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -122,7 +123,7 @@ func NewMockTileBuilderFromTile(t assert.TestingT, tile *tiling.Tile) tracedb.Ma
 // GetTileBuilderFromEnv looks at the TEST_TRACEDB_ADDRESS environement variable for the
 // name of directory that contains tiles. If it's defined it will return a
 // TileStore instance. If the not the calling test will fail.
-func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
+func GetTileBuilderFromEnv(t assert.TestingT, ctx context.Context) tracedb.MasterTileBuilder {
 	traceDBAddress := os.Getenv("TEST_TRACEDB_ADDRESS")
 	assert.NotEqual(t, "", traceDBAddress, "Please define the TEST_TRACEDB_ADDRESS environment variable to point to the traceDB.")
 
@@ -132,7 +133,7 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 	gitRepoDir, err := ioutil.TempDir("", "gitrepo")
 	assert.NoError(t, err)
 
-	git, err := gitinfo.CloneOrUpdate(gitURL, gitRepoDir, false)
+	git, err := gitinfo.CloneOrUpdate(ctx, gitURL, gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -141,7 +142,7 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 	db, err := tracedb.NewTraceServiceDBFromAddress(traceDBAddress, types.GoldenTraceBuilder)
 	assert.NoError(t, err)
 
-	tileBuilder, err := tracedb.NewMasterTileBuilder(db, git, 50, eventBus, "")
+	tileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, git, 50, eventBus, "")
 	assert.NoError(t, err)
 	return tileBuilder
 }

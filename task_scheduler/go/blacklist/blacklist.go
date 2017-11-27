@@ -1,6 +1,7 @@
 package blacklist
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -101,7 +102,7 @@ func (b *Blacklist) addRule(r *Rule) error {
 }
 
 // NewCommitRangeRule creates a new Rule which covers a range of commits.
-func NewCommitRangeRule(name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos repograph.Map) (*Rule, error) {
+func NewCommitRangeRule(ctx context.Context, name, user, description string, taskSpecPatterns []string, startCommit, endCommit string, repos repograph.Map) (*Rule, error) {
 	_, repoName, _, err := repos.FindCommit(startCommit)
 	if err != nil {
 		return nil, err
@@ -117,7 +118,7 @@ func NewCommitRangeRule(name, user, description string, taskSpecPatterns []strin
 	if !ok {
 		return nil, fmt.Errorf("Unknown repo %s", repoName)
 	}
-	commits, err := repo.Repo().RevList(fmt.Sprintf("%s..%s", startCommit, endCommit))
+	commits, err := repo.Repo().RevList(ctx, fmt.Sprintf("%s..%s", startCommit, endCommit))
 	if err != nil {
 		return nil, err
 	}

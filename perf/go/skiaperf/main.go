@@ -195,6 +195,7 @@ func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.Con
 
 func Init() {
 	rand.Seed(time.Now().UnixNano())
+	ctx := context.Background()
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
@@ -214,20 +215,20 @@ func Init() {
 
 	loadTemplates()
 
-	git, err = gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
+	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	ptracestore.Init(*ptraceStoreDir)
 
-	freshDataFrame, err = dataframe.NewRefresher(git, ptracestore.Default, time.Minute, *dataFrameSize)
+	freshDataFrame, err = dataframe.NewRefresher(ctx, git, ptracestore.Default, time.Minute, *dataFrameSize)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
 
-	initIngestion()
+	initIngestion(ctx)
 	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
-	cidl = cid.New(git, rietveldAPI, *gitRepoURL)
+	cidl = cid.New(ctx, git, rietveldAPI, *gitRepoURL)
 
 	alerts.DefaultSparse = *defaultSparse
 
@@ -271,7 +272,7 @@ func Init() {
 
 	// Start running continuous clustering looking for regressions.
 	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider)
-	go continuous.Run()
+	go continuous.Run(ctx)
 }
 
 // activityHandler serves the HTML for the /activitylog/ page.
@@ -346,7 +347,7 @@ func alertsHandler(w http.ResponseWriter, r *http.Request) {
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	df := freshDataFrame.Get()
-	resp, err := dataframe.ResponseFromDataFrame(&dataframe.DataFrame{
+	resp, err := dataframe.ResponseFromDataFrame(context.Background(), &dataframe.DataFrame{
 		Header:   df.Header,
 		ParamSet: df.ParamSet,
 		TraceSet: ptracestore.TraceSet{},
@@ -413,7 +414,7 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	resp, err := cidl.Lookup(cids)
+	resp, err := cidl.Lookup(context.Background(), cids)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to lookup all commit ids")
 		return
@@ -463,7 +464,7 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := FrameStartResponse{
-		ID: frameRequests.Add(fr),
+		ID: frameRequests.Add(context.Background(), fr),
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -565,7 +566,7 @@ func cidHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Could not decode POST body.")
 		return
 	}
-	resp, err := cidl.Lookup(cids)
+	resp, err := cidl.Lookup(context.Background(), cids)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to lookup all commit ids")
 		return
@@ -595,7 +596,7 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := ClusterStartResponse{
-		ID: clusterRequests.Add(req),
+		ID: clusterRequests.Add(context.Background(), req),
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
@@ -683,20 +684,21 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Could not parse query parameters.")
 		return
 	}
+	ctx := context.Background()
 	query := r.Form
 	hash := mux.Vars(r)["hash"]
 	dest := mux.Vars(r)["dest"]
-	index, err := git.IndexOf(hash)
+	index, err := git.IndexOf(ctx, hash)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Could not look up git hash.")
 		return
 	}
-	last := git.LastN(1)
+	last := git.LastN(ctx, 1)
 	if len(last) != 1 {
 		httputils.ReportError(w, r, fmt.Errorf("gitinfo.LastN(1) returned 0 hashes."), "Failed to find last hash.")
 		return
 	}
-	lastIndex, err := git.IndexOf(last[0])
+	lastIndex, err := git.IndexOf(ctx, last[0])
 	if err != nil {
 		httputils.ReportError(w, r, err, "Could not look up last git hash.")
 		return
@@ -709,7 +711,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	if end > lastIndex {
 		end = lastIndex
 	}
-	details, err := cidl.Lookup([]*cid.CommitID{
+	details, err := cidl.Lookup(ctx, []*cid.CommitID{
 		{
 			Offset: begin,
 			Source: "master",
@@ -767,7 +769,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
-	detail, err := cidl.Lookup([]*cid.CommitID{tr.Cid})
+	detail, err := cidl.Lookup(context.Background(), []*cid.CommitID{tr.Cid})
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to find CommitID.")
 		return
@@ -873,6 +875,7 @@ type RegressionRangeResponse struct {
 // Note that there will be nulls in the columns slice where no Regression have been found.
 func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	ctx := context.Background()
 	rr := &RegressionRangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
@@ -937,7 +940,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert the CommitIDs to CommitDetails.
-	cids, err := cidl.Lookup(ids)
+	cids, err := cidl.Lookup(ctx, ids)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to look up commit details")
 		return
@@ -1063,6 +1066,7 @@ type ShiftResponse struct {
 // commits to move.
 func shiftHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	ctx := context.Background()
 	sr := &ShiftRequest{}
 	if err := json.NewDecoder(r.Body).Decode(sr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
@@ -1074,13 +1078,13 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, fmt.Errorf("No commits found in range."), "No commits found in range.")
 		return
 	}
-	beginCommit, err := git.ByIndex(commits[0].Index + sr.BeginOffset)
+	beginCommit, err := git.ByIndex(ctx, commits[0].Index+sr.BeginOffset)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Scrolled too far.")
 		return
 	}
 	var endCommitTs time.Time
-	endCommit, err := git.ByIndex(commits[len(commits)-1].Index + sr.EndOffset)
+	endCommit, err := git.ByIndex(ctx, commits[len(commits)-1].Index+sr.EndOffset)
 	if err != nil {
 		// We went too far, so just use the last index.
 		commits := git.LastNIndex(1)
@@ -1233,7 +1237,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func initIngestion() {
+func initIngestion(ctx context.Context) {
 	// Initialize oauth client and start the ingesters.
 	client, err := auth.NewDefaultJWTServiceAccountClient(storage.ScopeReadWrite)
 	if err != nil {
@@ -1251,12 +1255,12 @@ func initIngestion() {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(config, client)
+	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
 	for _, oneIngester := range ingesters {
-		oneIngester.Start()
+		oneIngester.Start(ctx)
 	}
 }
 

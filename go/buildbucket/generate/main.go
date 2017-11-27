@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -51,7 +52,7 @@ func main() {
 	defer util.Remove(dst)
 
 	// Regenerate project_cfg.pb.go from the .proto file.
-	if output, err := exec.RunCwd(buildbucket_dir, "protoc", "--go_out=plugins=grpc:.", dst, "--proto_path", buildbucket_dir); err != nil {
+	if output, err := exec.RunCwd(context.Background(), buildbucket_dir, "protoc", "--go_out=plugins=grpc:.", dst, "--proto_path", buildbucket_dir); err != nil {
 		sklog.Fatalf("Error: %s\n\n%s", err, output)
 	}
 }

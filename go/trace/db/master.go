@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -53,7 +54,7 @@ type masterTileBuilder struct {
 // traceserver running at the given address. The tiles contain the last
 // 'tileSize' commits and are built from Traces of the type that traceBuilder
 // returns.
-func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt eventbus.EventBus, cachePath string) (MasterTileBuilder, error) {
+func NewMasterTileBuilder(ctx context.Context, db DB, git *gitinfo.GitInfo, tileSize int, evt eventbus.EventBus, cachePath string) (MasterTileBuilder, error) {
 	ret := &masterTileBuilder{
 		tileSize:  tileSize,
 		tile:      nil,
@@ -76,7 +77,7 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt eventbu
 	initialTileLoaded := false
 	if ret.tile == nil {
 		initialTileLoaded = true
-		if err := ret.LoadTile(); err != nil {
+		if err := ret.LoadTile(ctx); err != nil {
 			return nil, fmt.Errorf("NewTraceStore: Failed to load initial Tile: %s", err)
 		}
 	}
@@ -85,14 +86,14 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt eventbu
 	go func() {
 		if !initialTileLoaded {
 			// Load the initial tile from disk if it came from the disk cache.
-			if err := ret.LoadTile(); err != nil {
+			if err := ret.LoadTile(ctx); err != nil {
 				sklog.Errorf("Failed to refresh tile: %s", err)
 			}
 		}
 
 		liveness := metrics2.NewLiveness("tile_refresh", map[string]string{"module": "tracedb"})
 		for range time.Tick(TILE_REFRESH_DURATION) {
-			if err := ret.LoadTile(); err != nil {
+			if err := ret.LoadTile(ctx); err != nil {
 				sklog.Errorf("Failed to refresh tile: %s", err)
 			} else {
 				liveness.Reset()
@@ -107,12 +108,12 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt eventbu
 //
 // Users of Builder should not normally need to call this func, as it is called
 // periodically by the Builder to keep the tile fresh.
-func (t *masterTileBuilder) LoadTile() error {
+func (t *masterTileBuilder) LoadTile(ctx context.Context) error {
 	// Build CommitIDs for the last INITIAL_TILE_SIZE commits to the repo.
-	if err := t.git.Update(true, false); err != nil {
+	if err := t.git.Update(ctx, true, false); err != nil {
 		sklog.Errorf("Failed to update Git repo: %s", err)
 	}
-	hashes := t.git.LastN(t.tileSize)
+	hashes := t.git.LastN(ctx, t.tileSize)
 	commitIDs := make([]*CommitID, 0, len(hashes))
 	for _, h := range hashes {
 		commitIDs = append(commitIDs, &CommitID{
@@ -130,7 +131,7 @@ func (t *masterTileBuilder) LoadTile() error {
 
 	// Now populate the author for each commit.
 	for _, c := range tile.Commits {
-		details, err := t.git.Details(c.Hash, true)
+		details, err := t.git.Details(ctx, c.Hash, true)
 		if err != nil {
 			return fmt.Errorf("Couldn't fill in author info in tile for commit %s: %s", c.Hash, err)
 		}

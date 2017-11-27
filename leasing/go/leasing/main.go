@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -340,6 +341,7 @@ func expireTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	ctx := context.Background()
 
 	task := &Task{}
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
@@ -368,7 +370,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
 			return
 		}
-		isolateDetails, err = GetIsolateDetails(t.Request.Properties)
+		isolateDetails, err = GetIsolateDetails(ctx, t.Request.Properties)
 		if err != nil {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Could not get isolate details of task %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool))
 			return
@@ -382,7 +384,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Error putting task in datastore: %v", err))
 		return
 	}
-	isolateHash, err := GetIsolateHash(task.SwarmingPool, task.OsType, isolateDetails.IsolateDep)
+	isolateHash, err := GetIsolateHash(ctx, task.SwarmingPool, task.OsType, isolateDetails.IsolateDep)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Error when getting isolate hash: %v", err))
 		return

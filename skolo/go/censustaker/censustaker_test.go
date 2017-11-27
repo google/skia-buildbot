@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -29,7 +30,8 @@ func TestMapping(t *testing.T) {
 	defer mn.AssertExpectations(t)
 	defer mp.AssertExpectations(t)
 
-	botList, err := enumerateBots(&mn, &mp)
+	ctx := context.Background()
+	botList, err := enumerateBots(ctx, &mn, &mp)
 
 	assert.NoError(t, err)
 	assert.Len(t, botList, 2, "Only 2 bots have everything listed")
@@ -97,7 +99,7 @@ type MockBotNameGetter struct {
 }
 
 // GetBotNamesAddresses provides a mock function with given fields:
-func (_m *MockBotNameGetter) GetBotNamesAddresses() ([]Bot, error) {
+func (_m *MockBotNameGetter) GetBotNamesAddresses(ctx context.Context) ([]Bot, error) {
 	ret := _m.Called()
 
 	var r0 []Bot

@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"context"
 	"flag"
 	"math/rand"
 	"sync"
@@ -128,7 +129,8 @@ func getChanges(t *testing.T, tile *tiling.Tile) map[string]types.TestClassifica
 }
 
 func BenchmarkIndexer(b *testing.B) {
-	storages, expStore := setupStorages(b)
+	ctx := context.Background()
+	storages, expStore := setupStorages(b, ctx)
 	defer testutils.RemoveAll(b, REPO_DIR)
 
 	// Build the initial index.
@@ -152,7 +154,7 @@ func BenchmarkIndexer(b *testing.B) {
 	wg.Wait()
 }
 
-func setupStorages(t assert.TestingT) (*storage.Storage, expstorage.ExpectationsStore) {
+func setupStorages(t assert.TestingT, ctx context.Context) (*storage.Storage, expstorage.ExpectationsStore) {
 	flag.Parse()
 
 	// Set up the database configuration.
@@ -167,13 +169,13 @@ func setupStorages(t assert.TestingT) (*storage.Storage, expstorage.Expectations
 	assert.NoError(t, err)
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt)
 
-	git, err := gitinfo.CloneOrUpdate(REPO_URL, REPO_DIR, false)
+	git, err := gitinfo.CloneOrUpdate(context.Background(), REPO_URL, REPO_DIR, false)
 	assert.NoError(t, err)
 
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(*traceService, types.GoldenTraceBuilder)
 	assert.NoError(t, err)
 
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(traceDB, git, N_COMMITS, evt, "")
+	masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, traceDB, git, N_COMMITS, evt, "")
 	assert.NoError(t, err)
 
 	ret := &storage.Storage{

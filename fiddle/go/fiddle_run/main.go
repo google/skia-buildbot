@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -69,6 +70,7 @@ func main() {
 		res.Errors = "fiddle_run: The --checkout flag is required."
 	}
 
+	ctx := context.Background()
 	depotTools := filepath.Join(*fiddleRoot, "depot_tools")
 
 	// Set limits on this process and all its children.
@@ -91,7 +93,7 @@ func main() {
 	}
 
 	// Re-run GN since the directory changes under overlayfs.
-	if err := buildskia.GNGen(*checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
+	if err := buildskia.GNGen(ctx, *checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
 		glog.Errorf("gn gen failed: %s", err)
 		res.Compile.Errors = err.Error()
 		serializeOutput(res)
@@ -99,7 +101,7 @@ func main() {
 	}
 
 	// Compile draw.cpp into 'fiddle'.
-	if output, err := buildskia.GNNinjaBuild(*checkout, depotTools, "Release", "fiddle", true); err != nil {
+	if output, err := buildskia.GNNinjaBuild(ctx, *checkout, depotTools, "Release", "fiddle", true); err != nil {
 		res.Compile.Errors = err.Error()
 		res.Compile.Output = output
 		serializeOutput(res)
@@ -107,7 +109,7 @@ func main() {
 	}
 
 	if *duration == 0 {
-		oneStep(*checkout, res, 0.0)
+		oneStep(ctx, *checkout, res, 0.0)
 		serializeOutput(res)
 	} else {
 
@@ -151,7 +153,7 @@ func main() {
 				for frameIndex := range frameCh {
 					sklog.Infof("Parallel render: %d", frameIndex)
 					frame := float64(frameIndex) / float64(numFrames)
-					oneStep(*checkout, res, frame)
+					oneStep(ctx, *checkout, res, frame)
 					// Check for errors.
 					if res.Execute.Errors != "" {
 						return fmt.Errorf("Failed to render: %s", res.Execute.Errors)
@@ -186,14 +188,14 @@ func main() {
 			return
 		}
 		// Run ffmpeg for CPU and GPU.
-		if err := createWebm("CPU", tmpDir); err != nil {
+		if err := createWebm(ctx, "CPU", tmpDir); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
 			serializeOutput(res)
 			return
 		}
 		res.Execute.Output.AnimatedRaster = encodeWebm("CPU", tmpDir, res)
 
-		if err := createWebm("GPU", tmpDir); err != nil {
+		if err := createWebm(ctx, "GPU", tmpDir); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
 			serializeOutput(res)
 			return
@@ -218,7 +220,7 @@ func encodeWebm(prefix, tmpDir string, res *types.Result) string {
 }
 
 // createWebm runs ffmpeg over the images in the given dir.
-func createWebm(prefix, tmpDir string) error {
+func createWebm(ctx context.Context, prefix, tmpDir string) error {
 	// ffmpeg -r $FPS -pattern_type glob -i '*.png' -c:v libvpx-vp9 -lossless 1 output.webm
 	name := "ffmpeg"
 	args := []string{
@@ -236,7 +238,7 @@ func createWebm(prefix, tmpDir string) error {
 		LogStderr: true,
 		Stdout:    output,
 	}
-	if err := exec.Run(runCmd); err != nil {
+	if err := exec.Run(ctx, runCmd); err != nil {
 		return fmt.Errorf("ffmpeg failed %#v: %s", *runCmd, err)
 	}
 
@@ -266,7 +268,7 @@ func extractPNG(b64 string, res *types.Result, i int, prefix string, tmpDir stri
 //    $ out/Release/fiddle
 //
 // if running locally.
-func oneStep(checkout string, res *types.Result, frame float64) {
+func oneStep(ctx context.Context, checkout string, res *types.Result, frame float64) {
 	name := path.Join(*fiddleRoot, "bin", "fiddle_secwrap")
 	args := []string{path.Join(checkout, "skia", "out", "Release", "fiddle")}
 	if *local {
@@ -288,7 +290,7 @@ func oneStep(checkout string, res *types.Result, frame float64) {
 		Stderr:      &stderr,
 		Timeout:     20 * time.Second,
 	}
-	if err := exec.Run(runCmd); err != nil {
+	if err := exec.Run(ctx, runCmd); err != nil {
 		sklog.Errorf("Failed to run: %s", err)
 		res.Execute.Errors = err.Error()
 	}

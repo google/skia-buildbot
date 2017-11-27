@@ -41,7 +41,7 @@ var (
 	backupMetric metrics2.Liveness
 )
 
-func step(storageClient *storage.Client) {
+func step(ctx context.Context, storageClient *storage.Client) {
 	sklog.Infof("Running backup to %s", *gceFolder)
 	if *remoteFilePath != "" {
 		// If backing up a remote file, copy it here first, then pretend it is a local file.
@@ -54,7 +54,7 @@ func step(storageClient *storage.Client) {
 		stdErr := bytes.Buffer{}
 		// This only works if the remote file's host has the source's SSH public key in
 		// $HOME/.ssh/authorized_key
-		err = exec.Run(&exec.Command{
+		err = exec.Run(ctx, &exec.Command{
 			Name:   *remoteCopyCommand,
 			Args:   []string{*remoteFilePath, *localFilePath},
 			Stdout: &stdOut,
@@ -82,7 +82,7 @@ func step(storageClient *storage.Client) {
 			name = fmt.Sprintf("%s/%s-%s-%s.gz", *gceFolder, day, hostname, hash)
 		}
 	}
-	w := storageClient.Bucket(*gceBucket).Object(name).NewWriter(context.Background())
+	w := storageClient.Bucket(*gceBucket).Object(name).NewWriter(ctx)
 	defer util.Close(w)
 
 	w.ObjectAttrs.ContentEncoding = "application/gzip"
@@ -111,7 +111,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingJWTOpt(serviceAccountPath),
 	)
-
+	ctx := context.Background()
 	if *localFilePath == "" && *remoteFilePath == "" {
 		sklog.Fatalf("You must specify a file location")
 	}
@@ -125,15 +125,15 @@ func main() {
 		sklog.Fatalf("Could not setup credentials: %s", err)
 	}
 
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		sklog.Fatalf("Could not authenticate to GCS: %s", err)
 	}
 
 	backupMetric = metrics2.NewLiveness("skolo_last_backup", nil)
 
-	step(storageClient)
+	step(ctx, storageClient)
 	for range time.Tick(*period) {
-		step(storageClient)
+		step(ctx, storageClient)
 	}
 }
