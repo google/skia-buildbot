@@ -156,7 +156,7 @@ func captureSkps() error {
 				}
 				args := []string{
 					filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
-					util.BenchmarksToTelemetryName[util.BENCHMARK_SKPICTURE_PRINTER],
+					util.BENCHMARK_SKPICTURE_PRINTER,
 					"--also-run-disabled-tests",
 					"--pageset-repeat=1", // Only need one run for SKPs.
 					"--skp-outdir=" + path.Join(pathToSkps, strconv.Itoa(index)),
