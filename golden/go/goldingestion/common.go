@@ -42,6 +42,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -124,14 +125,6 @@ type DMResults struct {
 
 	// name is the name/path of the file where this came from.
 	name string
-}
-
-// TODO(stephana): Remove isGerritIssue once we switch to Gerrit.
-
-// isGerritIssue returns true if the issue comes from an instance of the Gerrit
-// code review system.
-func (d *DMResults) isGerritIssue() bool {
-	return (d.Issue != 0) && (d.PatchStorage == "gerrit")
 }
 
 // idAndParams constructs the Trace ID and the Trace params from the keys and options.
@@ -220,4 +213,13 @@ func ParseDMResultsFromReader(r io.ReadCloser, name string) (*DMResults, error) 
 	}
 	dmResults.name = name
 	return dmResults, nil
+}
+
+func processDMResults(resultsFile ingestion.ResultFileLocation) (*DMResults, error) {
+	r, err := resultsFile.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseDMResultsFromReader(r, resultsFile.Name())
 }
