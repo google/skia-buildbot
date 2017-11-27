@@ -2,6 +2,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -50,7 +51,7 @@ type Runner struct {
 // you want to run. Since xargs exists in the container this will proceed to
 // the point of making the bindings and then xargs will be able to execute the
 // exe within the container.
-func (c *Runner) Start(port int) error {
+func (c *Runner) Start(ctx context.Context, port int) error {
 	hash := c.getHash()
 	machine := fmt.Sprintf("debug%05d", port)
 	name := "sudo"
@@ -73,7 +74,7 @@ func (c *Runner) Start(port int) error {
 		LogStderr: true,
 		LogStdout: true,
 	}
-	if err := exec.Run(runCmd); err != nil {
+	if err := exec.Run(ctx, runCmd); err != nil {
 		return fmt.Errorf("skaiserve failed to run %#v: %s", *runCmd, err)
 	}
 	sklog.Infof("Returned from running skiaserve.")

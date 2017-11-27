@@ -7,6 +7,7 @@
 package google3
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -42,13 +43,13 @@ type AutoRoller struct {
 	liveness    metrics2.Liveness
 }
 
-func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, workdir string, childRepoUrl string, childBranch string) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(path.Join(workdir, "recent_rolls.bdb"))
 	if err != nil {
 		return nil, err
 	}
 
-	childRepo, err := git.NewRepo(childRepoUrl, workdir)
+	childRepo, err := git.NewRepo(ctx, childRepoUrl, workdir)
 	if err != nil {
 		util.LogErr(recent.Close())
 		return nil, err
@@ -62,7 +63,7 @@ func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*Au
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 
-	if err := a.UpdateStatus("", true); err != nil {
+	if err := a.UpdateStatus(ctx, "", true); err != nil {
 		util.LogErr(recent.Close())
 		return nil, err
 	}
@@ -70,9 +71,9 @@ func NewAutoRoller(workdir string, childRepoUrl string, childBranch string) (*Au
 }
 
 // Start ensures DBs are closed when ctx is canceled.
-func (a *AutoRoller) Start(tickFrequency, repoFrequency time.Duration) {
+func (a *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency time.Duration) {
 	go cleanup.Repeat(repoFrequency, func() {
-		util.LogErr(a.UpdateStatus("", true))
+		util.LogErr(a.UpdateStatus(ctx, "", true))
 	}, func() {
 		util.LogErr(a.recent.Close())
 	})
@@ -103,13 +104,13 @@ func (a *AutoRoller) GetMiniStatus() *roller.AutoRollMiniStatus {
 }
 
 // UpdateStatus based on RecentRolls. errorMsg will be set unless preserveLastError is true.
-func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error {
+func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserveLastError bool) error {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 
 	// Update repo now to ensure that lastSuccessRev can be found in the repo and commitsNotRolled
 	// reflects the current state of the repo.
-	if err := a.childRepo.Update(); err != nil {
+	if err := a.childRepo.Update(ctx); err != nil {
 		return err
 	}
 
@@ -127,11 +128,11 @@ func (a *AutoRoller) UpdateStatus(errorMsg string, preserveLastError bool) error
 
 	commitsNotRolled := 0
 	if lastSuccessRev != "" {
-		headRev, err := a.childRepo.RevParse(a.childBranch)
+		headRev, err := a.childRepo.RevParse(ctx, a.childBranch)
 		if err != nil {
 			return err
 		}
-		revs, err := a.childRepo.RevList(headRev, "^"+lastSuccessRev)
+		revs, err := a.childRepo.RevList(ctx, headRev, "^"+lastSuccessRev)
 		if err != nil {
 			return err
 		}
@@ -334,14 +335,14 @@ func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, err.Error())
 		return
 	}
-	if err := a.UpdateStatus(roll.ErrorMsg, false); err != nil {
+	if err := a.UpdateStatus(context.Background(), roll.ErrorMsg, false); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set new status.")
 		return
 	}
 }
 
 // SetMode is not implemented for Google3 roller.
-func (a *AutoRoller) SetMode(string, string, string) error {
+func (a *AutoRoller) SetMode(context.Context, string, string, string) error {
 	return errors.New("Not implemented for Google3 roller.")
 }
 

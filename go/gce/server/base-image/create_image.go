@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"path"
 	"path/filepath"
@@ -73,7 +74,7 @@ func main() {
 	}
 
 	// Create/Setup the instance.
-	if err := g.CreateAndSetup(vm, false); err != nil {
+	if err := g.CreateAndSetup(context.Background(), vm, false); err != nil {
 		sklog.Fatal(err)
 	}
 

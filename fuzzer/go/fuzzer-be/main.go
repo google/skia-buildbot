@@ -81,15 +81,16 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
+	ctx := context.Background()
 
 	if err := writeFlagsToConfig(); err != nil {
 		sklog.Fatalf("Problem with configuration: %v", err)
 	}
-	if err := setupOAuth(); err != nil {
+	if err := setupOAuth(ctx); err != nil {
 		sklog.Fatalf("Problem with OAuth: %s", err)
 	}
 	client := fstorage.NewFuzzerGCSClient(storageClient, config.GCS.Bucket)
-	if err := download_skia.AtGCSRevision(client, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
+	if err := download_skia.AtGCSRevision(ctx, client, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
 		sklog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
@@ -123,7 +124,7 @@ func main() {
 		if !*forceReanalysis {
 			sklog.Infof("Starting %s generator with configuration %#v", category, config.Generator)
 			var err error
-			if err = gen.Start(); err != nil {
+			if err = gen.Start(ctx); err != nil {
 				sklog.Fatalf("Problem starting generator: %s", err)
 			}
 			sklog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Common.SkiaVersion.Hash)
@@ -138,7 +139,7 @@ func main() {
 	}
 
 	sklog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
-	agg, err := aggregator.StartAggregator(storageClient, issueManager, startingReports)
+	agg, err := aggregator.StartAggregator(ctx, storageClient, issueManager, startingReports)
 	if err != nil {
 		sklog.Fatalf("Could not start aggregator: %s", err)
 	}
@@ -146,7 +147,7 @@ func main() {
 	updater := backend.NewVersionUpdater(client, agg, generators)
 	sklog.Info("Starting version watcher")
 	watcher := version_watcher.New(client, config.Common.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
-	watcher.Start()
+	watcher.Start(ctx)
 
 	err = <-watcher.Status
 	sklog.Fatal(err)
@@ -225,13 +226,13 @@ func writeFlagsToConfig() error {
 	return nil
 }
 
-func setupOAuth() error {
+func setupOAuth(ctx context.Context) error {
 	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up client OAuth: %v", err)
 	}
 
-	if storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client)); err != nil {
+	if storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client)); err != nil {
 		return fmt.Errorf("Problem authenticating: %v", err)
 	}
 	issueManager = issues.NewManager(client)

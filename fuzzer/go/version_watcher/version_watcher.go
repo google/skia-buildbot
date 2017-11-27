@@ -1,6 +1,7 @@
 package version_watcher
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 )
 
 // A VersionHandler is the type of the callbacks used by VersionWatcher.
-type VersionHandler func(string) error
+type VersionHandler func(context.Context, string) error
 
 // VersionWatcher handles the logic to wait for the version under fuzz to change in
 // Google Storage.  When it notices the pending version change or the current version
@@ -49,15 +50,15 @@ func New(s fstorage.FuzzerGCSClient, period time.Duration, onPendingChange, onCu
 
 // Start starts a goroutine that will occasionally wake up (as specified by the period)
 // and check to see if the current or pending skia versions to fuzz have changed.
-func (vw *VersionWatcher) Start() {
+func (vw *VersionWatcher) Start(ctx context.Context) {
 	go func() {
 		t := time.Tick(vw.polingPeriod)
 		for {
 			select {
 			case <-vw.force:
-				vw.check()
+				vw.check(ctx)
 			case <-t:
-				vw.check()
+				vw.check(ctx)
 			}
 		}
 	}()
@@ -66,7 +67,7 @@ func (vw *VersionWatcher) Start() {
 // check looks in Google Storage to see if the pending or current versions have updated. If so, it
 // synchronously calls the relevent callbacks and updates this objects LastCurrentHash
 // and/or LastPendingHash.
-func (vw *VersionWatcher) check() {
+func (vw *VersionWatcher) check(ctx context.Context) {
 	sklog.Infof("Woke up to check the Skia version, last current seen was %s", vw.LastCurrentHash)
 
 	current, lastUpdated, err := download_skia.GetCurrentSkiaVersionFromGCS(vw.storageClient)
@@ -79,7 +80,7 @@ func (vw *VersionWatcher) check() {
 		vw.LastCurrentHash = current
 	} else if current != vw.LastCurrentHash && vw.onCurrentChange != nil {
 		sklog.Infof("Calling onCurrentChange(%q)", current)
-		if err := vw.onCurrentChange(current); err != nil {
+		if err := vw.onCurrentChange(ctx, current); err != nil {
 			vw.Status <- fmt.Errorf("Failed while executing onCurrentChange %#v.We could be in a broken state. %s", vw.onCurrentChange, err)
 			return
 		}
@@ -92,7 +93,7 @@ func (vw *VersionWatcher) check() {
 	}
 
 	if config.Common.ForceReanalysis {
-		if err := vw.onPendingChange(vw.LastCurrentHash); err != nil {
+		if err := vw.onPendingChange(ctx, vw.LastCurrentHash); err != nil {
 			sklog.Errorf("There was a problem during force analysis: %s", err)
 		}
 		config.Common.ForceReanalysis = false
@@ -114,7 +115,7 @@ func (vw *VersionWatcher) check() {
 
 		if vw.onPendingChange != nil {
 			sklog.Infof("Calling onPendingChange(%q)", pending)
-			if err := vw.onPendingChange(pending); err != nil {
+			if err := vw.onPendingChange(ctx, pending); err != nil {
 				vw.Status <- fmt.Errorf("Failed while executing onCurrentChange %#v.We could be in a broken state. %s", vw.onCurrentChange, err)
 				return
 			}

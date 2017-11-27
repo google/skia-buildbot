@@ -19,11 +19,12 @@ var (
 func main() {
 	common.Init()
 
+	ctx := context.Background()
 	d, err := remote_db.NewClient(*taskSchedulerDbUrl)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := features.StartV0(*workdir, d, context.Background()); err != nil {
+	if err := features.StartV0(ctx, *workdir, d); err != nil {
 		sklog.Fatal(err)
 	}
 	select {}

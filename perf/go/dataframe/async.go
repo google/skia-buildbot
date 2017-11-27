@@ -1,6 +1,7 @@
 package dataframe
 
 import (
+	"context"
 	"crypto/md5"
 	"errors"
 	"fmt"
@@ -86,7 +87,7 @@ type FrameRequestProcess struct {
 	percent       float32      // The percentage of the searches complete [0.0-1.0].
 }
 
-func newProcess(req *FrameRequest, git *gitinfo.GitInfo) *FrameRequestProcess {
+func newProcess(ctx context.Context, req *FrameRequest, git *gitinfo.GitInfo) *FrameRequestProcess {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
@@ -98,7 +99,7 @@ func newProcess(req *FrameRequest, git *gitinfo.GitInfo) *FrameRequestProcess {
 		state:         PROCESS_RUNNING,
 		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
 	}
-	go ret.Run()
+	go ret.Run(ctx)
 	return ret
 }
 
@@ -150,12 +151,12 @@ func (fr *RunningFrameRequests) background() {
 // Add starts a new running FrameRequestProcess and returns
 // the ID of the process to be used in calls to Status() and
 // Response().
-func (fr *RunningFrameRequests) Add(req *FrameRequest) string {
+func (fr *RunningFrameRequests) Add(ctx context.Context, req *FrameRequest) string {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	id := req.Id()
 	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = newProcess(req, fr.git)
+		fr.inProcess[id] = newProcess(ctx, req, fr.git)
 	}
 	return id
 }
@@ -226,7 +227,7 @@ func (p *FrameRequestProcess) Status() (ProcessState, string, float32, error) {
 
 // Run does the work in a FrameRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *FrameRequestProcess) Run() {
+func (p *FrameRequestProcess) Run(ctx context.Context) {
 	begin := time.Unix(int64(p.request.Begin), 0)
 	end := time.Unix(int64(p.request.End), 0)
 
@@ -274,7 +275,7 @@ func (p *FrameRequestProcess) Run() {
 		df = NewHeaderOnly(p.git, begin, end, true)
 	}
 
-	resp, err := ResponseFromDataFrame(df, p.git, true, p.request.TZ)
+	resp, err := ResponseFromDataFrame(ctx, df, p.git, true, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to get ticks or skps.")
 		return
@@ -288,11 +289,11 @@ func (p *FrameRequestProcess) Run() {
 // getCommitTimesForFile returns a slice of Unix timestamps in seconds that are
 // the times that the given file changed in git between the given 'begin' and
 // 'end' hashes (inclusive).
-func getCommitTimesForFile(begin, end string, filename string, git *gitinfo.GitInfo) []int64 {
+func getCommitTimesForFile(ctx context.Context, begin, end string, filename string, git *gitinfo.GitInfo) []int64 {
 	ret := []int64{}
 
 	// Now query for all the changes to the skp version over the given range of commits.
-	log, err := git.LogFine(begin+"^", end, "--format=format:%ct", "--", filename)
+	log, err := git.LogFine(ctx, begin+"^", end, "--format=format:%ct", "--", filename)
 	if err != nil {
 		sklog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
 		return ret
@@ -311,23 +312,23 @@ func getCommitTimesForFile(begin, end string, filename string, git *gitinfo.GitI
 
 // getSkps returns the indices where the SKPs have been updated given
 // the ColumnHeaders.
-func getSkps(headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
+func getSkps(ctx context.Context, headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
 	// We have Offsets, which need to be converted to git hashes.
-	ci, err := git.ByIndex(int(headers[0].Offset))
+	ci, err := git.ByIndex(ctx, int(headers[0].Offset))
 	if err != nil {
 		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[0].Offset, err)
 	}
 	begin := ci.Hash
-	ci, err = git.ByIndex(int(headers[len(headers)-1].Offset))
+	ci, err = git.ByIndex(ctx, int(headers[len(headers)-1].Offset))
 	if err != nil {
 		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[len(headers)-1].Offset, err)
 	}
 	end := ci.Hash
 
 	// Now query for all the changes to the skp version over the given range of commits.
-	ts := getCommitTimesForFile(begin, end, "infra/bots/assets/skp/VERSION", git)
+	ts := getCommitTimesForFile(ctx, begin, end, "infra/bots/assets/skp/VERSION", git)
 	// Add in the changes to the old skp version over the given range of commits.
-	ts = append(ts, getCommitTimesForFile(begin, end, "SKP_VERSION", git)...)
+	ts = append(ts, getCommitTimesForFile(ctx, begin, end, "SKP_VERSION", git)...)
 
 	// Sort because they are in reverse order.
 	sort.Sort(util.Int64Slice(ts))
@@ -358,7 +359,7 @@ func getSkps(headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo, truncate bool, tz string) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, df *DataFrame, git *gitinfo.GitInfo, truncate bool, tz string) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}
@@ -370,7 +371,7 @@ func ResponseFromDataFrame(df *DataFrame, git *gitinfo.GitInfo, truncate bool, t
 	ticks := human.FlotTickMarks(ts, tz)
 
 	// Determine where SKP changes occurred.
-	skps, err := getSkps(df.Header, git)
+	skps, err := getSkps(ctx, df.Header, git)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load skps: %s", err)
 	}

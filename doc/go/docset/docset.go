@@ -40,6 +40,7 @@ package docset
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -103,7 +104,7 @@ type DocSet struct {
 // The repo is checked out into repoDir.
 // If a valid issue and patchset are supplied then the repo will be patched with that CL.
 // If refresh is true then the git repo will be periodically refreshed (git pull).
-func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocSet, error) {
+func newDocSet(ctx context.Context, repoDir, repo string, issue, patchset int64, refresh bool) (*DocSet, error) {
 	if issue > 0 {
 		info, err := gc.GetIssueProperties(issue)
 		if err != nil {
@@ -113,7 +114,7 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 			return nil, IssueCommittedErr
 		}
 	}
-	git, err := gitinfo.CloneOrUpdate(repo, repoDir, false)
+	git, err := gitinfo.CloneOrUpdate(ctx, repo, repoDir, false)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 	}
@@ -129,11 +130,11 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 		//                |
 		//                +-> Last two digits of Issue ID.
 		issuePostfix := issue % 100
-		output, err := exec.RunCwd(repoDir, "git", "fetch", repo, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset))
+		output, err := exec.RunCwd(ctx, repoDir, "git", "fetch", repo, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset))
 		if err != nil {
 			return nil, fmt.Errorf("Failed to execute Git %q: %s", output, err)
 		}
-		err = git.Checkout("FETCH_HEAD")
+		err = git.Checkout(ctx, "FETCH_HEAD")
 		if err != nil {
 			return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 		}
@@ -145,7 +146,7 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 	if refresh {
 		go func() {
 			for range time.Tick(config.REFRESH) {
-				util.LogErr(git.Update(true, false))
+				util.LogErr(git.Update(ctx, true, false))
 				d.BuildNavigation()
 			}
 		}()
@@ -179,8 +180,8 @@ func NewPreviewDocSet() (*DocSet, error) {
 }
 
 // NewDocSet creates a new DocSet, one that is periodically refreshed.
-func NewDocSet(workDir, repo string) (*DocSet, error) {
-	d, err := newDocSet(filepath.Join(workDir, "primary"), repo, -1, -1, true)
+func NewDocSet(ctx context.Context, workDir, repo string) (*DocSet, error) {
+	d, err := newDocSet(ctx, filepath.Join(workDir, "primary"), repo, -1, -1, true)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 	}
@@ -191,7 +192,7 @@ func NewDocSet(workDir, repo string) (*DocSet, error) {
 // the given issue.
 //
 // The returned DocSet is not periodically refreshed.
-func NewDocSetForIssue(workDir, repo string, issue int64) (*DocSet, error) {
+func NewDocSetForIssue(ctx context.Context, workDir, repo string, issue int64) (*DocSet, error) {
 	info, err := gc.GetIssueProperties(issue)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load issue info: %s", err)
@@ -211,7 +212,7 @@ func NewDocSetForIssue(workDir, repo string, issue int64) (*DocSet, error) {
 	var d *DocSet
 	repoDir := filepath.Join(workDir, "patches", fmt.Sprintf("%d-%d", issue, patchset))
 	if _, err := os.Stat(repoDir); os.IsNotExist(err) {
-		d, err = newDocSet(repoDir, repo, issue, patchset, false)
+		d, err = newDocSet(ctx, repoDir, repo, issue, patchset, false)
 		if err != nil {
 			if err == IssueCommittedErr {
 				return nil, err

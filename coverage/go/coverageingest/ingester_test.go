@@ -1,6 +1,7 @@
 package coverageingest
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path"
@@ -51,7 +52,8 @@ func mockLongCommits(hashes ...string) []*vcsinfo.LongCommit {
 }
 
 func mockProcessingSteps() *db.MockCoverageCache {
-	unTar = func(tarpath, outpath string) error {
+	// TODO(kjlubick): Use exec.NewContext to mock out the call to tar.
+	unTar = func(ctx context.Context, tarpath, outpath string) error {
 		return nil
 	}
 	calculateCoverage = func(folders ...string) (common.CoverageSummary, error) {
@@ -72,6 +74,7 @@ func TestBlankIngestion(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
+	ctx := context.Background()
 	mcc := mockProcessingSteps()
 
 	calculateCoverage = func(folders ...string) (common.CoverageSummary, error) {
@@ -99,7 +102,7 @@ func TestBlankIngestion(t *testing.T) {
 	mg.On("GetFileContents", ctx, mock.Anything).Return(contents, nil)
 
 	i := New(tpath, mg, mcc)
-	i.IngestCommits(mockLongCommits("abcdefgh", "d123045"))
+	i.IngestCommits(ctx, mockLongCommits("abcdefgh", "d123045"))
 
 	mg.AssertNumberOfCalls(t, "GetFileContents", 6)
 	assertFilesExist(t, path.Join(tpath, "abcdefgh"), "Some-Config.text.tar", "Some-Config.profraw")
@@ -148,6 +151,7 @@ func TestPartialIngestion(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
+	ctx := context.Background()
 	mcc := mockProcessingSteps()
 
 	calculateCoverage = func(folders ...string) (common.CoverageSummary, error) {
@@ -189,7 +193,7 @@ func TestPartialIngestion(t *testing.T) {
 	i := New(tpath, mg, mcc)
 	// Old results should be purgd on new ingest
 	i.results = []IngestedResults{{Commit: &vcsinfo.ShortCommit{Hash: "Should not exist"}, Jobs: []common.CoverageSummary{{Name: "Go away"}}}}
-	i.IngestCommits(mockLongCommits("abcdefgh", "d123045"))
+	i.IngestCommits(ctx, mockLongCommits("abcdefgh", "d123045"))
 
 	mg.AssertNumberOfCalls(t, "GetFileContents", 1)
 	mg.AssertCalled(t, "GetFileContents", ctx, "commit/d123045/Other-Config.text.tar")
@@ -232,13 +236,15 @@ func TestTarIngestion(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
+	ctx := context.Background()
+
 	mg := mockgcsclient.New()
 	defer mg.AssertExpectations(t)
 
 	mcc := mockProcessingSteps()
 
 	called := 0
-	unTar = func(tarpath, outpath string) error {
+	unTar = func(ctx context.Context, tarpath, outpath string) error {
 		called++
 		testutils.AssertDeepEqual(t, path.Join(tpath, "abcdefgh", "Some-Config.html.tar"), tarpath)
 		testutils.AssertDeepEqual(t, path.Join(tpath, "abcdefgh", "Some-Config", "html"), outpath)
@@ -253,7 +259,7 @@ func TestTarIngestion(t *testing.T) {
 	mg.On("GetFileContents", ctx, mock.Anything).Return([]byte(FILE_CONTENT), nil)
 
 	i := New(tpath, mg, mcc)
-	i.IngestCommits(mockLongCommits("abcdefgh"))
+	i.IngestCommits(ctx, mockLongCommits("abcdefgh"))
 
 	mg.AssertCalled(t, "GetFileContents", ctx, "commit/abcdefgh/Some-Config.html.tar")
 	testutils.AssertDeepEqual(t, 1, called) // unTar() should be called exactly once
@@ -266,6 +272,8 @@ func TestCallToCombine(t *testing.T) {
 
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
+
+	ctx := context.Background()
 
 	mg := mockgcsclient.New()
 	defer mg.AssertExpectations(t)
@@ -303,7 +311,7 @@ func TestCallToCombine(t *testing.T) {
 	}).Return(nil).Once()
 
 	i := New(tpath, mg, mcc)
-	i.IngestCommits(mockLongCommits("abcdefgh"))
+	i.IngestCommits(ctx, mockLongCommits("abcdefgh"))
 
 	testutils.AssertDeepEqual(t, 3*5*7, called) // createSummary() should be called 3 times, once with each folder, then once with an array.
 }
@@ -317,6 +325,7 @@ func TestCachingCalls(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
+	ctx := context.Background()
 	mg := mockgcsclient.New()
 	defer mg.AssertExpectations(t)
 
@@ -348,7 +357,7 @@ func TestCachingCalls(t *testing.T) {
 	}).Return(nil).Once()
 
 	i := New(tpath, mg, mcc)
-	i.IngestCommits(mockLongCommits("abcdefgh"))
+	i.IngestCommits(ctx, mockLongCommits("abcdefgh"))
 	assert.Equal(t, 2, called)
 	ir := []IngestedResults{
 		{
@@ -376,13 +385,15 @@ func TestUntarDefaultStructure(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
+	ctx := context.Background()
+
 	tarpath, err := testutils.TestDataDir()
 	assert.NoError(t, err, "Problem with getting TestDataDir")
 	tarpath = path.Join(tarpath, "Sample-Config.html.tar")
 	// The sample tar folder has the same directory structure that comes off
 	// the Linux coverage bots.
 
-	err = defaultUnTar(tarpath, path.Join(tpath, "SomeFolder"))
+	err = defaultUnTar(ctx, tarpath, path.Join(tpath, "SomeFolder"))
 	assert.NoError(t, err, "Problem untarring")
 
 	assertFilesExist(t, path.Join(tpath, "SomeFolder"), "bar.html", "foo.html")

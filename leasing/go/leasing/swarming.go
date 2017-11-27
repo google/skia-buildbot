@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -163,7 +164,7 @@ type IsolateDetails struct {
 	CipdInput   *swarming_api.SwarmingRpcsCipdInput
 }
 
-func GetIsolateDetails(properties *swarming_api.SwarmingRpcsTaskProperties) (*IsolateDetails, error) {
+func GetIsolateDetails(ctx context.Context, properties *swarming_api.SwarmingRpcsTaskProperties) (*IsolateDetails, error) {
 	details := &IsolateDetails{}
 	inputsRef := properties.InputsRef
 
@@ -179,7 +180,7 @@ func GetIsolateDetails(properties *swarming_api.SwarmingRpcsTaskProperties) (*Is
 		"-f", inputsRef.Isolated, path.Base(f.Name()),
 		"-t", *workdir,
 	}
-	output, err := exec.RunCwd(*workdir, cmd...)
+	output, err := exec.RunCwd(ctx, *workdir, cmd...)
 	if err != nil {
 		return details, fmt.Errorf("Failed to run cmd %s: %s", cmd, err)
 	}
@@ -195,7 +196,7 @@ func GetIsolateDetails(properties *swarming_api.SwarmingRpcsTaskProperties) (*Is
 	return details, nil
 }
 
-func GetIsolateHash(pool, osType, isolateDep string) (string, error) {
+func GetIsolateHash(ctx context.Context, pool, osType, isolateDep string) (string, error) {
 	isolateClient := *GetIsolateClient(pool)
 	isolateTask := &isolate.Task{
 		BaseDir:     path.Join(*resourcesDir, "isolates"),
@@ -207,7 +208,7 @@ func GetIsolateHash(pool, osType, isolateDep string) (string, error) {
 		isolateTask.Deps = []string{isolateDep}
 	}
 	isolateTasks := []*isolate.Task{isolateTask}
-	hashes, err := isolateClient.IsolateTasks(isolateTasks)
+	hashes, err := isolateClient.IsolateTasks(ctx, isolateTasks)
 	if err != nil {
 		return "", fmt.Errorf("Could not isolate leasing task: %s", err)
 	}

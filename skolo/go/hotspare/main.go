@@ -5,6 +5,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"net"
@@ -62,7 +63,7 @@ func NewVirtualIPManager(addr string, period, timeout time.Duration, threshold i
 	}
 }
 
-func (v *virtualIPManager) Run() {
+func (v *virtualIPManager) Run(ctx context.Context) {
 	for range time.Tick(v.Period) {
 		conn, err := net.DialTimeout("tcp", v.Addr, v.Timeout)
 		if err != nil {
@@ -70,7 +71,7 @@ func (v *virtualIPManager) Run() {
 			v.consecutiveSuccesses = 0
 			v.accumulatedFailures++
 			if v.accumulatedFailures == v.Threshold {
-				bringUpVIP()
+				bringUpVIP(ctx)
 			}
 		} else {
 			sklog.Infof("Connected successfully to %s. %v\n", v.Addr, conn.Close())
@@ -93,18 +94,18 @@ func (v *virtualIPManager) Run() {
 	}
 }
 
-func isServing() bool {
-	out, err := exec.RunSimple("ifconfig")
+func isServing(ctx context.Context) bool {
+	out, err := exec.RunSimple(ctx, "ifconfig")
 	if err != nil {
 		sklog.Errorf("There was a problem running ifconfig: %s", err)
 	}
 	return strings.Contains(out, *virtualInterface)
 }
 
-func bringUpVIP() {
+func bringUpVIP(ctx context.Context) {
 	sklog.Infof("Bringing up VIP, master is dead")
 	cmd := fmt.Sprintf("sudo ifconfig %s %s", *virtualInterface, *virtualIp)
-	out, err := exec.RunSimple(cmd)
+	out, err := exec.RunSimple(ctx, cmd)
 	sklog.Infof("Output: %s", out)
 	if err != nil {
 		sklog.Errorf("Could not bring up VIP: %s", err)
@@ -126,18 +127,18 @@ func NewImageSyncer(period time.Duration, remotePath, localPath string) *imageSy
 	}
 }
 
-func (i *imageSyncer) Run() {
+func (i *imageSyncer) Run(ctx context.Context) {
 	// Force a sync at the beginning to make sure we are in a good state for serving.
-	i.sync()
+	i.sync(ctx)
 	for range time.Tick(i.Period) {
-		i.sync()
+		i.sync(ctx)
 	}
 }
 
 // sync pulls the image from master and then, if successful, reloads the image
 // that is being served via NFS.
-func (i *imageSyncer) sync() bool {
-	if isServing() {
+func (i *imageSyncer) sync(ctx context.Context) bool {
+	if isServing(ctx) {
 		sklog.Infof("Skipping sync because we are already serving")
 		return false
 	}
@@ -147,7 +148,7 @@ func (i *imageSyncer) sync() bool {
 	stdErr := bytes.Buffer{}
 	tempDest := i.LocalPath + ".tmp"
 	// This only works if the master has the spare's ssh key in authorized_key
-	err := exec.Run(&exec.Command{
+	err := exec.Run(ctx, &exec.Command{
 		Name:   "rsync",
 		Args:   []string{i.RemotePath, tempDest},
 		Stdout: &stdOut,
@@ -160,21 +161,21 @@ func (i *imageSyncer) sync() bool {
 		return false
 	} else {
 		sklog.Infof("No error with rsync")
-		stopServing()
+		stopServing(ctx)
 		time.Sleep(time.Second) // Make sure old file handle is released.
 		if err = os.Rename(tempDest, i.LocalPath); err != nil {
 			sklog.Errorf("Could not rename temporary image. Staying with old image: %s", err)
 		}
-		startServing()
+		startServing(ctx)
 	}
 	return true
 }
 
 // stopServing uses Ansible playbooks to stop serving the image.
-func stopServing() {
+func stopServing(ctx context.Context) {
 	stdOut := bytes.Buffer{}
 	stdErr := bytes.Buffer{}
-	err := exec.Run(&exec.Command{
+	err := exec.Run(ctx, &exec.Command{
 		Name:   "ansible-playbook",
 		Args:   []string{"-i", `"localhost,"`, "-c", "local", *stopServingPlaybook},
 		Stdout: &stdOut,
@@ -191,10 +192,10 @@ func stopServing() {
 
 // startServing uses Ansible playbooks to start serving the image,
 // which forces a refresh of the image being served.
-func startServing() {
+func startServing(ctx context.Context) {
 	stdOut := bytes.Buffer{}
 	stdErr := bytes.Buffer{}
-	err := exec.Run(&exec.Command{
+	err := exec.Run(ctx, &exec.Command{
 		Name:   "ansible-playbook",
 		Args:   []string{"-i", `"localhost,"`, "-c", "local", *startServingPlaybook},
 		Stdout: &stdOut,
@@ -216,16 +217,16 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingJWTOpt(serviceAccountPath),
 	)
-
+	ctx := context.Background()
 	lt := NewVirtualIPManager(*livenessAddr, *livenessPeriod, *livenessTimeout, *livenessThreshold)
-	go lt.Run()
+	go lt.Run(ctx)
 
 	is := NewImageSyncer(*syncPeriod, *syncRemotePath, *syncLocalPath)
-	go is.Run()
+	go is.Run(ctx)
 
 	go func() {
 		for range time.Tick(*metricsPeriod) {
-			if isServing() {
+			if isServing(ctx) {
 				metrics2.GetInt64Metric("skolo_hotspare_spare_active", nil).Update(int64(1))
 			} else {
 				metrics2.GetInt64Metric("skolo_hotspare_spare_active", nil).Update(int64(0))

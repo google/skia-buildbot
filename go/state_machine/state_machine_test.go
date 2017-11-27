@@ -1,6 +1,7 @@
 package state_machine
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -18,12 +19,14 @@ func TestStateMachine(t *testing.T) {
 	w, err := ioutil.TempDir("", "")
 	defer testutils.RemoveAll(t, w)
 
+	ctx := context.Background()
+
 	b := NewBuilder()
 	b.T("15", "16", "noop")
 	b.T("16", "17", "err")
 
 	b.F("noop", nil)
-	b.F("err", func() error {
+	b.F("err", func(ctx context.Context) error {
 		return fmt.Errorf("nope")
 	})
 	b.SetInitial("85")
@@ -43,12 +46,12 @@ func TestStateMachine(t *testing.T) {
 	name, err := s.GetTransitionName("16")
 	assert.NoError(t, err)
 	assert.Equal(t, "noop", name)
-	assert.NoError(t, s.Transition("16"))
+	assert.NoError(t, s.Transition(ctx, "16"))
 	assert.Equal(t, "16", s.Current())
 	name, err = s.GetTransitionName("17")
 	assert.NoError(t, err)
 	assert.Equal(t, "err", name)
-	assert.EqualError(t, s.Transition("17"), "Failed to transition from \"16\" to \"17\": nope")
+	assert.EqualError(t, s.Transition(ctx, "17"), "Failed to transition from \"16\" to \"17\": nope")
 	assert.Equal(t, "16", s.Current())
 
 	b.T("16", "17", "noop")
@@ -70,7 +73,7 @@ func TestStateMachine(t *testing.T) {
 	name, err = p.GetTransitionName("17")
 	assert.NoError(t, err)
 	assert.Equal(t, "noop", name)
-	assert.NoError(t, p.Transition("17"))
+	assert.NoError(t, p.Transition(ctx, "17"))
 	assert.Equal(t, "17", p.Current())
 	p2, err := b.Build(w)
 	assert.NoError(t, err)
@@ -82,5 +85,5 @@ func TestStateMachine(t *testing.T) {
 	expectErr := "Transition to \"anotherstate\" already in progress; did a previous transition get interrupted?"
 	_, err = b.Build(w)
 	assert.EqualError(t, err, expectErr)
-	assert.EqualError(t, p2.Transition("17"), expectErr)
+	assert.EqualError(t, p2.Transition(ctx, "17"), expectErr)
 }
