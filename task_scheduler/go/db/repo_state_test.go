@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
@@ -46,11 +47,13 @@ func TestCopyRepoState(t *testing.T) {
 //       \-c2-----/
 func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map, func()) {
 	testutils.MediumTest(t)
-	gb1 := git_testutils.GitInit(t)
-	commits1 := git_testutils.GitSetup(gb1)
 
-	gb2 := git_testutils.GitInit(t)
-	commits2 := git_testutils.GitSetup(gb2)
+	ctx := context.Background()
+	gb1 := git_testutils.GitInit(t, ctx)
+	commits1 := git_testutils.GitSetup(ctx, gb1)
+
+	gb2 := git_testutils.GitInit(t, ctx)
+	commits2 := git_testutils.GitSetup(ctx, gb2)
 
 	commitMap := map[string][]string{
 		gb1.RepoUrl(): commits1,
@@ -60,7 +63,7 @@ func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map, func()) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repoMap, err := repograph.NewMap([]string{gb1.RepoUrl(), gb2.RepoUrl()}, tmp)
+	repoMap, err := repograph.NewMap(ctx, []string{gb1.RepoUrl(), gb2.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
 	cleanup := func() {

@@ -36,6 +36,8 @@ const (
 func TestPDFProcessor(t *testing.T) {
 	testutils.LargeTest(t)
 
+	ctx := context.Background()
+
 	// Get the service account client from meta data or a local config file.
 	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
 	assert.NoError(t, err)
@@ -69,7 +71,7 @@ func TestPDFProcessor(t *testing.T) {
 	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
 	assert.NoError(t, err)
 
-	err = processor.Process(fsResult)
+	err = processor.Process(ctx, fsResult)
 	assert.NoError(t, err)
 
 	// Fetch the json output and parse it.

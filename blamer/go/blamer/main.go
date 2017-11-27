@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -34,9 +35,10 @@ message is displayed. Must be run within the git repo.
 }
 func main() {
 	common.Init()
+	ctx := context.Background()
 	match_found := false
 	for i := 0; i < *num; i++ {
-		res, err := exec.RunSimple(fmt.Sprintf("git show HEAD~%d..HEAD~%d", i+1, i))
+		res, err := exec.RunSimple(ctx, fmt.Sprintf("git show HEAD~%d..HEAD~%d", i+1, i))
 		if err != nil {
 			sklog.Fatalf("Failed to get the git info: %s", err)
 		}
@@ -48,7 +50,7 @@ func main() {
 		if strings.Index(res, *match) >= 0 {
 			match_found = true
 			if *verbose {
-				msg, err := exec.RunSimple(fmt.Sprintf("git show --no-patch %s", githash))
+				msg, err := exec.RunSimple(ctx, fmt.Sprintf("git show --no-patch %s", githash))
 				if err != nil {
 					sklog.Fatalf("Failed to get commit details: %s", err)
 				}

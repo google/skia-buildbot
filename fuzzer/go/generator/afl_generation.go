@@ -36,12 +36,12 @@ func New(category string) *Generator {
 // Start starts up 1 goroutine running a "master" afl-fuzz and n-1 "slave" afl-fuzz processes, where
 // n is specified by config.Generator.NumFuzzProcesses. Output goes to
 // config.Generator.AflOutputPath/[category].
-func (g *Generator) Start() error {
+func (g *Generator) Start(ctx context.Context) error {
 	if config.Generator.SkipGeneration {
 		sklog.Info("Skipping generation because flag was set.")
 		return nil
 	}
-	executable, err := g.setup()
+	executable, err := g.setup(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed %s generator setup: %s", g.Category, err)
 	}
@@ -90,12 +90,12 @@ func (g *Generator) Start() error {
 
 // setup clears out previous fuzzing sessions and builds the executable we need to run afl-fuzz.
 // The binary is then copied to the working directory as "fuzz_afl_Release".
-func (g *Generator) setup() (string, error) {
+func (g *Generator) setup(ctx context.Context) (string, error) {
 	if err := g.Clear(); err != nil {
 		return "", err
 	}
 	// get a version of Skia built with afl-fuzz's instrumentation
-	if srcExe, err := common.BuildFuzzingHarness(buildskia.RELEASE_BUILD, true); err != nil {
+	if srcExe, err := common.BuildFuzzingHarness(ctx, buildskia.RELEASE_BUILD, true); err != nil {
 		return "", fmt.Errorf("Failed to build fuzz executable using afl-fuzz %s", err)
 	} else {
 		// copy to working directory

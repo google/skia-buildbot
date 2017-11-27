@@ -1,6 +1,7 @@
 package repograph
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -20,14 +21,15 @@ import (
 //
 // c1--c2------c4--c5--
 //       \-c3-----/
-func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func()) {
-	g := git_testutils.GitInit(t)
-	g.CommitGen("myfile.txt")
+func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, []*Commit, func()) {
+	ctx := context.Background()
+	g := git_testutils.GitInit(t, ctx)
+	g.CommitGen(ctx, "myfile.txt")
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repo, err := NewGraph(g.Dir(), tmp)
+	repo, err := NewGraph(ctx, g.Dir(), tmp)
 	assert.NoError(t, err)
 
 	c1 := repo.Get("master")
@@ -35,8 +37,8 @@ func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func(
 	assert.Equal(t, 0, len(c1.GetParents()))
 	assert.False(t, util.TimeIsZero(c1.Timestamp))
 
-	g.CommitGen("myfile.txt")
-	assert.NoError(t, repo.Update())
+	g.CommitGen(ctx, "myfile.txt")
+	assert.NoError(t, repo.Update(ctx))
 	c2 := repo.Get("master")
 	assert.NotNil(t, c2)
 	assert.Equal(t, 1, len(c2.GetParents()))
@@ -45,9 +47,9 @@ func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func(
 	assert.False(t, util.TimeIsZero(c2.Timestamp))
 
 	// Create a second branch.
-	g.CreateBranchTrackBranch("branch2", "origin/master")
-	g.CommitGen("anotherfile.txt")
-	assert.NoError(t, repo.Update())
+	g.CreateBranchTrackBranch(ctx, "branch2", "origin/master")
+	g.CommitGen(ctx, "anotherfile.txt")
+	assert.NoError(t, repo.Update(ctx))
 	c3 := repo.Get("branch2")
 	assert.NotNil(t, c3)
 	assert.Equal(t, c2, repo.Get("master"))
@@ -55,24 +57,24 @@ func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func(
 	assert.False(t, util.TimeIsZero(c3.Timestamp))
 
 	// Commit again to master.
-	g.CheckoutBranch("master")
-	g.CommitGen("myfile.txt")
-	assert.NoError(t, repo.Update())
+	g.CheckoutBranch(ctx, "master")
+	g.CommitGen(ctx, "myfile.txt")
+	assert.NoError(t, repo.Update(ctx))
 	assert.Equal(t, c3, repo.Get("branch2"))
 	c4 := repo.Get("master")
 	assert.NotNil(t, c4)
 	assert.False(t, util.TimeIsZero(c4.Timestamp))
 
 	// Merge branch1 into master.
-	g.MergeBranch("branch2")
-	assert.NoError(t, repo.Update())
+	g.MergeBranch(ctx, "branch2")
+	assert.NoError(t, repo.Update(ctx))
 	assert.Equal(t, []string{"branch2", "master"}, repo.Branches())
 	c5 := repo.Get("master")
 	assert.NotNil(t, c5)
 	assert.Equal(t, c3, repo.Get("branch2"))
 	assert.False(t, util.TimeIsZero(c5.Timestamp))
 
-	return g, repo, []*Commit{c1, c2, c3, c4, c5}, func() {
+	return ctx, g, repo, []*Commit{c1, c2, c3, c4, c5}, func() {
 		g.Cleanup()
 		testutils.RemoveAll(t, tmp)
 	}
@@ -80,7 +82,7 @@ func gitSetup(t *testing.T) (*git_testutils.GitBuilder, *Graph, []*Commit, func(
 
 func TestGraph(t *testing.T) {
 	testutils.MediumTest(t)
-	g, repo, commits, cleanup := gitSetup(t)
+	ctx, g, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
 
 	c1 := commits[0]
@@ -100,7 +102,7 @@ func TestGraph(t *testing.T) {
 	tmp2, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
-	repo2, err := NewGraph(g.Dir(), tmp2)
+	repo2, err := NewGraph(ctx, g.Dir(), tmp2)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
@@ -113,10 +115,10 @@ func TestGraph(t *testing.T) {
 
 func TestSerialize(t *testing.T) {
 	testutils.MediumTest(t)
-	g, repo, _, cleanup := gitSetup(t)
+	ctx, g, repo, _, cleanup := gitSetup(t)
 	defer cleanup()
 
-	repo2, err := NewGraph(g.Dir(), path.Dir(repo.repo.Dir()))
+	repo2, err := NewGraph(ctx, g.Dir(), path.Dir(repo.repo.Dir()))
 	assert.NoError(t, err)
 
 	testutils.AssertDeepEqual(t, repo, repo2)
@@ -124,7 +126,7 @@ func TestSerialize(t *testing.T) {
 
 func TestRecurse(t *testing.T) {
 	testutils.LargeTest(t)
-	_, repo, commits, cleanup := gitSetup(t)
+	_, _, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
 
 	c1 := commits[0]
@@ -180,7 +182,7 @@ func TestRecurse(t *testing.T) {
 
 func TestRecurseAllBranches(t *testing.T) {
 	testutils.LargeTest(t)
-	g, repo, commits, cleanup := gitSetup(t)
+	ctx, g, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
 
 	c1 := commits[0]
@@ -207,9 +209,9 @@ func TestRecurseAllBranches(t *testing.T) {
 
 	// The above used only one branch. Add a branch and ensure that we see
 	// its commits too.
-	g.CreateBranchTrackBranch("mybranch", "origin/master")
-	g.CommitGen("anotherfile.txt")
-	assert.NoError(t, repo.Update())
+	g.CreateBranchTrackBranch(ctx, "mybranch", "origin/master")
+	g.CommitGen(ctx, "anotherfile.txt")
+	assert.NoError(t, repo.Update(ctx))
 	c := repo.Get("mybranch")
 	assert.NotNil(t, c)
 	commits = append(commits, c)
@@ -217,8 +219,8 @@ func TestRecurseAllBranches(t *testing.T) {
 
 	// Verify that we don't revisit a branch whose HEAD is an ancestor of
 	// a different branch HEAD.
-	g.CreateBranchAtCommit("ancestorbranch", c3.Hash)
-	assert.NoError(t, repo.Update())
+	g.CreateBranchAtCommit(ctx, "ancestorbranch", c3.Hash)
+	assert.NoError(t, repo.Update(ctx))
 	test()
 
 	// Verify that we still stop recursion when requested.
@@ -251,9 +253,9 @@ func TestRecurseAllBranches(t *testing.T) {
 
 func TestFindCommit(t *testing.T) {
 	testutils.LargeTest(t)
-	g1, repo1, commits1, cleanup1 := gitSetup(t)
+	_, g1, repo1, commits1, cleanup1 := gitSetup(t)
 	defer cleanup1()
-	g2, repo2, commits2, cleanup2 := gitSetup(t)
+	_, g2, repo2, commits2, cleanup2 := gitSetup(t)
 	defer cleanup2()
 
 	m := Map{
@@ -316,7 +318,7 @@ func TestFindCommit(t *testing.T) {
 
 func TestUpdateHistoryChanged(t *testing.T) {
 	testutils.LargeTest(t)
-	g, repo, commits, cleanup := gitSetup(t)
+	ctx, g, repo, commits, cleanup := gitSetup(t)
 	defer cleanup()
 
 	// c3 is the one commit on branch2.
@@ -325,18 +327,18 @@ func TestUpdateHistoryChanged(t *testing.T) {
 	assert.Equal(t, c3, commits[2]) // c3 from setup()
 
 	// Change branch 2 to be based at c4 with one commit, c6.
-	g.CheckoutBranch("branch2")
-	g.Reset("--hard", commits[3].Hash) // c4 from setup()
+	g.CheckoutBranch(ctx, "branch2")
+	g.Reset(ctx, "--hard", commits[3].Hash) // c4 from setup()
 	f := "myfile"
-	c6hash := g.CommitGen(f)
+	c6hash := g.CommitGen(ctx, f)
 
-	assert.NoError(t, repo.Update())
+	assert.NoError(t, repo.Update(ctx))
 	c6 := repo.Get("branch2")
 	assert.NotNil(t, c6)
 	assert.Equal(t, c6hash, c6.Hash)
 
 	// Ensure that c3 is not reachable from c6.
-	anc, err := repo.repo.IsAncestor(c3.Hash, c6.Hash)
+	anc, err := repo.repo.IsAncestor(ctx, c3.Hash, c6.Hash)
 	assert.NoError(t, err)
 	assert.False(t, anc)
 

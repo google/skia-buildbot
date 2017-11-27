@@ -5,6 +5,7 @@ package dataproc
 */
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -48,11 +49,11 @@ func (j *PySparkJob) Command() *exec.Command {
 }
 
 // Trigger the job and return its ID.
-func (j *PySparkJob) Submit() (string, error) {
+func (j *PySparkJob) Submit(ctx context.Context) (string, error) {
 	if j.Cluster == "" {
 		return "", fmt.Errorf("Cluster is required.")
 	}
-	res, err := exec.RunCommand(j.Command())
+	res, err := exec.RunCommand(ctx, j.Command())
 	if err != nil {
 		return "", err
 	}
@@ -66,17 +67,17 @@ func (j *PySparkJob) Submit() (string, error) {
 }
 
 // Wait for the job to complete and return its output.
-func (j *PySparkJob) Wait() (string, error) {
-	return exec.RunCommand(&exec.Command{
+func (j *PySparkJob) Wait(ctx context.Context) (string, error) {
+	return exec.RunCommand(ctx, &exec.Command{
 		Name: "gcloud",
 		Args: []string{"dataproc", "jobs", "wait", j.id},
 	})
 }
 
 // Run the job and return its output.
-func (j *PySparkJob) Run() (string, error) {
-	if _, err := j.Submit(); err != nil {
+func (j *PySparkJob) Run(ctx context.Context) (string, error) {
+	if _, err := j.Submit(ctx); err != nil {
 		return "", err
 	}
-	return j.Wait()
+	return j.Wait(ctx)
 }

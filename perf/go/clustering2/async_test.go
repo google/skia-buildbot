@@ -1,6 +1,7 @@
 package clustering2
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -91,16 +92,20 @@ type mockVcs struct{}
 func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	return []*vcsinfo.IndexCommit{&vcsinfo.IndexCommit{Index: 2005}}
 }
-func (m *mockVcs) Update(pull, allBranches bool) error               { return nil }
-func (m *mockVcs) From(start time.Time) []string                     { return nil }
-func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit { return nil }
-func (m *mockVcs) IndexOf(hash string) (int, error)                  { return 0, nil }
-func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error)        { return nil, nil }
-func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
+func (m *mockVcs) Update(ctx context.Context, pull, allBranches bool) error        { return nil }
+func (m *mockVcs) From(start time.Time) []string                                   { return nil }
+func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit               { return nil }
+func (m *mockVcs) IndexOf(ctx context.Context, hash string) (int, error)           { return 0, nil }
+func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) { return nil, nil }
+func (m *mockVcs) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
-func (m *mockVcs) GetFile(fileName, commitHash string) (string, error) { return "", nil }
-func (m *mockVcs) ResolveCommit(commitHash string) (string, error)     { return "", nil }
+func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
+	return "", nil
+}
+func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
+	return "", nil
+}
 
 func TestCalcCidsSparse(t *testing.T) {
 	testutils.SmallTest(t)

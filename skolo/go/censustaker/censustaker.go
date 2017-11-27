@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -16,8 +17,8 @@ var (
 	switchAddress = flag.String("switch_address", "", "The IP address of the switch to pull the port numbers from.")
 )
 
-func enumerateBots(names BotNameGetter, ports BotPortGetter) ([]Bot, error) {
-	nameList, err := names.GetBotNamesAddresses()
+func enumerateBots(ctx context.Context, names BotNameGetter, ports BotPortGetter) ([]Bot, error) {
+	nameList, err := names.GetBotNamesAddresses(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Could not fetch bot names and mac addresses: %s", err)
 	}
@@ -65,8 +66,9 @@ func main() {
 		sklog.Fatalf("--script_dir %s points to a non-existent directory", *scriptDir)
 	}
 
+	ctx := context.Background()
 	ansible := NewAnsibleBotNameGetter(*scriptDir, *ansibleOutput)
 	edgeswitch := NewEdgeSwitchBotPortGetter(*switchAddress)
-	bots, err := enumerateBots(ansible, edgeswitch)
+	bots, err := enumerateBots(ctx, ansible, edgeswitch)
 	sklog.Infof("Found bots %v (With err %v)", bots, err)
 }

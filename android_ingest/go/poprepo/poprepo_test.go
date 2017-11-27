@@ -1,6 +1,7 @@
 package poprepo
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -16,18 +17,20 @@ import (
 func TestAdd(t *testing.T) {
 	testsize.MediumTest(t)
 
+	ctx := context.Background()
+
 	// Create a test repo.
-	gb := testutils.GitInit(t)
+	gb := testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 
 	// Populate it with an initial BUILDID file.
-	gb.Add(BUILDID_FILENAME, "0 0")
-	gb.CommitMsg("https://android-ingest.skia.org/r/0")
+	gb.Add(ctx, BUILDID_FILENAME, "0 0")
+	gb.CommitMsg(ctx, "https://android-ingest.skia.org/r/0")
 
 	// Create a branch and check it out, otherwise we can't push
 	// to 'master' on this repo.
-	gb.CreateBranchTrackBranch("somebranch", "origin/master")
-	gb.CheckoutBranch("somebranch")
+	gb.CreateBranchTrackBranch(ctx, "somebranch", "origin/master")
+	gb.CheckoutBranch(ctx, "somebranch")
 
 	// Create tmp dir that gets cleaned up.
 	workdir, err := ioutil.TempDir("", "poprepo")
@@ -37,51 +40,51 @@ func TestAdd(t *testing.T) {
 	}()
 
 	// Start testing.
-	checkout, err := git.NewCheckout(gb.Dir(), workdir)
+	checkout, err := git.NewCheckout(context.Background(), gb.Dir(), workdir)
 	assert.NoError(t, err)
-	err = checkout.Cleanup()
+	err = checkout.Cleanup(ctx)
 	assert.NoError(t, err)
 
 	p := NewPopRepo(checkout, true, "android-ingest")
 	assert.NoError(t, err)
 
-	_, err = p.checkout.Git("config", "user.email", "tester@example.com")
+	_, err = p.checkout.Git(ctx, "config", "user.email", "tester@example.com")
 	assert.NoError(t, err)
-	_, err = p.checkout.Git("config", "user.name", "tester@example.com")
+	_, err = p.checkout.Git(ctx, "config", "user.name", "tester@example.com")
 	assert.NoError(t, err)
 
 	// Confirm our inital commit is really there.
-	buildid, ts, hash, err := p.GetLast()
+	buildid, ts, hash, err := p.GetLast(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(0), buildid)
 	assert.Equal(t, int64(0), ts)
 	assert.Len(t, hash, 40)
-	foundBuildID, err := p.LookupBuildID(hash)
+	foundBuildID, err := p.LookupBuildID(ctx, hash)
 	assert.NoError(t, err)
 	assert.Equal(t, buildid, foundBuildID)
 
-	foundBuildID, err = p.LookupBuildID("notahash")
+	foundBuildID, err = p.LookupBuildID(ctx, "notahash")
 	assert.Error(t, err)
 
 	// Add a couple more commits.
-	err = p.Add(3516196, 1479855768)
+	err = p.Add(ctx, 3516196, 1479855768)
 	assert.NoError(t, err)
 
-	err = p.Add(3516727, 1479863307)
+	err = p.Add(ctx, 3516727, 1479863307)
 	assert.NoError(t, err)
 
 	// Try to add something wrong.
-	err = p.Add(3516727-1, 1479863307-1)
+	err = p.Add(ctx, 3516727-1, 1479863307-1)
 	assert.Error(t, err)
 
 	// Confirm we get what we added before the error.
-	buildid, ts, hash, err = p.GetLast()
+	buildid, ts, hash, err = p.GetLast(ctx)
 	assert.Equal(t, int64(3516727), buildid)
 	assert.Equal(t, int64(1479863307), ts)
 	assert.Len(t, hash, 40)
 
 	// Confirm all the commits are there.
-	log, err := p.checkout.Git("log", "--pretty=oneline")
+	log, err := p.checkout.Git(ctx, "log", "--pretty=oneline")
 	assert.NoError(t, err)
 
 	loglines := strings.Split(log, "\n")

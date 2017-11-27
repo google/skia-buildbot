@@ -41,7 +41,7 @@ type result struct {
 // regular expression. Returns the map of results, keyed by zone then instance
 // name. Only returns an error on critical failures, like failure to create the
 // API client or failure to retrieve the list of instances.
-func RunOnInstances(re *regexp.Regexp, cmd []string) (map[string]map[string]*result, error) {
+func RunOnInstances(ctx context.Context, re *regexp.Regexp, cmd []string) (map[string]map[string]*result, error) {
 	results := map[string]map[string]*result{}
 	pool := workerpool.New(50)
 	for _, zone := range gce.VALID_ZONES {
@@ -52,7 +52,7 @@ func RunOnInstances(re *regexp.Regexp, cmd []string) (map[string]map[string]*res
 		s := g.Service()
 		call := s.Instances.List(gce.PROJECT_ID_SERVER, zone)
 		instances := []string{}
-		if err := call.Pages(context.Background(), func(list *compute.InstanceList) error {
+		if err := call.Pages(ctx, func(list *compute.InstanceList) error {
 			for _, i := range list.Items {
 				if re.MatchString(i.Name) {
 					instances = append(instances, i.Name)
@@ -77,7 +77,7 @@ func RunOnInstances(re *regexp.Regexp, cmd []string) (map[string]map[string]*res
 					Os:   gce.OS_LINUX,
 					User: "default",
 				}
-				out, err := g.Ssh(vm, cmd...)
+				out, err := g.Ssh(ctx, vm, cmd...)
 				r := &result{}
 				if err != nil {
 					r.Error = err.Error()
@@ -102,7 +102,7 @@ func main() {
 	cmd := strings.Fields(*command)
 	re := regexp.MustCompile(*instanceRe)
 
-	results, err := RunOnInstances(re, cmd)
+	results, err := RunOnInstances(context.Background(), re, cmd)
 	if err != nil {
 		sklog.Fatal(err)
 	}

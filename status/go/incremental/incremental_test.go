@@ -1,6 +1,7 @@
 package incremental
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -16,22 +17,23 @@ import (
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-func setup(t *testing.T) (string, *IncrementalCache, repograph.Map, db.DB, *git_testutils.GitBuilder, func()) {
+func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, db.DB, *git_testutils.GitBuilder, func()) {
 	testutils.MediumTest(t)
 	taskDb := db.NewInMemoryTaskDB()
 	commentDb := &db.CommentBox{}
 	d := db.NewDB(taskDb, nil, commentDb)
 
-	gb := git_testutils.GitInit(t)
-	c0 := gb.CommitGen("dummy")
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
+	c0 := gb.CommitGen(ctx, "dummy")
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	repo, err := repograph.NewGraph(gb.Dir(), workdir)
+	repo, err := repograph.NewGraph(ctx, gb.Dir(), workdir)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
-	assert.NoError(t, repos.Update())
+	assert.NoError(t, repos.Update(ctx))
 
 	initialTask := &db.Task{
 		Created:    time.Now(),
@@ -50,17 +52,17 @@ func setup(t *testing.T) (string, *IncrementalCache, repograph.Map, db.DB, *git_
 	w, err := window.New(24*time.Hour, 100, repos)
 	assert.NoError(t, err)
 
-	cache, err := NewIncrementalCache(d, w, repos, 100, "https://swarming", "https://task-scheduler")
+	cache, err := NewIncrementalCache(ctx, d, w, repos, 100, "https://swarming", "https://task-scheduler")
 	assert.NoError(t, err)
 
-	return workdir, cache, repos, d, gb, func() {
+	return ctx, workdir, cache, repos, d, gb, func() {
 		testutils.RemoveAll(t, workdir)
 		gb.Cleanup()
 	}
 }
 
-func update(t *testing.T, repo string, c *IncrementalCache, ts time.Time) (*Update, time.Time) {
-	assert.NoError(t, c.Update(false))
+func update(t *testing.T, ctx context.Context, repo string, c *IncrementalCache, ts time.Time) (*Update, time.Time) {
+	assert.NoError(t, c.Update(ctx, false))
 	now := time.Now()
 	u, err := c.Get(repo, ts, 100)
 	assert.NoError(t, err)
@@ -68,7 +70,7 @@ func update(t *testing.T, repo string, c *IncrementalCache, ts time.Time) (*Upda
 }
 
 func TestIncrementalCache(t *testing.T) {
-	_, cache, repos, taskDb, gb, cleanup := setup(t)
+	ctx, _, cache, repos, taskDb, gb, cleanup := setup(t)
 	defer cleanup()
 
 	repoUrl := ""
@@ -103,7 +105,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.NoError(t, err)
 	t0.Status = db.TASK_STATUS_SUCCESS
 	assert.NoError(t, taskDb.PutTask(t0))
-	u, ts = update(t, repoUrl, cache, ts)
+	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the updated task.
 	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
 	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
@@ -126,7 +128,7 @@ func TestIncrementalCache(t *testing.T) {
 		Message:   "here's a task comment.",
 	}
 	assert.NoError(t, taskDb.PutTaskComment(&tc))
-	u, ts = update(t, repoUrl, cache, ts)
+	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new TaskComment.
 	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
 	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
@@ -161,7 +163,7 @@ func TestIncrementalCache(t *testing.T) {
 		Message:       "here's a commit comment",
 	}
 	assert.NoError(t, taskDb.PutCommitComment(&cc))
-	u, ts = update(t, repoUrl, cache, ts)
+	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new CommitComment.
 	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
 	testutils.AssertDeepEqual(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
@@ -184,7 +186,7 @@ func TestIncrementalCache(t *testing.T) {
 		Message:       "here's a task spec comment",
 	}
 	assert.NoError(t, taskDb.PutTaskSpecComment(&tsc))
-	u, ts = update(t, repoUrl, cache, ts)
+	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new TaskSpecComment.
 	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
 	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
@@ -197,8 +199,8 @@ func TestIncrementalCache(t *testing.T) {
 	testutils.AssertDeepEqual(t, tsc, u.TaskSpecComments[t0.Name][0].TaskSpecComment)
 
 	// Add a new commit.
-	gb.CommitGen("dummy")
-	u, ts = update(t, repoUrl, cache, ts)
+	gb.CommitGen(ctx, "dummy")
+	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new commit and the branch heads..
 	assert.Equal(t, 1, len(u.BranchHeads))
 	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
@@ -211,10 +213,10 @@ func TestIncrementalCache(t *testing.T) {
 	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// This will cause the cache to reload from scratch.
-	assert.NoError(t, cache.Update(true))
+	assert.NoError(t, cache.Update(ctx, true))
 	// Expect the update to contain ALL of the information we've seen so
 	// far, even though we're requesting the most recent.
-	u, ts = update(t, repoUrl, cache, ts)
+	u, ts = update(t, ctx, repoUrl, cache, ts)
 	assert.Equal(t, 1, len(u.BranchHeads))
 	testutils.AssertDeepEqual(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
 	assert.Equal(t, 2, len(u.Commits))

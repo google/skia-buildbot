@@ -138,6 +138,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
+	ctx := context.Background()
 
 	if err := writeFlagsToConfig(); err != nil {
 		sklog.Fatalf("Problem with configuration: %s", err)
@@ -145,13 +146,13 @@ func main() {
 
 	Init()
 
-	if err := setupOAuth(); err != nil {
+	if err := setupOAuth(ctx); err != nil {
 		sklog.Fatal(err)
 	}
 	client := fstorage.NewFuzzerGCSClient(storageClient, config.GCS.Bucket)
 
 	go func() {
-		if err := download_skia.AtGCSRevision(client, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
+		if err := download_skia.AtGCSRevision(ctx, client, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
 			sklog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
@@ -174,7 +175,7 @@ func main() {
 		fuzzSyncer.SetGCSLoader(gsLoader)
 		updater := frontend.NewVersionUpdater(gsLoader, fuzzSyncer)
 		versionWatcher = version_watcher.New(client, config.Common.VersionCheckPeriod, nil, updater.HandleCurrentVersion)
-		versionWatcher.Start()
+		versionWatcher.Start(ctx)
 
 		err = <-versionWatcher.Status
 		sklog.Fatal(err)
@@ -211,7 +212,7 @@ func writeFlagsToConfig() error {
 	return nil
 }
 
-func setupOAuth() error {
+func setupOAuth(ctx context.Context) error {
 	useRedirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
 		useRedirectURL = *redirectURL
@@ -225,7 +226,7 @@ func setupOAuth() error {
 		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
 
-	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		return fmt.Errorf("Problem authenticating: %s", err)
 	}
@@ -535,7 +536,7 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 		s.LastUpdated = config.Common.SkiaVersion.Timestamp
 		if versionWatcher != nil {
 			if pending := versionWatcher.LastPendingHash; pending != "" {
-				if ci, err := getCommitInfo(pending); err != nil {
+				if ci, err := getCommitInfo(context.Background(), pending); err != nil {
 					sklog.Errorf("Problem getting git info about pending revision %s: %s", pending, err)
 				} else {
 					s.Pending = &commit{
@@ -573,24 +574,24 @@ func newBugHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // getCommitInfo updates the front end's checkout of Skia and then queries it for information about the given revision.
-func getCommitInfo(revision string) (*vcsinfo.LongCommit, error) {
+func getCommitInfo(ctx context.Context, revision string) (*vcsinfo.LongCommit, error) {
 	repoLock.Lock()
 	defer repoLock.Unlock()
 	var err error
-	repo, err = gitinfo.NewGitInfo(filepath.Join(config.Common.SkiaRoot, "skia"), false, false)
+	repo, err = gitinfo.NewGitInfo(ctx, filepath.Join(config.Common.SkiaRoot, "skia"), false, false)
 	if err != nil {
 		return nil, fmt.Errorf("Could not create Skia repo: %s", err)
 	}
 
-	if err = repo.Checkout("master"); err != nil {
+	if err = repo.Checkout(ctx, "master"); err != nil {
 		return nil, fmt.Errorf("Could not checkout master: %s", err)
 	}
 
-	if err = repo.Update(true, false); err != nil {
+	if err = repo.Update(ctx, true, false); err != nil {
 		return nil, fmt.Errorf("Could not update master branch: %s", err)
 	}
 
-	currInfo, err := repo.Details(revision, false)
+	currInfo, err := repo.Details(ctx, revision, false)
 	if err != nil || currInfo == nil {
 		return nil, fmt.Errorf("Could not get info for %s: %s", revision, err)
 	}
@@ -605,6 +606,7 @@ func updateRevision(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You do not have permission to push.  You must be a Googler.", http.StatusForbidden)
 		return
 	}
+	ctx := context.Background()
 	var msg struct {
 		Revision string `json:"revision"`
 	}
@@ -630,12 +632,12 @@ func updateRevision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currInfo, err := getCommitInfo(versionWatcher.LastCurrentHash)
+	currInfo, err := getCommitInfo(ctx, versionWatcher.LastCurrentHash)
 	if err != nil || currInfo == nil {
 		httputils.ReportError(w, r, err, "Could not get information about current revision.  Please try again later")
 		return
 	}
-	newInfo, err := getCommitInfo(msg.Revision)
+	newInfo, err := getCommitInfo(ctx, msg.Revision)
 	if err != nil || newInfo == nil {
 		httputils.ReportError(w, r, err, "Could not get information about revision.  Are you sure it exists?")
 		return

@@ -1,6 +1,7 @@
 package trybot
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -35,17 +36,17 @@ var (
 )
 
 func TestGerritTrybotResults(t *testing.T) {
-	testOneTrybotResults(t, TEST_GERRIT_INGESTION_FILE)
+	testOneTrybotResults(t, context.Background(), TEST_GERRIT_INGESTION_FILE)
 }
 
-func testOneTrybotResults(t *testing.T, ingestionFile string) {
+func testOneTrybotResults(t *testing.T, ctx context.Context, ingestionFile string) {
 	testutils.LargeTest(t)
 
 	rietveldAPI := rietveld.New(TEST_CODE_RIETVELDREVIEW_URL, nil)
 	gerritAPI, err := gerrit.NewGerrit(TEST_CODE_GERRITREVIEW_URL, "", nil)
 	assert.NoError(t, err)
 
-	server, serverAddress := goldingestion.RunGoldTrybotProcessor(t, TEST_TRACE_DB_FILE, TEST_SHAREDB_DIR, ingestionFile, TEST_DATA_DIR, TEST_CODE_RIETVELDREVIEW_URL, TEST_CODE_GERRITREVIEW_URL)
+	server, serverAddress := goldingestion.RunGoldTrybotProcessor(t, ctx, TEST_TRACE_DB_FILE, TEST_SHAREDB_DIR, ingestionFile, TEST_DATA_DIR, TEST_CODE_RIETVELDREVIEW_URL, TEST_CODE_GERRITREVIEW_URL)
 	defer util.RemoveAll(TEST_SHAREDB_DIR)
 	defer testutils.Remove(t, TEST_TRACE_DB_FILE)
 	defer server.Stop()
@@ -62,14 +63,14 @@ func testOneTrybotResults(t *testing.T, ingestionFile string) {
 	tr := NewTrybotResults(tileBuilder, rietveldAPI, gerritAPI, ingestionStore)
 	tr.timeFrame = time.Now().Sub(BEGINNING_OF_TIME)
 
-	issues, total, err := tr.ListTrybotIssues(0, 20)
+	issues, total, err := tr.ListTrybotIssues(ctx, 0, 20)
 	assert.NoError(t, err)
 	assert.NotNil(t, issues)
 	assert.Equal(t, 1, len(issues))
 	assert.Equal(t, 1, total)
 
-	// issue, tile, err := tr.GetIssue(issues[0].ID)
-	_, tile, err := tr.GetIssue(issues[0].ID, nil)
+	// issue, tile, err := tr.GetIssue(ctx, issues[0].ID)
+	_, tile, err := tr.GetIssue(ctx, issues[0].ID, nil)
 	assert.NoError(t, err)
 
 	foundDigests := util.NewStringSet()

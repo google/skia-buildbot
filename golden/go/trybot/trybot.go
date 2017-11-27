@@ -3,6 +3,7 @@
 package trybot
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strconv"
@@ -96,19 +97,19 @@ func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietve
 // ListTrybotIssues returns all the issues that have recently seen trybot updates. The given
 // offset and size return a subset of the list. Aside from the issues we return also the
 // total number of current issues to allow pagination.
-func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error) {
+func (t *TrybotResults) ListTrybotIssues(ctx context.Context, offset, size int) ([]*Issue, int, error) {
 	end := time.Now()
 	begin := end.Add(-t.timeFrame)
 
 	// Get all issues from Rietveld.
-	commits, issueIDs, err := t.getCommits(begin, end, t.rietveldAPI.Url(0), false)
+	commits, issueIDs, err := t.getCommits(ctx, begin, end, t.rietveldAPI.Url(0), false)
 	if err != nil {
 		return nil, 0, err
 	}
 	issuesList := t.getIssuesFromCommits(commits, issueIDs, false)
 
 	// Get all issues from Gerrit.
-	commits, issueIDs, err = t.getCommits(begin, end, t.gerritAPI.Url(0), true)
+	commits, issueIDs, err = t.getCommits(ctx, begin, end, t.gerritAPI.Url(0), true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -129,7 +130,7 @@ func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error
 // GetIssue returns the information about a specific issue. It returns the a superset
 // of the issue information including the commit ids that make up the issue.
 // The commmit ids align with the tile that is returned.
-func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string) (*IssueDetails, *tiling.Tile, error) {
+func (t *TrybotResults) GetIssue(ctx context.Context, issueID string, targetPatchsets []string) (*IssueDetails, *tiling.Tile, error) {
 	numIssueID, err := strconv.ParseInt(issueID, 10, 64)
 	if err != nil {
 		return nil, nil, err
@@ -138,7 +139,7 @@ func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string) (*Iss
 	end := time.Now()
 	begin := end.Add(-t.timeFrame)
 	prefix, isGerrit := t.getPrefix(numIssueID)
-	commits, issueIDs, err := t.getCommits(begin, end, prefix, isGerrit)
+	commits, issueIDs, err := t.getCommits(ctx, begin, end, prefix, isGerrit)
 
 	if err != nil {
 		return nil, nil, err
@@ -380,8 +381,8 @@ func filterTryjob(builder string) bool {
 
 // getCommits retrieves the commits within the given time range and prefix.
 // isGerrit is a convenience flag indicating whether the Gerrit api should be queried.
-func (t *TrybotResults) getCommits(startTime, endTime time.Time, prefix string, isGerrit bool) ([]*tracedb.CommitIDLong, map[string]bool, error) {
-	commits, err := t.tileBuilder.ListLong(startTime, endTime, prefix)
+func (t *TrybotResults) getCommits(ctx context.Context, startTime, endTime time.Time, prefix string, isGerrit bool) ([]*tracedb.CommitIDLong, map[string]bool, error) {
+	commits, err := t.tileBuilder.ListLong(ctx, startTime, endTime, prefix)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error retrieving commits in the range %s - %s. Got error: %s", startTime, endTime, err)
 	}
@@ -393,7 +394,7 @@ func (t *TrybotResults) getCommits(startTime, endTime time.Time, prefix string, 
 	if isGerrit {
 		reviewURL = t.gerritAPI.Url(0)
 	}
-	earlierCommits, err := t.tileBuilder.ListLong(newBegin, startTime, reviewURL)
+	earlierCommits, err := t.tileBuilder.ListLong(ctx, newBegin, startTime, reviewURL)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error retrieving commits in the range %s - %s. Got error: %s", newBegin, startTime, err)
 	}

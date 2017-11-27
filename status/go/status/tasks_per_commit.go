@@ -29,7 +29,7 @@ type tasksPerCommitCache struct {
 }
 
 // newTasksPerCommitCache returns a tasksPerCommitCache instance.
-func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Duration, ctx context.Context) (*tasksPerCommitCache, error) {
+func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []string, period time.Duration) (*tasksPerCommitCache, error) {
 	wd := path.Join(workdir, "tasksPerCommitCache")
 	if _, err := os.Stat(wd); err != nil {
 		if os.IsNotExist(err) {
@@ -40,19 +40,19 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 			return nil, fmt.Errorf("There is a problem with the workdir: %s", err)
 		}
 	}
-	repos, err := repograph.NewMap(repoUrls, wd)
+	repos, err := repograph.NewMap(ctx, repoUrls, wd)
 	if err != nil {
 		return nil, err
 	}
-	depotTools, err := git.NewCheckout(common.REPO_DEPOT_TOOLS, wd)
+	depotTools, err := git.NewCheckout(ctx, common.REPO_DEPOT_TOOLS, wd)
 	if err != nil {
 		return nil, err
 	}
-	if err := depotTools.Update(); err != nil {
+	if err := depotTools.Update(ctx); err != nil {
 		return nil, err
 	}
 	gitCache := path.Join(wd, "cache")
-	tcc, err := specs.NewTaskCfgCache(repos, depotTools.Dir(), gitCache, 3)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools.Dir(), gitCache, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 		tcc:    tcc,
 	}
 	go util.RepeatCtx(time.Minute, ctx, func() {
-		if err := c.update(); err != nil {
+		if err := c.update(ctx); err != nil {
 			sklog.Errorf("Failed to update tasksPerCommitCache: %s", err)
 		}
 	})
@@ -71,13 +71,13 @@ func newTasksPerCommitCache(workdir string, repoUrls []string, period time.Durat
 }
 
 // Get returns the number of tasks expected to run at the given commit.
-func (c *tasksPerCommitCache) Get(rs db.RepoState) (int, error) {
+func (c *tasksPerCommitCache) Get(ctx context.Context, rs db.RepoState) (int, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
 	if _, ok := c.cached[rs]; !ok {
 		// Find the number of TaskSpecs expected to run at this commit.
-		cfg, err := c.tcc.ReadTasksCfg(rs)
+		cfg, err := c.tcc.ReadTasksCfg(ctx, rs)
 		if err != nil {
 			return 0, err
 		}
@@ -105,8 +105,8 @@ func (c *tasksPerCommitCache) Get(rs db.RepoState) (int, error) {
 }
 
 // update pulls down new commits and evicts old entries from the cache.
-func (c *tasksPerCommitCache) update() error {
-	if err := c.repos.Update(); err != nil {
+func (c *tasksPerCommitCache) update(ctx context.Context) error {
+	if err := c.repos.Update(ctx); err != nil {
 		return err
 	}
 	c.mtx.Lock()

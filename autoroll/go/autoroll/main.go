@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -78,12 +79,12 @@ var (
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
 type AutoRollerI interface {
 	// Start initiates the AutoRoller's loop.
-	Start(tickFrequency, repoFrequency time.Duration)
+	Start(ctx context.Context, tickFrequency, repoFrequency time.Duration)
 	// AddHandlers allows the AutoRoller to respond to specific HTTP requests.
 	AddHandlers(r *mux.Router)
 	// SetMode sets the desired mode of the bot. This forces the bot to run and
 	// blocks until it finishes.
-	SetMode(m, user, message string) error
+	SetMode(ctx context.Context, m, user, message string) error
 	// SetEmails sets the list of email addresses which are copied on rolls.
 	SetEmails(e []string)
 	// Return the roll-up status of the bot.
@@ -199,7 +200,7 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := arb.SetMode(mode.Mode, login.LoggedInAs(r), mode.Message); err != nil {
+	if err := arb.SetMode(context.Background(), mode.Mode, login.LoggedInAs(r), mode.Message); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set AutoRoll mode.")
 		return
 	}
@@ -370,9 +371,10 @@ func main() {
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Sync depot_tools.
+	ctx := context.Background()
 	var depotTools string
 	if !*rollIntoAndroid && !*rollIntoGoogle3 {
-		depotTools, err = depot_tools.Sync(*workdir)
+		depotTools, err = depot_tools.Sync(ctx, *workdir)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -400,20 +402,20 @@ func main() {
 		}
 	}
 	if *rollIntoAndroid {
-		arb, err = roller.NewAndroidAutoRoller(*workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps, serverURL, tc)
+		arb, err = roller.NewAndroidAutoRoller(ctx, *workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps, serverURL, tc)
 	} else if *rollIntoGoogle3 {
-		arb, err = google3.NewAutoRoller(*workdir, common.REPO_SKIA, *childBranch)
+		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, *childBranch)
 	} else if *useManifest {
-		arb, err = roller.NewManifestAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, serverURL, tc)
+		arb, err = roller.NewManifestAutoRoller(ctx, *workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, serverURL, tc)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(*workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars, serverURL, tc)
+		arb, err = roller.NewDEPSAutoRoller(ctx, *workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars, serverURL, tc)
 	}
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Start the roller.
-	arb.Start(time.Minute /* tickFrequency */, 15*time.Minute /* repoFrequency */)
+	arb.Start(ctx, time.Minute /* tickFrequency */, 15*time.Minute /* repoFrequency */)
 
 	// Feed AutoRoll stats into metrics.
 	cleanup.Repeat(time.Minute, func() {

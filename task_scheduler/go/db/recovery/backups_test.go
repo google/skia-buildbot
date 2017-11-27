@@ -602,7 +602,7 @@ func testBackupDBLarge(t *testing.T, contentSize int64) {
 	defer cancel()
 
 	// Check available disk space.
-	output, err := exec.RunCommand(&exec.Command{
+	output, err := exec.RunCommand(context.Background(), &exec.Command{
 		Name: "df",
 		Args: []string{"--block-size=1", "--output=avail", os.TempDir()},
 	})
@@ -680,7 +680,7 @@ func TestFindAndParseTriggerFileNewFile(t *testing.T) {
 	b, cancel := getMockedDBBackup(t, nil)
 	defer cancel()
 
-	exec_testutils.Run(t, b.triggerDir, "touch", "foo")
+	exec_testutils.Run(t, context.Background(), b.triggerDir, "touch", "foo")
 	file, attempts, err := b.findAndParseTriggerFile()
 	assert.NoError(t, err)
 	assert.Equal(t, "foo", file)
@@ -694,8 +694,9 @@ func TestFindAndParseTriggerFileTwoFiles(t *testing.T) {
 	b, cancel := getMockedDBBackup(t, nil)
 	defer cancel()
 
-	exec_testutils.Run(t, b.triggerDir, "touch", "foo")
-	exec_testutils.Run(t, b.triggerDir, "touch", "bar")
+	ctx := context.Background()
+	exec_testutils.Run(t, ctx, b.triggerDir, "touch", "foo")
+	exec_testutils.Run(t, ctx, b.triggerDir, "touch", "bar")
 	file, attempts, err := b.findAndParseTriggerFile()
 	assert.NoError(t, err)
 	assert.True(t, file == "foo" || file == "bar")

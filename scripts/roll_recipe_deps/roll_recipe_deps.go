@@ -25,6 +25,7 @@ package main
 */
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -78,14 +79,14 @@ type rollJson struct {
 
 // rollOnce performs a single recipe roll and returns the commits in the roll.
 // The result will be empty if the repo is up-to-date.
-func rollOnce(repoUrl, cwd string) (map[string][]string, error) {
+func rollOnce(ctx context.Context, repoUrl, cwd string) (map[string][]string, error) {
 	tmpDir, err := ioutil.TempDir("", "recipe_roll_")
 	if err != nil {
 		return nil, err
 	}
 	defer util.RemoveAll(tmpDir)
 	outJson := path.Join(tmpDir, "roll.json")
-	if _, err := exec.RunCwd(cwd, "python", RECIPES_PY_PATH[repoUrl], "autoroll", "--output-json", outJson); err != nil {
+	if _, err := exec.RunCwd(ctx, cwd, "python", RECIPES_PY_PATH[repoUrl], "autoroll", "--output-json", outJson); err != nil {
 		return nil, err
 	}
 	f, err := os.Open(outJson)
@@ -115,26 +116,26 @@ func rollOnce(repoUrl, cwd string) (map[string][]string, error) {
 
 // rollRepo performs a DEPS roll and uploads a CL if the repo is not up-to-date.
 // Returns the URL of the uploaded CL, if any.
-func rollRepo(repoUrl string) (string, error) {
+func rollRepo(ctx context.Context, repoUrl string) (string, error) {
 	sklog.Infof("  Creating checkout...")
 	tmpDir, err := ioutil.TempDir("", "recipe_roll_")
 	if err != nil {
 		return "", err
 	}
 	defer util.RemoveAll(tmpDir)
-	repo, err := git.NewCheckout(repoUrl, tmpDir)
+	repo, err := git.NewCheckout(ctx, repoUrl, tmpDir)
 	if err != nil {
 		return "", err
 	}
 	sklog.Infof("  Rolling recipe DEPS...")
-	details, err := rollOnce(repoUrl, repo.Dir())
+	details, err := rollOnce(ctx, repoUrl, repo.Dir())
 	if err != nil {
 		return "", err
 	}
 	if len(details) == 0 {
 		return "", nil
 	}
-	if _, err := repo.Git("commit", "-a", "-m", "Roll Recipe DEPS"); err != nil {
+	if _, err := repo.Git(ctx, "commit", "-a", "-m", "Roll Recipe DEPS"); err != nil {
 		return "", err
 	}
 
@@ -153,11 +154,11 @@ func rollRepo(repoUrl string) (string, error) {
 	}
 
 	sklog.Infof("  Uploading roll CL...")
-	if _, err := repo.Git("cl", "upload", "--gerrit", "--bypass-hooks", "--cq-dry-run", "-f", "-m", commitMsg); err != nil {
+	if _, err := repo.Git(ctx, "cl", "upload", "--gerrit", "--bypass-hooks", "--cq-dry-run", "-f", "-m", commitMsg); err != nil {
 		return "", err
 	}
 	issueFile := path.Join(tmpDir, "issue.json")
-	if _, err := repo.Git("cl", "issue", fmt.Sprintf("--json=%s", issueFile)); err != nil {
+	if _, err := repo.Git(ctx, "cl", "issue", fmt.Sprintf("--json=%s", issueFile)); err != nil {
 		return "", err
 	}
 	f, err := os.Open(issueFile)
@@ -176,6 +177,7 @@ func main() {
 	common.Init()
 
 	uploaded := []string{}
+	ctx := context.Background()
 
 	// Traverse the dependency graph of repos. If any repo is not
 	// up-to-date, create a recipe roll for that repo. If any of a repo's
@@ -193,7 +195,7 @@ func main() {
 			}
 		}
 		sklog.Infof("Rolling %s...", repoUrl)
-		rollIssue, err := rollRepo(repoUrl)
+		rollIssue, err := rollRepo(ctx, repoUrl)
 		if err != nil {
 			sklog.Fatal(err)
 		}

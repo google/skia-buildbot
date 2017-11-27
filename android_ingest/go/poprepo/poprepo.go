@@ -6,6 +6,7 @@ package poprepo
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -27,13 +28,13 @@ const (
 // It supports adding and reading BuildIDs from a git repo.
 type PopRepoI interface {
 	// GetLast returns the last committed buildid, its timestamp, and git hash.
-	GetLast() (int64, int64, string, error)
+	GetLast(ctx context.Context) (int64, int64, string, error)
 
 	// Add a new buildid to the repo.
-	Add(buildid, ts int64) error
+	Add(ctx context.Context, buildid, ts int64) error
 
 	// LookupBuildID looks up a buildid from the git hash.
-	LookupBuildID(hash string) (int64, error)
+	LookupBuildID(ctx context.Context, hash string) (int64, error)
 }
 
 // PopRepo implements PopRepoI.
@@ -60,7 +61,7 @@ func NewPopRepo(checkout *git.Checkout, local bool, subdomain string) *PopRepo {
 
 // GetLast returns the last buildid, the timestamp of when that buildid was
 // added, and the git hash.
-func (p *PopRepo) GetLast() (int64, int64, string, error) {
+func (p *PopRepo) GetLast(ctx context.Context) (int64, int64, string, error) {
 	fullpath := filepath.Join(p.checkout.Dir(), BUILDID_FILENAME)
 	b, err := ioutil.ReadFile(fullpath)
 	if err != nil {
@@ -79,15 +80,15 @@ func (p *PopRepo) GetLast() (int64, int64, string, error) {
 	if err != nil {
 		return 0, 0, "", fmt.Errorf("BuildID is invalid in %q: %s", s, err)
 	}
-	hash, err := p.checkout.RevParse("HEAD")
+	hash, err := p.checkout.RevParse(ctx, "HEAD")
 	if err != nil {
 		return 0, 0, "", fmt.Errorf("Unable to retrieve git hash: %s", err)
 	}
 	return buildid, ts, hash, nil
 }
 
-func (p *PopRepo) LookupBuildID(hash string) (int64, error) {
-	commit, err := p.checkout.Details(hash)
+func (p *PopRepo) LookupBuildID(ctx context.Context, hash string) (int64, error) {
+	commit, err := p.checkout.Details(ctx, hash)
 	if err != nil {
 		return -1, fmt.Errorf("Failed looking up buildid: %s", err)
 	}
@@ -97,13 +98,13 @@ func (p *PopRepo) LookupBuildID(hash string) (int64, error) {
 
 // Add a new buildid and its assocatied Unix timestamp to the repo.
 //
-func (p *PopRepo) Add(buildid int64, ts int64) error {
+func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64) error {
 	rollback := false
 	defer func() {
 		if !rollback {
 			return
 		}
-		if err := p.checkout.Update(); err != nil {
+		if err := p.checkout.Update(ctx); err != nil {
 			sklog.Errorf("While rolling back failed Add(): Unable to update the checkout at %q: %s", p.checkout.Dir(), err)
 		}
 	}()
@@ -122,7 +123,7 @@ func (p *PopRepo) Add(buildid int64, ts int64) error {
 	}
 
 	// Also needs to confirm that the buildids are ascending, which means they should be ints.
-	lastBuildID, _, _, err := p.GetLast()
+	lastBuildID, _, _, err := p.GetLast(ctx)
 	if err != nil {
 		return fmt.Errorf("Couldn't get last buildid: %s", err)
 	}
@@ -133,16 +134,16 @@ func (p *PopRepo) Add(buildid int64, ts int64) error {
 		rollback = true
 		return fmt.Errorf("Failed to write updated buildid: %s", err)
 	}
-	if msg, err := p.checkout.Git("add", BUILDID_FILENAME); err != nil {
+	if msg, err := p.checkout.Git(ctx, "add", BUILDID_FILENAME); err != nil {
 		rollback = true
 		return fmt.Errorf("Failed to add updated file %q: %s", msg, err)
 	}
-	if err := cmd.Run(); err != nil {
+	if err := exec.Run(ctx, &cmd); err != nil {
 		rollback = true
 		return fmt.Errorf("Failed to commit updated file %q: %s", output.String(), err)
 	}
 	fmt.Printf("git commit: %q", output.String())
-	if msg, err := p.checkout.Git("push", "origin", "master"); err != nil {
+	if msg, err := p.checkout.Git(ctx, "push", "origin", "master"); err != nil {
 		rollback = true
 		return fmt.Errorf("Failed to push updated checkout %q: %s", msg, err)
 	}

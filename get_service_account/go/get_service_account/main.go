@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 
@@ -49,7 +50,7 @@ type Item struct {
 }
 
 func main() {
-	output, err := exec.RunSimple("gcloud --quiet compute project-info describe --format=json --project google.com:skia-buildbots")
+	output, err := exec.RunSimple(context.Background(), "gcloud --quiet compute project-info describe --format=json --project google.com:skia-buildbots")
 	if err != nil {
 		sklog.Fatalf("Failed to execute gcloud: %s", err)
 	}

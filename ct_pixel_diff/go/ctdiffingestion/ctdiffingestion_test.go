@@ -1,6 +1,7 @@
 package ctdiffingestion
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -66,6 +67,7 @@ func TestCTResults(t *testing.T) {
 
 func TestPixelDiffProcessor(t *testing.T) {
 	testutils.MediumTest(t)
+	ctx := context.Background()
 
 	// Set up the DiffStore.
 	client := mocks.GetHTTPClient(t)
@@ -88,7 +90,7 @@ func TestPixelDiffProcessor(t *testing.T) {
 	// Load the test JSON file and process it.
 	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
 	assert.NoError(t, err)
-	err = processor.Process(fsResult)
+	err = processor.Process(ctx, fsResult)
 	assert.NoError(t, err)
 
 	// Verify that the first entry in the ResultStore is correct.

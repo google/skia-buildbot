@@ -1,6 +1,7 @@
 package swarming
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -27,7 +28,7 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 	testutils.LargeTest(t)
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
-	s, err := NewSwarmingClient(workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
+	s, err := NewSwarmingClient(context.Background(), workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	defer s.Cleanup()
 
@@ -79,9 +80,11 @@ func E2E_Success(t *testing.T) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
-	s, err := NewSwarmingClient(workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
+	s, err := NewSwarmingClient(context.Background(), workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	defer s.Cleanup()
+
+	ctx := context.Background()
 
 	// Create isolated.gen.json files to pass to batcharchive.
 	blackList := []string{"blacklist1", "blacklist2"}
@@ -100,7 +103,7 @@ func E2E_Success(t *testing.T) {
 	}
 
 	// Batcharchive the task.
-	tasksToHashes, err := s.BatchArchiveTargets(genJSONs, 5*time.Minute)
+	tasksToHashes, err := s.BatchArchiveTargets(ctx, genJSONs, 5*time.Minute)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasksToHashes))
 	for _, taskName := range taskNames {
@@ -112,12 +115,12 @@ func E2E_Success(t *testing.T) {
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
 	tags := map[string]string{"testing": "123"}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, true, "")
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, true, "")
 	assert.NoError(t, err)
 
 	// Collect both output and file output of all tasks.
 	for _, task := range tasks {
-		output, outputDir, err := task.Collect(s)
+		output, outputDir, err := task.Collect(ctx, s)
 		assert.NoError(t, err)
 		output = sanitizeOutput(output)
 		assert.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", task.Title, task.Title), output)
@@ -138,7 +141,8 @@ func E2E_OneFailure(t *testing.T) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	assert.NoError(t, err)
-	s, err := NewSwarmingClient(workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
+	ctx := context.Background()
+	s, err := NewSwarmingClient(ctx, workDir, SWARMING_SERVER, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	defer s.Cleanup()
 
@@ -163,7 +167,7 @@ func E2E_OneFailure(t *testing.T) {
 	}
 
 	// Batcharchive the task.
-	tasksToHashes, err := s.BatchArchiveTargets(genJSONs, 5*time.Minute)
+	tasksToHashes, err := s.BatchArchiveTargets(ctx, genJSONs, 5*time.Minute)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasksToHashes))
 	for _, taskName := range taskNames {
@@ -175,11 +179,11 @@ func E2E_OneFailure(t *testing.T) {
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
 	tags := map[string]string{"testing": "123"}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, false, "")
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false, false, "")
 	assert.NoError(t, err)
 
 	// Collect testTask1. It should have failed.
-	output1, outputDir1, err1 := tasks[0].Collect(s)
+	output1, outputDir1, err1 := tasks[0].Collect(ctx, s)
 	assert.Equal(t, tags, tasks[0].Tags)
 	output1 = sanitizeOutput(output1)
 	assert.Equal(t, "", output1)
@@ -188,7 +192,7 @@ func E2E_OneFailure(t *testing.T) {
 	assert.True(t, strings.HasPrefix(err1.Error(), "Swarming trigger for testTask1 failed with: Command exited with exit status 1: "))
 
 	// Collect testTask2. It should have succeeded.
-	output2, outputDir2, err2 := tasks[1].Collect(s)
+	output2, outputDir2, err2 := tasks[1].Collect(ctx, s)
 	assert.NoError(t, err2)
 	assert.Equal(t, tags, tasks[1].Tags)
 	output2 = sanitizeOutput(output2)

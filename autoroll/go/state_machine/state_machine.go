@@ -1,6 +1,7 @@
 package state_machine
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"time"
@@ -69,7 +70,7 @@ type RollCLImpl interface {
 
 	// Close the CL. The first string argument is the result of the roll,
 	// and the second is the message to add to the CL on closing.
-	Close(string, string) error
+	Close(context.Context, string, string) error
 
 	// Return true iff the roll has finished (ie. succeeded or failed).
 	IsFinished() bool
@@ -87,19 +88,19 @@ type RollCLImpl interface {
 	RollingTo() string
 
 	// Set the dry run bit on the CL.
-	SwitchToDryRun() error
+	SwitchToDryRun(context.Context) error
 
 	// Set the full CQ bit on the CL.
-	SwitchToNormal() error
+	SwitchToNormal(context.Context) error
 
 	// Update our local copy of the CL from the codereview server.
-	Update() error
+	Update(context.Context) error
 }
 
 // Interface for interacting with the other elements of an autoroller.
 type AutoRollerImpl interface {
 	// Upload a new roll. AutoRollerImpl should track the created roll.
-	UploadNewRoll(from, to string, dryRun bool) error
+	UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error
 
 	// Return the currently-active roll. May be nil if no roll exists.
 	GetActiveRoll() RollCLImpl
@@ -115,10 +116,10 @@ type AutoRollerImpl interface {
 	GetMode() string
 
 	// Return true if we have already rolled past the given revision.
-	RolledPast(string) (bool, error)
+	RolledPast(context.Context, string) (bool, error)
 
 	// Update the project and sub-project repos.
-	UpdateRepos() error
+	UpdateRepos(context.Context) error
 }
 
 // AutoRollStateMachine is a StateMachine for the AutoRoller.
@@ -157,47 +158,47 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 
 	// Named callback functions.
 	b.F(F_NOOP, nil)
-	b.F(F_UPDATE_REPOS, func() error {
-		return s.a.UpdateRepos()
+	b.F(F_UPDATE_REPOS, func(ctx context.Context) error {
+		return s.a.UpdateRepos(ctx)
 	})
-	b.F(F_UPLOAD_ROLL, func() error {
+	b.F(F_UPLOAD_ROLL, func(ctx context.Context) error {
 		if err := s.c.Inc(); err != nil {
 			return err
 		}
-		return s.a.UploadNewRoll(s.a.GetCurrentRev(), s.a.GetNextRollRev(), false)
+		return s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), false)
 	})
-	b.F(F_UPLOAD_DRY_RUN, func() error {
+	b.F(F_UPLOAD_DRY_RUN, func(ctx context.Context) error {
 		if err := s.c.Inc(); err != nil {
 			return err
 		}
-		return s.a.UploadNewRoll(s.a.GetCurrentRev(), s.a.GetNextRollRev(), true)
+		return s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), true)
 	})
-	b.F(F_UPDATE_ROLL, func() error {
-		if err := s.a.GetActiveRoll().Update(); err != nil {
+	b.F(F_UPDATE_ROLL, func(ctx context.Context) error {
+		if err := s.a.GetActiveRoll().Update(ctx); err != nil {
 			return err
 		}
-		return s.a.UpdateRepos()
+		return s.a.UpdateRepos(ctx)
 	})
-	b.F(F_CLOSE_FAILED, func() error {
-		return s.a.GetActiveRoll().Close(autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll."))
+	b.F(F_CLOSE_FAILED, func(ctx context.Context) error {
+		return s.a.GetActiveRoll().Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll."))
 	})
-	b.F(F_CLOSE_STOPPED, func() error {
-		return s.a.GetActiveRoll().Close(autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("AutoRoller is stopped; closing the active roll."))
+	b.F(F_CLOSE_STOPPED, func(ctx context.Context) error {
+		return s.a.GetActiveRoll().Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("AutoRoller is stopped; closing the active roll."))
 	})
-	b.F(F_CLOSE_DRY_RUN_FAILED, func() error {
-		return s.a.GetActiveRoll().Close(autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll."))
+	b.F(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context) error {
+		return s.a.GetActiveRoll().Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll."))
 	})
-	b.F(F_CLOSE_DRY_RUN_OUTDATED, func() error {
+	b.F(F_CLOSE_DRY_RUN_OUTDATED, func(ctx context.Context) error {
 		currentRoll := s.a.GetActiveRoll()
-		return currentRoll.Close(autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, fmt.Sprintf("Repo has passed %s; will open a new dry run.", currentRoll.RollingTo()))
+		return currentRoll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, fmt.Sprintf("Repo has passed %s; will open a new dry run.", currentRoll.RollingTo()))
 	})
-	b.F(F_SWITCH_TO_DRY_RUN, func() error {
-		return s.a.GetActiveRoll().SwitchToDryRun()
+	b.F(F_SWITCH_TO_DRY_RUN, func(ctx context.Context) error {
+		return s.a.GetActiveRoll().SwitchToDryRun(ctx)
 	})
-	b.F(F_SWITCH_TO_NORMAL, func() error {
-		return s.a.GetActiveRoll().SwitchToNormal()
+	b.F(F_SWITCH_TO_NORMAL, func(ctx context.Context) error {
+		return s.a.GetActiveRoll().SwitchToNormal(ctx)
 	})
-	b.F(F_WAIT_FOR_LAND, func() error {
+	b.F(F_WAIT_FOR_LAND, func(ctx context.Context) error {
 		sklog.Infof("Roll succeeded; syncing the repo until it lands.")
 		currentRoll := s.a.GetActiveRoll()
 		// If the server restarts during the loop below, we'll end up in this state
@@ -208,10 +209,10 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 		}
 		for {
 			sklog.Infof("Syncing, looking for %s...", currentRoll.RollingTo())
-			if err := s.a.UpdateRepos(); err != nil {
+			if err := s.a.UpdateRepos(ctx); err != nil {
 				return err
 			}
-			rolledPast, err := s.a.RolledPast(currentRoll.RollingTo())
+			rolledPast, err := s.a.RolledPast(ctx, currentRoll.RollingTo())
 			if err != nil {
 				return err
 			}
@@ -415,13 +416,13 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 }
 
 // Attempt to perform the given state transition.
-func (s *AutoRollStateMachine) Transition(dest string) error {
+func (s *AutoRollStateMachine) Transition(ctx context.Context, dest string) error {
 	fName, err := s.s.GetTransitionName(dest)
 	if err != nil {
 		return err
 	}
 	sklog.Infof("Attempting to perform transition from %q to %q: %s", s.s.Current(), dest, fName)
-	if err := s.s.Transition(dest); err != nil {
+	if err := s.s.Transition(ctx, dest); err != nil {
 		return err
 	}
 	sklog.Infof("Successfully performed transition.")
@@ -429,18 +430,18 @@ func (s *AutoRollStateMachine) Transition(dest string) error {
 }
 
 // Attempt to perform the next state transition.
-func (s *AutoRollStateMachine) NextTransition() error {
+func (s *AutoRollStateMachine) NextTransition(ctx context.Context) error {
 	next, err := s.GetNext()
 	if err != nil {
 		return err
 	}
-	return s.Transition(next)
+	return s.Transition(ctx, next)
 }
 
 // Perform the next state transition, plus any subsequent transitions which are
 // no-ops.
-func (s *AutoRollStateMachine) NextTransitionSequence() error {
-	if err := s.NextTransition(); err != nil {
+func (s *AutoRollStateMachine) NextTransitionSequence(ctx context.Context) error {
+	if err := s.NextTransition(ctx); err != nil {
 		return err
 	}
 	// Greedily perform transitions until we reach a transition which is not
@@ -455,7 +456,7 @@ func (s *AutoRollStateMachine) NextTransitionSequence() error {
 		if err != nil {
 			return err
 		} else if fName == F_NOOP {
-			if err := s.Transition(next); err != nil {
+			if err := s.Transition(ctx, next); err != nil {
 				return err
 			}
 		} else {

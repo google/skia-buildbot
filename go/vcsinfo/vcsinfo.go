@@ -1,6 +1,7 @@
 package vcsinfo
 
 import (
+	"context"
 	"time"
 )
 
@@ -40,7 +41,7 @@ func (s LongCommitSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 // control system.
 type VCS interface {
 	// Update updates the local checkout of the repo.
-	Update(pull, allBranches bool) error
+	Update(ctx context.Context, pull, allBranches bool) error
 
 	// From returns commit hashes for the time frame from 'start' to now.
 	From(start time.Time) []string
@@ -49,7 +50,7 @@ type VCS interface {
 	// If includeBranchInfo is true the Branches field of the returned
 	// result will contain all branches that contain the given commit,
 	// otherwise Branches will be empty.
-	Details(hash string, includeBranchInfo bool) (*LongCommit, error)
+	Details(ctx context.Context, hash string, includeBranchInfo bool) (*LongCommit, error)
 
 	// LastNIndex returns the last N commits.
 	LastNIndex(N int) []*IndexCommit
@@ -59,16 +60,16 @@ type VCS interface {
 	Range(begin, end time.Time) []*IndexCommit
 
 	// IndexOf returns the index of the commit hash, where 0 is the index of the first hash.
-	IndexOf(hash string) (int, error)
+	IndexOf(ctx context.Context, hash string) (int, error)
 
 	// ByIndex returns a LongCommit describing the commit
 	// at position N, as ordered in the current branch.
-	ByIndex(N int) (*LongCommit, error)
+	ByIndex(ctx context.Context, N int) (*LongCommit, error)
 
 	// GetFile returns the content of the given file at the given commit.
-	GetFile(fileName, commitHash string) (string, error)
+	GetFile(ctx context.Context, fileName, commitHash string) (string, error)
 
 	// ResolveCommit will resolve the given commit against a secondary repo if one
 	// was defined with the VCS.
-	ResolveCommit(commitHash string) (string, error)
+	ResolveCommit(ctx context.Context, commitHash string) (string, error)
 }

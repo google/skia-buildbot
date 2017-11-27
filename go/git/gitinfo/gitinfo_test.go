@@ -1,6 +1,7 @@
 package gitinfo
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -18,7 +19,8 @@ func TestDisplay(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +41,7 @@ func TestDisplay(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		details, err := r.Details(tc.hash, true)
+		details, err := r.Details(ctx, tc.hash, true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -57,7 +59,8 @@ func TestFrom(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +101,8 @@ func TestLastN(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +129,7 @@ func TestLastN(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		if got, want := r.LastN(tc.n), tc.values; !util.SSliceEqual(got, want) {
+		if got, want := r.LastN(ctx, tc.n), tc.values; !util.SSliceEqual(got, want) {
 			t.Errorf("For N: %d Hashes returned is wrong: Got %#v Want %#v", tc.n, got, want)
 		}
 	}
@@ -136,17 +140,18 @@ func TestByIndex(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	commit, err := r.ByIndex(0)
+	commit, err := r.ByIndex(ctx, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", commit.Hash)
-	commit, err = r.ByIndex(1)
+	commit, err = r.ByIndex(ctx, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", commit.Hash)
-	commit, err = r.ByIndex(-1)
+	commit, err = r.ByIndex(ctx, -1)
 	assert.Error(t, err)
 }
 
@@ -155,7 +160,8 @@ func TestLastNIndex(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,17 +209,18 @@ func TestIndexOf(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	idx, err := r.IndexOf("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f")
+	idx, err := r.IndexOf(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, idx)
-	idx, err = r.IndexOf("8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	idx, err = r.IndexOf(ctx, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, idx)
-	idx, err = r.IndexOf("foo")
+	idx, err = r.IndexOf(ctx, "foo")
 	assert.Error(t, err)
 
 	assert.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", r.firstCommit)
@@ -224,7 +231,8 @@ func TestRange(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,12 +304,13 @@ func TestLog(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	got, err := r.Log("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "")
+	got, err := r.Log(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -320,7 +329,7 @@ README.txt
 		t.Errorf("Log failed: \nGot  %q \nWant %q", got, want)
 	}
 
-	got, err = r.Log("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	got, err = r.Log(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -345,12 +354,13 @@ func TestLogFine(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	got, err := r.LogFine("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "", "--format=format:%H")
+	got, err := r.LogFine(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "", "--format=format:%H")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -360,7 +370,7 @@ func TestLogFine(t *testing.T) {
 		t.Errorf("Log failed: \nGot  %q \nWant %q", got, want)
 	}
 
-	got, err = r.LogFine("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "--format=format:%H")
+	got, err = r.LogFine(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "--format=format:%H")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -376,11 +386,12 @@ func TestLogArgs(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := r.LogArgs("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f..8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "--format=format:%H")
+	got, err := r.LogArgs(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f..8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "--format=format:%H")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,12 +407,13 @@ func TestShortList(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	l, err := r.ShortList("8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	l, err := r.ShortList(ctx, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -410,7 +422,7 @@ func TestShortList(t *testing.T) {
 		t.Fatalf("Wrong number of zero results: Got %v Want %v", got, want)
 	}
 
-	c, err := r.ShortList("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	c, err := r.ShortList(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -447,7 +459,8 @@ func TestTileAddressFromHash(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -490,7 +503,8 @@ func TestNumCommits(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -505,7 +519,8 @@ func TestRevList(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -540,7 +555,7 @@ func TestRevList(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		actual, err := r.RevList(tc.Input...)
+		actual, err := r.RevList(ctx, tc.Input...)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -555,12 +570,13 @@ func TestBranchInfo(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	branches, err := r.GetBranches()
+	branches, err := r.GetBranches(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(branches))
 
@@ -598,7 +614,7 @@ func TestBranchInfo(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		details, err := r.Details(tc.commitHash, true)
+		details, err := r.Details(ctx, tc.commitHash, true)
 		assert.NoError(t, err)
 		assert.True(t, details.Branches[tc.branchName])
 		assert.Equal(t, tc.nBranches, len(details.Branches))
@@ -610,19 +626,20 @@ func TestSetBranch(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	branches, err := r.GetBranches()
+	branches, err := r.GetBranches(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(branches))
 
-	err = r.Checkout("test-branch-1")
+	err = r.Checkout(ctx, "test-branch-1")
 	assert.NoError(t, err)
 
-	commits := r.LastN(10)
+	commits := r.LastN(ctx, 10)
 	assert.Equal(t, 3, len(commits))
 	assert.Equal(t, "3f5a807d432ac232a952bbf223bc6952e4b49b2c", commits[2])
 }

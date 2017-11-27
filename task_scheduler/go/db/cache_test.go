@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"sort"
@@ -910,20 +911,22 @@ func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 
 func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	testutils.MediumTest(t)
-	g := git_testutils.GitInit(t)
+
+	ctx := context.Background()
+	g := git_testutils.GitInit(t, ctx)
 	defer g.Cleanup()
 
-	git_testutils.GitSetup(g)
+	git_testutils.GitSetup(ctx, g)
 	now := time.Now()
-	g.AddGen("a.txt")
-	g.CommitMsgAt("Extra commit 1", now.Add(3*time.Second))
-	g.AddGen("a.txt")
-	g.CommitMsgAt("Extra commit 2", now.Add(17*time.Hour))
+	g.AddGen(ctx, "a.txt")
+	g.CommitMsgAt(ctx, "Extra commit 1", now.Add(3*time.Second))
+	g.AddGen(ctx, "a.txt")
+	g.CommitMsgAt(ctx, "Extra commit 2", now.Add(17*time.Hour))
 
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
-	repo, err := repograph.NewGraph(g.Dir(), workdir)
+	repo, err := repograph.NewGraph(ctx, g.Dir(), workdir)
 	assert.NoError(t, err)
 
 	grt := GitRepoGetRevisionTimestamp(repograph.Map{

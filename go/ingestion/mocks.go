@@ -1,6 +1,7 @@
 package ingestion
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -25,10 +26,10 @@ func MockVCS(commits []*vcsinfo.LongCommit, depsContentMap map[string]string) vc
 	}
 }
 
-func (m MockVCSImpl) Update(pull, allBranches bool) error               { return nil }
-func (m MockVCSImpl) LastNIndex(N int) []*vcsinfo.IndexCommit           { return nil }
-func (m MockVCSImpl) Range(begin, end time.Time) []*vcsinfo.IndexCommit { return nil }
-func (m MockVCSImpl) IndexOf(hash string) (int, error) {
+func (m MockVCSImpl) Update(ctx context.Context, pull, allBranches bool) error { return nil }
+func (m MockVCSImpl) LastNIndex(N int) []*vcsinfo.IndexCommit                  { return nil }
+func (m MockVCSImpl) Range(begin, end time.Time) []*vcsinfo.IndexCommit        { return nil }
+func (m MockVCSImpl) IndexOf(ctx context.Context, hash string) (int, error) {
 	return 0, nil
 }
 func (m MockVCSImpl) From(start time.Time) []string {
@@ -41,7 +42,7 @@ func (m MockVCSImpl) From(start time.Time) []string {
 	return ret
 }
 
-func (m MockVCSImpl) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, error) {
+func (m MockVCSImpl) Details(ctx context.Context, hash string, getBranches bool) (*vcsinfo.LongCommit, error) {
 	for _, commit := range m.commits {
 		if commit.Hash == hash {
 			return commit, nil
@@ -50,19 +51,19 @@ func (m MockVCSImpl) Details(hash string, getBranches bool) (*vcsinfo.LongCommit
 	return nil, fmt.Errorf("Unable to find commit")
 }
 
-func (m MockVCSImpl) ByIndex(N int) (*vcsinfo.LongCommit, error) {
+func (m MockVCSImpl) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
 
-func (m MockVCSImpl) GetFile(fileName, commitHash string) (string, error) {
+func (m MockVCSImpl) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
 	return m.depsFileMap[commitHash], nil
 }
 
-func (m MockVCSImpl) ResolveCommit(commitHash string) (string, error) {
+func (m MockVCSImpl) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
 	if m.secondaryVCS == nil {
 		return "", nil
 	}
-	foundCommit, err := m.secondaryExtractor.ExtractCommit(m.secondaryVCS.GetFile("DEPS", commitHash))
+	foundCommit, err := m.secondaryExtractor.ExtractCommit(m.secondaryVCS.GetFile(ctx, "DEPS", commitHash))
 	if err != nil {
 		return "", err
 	}

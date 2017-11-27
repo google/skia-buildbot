@@ -4,6 +4,7 @@ package main
 // ingesters and stores them in traceDB backends.
 
 import (
+	"context"
 	"flag"
 	"io/ioutil"
 	"os"
@@ -51,6 +52,8 @@ func main() {
 	}
 	common.InitWithMust(appName, logOpts...)
 
+	ctx := context.Background()
+
 	// Initialize oauth client and start the ingesters.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, storage.CloudPlatformScope)
 	if err != nil {
@@ -63,12 +66,12 @@ func main() {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(config, client)
+	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
 	for _, oneIngester := range ingesters {
-		oneIngester.Start()
+		oneIngester.Start(ctx)
 	}
 
 	// Enable the memory profiler if memProfile was set.

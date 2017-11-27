@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -225,7 +226,8 @@ func jsonLegacySearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func legacySearchImpl(w http.ResponseWriter, r *http.Request, query *search.Query) {
-	searchResponse, err := search.Search(query, storages, ixr.GetIndex())
+	ctx := context.Background()
+	searchResponse, err := search.Search(ctx, query, storages, ixr.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -674,6 +676,7 @@ func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
 func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
 	// Extract the test name as we only allow clustering within a test.
 	q := search.Query{Limit: 50}
 	if err := search.ParseQuery(r, &q); err != nil {
@@ -687,7 +690,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idx := ixr.GetIndex()
-	searchResponse, err := search.Search(&q, storages, ixr.GetIndex())
+	searchResponse, err := search.Search(ctx, &q, storages, ixr.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -1001,12 +1004,13 @@ func jsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 // jsonListTrybotsHandler returns a list of issues (Rietveld) that have
 // trybot results associated with them.
 func jsonListTrybotsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
 	var trybotRuns []*trybot.Issue
 	var total int
 
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
-		trybotRuns, total, err = storages.TrybotResults.ListTrybotIssues(offset, size)
+		trybotRuns, total, err = storages.TrybotResults.ListTrybotIssues(ctx, offset, size)
 	}
 
 	if err != nil {

@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -33,6 +34,8 @@ func createPagesets() error {
 	}
 	defer util.TimeTrack(time.Now(), "Creating Pagesets")
 	defer sklog.Flush()
+
+	ctx := context.Background()
 
 	// Delete and remake the local pagesets directory.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
@@ -75,7 +78,7 @@ func createPagesets() error {
 		"-u", userAgent,
 		"-o", pathToPagesets,
 	}
-	if err := util.ExecuteCmd("python", args, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+	if err := util.ExecuteCmd(ctx, "python", args, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		return err
 	}
 

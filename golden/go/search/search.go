@@ -2,6 +2,7 @@
 package search
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"net/url"
@@ -217,7 +218,7 @@ func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // Search returns a slice of Digests that match the input query, and the total number of Digests
 // that matched the query. It also returns a slice of Commits that were used in the calculations.
-func Search(q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*SearchResponse, error) {
+func Search(ctx context.Context, q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*SearchResponse, error) {
 	tile := idx.GetTile(q.IncludeIgnores)
 
 	e, err := storages.ExpectationsStore.Get()
@@ -229,7 +230,7 @@ func Search(q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*Sea
 	var issueResponse *IssueResponse = nil
 	var commits []*tiling.Commit = nil
 	if q.Issue != "" {
-		ret, issueResponse, err = searchByIssue(q.Issue, q, e, q.Query, storages, idx)
+		ret, issueResponse, err = searchByIssue(ctx, q.Issue, q, e, q.Query, storages, idx)
 	} else {
 		ret, commits, err = searchTile(q, e, q.Query, storages, tile, idx)
 	}
@@ -252,8 +253,8 @@ func Search(q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*Sea
 	}, nil
 }
 
-func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, idx *indexer.SearchIndex) ([]*Digest, *IssueResponse, error) {
-	issue, tile, err := storages.TrybotResults.GetIssue(issueID, q.Patchsets)
+func searchByIssue(ctx context.Context, issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, idx *indexer.SearchIndex) ([]*Digest, *IssueResponse, error) {
+	issue, tile, err := storages.TrybotResults.GetIssue(ctx, issueID, q.Patchsets)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -1,6 +1,7 @@
 package blacklist
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -160,8 +161,9 @@ func TestRules(t *testing.T) {
 	}
 }
 
-func setupTestRepo(t *testing.T) (*git_testutils.GitBuilder, []string) {
-	gb := git_testutils.GitInit(t)
+func setupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string) {
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
 	commits := []string{}
 
 	/*
@@ -188,55 +190,55 @@ func setupTestRepo(t *testing.T) (*git_testutils.GitBuilder, []string) {
 	*/
 
 	// 0
-	gb.Add("a.txt", "")
-	commits = append(commits, gb.Commit())
+	gb.Add(ctx, "a.txt", "")
+	commits = append(commits, gb.Commit(ctx))
 
 	// 1
-	gb.Add("a.txt", "\n")
-	commits = append(commits, gb.Commit())
+	gb.Add(ctx, "a.txt", "\n")
+	commits = append(commits, gb.Commit(ctx))
 
 	// 2
-	gb.Add("a.txt", "\n\n")
-	commits = append(commits, gb.Commit())
+	gb.Add(ctx, "a.txt", "\n\n")
+	commits = append(commits, gb.Commit(ctx))
 
 	// 3
-	gb.Add("a.txt", "\n\n\n")
-	commits = append(commits, gb.Commit())
+	gb.Add(ctx, "a.txt", "\n\n\n")
+	commits = append(commits, gb.Commit(ctx))
 
 	// 4
-	gb.Add("a.txt", "\n\n\n\n")
-	commits = append(commits, gb.Commit())
+	gb.Add(ctx, "a.txt", "\n\n\n\n")
+	commits = append(commits, gb.Commit(ctx))
 
 	// 5
-	gb.CreateBranchAtCommit("mybranch", commits[1])
-	gb.Add("b.txt", "\n\n")
-	commits = append(commits, gb.Commit())
+	gb.CreateBranchAtCommit(ctx, "mybranch", commits[1])
+	gb.Add(ctx, "b.txt", "\n\n")
+	commits = append(commits, gb.Commit(ctx))
 
 	// 6
-	gb.Add("b.txt", "\n\n\n")
-	commits = append(commits, gb.Commit())
+	gb.Add(ctx, "b.txt", "\n\n\n")
+	commits = append(commits, gb.Commit(ctx))
 
 	// 7
-	gb.CheckoutBranch("master")
-	commits = append(commits, gb.MergeBranch("mybranch"))
+	gb.CheckoutBranch(ctx, "master")
+	commits = append(commits, gb.MergeBranch(ctx, "mybranch"))
 
 	// 8
-	gb.Add("a.txt", "\n\n\n\n\n")
-	commits = append(commits, gb.Commit())
+	gb.Add(ctx, "a.txt", "\n\n\n\n\n")
+	commits = append(commits, gb.Commit(ctx))
 
-	return gb, commits
+	return ctx, gb, commits
 }
 
 func TestValidation(t *testing.T) {
 	testutils.MediumTest(t)
 	// Setup.
-	gb, commits := setupTestRepo(t)
+	ctx, gb, commits := setupTestRepo(t)
 	defer gb.Cleanup()
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
 
@@ -364,13 +366,13 @@ func TestValidation(t *testing.T) {
 func TestCommitRange(t *testing.T) {
 	testutils.MediumTest(t)
 	// Setup.
-	gb, commits := setupTestRepo(t)
+	ctx, gb, commits := setupTestRepo(t)
 	defer gb.Cleanup()
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
-	repo, err := repograph.NewGraph(gb.RepoUrl(), tmp)
+	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
 	f := path.Join(tmp, "blacklist.json")
@@ -382,7 +384,7 @@ func TestCommitRange(t *testing.T) {
 	// Create a commit range rule.
 	startCommit := commits[0]
 	endCommit := commits[6]
-	rule, err := NewCommitRangeRule("commit range", "test@google.com", "...", []string{}, startCommit, endCommit, repos)
+	rule, err := NewCommitRangeRule(ctx, "commit range", "test@google.com", "...", []string{}, startCommit, endCommit, repos)
 	assert.NoError(t, err)
 	err = b.AddRule(rule, repos)
 	assert.NoError(t, err)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"html/template"
@@ -118,6 +119,8 @@ func main() {
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
 
+	ctx := context.Background()
+
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatalf("Unable to retrieve version: %s", err)
@@ -234,7 +237,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
+	git, err := gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -268,7 +271,7 @@ func main() {
 		sklog.Fatalf("Failed to connect to tracedb: %s", err)
 	}
 
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(db, git, *nCommits, evt, filepath.Join(*storageDir, "cached-last-tile"))
+	masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, git, *nCommits, evt, filepath.Join(*storageDir, "cached-last-tile"))
 	if err != nil {
 		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}

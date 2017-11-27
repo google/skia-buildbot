@@ -40,6 +40,7 @@ package exec
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -64,7 +65,8 @@ const (
 )
 
 var (
-	runFn func(command *Command) error = DefaultRun
+	contextKey     = &struct{}{}
+	defaultContext = &execContext{DefaultRun}
 
 	WriteInfoLog  = WriteLog{LogFunc: sklog.Infof}
 	WriteErrorLog = WriteLog{LogFunc: sklog.Errorf}
@@ -264,31 +266,41 @@ func DefaultRun(command *Command) error {
 	return wait(command, cmd)
 }
 
-// Run runs command and waits for it to finish. If any failure, returns non-nil. If a timeout was
-// specified, returns an error once the command has exceeded that timeout.
-func Run(command *Command) error {
-	return runFn(command)
+// execContext is a struct used for controlling the execution context of Commands.
+type execContext struct {
+	runFn func(*Command) error
 }
 
-// SetRunForTesting replaces the Run function with a test version so that commands don't actually
-// run.
-func SetRunForTesting(testRun func(command *Command) error) {
-	runFn = testRun
+// WithContext returns a context.Context instance which uses the given function
+// to run Commands.
+func NewContext(ctx context.Context, runFn func(*Command) error) context.Context {
+	newCtx := &execContext{
+		runFn: runFn,
+	}
+	return context.WithValue(ctx, contextKey, newCtx)
 }
 
-// Run method is convenience for Run(command).
-func (command *Command) Run() error {
-	return Run(command)
+// getCtx retrieves the Context associated with the context.Context.
+func getCtx(ctx context.Context) *execContext {
+	if v := ctx.Value(contextKey); v != nil {
+		return v.(*execContext)
+	}
+	return defaultContext
+}
+
+// See documentation for exec.Run.
+func (c *execContext) Run(command *Command) error {
+	return c.runFn(command)
 }
 
 // runSimpleCommand executes the given command.  Returns the combined stdout and stderr. May also
 // return an error if the command exited with a non-zero status or there is any other error.
-func runSimpleCommand(command *Command) (string, error) {
+func (c *execContext) runSimpleCommand(command *Command) (string, error) {
 	output := bytes.Buffer{}
 	command.CombinedOutput = &output
 	// Setting Verbose to Silent to maintain previous behavior.
 	command.Verbose = Silent
-	err := Run(command)
+	err := c.Run(command)
 	result := string(output.Bytes())
 	if err != nil {
 		return result, fmt.Errorf("%s; Stdout+Stderr:\n%s", err.Error(), result)
@@ -296,30 +308,51 @@ func runSimpleCommand(command *Command) (string, error) {
 	return result, nil
 }
 
-// RunSimple executes the given command line string; the command being run is expected to not care
-// what its current working directory is. Returns the combined stdout and stderr. May also return
-// an error if the command exited with a non-zero status or there is any other error.
-func RunSimple(commandLine string) (string, error) {
+// See documentation for exec.RunSimple.
+func (c *execContext) RunSimple(commandLine string) (string, error) {
 	cmd := ParseCommand(commandLine)
-	return runSimpleCommand(&cmd)
+	return c.runSimpleCommand(&cmd)
 }
 
-// RunCommand executes the given command and returns the combined stdout and stderr. May also
-// return an error if the command exited with a non-zero status or there is any other error.
-func RunCommand(command *Command) (string, error) {
-	return runSimpleCommand(command)
+// See documentation for exec.RunCommand.
+func (c *execContext) RunCommand(command *Command) (string, error) {
+	return c.runSimpleCommand(command)
 }
 
-// RunCwd executes the given command in the given directory. Returns the combined stdout and
-// stderr. May also return an error if the command exited with a non-zero status or there is any
-// other error.
-func RunCwd(cwd string, args ...string) (string, error) {
+// See documentation for exec.RunCwd.
+func (c *execContext) RunCwd(cwd string, args ...string) (string, error) {
 	command := &Command{
 		Name: args[0],
 		Args: args[1:],
 		Dir:  cwd,
 	}
-	return runSimpleCommand(command)
+	return c.runSimpleCommand(command)
+}
+
+// Run runs command and waits for it to finish. If any failure, returns non-nil. If a timeout was
+// specified, returns an error once the command has exceeded that timeout.
+func Run(ctx context.Context, command *Command) error {
+	return getCtx(ctx).Run(command)
+}
+
+// RunSimple executes the given command line string; the command being run is expected to not care
+// what its current working directory is. Returns the combined stdout and stderr. May also return
+// an error if the command exited with a non-zero status or there is any other error.
+func RunSimple(ctx context.Context, commandLine string) (string, error) {
+	return getCtx(ctx).RunSimple(commandLine)
+}
+
+// RunCommand executes the given command and returns the combined stdout and stderr. May also
+// return an error if the command exited with a non-zero status or there is any other error.
+func RunCommand(ctx context.Context, command *Command) (string, error) {
+	return getCtx(ctx).runSimpleCommand(command)
+}
+
+// RunCwd executes the given command in the given directory. Returns the combined stdout and
+// stderr. May also return an error if the command exited with a non-zero status or there is any
+// other error.
+func RunCwd(ctx context.Context, cwd string, args ...string) (string, error) {
+	return getCtx(ctx).RunCwd(cwd, args...)
 }
 
 // RunIndefinitely starts the command and then returns. Clients can listen for

@@ -1,6 +1,7 @@
 package roller
 
 import (
+	"context"
 	"fmt"
 
 	"go.skia.org/infra/autoroll/go/recent_rolls"
@@ -18,12 +19,14 @@ type RollImpl interface {
 	InsertIntoDB() error
 }
 
-func retrieveGerritIssue(g *gerrit.Gerrit, rm repo_manager.RepoManager, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
+func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
 	info, err := g.GetIssueProperties(issueNum)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to get issue properties: %s", err)
 	}
-	a, err := autoroll.FromGerritChangeInfo(info, rm.FullChildHash, rollIntoAndroid)
+	a, err := autoroll.FromGerritChangeInfo(info, func(h string) (string, error) {
+		return rm.FullChildHash(ctx, h)
+	}, rollIntoAndroid)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
@@ -41,15 +44,15 @@ type gerritRoll struct {
 	issue        *autoroll.AutoRollIssue
 	g            *gerrit.Gerrit
 	recent       *recent_rolls.RecentRolls
-	retrieveRoll func(int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error)
+	retrieveRoll func(context.Context, int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error)
 	result       string
 	rm           repo_manager.RepoManager
 }
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
-	ci, issue, err := retrieveGerritIssue(g, rm, false, issueNum)
+func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
+	ci, issue, err := retrieveGerritIssue(ctx, g, rm, false, issueNum)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +61,8 @@ func newGerritRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent
 		issue:  issue,
 		g:      g,
 		recent: recent,
-		retrieveRoll: func(issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
-			return retrieveGerritIssue(g, rm, false, issueNum)
+		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
+			return retrieveGerritIssue(ctx, g, rm, false, issueNum)
 		},
 		rm: rm,
 	}, nil
@@ -78,12 +81,12 @@ func (r *gerritRoll) AddComment(msg string) error {
 // Helper function for modifying a roll CL which might fail due to the CL being
 // closed by a human or some other process, in which case we don't want to error
 // out.
-func (r *gerritRoll) withModify(action string, fn func() error) error {
+func (r *gerritRoll) withModify(ctx context.Context, action string, fn func() error) error {
 	if err := fn(); err != nil {
 		// It's possible that somebody abandoned the CL (or the CL
 		// landed) while we were working. If that's the case, log an
 		// error and move on.
-		if err2 := r.Update(); err2 != nil {
+		if err2 := r.Update(ctx); err2 != nil {
 			return fmt.Errorf("Failed to %s with error:\n%s\nAnd failed to update it with error:\n%s", action, err, err2)
 		}
 		if r.ci.IsClosed() {
@@ -92,14 +95,14 @@ func (r *gerritRoll) withModify(action string, fn func() error) error {
 		}
 		return err
 	}
-	return r.Update()
+	return r.Update(ctx)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
-func (r *gerritRoll) Close(result, msg string) error {
+func (r *gerritRoll) Close(ctx context.Context, result, msg string) error {
 	sklog.Infof("Closing issue %d (result %q) with message: %s", r.ci.Issue, result, msg)
 	r.result = result
-	return r.withModify("close the CL", func() error {
+	return r.withModify(ctx, "close the CL", func() error {
 		return r.g.Abandon(r.ci, msg)
 	})
 }
@@ -134,22 +137,22 @@ func (r *gerritRoll) RollingTo() string {
 }
 
 // See documentation for state_machine.RollCLImpl interface.
-func (r *gerritRoll) SwitchToDryRun() error {
-	return r.withModify("switch the CL to dry run", func() error {
+func (r *gerritRoll) SwitchToDryRun(ctx context.Context) error {
+	return r.withModify(ctx, "switch the CL to dry run", func() error {
 		return r.g.SendToDryRun(r.ci, "Mode was changed to dry run")
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
-func (r *gerritRoll) SwitchToNormal() error {
-	return r.withModify("switch the CL out of dry run", func() error {
+func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
+	return r.withModify(ctx, "switch the CL out of dry run", func() error {
 		return r.g.SendToCQ(r.ci, "Mode was changed to normal")
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
-func (r *gerritRoll) Update() error {
-	ci, issue, err := r.retrieveRoll(r.issue.Issue)
+func (r *gerritRoll) Update(ctx context.Context) error {
+	ci, issue, err := r.retrieveRoll(ctx, r.issue.Issue)
 	if err != nil {
 		return err
 	}
@@ -167,8 +170,8 @@ type gerritAndroidRoll struct {
 }
 
 // newGerritAndroidRoll obtains a gerritAndroidRoll instance from the given Gerrit issue number.
-func newGerritAndroidRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
-	ci, issue, err := retrieveGerritIssue(g, rm, true, issueNum)
+func newGerritAndroidRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
+	ci, issue, err := retrieveGerritIssue(ctx, g, rm, true, issueNum)
 	if err != nil {
 		return nil, err
 	}
@@ -177,8 +180,8 @@ func newGerritAndroidRoll(g *gerrit.Gerrit, rm repo_manager.RepoManager, recent 
 		issue:  issue,
 		g:      g,
 		recent: recent,
-		retrieveRoll: func(issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
-			return retrieveGerritIssue(g, rm, true, issueNum)
+		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
+			return retrieveGerritIssue(ctx, g, rm, true, issueNum)
 		},
 		rm: rm,
 	}}, nil
@@ -212,15 +215,15 @@ func (r *gerritAndroidRoll) IsDryRunSuccess() bool {
 }
 
 // See documentation for state_machine.RollCLImpl interface.
-func (r *gerritAndroidRoll) SwitchToDryRun() error {
-	return r.withModify("switch the CL to dry run", func() error {
+func (r *gerritAndroidRoll) SwitchToDryRun(ctx context.Context) error {
+	return r.withModify(ctx, "switch the CL to dry run", func() error {
 		return r.g.SetReview(r.ci, "Mode was changed to dry run", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE})
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
-func (r *gerritAndroidRoll) SwitchToNormal() error {
-	return r.withModify("switch the CL out of dry run", func() error {
+func (r *gerritAndroidRoll) SwitchToNormal(ctx context.Context) error {
+	return r.withModify(ctx, "switch the CL out of dry run", func() error {
 		return r.g.SetReview(r.ci, "Mode was changed to normal", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT})
 	})
 }

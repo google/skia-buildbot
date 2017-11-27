@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -56,12 +57,14 @@ func captureSkps() error {
 		return errors.New("Android is not yet supported for capturing SKPs.")
 	}
 
+	ctx := context.Background()
+
 	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
+	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
 		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{}, []string{}); err != nil {
+	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{}, []string{}); err != nil {
 		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
@@ -80,7 +83,7 @@ func captureSkps() error {
 	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		// Install the APK on the Android device.
-		if err := util.InstallChromeAPK(*chromiumBuild); err != nil {
+		if err := util.InstallChromeAPK(ctx, *chromiumBuild); err != nil {
 			return fmt.Errorf("Could not install the chromium APK: %s", err)
 		}
 	}
@@ -187,7 +190,7 @@ func captureSkps() error {
 				// Retry run_benchmark binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
-					err = util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+					err = util.ExecuteCmd(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 					if err == nil {
 						break
 					}
@@ -206,14 +209,14 @@ func captureSkps() error {
 
 	if !*worker_common.Local {
 		// Start the cleaner.
-		go util.ChromeProcessesCleaner(&mutex, *chromeCleanerTimer)
+		go util.ChromeProcessesCleaner(ctx, &mutex, *chromeCleanerTimer)
 	}
 
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
 
 	// Move and validate all SKP files.
-	if err := util.ValidateSKPs(pathToSkps, pathToPyFiles); err != nil {
+	if err := util.ValidateSKPs(ctx, pathToSkps, pathToPyFiles); err != nil {
 		return err
 	}
 

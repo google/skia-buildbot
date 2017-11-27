@@ -5,6 +5,7 @@ package state_machine
 */
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,7 +22,7 @@ const (
 
 // TransitionFn is a function to run when attempting to transition from one
 // State to another. It is okay to give nil as a noop TransitionFn.
-type TransitionFn func() error
+type TransitionFn func(ctx context.Context) error
 
 type transition struct {
 	from string
@@ -52,10 +53,10 @@ func (b *Builder) T(from, to, fn string) {
 
 // Add a transition function with the given name. Allows nil functions for no-op
 // transitions.
-func (b *Builder) F(name string, fn func() error) {
-	b.funcs[name] = func() error {
+func (b *Builder) F(name string, fn TransitionFn) {
+	b.funcs[name] = func(ctx context.Context) error {
 		if fn != nil {
-			return fn()
+			return fn(ctx)
 		}
 		return nil
 	}
@@ -169,7 +170,7 @@ func (sm *StateMachine) checkBusy() error {
 }
 
 // Attempt to transition to the given state, using the transition function.
-func (sm *StateMachine) Transition(dest string) error {
+func (sm *StateMachine) Transition(ctx context.Context, dest string) error {
 	sm.mtx.Lock()
 	defer sm.mtx.Unlock()
 	toMap, ok := sm.transitions[sm.current]
@@ -198,7 +199,7 @@ func (sm *StateMachine) Transition(dest string) error {
 		}
 	}()
 
-	if err := fn(); err != nil {
+	if err := fn(ctx); err != nil {
 		return fmt.Errorf("Failed to transition from %q to %q: %s", sm.current, dest, err)
 	}
 	sm.current = dest

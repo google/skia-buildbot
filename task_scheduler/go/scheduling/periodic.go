@@ -1,6 +1,8 @@
 package scheduling
 
 import (
+	"context"
+
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -8,7 +10,7 @@ import (
 )
 
 // Trigger all jobs with the given trigger name.
-func triggerPeriodicJobsWithName(s *TaskScheduler, trigger string) error {
+func triggerPeriodicJobsWithName(ctx context.Context, s *TaskScheduler, trigger string) error {
 	// Obtain the TasksCfg at tip of master in each repo.
 	cfgs := make(map[db.RepoState]*specs.TasksCfg, len(s.repos))
 	for url, repo := range s.repos {
@@ -17,7 +19,7 @@ func triggerPeriodicJobsWithName(s *TaskScheduler, trigger string) error {
 			Repo:     url,
 			Revision: head.Hash,
 		}
-		cfg, err := s.taskCfgCache.ReadTasksCfg(rs)
+		cfg, err := s.taskCfgCache.ReadTasksCfg(ctx, rs)
 		if err != nil {
 			return err
 		}
@@ -29,7 +31,7 @@ func triggerPeriodicJobsWithName(s *TaskScheduler, trigger string) error {
 	for rs, cfg := range cfgs {
 		for name, spec := range cfg.Jobs {
 			if spec.Trigger == trigger {
-				j, err := s.taskCfgCache.MakeJob(rs, name)
+				j, err := s.taskCfgCache.MakeJob(ctx, rs, name)
 				if err != nil {
 					return err
 				}
@@ -42,16 +44,16 @@ func triggerPeriodicJobsWithName(s *TaskScheduler, trigger string) error {
 
 // Register the nightly and weekly jobs to run.
 func (s *TaskScheduler) registerPeriodicTriggers() {
-	s.periodicTriggers.Register("nightly", func() error {
-		return triggerPeriodicJobsWithName(s, "nightly")
+	s.periodicTriggers.Register("nightly", func(ctx context.Context) error {
+		return triggerPeriodicJobsWithName(ctx, s, "nightly")
 	})
-	s.periodicTriggers.Register("weekly", func() error {
-		return triggerPeriodicJobsWithName(s, "weekly")
+	s.periodicTriggers.Register("weekly", func(ctx context.Context) error {
+		return triggerPeriodicJobsWithName(ctx, s, "weekly")
 	})
 }
 
 // triggerPeriodicJobs triggers jobs at HEAD of the master branch in each repo
 // for any files present in the trigger dir.
-func (s *TaskScheduler) triggerPeriodicJobs() error {
-	return s.periodicTriggers.RunPeriodicTriggers()
+func (s *TaskScheduler) triggerPeriodicJobs(ctx context.Context) error {
+	return s.periodicTriggers.RunPeriodicTriggers(ctx)
 }

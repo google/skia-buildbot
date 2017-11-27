@@ -5,6 +5,7 @@ package runner
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -128,12 +129,12 @@ func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options) (strin
 //    gitHash - The git hash of the version of Skia we have checked out.
 //
 // Returns the timestamp of the git commit in UTC.
-func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
-	g, err := gitinfo.NewGitInfo(filepath.Join(fiddleRoot, "versions", gitHash), false, false)
+func GitHashTimeStamp(ctx context.Context, fiddleRoot, gitHash string) (time.Time, error) {
+	g, err := gitinfo.NewGitInfo(ctx, filepath.Join(fiddleRoot, "versions", gitHash), false, false)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("Failed to create gitinfo: %s", err)
 	}
-	commit, err := g.Details(gitHash, false)
+	commit, err := g.Details(ctx, gitHash, false)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("Failed to retrieve info on the git commit %s: %s", gitHash, err)
 	}
@@ -183,7 +184,7 @@ func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
 // the point of making the bindings and then xargs will be able to execute the
 // exe within the container.
 //
-func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string, opts *types.Options) (*types.Result, error) {
+func Run(ctx context.Context, checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string, opts *types.Options) (*types.Result, error) {
 	/*
 		Do the equivalent of the following bash script that creates the overlayfs
 		mount.
@@ -243,7 +244,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 		LogStderr: true,
 		Stdout:    output,
 	}
-	if err := exec.Run(mountCmd); err != nil {
+	if err := exec.Run(ctx, mountCmd); err != nil {
 		return nil, fmt.Errorf("mount failed to run %#v: %s", *mountCmd, err)
 	}
 
@@ -261,7 +262,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 			Stdout:    output,
 		}
 
-		if err := exec.Run(umountCmd); err != nil {
+		if err := exec.Run(ctx, umountCmd); err != nil {
 			sklog.Errorf("umount failed to run %#v: %s", *umountCmd, err)
 		}
 	}()
@@ -283,7 +284,7 @@ func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir st
 		LogStderr: true,
 		Stdout:    output,
 	}
-	if err := exec.Run(runCmd); err != nil {
+	if err := exec.Run(ctx, runCmd); err != nil {
 		runFailures.Inc(1)
 		return nil, fmt.Errorf("fiddle_run failed to run %#v: %s", *runCmd, err)
 	}

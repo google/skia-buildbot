@@ -1,6 +1,7 @@
 package blame
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -172,7 +173,8 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 }
 
 func BenchmarkBlamer(b *testing.B) {
-	tileBuilder := mocks.GetTileBuilderFromEnv(b)
+	ctx := context.Background()
+	tileBuilder := mocks.GetTileBuilderFromEnv(b, ctx)
 
 	// Get a tile to make sure it's cached.
 	tileBuilder.GetTile()

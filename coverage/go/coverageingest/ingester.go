@@ -35,7 +35,7 @@ var INGEST_BLACKLIST = []*regexp.Regexp{regexp.MustCompile(`.+tar\.gz`)}
 // (e.g. GCS).  An Ingester should not be assumed to be thread safe.
 type Ingester interface {
 	// IngestCommits will ingest files belonging to the specified commits.
-	IngestCommits([]*vcsinfo.LongCommit)
+	IngestCommits(context.Context, []*vcsinfo.LongCommit)
 
 	// GetResults returns everything that was ingested on the last IngestCommits() call.
 	GetResults() []IngestedResults
@@ -73,11 +73,11 @@ func New(ingestionDir string, gcsClient gcs.GCSClient, cache db.CoverageCache) *
 // It is a variable for easier mocking.
 var unTar = defaultUnTar
 
-func defaultUnTar(tarpath, outpath string) error {
+func defaultUnTar(ctx context.Context, tarpath, outpath string) error {
 	if _, err := fileutil.EnsureDirExists(outpath); err != nil {
 		return fmt.Errorf("Could not set up directory to tar to: %s", err)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "tar",
 		// Strip components 6 removes /mnt/pd0/s/w/ir/coverage_html/ from the
 		// tar file's internal folders.
@@ -158,7 +158,7 @@ func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, e
 }
 
 // IngestCommits fulfills the Ingester interface.
-func (n *gcsingester) IngestCommits(commits []*vcsinfo.LongCommit) {
+func (n *gcsingester) IngestCommits(ctx context.Context, commits []*vcsinfo.LongCommit) {
 	newResults := []IngestedResults{}
 	for _, c := range commits {
 		if _, err := fileutil.EnsureDirExists(path.Join(n.dir, c.Hash)); err != nil {
@@ -190,7 +190,7 @@ func (n *gcsingester) IngestCommits(commits []*vcsinfo.LongCommit) {
 			}
 			// Don't re-download files that already exist
 			if !fileExists(outpath) {
-				if err := n.ingestFile(basePath, name, c.Hash); err != nil {
+				if err := n.ingestFile(ctx, basePath, name, c.Hash); err != nil {
 					sklog.Warningf("Problem ingesting file: %s", err)
 					continue
 				}
@@ -260,7 +260,7 @@ func (n *gcsingester) getIngestableFilesFromGCS(basePath string) ([]string, erro
 
 // ingestFile downloads the given file. If it is a tar file, it extracts it to a sub-folder
 // based on the original file name.  E.g. My-Config.text.tar -> My-Config/text/
-func (n *gcsingester) ingestFile(basePath, name, commit string) error {
+func (n *gcsingester) ingestFile(ctx context.Context, basePath, name, commit string) error {
 	dl := basePath + name
 	if contents, err := n.gcsClient.GetFileContents(context.Background(), dl); err != nil {
 		return fmt.Errorf("Could not download file %s from GCS : %s", dl, err)
@@ -282,7 +282,7 @@ func (n *gcsingester) ingestFile(basePath, name, commit string) error {
 			if len(parts) != 3 {
 				return fmt.Errorf("Invalid tar name to ingest %s - must have 3 parts", name)
 			}
-			if err := unTar(outpath, path.Join(n.dir, commit, parts[0], parts[1])); err != nil {
+			if err := unTar(ctx, outpath, path.Join(n.dir, commit, parts[0], parts[1])); err != nil {
 				return fmt.Errorf("Could not untar %s: %s", outpath, err)
 			}
 		}

@@ -114,7 +114,7 @@ func botConfigKey(dims []string) string {
 // computeBotConfigs groups TaskSpecs by identical dimensions and returns a BotConfig for each
 // dimension set. Arguments are getTaskDurations() and getCQTaskSpecs(). The returned map is keyed
 // by botConfigKey(BotConfig.Dimensions).
-func (c *CapacityClient) computeBotConfigs(durations map[string][]taskData, cqTasks []string) (map[string]BotConfig, error) {
+func (c *CapacityClient) computeBotConfigs(ctx context.Context, durations map[string][]taskData, cqTasks []string) (map[string]BotConfig, error) {
 	// The db.Task structs don't have their dimensions, so we pull those off of the master
 	// branches of all the repos. If the dimensions were updated recently, this may lead
 	// to some inaccuracies. In practice, this probably won't happen because updates
@@ -140,7 +140,7 @@ func (c *CapacityClient) computeBotConfigs(durations map[string][]taskData, cqTa
 		var err error
 		// Look up the TaskSpec for the dimensions.
 		for _, rs := range tips {
-			taskSpec, err = c.tcc.GetTaskSpec(rs, taskName)
+			taskSpec, err = c.tcc.GetTaskSpec(ctx, rs, taskName)
 			if err == nil {
 				// no err means we found it
 				break
@@ -235,7 +235,7 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 }
 
 // QueryAll updates the capacity metrics.
-func (c *CapacityClient) QueryAll() error {
+func (c *CapacityClient) QueryAll(ctx context.Context) error {
 	sklog.Infoln("Recounting Capacity Stats")
 
 	durations, err := c.getTaskDurations()
@@ -248,7 +248,7 @@ func (c *CapacityClient) QueryAll() error {
 		return err
 	}
 
-	botConfigs, err := c.computeBotConfigs(durations, cqTasks)
+	botConfigs, err := c.computeBotConfigs(ctx, durations, cqTasks)
 	if err != nil {
 		return err
 	}
@@ -266,10 +266,10 @@ func (c *CapacityClient) QueryAll() error {
 
 // StartLoading begins an infinite loop to recompute the capacity metrics after a
 // given interval of time.  Any errors are logged, but the loop is not broken.
-func (c *CapacityClient) StartLoading(interval time.Duration) {
+func (c *CapacityClient) StartLoading(ctx context.Context, interval time.Duration) {
 	go func() {
-		util.RepeatCtx(interval, context.Background(), func() {
-			if err := c.QueryAll(); err != nil {
+		util.RepeatCtx(interval, ctx, func() {
+			if err := c.QueryAll(ctx); err != nil {
 				sklog.Errorf("There was a problem counting capacity stats")
 			}
 		})

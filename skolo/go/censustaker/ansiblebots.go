@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -19,7 +20,7 @@ type BotNameGetter interface {
 	// Collects and returns a list of Bot with nearly all the
 	// information filled out. This can be a very expensive call
 	// (2 minutes or more).
-	GetBotNamesAddresses() ([]Bot, error)
+	GetBotNamesAddresses(context.Context) ([]Bot, error)
 }
 
 // Implements BotNameGetter using Ansible.
@@ -37,14 +38,14 @@ func NewAnsibleBotNameGetter(scriptDir, outputFile string) *ansibleBotSource {
 }
 
 // GetBotNamesAddresses, fulfills BotNameGetter
-func (a *ansibleBotSource) GetBotNamesAddresses() ([]Bot, error) {
+func (a *ansibleBotSource) GetBotNamesAddresses(ctx context.Context) ([]Bot, error) {
 	if err := os.Remove(a.outputFile); err != nil {
 		sklog.Warningf("Could not clear out file: %s", err)
 	}
 	output := bytes.Buffer{}
 	// This command scans all hosts on this network (specified by sys/all-hosts)
 	// and records the hostname, mac address and ip address of them all.
-	err := exec.Run(&exec.Command{
+	err := exec.Run(ctx, &exec.Command{
 		Name: "ansible-playbook",
 		Args: []string{"-i", "all-hosts", "enumerate_hostnames.yml",
 			"--extra-vars", "output_file=" + a.outputFile, "-vv"},

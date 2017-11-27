@@ -67,7 +67,7 @@ type IncrementalCache struct {
 }
 
 // NewIncrementalCache returns an IncrementalCache instance.
-func NewIncrementalCache(d db.RemoteDB, w *window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCache, error) {
+func NewIncrementalCache(ctx context.Context, d db.RemoteDB, w *window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCache, error) {
 	c := &IncrementalCache{
 		comments:         newCommentsCache(d, repos),
 		commits:          newCommitsCache(repos),
@@ -77,7 +77,7 @@ func NewIncrementalCache(d db.RemoteDB, w *window.Window, repos repograph.Map, n
 		tasks:            newTaskCache(d),
 		w:                w,
 	}
-	return c, c.Update(true)
+	return c, c.Update(ctx, true)
 }
 
 // getUpdatesInRange is a helper function which retrieves all Update objects
@@ -179,7 +179,7 @@ func (c *IncrementalCache) GetAll(repo string, maxCommits int) (*Update, error) 
 }
 
 // Update obtains new data and stores it internally keyed by the current time.
-func (c *IncrementalCache) Update(reset bool) error {
+func (c *IncrementalCache) Update(ctx context.Context, reset bool) error {
 	defer metrics2.FuncTimer().Stop()
 	c.updateMtx.Lock()
 	defer c.updateMtx.Unlock()
@@ -214,7 +214,7 @@ func (c *IncrementalCache) Update(reset bool) error {
 		c.comments.Reset()
 		return e
 	}
-	branchHeads, commits, err := c.commits.Update(c.w, startOver, c.numCommits)
+	branchHeads, commits, err := c.commits.Update(ctx, c.w, startOver, c.numCommits)
 	if err != nil {
 		return onError(err)
 	}
@@ -277,7 +277,7 @@ func (c *IncrementalCache) UpdateLoop(frequency time.Duration, ctx context.Conte
 		if now.Sub(lastReset) > 24*time.Hour {
 			reset = true
 		}
-		if err := c.Update(reset); err != nil {
+		if err := c.Update(ctx, reset); err != nil {
 			sklog.Errorf("Failed to update incremental cache: %s", err)
 		} else {
 			lv.Reset()

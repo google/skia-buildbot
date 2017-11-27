@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -34,23 +35,23 @@ var (
 	emails = []string{"reviewer@chromium.org"}
 )
 
-func setup(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
+func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
 	// Create child and parent repos.
-	child := git_testutils.GitInit(t)
+	child := git_testutils.GitInit(t, context.Background())
 	f := "somefile.txt"
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
-		childCommits = append(childCommits, child.CommitGen(f))
+		childCommits = append(childCommits, child.CommitGen(context.Background(), f))
 	}
 
-	parent := git_testutils.GitInit(t)
-	parent.Add("DEPS", fmt.Sprintf(`deps = {
+	parent := git_testutils.GitInit(t, context.Background())
+	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
 }`, childPath, child.RepoUrl(), childCommits[0]))
-	parent.Commit()
+	parent.Commit(context.Background())
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
@@ -69,16 +70,15 @@ func setup(t *testing.T) (string, *git_testutils.GitBuilder, []string, *git_test
 		}
 		return exec.DefaultRun(cmd)
 	})
-	exec.SetRunForTesting(mockRun.Run)
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
 	cleanup := func() {
-		exec.SetRunForTesting(exec.DefaultRun)
 		testutils.RemoveAll(t, wd)
 		child.Cleanup()
 		parent.Cleanup()
 	}
 
-	return wd, child, childCommits, parent, mockRun, cleanup
+	return ctx, wd, child, childCommits, parent, mockRun, cleanup
 }
 
 func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
@@ -104,35 +104,35 @@ func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 func TestDEPSRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 
-	wd, child, childCommits, parent, _, cleanup := setup(t)
+	ctx, wd, child, childCommits, parent, _, cleanup := setup(t)
 	defer cleanup()
 
 	g := setupFakeGerrit(t, wd)
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
 	// Test FullChildHash.
 	for _, c := range childCommits {
-		h, err := rm.FullChildHash(c[:12])
+		h, err := rm.FullChildHash(ctx, c[:12])
 		assert.NoError(t, err)
 		assert.Equal(t, c, h)
 	}
 
 	// Test update.
-	lastCommit := child.CommitGen("abc.txt")
-	assert.NoError(t, rm.Update())
+	lastCommit := child.CommitGen(context.Background(), "abc.txt")
+	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, lastCommit, rm.NextRollRev())
 
 	// RolledPast.
-	rp, err := rm.RolledPast(childCommits[0])
+	rp, err := rm.RolledPast(ctx, childCommits[0])
 	assert.NoError(t, err)
 	assert.True(t, rp)
 	for _, c := range childCommits[1:] {
-		rp, err := rm.RolledPast(c)
+		rp, err := rm.RolledPast(ctx, c)
 		assert.NoError(t, err)
 		assert.False(t, rp)
 	}
@@ -143,23 +143,23 @@ func TestDEPSRepoManager(t *testing.T) {
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	testutils.LargeTest(t)
 
-	wd, child, childCommits, parent, _, cleanup := setup(t)
+	ctx, wd, child, childCommits, parent, _, cleanup := setup(t)
 	defer cleanup()
 
 	s, err := GetNextRollStrategy(strategy, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
-	issue, err := rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
 	msg, err := ioutil.ReadFile(path.Join(rm.(*depsRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
 	assert.NoError(t, err)
 	from, to, err := autoroll.RollRev(strings.Split(string(msg), "\n")[0], func(h string) (string, error) {
-		return git.GitDir(child.Dir()).RevParse(h)
+		return git.GitDir(child.Dir()).RevParse(ctx, h)
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], from)
@@ -180,25 +180,25 @@ func TestDEPSRepoManagerSingle(t *testing.T) {
 func TestRanPreUploadStepsDeps(t *testing.T) {
 	testutils.LargeTest(t)
 
-	wd, _, _, parent, _, cleanup := setup(t)
+	ctx, wd, _, _, parent, _, cleanup := setup(t)
 	defer cleanup()
 
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	ran := false
 	rm.(*depsRepoManager).preUploadSteps = []PreUploadStep{
-		func(string) error {
+		func(context.Context, string) error {
 			ran = true
 			return nil
 		},
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.True(t, ran)
 }
@@ -208,18 +208,18 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 	testutils.LargeTest(t)
 
 	test := func(includeLog bool) {
-		wd, _, _, parent, mockRun, cleanup := setup(t)
+		ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
 		defer cleanup()
 
 		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
 
-		rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, includeLog, nil, "fake.server.com")
+		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, includeLog, nil, "fake.server.com")
 		assert.NoError(t, err)
 
 		// Create a roll.
-		_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 		assert.NoError(t, err)
 
 		// Ensure that --no-log is present or not, according to includeLog.
@@ -241,7 +241,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 func TestDEPSRepoManagerCustomVars(t *testing.T) {
 	testutils.LargeTest(t)
 
-	wd, _, _, parent, mockRun, cleanup := setup(t)
+	ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
 	defer cleanup()
 
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
@@ -251,11 +251,11 @@ func TestDEPSRepoManagerCustomVars(t *testing.T) {
 		"a=b",
 		"c=d",
 	}
-	rm, err := NewDEPSRepoManager(wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, customVars, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, customVars, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll.
-	_, err = rm.CreateNewRoll(rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
+	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 
 	// Ensure that --no-log is present or not, according to includeLog.

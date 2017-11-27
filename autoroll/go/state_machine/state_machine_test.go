@@ -1,6 +1,7 @@
 package state_machine
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path"
@@ -41,7 +42,7 @@ func (r *TestRollCLImpl) AddComment(string) error {
 }
 
 // See documentation for RollCLImpl.
-func (r *TestRollCLImpl) Close(status, msg string) error {
+func (r *TestRollCLImpl) Close(ctx context.Context, status, msg string) error {
 	r.closedStatus = status
 	r.closedMsg = msg
 	return nil
@@ -98,13 +99,13 @@ func (r *TestRollCLImpl) SetDryRunFailed() {
 }
 
 // See documentation for RollCLImpl.
-func (r *TestRollCLImpl) SwitchToDryRun() error {
+func (r *TestRollCLImpl) SwitchToDryRun(ctx context.Context) error {
 	r.isDryRun = true
 	return nil
 }
 
 // See documentation for RollCLImpl.
-func (r *TestRollCLImpl) SwitchToNormal() error {
+func (r *TestRollCLImpl) SwitchToNormal(ctx context.Context) error {
 	r.isDryRun = false
 	return nil
 }
@@ -120,7 +121,7 @@ func (r *TestRollCLImpl) AssertNotDryRun() {
 }
 
 // See documentation for RollCLImpl.
-func (r *TestRollCLImpl) Update() error {
+func (r *TestRollCLImpl) Update(ctx context.Context) error {
 	return nil
 }
 
@@ -157,7 +158,7 @@ func NewTestAutoRollerImpl(t *testing.T) *TestAutoRollerImpl {
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) UploadNewRoll(from, to string, dryRun bool) error {
+func (r *TestAutoRollerImpl) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error {
 	if r.createNewRollError != nil {
 		return r.createNewRollError
 	}
@@ -214,12 +215,12 @@ func (r *TestAutoRollerImpl) GetMode() string {
 }
 
 // Set the result of GetMode.
-func (r *TestAutoRollerImpl) SetMode(mode string) {
+func (r *TestAutoRollerImpl) SetMode(ctx context.Context, mode string) {
 	r.getModeResult = mode
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) RolledPast(rev string) (bool, error) {
+func (r *TestAutoRollerImpl) RolledPast(ctx context.Context, rev string) (bool, error) {
 	rv, ok := r.rolledPast[rev]
 	assert.True(r.t, ok)
 	delete(r.rolledPast, rev)
@@ -234,7 +235,7 @@ func (r *TestAutoRollerImpl) SetRolledPast(rev string, result bool) {
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) UpdateRepos() error {
+func (r *TestAutoRollerImpl) UpdateRepos(ctx context.Context) error {
 	return r.updateError
 }
 
@@ -250,7 +251,7 @@ func checkState(t *testing.T, sm *AutoRollStateMachine, wanted string) {
 
 // Perform a state transition and assert that we ended up in the given state.
 func checkNextState(t *testing.T, sm *AutoRollStateMachine, wanted string) {
-	assert.NoError(t, sm.NextTransition())
+	assert.NoError(t, sm.NextTransition(context.Background()))
 	assert.Equal(t, wanted, sm.Current())
 }
 
@@ -322,9 +323,11 @@ func TestDryRun(t *testing.T) {
 	sm, r, cleanup := setup(t)
 	defer cleanup()
 
+	ctx := context.Background()
+
 	// Switch to dry run.
 	checkState(t, sm, S_NORMAL_IDLE)
-	r.SetMode(modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 
 	// Create a new roll.
@@ -363,16 +366,18 @@ func TestNormalToDryRun(t *testing.T) {
 	sm, r, cleanup := setup(t)
 	defer cleanup()
 
+	ctx := context.Background()
+
 	// Upload a roll and switch it in and out of dry run mode.
 	checkState(t, sm, S_NORMAL_IDLE)
 	r.SetNextRollRev("HEAD+1")
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll := r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
-	r.SetMode(modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll.AssertDryRun()
-	r.SetMode(modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.MODE_RUNNING)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll.AssertNotDryRun()
 }
@@ -381,29 +386,31 @@ func TestStopped(t *testing.T) {
 	sm, r, cleanup := setup(t)
 	defer cleanup()
 
+	ctx := context.Background()
+
 	// Switch in and out of stopped mode.
 	checkState(t, sm, S_NORMAL_IDLE)
-	r.SetMode(modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.MODE_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
-	r.SetMode(modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
-	r.SetMode(modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.MODE_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
 
 	r.SetNextRollRev("HEAD+1")
-	r.SetMode(modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.MODE_RUNNING)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll := r.GetActiveRoll().(*TestRollCLImpl)
-	r.SetMode(modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.MODE_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
-	r.SetMode(modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
-	r.SetMode(modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.MODE_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 }
@@ -417,21 +424,23 @@ func testThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
+	ctx := context.Background()
+
 	// Upload a bunch of CLs, fail fast until we're throttled.
 	checkState(t, sm, S_NORMAL_IDLE)
-	r.SetMode(mode)
-	assert.NoError(t, sm.NextTransition())
+	r.SetMode(ctx, mode)
+	assert.NoError(t, sm.NextTransition(ctx))
 	r.SetNextRollRev("HEAD+1")
 	for i := int64(0); i < sm.tc.AttemptCount; i++ {
-		assert.NoError(t, sm.NextTransition())
+		assert.NoError(t, sm.NextTransition(ctx))
 		roll := r.GetActiveRoll().(*TestRollCLImpl)
 		if mode == modes.MODE_DRY_RUN {
 			roll.SetDryRunFailed()
 		} else {
 			roll.SetFailed()
 		}
-		assert.NoError(t, sm.NextTransition())
-		assert.NoError(t, sm.NextTransition())
+		assert.NoError(t, sm.NextTransition(ctx))
+		assert.NoError(t, sm.NextTransition(ctx))
 		if mode == modes.MODE_DRY_RUN {
 			roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
 		} else {

@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -23,11 +24,12 @@ const (
 //
 // Returns the GitBuilder instance for the test repo, along with the commit
 // hashes for c1 and c2.
-func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
-	gb := git_testutils.GitInit(t)
+func SetupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, string, string) {
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
 
 	// Commit 1.
-	gb.Add("infra/bots/compile_skia.isolate", `{
+	gb.Add(ctx, "infra/bots/compile_skia.isolate", `{
   'includes': [
     'swarm_recipe.isolate',
   ],
@@ -37,7 +39,7 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
     ],
   },
 }`)
-	gb.Add("infra/bots/perf_skia.isolate", `{
+	gb.Add(ctx, "infra/bots/perf_skia.isolate", `{
   'includes': [
     'swarm_recipe.isolate',
   ],
@@ -47,7 +49,7 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
     ],
   },
 }`)
-	gb.Add("infra/bots/swarm_recipe.isolate", `{
+	gb.Add(ctx, "infra/bots/swarm_recipe.isolate", `{
   'variables': {
     'command': [
       'python', 'recipes.py', 'run',
@@ -57,7 +59,7 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
     ],
   },
 }`)
-	gb.Add("infra/bots/tasks.json", `{
+	gb.Add(ctx, "infra/bots/tasks.json", `{
   "tasks": {
     "Build-Ubuntu-GCC-Arm7-Release-Android": {
       "cipd_packages": [{
@@ -98,7 +100,7 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
     }
   }
 }`)
-	gb.Add("infra/bots/test_skia.isolate", `{
+	gb.Add(ctx, "infra/bots/test_skia.isolate", `{
   'includes': [
     'swarm_recipe.isolate',
   ],
@@ -108,13 +110,13 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
     ],
   },
 }`)
-	gb.Add("somefile.txt", "blahblah")
-	gb.Add("a.txt", "blah")
+	gb.Add(ctx, "somefile.txt", "blahblah")
+	gb.Add(ctx, "a.txt", "blah")
 	now := time.Now()
-	c1 := gb.CommitMsgAt("c1", now.Add(-5*time.Second))
+	c1 := gb.CommitMsgAt(ctx, "c1", now.Add(-5*time.Second))
 
 	// Commit 2.
-	gb.Add("infra/bots/tasks.json", `{
+	gb.Add(ctx, "infra/bots/tasks.json", `{
   "jobs": {
     "Build-Ubuntu-GCC-Arm7-Release-Android": {
       "priority": 0.8,
@@ -202,7 +204,7 @@ func SetupTestRepo(t *testing.T) (*git_testutils.GitBuilder, string, string) {
     }
   }
 }`)
-	c2 := gb.CommitMsgAt("c2", now)
+	c2 := gb.CommitMsgAt(ctx, "c2", now)
 
-	return gb, c1, c2
+	return ctx, gb, c1, c2
 }

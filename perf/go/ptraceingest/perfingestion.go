@@ -1,6 +1,7 @@
 package ptraceingest
 
 import (
+	"context"
 	"net/http"
 
 	"go.skia.org/infra/go/ingestion"
@@ -35,7 +36,7 @@ func newPerfProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clie
 }
 
 // See ingestion.Processor interface.
-func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error {
+func (p *perfProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	r, err := resultsFile.Open()
 	if err != nil {
 		return err
@@ -44,7 +45,7 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	if err != nil {
 		return err
 	}
-	commitID, err := cid.FromHash(p.vcs, benchData.Hash)
+	commitID, err := cid.FromHash(ctx, p.vcs, benchData.Hash)
 	if err != nil {
 		return err
 	}

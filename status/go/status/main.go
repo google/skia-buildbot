@@ -260,7 +260,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to add comment: %s", err))
 		return
 	}
-	if err := iCache.Update(false); err != nil {
+	if err := iCache.Update(context.Background(), false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -301,7 +301,7 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
-	if err := iCache.Update(false); err != nil {
+	if err := iCache.Update(context.Background(), false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -349,7 +349,7 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task spec comment: %v", err))
 		return
 	}
-	if err := iCache.Update(false); err != nil {
+	if err := iCache.Update(context.Background(), false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -386,7 +386,7 @@ func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
-	if err := iCache.Update(false); err != nil {
+	if err := iCache.Update(context.Background(), false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -427,7 +427,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %s", err))
 		return
 	}
-	if err := iCache.Update(false); err != nil {
+	if err := iCache.Update(context.Background(), false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -460,7 +460,7 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %s", err))
 		return
 	}
-	if err := iCache.Update(false); err != nil {
+	if err := iCache.Update(context.Background(), false); err != nil {
 		httputils.ReportError(w, r, nil, fmt.Sprintf("Failed to update cache: %s", err))
 		return
 	}
@@ -564,7 +564,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	tasksForCommit, err := tasksPerCommit.Get(db.RepoState{
+	tasksForCommit, err := tasksPerCommit.Get(context.Background(), db.RepoState{
 		Repo:     repoUrl,
 		Revision: hash,
 	})
@@ -643,6 +643,7 @@ func main() {
 	if *testing {
 		serverURL = "http://" + *host + *port
 	}
+	ctx := context.Background()
 
 	// Create remote Tasks DB.
 	if *testing {
@@ -668,14 +669,14 @@ func main() {
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
 	}
-	repos, err = repograph.NewMap(*repoUrls, reposDir)
+	repos, err = repograph.NewMap(ctx, *repoUrls, reposDir)
 	if err != nil {
 		sklog.Fatalf("Failed to create repo map: %s", err)
 	}
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(*workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour, context.Background())
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
@@ -685,11 +686,11 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}
-	iCache, err = incremental.NewIncrementalCache(taskDb, w, repos, MAX_COMMITS_TO_LOAD, *swarmingUrl, *taskSchedulerUrl)
+	iCache, err = incremental.NewIncrementalCache(ctx, taskDb, w, repos, MAX_COMMITS_TO_LOAD, *swarmingUrl, *taskSchedulerUrl)
 	if err != nil {
 		sklog.Fatalf("Failed to create IncrementalCache: %s", err)
 	}
-	iCache.UpdateLoop(60*time.Second, context.Background())
+	iCache.UpdateLoop(60*time.Second, ctx)
 
 	// Create a regular task cache.
 	tCache, err = db.NewTaskCache(taskDb, w)
@@ -697,7 +698,7 @@ func main() {
 		sklog.Fatalf("Failed to create TaskCache: %s", err)
 	}
 	lvTaskCache := metrics2.NewLiveness("status_task_cache")
-	go util.RepeatCtx(60*time.Second, context.Background(), func() {
+	go util.RepeatCtx(60*time.Second, ctx, func() {
 		if err := tCache.Update(); err != nil {
 			sklog.Errorf("Failed to update TaskCache: %s", err)
 		} else {
@@ -707,7 +708,7 @@ func main() {
 
 	// Capacity stats.
 	capacityClient = capacity.New(tasksPerCommit.tcc, tCache, repos)
-	capacityClient.StartLoading(*capacityRecalculateInterval)
+	capacityClient.StartLoading(ctx, *capacityRecalculateInterval)
 
 	// Run the server.
 	runServer(serverURL)

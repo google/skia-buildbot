@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"time"
@@ -74,8 +75,8 @@ func reportStats(device, serial, stat string, val interface{}) {
 //   }
 // }
 //
-func generateStats() error {
-	output, err := exec.RunSimple(*statsScript)
+func generateStats(ctx context.Context) error {
+	output, err := exec.RunSimple(ctx, *statsScript)
 	if err != nil {
 		return err
 	}
@@ -104,6 +105,8 @@ func main() {
 		common.CloudLoggingOpt(),
 	)
 
+	ctx := context.Background()
+
 	if *statsScript == "" {
 		sklog.Fatal("You must provide --stats_script.")
 	}
@@ -113,11 +116,11 @@ func main() {
 		sklog.Fatalf("Invalid value for frequency %q: %s", *frequency, err)
 	}
 
-	if err := generateStats(); err != nil {
+	if err := generateStats(ctx); err != nil {
 		sklog.Fatal(err)
 	}
 	for range time.Tick(pollFreq) {
-		if err := generateStats(); err != nil {
+		if err := generateStats(ctx); err != nil {
 			sklog.Error(err)
 		}
 	}

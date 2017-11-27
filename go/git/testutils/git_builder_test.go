@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
@@ -12,11 +13,12 @@ import (
 
 func TestGitSetup(t *testing.T) {
 	testutils.MediumTest(t)
-	g := GitInit(t)
+	ctx := context.Background()
+	g := GitInit(t, ctx)
 	defer g.Cleanup()
-	commits := GitSetup(g)
+	commits := GitSetup(ctx, g)
 
-	output, err := exec.RunCwd(g.Dir(), "git", "log", "-n", "6", "--format=format:%H:%P", "HEAD")
+	output, err := exec.RunCwd(ctx, g.Dir(), "git", "log", "-n", "6", "--format=format:%H:%P", "HEAD")
 	assert.NoError(t, err)
 	t.Log(output)
 	lines := strings.Split(output, "\n")
@@ -48,21 +50,22 @@ func TestGitSetup(t *testing.T) {
 
 func TestGitBuilderCommitTime(t *testing.T) {
 	testutils.MediumTest(t)
-	g := GitInit(t)
+	ctx := context.Background()
+	g := GitInit(t, ctx)
 	defer g.Cleanup()
 
-	g.AddGen("a.txt")
-	c1 := g.CommitMsgAt("Gonna party like it's", time.Date(1999, 12, 31, 23, 59, 59, 0, time.UTC))
+	g.AddGen(ctx, "a.txt")
+	c1 := g.CommitMsgAt(ctx, "Gonna party like it's", time.Date(1999, 12, 31, 23, 59, 59, 0, time.UTC))
 
 	// Commit timestamps are second resolution.
 	now := time.Now().Round(time.Second)
-	g.AddGen("a.txt")
-	c2 := g.CommitMsgAt("No time like the present", now)
+	g.AddGen(ctx, "a.txt")
+	c2 := g.CommitMsgAt(ctx, "No time like the present", now)
 
-	g.AddGen("a.txt")
-	c3 := g.CommitMsgAt("The last time this will work is", time.Date(2099, 12, 31, 23, 59, 59, 0, time.UTC))
+	g.AddGen(ctx, "a.txt")
+	c3 := g.CommitMsgAt(ctx, "The last time this will work is", time.Date(2099, 12, 31, 23, 59, 59, 0, time.UTC))
 
-	output, err := exec.RunCwd(g.Dir(), "git", "log", "-n", "3", "--format=format:%H %s %aD", "HEAD")
+	output, err := exec.RunCwd(ctx, g.Dir(), "git", "log", "-n", "3", "--format=format:%H %s %aD", "HEAD")
 	assert.NoError(t, err)
 
 	lines := strings.Split(output, "\n")

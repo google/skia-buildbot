@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"flag"
@@ -104,6 +105,8 @@ func main() {
 	defer common.LogPanic()
 	master_common.Init("pixel_diff")
 
+	ctx := context.Background()
+
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
@@ -165,7 +168,7 @@ func main() {
 	if util.PatchesAreEmpty(localPatches) {
 		// Create only one chromium build.
 		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-			"build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{}, remotePatches,
+			ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{}, remotePatches,
 			/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
 		if err != nil {
 			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
@@ -181,7 +184,7 @@ func main() {
 	} else {
 		// Create the two required chromium builds (with patch and without the patch).
 		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-			"build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{}, remotePatches,
+			ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{}, remotePatches,
 			/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
 		if err != nil {
 			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
@@ -214,7 +217,7 @@ func main() {
 		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
 		return
 	}
-	if _, err := util.TriggerSwarmingTask(*pagesetType, "pixel_diff", util.PIXEL_DIFF_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, 1); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "pixel_diff", util.PIXEL_DIFF_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, 1); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

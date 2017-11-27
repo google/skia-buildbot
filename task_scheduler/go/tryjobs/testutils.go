@@ -1,6 +1,7 @@
 package tryjobs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -73,15 +74,17 @@ var (
 
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
-func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
+func setup(t *testing.T) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
 
+	ctx := context.Background()
+
 	// Set up the test Git repo.
-	gb := git_testutils.GitInit(t)
+	gb := git_testutils.GitInit(t, ctx)
 	assert.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
 	tasksJson := path.Join("infra", "bots", "tasks.json")
-	gb.Add(tasksJson, testTasksCfg)
-	gb.Commit()
+	gb.Add(ctx, tasksJson, testTasksCfg)
+	gb.Commit(ctx)
 
 	rs := db.RepoState{
 		Patch:    gerritPatch,
@@ -90,23 +93,23 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 	}
 
 	// Create a ref for a fake patch.
-	gb.CreateFakeGerritCLGen(rs.Issue, rs.Patchset)
+	gb.CreateFakeGerritCLGen(ctx, rs.Issue, rs.Patchset)
 
 	// Create a second repo, for cross-repo tryjob testing.
-	gb2 := git_testutils.GitInit(t)
-	gb2.CommitGen("somefile")
+	gb2 := git_testutils.GitInit(t, ctx)
+	gb2.CommitGen(ctx, "somefile")
 
 	// Create repo map.
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	rm, err := repograph.NewMap([]string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
+	rm, err := repograph.NewMap(ctx, []string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
 	assert.NoError(t, err)
 
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
-	taskCfgCache, err := specs.NewTaskCfgCache(rm, depot_tools_testutils.GetDepotTools(t), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
 	assert.NoError(t, err)
@@ -124,7 +127,7 @@ func setup(t *testing.T) (*TryJobIntegrator, *git_testutils.GitBuilder, *mockhtt
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache, g)
 	assert.NoError(t, err)
 
-	return integrator, gb, mock, func() {
+	return ctx, integrator, gb, mock, func() {
 		testutils.RemoveAll(t, tmpDir)
 		gb.Cleanup()
 	}

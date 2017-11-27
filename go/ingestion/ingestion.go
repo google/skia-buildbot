@@ -1,6 +1,7 @@
 package ingestion
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -75,7 +76,7 @@ type Processor interface {
 	// Process ingests a single result file. It is either stores the file
 	// immediately or updates the internal state of the processor and writes
 	// data during the BatchFinished call.
-	Process(resultsFile ResultFileLocation) error
+	Process(ctx context.Context, resultsFile ResultFileLocation) error
 
 	// BatchFinished is called when the current batch is finished. This is
 	// to cover the case when ingestion is better done for the whole batch
@@ -149,8 +150,8 @@ func (i *Ingester) setupMetrics() {
 }
 
 // Start starts the ingester in a new goroutine.
-func (i *Ingester) Start() {
-	pollChan, eventChan := i.getInputChannels()
+func (i *Ingester) Start(ctx context.Context) {
+	pollChan, eventChan := i.getInputChannels(ctx)
 	go func(doneCh <-chan bool) {
 		var resultFiles []ResultFileLocation = nil
 		var useMetrics *processMetrics
@@ -164,7 +165,7 @@ func (i *Ingester) Start() {
 			case <-doneCh:
 				return
 			}
-			i.processResults(resultFiles, useMetrics)
+			i.processResults(ctx, resultFiles, useMetrics)
 		}
 	}(i.doneCh)
 }
@@ -187,7 +188,7 @@ func (q *rflQueue) clear() {
 	*q = rflQueue{}
 }
 
-func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []ResultFileLocation) {
+func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLocation, <-chan []ResultFileLocation) {
 	pollChan := make(chan []ResultFileLocation)
 	eventChan := make(chan []ResultFileLocation)
 	i.doneCh = make(chan bool)
@@ -197,7 +198,7 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 			util.Repeat(i.runEvery, doneCh, func() {
 				srcMetrics.pollTimer.Start()
 				var startTime, endTime int64 = 0, 0
-				startTime, endTime, err := i.getCommitRangeOfInterest()
+				startTime, endTime, err := i.getCommitRangeOfInterest(ctx)
 				if err != nil {
 					sklog.Errorf("Unable to retrieve the start and end time. Got error: %s", err)
 					return
@@ -272,7 +273,7 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 }
 
 // processResults ingests a set of result files.
-func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
+func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
 
 	var mutex sync.Mutex // Protects access to the following vars.
 	processedMD5s := make([]string, 0, len(resultFiles))
@@ -294,7 +295,7 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 		go func(resultLocation ResultFileLocation) {
 			defer wg.Done()
 			defer metrics2.NewTimer("ingestion_process_file", map[string]string{"id": i.id}).Stop()
-			err := i.processor.Process(resultLocation)
+			err := i.processor.Process(ctx, resultLocation)
 
 			mutex.Lock()
 			defer mutex.Unlock()
@@ -379,7 +380,7 @@ func (i *Ingester) syncFileWrite() {
 // getCommitRangeOfInterest returns the time range (start, end) that
 // we are interested in. This method assumes that UpdateCommitInfo
 // has been called and therefore reading the tile should not fail.
-func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
+func (i *Ingester) getCommitRangeOfInterest(ctx context.Context) (int64, int64, error) {
 	// If there is no vcs, use the minDuration field of the ingester to calculate
 	// the start time.
 	if i.vcs == nil {
@@ -387,7 +388,7 @@ func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
 	}
 
 	// Make sure the VCS is up to date.
-	if err := i.vcs.Update(true, false); err != nil {
+	if err := i.vcs.Update(ctx, true, false); err != nil {
 		return 0, 0, err
 	}
 
@@ -418,7 +419,7 @@ func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
 	}
 
 	// Get the commit time of the first commit of interest.
-	detail, err := i.vcs.Details(hashes[0], true)
+	detail, err := i.vcs.Details(ctx, hashes[0], true)
 	if err != nil {
 		return 0, 0, err
 	}

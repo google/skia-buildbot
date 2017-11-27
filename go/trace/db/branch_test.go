@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -27,6 +28,8 @@ const (
 
 func TestPerfTrace(t *testing.T) {
 	testutils.LargeTest(t)
+
+	ctx := context.Background()
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
 
@@ -76,25 +79,25 @@ func TestPerfTrace(t *testing.T) {
 		},
 	}
 
-	long := builder.convertToLongCommits(commits, "master")
+	long := builder.convertToLongCommits(ctx, commits, "master")
 	assert.Equal(t, 1, len(long), "Only one commit should match master.")
 	assert.Equal(t, "foofoofoo", long[0].ID)
 	assert.Equal(t, "some commit", long[0].Desc)
 	assert.Equal(t, "bar@example.com", long[0].Author)
 
-	long = builder.convertToLongCommits(commits, "https://codereview.chromium.org/1490543002")
+	long = builder.convertToLongCommits(ctx, commits, "https://codereview.chromium.org/1490543002")
 	assert.Equal(t, 1, len(long), "Only one commit should match the trybot.")
 	assert.Equal(t, "1", long[0].ID)
 	assert.Equal(t, "no merge conflicts here.", long[0].Desc)
 	assert.Equal(t, "jcgregorio", long[0].Author)
 
-	long = builder.convertToLongCommits(commits, GERRIT_URL)
+	long = builder.convertToLongCommits(ctx, commits, GERRIT_URL)
 	assert.Equal(t, 1, len(long), "Only one commit should match the Gerrit trybot.")
 	assert.Equal(t, "2", long[0].ID)
 	assert.Equal(t, "Some Test subject", long[0].Desc)
 	assert.Equal(t, "jdoe@example.com", long[0].Author)
 
-	long = builder.convertToLongCommits(commits, "")
+	long = builder.convertToLongCommits(ctx, commits, "")
 	assert.Equal(t, 3, len(long), "All commits should now appear.")
 	assert.Equal(t, "1", long[0].ID)
 	assert.Equal(t, "no merge conflicts here.", long[0].Desc)
@@ -120,7 +123,7 @@ func TestPerfTrace(t *testing.T) {
 			Source:    "master",
 		},
 	}
-	long = builder.convertToLongCommits(badCommits, "")
+	long = builder.convertToLongCommits(ctx, badCommits, "")
 	assert.Equal(t, 2, len(long), "Both commits should now appear.")
 	assert.Equal(t, "2", long[0].ID)
 	assert.Equal(t, "", long[0].Desc)

@@ -14,6 +14,7 @@ package main
 */
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -182,8 +183,8 @@ func AddSkylakeConfigs(vm *gce.Instance) *gce.Instance {
 }
 
 // Returns the setup, startup, and chrome-bot scripts.
-func getWindowsScripts(workdir string) (string, string, string, error) {
-	pw, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/win-chrome-bot.txt")
+func getWindowsScripts(ctx context.Context, workdir string) (string, string, string, error) {
+	pw, err := exec.RunCwd(ctx, ".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/win-chrome-bot.txt")
 	if err != nil {
 		return "", "", "", err
 	}
@@ -197,13 +198,13 @@ func getWindowsScripts(workdir string) (string, string, string, error) {
 	}
 	setupScript := strings.Replace(string(setupBytes), "CHROME_BOT_PASSWORD", pw, -1)
 
-	netrcContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.netrc_bots")
+	netrcContents, err := exec.RunCwd(ctx, ".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.netrc_bots")
 	if err != nil {
 		return "", "", "", err
 	}
 	setupScript = strings.Replace(setupScript, "INSERTFILE(/tmp/.netrc)", string(netrcContents), -1)
 
-	gitconfigContents, err := exec.RunCwd(".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.gitconfig")
+	gitconfigContents, err := exec.RunCwd(ctx, ".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.gitconfig")
 	if err != nil {
 		return "", "", "", err
 	}
@@ -285,9 +286,10 @@ func main() {
 	}
 
 	// Read the various Windows scripts.
+	ctx := context.Background()
 	var setupScript, startupScript, chromebotScript string
 	if windows {
-		setupScript, startupScript, chromebotScript, err = getWindowsScripts(wdAbs)
+		setupScript, startupScript, chromebotScript, err = getWindowsScripts(ctx, wdAbs)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -320,7 +322,7 @@ func main() {
 
 		group.Go(vm.Name, func() error {
 			if *create {
-				if err := g.CreateAndSetup(vm, *ignoreExists); err != nil {
+				if err := g.CreateAndSetup(ctx, vm, *ignoreExists); err != nil {
 					return err
 				}
 

@@ -1,6 +1,7 @@
 package dataframe
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -27,22 +28,22 @@ type Refresher struct {
 // A non-nil error will be returned if the initial DataFrame cannot be
 // populated. I.e. if NewRefresher returns w/o error than the caller
 // can be assured that Get() will return a non-nil DataFrame.
-func NewRefresher(vcs vcsinfo.VCS, store ptracestore.PTraceStore, period time.Duration, n int) (*Refresher, error) {
+func NewRefresher(ctx context.Context, vcs vcsinfo.VCS, store ptracestore.PTraceStore, period time.Duration, n int) (*Refresher, error) {
 	ret := &Refresher{
 		vcs:    vcs,
 		store:  store,
 		period: period,
 		n:      n,
 	}
-	if err := ret.oneStep(); err != nil {
+	if err := ret.oneStep(ctx); err != nil {
 		return nil, fmt.Errorf("Failed to build the initial DataFrame: %s", err)
 	}
-	go ret.refresh()
+	go ret.refresh(ctx)
 	return ret, nil
 }
 
-func (f *Refresher) oneStep() error {
-	if err := f.vcs.Update(true, false); err != nil {
+func (f *Refresher) oneStep(ctx context.Context) error {
+	if err := f.vcs.Update(ctx, true, false); err != nil {
 		sklog.Errorf("Failed to update repo: %s", err)
 	}
 	newDf, err := NewN(f.vcs, f.store, nil, f.n)
@@ -55,9 +56,9 @@ func (f *Refresher) oneStep() error {
 	return nil
 }
 
-func (f *Refresher) refresh() {
+func (f *Refresher) refresh(ctx context.Context) {
 	for range time.Tick(f.period) {
-		if err := f.oneStep(); err != nil {
+		if err := f.oneStep(ctx); err != nil {
 			sklog.Errorf("Failed to refresh the DataFrame: %s", err)
 		}
 	}

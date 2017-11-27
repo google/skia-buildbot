@@ -1,6 +1,7 @@
 package buildsecwrap
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -9,7 +10,7 @@ import (
 )
 
 // Build fiddle_secwrap from source in the given 'dir'. The built exe will be placed in the same dir.
-func Build(dir string) error {
+func Build(ctx context.Context, dir string) error {
 	sklog.Info("Compiling fiddle_secwrap.")
 	runFiddleCmd := &exec.Command{
 		Name:       "c++",
@@ -19,7 +20,7 @@ func Build(dir string) error {
 		LogStdout:  true,
 	}
 
-	if err := exec.Run(runFiddleCmd); err != nil {
+	if err := exec.Run(ctx, runFiddleCmd); err != nil {
 		return fmt.Errorf("Failed to compile fiddle_secwrap: %s", err)
 	}
 

@@ -2,6 +2,7 @@ package specs
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -337,7 +338,7 @@ type gobTaskCfgCache struct {
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*TaskCfgCache, error) {
+func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*TaskCfgCache, error) {
 	file := path.Join(workdir, "taskCfgCache.gob")
 	queue := make(chan func(int))
 	c := &TaskCfgCache{
@@ -399,7 +400,7 @@ type cacheEntry struct {
 // Get returns the TasksCfg for this cache entry. If it does not already exist
 // in the cache, it is read from the repo and the bool return value is true,
 // indicating that the caller should write out the cache.
-func (e *cacheEntry) Get() (*TasksCfg, bool, error) {
+func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, bool, error) {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 	if e.Cfg != nil {
@@ -418,7 +419,7 @@ func (e *cacheEntry) Get() (*TasksCfg, bool, error) {
 		return nil, false, fmt.Errorf("Unknown repo %q", e.Rs.Repo)
 	}
 	var cfg *TasksCfg
-	if err := e.c.TempGitRepo(e.Rs, e.Rs.IsTryJob(), func(checkout *git.TempCheckout) error {
+	if err := e.c.TempGitRepo(ctx, e.Rs, e.Rs.IsTryJob(), func(checkout *git.TempCheckout) error {
 		var err error
 		cfg, err = ReadTasksCfg(checkout.Dir())
 		if err != nil {
@@ -481,11 +482,11 @@ func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
 // ReadTasksCfg reads the task cfg file from the given RepoState and returns it.
 // Stores a cache of already-read task cfg files. Syncs the repo and reads the
 // file if needed.
-func (c *TaskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
+func (c *TaskCfgCache) ReadTasksCfg(ctx context.Context, rs db.RepoState) (*TasksCfg, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	entry := c.getEntry(rs)
-	rv, mustWrite, err := entry.Get()
+	rv, mustWrite, err := entry.Get(ctx)
 	if err != nil {
 		return nil, err
 	} else if mustWrite {
@@ -498,7 +499,7 @@ func (c *TaskCfgCache) ReadTasksCfg(rs db.RepoState) (*TasksCfg, error) {
 
 // GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
 // given set of RepoStates, keyed by RepoState and TaskSpec name.
-func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
+func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	entries := make(map[db.RepoState]*cacheEntry, len(rs))
@@ -515,7 +516,7 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 		wg.Add(1)
 		go func(s db.RepoState, entry *cacheEntry) {
 			defer wg.Done()
-			cfg, w, err := entry.Get()
+			cfg, w, err := entry.Get(ctx)
 			if err != nil {
 				m.Lock()
 				defer m.Unlock()
@@ -551,8 +552,8 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(rs []db.RepoState) (map[db.Repo
 
 // GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
 // such TaskSpec exists.
-func (c *TaskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, error) {
-	cfg, err := c.ReadTasksCfg(rs)
+func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs db.RepoState, name string) (*TaskSpec, error) {
+	cfg, err := c.ReadTasksCfg(ctx, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -565,7 +566,7 @@ func (c *TaskCfgCache) GetTaskSpec(rs db.RepoState, name string) (*TaskSpec, err
 
 // GetAddedTaskSpecsForRepoStates returns a mapping from each input RepoState to
 // the set of task names that were added at that RepoState.
-func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(rss []db.RepoState) (map[db.RepoState]util.StringSet, error) {
+func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(ctx context.Context, rss []db.RepoState) (map[db.RepoState]util.StringSet, error) {
 	rv := make(map[db.RepoState]util.StringSet, len(rss))
 	// todoParents collects the RepoStates in rss that are not in
 	// c.addedTasksCache. We also save the RepoStates' parents so we don't
@@ -598,7 +599,7 @@ func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(rss []db.RepoState) (map[d
 	if len(todoParents) == 0 {
 		return rv, nil
 	}
-	taskSpecs, err := c.GetTaskSpecsForRepoStates(allTodoRs)
+	taskSpecs, err := c.GetTaskSpecsForRepoStates(ctx, allTodoRs)
 	if err != nil {
 		return nil, err
 	}
@@ -629,8 +630,8 @@ func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(rss []db.RepoState) (map[d
 
 // GetJobSpec returns the JobSpec at the given RepoState, or an error if no such
 // JobSpec exists.
-func (c *TaskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error) {
-	cfg, err := c.ReadTasksCfg(rs)
+func (c *TaskCfgCache) GetJobSpec(ctx context.Context, rs db.RepoState, name string) (*JobSpec, error) {
+	cfg, err := c.ReadTasksCfg(ctx, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -643,8 +644,8 @@ func (c *TaskCfgCache) GetJobSpec(rs db.RepoState, name string) (*JobSpec, error
 
 // MakeJob is a helper function which retrieves the given JobSpec at the given
 // RepoState and uses it to create a Job instance.
-func (c *TaskCfgCache) MakeJob(rs db.RepoState, name string) (*db.Job, error) {
-	cfg, err := c.ReadTasksCfg(rs)
+func (c *TaskCfgCache) MakeJob(ctx context.Context, rs db.RepoState, name string) (*db.Job, error) {
+	cfg, err := c.ReadTasksCfg(ctx, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -815,7 +816,7 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 //
 // This method uses a worker pool; if all workers are busy, it will block until
 // one is free.
-func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, botUpdate bool, fn func(*git.TempCheckout) error) error {
+func (c *TaskCfgCache) TempGitRepo(ctx context.Context, rs db.RepoState, botUpdate bool, fn func(*git.TempCheckout) error) error {
 	rvErr := make(chan error)
 	c.queue <- func(workerId int) {
 		var gr *git.TempCheckout
@@ -828,14 +829,14 @@ func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, botUpdate bool, fn func(*git
 			}
 			defer util.RemoveAll(tmp)
 			cacheDir := path.Join(c.workdir, "cache", fmt.Sprintf("%d", workerId))
-			gr, err = tempGitRepoBotUpdate(rs, c.depotToolsDir, cacheDir, tmp)
+			gr, err = tempGitRepoBotUpdate(ctx, rs, c.depotToolsDir, cacheDir, tmp)
 		} else {
 			repo, ok := c.repos[rs.Repo]
 			if !ok {
 				rvErr <- fmt.Errorf("Unknown repo: %s", rs.Repo)
 				return
 			}
-			gr, err = tempGitRepo(repo.Repo(), rs)
+			gr, err = tempGitRepo(ctx, repo.Repo(), rs)
 		}
 		if err != nil {
 			rvErr <- err
@@ -849,12 +850,12 @@ func (c *TaskCfgCache) TempGitRepo(rs db.RepoState, botUpdate bool, fn func(*git
 
 // tempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func tempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr error) {
+func tempGitRepo(ctx context.Context, repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr error) {
 	if rs.IsTryJob() {
 		return nil, fmt.Errorf("specs.tempGitRepo does not apply patches, and should not be called for try jobs.")
 	}
 
-	c, err := repo.TempCheckout()
+	c, err := repo.TempCheckout(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -866,7 +867,7 @@ func tempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 	}()
 
 	// Check out the correct commit.
-	if _, err := c.Git("checkout", rs.Revision); err != nil {
+	if _, err := c.Git(ctx, "checkout", rs.Revision); err != nil {
 		return nil, err
 	}
 
@@ -875,7 +876,7 @@ func tempGitRepo(repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr e
 
 // tempGitRepoBotUpdate creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
+func tempGitRepoBotUpdate(ctx context.Context, rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	// Run bot_update to obtain a checkout of the repo and its DEPS.
 	botUpdatePath := path.Join(depotToolsDir, "recipes", "recipe_modules", "bot_update", "resources", "bot_update.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
@@ -926,7 +927,7 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 	t := metrics2.NewTimer("bot_update", map[string]string{
 		"patchRepo": patchRepo,
 	})
-	out, err := exec.RunCommand(&exec.Command{
+	out, err := exec.RunCommand(ctx, &exec.Command{
 		Name: cmd[0],
 		Args: cmd[1:],
 		Dir:  tmp,
@@ -950,12 +951,12 @@ func tempGitRepoBotUpdate(rs db.RepoState, depotToolsDir, gitCacheDir, tmp strin
 	co := &git.TempCheckout{
 		GitDir: git.GitDir(path.Join(tmp, projectName)),
 	}
-	if _, err := co.Git("remote", "set-url", "origin", rs.Repo); err != nil {
+	if _, err := co.Git(ctx, "remote", "set-url", "origin", rs.Repo); err != nil {
 		return nil, err
 	}
 
 	// Self-check.
-	head, err := co.RevParse("HEAD")
+	head, err := co.RevParse(ctx, "HEAD")
 	if err != nil {
 		return nil, err
 	}

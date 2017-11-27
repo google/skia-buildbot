@@ -5,6 +5,7 @@ package repo_manager
 */
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -16,7 +17,7 @@ import (
 // PreUploadStep is a function to be run after the roll is performed but before
 // a CL is uploaded. The string parameter is the absolute path to the directory
 // of the parent repo.
-type PreUploadStep func(string) error
+type PreUploadStep func(context.Context, string) error
 
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
@@ -43,7 +44,7 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 }
 
 // Train the infra expectations.
-func TrainInfra(parentRepoDir string) error {
+func TrainInfra(ctx context.Context, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	goExc, goEnv, err := go_install.EnsureGo(false, os.TempDir())
 	if err != nil {
@@ -56,14 +57,14 @@ func TrainInfra(parentRepoDir string) error {
 		}
 		envSlice = append(envSlice, fmt.Sprintf("%s=%s", k, v))
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Name: goExc,
 		Args: []string{"get", "-u", "go.skia.org/infra/..."},
 		Env:  envSlice,
 	}); err != nil {
 		return err
 	}
-	if _, err := exec.RunCommand(&exec.Command{
+	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Name: "make",
 		Args: []string{"train"},
 		Dir:  path.Join(parentRepoDir, "infra", "bots"),
@@ -71,7 +72,7 @@ func TrainInfra(parentRepoDir string) error {
 	}); err != nil {
 		return err
 	}
-	if _, err := exec.RunCwd(parentRepoDir, "git", "commit", "-a", "--amend", "--no-edit"); err != nil {
+	if _, err := exec.RunCwd(ctx, parentRepoDir, "git", "commit", "-a", "--amend", "--no-edit"); err != nil {
 		return err
 	}
 	return nil

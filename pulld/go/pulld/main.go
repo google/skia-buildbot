@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -317,7 +318,8 @@ func main() {
 		)
 	}
 	Init()
-	pullInit(*serviceAccountPath)
+	ctx := context.Background()
+	pullInit(ctx, *serviceAccountPath)
 	rebootMonitoringInit()
 
 	r := mux.NewRouter()

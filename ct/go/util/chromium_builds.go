@@ -2,6 +2,7 @@
 package util
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -48,7 +49,7 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 // applyPatches if true looks for Chromium/Skia/V8 patches in the temp dir and
 // runs once with the patch applied and once without the patch applied.
 // uploadSingleBuild if true does not upload a 2nd build of Chromium.
-func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash, pathToPyFiles string, applyPatches, uploadSingleBuild bool) (string, string, error) {
+func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, chromiumHash, skiaHash, pathToPyFiles string, applyPatches, uploadSingleBuild bool) (string, string, error) {
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
 	// Determine which fetch target to use.
 	var fetchTarget string
@@ -64,7 +65,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 	// Find which Chromium commit hash should be used.
 	var err error
 	if chromiumHash == "" {
-		chromiumHash, err = getChromiumHash()
+		chromiumHash, err = getChromiumHash(ctx)
 		if err != nil {
 			return "", "", fmt.Errorf("Error while finding Chromium's Hash: %s", err)
 		}
@@ -97,24 +98,24 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 		LogStdout: true,
 		LogStderr: true,
 	}
-	if _, err = exec.RunCommand(syncCommand); err != nil {
+	if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
 		sklog.Warning("There was an error. Deleting base directory and trying again.")
 		util.RemoveAll(chromiumBuildDir)
 		util.MkdirAll(chromiumBuildDir, 0700)
 		// Resetting stdin.
 		syncCommand.Stdin = strings.NewReader("y")
-		if _, err = exec.RunCommand(syncCommand); err != nil {
+		if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
 			return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 		}
 	}
 
 	// Make sure we are starting from a clean slate.
-	if err := ResetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
+	if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src")); err != nil {
 		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 	}
 	googleStorageDirName := ChromiumBuildDir(chromiumHash, skiaHash, runID)
 	if applyPatches {
-		if err := applyRepoPatches(filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
+		if err := applyRepoPatches(ctx, filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
 			return "", "", fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
 		}
 		// Add "try" prefix and "withpatch" suffix.
@@ -124,7 +125,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 	// empty i.e. when invoked by the build_chromium task.
 	useWhitelistedFonts := (runID == "")
 	// Build chromium.
-	if err := buildChromium(chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
+	if err := buildChromium(ctx, chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
 		return "", "", fmt.Errorf("There was an error building chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 	}
 
@@ -141,11 +142,11 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 	// will be created without applying patches.
 	if !uploadSingleBuild {
 		// Make sure we are starting from a clean slate.
-		if err := ResetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
+		if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src")); err != nil {
 			return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 		}
 		// Build chromium.
-		if err := buildChromium(chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
+		if err := buildChromium(ctx, chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
 			return "", "", fmt.Errorf("There was an error building chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 		}
 		// Upload to Google Storage.
@@ -157,7 +158,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 	return getTruncatedHash(chromiumHash), getTruncatedHash(skiaHash), nil
 }
 
-func getChromiumHash() (string, error) {
+func getChromiumHash(ctx context.Context) (string, error) {
 	// Find Chromium's Tot commit hash.
 	stdoutFilePath := filepath.Join(os.TempDir(), "chromium-tot")
 	stdoutFile, err := os.Create(stdoutFilePath)
@@ -167,7 +168,7 @@ func getChromiumHash() (string, error) {
 		return "", fmt.Errorf("Could not create %s: %s", stdoutFilePath, err)
 	}
 	totArgs := []string{"ls-remote", "https://chromium.googlesource.com/chromium/src.git", "--verify", "refs/heads/master"}
-	err = ExecuteCmd(BINARY_GIT, totArgs, []string{}, GIT_LS_REMOTE_TIMEOUT, stdoutFile, nil)
+	err = ExecuteCmd(ctx, BINARY_GIT, totArgs, []string{}, GIT_LS_REMOTE_TIMEOUT, stdoutFile, nil)
 	if err != nil {
 		return "", fmt.Errorf("Error while finding Chromium's ToT: %s", err)
 	}
@@ -216,7 +217,7 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 	return gs.UploadFile(CHROMIUM_BUILD_ZIP_NAME, ChromiumBuildsDir, gsDir)
 }
 
-func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool) error {
+func buildChromium(ctx context.Context, chromiumDir, targetPlatform string, useWhitelistedFonts bool) error {
 	if err := os.Chdir(filepath.Join(chromiumDir, "src")); err != nil {
 		return fmt.Errorf("Could not chdir to %s/src: %s", chromiumDir, err)
 	}
@@ -240,13 +241,13 @@ func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool)
 	}
 
 	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd("gn", []string{"gen", "out/Release", fmt.Sprintf("--args=%s", strings.Join(gn_args, " "))}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
+	if err := ExecuteCmd(ctx, "gn", []string{"gen", "out/Release", fmt.Sprintf("--args=%s", strings.Join(gn_args, " "))}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 ${build_target}".
 	// Use the full system env while building chromium.
 	args := []string{"-C", "out/Release", "-j100", buildTarget}
-	return ExecuteCmd(filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
+	return ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 func getTruncatedHash(commitHash string) string {
@@ -256,7 +257,7 @@ func getTruncatedHash(commitHash string) string {
 	return commitHash[0:TRUNCATED_HASH_LENGTH]
 }
 
-func ResetChromiumCheckout(chromiumSrcDir string) error {
+func ResetChromiumCheckout(ctx context.Context, chromiumSrcDir string) error {
 	// Clean up any left over lock files from sync errors of previous runs.
 	err := os.Remove(filepath.Join(chromiumSrcDir, ".git", "index.lock"))
 	if err != nil {
@@ -264,27 +265,27 @@ func ResetChromiumCheckout(chromiumSrcDir string) error {
 	}
 	// Reset Skia.
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
-	if err := ResetCheckout(skiaDir, "HEAD"); err != nil {
+	if err := ResetCheckout(ctx, skiaDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
 	// Reset V8.
 	v8Dir := filepath.Join(chromiumSrcDir, "v8")
-	if err := ResetCheckout(v8Dir, "origin/master"); err != nil {
+	if err := ResetCheckout(ctx, v8Dir, "origin/master"); err != nil {
 		return fmt.Errorf("Could not reset V8's checkout in %s: %s", v8Dir, err)
 	}
 	// Reset Catapult.
 	catapultDir := filepath.Join(chromiumSrcDir, RelativeCatapultSrcDir)
-	if err := ResetCheckout(catapultDir, "HEAD"); err != nil {
+	if err := ResetCheckout(ctx, catapultDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Catapult's checkout in %s: %s", catapultDir, err)
 	}
 	// Reset Chromium.
-	if err := ResetCheckout(chromiumSrcDir, "HEAD"); err != nil {
+	if err := ResetCheckout(ctx, chromiumSrcDir, "HEAD"); err != nil {
 		return fmt.Errorf("Could not reset Chromium's checkout in %s: %s", chromiumSrcDir, err)
 	}
 	return nil
 }
 
-func applyRepoPatches(chromiumSrcDir, runID string) error {
+func applyRepoPatches(ctx context.Context, chromiumSrcDir, runID string) error {
 	// Apply Skia patch if it exists.
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
 	skiaPatch := filepath.Join(os.TempDir(), runID+".skia.patch")
@@ -292,7 +293,7 @@ func applyRepoPatches(chromiumSrcDir, runID string) error {
 		skiaPatchFile, _ := os.Open(skiaPatch)
 		skiaPatchFileInfo, _ := skiaPatchFile.Stat()
 		if skiaPatchFileInfo.Size() > 10 {
-			if err := ApplyPatch(skiaPatch, skiaDir); err != nil {
+			if err := ApplyPatch(ctx, skiaPatch, skiaDir); err != nil {
 				return fmt.Errorf("Could not apply Skia's patch in %s: %s", skiaDir, err)
 			}
 		}
@@ -304,7 +305,7 @@ func applyRepoPatches(chromiumSrcDir, runID string) error {
 		v8PatchFile, _ := os.Open(v8Patch)
 		v8PatchFileInfo, _ := v8PatchFile.Stat()
 		if v8PatchFileInfo.Size() > 10 {
-			if err := ApplyPatch(v8Patch, v8Dir); err != nil {
+			if err := ApplyPatch(ctx, v8Patch, v8Dir); err != nil {
 				return fmt.Errorf("Could not apply V8's patch in %s: %s", v8Dir, err)
 			}
 		}
@@ -315,7 +316,7 @@ func applyRepoPatches(chromiumSrcDir, runID string) error {
 		chromiumPatchFile, _ := os.Open(chromiumPatch)
 		chromiumPatchFileInfo, _ := chromiumPatchFile.Stat()
 		if chromiumPatchFileInfo.Size() > 10 {
-			if err := ApplyPatch(chromiumPatch, chromiumSrcDir); err != nil {
+			if err := ApplyPatch(ctx, chromiumPatch, chromiumSrcDir); err != nil {
 				return fmt.Errorf("Could not apply Chromium's patch in %s: %s", chromiumSrcDir, err)
 			}
 		}
@@ -323,11 +324,11 @@ func applyRepoPatches(chromiumSrcDir, runID string) error {
 	return nil
 }
 
-func InstallChromeAPK(chromiumBuildName string) error {
+func InstallChromeAPK(ctx context.Context, chromiumBuildName string) error {
 	// Install the APK on the Android device.
 	chromiumApk := filepath.Join(ChromiumBuildsDir, chromiumBuildName, ApkName)
 	sklog.Infof("Installing the APK at %s", chromiumApk)
-	err := ExecuteCmd(BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{},
+	err := ExecuteCmd(ctx, BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{},
 		ADB_INSTALL_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Could not install the chromium APK at %s: %s", chromiumBuildName, err)

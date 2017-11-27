@@ -1,6 +1,7 @@
 package buildlib
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -12,14 +13,14 @@ import (
 
 // BuildLib, given a directory that Skia is checked out into, builds libskia.a
 // and fiddle_main.o.
-func BuildLib(checkout, depotTools string) error {
+func BuildLib(ctx context.Context, checkout, depotTools string) error {
 	sklog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
+	if err := buildskia.GNGen(ctx, checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
 		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
 	sklog.Info("Building fiddle")
-	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "fiddle", true); err != nil {
+	if msg, err := buildskia.GNNinjaBuild(ctx, checkout, depotTools, "Release", "fiddle", true); err != nil {
 		return fmt.Errorf("Failed ninja build of fiddle: %q %s", msg, err)
 	}
 
@@ -33,7 +34,7 @@ func BuildLib(checkout, depotTools string) error {
 		LogStdout:  true,
 	}
 
-	if err := exec.Run(runFiddleCmd); err != nil {
+	if err := exec.Run(ctx, runFiddleCmd); err != nil {
 		return fmt.Errorf("Failed to run the default fiddle: %s", err)
 	}
 

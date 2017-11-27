@@ -1,6 +1,7 @@
 package goldingestion
 
 import (
+	"context"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
@@ -18,7 +19,7 @@ import (
 // After the successful ingestion it returns the instance of running GRPC server and the server address.
 // When all tests are done it's the responsibility of the caller to call server.Stop() and remove all
 // data directories.
-func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestionFile, rootDir, rietveldReviewURL string, gerritReviewURL string) (*grpc.Server, string) {
+func RunGoldTrybotProcessor(t assert.TestingT, ctx context.Context, traceDBFile, shareDBDir, ingestionFile, rootDir, rietveldReviewURL string, gerritReviewURL string) (*grpc.Server, string) {
 	shareDBDir, err := fileutil.EnsureDirExists(shareDBDir)
 	assert.NoError(t, err)
 
@@ -70,7 +71,7 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 	// Load the example file and process it.
 	fsResult, err = ingestion.FileSystemResult(ingestionFile, "./")
 	assert.NoError(t, err)
-	err = processor.Process(fsResult)
+	err = processor.Process(ctx, fsResult)
 	assert.NoError(t, err)
 
 	// Make sure recorded that correct master/builder/build_number was recorded.

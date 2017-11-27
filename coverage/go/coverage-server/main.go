@@ -74,7 +74,8 @@ func main() {
 		)
 	}
 
-	if err := setupFileIngestion(); err != nil {
+	ctx := context.Background()
+	if err := setupFileIngestion(ctx); err != nil {
 		sklog.Fatalf("Could not set up ingestion: %s", err)
 	}
 
@@ -170,9 +171,9 @@ func ingestedHandler(w http.ResponseWriter, r *http.Request) {
 
 // setupFileIngestion begins a background goroutine to occasionally check GCS for
 // completed coverage tasks and ingest their data.
-func setupFileIngestion() error {
+func setupFileIngestion(ctx context.Context) error {
 	sklog.Info("Checking out skia")
-	repo, err := gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*gitDir, "skia"), false)
+	repo, err := gitinfo.CloneOrUpdate(ctx, common.REPO_SKIA, filepath.Join(*gitDir, "skia"), false)
 	if err != nil {
 		return fmt.Errorf("Could not clone skia repo: %s", err)
 	}
@@ -182,7 +183,7 @@ func setupFileIngestion() error {
 		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
 
-	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		return fmt.Errorf("Problem authenticating: %s", err)
 	}
@@ -196,12 +197,12 @@ func setupFileIngestion() error {
 
 	cycle := func(v vcsinfo.VCS, coverageIngester coverageingest.Ingester) {
 		sklog.Info("Begin coverage ingest cycle")
-		if err := v.Update(true, false); err != nil {
+		if err := v.Update(ctx, true, false); err != nil {
 			sklog.Warningf("Could not update git repo, but continuing anyway: %s", err)
 		}
 		commits := []*vcsinfo.LongCommit{}
 		for _, c := range v.LastNIndex(*nCommits) {
-			lc, err := v.Details(c.Hash, false)
+			lc, err := v.Details(ctx, c.Hash, false)
 			if err != nil {
 				sklog.Errorf("Could not get commit info for git revision %s: %s", c.Hash, err)
 				continue
@@ -209,7 +210,7 @@ func setupFileIngestion() error {
 			// Reverse the order so the most recent commit is first
 			commits = append([]*vcsinfo.LongCommit{lc}, commits...)
 		}
-		coverageIngester.IngestCommits(commits)
+		coverageIngester.IngestCommits(ctx, commits)
 		sklog.Info("End coverage ingest cycle")
 	}
 

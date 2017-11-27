@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -34,6 +35,8 @@ func buildRepo() error {
 	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Building Repo")
 	defer sklog.Flush()
+
+	ctx := context.Background()
 
 	if *outDir == "" {
 		return errors.New("Must specify --out")
@@ -70,7 +73,7 @@ func buildRepo() error {
 			}
 		}
 		pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
-		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(*runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, applyPatches, *uploadSingleBuild)
+		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(ctx, *runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, applyPatches, *uploadSingleBuild)
 		if err != nil {
 			return fmt.Errorf("Could not create chromium build: %s", err)
 		}
@@ -81,10 +84,10 @@ func buildRepo() error {
 		remoteDirs = append(remoteDirs, fmt.Sprintf("try-%s-withpatch", util.ChromiumBuildDir(chromiumHash, skiaHash, *runID)))
 	} else if *repoName == "pdfium" {
 		// Sync PDFium and build pdfium_test binary.
-		if err := util.SyncDir(util.PDFiumTreeDir, map[string]string{}, []string{}); err != nil {
+		if err := util.SyncDir(ctx, util.PDFiumTreeDir, map[string]string{}, []string{}); err != nil {
 			return fmt.Errorf("Could not sync PDFium: %s", err)
 		}
-		if err := util.BuildPDFium(); err != nil {
+		if err := util.BuildPDFium(ctx); err != nil {
 			return fmt.Errorf("Could not build PDFium: %s", err)
 		}
 		// Copy pdfium_test to Google Storage.

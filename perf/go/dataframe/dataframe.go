@@ -3,6 +3,7 @@
 package dataframe
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -188,8 +189,8 @@ func NewFromKeysAndRange(vcs vcsinfo.VCS, keys []string, store ptracestore.PTrac
 // NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
 // match the given time set of commits 'cids' and the query 'q'. The 'progress'
 // callback is called periodically as the query is processed.
-func NewFromCommitIDsAndQuery(cids []*cid.CommitID, cidl *cid.CommitIDLookup, store ptracestore.PTraceStore, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
-	details, err := cidl.Lookup(cids)
+func NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, store ptracestore.PTraceStore, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
+	details, err := cidl.Lookup(ctx, cids)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
 	}

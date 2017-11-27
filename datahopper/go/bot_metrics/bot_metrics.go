@@ -193,8 +193,8 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // cycle runs ingestion of task data, maps each task to the commits it covered
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
-func cycle(taskDb db.RemoteDB, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
-	if err := repos.Update(); err != nil {
+func cycle(ctx context.Context, taskDb db.RemoteDB, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
+	if err := repos.Update(ctx); err != nil {
 		return err
 	}
 
@@ -277,7 +277,7 @@ func cycle(taskDb db.RemoteDB, repos repograph.Map, tcc *specs.TaskCfgCache, edb
 				if t.Id != "buildbot-id" {
 					cfg, ok := cfgs[commit]
 					if !ok {
-						c, err := tcc.ReadTasksCfg(db.RepoState{
+						c, err := tcc.ReadTasksCfg(ctx, db.RepoState{
 							Repo:     repoUrl,
 							Revision: commit.Hash,
 						})
@@ -396,17 +396,17 @@ func Start(dbUrl, workdir string, ctx context.Context) error {
 		return fmt.Errorf("Failed to create new DB client: %s", err)
 	}
 
-	repos, err := repograph.NewMap(common.PUBLIC_REPOS, workdir)
+	repos, err := repograph.NewMap(ctx, common.PUBLIC_REPOS, workdir)
 	if err != nil {
 		return fmt.Errorf("Failed to sync repograph: %s", err)
 	}
 
-	depotTools, err := depot_tools.Sync(workdir)
+	depotTools, err := depot_tools.Sync(ctx, workdir)
 	if err != nil {
 		return fmt.Errorf("Failed to sync depot_tools: %s", err)
 	}
 
-	tcc, err := specs.NewTaskCfgCache(repos, depotTools, path.Join(workdir, "taskCfgCache"), 1)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), 1)
 	if err != nil {
 		return fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
@@ -438,7 +438,7 @@ func Start(dbUrl, workdir string, ctx context.Context) error {
 	}
 	go util.RepeatCtx(10*time.Minute, ctx, func() {
 		now := time.Now()
-		if err := cycle(taskDb, repos, tcc, edb, em, lastFinished, now, workdir); err != nil {
+		if err := cycle(ctx, taskDb, repos, tcc, edb, em, lastFinished, now, workdir); err != nil {
 			sklog.Errorf("Failed to obtain avg time to X%% bot coverage metrics: %s", err)
 		} else {
 			lastFinished = now

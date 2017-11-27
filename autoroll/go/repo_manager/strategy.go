@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -22,7 +23,7 @@ const (
 type NextRollStrategy interface {
 	// Return the next roll revision, or an error. Parameters are the child
 	// git checkout and the last roll revision.
-	GetNextRollRev(*git.Checkout, string) (string, error)
+	GetNextRollRev(context.Context, *git.Checkout, string) (string, error)
 }
 
 // Return the NextRollStrategy indicated by the given string.
@@ -47,8 +48,8 @@ type headStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *headStrategy) GetNextRollRev(repo *git.Checkout, _ string) (string, error) {
-	return repo.FullHash(fmt.Sprintf("origin/%s", s.branch))
+func (s *headStrategy) GetNextRollRev(ctx context.Context, repo *git.Checkout, _ string) (string, error) {
+	return repo.FullHash(ctx, fmt.Sprintf("origin/%s", s.branch))
 }
 
 // StrategyHead returns a NextRollStrategy which always rolls to HEAD of a given branch.
@@ -65,8 +66,8 @@ type remoteHeadStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *remoteHeadStrategy) GetNextRollRev(repo *git.Checkout, _ string) (string, error) {
-	output, err := repo.Git("ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", s.branch), "-1")
+func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, repo *git.Checkout, _ string) (string, error) {
+	output, err := repo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", s.branch), "-1")
 	if err != nil {
 		return "", err
 	}
@@ -89,12 +90,12 @@ type singleStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *singleStrategy) GetNextRollRev(repo *git.Checkout, lastRollRev string) (string, error) {
-	head, err := s.headStrategy.GetNextRollRev(repo, lastRollRev)
+func (s *singleStrategy) GetNextRollRev(ctx context.Context, repo *git.Checkout, lastRollRev string) (string, error) {
+	head, err := s.headStrategy.GetNextRollRev(ctx, repo, lastRollRev)
 	if err != nil {
 		return "", err
 	}
-	commits, err := repo.RevList(fmt.Sprintf("%s..%s", lastRollRev, head))
+	commits, err := repo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
 	if err != nil {
 		return "", fmt.Errorf("Failed to list revisions: %s", err)
 	}
@@ -119,7 +120,7 @@ type urlStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *urlStrategy) GetNextRollRev(_ *git.Checkout, _ string) (string, error) {
+func (s *urlStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, _ string) (string, error) {
 	resp, err := http.Get(s.url)
 	if err != nil {
 		return "", err

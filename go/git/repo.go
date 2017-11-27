@@ -5,6 +5,7 @@ package git
 */
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -20,8 +21,8 @@ type Repo struct {
 // NewRepo returns a Repo instance based in the given working directory. Uses
 // any existing repo in the given directory, or clones one if necessary. Only
 // creates bare clones; Repo does not maintain a checkout.
-func NewRepo(repoUrl, workdir string) (*Repo, error) {
-	g, err := newGitDir(repoUrl, workdir, true)
+func NewRepo(ctx context.Context, repoUrl, workdir string) (*Repo, error) {
+	g, err := newGitDir(ctx, repoUrl, workdir, true)
 	if err != nil {
 		return nil, err
 	}
@@ -29,14 +30,14 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 }
 
 // Update syncs the Repo from its remote.
-func (r *Repo) Update() error {
+func (r *Repo) Update(ctx context.Context) error {
 	cmd := &exec.Command{
 		Name:    "git",
 		Args:    []string{"remote", "update"},
 		Dir:     r.Dir(),
 		Timeout: time.Minute,
 	}
-	out, err := exec.RunCommand(cmd)
+	out, err := exec.RunCommand(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("Failed to update Repo: %s; output:\n%s", err, out)
 	}
@@ -45,11 +46,11 @@ func (r *Repo) Update() error {
 }
 
 // Checkout returns a Checkout of the Repo in the given working directory.
-func (r *Repo) Checkout(workdir string) (*Checkout, error) {
-	return NewCheckout(r.Dir(), workdir)
+func (r *Repo) Checkout(ctx context.Context, workdir string) (*Checkout, error) {
+	return NewCheckout(ctx, r.Dir(), workdir)
 }
 
 // TempCheckout returns a TempCheckout of the repo.
-func (r *Repo) TempCheckout() (*TempCheckout, error) {
-	return NewTempCheckout(r.Dir())
+func (r *Repo) TempCheckout(ctx context.Context) (*TempCheckout, error) {
+	return NewTempCheckout(ctx, r.Dir())
 }

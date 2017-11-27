@@ -8,6 +8,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -40,7 +41,6 @@ import (
 
 // flags
 var (
-	dryRun       = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	pollInterval = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
 	// Mutex that controls updating and building of the local checkout.
@@ -52,13 +52,13 @@ var (
 )
 
 // Runs "git pull; make all".
-func updateAndBuild() error {
+func updateAndBuild(ctx context.Context) error {
 	repoMtx.Lock()
 	defer repoMtx.Unlock()
 	makefilePath := ctutil.CtTreeDir
 
 	// TODO(benjaminwagner): Should this also do 'go get -u ...' and/or 'gclient sync'?
-	err := exec.Run(&exec.Command{
+	err := exec.Run(ctx, &exec.Command{
 		Name:      "git",
 		Args:      []string{"pull"},
 		Dir:       makefilePath,
@@ -69,7 +69,7 @@ func updateAndBuild() error {
 	if err != nil {
 		return err
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name:      "make",
 		Args:      []string{"all"},
 		Dir:       makefilePath,
@@ -84,7 +84,7 @@ type Task interface {
 	GetTaskName() string
 	GetCommonCols() *task_common.CommonCols
 	// Writes any files required by the task and then uses exec.Run to run the task command.
-	Execute() error
+	Execute(ctx context.Context) error
 	// Returns the corresponding UpdateTaskVars instance of this Task. The
 	// returned instance is not populated.
 	GetUpdateTaskVars() task_common.UpdateTaskVars
@@ -102,7 +102,7 @@ type ChromiumAnalysisTask struct {
 	chromium_analysis.DBTask
 }
 
-func (task *ChromiumAnalysisTask) Execute() error {
+func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":      task.ChromiumPatch,
@@ -120,7 +120,7 @@ func (task *ChromiumAnalysisTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "run_chromium_analysis_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -146,7 +146,7 @@ type ChromiumPerfTask struct {
 	chromium_perf.DBTask
 }
 
-func (task *ChromiumPerfTask) Execute() error {
+func (task *ChromiumPerfTask) Execute(ctx context.Context) error {
 	runId := runId(task)
 	// TODO(benjaminwagner): Since run_chromium_perf_on_workers only reads these in order to
 	// upload to Google Storage, eventually we should move the upload step here to avoid writing
@@ -168,7 +168,7 @@ func (task *ChromiumPerfTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "run_chromium_perf_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -196,7 +196,7 @@ type PixelDiffTask struct {
 	pixel_diff.DBTask
 }
 
-func (task *PixelDiffTask) Execute() error {
+func (task *PixelDiffTask) Execute(ctx context.Context) error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":      task.ChromiumPatch,
@@ -212,7 +212,7 @@ func (task *PixelDiffTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "pixel_diff_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -236,10 +236,10 @@ type CaptureSkpsTask struct {
 	capture_skps.DBTask
 }
 
-func (task *CaptureSkpsTask) Execute() error {
+func (task *CaptureSkpsTask) Execute(ctx context.Context) error {
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "capture_skps_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -262,7 +262,7 @@ type LuaScriptTask struct {
 	lua_scripts.DBTask
 }
 
-func (task *LuaScriptTask) Execute() error {
+func (task *LuaScriptTask) Execute(ctx context.Context) error {
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
 	// TODO(benjaminwagner): Since run_lua_on_workers only reads the lua script in order to
@@ -282,7 +282,7 @@ func (task *LuaScriptTask) Execute() error {
 		}
 		defer skutil.Remove(luaAggregatorPath)
 	}
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "run_lua_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -304,11 +304,11 @@ type ChromiumBuildTask struct {
 	chromium_builds.DBTask
 }
 
-func (task *ChromiumBuildTask) Execute() error {
+func (task *ChromiumBuildTask) Execute(ctx context.Context) error {
 	runId := runId(task)
 	// We do not pass --run_on_gce to the below because build tasks always run
 	// on GCE builders not GCE workers or bare-metal machines.
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "build_chromium",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -329,9 +329,9 @@ type RecreatePageSetsTask struct {
 	admin_tasks.RecreatePageSetsDBTask
 }
 
-func (task *RecreatePageSetsTask) Execute() error {
+func (task *RecreatePageSetsTask) Execute(ctx context.Context) error {
 	runId := runId(task)
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "create_pagesets_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -351,9 +351,9 @@ type RecreateWebpageArchivesTask struct {
 	admin_tasks.RecreateWebpageArchivesDBTask
 }
 
-func (task *RecreateWebpageArchivesTask) Execute() error {
+func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context) error {
 	runId := runId(task)
-	return exec.Run(&exec.Command{
+	return exec.Run(ctx, &exec.Command{
 		Name: "capture_archives_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -369,7 +369,7 @@ func (task *RecreateWebpageArchivesTask) Execute() error {
 }
 
 // Returns a poller Task containing the given task_common.Task, or nil if otherTask is nil.
-func asPollerTask(otherTask task_common.Task) Task {
+func asPollerTask(ctx context.Context, otherTask task_common.Task) Task {
 	if otherTask == nil {
 		return nil
 	}
@@ -409,14 +409,14 @@ func updateWebappTaskSetFailed(task Task) error {
 // go routine. The function returns without waiting for the task to finish and the
 // WaitGroup of the goroutine is returned to the caller. The caller can then call
 // wg.Wait() if they would like to wait for the task to finish.
-func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
+func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 	pending, err := frontend.GetOldestPendingTaskV2()
 	var wg sync.WaitGroup
 	if err != nil {
 		sklog.Error(err)
 		return &wg
 	}
-	task := asPollerTask(pending)
+	task := asPollerTask(ctx, pending)
 	if task == nil {
 		return &wg
 	}
@@ -440,7 +440,7 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 	}
 
 	sklog.Infof("Preparing to execute task %s", taskId)
-	if err = updateAndBuild(); err != nil {
+	if err = updateAndBuild(ctx); err != nil {
 		sklog.Error(err)
 		if task.RunsOnGCEWorkers() {
 			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
@@ -455,14 +455,12 @@ func pollAndExecOnce(autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
 	go func() {
 		// Decrement the counter when the goroutine completes.
 		defer wg.Done()
-		if err = task.Execute(); err == nil {
+		if err = task.Execute(ctx); err == nil {
 			sklog.Infof("Completed task %s", taskId)
 		} else {
 			sklog.Errorf("Task %s failed: %s", taskId, err)
-			if !*dryRun {
-				if err := updateWebappTaskSetFailed(task); err != nil {
-					sklog.Error(err)
-				}
+			if err := updateWebappTaskSetFailed(task); err != nil {
+				sklog.Error(err)
 			}
 		}
 		tasksMtx.Lock()
@@ -483,13 +481,6 @@ func main() {
 	defer common.LogPanic()
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
-	if *dryRun {
-		exec.SetRunForTesting(func(command *exec.Command) error {
-			sklog.Infof("dry_run: %s", exec.DebugString(command))
-			return nil
-		})
-	}
-
 	autoscaler, err := ct_autoscaler.NewCTAutoscaler()
 	if err != nil {
 		sklog.Fatalf("Could not instantiate the CT autoscaler: %s", err)
@@ -503,10 +494,11 @@ func main() {
 	}
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
-	pollAndExecOnce(autoscaler)
+	ctx := context.Background()
+	pollAndExecOnce(ctx, autoscaler)
 	for range time.Tick(*pollInterval) {
 		healthyGauge.Update(1)
-		pollAndExecOnce(autoscaler)
+		pollAndExecOnce(ctx, autoscaler)
 		// Sleeping for a second to avoid the small probability of ending up
 		// with 2 tasks with the same runID. For context see
 		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96

@@ -1,6 +1,7 @@
 package buildsecwrap
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,10 +21,9 @@ func testRun(cmd *exec.Command) error {
 func TestRun(t *testing.T) {
 	testutils.SmallTest(t)
 	// Now test local runs, first set up exec for testing.
-	exec.SetRunForTesting(testRun)
-	defer exec.SetRunForTesting(exec.DefaultRun)
+	ctx := exec.NewContext(context.Background(), testRun)
 
-	err := Build("/tmp")
+	err := Build(ctx, "/tmp")
 	assert.NoError(t, err)
 	assert.Equal(t, "c++ /tmp/bin/fiddle_secwrap.cpp -o /tmp/bin/fiddle_secwrap", execStrings[0])
 }

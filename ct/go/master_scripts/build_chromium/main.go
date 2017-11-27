@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"time"
@@ -60,6 +61,8 @@ func main() {
 	defer common.LogPanic()
 	master_common.Init("build_chromium")
 
+	ctx := context.Background()
+
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
@@ -90,7 +93,7 @@ func main() {
 	//       "-DSK_WHITELIST_SERIALIZED_TYPEFACES" flag only when *runID is empty.
 	//       Since builds created by this master script will be consumed only by the
 	//       capture_skps tasks (which require that flag) specify runID as empty here.
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", "", "chromium", "Linux", []string{*chromiumHash, *skiaHash}, []string{}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", "", "chromium", "Linux", []string{*chromiumHash, *skiaHash}, []string{}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return

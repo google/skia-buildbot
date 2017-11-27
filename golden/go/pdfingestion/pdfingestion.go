@@ -104,7 +104,7 @@ func newPDFProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clien
 }
 
 // See ingestion.Processor interface.
-func (p *pdfProcessor) Process(resultsFile ingestion.ResultFileLocation) error {
+func (p *pdfProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	r, err := resultsFile.Open()
 	if err != nil {
 		return err

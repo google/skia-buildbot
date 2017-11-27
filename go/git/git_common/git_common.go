@@ -5,6 +5,7 @@ package git_common
 */
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -18,8 +19,8 @@ var (
 
 // Version returns the installed Git version, in the form:
 // (major, minor), or an error if it could not be determined.
-func Version() (int, int, error) {
-	out, err := exec.RunCwd(".", "git", "--version")
+func Version(ctx context.Context) (int, int, error) {
+	out, err := exec.RunCwd(ctx, ".", "git", "--version")
 	if err != nil {
 		return -1, -1, err
 	}

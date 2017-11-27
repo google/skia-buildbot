@@ -12,59 +12,59 @@ import (
 )
 
 func TestCheckout(t *testing.T) {
-	gb, commits := setup(t)
+	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	c, err := NewCheckout(gb.Dir(), tmp)
+	c, err := NewCheckout(ctx, gb.Dir(), tmp)
 	assert.NoError(t, err)
 
 	// Verify that we can run git commands.
-	_, err = c.Git("branch")
+	_, err = c.Git(ctx, "branch")
 	assert.NoError(t, err)
 
 	// Verify that we have a working copy.
-	_, err = c.Git("status")
+	_, err = c.Git(ctx, "status")
 	assert.NoError(t, err)
-	_, err = c.Git("checkout", "master")
+	_, err = c.Git(ctx, "checkout", "master")
 	assert.NoError(t, err)
 
 	// Log.
-	gotCommits, err := c.RevList("origin/master")
+	gotCommits, err := c.RevList(ctx, "origin/master")
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, commits, gotCommits)
 
 	// Add a commit on the remote.
-	commit := gb.CommitGen("somefile")
+	commit := gb.CommitGen(ctx, "somefile")
 
 	// Verify that Update() succeeds.
-	assert.NoError(t, c.Update())
+	assert.NoError(t, c.Update(ctx))
 
 	// Verify that we got the new commit.
-	got, err := c.RevParse("HEAD")
+	got, err := c.RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	assert.Equal(t, commit, got)
 
 	// Verify that we correctly clean the repo.
 	clean := func() bool {
-		_, err = c.Git("diff", "--no-ext-diff", "--exit-code", "origin/master")
+		_, err = c.Git(ctx, "diff", "--no-ext-diff", "--exit-code", "origin/master")
 		if err != nil {
 			return false
 		}
-		out, err := c.Git("ls-files", "--other", "--exclude-standard")
+		out, err := c.Git(ctx, "ls-files", "--other", "--exclude-standard")
 		assert.NoError(t, err)
 		untracked := strings.Fields(out)
 		if len(untracked) != 0 {
 			return false
 		}
-		h1, err := c.RevParse("master")
+		h1, err := c.RevParse(ctx, "master")
 		assert.NoError(t, err)
-		h2, err := c.RevParse("origin/master")
+		h2, err := c.RevParse(ctx, "origin/master")
 		assert.NoError(t, err)
-		h3, err := c.RevParse("HEAD")
+		h3, err := c.RevParse(ctx, "HEAD")
 		if h1 != h2 {
 			return false
 		}
@@ -75,7 +75,7 @@ func TestCheckout(t *testing.T) {
 	}
 	updateAndAssertClean := func() {
 		assert.False(t, clean()) // Sanity check.
-		assert.NoError(t, c.Update())
+		assert.NoError(t, c.Update(ctx))
 		assert.True(t, clean())
 	}
 
@@ -85,7 +85,7 @@ func TestCheckout(t *testing.T) {
 
 	// 2. Local modification (with git add).
 	assert.NoError(t, ioutil.WriteFile(path.Join(c.Dir(), "somefile"), []byte("contents"), os.ModePerm))
-	_, err = c.Git("add", "somefile")
+	_, err = c.Git(ctx, "add", "somefile")
 	assert.NoError(t, err)
 	updateAndAssertClean()
 
@@ -95,24 +95,24 @@ func TestCheckout(t *testing.T) {
 
 	// 4. Committed locally.
 	assert.NoError(t, ioutil.WriteFile(path.Join(c.Dir(), "somefile"), []byte("contents"), os.ModePerm))
-	_, err = c.Git("commit", "-a", "-m", "msg")
+	_, err = c.Git(ctx, "commit", "-a", "-m", "msg")
 	assert.NoError(t, err)
 	updateAndAssertClean()
 }
 
 func TestTempCheckout(t *testing.T) {
-	gb, _ := setup(t)
+	ctx, gb, _ := setup(t)
 	defer gb.Cleanup()
 
-	c, err := NewTempCheckout(gb.Dir())
+	c, err := NewTempCheckout(ctx, gb.Dir())
 	assert.NoError(t, err)
 
 	// Verify that we can run git commands.
-	_, err = c.Git("branch")
+	_, err = c.Git(ctx, "branch")
 	assert.NoError(t, err)
 
 	// Verify that we have a working copy.
-	_, err = c.Git("status")
+	_, err = c.Git(ctx, "status")
 	assert.NoError(t, err)
 
 	// Delete the checkout.

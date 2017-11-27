@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -66,7 +67,7 @@ func main() {
 	if err := ioutil.WriteFile(targetFile, fileContents, os.ModePerm); err != nil {
 		sklog.Fatal(err)
 	}
-	if _, err := exec.RunCwd(".", "gofmt", "-s", "-w", targetFile); err != nil {
+	if _, err := exec.RunCwd(context.Background(), ".", "gofmt", "-s", "-w", targetFile); err != nil {
 		sklog.Fatal(err)
 	}
 }

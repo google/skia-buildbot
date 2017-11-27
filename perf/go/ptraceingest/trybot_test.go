@@ -1,6 +1,7 @@
 package ptraceingest
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -36,6 +37,7 @@ func TestTrybotBenchData(t *testing.T) {
 // Tests the processor in conjunction with Rietveld.
 func TestPerfTrybotProcessor(t *testing.T) {
 	testutils.MediumTest(t)
+	ctx := context.Background()
 	orig := ptracestore.Default
 	dir, err := ioutil.TempDir("", "ptrace")
 	assert.NoError(t, err)
@@ -60,7 +62,7 @@ func TestPerfTrybotProcessor(t *testing.T) {
 
 	fsResult, err := ingestion.FileSystemResult(filepath.Join(TEST_DATA_DIR, "trybot.json"), TEST_DATA_DIR)
 	assert.NoError(t, err)
-	err = processor.Process(fsResult)
+	err = processor.Process(ctx, fsResult)
 	assert.NoError(t, err)
 
 	traceId := ",arch=x86_64,bench_type=micro,compiler=Clang,config=gpu,cpu_or_gpu=GPU,cpu_or_gpu_value=GeForce320M,model=MacMini4.1,name=GLInstancedArraysBench_one_0,os=Mac10.8,source_type=bench,sub_result=min_ms,test=GLInstancedArraysBench_one_0_640_480,"

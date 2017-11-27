@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"math/rand"
 	"net/url"
@@ -40,7 +41,7 @@ var (
 
 func main() {
 	// Load the data that make up the state of the system.
-	tile, expectations, ignoreStore := load()
+	tile, expectations, ignoreStore := load(context.Background())
 	tile = sampleTile(tile, *sampleSize, *query, *nTests)
 	writeSample(*outputFile, tile, expectations, ignoreStore)
 	sklog.Infof("Finished.")
@@ -168,7 +169,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 }
 
 // load retrieves the last tile, the expectations and the ignore store.
-func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
+func load(ctx context.Context) (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 	// Set up flags and the database.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
 	common.Init()
@@ -187,7 +188,7 @@ func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt)
 
 	// Check out the repository.
-	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
+	git, err := gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -199,7 +200,7 @@ func load() (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
 		sklog.Fatalf("Failed to connect to tracedb: %s", err)
 	}
 
-	masterTileBuilder, err := tracedb.NewMasterTileBuilder(tdb, git, *nCommits, evt, "")
+	masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, tdb, git, *nCommits, evt, "")
 	if err != nil {
 		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -112,6 +113,8 @@ func main() {
 	defer common.LogPanic()
 	master_common.Init("run_chromium_perf")
 
+	ctx := context.Background()
+
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
@@ -182,7 +185,7 @@ func main() {
 	if util.PatchesAreEmpty(localPatches) {
 		// Create only one chromium build.
 		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-			"build_chromium", *runID, "chromium", *targetPlatform, []string{}, remotePatches,
+			ctx, "build_chromium", *runID, "chromium", *targetPlatform, []string{}, remotePatches,
 			/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
 		if err != nil {
 			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
@@ -198,7 +201,7 @@ func main() {
 	} else {
 		// Create the two required chromium builds (with patch and without the patch).
 		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-			"build_chromium", *runID, "chromium", *targetPlatform, []string{}, remotePatches,
+			ctx, "build_chromium", *runID, "chromium", *targetPlatform, []string{}, remotePatches,
 			/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
 		if err != nil {
 			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
@@ -239,7 +242,7 @@ func main() {
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
@@ -252,7 +255,7 @@ func main() {
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	for _, run := range []string{runIDNoPatch, runIDWithPatch} {
 		if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {
+			if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, run, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {
 				sklog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
 			}
 			// Cleanup created dir after the run completes.
@@ -311,7 +314,7 @@ func main() {
 	}
 	// TODO(rmistry): Remove the below debugging stmt.
 	sklog.Errorf("Args of csv_comparer.py: %v", args)
-	err = util.ExecuteCmd("python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
+	err = util.ExecuteCmd(ctx, "python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
 		sklog.Errorf("Error running csv_comparer.py: %s", err)
 		return

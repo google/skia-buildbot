@@ -20,6 +20,9 @@ var (
 	re = regexp.MustCompile("^[A-Za-z0-9_]+")
 )
 
+// ProcessFn is used to process a single chunk of data.
+type ProcessFn func(context.Context, time.Time, time.Time) error
+
 // Processor is a struct used for processing data in chunks by time.
 type Processor struct {
 	// The earliest time we will ingest.
@@ -39,7 +42,7 @@ type Processor struct {
 	// will be called for overlapping ranges repeatedly and should be able
 	// to avoid reprocessing the same data, or be fast enough that it
 	// doesn't matter.
-	ProcessFn func(time.Time, time.Time) error
+	ProcessFn ProcessFn
 
 	// Once all data from BeginningOfTime has been processed, we will
 	// (re)process data from the given Window up to the current time.
@@ -56,9 +59,9 @@ type Processor struct {
 }
 
 // process one chunk of data.
-func (p *Processor) process(start, end time.Time) error {
+func (p *Processor) process(ctx context.Context, start, end time.Time) error {
 	sklog.Infof("Processing %s for range (%s, %s)", p.Name, start, end)
-	if err := p.ProcessFn(start, end); err != nil {
+	if err := p.ProcessFn(ctx, start, end); err != nil {
 		return err
 	}
 	p.processedUpTo = end
@@ -67,12 +70,14 @@ func (p *Processor) process(start, end time.Time) error {
 
 // run is called periodically. It either catches up to the given window or just
 // processes the current window.
-func (p *Processor) run(now time.Time) error {
+func (p *Processor) run(ctx context.Context, now time.Time) error {
 	start := p.processedUpTo.Add(-p.Window)
 	if p.BeginningOfTime.After(start) {
 		start = p.BeginningOfTime
 	}
-	return util.IterTimeChunks(start, now, p.ChunkSize, p.process)
+	return util.IterTimeChunks(start, now, p.ChunkSize, func(start, end time.Time) error {
+		return p.process(ctx, start, end)
+	})
 }
 
 // init validates and initializes the Processor.
@@ -122,7 +127,7 @@ func (p *Processor) Start(ctx context.Context) error {
 		"name": p.Name,
 	})
 	go util.RepeatCtx(p.Frequency, ctx, func() {
-		if err := p.run(time.Now()); err != nil {
+		if err := p.run(ctx, time.Now()); err != nil {
 			sklog.Errorf("Failed to run Processor: %s", err)
 		} else {
 			lv.Reset()

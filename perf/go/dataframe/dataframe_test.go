@@ -1,6 +1,7 @@
 package dataframe
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -23,11 +24,11 @@ type mockVcs struct {
 
 func (m *mockVcs) From(start time.Time) []string                     { return nil }
 func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit { return nil }
-func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
+func (m *mockVcs) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
 
-func (m *mockVcs) IndexOf(hash string) (int, error) {
+func (m *mockVcs) IndexOf(ctx context.Context, hash string) (int, error) {
 	for i, c := range m.commits {
 		if c.Hash == hash {
 			return i, nil
@@ -36,7 +37,7 @@ func (m *mockVcs) IndexOf(hash string) (int, error) {
 	return 0, fmt.Errorf("Not found: %s", hash)
 }
 
-func (m *mockVcs) Update(pull, allBranches bool) error {
+func (m *mockVcs) Update(ctx context.Context, pull, allBranches bool) error {
 	if m.updateFail {
 		return fmt.Errorf("Failed to update.")
 	}
@@ -47,12 +48,16 @@ func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	return m.commits
 }
 
-func (m *mockVcs) ByIndex(N int) (*vcsinfo.LongCommit, error) {
+func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
 
-func (m *mockVcs) GetFile(fileName, commitHash string) (string, error) { return "", nil }
-func (m *mockVcs) ResolveCommit(commitHash string) (string, error)     { return "", nil }
+func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
+	return "", nil
+}
+func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
+	return "", nil
+}
 
 type mockPTraceStore struct {
 	traceSet  ptracestore.TraceSet
