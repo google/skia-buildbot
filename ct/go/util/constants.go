@@ -71,12 +71,13 @@ const (
 	PLATFORM_LINUX   = "Linux"
 
 	// Benchmarks supported by CT.
-	BENCHMARK_SKPICTURE_PRINTER = "skpicture_printer"
-	BENCHMARK_RR                = "rasterize_and_record_micro"
-	BENCHMARK_REPAINT           = "repaint"
+	BENCHMARK_SKPICTURE_PRINTER = "skpicture_printer_ct"
+	BENCHMARK_RR                = "rasterize_and_record_micro_ct"
+	BENCHMARK_REPAINT           = "repaint_ct"
 	BENCHMARK_LOADING           = "loading.cluster_telemetry"
-	BENCHMARK_SCREENSHOT        = "screenshot"
+	BENCHMARK_SCREENSHOT        = "screenshot_ct"
 	BENCHMARK_USECOUNTER        = "usecounter_ct"
+	BENCHMARK_LEAK_DETECTION    = "leak_detection.cluster_telemetry"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -229,16 +230,6 @@ var (
 	ChromiumAnalysisRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_ANALYSIS_TASKS_DIR_NAME)
 	FixArchivesRunsDir      = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
 
-	// Map CT benchmarks to the names recognized by Telemetry.
-	BenchmarksToTelemetryName = map[string]string{
-		BENCHMARK_SKPICTURE_PRINTER: "skpicture_printer_ct",
-		BENCHMARK_RR:                "rasterize_and_record_micro_ct",
-		BENCHMARK_REPAINT:           "repaint_ct",
-		BENCHMARK_LOADING:           "loading.cluster_telemetry",
-		BENCHMARK_SCREENSHOT:        "screenshot_ct",
-		BENCHMARK_USECOUNTER:        "usecounter_ct",
-	}
-
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
 		PAGESET_TYPE_ALL: {
@@ -381,6 +372,7 @@ var (
 		BENCHMARK_REPAINT,
 		BENCHMARK_LOADING,
 		BENCHMARK_USECOUNTER,
+		BENCHMARK_LEAK_DETECTION,
 	}
 
 	SupportedPlatformsToDesc = map[string]string{

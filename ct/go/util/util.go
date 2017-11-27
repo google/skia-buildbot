@@ -657,14 +657,9 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		return fmt.Errorf("Could not read %s: %s", pagesetPath, err)
 	}
 	sklog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
-	benchmark, present := BenchmarksToTelemetryName[benchmarkName]
-	if !present {
-		// If it is custom benchmark use the entered benchmark name.
-		benchmark = benchmarkName
-	}
 	args := []string{
 		filepath.Join(TelemetryBinariesDir, BINARY_RUN_BENCHMARK),
-		benchmark,
+		benchmarkName,
 		"--also-run-disabled-tests",
 		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,

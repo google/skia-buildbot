@@ -307,7 +307,7 @@ func runScreenshotBenchmark(outputPath, chromiumBinary, pagesetName, pathToPages
 
 	args := []string{
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
-		util.BenchmarksToTelemetryName[util.BENCHMARK_SCREENSHOT],
+		util.BENCHMARK_SCREENSHOT,
 		"--also-run-disabled-tests",
 		"--png-outdir=" + filepath.Join(outputPath, strconv.Itoa(rank)),
 		"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
