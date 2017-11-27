@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f15a8c7_0cafd0eb",
+        "filename": "coverage/go/coverageingest/ingester_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-27T13:56:37Z",
+      "side": 1,
+      "message": "Can you add a TODO(kjlubick) to properly use the context instead of the hackery that I did to mock out the call to \"tar\"?  Thanks",
+      "revId": "da487a2e216fe883ca3c6292d2431d86d6a66537",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "332ec07a_c62dd5e7",
+        "filename": "fuzzer/go/fuzzer-fe/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-27T13:56:37Z",
+      "side": 1,
+      "message": "Probably don\u0027t need the local variable.",
+      "range": {
+        "startLine": 525,
+        "startChar": 1,
+        "endLine": 525,
+        "endChar": 4
+      },
+      "revId": "da487a2e216fe883ca3c6292d2431d86d6a66537",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
