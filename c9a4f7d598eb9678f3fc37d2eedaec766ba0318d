@@ -22,6 +22,29 @@
       "revId": "c9a4f7d598eb9678f3fc37d2eedaec766ba0318d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ea839b1_36c1dcb6",
+        "filename": "task_scheduler/res/imp/task-scheduler-blacklist-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-28T15:57:45Z",
+      "side": 1,
+      "message": "Can you change the label to be https://bugs.chromium.org/p/skia/issues/detail?id\u003d7346#c4",
+      "range": {
+        "startLine": 156,
+        "startChar": 22,
+        "endLine": 156,
+        "endChar": 51
+      },
+      "revId": "c9a4f7d598eb9678f3fc37d2eedaec766ba0318d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
