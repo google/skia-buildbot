@@ -47,14 +47,19 @@ type Output struct {
 //
 // If new fields are added make sure to update ComputeHash and go/store.
 type Options struct {
-	Width    int     `json:"width"`
-	Height   int     `json:"height"`
-	Source   int     `json:"source"`
-	SRGB     bool    `json:"srgb"`
-	F16      bool    `json:"f16"`
-	TextOnly bool    `json:"textOnly"`
-	Animated bool    `json:"animated"`
-	Duration float64 `json:"duration"`
+	Width                int     `json:"width"`
+	Height               int     `json:"height"`
+	Source               int     `json:"source"`
+	SRGB                 bool    `json:"srgb"`
+	F16                  bool    `json:"f16"`
+	TextOnly             bool    `json:"textOnly"`
+	Animated             bool    `json:"animated"`
+	Duration             float64 `json:"duration"`
+	OffScreenWidth       int     `json:"off_screen_width"`
+	OffScreenHeight      int     `json:"off_screen_height"`
+	OffScreenSampleCount int     `json:"off_screen_sample_count"`
+	OffScreenTexturable  bool    `json:"off_screen_texturable"`
+	OffScreenMipMap      bool    `json:"off_screen_mip_map"`
 }
 
 // ComputeHash calculates the fiddleHash for the given code and options.
@@ -83,6 +88,16 @@ func (o *Options) ComputeHash(code string) (string, error) {
 	if o.Duration != 0.0 {
 		out = append(out, fmt.Sprintf("// Duration: %f", o.Duration))
 	}
+	if o.OffScreenWidth != 0 || o.OffScreenHeight != 0 {
+		out = append(out, fmt.Sprintf("// Offscreen WxHxS: %d, %d, %d", o.OffScreenWidth, o.OffScreenHeight, o.OffScreenSampleCount))
+	}
+	if o.OffScreenTexturable {
+		out = append(out, fmt.Sprintf("// Offscreen Texturable: %v", o.OffScreenTexturable))
+	}
+	if o.OffScreenMipMap {
+		out = append(out, fmt.Sprintf("// Offscreen MipMap: %v", o.OffScreenMipMap))
+	}
+
 	for _, line := range lines {
 		if strings.Contains(line, "%:") {
 			return "", fmt.Errorf("Unable to compile source.")
