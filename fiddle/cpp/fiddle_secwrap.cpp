@@ -73,11 +73,13 @@ static bool install_syscall_filter() {
         TRACE_SYSCALL(execve),
         TRACE_SYSCALL(open),
         TRACE_SYSCALL(openat),
+
+        TRACE_SYSCALL(shmctl),
         // Uncomment the following when trying to figure out which new
         // syscall's are being made:
 
-        //TRACE_ALL,
-        //ALLOW_ALL,
+        TRACE_ALL,
+        ALLOW_ALL,
         KILL_PROCESS,
     };
     struct sock_fprog prog = {
