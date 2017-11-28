@@ -155,6 +155,7 @@
                 autocomplete="[[commits]]"
                 label="single commit or range start (inclusive)"
                 value="{{_input_commit}}"
+                accept-custom-value="true"
                 ></autocomplete-input-sk>
             <paper-checkbox checked="{{_input_commit_is_range}}" id="range_checkbox">
               commit range?
@@ -164,6 +165,7 @@
                 hidden$="{{!_input_commit_is_range}}"
                 label="commit range end (non-inclusive)"
                 value="{{_input_commit_range_end}}"
+                accept-custom-value="true"
                 ></autocomplete-input-sk>
           </div>
           <paper-textarea label="description" value="{{_input_description}}" rows="5"></paper-textarea>
@@ -264,10 +266,10 @@
           "name": this._input_name,
         };
         if (this._input_commit) {
-          data["commits"].push(this._input_commit);
+          data["commits"].push(this._input_commit.trim());
         }
         if (this._input_commit_is_range) {
-          data["commits"].push(this._input_commit_range_end);
+          data["commits"].push(this._input_commit_range_end.trim());
         }
         if (this._input_task_spec_patterns.length == 0 && data["commits"].length == 0) {
           sk.errorMessage("Rules must have at least one task_spec pattern and/or commit.")
