@@ -7,11 +7,22 @@
   between the code and the resulting images.
 
   Attributes:
-    width        - The width of the fiddle image.
-    height       - The height of the fiddle image.
-    source       - The index of the source image to use as input.
-    bug_link     - If true then display a link to report a bug.
-    embedded     - If true then show less controls because were embedded.
+    width                  - The width of the fiddle image.
+    height                 - The height of the fiddle image.
+    textonly               - True if this fiddle emits only text.
+    srgb                   - True if SGRB.
+    f16                    - True if f16.
+    animated               - True if animated.
+    duration               - Length of animation in seconds.
+    source                 - The index of the source image to use as input.
+    bug_link               - If true then display a link to report a bug.
+    embedded               - If true then show less controls because were embedded.
+    offscreen              - True if an offscreen render target is to be made available.
+    offscreen_width        - Width of offscreen render target.
+    offscreen_height       - Height of offscreen render target.
+    offscreen_sample_count - Render target sample count.
+    offscreen_texturable   - True if offscreen render target is texturable.
+    offscreen_mipmap       - True if texturable offscreen render target is mipmapped.
 
   Methods:
     None.
@@ -47,7 +58,6 @@
     #embedder.display {
       display: block;
     }
-
 
     video,
     img {
@@ -430,6 +440,36 @@ sk_sp&lt;SkImage> image;</pre>
         reflectToAttribute: true,
       },
       embedded: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      offscreen: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      offscreen_width: {
+        type: Number,
+        value: 256,
+        reflectToAttribute: true,
+      },
+      offscreen_height: {
+        type: Number,
+        value: 256,
+        reflectToAttribute: true,
+      },
+      offscreen_sample_count: {
+        type: Number,
+        value: 1,
+        reflectToAttribute: true,
+      },
+      offscreen_texturable: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      offscreen_mipmap: {
         type: Boolean,
         value: false,
         reflectToAttribute: true,
