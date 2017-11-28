@@ -280,7 +280,11 @@ func main() {
 	} else if *skylake {
 		zone = gce.ZONE_SKYLAKE
 	}
-	g, err := gce.NewGCloud(gce.PROJECT_ID_SWARMING, zone, wdAbs)
+	project := gce.PROJECT_ID_SWARMING
+	if *internal {
+		project = gce.PROJECT_ID_SERVER
+	}
+	g, err := gce.NewGCloud(project, zone, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
