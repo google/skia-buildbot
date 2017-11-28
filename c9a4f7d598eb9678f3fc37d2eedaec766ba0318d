@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0fdfa01a_d072f287",
+        "filename": "res/imp/autocomplete-input-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-28T15:56:48Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d and all the places",
+      "range": {
+        "startLine": 175,
+        "startChar": 19,
+        "endLine": 175,
+        "endChar": 21
+      },
+      "revId": "c9a4f7d598eb9678f3fc37d2eedaec766ba0318d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
