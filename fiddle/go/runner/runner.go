@@ -28,7 +28,7 @@ const (
 	PREFIX = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = %s; // Either a string, or 0.
-  return DrawOptions(%d, %d, true, true, %v, %v, %v, %v, %v, path);
+  return DrawOptions(%d, %d, true, true, %v, %v, %v, %v, %v, path, GrMipMapped::kYes, 64, 64, 0, GrMipMapped::kYes);
 }
 
 %s

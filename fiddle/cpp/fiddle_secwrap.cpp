@@ -67,12 +67,15 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(wait4),
         ALLOW_SYSCALL(mknod),
         ALLOW_SYSCALL(getrandom),
+        ALLOW_SYSCALL(shmctl),
+        ALLOW_SYSCALL(prlimit64),
 
         TRACE_SYSCALL(mkdir),
         TRACE_SYSCALL(unlink),
         TRACE_SYSCALL(execve),
         TRACE_SYSCALL(open),
         TRACE_SYSCALL(openat),
+
         // Uncomment the following when trying to figure out which new
         // syscall's are being made:
 
