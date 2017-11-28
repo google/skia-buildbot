@@ -56,14 +56,13 @@
     <paper-input id="input" label="[[label]]"
       on-change="_change"
       on-keyup="_keyup"
-      on-focus="_keyup"
-      display-options-on-focus="{{displayOptionsOnFocus}}"
-      accept-custom-value="{{acceptCustomValue}}"
+      on-focus="_onFocus"
+      on-blur="_keyup"
     ></paper-input>
     <div id="suggestions_div" hidden$="{{_show_suggestions(_suggestions.*)}}">
       <paper-listbox id="suggestions_box" on-iron-select="_suggestion_changed">
         <template is="dom-repeat" items="[[_suggestions]]">
-          <paper-item value="{{item}}">{{item}}</paper-item>
+          <paper-item class="suggestion" value="{{item}}">{{item}}</paper-item>
         </template>
       </paper-listbox>
     </div>
@@ -152,7 +151,7 @@
         e.preventDefault();
         e.stopPropagation();
         var v = this.$.input.value;
-        if (this.autocomplete && this.autocomplete.indexOf(v) == -1) {
+        if (this.autocomplete && this.autocomplete.indexOf(v) === -1) {
           // If we're autocompleting, don't fire the change event unless we
           // chose a suggested value.
         } else {
@@ -173,23 +172,36 @@
       },
 
       _keyup: function(e) {
+        if (e.type === "blur") {
+          // Ignore the blur event if it was caused by clicking a suggestion.
+          if (e.detail.sourceEvent.relatedTarget.classList.contains("suggestion")) {
+            return;
+          }
+        }
         if (this.autocomplete) {
           // Allow the user to scroll through suggestions using arrow keys.
-          if (e.keyCode == DOWN_ARROW && this._suggestions.length > 0) {
+          if (e.keyCode === DOWN_ARROW && this._suggestions.length > 0) {
             this._arrow_key_pressed = true;
             this.$.suggestions_box.selected = this.$.suggestions_box.selected + 1;
-          } else if (e.keyCode == UP_ARROW && this._suggestions.length > 0) {
+          } else if (e.keyCode === UP_ARROW && this._suggestions.length > 0) {
             this._arrow_key_pressed = true;
             this.$.suggestions_box.selected = this.$.suggestions_box.selected - 1;
-          } else if (e.keyCode == ENTER && this.$.suggestions_box.selected > -1) {
-            // If the enter key is pressed while one of the suggestions is
-            // highlighted, we accept that selection.
-            this.$.input.value = this.$.suggestions_box.selectedItem.value;
-            this._commit();
-          } else if (e.keyCode == ENTER && this.acceptCustomValue) {
-            // If the enter key is pressed without highlighting a suggestion
-            // then accept the current input value.
-            this._commit();
+          } else if (e.type === "blur" || e.keyCode === ENTER) {
+            if (this.$.suggestions_box.selected > -1) {
+              // If the enter key is pressed while one of the suggestions is
+              // highlighted, we accept that selection.
+              this.$.input.value = this.$.suggestions_box.selectedItem.value;
+              this._commit();
+            } else if (this.acceptCustomValue) {
+              // If the enter key is pressed without highlighting a suggestion
+              // then accept the current input value.
+              this._commit();
+            } else {
+              // User entered an invalid selection, and custom values are not
+              // allowed.
+              this.$.input.value = "";
+              this._commit();
+            }
           } else {
             // The user has entered text. Recompute autocomplete suggestions.
             var v = this.$.input.value;
@@ -220,7 +232,7 @@
             }
             // If the user types an exact match to one of the suggestions,
             // remove the suggestions box.
-            if (this._suggestions.length == 1 && this._suggestions[0] == v) {
+            if (this._suggestions.length === 1 && this._suggestions[0] === v) {
               this._suggestions = [];
             }
             // Ensure that no suggestions are selected after recomputing.
