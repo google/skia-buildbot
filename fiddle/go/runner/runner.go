@@ -76,6 +76,11 @@ func ValidateOptions(opts *types.Options) error {
 	} else {
 		opts.Duration = 0
 	}
+	if opts.OffScreenMipMap {
+		if opts.OffScreenTexturable == false {
+			return fmt.Errorf("OffScreenMipMap can only be true if OffScreenTexturable is true.")
+		}
+	}
 	return nil
 }
 

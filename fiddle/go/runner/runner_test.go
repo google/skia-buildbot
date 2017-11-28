@@ -171,6 +171,22 @@ func TestValidateOptions(t *testing.T) {
 			errorExpected: true,
 			message:       "negative duration",
 		},
+		{
+			value: &types.Options{
+				OffScreenTexturable: true,
+				OffScreenMipMap:     true,
+			},
+			errorExpected: false,
+			message:       "offscreen texturable can be mipmap",
+		},
+		{
+			value: &types.Options{
+				OffScreenTexturable: false,
+				OffScreenMipMap:     true,
+			},
+			errorExpected: true,
+			message:       "no offscreen texturable, so can't be mipmap",
+		},
 	}
 
 	for _, tc := range testCases {

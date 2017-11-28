@@ -53,4 +53,21 @@ func TestOptions(t *testing.T) {
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
 	assert.Equal(t, "92c7b15afd12fd711ce65ba412574e3d", hash)
+
+	o.OffScreenWidth = 256
+	o.OffScreenHeight = 256
+	o.OffScreenSampleCount = 1
+	hash, err = o.ComputeHash(code)
+	assert.NoError(t, err)
+	assert.Equal(t, "85cc45b62558cb9a543d9ac817c1e570", hash)
+
+	o.OffScreenTexturable = true
+	hash, err = o.ComputeHash(code)
+	assert.NoError(t, err)
+	assert.Equal(t, "eed03d70ecf09790a6bf8fe13af0e959", hash)
+
+	o.OffScreenMipMap = true
+	hash, err = o.ComputeHash(code)
+	assert.NoError(t, err)
+	assert.Equal(t, "052b394aa3078ac12f9a8ee7dde8ee65", hash)
 }
