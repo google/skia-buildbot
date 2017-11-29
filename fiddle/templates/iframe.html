@@ -6,6 +6,7 @@
 </head>
 <body>
   <fiddle-sk embedded width="{%.Options.Width%}" height="{%.Options.Height%}" source="{%.Options.Source%}" fiddlehash="{%.Hash%}"
+    {%if .Options.SourceMipMap%}source_mipmap{%end%}
     {%if .Options.TextOnly%}textonly{%end%}
     {%if .Options.SRGB%}srgb{%end%}
     {%if .Options.F16%}f16{%end%}
