@@ -69,6 +69,30 @@
       "revId": "29fc963ae822e390970c7cba0b0657aac9391cdd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3a392d0_9ff02b5f",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-29T15:39:36Z",
+      "side": 1,
+      "message": "Nice! I wasn\u0027t aware of that. Done.",
+      "parentUuid": "a94f615a_924b53a6",
+      "range": {
+        "startLine": 149,
+        "startChar": 39,
+        "endLine": 149,
+        "endChar": 79
+      },
+      "revId": "29fc963ae822e390970c7cba0b0657aac9391cdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

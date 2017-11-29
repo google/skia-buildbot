@@ -22,6 +22,30 @@
       "revId": "e01a1ff6a1734c7eb7996e9485a28903e06b27f9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "073730bf_49ccbacd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-29T15:39:36Z",
+      "side": 1,
+      "message": "\u003e I see three options:\n\u003e A. This is good enough. We don\u0027t really care about this value where multiple jobs share a task, and any of the BBBIDs would be fine. It\u0027s possible that results will be misattributed to the wrong BBBID.\n\nThis is true right now, and I\u0027m having trouble imagining a case where we start sharing Test tasks between multiple jobs, which is the use case here.  That said, if that changes or if we find the BBBID to be useful generally, we\u0027ll have to change this.  The only time this becomes a problem for Test tasks is if we trigger a retry of a try job and the tasks get de-duplicated.  We\u0027ll never have a task associated with the retry job\u0027s BBBID.  Stephan says he can work around that, but this is the impetus for a separate conversation about how to prevent deduplication for retries of try jobs (which is generally needed anyway).\n\n\u003e B. Only include the BBBID when there is no conflict. (I.e. in findTaskCandidatesForJobs, add logic to clear c.BuildbucketBuildId if it\u0027s not the same as j.BuildbucketBuildId.) (I actually think this could lead to situations where things silently fail, so I\u0027m not a big fan.)\n\nAs you say, this breaks down if the second job arrives after the shared task has been triggered.\n\n\u003e C. Make VARIABLE_BUILDBUCKET_BUILD_ID a comma-separated list. Code that doesn\u0027t handle multiple values should fail noisily.\n\u003e   C1. Keep this CL as-is, since a single value is a valid comma-separated list.\n\u003e   C2. Make taskCandidate.BuildbucketBuildId a slice.\n\u003e \n\nWe could keep the value up to date in the task scheduler DB, but we can\u0027t change Swarming task properties (and thus the generated dm.json file) after the task is triggered, so this doesn\u0027t really fix the problem in the case we care about, where we want to link the dm.json file back to a BBBID.\n\n\u003e I prefer A, and if it becomes a problem, it\u0027s not too hard to change to C2.\n\nSGTM",
+      "parentUuid": "0382691e_7cb9d7b7",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 72
+      },
+      "revId": "e01a1ff6a1734c7eb7996e9485a28903e06b27f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
