@@ -347,6 +347,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to decode request.")
 		return
 	}
+	sklog.Warningf("GOT: %#v", req)
 
 	resp, err := run(context.Background(), login.LoggedInAs(r), req)
 	if err != nil {
