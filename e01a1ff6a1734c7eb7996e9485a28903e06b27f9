@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0382691e_7cb9d7b7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-29T15:26:35Z",
+      "side": 1,
+      "message": "I see three options:\nA. This is good enough. We don\u0027t really care about this value where multiple jobs share a task, and any of the BBBIDs would be fine. It\u0027s possible that results will be misattributed to the wrong BBBID.\nB. Only include the BBBID when there is no conflict. (I.e. in findTaskCandidatesForJobs, add logic to clear c.BuildbucketBuildId if it\u0027s not the same as j.BuildbucketBuildId.) (I actually think this could lead to situations where things silently fail, so I\u0027m not a big fan.)\nC. Make VARIABLE_BUILDBUCKET_BUILD_ID a comma-separated list. Code that doesn\u0027t handle multiple values should fail noisily.\n  C1. Keep this CL as-is, since a single value is a valid comma-separated list.\n  C2. Make taskCandidate.BuildbucketBuildId a slice.\n\nI prefer A, and if it becomes a problem, it\u0027s not too hard to change to C2.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 72
+      },
+      "revId": "e01a1ff6a1734c7eb7996e9485a28903e06b27f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
