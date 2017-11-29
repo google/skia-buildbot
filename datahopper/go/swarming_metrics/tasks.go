@@ -151,7 +151,7 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 		Results: map[string]ingestcommon.BenchResults{
 			taskName: {
 				"task_duration": {
-					"task_ms": t.TaskResult.Duration,
+					"task_ms": t.TaskResult.Duration + t.TaskResult.PerformanceStats.BotOverhead,
 				},
 			},
 		},
