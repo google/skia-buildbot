@@ -145,22 +145,23 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 	}
 	parsed["failure"] = strconv.FormatBool(t.TaskResult.Failure)
 
+	durations := ingestcommon.BenchResults{
+		"task_duration": {
+			"task_step_s":        t.TaskResult.Duration,
+			"all_overhead_s":     t.TaskResult.PerformanceStats.BotOverhead,
+			"isolate_overhead_s": t.TaskResult.PerformanceStats.IsolatedDownload.Duration + t.TaskResult.PerformanceStats.IsolatedUpload.Duration,
+			"total_s":            t.TaskResult.Duration + t.TaskResult.PerformanceStats.BotOverhead,
+		},
+	}
 	toReport := ingestcommon.BenchData{
 		Hash: taskRevision,
 		Key:  parsed,
 		Results: map[string]ingestcommon.BenchResults{
-			taskName: {
-				"task_duration": {
-					"task_step_s":        t.TaskResult.Duration,
-					"all_overhead_s":     t.TaskResult.PerformanceStats.BotOverhead,
-					"isolate_overhead_s": t.TaskResult.PerformanceStats.IsolatedDownload.Duration + t.TaskResult.PerformanceStats.IsolatedUpload.Duration,
-					"total_s":            t.TaskResult.Duration + t.TaskResult.PerformanceStats.BotOverhead,
-				},
-			},
+			taskName: durations,
 		},
 	}
 
-	sklog.Debugf("Reporting that %s had these durations: %#v ms", taskName, toReport.Results["taskName"])
+	sklog.Debugf("Reporting that %s had these durations: %#v ms", taskName, durations)
 
 	if err := perfClient.PushToPerf(now, taskName, "task_duration", toReport); err != nil {
 		return fmt.Errorf("Ran into error while pushing task duration to perf: %s", err)
