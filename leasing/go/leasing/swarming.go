@@ -291,3 +291,7 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 func GetSwarmingTaskLink(server, taskId string) string {
 	return fmt.Sprintf("https://%s/task?id=%s", server, taskId)
 }
+
+func GetSwarmingBotLink(server, botId string) string {
+	return fmt.Sprintf("https://%s/bot?id=%s", server, botId)
+}
