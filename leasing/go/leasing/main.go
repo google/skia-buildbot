@@ -164,7 +164,6 @@ func poolDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Error getting pool details from swarming: %v", err))
 		return
 	}
-	fmt.Println(poolDetails)
 	if err := json.NewEncoder(w).Encode(poolDetails); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
@@ -208,7 +207,6 @@ func getLeasingTasks(filterUser string) ([]*Task, error) {
 		t := &Task{}
 		k, err := it.Next(t)
 		if err == iterator.Done {
-			fmt.Println("Iterator is done")
 			break
 		} else if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
@@ -301,6 +299,11 @@ func extendTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Error updating task in datastore")
 		return
 	}
+	// Inform the requester that the task has been extended by durationHrs.
+	if err := SendExtensionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, durationHrs); err != nil {
+		httputils.ReportError(w, r, err, "Error sending extension email")
+		return
+	}
 }
 
 func expireTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -333,7 +336,7 @@ func expireTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Inform the requester that the task has completed.
-	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId); err != nil {
+	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId); err != nil {
 		httputils.ReportError(w, r, err, "Error sending completion email")
 		return
 	}
