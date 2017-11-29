@@ -249,14 +249,14 @@ func TestPerfUpload(t *testing.T) {
 		"sk_revision": "firstRevision",
 		"sk_name":     "Test-MyOS",
 		"sk_repo":     common.REPO_SKIA,
-	}, 0.0, 0.0, 0.0)
+	}, float64(17*time.Second), float64(13*time.Second), float64(4*time.Second))
 	t2 := makeTask("2", "Perf-MyOS", cr.Add(time.Minute), st, util.TimeZero, d, map[string]string{
 		"sk_revision": "secondRevision",
 		"sk_name":     "Perf-MyOS",
 		"sk_repo":     common.REPO_SKIA,
-	}, 0.0, 0.0, 0.0)
+	}, float64(37*time.Second), float64(23*time.Second), float64(14*time.Second))
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
-	t3 := makeTask("3", "my-task", cr.Add(2*time.Second), st, now.Add(-time.Minute), d, nil, 0.0, 0.0, 0.0)
+	t3 := makeTask("3", "my-task", cr.Add(2*time.Second), st, now.Add(-time.Minute), d, nil, float64(47*time.Second), float64(13*time.Second), float64(34*time.Second))
 	t3.TaskResult.State = swarming.TASK_STATE_BOT_DIED
 
 	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3}, nil)
@@ -279,7 +279,7 @@ func TestPerfUpload(t *testing.T) {
 		Results: map[string]ingestcommon.BenchResults{
 			"Test-MyOS": {
 				"task_duration": {
-					"task_ms": float64(14 * time.Minute),
+					"task_ms": float64(14*time.Minute + 17*time.Second),
 				},
 			},
 		},
@@ -321,7 +321,7 @@ func TestPerfUpload(t *testing.T) {
 		Results: map[string]ingestcommon.BenchResults{
 			"Perf-MyOS": {
 				"task_duration": {
-					"task_ms": float64(33 * time.Minute),
+					"task_ms": float64(33*time.Minute + 37*time.Second),
 				},
 			},
 		},
