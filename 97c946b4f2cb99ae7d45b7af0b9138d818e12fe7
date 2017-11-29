@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cfc69145_7a811931",
+        "filename": "fiddle/go/runner/runner_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-29T21:44:44Z",
+      "side": 1,
+      "message": "width above is 0?",
+      "range": {
+        "startLine": 203,
+        "startChar": 19,
+        "endLine": 203,
+        "endChar": 24
+      },
+      "revId": "97c946b4f2cb99ae7d45b7af0b9138d818e12fe7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "137884e4_d67509f2",
+        "filename": "fiddle/go/store/store.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-29T21:44:44Z",
+      "side": 1,
+      "message": "Nit: sample count",
+      "range": {
+        "startLine": 367,
+        "startChar": 64,
+        "endLine": 367,
+        "endChar": 70
+      },
+      "revId": "97c946b4f2cb99ae7d45b7af0b9138d818e12fe7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
