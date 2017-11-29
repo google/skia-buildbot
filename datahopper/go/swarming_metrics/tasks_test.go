@@ -57,10 +57,12 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 			PerformanceStats: &swarming_api.SwarmingRpcsPerformanceStats{
 				BotOverhead: float64(botOverhead / time.Second),
 				IsolatedDownload: &swarming_api.SwarmingRpcsOperationStats{
-					Duration: float64(downloadOverhead / time.Second),
+					Duration:            float64(downloadOverhead / time.Second),
+					TotalBytesItemsCold: 50000000.0,
 				},
 				IsolatedUpload: &swarming_api.SwarmingRpcsOperationStats{
-					Duration: float64(uploadOverhead / time.Second),
+					Duration:            float64(uploadOverhead / time.Second),
+					TotalBytesItemsCold: 70000000.0,
 				},
 			},
 			StartedTs: started.UTC().Format(swarming.TIMESTAMP_FORMAT),
@@ -217,6 +219,8 @@ func TestMetrics(t *testing.T) {
 	checkMetricVal("overhead-bot", 21000.0)
 	checkMetricVal("overhead-upload", 13000.0)
 	checkMetricVal("overhead-download", 7000.0)
+	checkMetricVal("isolate-cache-miss-download", 50000000.0)
+	checkMetricVal("isolate-cache-miss-upload", 70000000.0)
 }
 
 func TestPerfUpload(t *testing.T) {

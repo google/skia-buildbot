@@ -299,6 +299,28 @@ func taskOverheadDownload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int6
 	}
 }
 
+// isolateCacheMissDownload returns the download overhead for the task in milliseconds.
+func isolateCacheMissDownload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error) {
+	if t.TaskResult.PerformanceStats == nil {
+		return 0, errNoValue
+	} else if t.TaskResult.PerformanceStats.IsolatedDownload == nil {
+		return 0, errNoValue
+	} else {
+		return int64(t.TaskResult.PerformanceStats.IsolatedDownload.TotalBytesItemsCold), nil
+	}
+}
+
+// isolateCacheMissUpload returns the download overhead for the task in milliseconds.
+func isolateCacheMissUpload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error) {
+	if t.TaskResult.PerformanceStats == nil {
+		return 0, errNoValue
+	} else if t.TaskResult.PerformanceStats.IsolatedDownload == nil {
+		return 0, errNoValue
+	} else {
+		return int64(t.TaskResult.PerformanceStats.IsolatedUpload.TotalBytesItemsCold), nil
+	}
+}
+
 // setupMetrics creates the event metrics for Swarming tasks.
 func setupMetrics(workdir string) (events.EventDB, *events.EventMetrics, error) {
 	edb, err := events.NewEventDB(path.Join(workdir, "swarming-tasks.bdb"))
@@ -335,6 +357,16 @@ func setupMetrics(workdir string) (events.EventDB, *events.EventMetrics, error) 
 
 		// Overhead (download).
 		if err := addMetric(s, "overhead-download", period, taskOverheadDownload); err != nil {
+			return nil, nil, err
+		}
+
+		// Isolate Cache Miss (download).
+		if err := addMetric(s, "isolate-cache-miss-download", period, isolateCacheMissDownload); err != nil {
+			return nil, nil, err
+		}
+
+		// Isolate Cache Miss (upload).
+		if err := addMetric(s, "isolate-cache-miss-upload", period, isolateCacheMissUpload); err != nil {
 			return nil, nil, err
 		}
 	}
