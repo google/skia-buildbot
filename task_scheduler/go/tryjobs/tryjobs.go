@@ -67,13 +67,15 @@ const (
 type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bucket             string
+	cacheMtx           sync.Mutex
 	db                 db.JobDB
 	gerrit             gerrit.GerritInterface
 	host               string
-	jCache             *jobCache
+	jCache             db.JobCache
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
 	taskCfgCache       *specs.TaskCfgCache
+	tjCache            *tryJobCache
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
@@ -83,7 +85,11 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 		return nil, err
 	}
 	bb.BasePath = apiUrl
-	cache, err := newJobCache(d, w)
+	jCache, err := db.NewJobCache(d, w, db.GitRepoGetRevisionTimestamp(rm))
+	if err != nil {
+		return nil, err
+	}
+	tjCache, err := newTryJobCache(d, w)
 	if err != nil {
 		return nil, err
 	}
@@ -94,10 +100,11 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 		db:                 d,
 		gerrit:             gerrit,
 		host:               host,
-		jCache:             cache,
+		jCache:             jCache,
 		projectRepoMapping: projectRepoMapping,
 		rm:                 rm,
 		taskCfgCache:       taskCfgCache,
+		tjCache:            tjCache,
 	}
 	return rv, nil
 }
@@ -117,14 +124,24 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 	})
 }
 
+// updateCaches updates both internal caches.
+func (t *TryJobIntegrator) updateCaches() error {
+	t.cacheMtx.Lock()
+	defer t.cacheMtx.Unlock()
+	if err := t.tjCache.Update(); err != nil {
+		return err
+	}
+	return t.jCache.Update()
+}
+
 // updateJobs sends updates to Buildbucket for all active try Jobs.
 func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 	// Get all Jobs associated with in-progress Buildbucket builds.
-	if err := t.jCache.Update(); err != nil {
+	if err := t.updateCaches(); err != nil {
 		return err
 	}
 
-	jobs, err := t.jCache.GetActiveTryJobs()
+	jobs, err := t.tjCache.GetActiveTryJobs()
 	if err != nil {
 		return err
 	}
@@ -284,10 +301,7 @@ func (t *TryJobIntegrator) localCancelJobs(jobs []*db.Job) error {
 		j.Status = db.JOB_STATUS_CANCELED
 		j.Finished = time.Now()
 	}
-	if err := t.db.PutJobs(jobs); err != nil {
-		return err
-	}
-	return t.jCache.Update()
+	return t.db.PutJobs(jobs)
 }
 
 func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
@@ -373,6 +387,17 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, params))
 	}
 
+	// Determine if this is a manual retry of a previously-run try job. If
+	// so, set IsForce to ensure that we don't immediately de-duplicate all
+	// of its tasks.
+	prevJobs, err := t.jCache.GetJobsByRepoState(j.Name, j.RepoState)
+	if err != nil {
+		return nil, err
+	}
+	if len(prevJobs) > 0 {
+		j.IsForce = true
+	}
+
 	// Attempt to lease the build.
 	leaseKey, err := t.tryLeaseBuild(b.Id, now)
 	if err != nil {
@@ -389,6 +414,10 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 }
 
 func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
+	if err := t.updateCaches(); err != nil {
+		return err
+	}
+
 	// Grab all of the pending Builds from Buildbucket.
 	// TODO(borenet): Buildbot maintains a maximum lease count. Should we do
 	// that too?

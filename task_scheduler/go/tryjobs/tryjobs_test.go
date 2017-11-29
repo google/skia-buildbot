@@ -24,8 +24,8 @@ func TestUpdateJobs(t *testing.T) {
 	now := time.Now()
 
 	assertActiveTryJob := func(j *db.Job) {
-		assert.NoError(t, trybots.jCache.Update())
-		active, err := trybots.jCache.GetActiveTryJobs()
+		assert.NoError(t, trybots.tjCache.Update())
+		active, err := trybots.tjCache.GetActiveTryJobs()
 		assert.NoError(t, err)
 		expect := []*db.Job{}
 		if j != nil {
@@ -46,7 +46,7 @@ func TestUpdateJobs(t *testing.T) {
 	j1 := tryjob(gb.RepoUrl())
 	MockHeartbeats(t, mock, now, []*db.Job{j1}, nil)
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
-	assert.NoError(t, trybots.jCache.Update())
+	assert.NoError(t, trybots.tjCache.Update())
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
 	assertActiveTryJob(j1)
@@ -55,7 +55,7 @@ func TestUpdateJobs(t *testing.T) {
 	j1.Status = db.JOB_STATUS_SUCCESS
 	j1.Finished = now
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
-	assert.NoError(t, trybots.jCache.Update())
+	assert.NoError(t, trybots.tjCache.Update())
 	MockJobSuccess(mock, j1, now, nil, false)
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
@@ -67,7 +67,7 @@ func TestUpdateJobs(t *testing.T) {
 	j1.BuildbucketLeaseKey = 12345
 	j1.Status = db.JOB_STATUS_FAILURE
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
-	assert.NoError(t, trybots.jCache.Update())
+	assert.NoError(t, trybots.tjCache.Update())
 	MockJobFailure(mock, j1, now, nil)
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
@@ -82,7 +82,7 @@ func TestUpdateJobs(t *testing.T) {
 	MockHeartbeats(t, mock, now, jobs[:LEASE_BATCH_SIZE], nil)
 	MockHeartbeats(t, mock, now, jobs[LEASE_BATCH_SIZE:], nil)
 	assert.NoError(t, trybots.db.PutJobs(jobs))
-	assert.NoError(t, trybots.jCache.Update())
+	assert.NoError(t, trybots.tjCache.Update())
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
 
@@ -93,7 +93,7 @@ func TestUpdateJobs(t *testing.T) {
 		j.Finished = time.Now()
 	}
 	assert.NoError(t, trybots.db.PutJobs(jobs[2:]))
-	assert.NoError(t, trybots.jCache.Update())
+	assert.NoError(t, trybots.tjCache.Update())
 	for _, j := range jobs[2:] {
 		MockJobSuccess(mock, j, now, nil, false)
 	}
@@ -107,11 +107,11 @@ func TestUpdateJobs(t *testing.T) {
 	})
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
-	assert.NoError(t, trybots.jCache.Update())
-	active, err := trybots.jCache.GetActiveTryJobs()
+	assert.NoError(t, trybots.tjCache.Update())
+	active, err := trybots.tjCache.GetActiveTryJobs()
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, []*db.Job{j2}, active)
-	canceled, err := trybots.jCache.db.GetJobById(j1.Id)
+	canceled, err := trybots.tjCache.db.GetJobById(j1.Id)
 	assert.NoError(t, err)
 	assert.True(t, canceled.Done())
 	assert.Equal(t, db.JOB_STATUS_CANCELED, canceled.Status)
@@ -258,7 +258,7 @@ func TestJobFinished(t *testing.T) {
 	j.Status = db.JOB_STATUS_SUCCESS
 	j.Finished = now
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
-	assert.NoError(t, trybots.jCache.Update())
+	assert.NoError(t, trybots.tjCache.Update())
 	MockJobSuccess(mock, j, now, nil, false)
 	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
@@ -272,7 +272,7 @@ func TestJobFinished(t *testing.T) {
 	// Failed job.
 	j.Status = db.JOB_STATUS_FAILURE
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
-	assert.NoError(t, trybots.jCache.Update())
+	assert.NoError(t, trybots.tjCache.Update())
 	MockJobFailure(mock, j, now, nil)
 	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
@@ -285,7 +285,7 @@ func TestJobFinished(t *testing.T) {
 	// Mishap.
 	j.Status = db.JOB_STATUS_MISHAP
 	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
-	assert.NoError(t, trybots.jCache.Update())
+	assert.NoError(t, trybots.tjCache.Update())
 	MockJobMishap(mock, j, now, nil)
 	assert.NoError(t, trybots.jobFinished(j))
 	assert.True(t, mock.Empty())
@@ -387,6 +387,37 @@ func TestGetJobToSchedule(t *testing.T) {
 	assert.True(t, mock.Empty())
 }
 
+func TestRetry(t *testing.T) {
+	ctx, trybots, _, mock, cleanup := setup(t)
+	defer cleanup()
+
+	now := time.Now()
+
+	// Insert one try job.
+	b1 := Build(t, now)
+	MockTryLeaseBuild(mock, b1.Id, now, nil)
+	j1, err := trybots.getJobToSchedule(ctx, b1, now)
+	assert.NoError(t, err)
+	assert.True(t, mock.Empty())
+	assert.Equal(t, j1.BuildbucketBuildId, b1.Id)
+	assert.Equal(t, j1.BuildbucketLeaseKey, b1.LeaseKey)
+	assert.True(t, j1.Valid())
+	assert.False(t, j1.IsForce)
+	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
+	assert.NoError(t, trybots.updateCaches())
+
+	// Obtain a second try job, ensure that it gets IsForce = true.
+	b2 := Build(t, now)
+	MockTryLeaseBuild(mock, b2.Id, now, nil)
+	j2, err := trybots.getJobToSchedule(ctx, b2, now)
+	assert.NoError(t, err)
+	assert.True(t, mock.Empty())
+	assert.Equal(t, j2.BuildbucketBuildId, b2.Id)
+	assert.Equal(t, j2.BuildbucketLeaseKey, b2.LeaseKey)
+	assert.True(t, j2.Valid())
+	assert.True(t, j2.IsForce)
+}
+
 func TestPoll(t *testing.T) {
 	ctx, trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
@@ -394,8 +425,8 @@ func TestPoll(t *testing.T) {
 	now := time.Now()
 
 	assertAdded := func(builds []*buildbucket_api.ApiCommonBuildMessage) {
-		assert.NoError(t, trybots.jCache.Update())
-		jobs, err := trybots.jCache.GetActiveTryJobs()
+		assert.NoError(t, trybots.tjCache.Update())
+		jobs, err := trybots.tjCache.GetActiveTryJobs()
 		assert.NoError(t, err)
 		byId := make(map[int64]*db.Job, len(jobs))
 		for _, j := range jobs {
@@ -410,7 +441,7 @@ func TestPoll(t *testing.T) {
 			assert.True(t, ok)
 		}
 		assert.NoError(t, trybots.db.PutJobs(jobs))
-		assert.NoError(t, trybots.jCache.Update())
+		assert.NoError(t, trybots.tjCache.Update())
 	}
 
 	makeBuilds := func(n int) []*buildbucket_api.ApiCommonBuildMessage {
