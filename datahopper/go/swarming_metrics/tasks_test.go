@@ -21,7 +21,7 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
-func makeTask(id, name string, created, started, completed time.Time, dims map[string]string, extraTags map[string]string, botOverhead, downloadOverhead, uploadOverhead float64) *swarming_api.SwarmingRpcsTaskRequestMetadata {
+func makeTask(id, name string, created, started, completed time.Time, dims map[string]string, extraTags map[string]string, botOverhead, downloadOverhead, uploadOverhead time.Duration) *swarming_api.SwarmingRpcsTaskRequestMetadata {
 	dimensions := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(dims))
 	tags := make([]string, 0, len(dims))
 	for k, v := range dims {
@@ -36,7 +36,7 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 	}
 	duration := 0.0
 	if !util.TimeIsZero(completed) {
-		duration = float64(completed.Sub(started))
+		duration = float64(completed.Sub(started) / time.Second)
 	}
 	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{
@@ -55,12 +55,12 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 			Duration:    duration,
 			Name:        name,
 			PerformanceStats: &swarming_api.SwarmingRpcsPerformanceStats{
-				BotOverhead: botOverhead,
+				BotOverhead: float64(botOverhead / time.Second),
 				IsolatedDownload: &swarming_api.SwarmingRpcsOperationStats{
-					Duration: downloadOverhead,
+					Duration: float64(downloadOverhead / time.Second),
 				},
 				IsolatedUpload: &swarming_api.SwarmingRpcsOperationStats{
-					Duration: uploadOverhead,
+					Duration: float64(uploadOverhead / time.Second),
 				},
 			},
 			StartedTs: started.UTC().Format(swarming.TIMESTAMP_FORMAT),
@@ -249,14 +249,14 @@ func TestPerfUpload(t *testing.T) {
 		"sk_revision": "firstRevision",
 		"sk_name":     "Test-MyOS",
 		"sk_repo":     common.REPO_SKIA,
-	}, 0.0, 0.0, 0.0)
+	}, 17*time.Second, 5*time.Second, 4*time.Second)
 	t2 := makeTask("2", "Perf-MyOS", cr.Add(time.Minute), st, util.TimeZero, d, map[string]string{
 		"sk_revision": "secondRevision",
 		"sk_name":     "Perf-MyOS",
 		"sk_repo":     common.REPO_SKIA,
-	}, 0.0, 0.0, 0.0)
+	}, 37*time.Second, 23*time.Second, 4*time.Second)
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
-	t3 := makeTask("3", "my-task", cr.Add(2*time.Second), st, now.Add(-time.Minute), d, nil, 0.0, 0.0, 0.0)
+	t3 := makeTask("3", "my-task", cr.Add(2*time.Second), st, now.Add(-time.Minute), d, nil, 47*time.Second, 3*time.Second, 34*time.Second)
 	t3.TaskResult.State = swarming.TASK_STATE_BOT_DIED
 
 	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3}, nil)
@@ -279,7 +279,10 @@ func TestPerfUpload(t *testing.T) {
 		Results: map[string]ingestcommon.BenchResults{
 			"Test-MyOS": {
 				"task_duration": {
-					"task_ms": float64(14 * time.Minute),
+					"total_s":            float64((14*time.Minute + 17*time.Second) / time.Second),
+					"task_step_s":        float64(14 * time.Minute / time.Second),
+					"isolate_overhead_s": 9.0,
+					"all_overhead_s":     17.0,
 				},
 			},
 		},
@@ -295,7 +298,7 @@ func TestPerfUpload(t *testing.T) {
 	// The second task is finished.
 	t2.TaskResult.State = swarming.TASK_STATE_COMPLETED
 	t2.TaskResult.CompletedTs = now.Add(5 * time.Minute).UTC().Format(swarming.TIMESTAMP_FORMAT)
-	t2.TaskResult.Duration = float64(33 * time.Minute)
+	t2.TaskResult.Duration = float64(33 * time.Minute / time.Second)
 	t2.TaskResult.Failure = true
 
 	lastLoad = now
@@ -321,7 +324,10 @@ func TestPerfUpload(t *testing.T) {
 		Results: map[string]ingestcommon.BenchResults{
 			"Perf-MyOS": {
 				"task_duration": {
-					"task_ms": float64(33 * time.Minute),
+					"total_s":            float64((33*time.Minute + 37*time.Second) / time.Second),
+					"task_step_s":        float64(33 * time.Minute / time.Second),
+					"isolate_overhead_s": 27.0,
+					"all_overhead_s":     37.0,
 				},
 			},
 		},

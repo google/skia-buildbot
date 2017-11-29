@@ -151,13 +151,16 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 		Results: map[string]ingestcommon.BenchResults{
 			taskName: {
 				"task_duration": {
-					"task_ms": t.TaskResult.Duration,
+					"task_step_s":        t.TaskResult.Duration,
+					"all_overhead_s":     t.TaskResult.PerformanceStats.BotOverhead,
+					"isolate_overhead_s": t.TaskResult.PerformanceStats.IsolatedDownload.Duration + t.TaskResult.PerformanceStats.IsolatedUpload.Duration,
+					"total_s":            t.TaskResult.Duration + t.TaskResult.PerformanceStats.BotOverhead,
 				},
 			},
 		},
 	}
 
-	sklog.Debugf("Reporting that %s took %1.1f ms", taskName, t.TaskResult.Duration)
+	sklog.Debugf("Reporting that %s had these durations: %#v ms", taskName, toReport.Results["taskName"])
 
 	if err := perfClient.PushToPerf(now, taskName, "task_duration", toReport); err != nil {
 		return fmt.Errorf("Ran into error while pushing task duration to perf: %s", err)
