@@ -232,6 +232,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 			Env:                  env,
 			ExecutionTimeoutSecs: executionTimeoutSecs,
 			ExtraArgs:            extraArgs,
+			Idempotent:           c.ForcedJobId == "",
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated:       c.IsolatedInput,
 				Isolatedserver: isolateServer,
