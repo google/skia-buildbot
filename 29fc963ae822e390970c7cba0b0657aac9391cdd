@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ea6b16b1_1f826035",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-29T14:36:05Z",
+      "side": 1,
+      "message": "Note that I did not add this field to the Task struct.  I can do so for consistency, but I actually like the fact that it isn\u0027t required, since it won\u0027t be reliable.",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 57
+      },
+      "revId": "29fc963ae822e390970c7cba0b0657aac9391cdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
