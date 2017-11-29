@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,16 +21,20 @@ import (
 
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
-	Attempt        int       `json:"attempt"`
-	Commits        []string  `json:"commits"`
-	IsolatedInput  string    `json:"isolatedInput"`
-	IsolatedHashes []string  `json:"isolatedHashes"`
-	JobCreated     time.Time `json:"jobCreated"`
-	Jobs           []string  `json:"jobs"`
-	ParentTaskIds  []string  `json:"parentTaskIds"`
-	RetryOf        string    `json:"retryOf"`
-	Score          float64   `json:"score"`
-	StealingFromId string    `json:"stealingFromId"`
+	Attempt int `json:"attempt"`
+	// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
+	// could be inherited from any matching Job. Therefore, this should be
+	// used for non-critical, informational purposes only.
+	BuildbucketBuildId int64     `json:"buildbucketBuildId"`
+	Commits            []string  `json:"commits"`
+	IsolatedInput      string    `json:"isolatedInput"`
+	IsolatedHashes     []string  `json:"isolatedHashes"`
+	JobCreated         time.Time `json:"jobCreated"`
+	Jobs               []string  `json:"jobs"`
+	ParentTaskIds      []string  `json:"parentTaskIds"`
+	RetryOf            string    `json:"retryOf"`
+	Score              float64   `json:"score"`
+	StealingFromId     string    `json:"stealingFromId"`
 	db.TaskKey
 	TaskSpec *specs.TaskSpec `json:"taskSpec"`
 }
@@ -37,18 +42,19 @@ type taskCandidate struct {
 // Copy returns a copy of the taskCandidate.
 func (c *taskCandidate) Copy() *taskCandidate {
 	return &taskCandidate{
-		Attempt:        c.Attempt,
-		Commits:        util.CopyStringSlice(c.Commits),
-		IsolatedInput:  c.IsolatedInput,
-		IsolatedHashes: util.CopyStringSlice(c.IsolatedHashes),
-		JobCreated:     c.JobCreated,
-		Jobs:           util.CopyStringSlice(c.Jobs),
-		ParentTaskIds:  util.CopyStringSlice(c.ParentTaskIds),
-		RetryOf:        c.RetryOf,
-		Score:          c.Score,
-		StealingFromId: c.StealingFromId,
-		TaskKey:        c.TaskKey.Copy(),
-		TaskSpec:       c.TaskSpec.Copy(),
+		Attempt:            c.Attempt,
+		BuildbucketBuildId: c.BuildbucketBuildId,
+		Commits:            util.CopyStringSlice(c.Commits),
+		IsolatedInput:      c.IsolatedInput,
+		IsolatedHashes:     util.CopyStringSlice(c.IsolatedHashes),
+		JobCreated:         c.JobCreated,
+		Jobs:               util.CopyStringSlice(c.Jobs),
+		ParentTaskIds:      util.CopyStringSlice(c.ParentTaskIds),
+		RetryOf:            c.RetryOf,
+		Score:              c.Score,
+		StealingFromId:     c.StealingFromId,
+		TaskKey:            c.TaskKey.Copy(),
+		TaskSpec:           c.TaskSpec.Copy(),
 	}
 }
 
@@ -141,16 +147,17 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 		issueShort = c.Issue[len(c.Issue)-specs.ISSUE_SHORT_LENGTH:]
 	}
 	replacements := map[string]string{
-		specs.VARIABLE_CODEREVIEW_SERVER: c.Server,
-		specs.VARIABLE_ISSUE:             c.Issue,
-		specs.VARIABLE_ISSUE_SHORT:       issueShort,
-		specs.VARIABLE_PATCH_REPO:        c.PatchRepo,
-		specs.VARIABLE_PATCH_STORAGE:     getPatchStorage(c.Server),
-		specs.VARIABLE_PATCHSET:          c.Patchset,
-		specs.VARIABLE_REPO:              c.Repo,
-		specs.VARIABLE_REVISION:          c.Revision,
-		specs.VARIABLE_TASK_ID:           taskId,
-		specs.VARIABLE_TASK_NAME:         c.Name,
+		specs.VARIABLE_BUILDBUCKET_BUILD_ID: strconv.FormatInt(c.BuildbucketBuildId, 10),
+		specs.VARIABLE_CODEREVIEW_SERVER:    c.Server,
+		specs.VARIABLE_ISSUE:                c.Issue,
+		specs.VARIABLE_ISSUE_SHORT:          issueShort,
+		specs.VARIABLE_PATCH_REPO:           c.PatchRepo,
+		specs.VARIABLE_PATCH_STORAGE:        getPatchStorage(c.Server),
+		specs.VARIABLE_PATCHSET:             c.Patchset,
+		specs.VARIABLE_REPO:                 c.Repo,
+		specs.VARIABLE_REVISION:             c.Revision,
+		specs.VARIABLE_TASK_ID:              taskId,
+		specs.VARIABLE_TASK_NAME:            c.Name,
 	}
 	for k, v := range replacements {
 		s = strings.Replace(s, fmt.Sprintf(specs.VARIABLE_SYNTAX, k), v, -1)

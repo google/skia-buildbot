@@ -14,16 +14,17 @@ import (
 func TestCopyTaskCandidate(t *testing.T) {
 	testutils.SmallTest(t)
 	v := &taskCandidate{
-		Attempt:        3,
-		Commits:        []string{"a", "b"},
-		IsolatedInput:  "lonely-parameter",
-		IsolatedHashes: []string{"browns"},
-		JobCreated:     time.Now(),
-		Jobs:           []string{"123abc", "456def"},
-		ParentTaskIds:  []string{"38", "39", "40"},
-		RetryOf:        "41",
-		Score:          99,
-		StealingFromId: "rich",
+		Attempt:            3,
+		BuildbucketBuildId: 8888,
+		Commits:            []string{"a", "b"},
+		IsolatedInput:      "lonely-parameter",
+		IsolatedHashes:     []string{"browns"},
+		JobCreated:         time.Now(),
+		Jobs:               []string{"123abc", "456def"},
+		ParentTaskIds:      []string{"38", "39", "40"},
+		RetryOf:            "41",
+		Score:              99,
+		StealingFromId:     "rich",
 		TaskKey: db.TaskKey{
 			RepoState: db.RepoState{
 				Repo:     "nou.git",
