@@ -426,10 +426,14 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					return nil, err
 				}
 				c = &taskCandidate{
-					JobCreated: j.Created,
-					Jobs:       []string{},
-					TaskKey:    key,
-					TaskSpec:   spec,
+					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
+					// could be inherited from any matching Job. Therefore, this should be
+					// used for non-critical, informational purposes only.
+					BuildbucketBuildId: j.BuildbucketBuildId,
+					JobCreated:         j.Created,
+					Jobs:               []string{},
+					TaskKey:            key,
+					TaskSpec:           spec,
 				}
 				candidates[key] = c
 			}
