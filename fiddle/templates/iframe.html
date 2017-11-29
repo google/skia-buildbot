@@ -10,6 +10,12 @@
     {%if .Options.SRGB%}srgb{%end%}
     {%if .Options.F16%}f16{%end%}
     {%if .Options.Animated%}animated{%end%}
+    {%if .Options.OffScreen%}offscreen{%end%}
+    {%if .Options.OffScreenTexturable%}offscreen_texturable{%end%}
+    {%if .Options.OffScreenMipMap%}offscreen_mipmap{%end%}
+    offscreen_width="{%.Options.OffScreenWidth%}"
+    offscreen_height="{%.Options.OffScreenHeight%}"
+    offscreen_sample_count="{%.Options.OffScreenSampleCount%}"
     duration="{%.Options.Duration%}"
     >
     <textarea-numbers-sk>
