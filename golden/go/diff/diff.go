@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"time"
 	"unsafe"
 
 	"go.skia.org/infra/go/sklog"
@@ -104,7 +105,7 @@ func NewDigestFailure(digest string, reason DiffErr) *DigestFailure {
 	return &DigestFailure{
 		Digest: digest,
 		Reason: reason,
-		TS:     util.TimeStampMs(),
+		TS:     util.TimeStamp(time.Millisecond),
 	}
 }
 
