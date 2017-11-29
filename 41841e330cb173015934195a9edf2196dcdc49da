@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41d30f01_3079730a",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-29T20:47:13Z",
+      "side": 1,
+      "message": "nit: Why put this in JobCache rather than tryJobCache? Is it just because expireJobs() is more complicated?\n\nNot sure how much memory and time a second JobCache will use; if it\u0027s minimal this doesn\u0027t really matter.",
+      "revId": "41841e330cb173015934195a9edf2196dcdc49da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7072899d_fe16f360",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-29T20:47:13Z",
+      "side": 1,
+      "message": "nit: maybe add JobKey struct to make this slightly simpler?",
+      "range": {
+        "startLine": 477,
+        "startChar": 22,
+        "endLine": 477,
+        "endChar": 47
+      },
+      "revId": "41841e330cb173015934195a9edf2196dcdc49da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4783df32_94414b2f",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 767,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-29T20:47:13Z",
+      "side": 1,
+      "message": "nit: t.Errorf(\"Found unexpected job %v in GetJobsByRepoState.\", job)",
+      "range": {
+        "startLine": 766,
+        "startChar": 4,
+        "endLine": 767,
+        "endChar": 16
+      },
+      "revId": "41841e330cb173015934195a9edf2196dcdc49da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
