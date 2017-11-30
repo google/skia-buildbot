@@ -70,6 +70,18 @@ func taskExpiringSoon(t *Task, k *datastore.Key) error {
 	return nil
 }
 
+// taskCancelled marks the provided Task struct as cancelled.
+func taskCancelled(t *Task, k *datastore.Key) error {
+	t.Done = true
+	t.SwarmingTaskState = getCompletedStateStr(true)
+	t.LeaseStartTime = time.Now()
+	t.LeaseEndTime = time.Now()
+	if _, err := UpdateDSTask(k, t); err != nil {
+		return fmt.Errorf("Error updating task in datastore: %v", err)
+	}
+	return nil
+}
+
 func getCompletedStateStr(failure bool) string {
 	if failure {
 		return swarming.TASK_STATE_COMPLETED + " (FAILURE)"
@@ -140,6 +152,12 @@ func pollSwarmingTasks() error {
 
 		if swarmingTask.State == swarming.TASK_STATE_PENDING {
 			// If the swarming task is still pending then there is nothing to do here.
+			continue
+		} else if swarmingTask.State == swarming.TASK_STATE_CANCELED {
+			// If the swarming task has been cancelled then mark it as such in the DS.
+			if err := taskCancelled(t, k); err != nil {
+				return fmt.Errorf("Failed to mark task as cancelled: %s", err)
+			}
 			continue
 		}
 
