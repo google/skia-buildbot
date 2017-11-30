@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bfaea972_8be11da8",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-30T12:57:04Z",
+      "side": 1,
+      "message": "Nit: Should we use createdTime instead?  I assume that\u0027s what the CQ uses to determine whether to re-run try jobs.",
+      "range": {
+        "startLine": 215,
+        "startChar": 42,
+        "endLine": 215,
+        "endChar": 55
+      },
+      "revId": "68916ef15706a2ffde37e8a5c999a18e0e1f25e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
