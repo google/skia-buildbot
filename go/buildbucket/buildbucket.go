@@ -99,21 +99,21 @@ type buildBucketResponse struct {
 
 // Build is a struct containing information about a build in BuildBucket.
 type Build struct {
-	Bucket            string         `json:"bucket"`
-	Completed         jsonutils.Time `json:"completed_ts"`
-	CreatedBy         string         `json:"created_by"`
-	Created           jsonutils.Time `json:"created_ts"`
-	FailureReason     string         `json:"failure_reason"`
-	Id                string         `json:"id"`
-	Url               string         `json:"url"`
-	ParametersJson    string         `json:"parameters_json"`
-	Parameters        *Parameters    `json:"-"`
-	Result            string         `json:"result"`
-	ResultDetailsJson string         `json:"result_details_json"`
-	Status            string         `json:"status"`
-	StatusChanged     jsonutils.Time `json:"status_changed_ts"`
-	Updated           jsonutils.Time `json:"updated_ts"`
-	UtcNow            jsonutils.Time `json:"utcnow_ts"`
+	Bucket             string         `json:"bucket"`
+	Completed          jsonutils.Time `json:"completed_ts"`
+	CreatedBy          string         `json:"created_by"`
+	Created            jsonutils.Time `json:"created_ts"`
+	FailureReason      string         `json:"failure_reason"`
+	Id                 string         `json:"id"`
+	Url                string         `json:"url"`
+	ParametersJson     string         `json:"parameters_json"`
+	Parameters         *Parameters    `json:"-"`
+	Result             string         `json:"result"`
+	ResultDetailsJsonx string         `json:"result_details_json"`
+	Status             string         `json:"status"`
+	StatusChanged      jsonutils.Time `json:"status_changed_ts"`
+	Updated            jsonutils.Time `json:"updated_ts"`
+	UtcNow             jsonutils.Time `json:"utcnow_ts"`
 }
 
 // Client is used for interacting with the BuildBucket API.
@@ -234,7 +234,7 @@ func (c *Client) getOnePage(url string) ([]*Build, string, error) {
 }
 
 // Search retrieves results based on the given criteria.
-func (c *Client) Search(url string) ([]*Build, error) {
+func (c *Client) search(url string) ([]*Build, error) {
 	rv := []*Build{}
 	cursor := ""
 	for {
@@ -266,7 +266,7 @@ func (c *Client) GetTrybotsForCL(issueID, patchsetID int64, patchStorage, crUrl 
 	q := url.Values{"tag": []string{fmt.Sprintf("buildset:patch/%s/%s/%d/%d", patchStorage, host, issueID, patchsetID)}}
 	url := apiUrl + "/search?" + q.Encode()
 
-	builds, err := c.Search(url)
+	builds, err := c.search(url)
 	if err != nil {
 		return nil, err
 	}

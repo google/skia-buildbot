@@ -1,8 +1,11 @@
 package rtcache
 
-import "math"
+import (
+	"math"
+	"time"
 
-import "go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util"
+)
 
 // ReadThroughCache defines a caching work queue with priorities. If the item
 // identified by 'id' is not in the cache then it will call a
@@ -39,7 +42,7 @@ type ReadThroughFunc func(priority int64, id string) (interface{}, error)
 // same priority in order of their timestamps, but ahead of items with
 // less priority.
 func PriorityTimeCombined(priority int64) int64 {
-	ts := util.TimeStampMs()
+	ts := util.TimeStamp(time.Millisecond)
 	exp := int(math.Ceil(math.Log10(float64(ts)))) + 1
 	return ts + int64(float64(priority)*math.Pow10(exp))
 }
