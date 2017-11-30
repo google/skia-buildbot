@@ -18,7 +18,7 @@ import (
 
 // populateRunningTask updates the provided Task struct with a new state, botId, lease start/end times,
 // and sends a start email.
-func populateRunningTask(newState, botId string, t *Task, k *datastore.Key) error {
+func populateRunningTask(newState, botId string, k *datastore.Key, t *Task) error {
 	// Update the state and add the bot name.
 	t.SwarmingTaskState = newState
 	t.SwarmingBotId = botId
@@ -44,7 +44,7 @@ func populateRunningTask(newState, botId string, t *Task, k *datastore.Key) erro
 }
 
 // expireTask marks the provided Task struct as Done and sends a completion email.
-func expireTask(t *Task, k *datastore.Key) error {
+func expireTask(k *datastore.Key, t *Task) error {
 	t.Done = true
 	t.SwarmingTaskState = getCompletedStateStr(false)
 	if _, err := UpdateDSTask(k, t); err != nil {
@@ -59,11 +59,23 @@ func expireTask(t *Task, k *datastore.Key) error {
 }
 
 // taskExpiringSoon sends a warning email and updates the WarningSent field in the Task struct.
-func taskExpiringSoon(t *Task, k *datastore.Key) error {
+func taskExpiringSoon(k *datastore.Key, t *Task) error {
 	if err := SendWarningEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId); err != nil {
 		return fmt.Errorf("Error sending 15m warning email: %s", err)
 	}
 	t.WarningSent = true
+	if _, err := UpdateDSTask(k, t); err != nil {
+		return fmt.Errorf("Error updating task in datastore: %v", err)
+	}
+	return nil
+}
+
+// taskCancelled marks the provided Task struct as cancelled.
+func taskCancelled(k *datastore.Key, t *Task) error {
+	t.Done = true
+	t.SwarmingTaskState = getCompletedStateStr(true)
+	t.LeaseStartTime = time.Now()
+	t.LeaseEndTime = time.Now()
 	if _, err := UpdateDSTask(k, t); err != nil {
 		return fmt.Errorf("Error updating task in datastore: %v", err)
 	}
@@ -80,7 +92,7 @@ func getCompletedStateStr(failure bool) string {
 
 // checkForUnexpectedStates checks to see if the new state falls in a list of unexpected states.
 // If it does then the Task is marked as Done, the lease ended and a failure email it sent.
-func checkForUnexpectedStates(newState string, failure bool, t *Task, k *datastore.Key) error {
+func checkForUnexpectedStates(newState string, failure bool, k *datastore.Key, t *Task) error {
 	unexpectedStates := []string{
 		swarming.TASK_STATE_BOT_DIED,
 		swarming.TASK_STATE_CANCELED,
@@ -141,6 +153,12 @@ func pollSwarmingTasks() error {
 		if swarmingTask.State == swarming.TASK_STATE_PENDING {
 			// If the swarming task is still pending then there is nothing to do here.
 			continue
+		} else if swarmingTask.State == swarming.TASK_STATE_CANCELED {
+			// If the swarming task has been cancelled then mark it as such in the DS.
+			if err := taskCancelled(k, t); err != nil {
+				return fmt.Errorf("Failed to mark task as cancelled: %s", err)
+			}
+			continue
 		}
 
 		// Check for 4 things-
@@ -156,21 +174,21 @@ func pollSwarmingTasks() error {
 		if t.SwarmingTaskState == swarming.TASK_STATE_PENDING /* Check 1 */ {
 			// The previous task state was pending but this has now changed.
 			// Populate the datastore with running task values.
-			if err := populateRunningTask(swarmingTask.State, swarmingTask.BotId, t, k); err != nil {
+			if err := populateRunningTask(swarmingTask.State, swarmingTask.BotId, k, t); err != nil {
 				return fmt.Errorf("Error populating running task: %s", err)
 			}
 		} else if t.LeaseEndTime.Before(time.Now()) /* Check 2*/ {
 			// The task has expired.
-			if err := expireTask(t, k); err != nil {
+			if err := expireTask(k, t); err != nil {
 				return fmt.Errorf("Error when expiring task: %s", err)
 			}
 		} else if swarmingTask.State == swarming.TASK_STATE_RUNNING && !t.WarningSent && t.LeaseEndTime.Before(time.Now().Add(time.Minute*15)) /* Check 3 */ {
-			if err := taskExpiringSoon(t, k); err != nil {
+			if err := taskExpiringSoon(k, t); err != nil {
 				return fmt.Errorf("Error when warning task expiring soon: %s", err)
 			}
 		} else /* Check 4 */ {
 
-			if err := checkForUnexpectedStates(swarmingTask.State, swarmingTask.Failure, t, k); err != nil {
+			if err := checkForUnexpectedStates(swarmingTask.State, swarmingTask.Failure, k, t); err != nil {
 				return fmt.Errorf("Error when warning task expiring soon: %s", err)
 			}
 		}
