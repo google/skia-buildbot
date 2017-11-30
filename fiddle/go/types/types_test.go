@@ -71,4 +71,9 @@ func TestOptions(t *testing.T) {
 	hash, err = o.ComputeHash(code)
 	assert.NoError(t, err)
 	assert.Equal(t, "052b394aa3078ac12f9a8ee7dde8ee65", hash)
+
+	o.SourceMipMap = true
+	hash, err = o.ComputeHash(code)
+	assert.NoError(t, err)
+	assert.Equal(t, "ccc4f49c7d91f444ba4d9cbc431e2822", hash)
 }

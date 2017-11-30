@@ -50,6 +50,7 @@ type Options struct {
 	Width                int     `json:"width"`
 	Height               int     `json:"height"`
 	Source               int     `json:"source"`
+	SourceMipMap         bool    `json:"source_mipmap"`
 	SRGB                 bool    `json:"srgb"`
 	F16                  bool    `json:"f16"`
 	TextOnly             bool    `json:"textOnly"`
@@ -60,7 +61,7 @@ type Options struct {
 	OffScreenHeight      int     `json:"offscreen_height"`
 	OffScreenSampleCount int     `json:"offscreen_sample_count"`
 	OffScreenTexturable  bool    `json:"offscreen_texturable"`
-	OffScreenMipMap      bool    `json:"offscreen_mip_map"`
+	OffScreenMipMap      bool    `json:"offscreen_mipmap"`
 }
 
 // ComputeHash calculates the fiddleHash for the given code and options.
@@ -94,7 +95,9 @@ func (o *Options) ComputeHash(code string) (string, error) {
 		out = append(out, fmt.Sprintf("// Offscreen Texturable: %v", o.OffScreenTexturable))
 		out = append(out, fmt.Sprintf("// Offscreen MipMap: %v", o.OffScreenMipMap))
 	}
-
+	if o.SourceMipMap {
+		out = append(out, fmt.Sprintf("// Source MipMap: %v", o.SourceMipMap))
+	}
 	for _, line := range lines {
 		if strings.Contains(line, "%:") {
 			return "", fmt.Errorf("Unable to compile source.")
