@@ -62,3 +62,5 @@ Created: 2017-10-26 17:47
    40|      0|        signal(sig, previous_handler[sig]);
    41|      0|        raise(sig);
    42|      0|    }
+   43|       |    // Some stuff at the end to test XSS
+   44|       |    // <div style="background-color:orange;width:20px;height:20px"></div>
