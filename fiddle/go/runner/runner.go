@@ -76,6 +76,19 @@ func ValidateOptions(opts *types.Options) error {
 	} else {
 		opts.Duration = 0
 	}
+	if opts.OffScreen {
+		if opts.OffScreenMipMap {
+			if opts.OffScreenTexturable == false {
+				return fmt.Errorf("OffScreenMipMap can only be true if OffScreenTexturable is true.")
+			}
+		}
+		if opts.OffScreenWidth <= 0 || opts.OffScreenHeight <= 0 {
+			return fmt.Errorf("OffScreen Width and Height must be > 0.")
+		}
+		if opts.OffScreenSampleCount < 0 {
+			return fmt.Errorf("OffScreen SampleCount must be >= 0.")
+		}
+	}
 	return nil
 }
 
