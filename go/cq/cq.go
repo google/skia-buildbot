@@ -212,7 +212,12 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucket.Build, gerri
 		createdTime := time.Time(b.Created).UTC()
 		completedTime := time.Time(b.Completed).UTC()
 		if (completedTime != time.Time{}.UTC()) {
-			// If build has completed then move on.
+			if time.Hour*24 < time.Now().UTC().Sub(createdTime) {
+				// The build has completed more than a day ago. Do not include it
+				// in totalTriggeredCQBots. See skbug.com/7340.
+				totalTriggeredCQBots--
+			}
+			// The build has completed so move on.
 			continue
 		}
 
