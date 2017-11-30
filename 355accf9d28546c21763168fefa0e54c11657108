@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1082e995_4dcf19a5",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-30T21:12:17Z",
+      "side": 1,
+      "message": "nit: If you wanted to, you could re-write these as params.botId",
+      "range": {
+        "startLine": 236,
+        "startChar": 6,
+        "endLine": 236,
+        "endChar": 21
+      },
+      "revId": "355accf9d28546c21763168fefa0e54c11657108",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
