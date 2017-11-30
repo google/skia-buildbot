@@ -7,11 +7,22 @@
   between the code and the resulting images.
 
   Attributes:
-    width        - The width of the fiddle image.
-    height       - The height of the fiddle image.
-    source       - The index of the source image to use as input.
-    bug_link     - If true then display a link to report a bug.
-    embedded     - If true then show less controls because were embedded.
+    width                  - The width of the fiddle image.
+    height                 - The height of the fiddle image.
+    textonly               - True if this fiddle emits only text.
+    srgb                   - True if SGRB.
+    f16                    - True if f16.
+    animated               - True if animated.
+    duration               - Length of animation in seconds.
+    source                 - The index of the source image to use as input.
+    bug_link               - If true then display a link to report a bug.
+    embedded               - If true then show less controls because were embedded.
+    offscreen              - True if an offscreen render target is to be made available.
+    offscreen_width        - Width of offscreen render target.
+    offscreen_height       - Height of offscreen render target.
+    offscreen_sample_count - Render target sample count.
+    offscreen_texturable   - True if offscreen render target is texturable.
+    offscreen_mipmap       - True if texturable offscreen render target is mipmapped.
 
   Methods:
     None.
@@ -47,7 +58,6 @@
     #embedder.display {
       display: block;
     }
-
 
     video,
     img {
@@ -181,6 +191,15 @@
       padding: 1em;
     }
 
+    .offset {
+      padding: 1em;
+      border: solid 1px lightgray;
+      margin: 0.5em;
+    }
+
+    .indent {
+      padding: 0.6em;
+    }
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
@@ -195,12 +214,37 @@
             <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]+" value="{{height}}"></paper-input>
           </div>
           <paper-checkbox id=animated title="Produce an animation." checked="{{animated}}">Animation</paper-checkbox>
-          <paper-input label="duration (seconds)" size=10 required auto-validate error-message="Non-zero value required!" allowed-pattern="[0-9]+" value="{{duration}}" disabled="[[_not(animated)]]"></paper-input>
-          <div hidden="[[_not(animated)]]">
-            <h4>These globals are now defined:</h4>
-            <pre class=source-select>double duration; // The requested duration of the animation.
+          <div hidden="[[_not(animated)]]" class=offset>
+            <paper-input label="duration (seconds)" size=10 required auto-validate error-message="Non-zero value required!" allowed-pattern="[0-9]+" value="{{duration}}" disabled="[[_not(animated)]]"></paper-input>
+            <div hidden="[[_not(animated)]]">
+              <h4>These globals are now defined:</h4>
+              <pre class=source-select>double duration; // The requested duration of the animation.
 double frame;    // A value in [0, 1] of where we are in the animation.</pre>
+            </div>
           </div>
+
+<!-- Add offscreen opts here-->
+          <div>
+            <paper-checkbox id=offscreen title="Create an offscreen render target on the GPU." checked="{{offscreen}}" on-tap=_toggle_offscreen>Offscreen Render Target</paper-checkbox>
+            <div hidden="[[_not(offscreen)]]" class=offset>
+              <div>
+                <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]+" value="{{offscreen_width}}"></paper-input>
+                <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]+" value="{{offscreen_height}}"></paper-input>
+                <paper-input label="Sample Count" size=5 auto-validate allowed-pattern="[0-9]+" value="{{offscreen_sample_count}}"></paper-input>
+              </div>
+              <paper-checkbox id=texturable title="The offscreen render target can be used as a texture." checked="{{offscreen_texturable}}" on-tap=_toggle_offscreen_texturable>Texturable</paper-checkbox>
+              <div class=indent>
+                <paper-checkbox id=offscreen_mipmap title="The offscreen render target can be used as a texture that is mipmapped." checked="{{offscreen_mipmap}}" disabled="[[_not(offscreen_texturable)]]">MipMap</paper-checkbox>
+              </div>
+
+              <h4>This global is now defined:</h4>
+              <pre class=source-select hidden="[[offscreen_texturable]]">GrBackendRenderTarget backEndRenderTarget;</pre>
+              <pre class=source-select hidden="[[_not(offscreen_texturable)]]">GrBackendTexture backEndTextureRenderTarget;</pre>
+            </div>
+
+          </div>
+
+
           <h3>Optional source image</h3>
           <iron-selector selected="{{source}}" attr-for-selected="name" class="layout horizontal wrap">
             <template is="dom-repeat" items="{{sources}}">
@@ -212,6 +256,7 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre>
             <pre class=source-select>SkBitmap source;
 sk_sp&lt;SkImage> image;</pre>
           </div>
+
         </div>
       </details-sk>
     </template>
@@ -434,6 +479,36 @@ sk_sp&lt;SkImage> image;</pre>
         value: false,
         reflectToAttribute: true,
       },
+      offscreen: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      offscreen_width: {
+        type: Number,
+        value: 256,
+        reflectToAttribute: true,
+      },
+      offscreen_height: {
+        type: Number,
+        value: 256,
+        reflectToAttribute: true,
+      },
+      offscreen_sample_count: {
+        type: Number,
+        value: 1,
+        reflectToAttribute: true,
+      },
+      offscreen_texturable: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      offscreen_mipmap: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
       display_options: {
         type: Boolean,
         value: false,
@@ -516,6 +591,12 @@ sk_sp&lt;SkImage> image;</pre>
           textOnly: this.textonly,
           animated: this.animated,
           duration: +this.duration,
+          offscreen: this.offscreen,
+          offscreen_width: +this.offscreen_width,
+          offscreen_height: +this.offscreen_height,
+          offscreen_sample_count: +this.offscreen_sample_count,
+          offscreen_texturable: this.offscreen_texturable,
+          offscreen_mipmap: this.offscreen_mipmap,
         }
       };
       for (key in extra) {
@@ -569,6 +650,24 @@ sk_sp&lt;SkImage> image;</pre>
       $$('video', this).forEach(function(e) {
         e.playbackRate = speed;
       });
+    },
+
+    _toggle_offscreen: function() {
+      if (!this.offscreen) {
+        return
+      }
+      if (this.offscreen_width === 0) {
+        this.offscreen_width = 64;
+      }
+      if (this.offscreen_height === 0) {
+        this.offscreen_height = 64;
+      }
+    },
+
+    _toggle_offscreen_texturable: function() {
+      if (!this.offscreen_texturable) {
+        this.offscreen_mipmap = false;
+      }
     },
 
     _errSelect: function(e) {

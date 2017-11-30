@@ -35,15 +35,21 @@ const (
 
 	// *_METADATA are the keys used to store the metadata values in Google
 	// Storage.
-	USER_METADATA     = "user"
-	WIDTH_METADATA    = "width"
-	HEIGHT_METADATA   = "height"
-	SOURCE_METADATA   = "source"
-	TEXTONLY_METADATA = "textOnly"
-	SRGB_METADATA     = "srgb"
-	F16_METADATA      = "f16"
-	ANIMATED_METADATA = "animated"
-	DURATION_METADATA = "duration"
+	USER_METADATA                   = "user"
+	WIDTH_METADATA                  = "width"
+	HEIGHT_METADATA                 = "height"
+	SOURCE_METADATA                 = "source"
+	TEXTONLY_METADATA               = "textOnly"
+	SRGB_METADATA                   = "srgb"
+	F16_METADATA                    = "f16"
+	ANIMATED_METADATA               = "animated"
+	DURATION_METADATA               = "duration"
+	OFFSCREEN_METADATA              = "offscreen"
+	OFFSCREEN_WIDTH_METADATA        = "offscreen_width"
+	OFFSCREEN_HEIGHT_METADATA       = "offscreen_height"
+	OFFSCREEN_SAMPLE_COUNT_METADATA = "offscreen_sample_count"
+	OFFSCREEN_TEXTURABLE_METADATA   = "offscreen_texturable"
+	OFFSCREEN_MIPMAP_METADATA       = "offscreen_mipmap"
 )
 
 // Media is the type of outputs we can get from running a fiddle.
@@ -218,14 +224,20 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
 	w.ObjectAttrs.Metadata = map[string]string{
-		WIDTH_METADATA:    fmt.Sprintf("%d", options.Width),
-		HEIGHT_METADATA:   fmt.Sprintf("%d", options.Height),
-		SOURCE_METADATA:   fmt.Sprintf("%d", options.Source),
-		TEXTONLY_METADATA: fmt.Sprintf("%v", options.TextOnly),
-		SRGB_METADATA:     fmt.Sprintf("%v", options.SRGB),
-		F16_METADATA:      fmt.Sprintf("%v", options.F16),
-		ANIMATED_METADATA: fmt.Sprintf("%v", options.Animated),
-		DURATION_METADATA: fmt.Sprintf("%f", options.Duration),
+		WIDTH_METADATA:                  fmt.Sprintf("%d", options.Width),
+		HEIGHT_METADATA:                 fmt.Sprintf("%d", options.Height),
+		SOURCE_METADATA:                 fmt.Sprintf("%d", options.Source),
+		TEXTONLY_METADATA:               fmt.Sprintf("%v", options.TextOnly),
+		SRGB_METADATA:                   fmt.Sprintf("%v", options.SRGB),
+		F16_METADATA:                    fmt.Sprintf("%v", options.F16),
+		ANIMATED_METADATA:               fmt.Sprintf("%v", options.Animated),
+		DURATION_METADATA:               fmt.Sprintf("%f", options.Duration),
+		OFFSCREEN_METADATA:              fmt.Sprintf("%v", options.OffScreen),
+		OFFSCREEN_WIDTH_METADATA:        fmt.Sprintf("%d", options.OffScreenWidth),
+		OFFSCREEN_HEIGHT_METADATA:       fmt.Sprintf("%d", options.OffScreenHeight),
+		OFFSCREEN_SAMPLE_COUNT_METADATA: fmt.Sprintf("%d", options.OffScreenSampleCount),
+		OFFSCREEN_TEXTURABLE_METADATA:   fmt.Sprintf("%v", options.OffScreenTexturable),
+		OFFSCREEN_MIPMAP_METADATA:       fmt.Sprintf("%v", options.OffScreenMipMap),
 	}
 	if n, err := w.Write([]byte(code)); err != nil {
 		return "", fmt.Errorf("There was a problem storing the code. Uploaded %d bytes: %s", n, err)
@@ -341,15 +353,34 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	if err != nil && animated {
 		duration = 1.0
 	}
+
+	offscreen_width, err := strconv.Atoi(attr.Metadata[OFFSCREEN_WIDTH_METADATA])
+	if err != nil {
+		return "", nil, fmt.Errorf("Failed to parse options offscreen width: %s", err)
+	}
+	offscreen_height, err := strconv.Atoi(attr.Metadata[OFFSCREEN_HEIGHT_METADATA])
+	if err != nil {
+		return "", nil, fmt.Errorf("Failed to parse options offscreen height: %s", err)
+	}
+	offscreen_sample_count, err := strconv.Atoi(attr.Metadata[OFFSCREEN_SAMPLE_COUNT_METADATA])
+	if err != nil {
+		return "", nil, fmt.Errorf("Failed to parse options offscreen sample count: %s", err)
+	}
 	options := &types.Options{
-		Width:    width,
-		Height:   height,
-		Source:   source,
-		TextOnly: attr.Metadata[TEXTONLY_METADATA] == "true",
-		SRGB:     attr.Metadata[SRGB_METADATA] == "true",
-		F16:      attr.Metadata[F16_METADATA] == "true",
-		Animated: animated,
-		Duration: duration,
+		Width:                width,
+		Height:               height,
+		Source:               source,
+		TextOnly:             attr.Metadata[TEXTONLY_METADATA] == "true",
+		SRGB:                 attr.Metadata[SRGB_METADATA] == "true",
+		F16:                  attr.Metadata[F16_METADATA] == "true",
+		Animated:             animated,
+		Duration:             duration,
+		OffScreen:            attr.Metadata[OFFSCREEN_METADATA] == "true",
+		OffScreenWidth:       offscreen_width,
+		OffScreenHeight:      offscreen_height,
+		OffScreenSampleCount: offscreen_sample_count,
+		OffScreenTexturable:  attr.Metadata[OFFSCREEN_TEXTURABLE_METADATA] == "true",
+		OffScreenMipMap:      attr.Metadata[OFFSCREEN_MIPMAP_METADATA] == "true",
 	}
 	return string(b), options, nil
 }
