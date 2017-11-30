@@ -187,6 +187,10 @@ func (c *Client) ReportCQStatsForLandedCL(cqBuilds []*buildbucket.Build, gerritU
 		sklog.Infof("%s was created at %s by %s and completed at %s. Total duration: %d", b.Parameters.BuilderName, createdTime, gerritURL, completedTime, duration)
 		landedTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, LANDED_METRIC_NAME, LANDED_TRYBOT_DURATION), durationTags)
 		landedTrybotDurationMetric.Update(duration)
+		//// Delete the metric immediately, we do not need trybot duration to be continuously reported.
+		//if err := landedTrybotDurationMetric.Delete(); err != nil {
+		//	sklog.Errorf("Could not delete %s: %s", landedTrybotDurationMetric, err)
+		//}
 
 		if duration > maximumTrybotDuration {
 			maximumTrybotDuration = duration
@@ -228,9 +232,15 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucket.Build, gerri
 		if duration > CQ_TRYBOT_DURATION_SECS_THRESHOLD {
 			sklog.Errorf("CQTrybotDurationError: %s was triggered by %s and is still running after %d seconds. Threshold is %d seconds.", b.Parameters.BuilderName, gerritURL, duration, CQ_TRYBOT_DURATION_SECS_THRESHOLD)
 		}
-		inflightTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_DURATION), durationTags)
+		inflightTrybotDurationMetricName := fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_DURATION)
+		inflightTrybotDurationMetric := metrics2.GetInt64Metric(inflightTrybotDurationMetricName, durationTags)
 		inflightTrybotDurationMetric.Update(duration)
-
+		sklog.Infof("Reported: %s", inflightTrybotDurationMetricName)
+		// Delete the metric immediately, we do not need trybot duration to be continuously reported.
+		if err := inflightTrybotDurationMetric.Delete(); err != nil {
+			sklog.Errorf("Could not delete %s: %s", inflightTrybotDurationMetric, err)
+		}
+		sklog.Infof("Deleted: %s", inflightTrybotDurationMetricName)
 	}
 	cqTryBotsMutex.RLock()
 	cqTryBotsMutex.RUnlock()
