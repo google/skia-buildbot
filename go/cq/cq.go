@@ -243,7 +243,7 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucket.Build, gerri
 
 func (c *Client) isCQTryBot(builderName string) bool {
 	cqTryBotsMutex.RLock()
-	isCQTrybot := util.ContainsAny(builderName, c.cqTryBots)
+	isCQTrybot := util.In(builderName, c.cqTryBots)
 	cqTryBotsMutex.RUnlock()
 	return isCQTrybot
 }
