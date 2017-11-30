@@ -25,7 +25,7 @@ func TestPrep(t *testing.T) {
 	want := `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = "/mnt/pd0/fiddle/images/2.png"; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kYes, 64, 64, 0, GrMipMapped::kYes);
+  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 0, 0, 0, GrMipMapped::kNo);
 }
 
 #line 1
@@ -44,7 +44,7 @@ void draw(SkCanvas* canvas) {
 	want = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kYes, 64, 64, 0, GrMipMapped::kYes);
+  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 0, 0, 0, GrMipMapped::kNo);
 }
 
 #line 1
@@ -56,17 +56,18 @@ void draw(SkCanvas* canvas) {
 	assert.Equal(t, want, got)
 
 	opts = &types.Options{
-		Width:    128,
-		Height:   256,
-		Source:   0,
-		SRGB:     true,
-		F16:      false,
-		TextOnly: true,
+		Width:        128,
+		Height:       256,
+		Source:       0,
+		SourceMipMap: true,
+		SRGB:         true,
+		F16:          false,
+		TextOnly:     true,
 	}
 	want = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 64, 64, 0, GrMipMapped::kYes);
+  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 0, 0, 0, GrMipMapped::kNo);
 }
 
 #line 1
@@ -76,6 +77,34 @@ void draw(SkCanvas* canvas) {
 `
 	got = prepCodeToCompile("/mnt/pd0/fiddle/", "void draw(SkCanvas* canvas) {\n}", opts)
 	assert.Equal(t, want, got)
+
+	opts = &types.Options{
+		Width:                128,
+		Height:               256,
+		Source:               0,
+		SRGB:                 true,
+		F16:                  false,
+		TextOnly:             true,
+		SourceMipMap:         true,
+		OffScreenWidth:       128,
+		OffScreenHeight:      256,
+		OffScreenSampleCount: 2,
+		OffScreenMipMap:      true,
+	}
+	want = `#include "fiddle_main.h"
+DrawOptions GetDrawOptions() {
+  static const char *path = 0; // Either a string, or 0.
+  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 128, 256, 2, GrMipMapped::kYes);
+}
+
+#line 1
+void draw(SkCanvas* canvas) {
+#line 2
+}
+`
+	got = prepCodeToCompile("/mnt/pd0/fiddle/", "void draw(SkCanvas* canvas) {\n}", opts)
+	assert.Equal(t, want, got)
+
 }
 
 func TestWriteDrawCpp(t *testing.T) {

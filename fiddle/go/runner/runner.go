@@ -28,7 +28,7 @@ const (
 	PREFIX = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = %s; // Either a string, or 0.
-  return DrawOptions(%d, %d, true, true, %v, %v, %v, %v, %v, path, GrMipMapped::kYes, 64, 64, 0, GrMipMapped::kYes);
+  return DrawOptions(%d, %d, true, true, %v, %v, %v, %v, %v, path, %s, %d, %d, %d, %s);
 }
 
 %s
@@ -39,6 +39,14 @@ var (
 	runTotal    = metrics2.GetCounter("run_total", nil)
 	runFailures = metrics2.GetCounter("run_failures", nil)
 )
+
+func toGrMipMapped(b bool) string {
+	if b {
+		return "GrMipMapped::kYes"
+	} else {
+		return "GrMipMapped::kNo"
+	}
+}
 
 // prepCodeToCompile adds the line numbers and the right prefix code
 // to the fiddle so it compiles and links correctly.
@@ -61,7 +69,9 @@ func prepCodeToCompile(fiddleRoot, code string, opts *types.Options) string {
 		pdf = false
 		skp = false
 	}
-	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, pdf, skp, opts.SRGB, opts.F16, opts.TextOnly, code)
+	offscreen_mipmap := toGrMipMapped(opts.OffScreenMipMap)
+	source_mipmap := toGrMipMapped(opts.SourceMipMap)
+	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, pdf, skp, opts.SRGB, opts.F16, opts.TextOnly, source_mipmap, opts.OffScreenWidth, opts.OffScreenHeight, opts.OffScreenSampleCount, offscreen_mipmap, code)
 }
 
 // ValidateOptions validates that the options make sense.
