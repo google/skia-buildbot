@@ -29,7 +29,7 @@ func TestJobCache(t *testing.T) {
 	// Create the cache. Ensure that the existing job is present.
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
-	c, err := newJobCache(d, w)
+	c, err := newTryJobCache(d, w)
 	assert.NoError(t, err)
 	jobs, err := c.GetActiveTryJobs()
 	assert.NoError(t, err)

@@ -556,6 +556,10 @@ func TestJobCache(t *testing.T) {
 	test, err := c.GetJob(j1.Id)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, j1, test)
+	jobs, err := c.GetJobsByRepoState(j1.Name, j1.RepoState)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs))
+	testutils.AssertDeepEqual(t, jobs[0], test)
 
 	// Create another job. Ensure that it gets picked up.
 	j2 := makeJob(startTime.Add(time.Nanosecond))
@@ -566,6 +570,10 @@ func TestJobCache(t *testing.T) {
 	test, err = c.GetJob(j2.Id)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, j2, test)
+	jobs, err = c.GetJobsByRepoState(j2.Name, j2.RepoState)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(jobs))
+	testutils.AssertDeepEqual(t, jobs[1], test)
 }
 
 func TestJobCacheTriggeredForCommit(t *testing.T) {
@@ -717,6 +725,17 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*Job) {
 			assert.NoError(t, err)
 			assert.True(t, val)
 		}
+
+		cachedJobs, err := c.GetJobsByRepoState(job.Name, job.RepoState)
+		assert.NoError(t, err)
+		found := false
+		for _, otherJob := range cachedJobs {
+			if job.Id == otherJob.Id {
+				testutils.AssertDeepEqual(t, job, otherJob)
+				found = true
+			}
+		}
+		assert.True(t, found)
 	}
 }
 
@@ -738,6 +757,14 @@ func assertJobsNotCached(t *testing.T, c JobCache, jobs []*Job) {
 		val, err := c.ScheduledJobsForCommit(job.Repo, job.Revision)
 		assert.NoError(t, err)
 		assert.False(t, val)
+
+		cachedJobs, err := c.GetJobsByRepoState(job.Name, job.RepoState)
+		assert.NoError(t, err)
+		for _, otherJob := range cachedJobs {
+			if job.Id == otherJob.Id {
+				t.Fatalf("Found unexpected job %v in GetJobsByRepoState", job)
+			}
+		}
 	}
 }
 
