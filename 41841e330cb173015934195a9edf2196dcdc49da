@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3092ab50_f5fb9bbe",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-30T12:55:20Z",
+      "side": 1,
+      "message": "It seemed like something that might be generally useful, and also in case we do decide to extend this behavior elsewhere.  We\u0027re at 14.6% mem usage on the VM right now.  I don\u0027t have a good breakdown of the major contributors, but I\u0027d assume that\u0027s a reasonable baseline for just the caches, since it\u0027s early and we don\u0027t have many task candidates in flight.  This CL would roughly quadruple the job cache memory usage (~2x adding the new map and 2x for a second instance).  We have ~500 jobs and ~800 tasks.  I\u0027d bet that we\u0027re still under 20% with this CL, but I can watch that (and other performance statistics) to verify.",
+      "parentUuid": "41d30f01_3079730a",
+      "revId": "41841e330cb173015934195a9edf2196dcdc49da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7072899d_fe16f360",
         "filename": "task_scheduler/go/db/cache.go",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2017-11-29T20:47:13Z",
       "side": 1,
       "message": "nit: maybe add JobKey struct to make this slightly simpler?",
+      "range": {
+        "startLine": 477,
+        "startChar": 22,
+        "endLine": 477,
+        "endChar": 47
+      },
+      "revId": "41841e330cb173015934195a9edf2196dcdc49da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b47fc1b_220b776f",
+        "filename": "task_scheduler/go/db/cache.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-30T12:55:20Z",
+      "side": 1,
+      "message": "I started off that way but didn\u0027t like it because its usage was not equivalent to TaskKey, which seemed misleading.",
+      "parentUuid": "7072899d_fe16f360",
       "range": {
         "startLine": 477,
         "startChar": 22,
@@ -62,6 +104,30 @@
       "revId": "41841e330cb173015934195a9edf2196dcdc49da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9becc5e_44cd591a",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 767,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-30T12:55:20Z",
+      "side": 1,
+      "message": "Done but used Fatalf.  I don\u0027t like failing a test but continuing to run it, since that tends to obscure the real problem with subsequent spew due to being in a bad/unpredictable state.",
+      "parentUuid": "4783df32_94414b2f",
+      "range": {
+        "startLine": 766,
+        "startChar": 4,
+        "endLine": 767,
+        "endChar": 16
+      },
+      "revId": "41841e330cb173015934195a9edf2196dcdc49da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
