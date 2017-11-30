@@ -22,6 +22,30 @@
       "revId": "cf86f12df6c216fe43f7eb141f835105f7180dbf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c30e201b_2fde17af",
+        "filename": "leasing/go/leasing/poller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-11-30T15:52:50Z",
+      "side": 1,
+      "message": "Switched order around everywhere. Done.",
+      "parentUuid": "ede49db4_e33fb1fa",
+      "range": {
+        "startLine": 74,
+        "startChar": 19,
+        "endLine": 74,
+        "endChar": 44
+      },
+      "revId": "cf86f12df6c216fe43f7eb141f835105f7180dbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
