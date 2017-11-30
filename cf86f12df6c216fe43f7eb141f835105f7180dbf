@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ede49db4_e33fb1fa",
+        "filename": "leasing/go/leasing/poller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-11-30T14:53:55Z",
+      "side": 1,
+      "message": "Nit: the order of the arguments here is (t, k), which is different from UpdateDSTask() - Would you be able to make the order consistent?",
+      "range": {
+        "startLine": 74,
+        "startChar": 19,
+        "endLine": 74,
+        "endChar": 44
+      },
+      "revId": "cf86f12df6c216fe43f7eb141f835105f7180dbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
