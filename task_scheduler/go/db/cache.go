@@ -447,6 +447,10 @@ type JobCache interface {
 	// window.
 	GetJobMaybeExpired(string) (*Job, error)
 
+	// GetJobsByRepoState retrieves all known jobs with the given name at
+	// the given RepoState. Does not search the underlying DB.
+	GetJobsByRepoState(string, RepoState) ([]*Job, error)
+
 	// ScheduledJobsForCommit indicates whether or not we triggered any jobs
 	// for the given repo/commit.
 	ScheduledJobsForCommit(string, string) (bool, error)
@@ -470,6 +474,7 @@ type jobCache struct {
 	mtx                  sync.RWMutex
 	queryId              string
 	jobs                 map[string]*Job
+	jobsByNameAndState   map[RepoState]map[string]map[string]*Job
 	timeWindow           *window.Window
 	triggeredForCommit   map[string]map[string]bool
 	unfinished           map[string]*Job
@@ -505,6 +510,19 @@ func (c *jobCache) GetJobMaybeExpired(id string) (*Job, error) {
 }
 
 // See documentation for JobCache interface.
+func (c *jobCache) GetJobsByRepoState(name string, rs RepoState) ([]*Job, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	jobs := c.jobsByNameAndState[rs][name]
+	rv := make([]*Job, 0, len(jobs))
+	for _, j := range jobs {
+		rv = append(rv, j)
+	}
+	sort.Sort(JobSlice(rv))
+	return rv, nil
+}
+
+// See documentation for JobCache interface.
 func (c *jobCache) ScheduledJobsForCommit(repo, rev string) (bool, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
@@ -532,6 +550,17 @@ func (c *jobCache) expireJobs() {
 		if !c.timeWindow.TestTime(job.Repo, c.getJobTimestamp(job)) {
 			delete(c.jobs, job.Id)
 			delete(c.unfinished, job.Id)
+
+			byName := c.jobsByNameAndState[job.RepoState]
+			byId := byName[job.Name]
+			delete(byId, job.Id)
+			if len(byId) == 0 {
+				delete(byName, job.Name)
+			}
+			if len(byName) == 0 {
+				delete(c.jobsByNameAndState, job.RepoState)
+			}
+
 			if !job.Done() {
 				expiredUnfinishedCount++
 			}
@@ -559,6 +588,19 @@ func (c *jobCache) expireJobs() {
 func (c *jobCache) insertOrUpdateJob(job *Job) {
 	// Insert the new job into the main map.
 	c.jobs[job.Id] = job
+
+	// Map by RepoState, Name, and ID.
+	byName, ok := c.jobsByNameAndState[job.RepoState]
+	if !ok {
+		byName = map[string]map[string]*Job{}
+		c.jobsByNameAndState[job.RepoState] = byName
+	}
+	byId, ok := byName[job.Name]
+	if !ok {
+		byId = map[string]*Job{}
+		byName[job.Name] = byId
+	}
+	byId[job.Id] = job
 
 	// ScheduledJobsForCommit.
 	if !job.IsForce && !job.IsTryJob() {
@@ -609,6 +651,7 @@ func (c *jobCache) reset() error {
 	}
 	c.queryId = queryId
 	c.jobs = map[string]*Job{}
+	c.jobsByNameAndState = map[RepoState]map[string]map[string]*Job{}
 	c.triggeredForCommit = map[string]map[string]bool{}
 	c.unfinished = map[string]*Job{}
 	c.expireAndUpdate(jobs)

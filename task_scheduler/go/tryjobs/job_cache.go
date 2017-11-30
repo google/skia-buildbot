@@ -11,9 +11,9 @@ import (
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-// jobCache is a struct which provides more useful views of Jobs than the
+// tryJobCache is a struct which provides more useful views of Jobs than the
 // database itself can.
-type jobCache struct {
+type tryJobCache struct {
 	activeTryJobs map[string]*db.Job
 	db            db.JobDB
 	mtx           sync.RWMutex
@@ -23,7 +23,7 @@ type jobCache struct {
 
 // GetActiveTryJobs returns all active try Jobs. A try Job is
 // considered to be active if it has a non-zero Buildbucket lease key.
-func (c *jobCache) GetActiveTryJobs() ([]*db.Job, error) {
+func (c *tryJobCache) GetActiveTryJobs() ([]*db.Job, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
@@ -39,7 +39,7 @@ func (c *jobCache) GetActiveTryJobs() ([]*db.Job, error) {
 // expireJobs removes data from c where getJobTimestamp or getRevisionTimestamp
 // is outside of the Window. Assumes the caller holds a lock. This is a helper
 // for expireAndUpdate.
-func (c *jobCache) expireJobs() {
+func (c *tryJobCache) expireJobs() {
 	expiredUnfinishedCount := 0
 	for _, job := range c.activeTryJobs {
 		if !c.timeWindow.TestTime(job.Repo, job.Created) {
@@ -56,7 +56,7 @@ func (c *jobCache) expireJobs() {
 
 // insertOrUpdateJob inserts the new/updated job into the cache. Assumes the
 // caller holds a lock. This is a helper for expireAndUpdate.
-func (c *jobCache) insertOrUpdateJob(job *db.Job) {
+func (c *tryJobCache) insertOrUpdateJob(job *db.Job) {
 	// Active try jobs.
 	if job.BuildbucketLeaseKey == 0 {
 		delete(c.activeTryJobs, job.Id)
@@ -67,7 +67,7 @@ func (c *jobCache) insertOrUpdateJob(job *db.Job) {
 
 // expireAndUpdate removes Jobs before the Window and inserts the
 // new/updated jobs into the cache. Assumes the caller holds a lock.
-func (c *jobCache) expireAndUpdate(jobs []*db.Job) {
+func (c *tryJobCache) expireAndUpdate(jobs []*db.Job) {
 	c.expireJobs()
 	for _, job := range jobs {
 		if !c.timeWindow.TestTime(job.Repo, job.Created) {
@@ -79,7 +79,7 @@ func (c *jobCache) expireAndUpdate(jobs []*db.Job) {
 }
 
 // reset re-initializes c. Assumes the caller holds a lock.
-func (c *jobCache) reset() error {
+func (c *tryJobCache) reset() error {
 	if c.queryId != "" {
 		c.db.StopTrackingModifiedJobs(c.queryId)
 	}
@@ -102,7 +102,7 @@ func (c *jobCache) reset() error {
 }
 
 // See documentation for JobCache interface.
-func (c *jobCache) Update() error {
+func (c *tryJobCache) Update() error {
 	newJobs, err := c.db.GetModifiedJobs(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -119,10 +119,10 @@ func (c *jobCache) Update() error {
 	return nil
 }
 
-// newJobCache returns a local cache which provides more convenient views of
+// newTryJobCache returns a local cache which provides more convenient views of
 // job data than the database can provide.
-func newJobCache(db db.JobDB, timeWindow *window.Window) (*jobCache, error) {
-	tc := &jobCache{
+func newTryJobCache(db db.JobDB, timeWindow *window.Window) (*tryJobCache, error) {
+	tc := &tryJobCache{
 		db:         db,
 		timeWindow: timeWindow,
 	}
