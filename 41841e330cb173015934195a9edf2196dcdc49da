@@ -152,6 +152,30 @@
       "revId": "41841e330cb173015934195a9edf2196dcdc49da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "72f443c9_085783c2",
+        "filename": "task_scheduler/go/db/cache_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 767,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-11-30T15:43:47Z",
+      "side": 1,
+      "message": "Good catch.  A \"git grep\" reveals that there are a LOT of uses of t.Errorf in the repo.  I\u0027d wager that it\u0027s almost never the desired behavior.  It\u0027d be easy to do a mechanical find and replace. I\u0027ll propose that to the team.",
+      "parentUuid": "b19dd561_a990ceba",
+      "range": {
+        "startLine": 766,
+        "startChar": 4,
+        "endLine": 767,
+        "endChar": 16
+      },
+      "revId": "41841e330cb173015934195a9edf2196dcdc49da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
