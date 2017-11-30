@@ -14,6 +14,7 @@
   </header>
   <section id=main>
     <fiddle-sk display_options bug_link width="{%.Options.Width%}" height="{%.Options.Height%}" source="{%.Options.Source%}" fiddlehash="{%.Hash%}" sources="{%.Sources%}"
+      {%if .Options.SourceMipMap%}source_mipmap{%end%}
       {%if .Options.TextOnly%}textonly{%end%}
       {%if .Options.SRGB%}srgb{%end%}
       {%if .Options.F16%}f16{%end%}

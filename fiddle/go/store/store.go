@@ -39,6 +39,7 @@ const (
 	WIDTH_METADATA                  = "width"
 	HEIGHT_METADATA                 = "height"
 	SOURCE_METADATA                 = "source"
+	SOURCE_MIPMAP_METADATA          = "source_mipmap"
 	TEXTONLY_METADATA               = "textOnly"
 	SRGB_METADATA                   = "srgb"
 	F16_METADATA                    = "f16"
@@ -227,6 +228,7 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 		WIDTH_METADATA:                  fmt.Sprintf("%d", options.Width),
 		HEIGHT_METADATA:                 fmt.Sprintf("%d", options.Height),
 		SOURCE_METADATA:                 fmt.Sprintf("%d", options.Source),
+		SOURCE_MIPMAP_METADATA:          fmt.Sprintf("%v", options.SourceMipMap),
 		TEXTONLY_METADATA:               fmt.Sprintf("%v", options.TextOnly),
 		SRGB_METADATA:                   fmt.Sprintf("%v", options.SRGB),
 		F16_METADATA:                    fmt.Sprintf("%v", options.F16),
@@ -370,6 +372,7 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 		Width:                width,
 		Height:               height,
 		Source:               source,
+		SourceMipMap:         attr.Metadata[SOURCE_MIPMAP_METADATA] == "true",
 		TextOnly:             attr.Metadata[TEXTONLY_METADATA] == "true",
 		SRGB:                 attr.Metadata[SRGB_METADATA] == "true",
 		F16:                  attr.Metadata[F16_METADATA] == "true",

@@ -15,6 +15,7 @@
     animated               - True if animated.
     duration               - Length of animation in seconds.
     source                 - The index of the source image to use as input.
+    source_mipmap          - If true then the source image is mipmap.
     bug_link               - If true then display a link to report a bug.
     embedded               - If true then show less controls because were embedded.
     offscreen              - True if an offscreen render target is to be made available.
@@ -251,10 +252,12 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre>
               <img width=64 height=64 name="{{item}}" src="[[domain]]/s/{{item}}" class=imgsrc>
             </template>
           </iron-selector>
-          <div hidden="[[_not(source)]]">
+          <div hidden="[[_not(source)]]" class=offset>
+            <paper-checkbox title="The backEndTexture is mipmapped." checked="{{source_mipmap}}">MipMap</paper-checkbox>
             <h4>These globals are now defined:</h4>
             <pre class=source-select>SkBitmap source;
-sk_sp&lt;SkImage> image;</pre>
+sk_sp&lt;SkImage> image;
+GrBackendTexture backEndTexture; // GPU Only.</pre>
           </div>
 
         </div>
@@ -449,6 +452,11 @@ sk_sp&lt;SkImage> image;</pre>
         value: 0,
         reflectToAttribute: true,
       },
+      source_mipmap: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
       sources: {
         type: Array,
         value: function() { return []; },
@@ -586,6 +594,7 @@ sk_sp&lt;SkImage> image;</pre>
           width: +this.width,
           height: +this.height,
           source: +this.source,
+          source_mipmap: this.source_mipmap,
           srgb: this.srgb,
           f16: this.f16,
           textOnly: this.textonly,
