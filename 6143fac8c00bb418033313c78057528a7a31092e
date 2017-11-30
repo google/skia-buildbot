@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a06a5b24_2b6b695f",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-30T16:21:47Z",
+      "side": 1,
+      "message": "IIRC, it\u0027s not too hard to set up a new account.",
+      "revId": "6143fac8c00bb418033313c78057528a7a31092e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dd2ab9a6_eed6d8a2",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-11-30T16:21:47Z",
+      "side": 1,
+      "message": "Args don\u0027t line up with format string.",
+      "range": {
+        "startLine": 259,
+        "startChar": 84,
+        "endLine": 259,
+        "endChar": 121
+      },
+      "revId": "6143fac8c00bb418033313c78057528a7a31092e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
