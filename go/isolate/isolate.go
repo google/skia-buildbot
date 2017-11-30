@@ -120,9 +120,6 @@ func (t *Task) Validate() error {
 	if t.IsolateFile == "" {
 		return fmt.Errorf("IsolateFile is required.")
 	}
-	if t.OsType == "" {
-		return fmt.Errorf("OsType is required.")
-	}
 	return nil
 }
 
@@ -130,6 +127,9 @@ func (t *Task) Validate() error {
 func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 	if err := t.Validate(); err != nil {
 		return err
+	}
+	if t.OsType == "" {
+		return fmt.Errorf("OsType is required.")
 	}
 	isolateFile, err := filepath.Abs(t.IsolateFile)
 	if err != nil {

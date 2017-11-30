@@ -85,8 +85,10 @@
         <tr>
           <td>
             Pool: [[task.pool]]
-            <br/>
-            Dimensions: [[ displayDimensions(task) ]]
+            <template is="dom-if" if="[[task.osType]]">
+              <br/>
+              Dimensions: [[ displayDimensions(task) ]]
+            </template>
           </td>
           <td>
 	    Task Log:
