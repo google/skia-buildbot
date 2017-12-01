@@ -17,56 +17,89 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	EMAIL_FROM_ADDRESS = "autoroller@skia.org"
+)
+
+// AutoRollerConfig contains configuration information for an AutoRoller.
+type AutoRollerConfig struct {
+	ChildName      string
+	ChildPath      string
+	CqExtraTrybots string
+	Emailer        *email.GMail // Can be nil, in which case no email will be sent.
+	Emails         []string
+	Gerrit         *gerrit.Gerrit
+	ParentName     string
+	ServerURL      string
+	ThrottleConfig *state_machine.ThrottleConfig
+	Workdir        string
+	ChildBranch    string
+	DepotTools     string
+	ParentBranch   string
+	ParentRepo     string
+	PreUploadSteps []string
+	Strategy       repo_manager.NextRollStrategy
+}
+
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
+	childName       string
 	cqExtraTrybots  string
 	currentRoll     RollImpl
+	emailer         *email.GMail
 	emails          []string
 	emailsMtx       sync.RWMutex
 	gerrit          *gerrit.Gerrit
 	lastError       error
 	liveness        metrics2.Liveness
 	modeHistory     *modes.ModeHistory
+	parentName      string
 	recent          *recent_rolls.RecentRolls
 	retrieveRoll    func(context.Context, *AutoRoller, int64) (RollImpl, error)
 	rm              repo_manager.RepoManager
 	runningMtx      sync.Mutex
+	serverURL       string
 	sm              *state_machine.AutoRollStateMachine
 	status          *AutoRollStatusCache
 	rollIntoAndroid bool
 }
 
 // newAutoRoller returns an AutoRoller instance.
-func newAutoRoller(ctx context.Context, workdir, childPath, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, rm repo_manager.RepoManager, retrieveRoll func(context.Context, *AutoRoller, int64) (RollImpl, error), tc *state_machine.ThrottleConfig) (*AutoRoller, error) {
-	recent, err := recent_rolls.NewRecentRolls(path.Join(workdir, "recent_rolls.db"))
+func newAutoRoller(ctx context.Context, retrieveRoll func(context.Context, *AutoRoller, int64) (RollImpl, error), rm repo_manager.RepoManager, c AutoRollerConfig) (*AutoRoller, error) {
+	recent, err := recent_rolls.NewRecentRolls(path.Join(c.Workdir, "recent_rolls.db"))
 	if err != nil {
 		return nil, err
 	}
 
-	mh, err := modes.NewModeHistory(path.Join(workdir, "autoroll_modes.db"))
+	mh, err := modes.NewModeHistory(path.Join(c.Workdir, "autoroll_modes.db"))
 	if err != nil {
 		return nil, err
 	}
 
 	arb := &AutoRoller{
-		cqExtraTrybots: cqExtraTrybots,
-		emails:         emails,
-		gerrit:         gerrit,
-		liveness:       metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": childPath}),
+		childName:      c.ChildName,
+		cqExtraTrybots: c.CqExtraTrybots,
+		emailer:        c.Emailer,
+		emails:         c.Emails,
+		gerrit:         c.Gerrit,
+		liveness:       metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": c.ChildPath}),
 		modeHistory:    mh,
+		parentName:     c.ParentName,
 		recent:         recent,
 		retrieveRoll:   retrieveRoll,
 		rm:             rm,
+		serverURL:      c.ServerURL,
 		status:         &AutoRollStatusCache{},
 	}
-	sm, err := state_machine.New(arb, workdir, nil)
+	sm, err := state_machine.New(arb, c.Workdir, c.ThrottleConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -83,39 +116,39 @@ func newAutoRoller(ctx context.Context, workdir, childPath, cqExtraTrybots strin
 }
 
 // NewAndroidAutoRoller returns an AutoRoller instance which rolls into Android.
-func NewAndroidAutoRoller(ctx context.Context, workdir, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, strategy repo_manager.NextRollStrategy, preUploadSteps []string, serverURL string, tc *state_machine.ThrottleConfig) (*AutoRoller, error) {
-	rm, err := repo_manager.NewAndroidRepoManager(ctx, workdir, parentBranch, childPath, childBranch, gerrit, strategy, preUploadSteps, serverURL)
+func NewAndroidAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
+	rm, err := repo_manager.NewAndroidRepoManager(ctx, c.Workdir, c.ParentBranch, c.ChildPath, c.ChildBranch, c.Gerrit, c.Strategy, c.PreUploadSteps, c.ServerURL)
 	if err != nil {
 		return nil, err
 	}
 	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
 		return newGerritAndroidRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
 	}
-	return newAutoRoller(ctx, workdir, childPath, cqExtraTrybots, emails, gerrit, rm, retrieveRoll, tc)
+	return newAutoRoller(ctx, retrieveRoll, rm, c)
 }
 
 // NewDEPSAutoRoller returns an AutoRoller instance which rolls using DEPS.
-func NewDEPSAutoRoller(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy repo_manager.NextRollStrategy, preUploadSteps []string, includeLog bool, depsCustomVars []string, serverURL string, tc *state_machine.ThrottleConfig) (*AutoRoller, error) {
-	rm, err := repo_manager.NewDEPSRepoManager(ctx, workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy, preUploadSteps, includeLog, depsCustomVars, serverURL)
+func NewDEPSAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool, depsCustomVars []string) (*AutoRoller, error) {
+	rm, err := repo_manager.NewDEPSRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, includeLog, depsCustomVars, c.ServerURL)
 	if err != nil {
 		return nil, err
 	}
 	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
 		return newGerritRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
 	}
-	return newAutoRoller(ctx, workdir, childPath, cqExtraTrybots, emails, gerrit, rm, retrieveRoll, tc)
+	return newAutoRoller(ctx, retrieveRoll, rm, c)
 }
 
 // NewManifestAutoRoller returns an AutoRoller instance which rolls using DEPS.
-func NewManifestAutoRoller(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch, cqExtraTrybots string, emails []string, gerrit *gerrit.Gerrit, depot_tools string, strategy repo_manager.NextRollStrategy, preUploadSteps []string, serverURL string, tc *state_machine.ThrottleConfig) (*AutoRoller, error) {
-	rm, err := repo_manager.NewManifestRepoManager(ctx, workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools, gerrit, strategy, preUploadSteps, serverURL)
+func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
+	rm, err := repo_manager.NewManifestRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, c.ServerURL)
 	if err != nil {
 		return nil, err
 	}
 	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
 		return newGerritRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
 	}
-	return newAutoRoller(ctx, workdir, childPath, cqExtraTrybots, emails, gerrit, rm, retrieveRoll, tc)
+	return newAutoRoller(ctx, retrieveRoll, rm, c)
 }
 
 // isSyncError returns true iff the error looks like a sync error.
@@ -173,6 +206,14 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 	})
 }
 
+// Send the given email message.
+func (r *AutoRoller) sendEmail(from string, to []string, subject, body, markup string) error {
+	if r.emailer == nil {
+		return nil
+	}
+	return r.emailer.SendWithMarkup(from, to, subject, body, markup)
+}
+
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) GetActiveRoll() state_machine.RollCLImpl {
 	return r.currentRoll
@@ -203,11 +244,20 @@ func (r *AutoRoller) GetMode() string {
 
 // SetMode sets the desired mode of the bot. This forces the bot to run and
 // blocks until it finishes.
-func (r *AutoRoller) SetMode(ctx context.Context, m, user, message string) error {
-	if err := r.modeHistory.Add(m, user, message); err != nil {
+func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) error {
+	if err := r.modeHistory.Add(mode, user, message); err != nil {
 		return err
 	}
-	return r.Tick(ctx)
+	if err := r.Tick(ctx); err != nil {
+		return nil
+	}
+	subject := fmt.Sprintf("%s changed the %s into %s AutoRoller mode to %s", user, r.childName, r.parentName, mode)
+	body := fmt.Sprintf("%s changed the mode to %s with message:\n\n%s\n\nSee %s for more details.", user, mode, message, r.serverURL)
+	markup, err := email.GetViewActionMarkup(r.serverURL, "Go to AutoRoller", "Direct link to the AutoRoll server.")
+	if err != nil {
+		return err
+	}
+	return r.sendEmail(EMAIL_FROM_ADDRESS, r.emails, subject, body, markup)
 }
 
 // Return the roll-up status of the bot.

@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"os/user"
 	"path"
 	"path/filepath"
@@ -23,6 +24,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
@@ -41,6 +43,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
+)
+
 var (
 	arb AutoRollerI = nil
 
@@ -49,17 +55,18 @@ var (
 
 // flags
 var (
+	childBranch     = flag.String("child_branch", "master", "Branch of the project we want to roll.")
 	childName       = flag.String("childName", "Skia", "Name of the project to roll.")
 	childPath       = flag.String("childPath", "src/third_party/skia", "Path within parent repo of the project to roll.")
-	childBranch     = flag.String("child_branch", "master", "Branch of the project we want to roll.")
 	cqExtraTrybots  = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
 	depsCustomVars  = common.NewMultiStringFlag("deps_custom_var", nil, "Custom vars to pass to gclient, in the form \"key=value\"")
 	gerritUrl       = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
 	host            = flag.String("host", "localhost", "HTTP service host")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	noLog           = flag.Bool("no_log", false, "If true, roll CLs do not include a git log (DEPS rollers only).")
-	parentRepo      = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
 	parentBranch    = flag.String("parent_branch", "master", "Branch of the parent repo we want to roll into.")
+	parentName      = flag.String("parent_name", "", "User friendly name of the parent repo.")
+	parentRepo      = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
 	parentWaterfall = flag.String("parent_waterfall", "", "Waterfall URL of the parent repo.")
 	port            = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	preUploadSteps  = common.NewMultiStringFlag("pre_upload_step", nil, "Named steps to run before uploading roll CLs. Pre-upload steps and their names are available in https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go")
@@ -321,9 +328,25 @@ func main() {
 	}
 	gitcookiesPath := path.Join(user.HomeDir, ".gitcookies")
 	androidInternalGerritUrl := *gerritUrl
-
+	var emailer *email.GMail
 	if *useMetadata {
 		if err := webhook.InitRequestSaltFromMetadata(); err != nil {
+			sklog.Fatal(err)
+		}
+
+		// Emailing init.
+		emailClientId := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
+		emailClientSecret := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
+		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
+		tokenFile, err := filepath.Abs(user.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		if err := ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm); err != nil {
+			sklog.Fatalf("Failed to cache token: %s", err)
+		}
+		emailer, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
+		if err != nil {
 			sklog.Fatal(err)
 		}
 
@@ -401,14 +424,33 @@ func main() {
 			TimeWindow:   parsed,
 		}
 	}
+	cfg := roller.AutoRollerConfig{
+		ChildBranch:    *childBranch,
+		ChildName:      *childName,
+		ChildPath:      *childPath,
+		CqExtraTrybots: cqExtraTrybots,
+		DepotTools:     depotTools,
+		Emailer:        emailer,
+		Emails:         emails,
+		Gerrit:         g,
+		ParentBranch:   *parentBranch,
+		ParentName:     *parentName,
+		ParentRepo:     *parentRepo,
+		PreUploadSteps: *preUploadSteps,
+		ServerURL:      serverURL,
+		Strategy:       strat,
+		ThrottleConfig: tc,
+		Workdir:        *workdir,
+	}
 	if *rollIntoAndroid {
-		arb, err = roller.NewAndroidAutoRoller(ctx, *workdir, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, repo_manager.StrategyRemoteHead(*childBranch), *preUploadSteps, serverURL, tc)
+		cfg.Strategy = repo_manager.StrategyRemoteHead(*childBranch)
+		arb, err = roller.NewAndroidAutoRoller(ctx, cfg)
 	} else if *rollIntoGoogle3 {
 		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, *childBranch)
 	} else if *useManifest {
-		arb, err = roller.NewManifestAutoRoller(ctx, *workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, serverURL, tc)
+		arb, err = roller.NewManifestAutoRoller(ctx, cfg)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(ctx, *workdir, *parentRepo, *parentBranch, *childPath, *childBranch, cqExtraTrybots, emails, g, depotTools, strat, *preUploadSteps, !*noLog, *depsCustomVars, serverURL, tc)
+		arb, err = roller.NewDEPSAutoRoller(ctx, cfg, !*noLog, *depsCustomVars)
 	}
 	if err != nil {
 		sklog.Fatal(err)

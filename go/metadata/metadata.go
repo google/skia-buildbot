@@ -22,9 +22,10 @@ const (
 
 	// GMAIL_CACHED_TOKEN, GMAIL_CLIENT_ID, and GMAIL_CLIENT_SECRET are used for sending mail
 	// from alerts@skia.org.
-	GMAIL_CACHED_TOKEN  = "gmail_cached_token"
-	GMAIL_CLIENT_ID     = "gmail_clientid"
-	GMAIL_CLIENT_SECRET = "gmail_clientsecret"
+	GMAIL_CACHED_TOKEN          = "gmail_cached_token"
+	GMAIL_CACHED_TOKEN_AUTOROLL = "gmail_cached_token_autoroll"
+	GMAIL_CLIENT_ID             = "gmail_clientid"
+	GMAIL_CLIENT_SECRET         = "gmail_clientsecret"
 
 	// DATABASE_RW_PASSWORD and DATABASE_ROOT_PASSWORD are the MySQL Database passwords for the
 	// readwrite and root user respectively.
