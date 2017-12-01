@@ -160,12 +160,19 @@ func getSheriffHelper() ([]string, error) {
 		return getSheriffJS(string(body)), nil
 	} else {
 		var sheriff struct {
-			Username string `json:"username"`
+			Emails   []string `json:"emails"`
+			Username string   `json:"username"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&sheriff); err != nil {
 			return nil, err
 		}
-		return []string{sheriff.Username}, nil
+		if sheriff.Emails != nil && len(sheriff.Emails) > 0 {
+			return sheriff.Emails, nil
+		}
+		if sheriff.Username != "" {
+			return []string{sheriff.Username}, nil
+		}
+		return nil, fmt.Errorf("Unable to parse sheriff email(s) from JSON.")
 	}
 }
 
