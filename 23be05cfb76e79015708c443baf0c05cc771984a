@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3e969468_3b7798bb",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T21:04:12Z",
+      "side": 1,
+      "message": "Doesn\u0027t skia\u0027s endpoint fall in this else?",
+      "revId": "23be05cfb76e79015708c443baf0c05cc771984a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
