@@ -66,6 +66,30 @@
     },
     {
       "key": {
+        "uuid": "f55f1a44_c0aeb713",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T14:50:24Z",
+      "side": 1,
+      "message": "I don\u0027t think you need different accounts for each specific autoroller because there would be lots of them. I think having one is sufficient just because it looks better to get an email from autoroll@skia.org instead of alertserver@skia.org. But all of this is optional and totally upto you. You can do it later too if you prefer.",
+      "parentUuid": "686c065a_63c19f5e",
+      "range": {
+        "startLine": 30,
+        "startChar": 23,
+        "endLine": 30,
+        "endChar": 34
+      },
+      "revId": "6143fac8c00bb418033313c78057528a7a31092e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "db8da1d6_860e1dda",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 1
