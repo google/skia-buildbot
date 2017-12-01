@@ -71,7 +71,15 @@ func prepCodeToCompile(fiddleRoot, code string, opts *types.Options) string {
 	}
 	offscreen_mipmap := toGrMipMapped(opts.OffScreenMipMap)
 	source_mipmap := toGrMipMapped(opts.SourceMipMap)
-	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, pdf, skp, opts.SRGB, opts.F16, opts.TextOnly, source_mipmap, opts.OffScreenWidth, opts.OffScreenHeight, opts.OffScreenSampleCount, offscreen_mipmap, code)
+	offscreen_width := opts.OffScreenWidth
+	if offscreen_width == 0 {
+		offscreen_width = 64
+	}
+	offscreen_height := opts.OffScreenHeight
+	if offscreen_height == 0 {
+		offscreen_height = 64
+	}
+	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, pdf, skp, opts.SRGB, opts.F16, opts.TextOnly, source_mipmap, offscreen_width, offscreen_height, opts.OffScreenSampleCount, offscreen_mipmap, code)
 }
 
 // ValidateOptions validates that the options make sense.

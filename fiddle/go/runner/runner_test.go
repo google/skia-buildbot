@@ -25,7 +25,7 @@ func TestPrep(t *testing.T) {
 	want := `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = "/mnt/pd0/fiddle/images/2.png"; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 0, 0, 0, GrMipMapped::kNo);
+  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 64, 64, 0, GrMipMapped::kNo);
 }
 
 #line 1
@@ -44,7 +44,7 @@ void draw(SkCanvas* canvas) {
 	want = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 0, 0, 0, GrMipMapped::kNo);
+  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 64, 64, 0, GrMipMapped::kNo);
 }
 
 #line 1
@@ -67,7 +67,7 @@ void draw(SkCanvas* canvas) {
 	want = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 0, 0, 0, GrMipMapped::kNo);
+  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 64, 64, 0, GrMipMapped::kNo);
 }
 
 #line 1
