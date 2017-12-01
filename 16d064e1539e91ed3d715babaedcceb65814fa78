@@ -34,6 +34,24 @@
       "revId": "16d064e1539e91ed3d715babaedcceb65814fa78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2599a38_8f2848df",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T14:57:23Z",
+      "side": 1,
+      "message": "Yea, I never found a good solution for sending emails locally. I hack up clientId/clientSecret and then make sure that it only gets sent to me.",
+      "parentUuid": "ad64628c_44396dd4",
+      "revId": "16d064e1539e91ed3d715babaedcceb65814fa78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
