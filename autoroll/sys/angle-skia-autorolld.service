@@ -12,6 +12,7 @@ ExecStart=/usr/local/bin/autoroll \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=ANGLE \
     --childPath=skia/third_party/externals/angle2 \
+    --parent_name=Skia \
     --parent_repo=https://skia.googlesource.com/skia.git \
     --parent_waterfall=https://status.skia.org \
     --resources_dir=/usr/local/share/autoroll/ \
