@@ -15,6 +15,7 @@ ExecStart=/usr/local/bin/autoroll \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=https://skia-tree-status.appspot.com/current-robocop \
     --roll_into_android=true \
+    --parent_name="Android (master)" \
     --parent_repo=android \
     --parent_waterfall=https://android-build.googleplex.com/builds/branches/git_master/grid
 Restart=always

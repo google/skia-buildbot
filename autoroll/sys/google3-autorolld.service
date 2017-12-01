@@ -15,6 +15,7 @@ ExecStart=/usr/local/bin/autoroll \
     --workdir=/mnt/pd0/autoroll_workdir \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=https://skia-tree-status.appspot.com/current-sheriff \
+    --parent_name="Google3" \
     --parent_repo="google3" \
     --parent_branch="" \
     --parent_waterfall="https://goto.google.com/skia-testing-status" \
