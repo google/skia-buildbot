@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d8cd5ee6_a6943cd5",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T18:10:12Z",
+      "side": 1,
+      "message": "Should we include the user here?  I\u0027m thinking about threading; if a person stops and then resumes the roller, I think we want those two emails to be threaded.  Alternatively, maybe we want all of the \"mode changed to \u0027stopped\u0027\" messages for a given roller to be threaded?  Or just all messages for the roller, in case a different person starts and stops?",
+      "range": {
+        "startLine": 254,
+        "startChar": 25,
+        "endLine": 254,
+        "endChar": 28
+      },
+      "revId": "93afb2ae6ed2d36a06201f821b0ae40ff3913545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
