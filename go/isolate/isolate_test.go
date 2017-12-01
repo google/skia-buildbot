@@ -71,7 +71,9 @@ func TestIsolateTasks(t *testing.T) {
 	t1.BaseDir = workdir
 	_ = do([]*Task{t1}, "IsolateFile is required.")
 	t1.IsolateFile = dummyIsolate1
-	_ = do([]*Task{t1}, "OsType is required.")
+	// Task with no OsType is ok.
+	_ = do([]*Task{t1}, "")
+	// Add OsType for below tests.
 	t1.OsType = "linux"
 
 	// Minimum valid task.

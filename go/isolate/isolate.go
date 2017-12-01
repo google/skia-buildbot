@@ -128,9 +128,6 @@ func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 	if err := t.Validate(); err != nil {
 		return err
 	}
-	if t.OsType == "" {
-		return fmt.Errorf("OsType is required.")
-	}
 	isolateFile, err := filepath.Abs(t.IsolateFile)
 	if err != nil {
 		return err
@@ -138,7 +135,9 @@ func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 	args := []string{
 		"--isolate", isolateFile,
 		"--isolated", isolatedFile,
-		"--config-variable", "OS", t.OsType,
+	}
+	if t.OsType != "" {
+		args = append(args, "--config-variable", "OS", t.OsType)
 	}
 	for _, b := range t.Blacklist {
 		args = append(args, "--blacklist", b)
