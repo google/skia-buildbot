@@ -174,7 +174,11 @@
       _keyup: function(e) {
         if (e.type === "blur") {
           // Ignore the blur event if it was caused by clicking a suggestion.
-          if (e.detail.sourceEvent.relatedTarget.classList.contains("suggestion")) {
+          var blurredElem = e.relatedTarget;
+          if (!blurredElem) {
+            blurredElem = e.detail.sourceEvent.relatedTarget;
+          }
+          if (blurredElem && blurredElem.classList.contains("suggestion")) {
             return;
           }
         }
@@ -191,6 +195,9 @@
               // If the enter key is pressed while one of the suggestions is
               // highlighted, we accept that selection.
               this.$.input.value = this.$.suggestions_box.selectedItem.value;
+              this._commit();
+            } else if (this.autocomplete.includes(this.$.input.value)) {
+              // The user manually typed one of the acceptable values.
               this._commit();
             } else if (this.acceptCustomValue) {
               // If the enter key is pressed without highlighting a suggestion
