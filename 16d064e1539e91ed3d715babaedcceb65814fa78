@@ -16,6 +16,24 @@
       "revId": "16d064e1539e91ed3d715babaedcceb65814fa78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad64628c_44396dd4",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T14:55:19Z",
+      "side": 1,
+      "message": "I didn\u0027t; I basically copied the flow from elsewhere and assumed it works.  IMO we generally don\u0027t want to send noisy emails for locally-running instances.",
+      "parentUuid": "9c877c13_5403a95c",
+      "revId": "16d064e1539e91ed3d715babaedcceb65814fa78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
