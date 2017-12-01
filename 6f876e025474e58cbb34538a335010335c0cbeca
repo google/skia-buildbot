@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "caa477e1_c204a1c3",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T20:00:38Z",
+      "side": 1,
+      "message": "When would ri.outputPath \u003d\u003d \"\" ? Just trying to see if we can get rid of the around 3\nif ri.outputPath !\u003d \"\" stmts",
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bfde619_6663cc3f",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T20:00:38Z",
+      "side": 1,
+      "message": "Does the server take in a work_dir flag it can use here?",
+      "range": {
+        "startLine": 239,
+        "startChar": 28,
+        "endLine": 239,
+        "endChar": 42
+      },
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e69f9d80_9670d3cd",
+        "filename": "coverage/go/coverageingest/linecoverage.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T20:00:38Z",
+      "side": 1,
+      "message": "Would it be useful to check and throw an error if they do not?",
+      "range": {
+        "startLine": 69,
+        "startChar": 16,
+        "endLine": 70,
+        "endChar": 13
+      },
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03f12bc2_be6163dd",
+        "filename": "coverage/go/coverageingest/linecoverage.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T20:00:38Z",
+      "side": 1,
+      "message": "nit: lineTemplateData",
+      "range": {
+        "startLine": 131,
+        "startChar": 3,
+        "endLine": 131,
+        "endChar": 11
+      },
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94ed7c83_ad6a5e30",
+        "filename": "coverage/res/imp/coverage-page.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T20:00:38Z",
+      "side": 1,
+      "message": "I think 98 would work better here. I\u0027m also totally kidding.",
+      "range": {
+        "startLine": 36,
+        "startChar": 15,
+        "endLine": 36,
+        "endChar": 17
+      },
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
