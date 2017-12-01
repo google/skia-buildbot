@@ -16,6 +16,24 @@
       "revId": "23be05cfb76e79015708c443baf0c05cc771984a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84fae4f7_aca58d93",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T21:05:24Z",
+      "side": 1,
+      "message": "Yes, it has the \"username\" field in the JSON.  The below assumes that one of them will be filled in.",
+      "parentUuid": "3e969468_3b7798bb",
+      "revId": "23be05cfb76e79015708c443baf0c05cc771984a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
