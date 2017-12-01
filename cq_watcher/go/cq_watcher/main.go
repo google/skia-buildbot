@@ -27,7 +27,8 @@ const (
 	AFTER_COMMIT_POLL_TIME = 5 * time.Minute
 
 	// How often to refresh the trybots received from cq.cfg.
-	REFRESH_CQ_TRYBOTS_TIME = time.Hour
+	// TODO(rmistry): Changed this to 15 mins
+	REFRESH_CQ_TRYBOTS_TIME = time.Minute * 15
 
 	MAX_CLS_PER_POLL = 100
 	METRIC_NAME      = "cq_watcher"
