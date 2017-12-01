@@ -4,6 +4,7 @@ package coverageingest
 // the results from our LLVM-based coverage tasks
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"fmt"
@@ -85,13 +86,20 @@ func defaultUnTar(ctx context.Context, tarpath, outpath string) error {
 	})
 }
 
+// The renderInfo struct contains information needed to create the combined reports.
+type renderInfo struct {
+	outputPath string
+	commit     string
+	jobName    string
+}
+
 // getCoverage returns the CoverageSummary from cache or calculates it and
 // puts it into the cache. If there was any error, it is returned.
-func (n *gcsingester) getCoverage(cacheKey string, folders ...string) (common.CoverageSummary, error) {
+func (n *gcsingester) getCoverage(cacheKey string, ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 	if obj, ok := n.cache.CheckCache(cacheKey); ok {
 		return obj, nil
 	}
-	if cov, err := calculateCoverage(folders...); err != nil {
+	if cov, err := calculateCoverage(ri, folders...); err != nil {
 		return common.CoverageSummary{}, err
 	} else {
 		return cov, n.cache.StoreToCache(cacheKey, cov)
@@ -100,11 +108,18 @@ func (n *gcsingester) getCoverage(cacheKey string, folders ...string) (common.Co
 
 // calcuateCoverage analyzes one or more folders of coverage data and combines them together
 // to get a complete picture of the coverage. It is a variable for easier mocking.
+// If the renderInfo's outputPath is not "", a coverage report will be generated there
+// in addition to returning the CoverageSummary.
 var calculateCoverage = defaultCalculateTotalCoverage
 
-func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, error) {
+func defaultCalculateTotalCoverage(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 	if len(folders) == 0 {
 		return common.CoverageSummary{}, nil
+	}
+	if ri.outputPath != "" {
+		if _, err := fileutil.EnsureDirExists(path.Join(ri.outputPath, "coverage")); err != nil {
+			return common.CoverageSummary{}, fmt.Errorf("Could not create output directories: %s", err)
+		}
 	}
 	totalLines := 0
 	missedLines := 0
@@ -133,6 +148,13 @@ func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, e
 		}
 	}
 
+	// This will hold the information needed to create the summary page, that is, the coverage
+	// data for each file.
+	summaryData := coverageSummaryTemplateData{
+		Commit:  ri.commit,
+		JobName: ri.jobName,
+	}
+
 	// Go through all the relative files and figure out the coverage data for them.
 	// We union together all the data for the same relative file (e.g. the CPU config's
 	// coverage of DM.cpp and the GPU config's coverage of DM.cpp), then add that data
@@ -150,11 +172,74 @@ func defaultCalculateTotalCoverage(folders ...string) (common.CoverageSummary, e
 			newlyCovered := parseLinesCovered(string(contents))
 			linesCovered = linesCovered.Union(newlyCovered)
 		}
-		totalLines += linesCovered.Total()
-		missedLines += linesCovered.Missed()
+
+		normPath, shouldSummarize := normalizePath(rp)
+		if !shouldSummarize {
+			continue
+		}
+		totalLines += linesCovered.TotalExecutable()
+		missedLines += linesCovered.MissedExecutable()
+
+		// Write out an html file representing the combined coverage of the file represented
+		// by the given relative path to ri.outputPath if ri.outputPath is defined.
+		if ri.outputPath != "" {
+			percent := "--"
+			if tl, ml := linesCovered.TotalExecutable(), linesCovered.MissedExecutable(); tl != 0 {
+				percent = fmt.Sprintf("%1.2f", 100.0*float32(tl-ml)/float32(tl))
+			}
+
+			summaryData.Files = append(summaryData.Files, fileSummaryTemplateData{
+				FileName:     normPath,
+				CoveredLines: linesCovered.TotalExecutable() - linesCovered.MissedExecutable(),
+				TotalLines:   linesCovered.TotalExecutable(),
+				PercentLines: percent,
+			})
+
+			dest := path.Join(ri.outputPath, "coverage", normPath+".html")
+			if err := fileutil.EnsureDirPathExists(dest); err != nil {
+				return common.CoverageSummary{}, err
+			}
+			content, err := linesCovered.ToHTMLPage(CoverageFileData{
+				FileName: rp,
+				Commit:   ri.commit,
+				JobName:  ri.jobName,
+			})
+			if err != nil {
+				return common.CoverageSummary{}, err
+			}
+			if err := ioutil.WriteFile(dest, []byte(content), 0644); err != nil {
+				return common.CoverageSummary{}, err
+			}
+		}
+	}
+
+	// Write out an html file summarizing the coverage of all the files if ri.outputPath
+	// is defined.
+	if ri.outputPath != "" {
+		// Sort for determinism and ease of reading.
+		sort.Sort(summaryData.Files)
+		b := bytes.Buffer{}
+		if err := HTML_TEMPLATE_SUMMARY.Execute(&b, summaryData); err != nil {
+			return common.CoverageSummary{}, err
+		}
+		if err := ioutil.WriteFile(path.Join(ri.outputPath, "index.html"), []byte(b.String()), 0644); err != nil {
+			return common.CoverageSummary{}, err
+		}
 	}
 
 	return common.CoverageSummary{TotalLines: totalLines, MissedLines: missedLines}, nil
+}
+
+// normalizePath returns the path with any unnecessary prefix stripped off.
+// For example, LLVM outputs the absolute path to all these files, which includes
+// the path to the source folder on the bots - we strip this off. normalizePath
+// also returns true if this file should be included in our analysis (e.g. skip
+// third_party).
+func normalizePath(p string) (string, bool) {
+	p = strings.TrimPrefix(p, "/mnt/pd0/work/skia/")
+	// This removes things like /usr/lib/fontconfig, some created things and third_party.
+	// TODO(kjlubick): Keep third_party in and make it configurable from the UI what to show.
+	return p, !strings.HasPrefix(p, "/") && !strings.HasPrefix(p, "out") && !strings.HasPrefix(p, "third_party")
 }
 
 // IngestCommits fulfills the Ingester interface.
@@ -208,7 +293,7 @@ func (n *gcsingester) IngestCommits(ctx context.Context, commits []*vcsinfo.Long
 		jobs := common.CoverageSummarySlice{}
 		toCombine := []string{}
 		for job, folder := range toSummarize {
-			cov, err := n.getCoverage(makeCacheKey(c.Hash, job), folder)
+			cov, err := n.getCoverage(makeCacheKey(c.Hash, job), renderInfo{}, folder)
 			if err != nil {
 				sklog.Warningf("Was unable to create a coverage data: %s", err)
 				continue
@@ -221,7 +306,19 @@ func (n *gcsingester) IngestCommits(ctx context.Context, commits []*vcsinfo.Long
 		sort.Sort(jobs)
 		sort.Strings(toCombine)
 
-		totalCoverage, err := n.getCoverage(makeCacheKey(c.Hash, toCombine...), toCombine...)
+		// Mimic the structure that LLVM outputs, e.g.
+		// .../[hash]/[name]/html/
+		//                        index.html
+		//                        coverage/
+		//                                 foo.cpp.html
+		//                                 bar.cpp.html
+		ri := renderInfo{
+			outputPath: path.Join(n.dir, c.Hash, "Combined", "html"),
+			commit:     c.Hash,
+			jobName:    "Combined",
+		}
+
+		totalCoverage, err := n.getCoverage(makeCacheKey(c.Hash, toCombine...), ri, toCombine...)
 		if err != nil {
 			sklog.Errorf("Was unable to create a combined summary: %s", err)
 		}
