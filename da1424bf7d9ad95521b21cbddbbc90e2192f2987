@@ -22,6 +22,30 @@
       "revId": "da1424bf7d9ad95521b21cbddbbc90e2192f2987",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "145bd10e_0390ffd7",
+        "filename": "task_scheduler/res/imp/task-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T16:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "51fef08c_064324d1",
+      "range": {
+        "startLine": 248,
+        "startChar": 15,
+        "endLine": 248,
+        "endChar": 58
+      },
+      "revId": "da1424bf7d9ad95521b21cbddbbc90e2192f2987",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
