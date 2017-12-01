@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c877c13_5403a95c",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-01T14:53:20Z",
+      "side": 1,
+      "message": "Just curious because I run into this issue: How did you test this locally?",
+      "revId": "16d064e1539e91ed3d715babaedcceb65814fa78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
