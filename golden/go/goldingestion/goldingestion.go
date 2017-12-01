@@ -37,7 +37,6 @@ func init() {
 type goldProcessor struct {
 	traceDB        tracedb.DB
 	vcs            vcsinfo.VCS
-	extractID      extractIDFn
 	ingestionStore *IngestionStore
 }
 
@@ -54,24 +53,17 @@ func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clie
 		traceDB: traceDB,
 		vcs:     vcs,
 	}
-	ret.extractID = ret.getCommitID
 	return ret, nil
 }
 
 // See ingestion.Processor interface.
 func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
-	r, err := resultsFile.Open()
-	if err != nil {
-		return err
-	}
-
-	dmResults, err := ParseDMResultsFromReader(r, resultsFile.Name())
+	dmResults, err := processDMResults(resultsFile)
 	if err != nil {
 		return err
 	}
 
 	var commit *vcsinfo.LongCommit = nil
-
 	// If the target commit is not in the primary repository we look it up
 	// in the secondary that has the primary as a dependency.
 	targetHash, err := g.getCanonicalCommitHash(ctx, dmResults.GitHash)
@@ -90,7 +82,7 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	}
 
 	// Add the column to the trace db.
-	cid, err := g.extractID(commit, dmResults)
+	cid, err := g.getCommitID(commit, dmResults)
 	if err != nil {
 		return err
 	}
@@ -103,14 +95,6 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 
 	// Write the result to the tracedb.
 	err = g.traceDB.Add(cid, entries)
-
-	// If there was no problem and we have an ingestion store that record that we have processed that file.
-	if (err == nil) && (g.ingestionStore != nil) {
-		if err := g.ingestionStore.Add(config.CONSTRUCTOR_GOLD, dmResults.Master, dmResults.Builder, dmResults.BuildNumber); err != nil {
-			sklog.Errorf("Error writing ingested build info: %s", err)
-		}
-	}
-
 	return err
 }
 
