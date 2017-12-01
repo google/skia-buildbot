@@ -54,7 +54,7 @@
           <div class="td" style$="background-color:[[_statusColor]]">[[_statusText]]</div>
         </div>
         <div class="tr"><div class="td">Created</div><div class="td"><human-date-sk date="[[_task.created]]"></human-date-sk></div></div>
-        <template is="dom-if" if="[[_task.status]]">
+        <template is="dom-if" if="[[_isFinished(_task.status)]]">
           <div class="tr"><div class="td">Finished</div><div class="td"><human-date-sk date="[[_task.finished]]"></human-date-sk></div></div>
         </template>
         <div class="tr"><div class="td">Duration</div><div class="td">[[_duration]]</div></div>
@@ -197,7 +197,7 @@
         }
         var start = new Date(task.created);
         var end = new Date(task.finished);
-        if (task.status == "") {
+        if (this._isFinished(task.status)) {
           end = new Date();
         }
         var duration = (end.getTime() - start.getTime()) / 1000;
@@ -242,6 +242,10 @@
           taskLinkUrlPrefix = "https://" + this.swarmingServer + "/task?id=";
         }
         return taskLinkUrlPrefix + taskId;
+      },
+
+      _isFinished: function(taskStatus) {
+        return taskStatus && taskStatus !== "RUNNING";
       },
 
       _sortJobsByName: function(a, b) {
