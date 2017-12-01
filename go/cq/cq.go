@@ -55,27 +55,27 @@ func NewClient(gerritClient *gerrit.Gerrit, cqTryBotsFunc GetCQTryBots, metricNa
 }
 
 // GetCQTryBots is an interface for returing the CQ trybots of a project.
-type GetCQTryBots func() ([]string, error)
+type GetCQTryBots func() (util.StringSet, error)
 
 type Client struct {
 	gerritClient  *gerrit.Gerrit
-	cqTryBots     []string
+	cqTryBots     util.StringSet
 	cqTryBotsFunc GetCQTryBots
 	metricName    string
 }
 
 // GetSkiaCQTryBots is a Skia implementation of GetCQTryBots.
-func GetSkiaCQTryBots() ([]string, error) {
+func GetSkiaCQTryBots() (util.StringSet, error) {
 	return getCQTryBots(common.REPO_SKIA)
 }
 
 // GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBots.
-func GetSkiaInfraCQTryBots() ([]string, error) {
+func GetSkiaInfraCQTryBots() (util.StringSet, error) {
 	return getCQTryBots(common.REPO_SKIA)
 }
 
 // getCQTryBots is a convenience method for the Skia and Skia Infra CQ TryBots.
-func getCQTryBots(repo string) ([]string, error) {
+func getCQTryBots(repo string) (util.StringSet, error) {
 	var buf bytes.Buffer
 	if err := gitiles.NewRepo(repo).ReadFile(CQ_CFG_FILE_PATH, &buf); err != nil {
 		return nil, err
@@ -101,11 +101,12 @@ func getCQTryBots(repo string) ([]string, error) {
 		}
 	}
 	sklog.Infof("The list of CQ trybots is: %s", tryJobs)
-	return tryJobs, nil
+	return util.NewStringSet(tryJobs), nil
 }
 
 // RefreshCQTryBots refreshes the slice of CQ trybots on the instance. Access
 // to the trybots is protected by a RWMutex.
+// Trybots that no longer exist in the new list will have their metrics purged.
 func (c *Client) RefreshCQTryBots() error {
 	tryBots, err := c.cqTryBotsFunc()
 	if err != nil {
@@ -114,6 +115,12 @@ func (c *Client) RefreshCQTryBots() error {
 
 	cqTryBotsMutex.Lock()
 	defer cqTryBotsMutex.Unlock()
+	// Gather all trybots that no longer exist and purge their metrics.
+	deletedTryBots := c.cqTryBots.Complement(tryBots)
+	if err := c.purgeMetrics(deletedTryBots); err != nil {
+		return fmt.Errorf("Could not purge metrics of %s: %s", deletedTryBots, err)
+	}
+
 	c.cqTryBots = tryBots
 	return nil
 }
@@ -180,12 +187,9 @@ func (c *Client) ReportCQStatsForLandedCL(cqBuilds []*buildbucket.Build, gerritU
 			endTimeOfCQBots = completedTime
 		}
 
-		durationTags := map[string]string{
-			"trybot": b.Parameters.BuilderName,
-		}
 		duration := int64(completedTime.Sub(createdTime).Seconds())
 		sklog.Infof("%s was created at %s by %s and completed at %s. Total duration: %d", b.Parameters.BuilderName, createdTime, gerritURL, completedTime, duration)
-		landedTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, LANDED_METRIC_NAME, LANDED_TRYBOT_DURATION), durationTags)
+		landedTrybotDurationMetric := c.getLandedTrybotDurationMetric(b.Parameters.BuilderName)
 		landedTrybotDurationMetric.Update(duration)
 
 		if duration > maximumTrybotDuration {
@@ -222,16 +226,13 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucket.Build, gerri
 		}
 
 		duration := int64(currentTime.Sub(createdTime).Seconds())
-		durationTags := map[string]string{
-			"trybot": b.Parameters.BuilderName,
-		}
 		if duration > CQ_TRYBOT_DURATION_SECS_THRESHOLD {
 			sklog.Errorf("CQTrybotDurationError: %s was triggered by %s and is still running after %d seconds. Threshold is %d seconds.", b.Parameters.BuilderName, gerritURL, duration, CQ_TRYBOT_DURATION_SECS_THRESHOLD)
 		}
-		inflightTrybotDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_DURATION), durationTags)
+		inflightTrybotDurationMetric := c.getInflightTrybotDurationMetric(b.Parameters.BuilderName)
 		inflightTrybotDurationMetric.Update(duration)
-
 	}
+
 	cqTryBotsMutex.RLock()
 	cqTryBotsMutex.RUnlock()
 	if totalTriggeredCQBots > CQ_TRYBOTS_COUNT_THRESHOLD {
@@ -241,9 +242,40 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucket.Build, gerri
 	trybotNumDurationMetric.Update(int64(totalTriggeredCQBots))
 }
 
+func (c *Client) purgeMetrics(tryBots util.StringSet) error {
+	for _, b := range tryBots.Keys() {
+		inflightTrybotDurationMetric := c.getInflightTrybotDurationMetric(b)
+		if err := inflightTrybotDurationMetric.Delete(); err != nil {
+			return fmt.Errorf("Could not delete inflight trybot metric: %s", err)
+		}
+		landedTrybotDurationMetric := c.getLandedTrybotDurationMetric(b)
+		if err := landedTrybotDurationMetric.Delete(); err != nil {
+			return fmt.Errorf("Could not delete landed trybot metric: %s", err)
+		}
+		sklog.Infof("Deleted inflight and landed metrics of %s", b)
+	}
+	return nil
+}
+
+func (c *Client) getInflightTrybotDurationMetric(tryBot string) metrics2.Int64Metric {
+	metricName := fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_DURATION)
+	tags := map[string]string{
+		"trybot": tryBot,
+	}
+	return metrics2.GetInt64Metric(metricName, tags)
+}
+
+func (c *Client) getLandedTrybotDurationMetric(tryBot string) metrics2.Int64Metric {
+	metricName := fmt.Sprintf("%s_%s_%s", c.metricName, LANDED_METRIC_NAME, LANDED_TRYBOT_DURATION)
+	tags := map[string]string{
+		"trybot": tryBot,
+	}
+	return metrics2.GetInt64Metric(metricName, tags)
+}
+
 func (c *Client) isCQTryBot(builderName string) bool {
 	cqTryBotsMutex.RLock()
-	isCQTrybot := util.In(builderName, c.cqTryBots)
+	isCQTrybot := util.In(builderName, c.cqTryBots.Keys())
 	cqTryBotsMutex.RUnlock()
 	return isCQTrybot
 }
