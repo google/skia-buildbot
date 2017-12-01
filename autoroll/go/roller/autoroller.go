@@ -251,8 +251,8 @@ func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) er
 	if err := r.Tick(ctx); err != nil {
 		return nil
 	}
-	subject := fmt.Sprintf("%s changed the %s into %s AutoRoller mode to %s", user, r.childName, r.parentName, mode)
-	body := fmt.Sprintf("%s changed the mode to %s with message:\n\n%s\n\nSee %s for more details.", user, mode, message, r.serverURL)
+	subject := fmt.Sprintf("%s changed the %s into %s AutoRoller mode", user, r.childName, r.parentName)
+	body := fmt.Sprintf("%s changed the mode to <b>%s</b> with message:<br/><br/>%s<br/><br/>See %s for more details.", user, mode, message, r.serverURL)
 	markup, err := email.GetViewActionMarkup(r.serverURL, "Go to AutoRoller", "Direct link to the AutoRoll server.")
 	if err != nil {
 		return err
