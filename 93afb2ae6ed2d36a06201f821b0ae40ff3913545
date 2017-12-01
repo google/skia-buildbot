@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "5e1367df_1118d09f",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T18:25:22Z",
+      "side": 1,
+      "message": "SGTM.  For the record, I\u0027d prefer the leasing server to send updates about the same lease in the same thread (I get separate emails for \"lease started\" and \"lease ended\").  Obviously different leases should be different threads.",
+      "parentUuid": "a32c23a7_83a42446",
+      "range": {
+        "startLine": 254,
+        "startChar": 25,
+        "endLine": 254,
+        "endChar": 28
+      },
+      "revId": "93afb2ae6ed2d36a06201f821b0ae40ff3913545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dfcd9e3d_55e8219c",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 1
@@ -93,6 +117,30 @@
       "revId": "93afb2ae6ed2d36a06201f821b0ae40ff3913545",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be37bf07_6c6e59ae",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T18:25:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dfcd9e3d_55e8219c",
+      "range": {
+        "startLine": 255,
+        "startChar": 46,
+        "endLine": 255,
+        "endChar": 47
+      },
+      "revId": "93afb2ae6ed2d36a06201f821b0ae40ff3913545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
