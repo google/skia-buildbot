@@ -196,13 +196,12 @@ func GetIsolateDetails(ctx context.Context, properties *swarming_api.SwarmingRpc
 	return details, nil
 }
 
-func GetIsolateHash(ctx context.Context, pool, osType, isolateDep string) (string, error) {
+func GetIsolateHash(ctx context.Context, pool, isolateDep string) (string, error) {
 	isolateClient := *GetIsolateClient(pool)
 	isolateTask := &isolate.Task{
 		BaseDir:     path.Join(*resourcesDir, "isolates"),
 		Blacklist:   []string{},
 		IsolateFile: path.Join(*resourcesDir, "isolates", "leasing.isolate"),
-		OsType:      osType,
 	}
 	if isolateDep != "" {
 		isolateTask.Deps = []string{isolateDep}
@@ -231,7 +230,9 @@ func GetSwarmingTaskMetadata(pool, taskId string) (*swarming_api.SwarmingRpcsTas
 func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId, serverURLstring, isolateHash string, isolateDetails *IsolateDetails) (string, error) {
 	dimsMap := map[string]string{
 		"pool": pool,
-		"os":   osType,
+	}
+	if osType != "" {
+		dimsMap["os"] = osType
 	}
 	if deviceType != "" {
 		dimsMap["device_type"] = deviceType

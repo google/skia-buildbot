@@ -387,7 +387,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Error putting task in datastore: %v", err))
 		return
 	}
-	isolateHash, err := GetIsolateHash(ctx, task.SwarmingPool, task.OsType, isolateDetails.IsolateDep)
+	isolateHash, err := GetIsolateHash(ctx, task.SwarmingPool, isolateDetails.IsolateDep)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Error when getting isolate hash: %v", err))
 		return
