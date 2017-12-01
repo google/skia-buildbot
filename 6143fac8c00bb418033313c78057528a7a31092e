@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "686c065a_63c19f5e",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T14:46:23Z",
+      "side": 1,
+      "message": "The most-correct thing would probably be to use the actual account associated with the specific autoroller.  We\u0027d need to add a lot of credentials to metadata though.  Would you prefer that I created an autoroll@skia.org account before landing this CL?",
+      "parentUuid": "4915b0ec_95e87815",
+      "range": {
+        "startLine": 30,
+        "startChar": 23,
+        "endLine": 30,
+        "endChar": 34
+      },
+      "revId": "6143fac8c00bb418033313c78057528a7a31092e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "db8da1d6_860e1dda",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 1
@@ -53,6 +77,30 @@
       "writtenOn": "2017-11-30T16:25:30Z",
       "side": 1,
       "message": "Can use SendWithMarkup here instead to use the gmail smart actions markup. You can add a link there that goes directly to the autoroller. It\u0027s cool.",
+      "range": {
+        "startLine": 256,
+        "startChar": 10,
+        "endLine": 256,
+        "endChar": 19
+      },
+      "revId": "6143fac8c00bb418033313c78057528a7a31092e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c221bcfc_888523dc",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T14:46:23Z",
+      "side": 1,
+      "message": "Nice!  Done, I think.",
+      "parentUuid": "db8da1d6_860e1dda",
       "range": {
         "startLine": 256,
         "startChar": 10,
@@ -85,6 +133,30 @@
       "revId": "6143fac8c00bb418033313c78057528a7a31092e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa5e8cee_6208dc9b",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-01T14:46:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dd2ab9a6_eed6d8a2",
+      "range": {
+        "startLine": 259,
+        "startChar": 84,
+        "endLine": 259,
+        "endChar": 121
+      },
+      "revId": "6143fac8c00bb418033313c78057528a7a31092e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
