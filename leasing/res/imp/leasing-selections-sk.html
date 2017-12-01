@@ -52,6 +52,9 @@
     .step-title {
       padding-top: 2em;
     }
+    .smaller-font {
+      font-size: 80%;
+    }
     paper-dropdown-menu, paper-listbox {
       width: 350px;
     }
@@ -131,6 +134,7 @@
         <td class="step-title">Specify BotId (optional)</td>
         <td>
           <paper-input value="{{botId}}" disabled="[[loadingDetails]]"></paper-input>
+          <span class="smaller-font">Note: OS Type and Device Type are ignored if this is populated</span>
         </td>
       </tr>
 
@@ -228,15 +232,17 @@
 
     addTask: function() {
       var params = {};
-      params["pool"] = this.pool;
-      params["osType"] = this.$.os_listbox.selectedItem.value;
-      if (this.$.device_listbox.selectedItem) {
-        params["deviceType"] = this.$.device_listbox.selectedItem.value;
+      params.pool = this.pool;
+      params.botId = this.botId;
+      if (!this.botId) {
+        params.osType = this.$.os_listbox.selectedItem.value;
+        if (this.$.device_listbox.selectedItem) {
+          params.deviceType = this.$.device_listbox.selectedItem.value;
+        }
       }
-      params["botId"] = this.botId;
-      params["taskIdForIsolates"] = this.taskIdForIsolates;
-      params["duration"] = this.duration;
-      params["description"] = this.desc;
+      params.taskIdForIsolates = this.taskIdForIsolates;
+      params.duration = this.duration;
+      params.description = this.desc;
 
       sk.post("/_/add_leasing_task", JSON.stringify(params)).then(function(resp) {
         window.location.href = "/my_leases";
