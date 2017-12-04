@@ -1,0 +1,14 @@
+{
+  'includes': [
+    'infrabots.isolate',
+  ],
+  'variables': {
+    'command': [
+      '/bin/bash', 'bundle_recipes.sh',
+    ],
+    'files': [
+      '../../../.gclient',
+      '../config/recipes.cfg',
+    ],
+  },
+}

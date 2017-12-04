@@ -75,7 +75,7 @@ def git_checkout(api, url, dest, ref=None):
 
   # Hack the patch_ref. Yay Python!
   if api.bot_update._issue and api.bot_update._patchset:
-    api.bot_update._gerrit_ref = 'refs/changes/%s/%d/%d' % (
+    api.bot_update._gerrit_ref = 'refs/changes/%s/%s/%s' % (
         str(api.bot_update._issue)[-2:],
         api.bot_update._issue,
         api.bot_update._patchset,
@@ -132,6 +132,7 @@ def RunSteps(api):
       ]),
   }
   with api.context(cwd=infra_dir, env=env):
+    api.step(str(go_bin), cmd=['ls', go_bin])
     api.step('which go', cmd=['which', 'go'])
     api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'])
 
