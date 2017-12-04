@@ -54,6 +54,14 @@ func (e *Expectations) AddDigests(testDigests map[string]types.TestClassificatio
 	}
 }
 
+// Add a single test/digest and it's expected label.
+func (e *Expectations) Add(testName string, digest string, label types.Label) {
+	if _, ok := e.Tests[testName]; !ok {
+		e.Tests[testName] = map[string]types.Label{}
+	}
+	e.Tests[testName][digest] = label
+}
+
 // RemoveDigests removes the given digests from the expectations.
 // The key in the input is the test name.
 func (e *Expectations) RemoveDigests(digests map[string][]string) {

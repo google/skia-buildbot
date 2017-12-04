@@ -348,7 +348,15 @@ func SignInt(v int) int {
 
 // Returns the current time in milliseconds since the epoch.
 func TimeStampMs() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return TimeStamp(time.Millisecond)
+}
+
+// Returns the current time in the units defined by the given target unit.
+// e.g. TimeStamp(time.Millisecond) will return the time in Milliseconds.
+// The result is always rounded down to the lowest integer from the
+// representation in nano seconds.
+func TimeStamp(targetUnit time.Duration) int64 {
+	return time.Now().UnixNano() / int64(targetUnit)
 }
 
 // Generate a 16-byte random ID.
