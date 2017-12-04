@@ -21,7 +21,7 @@ import (
 
 const (
 	// Compute Engine project ID.
-	PROJECT_ID = "google.com:skia-buildbots"
+	PROJECT_ID = sklog.PROJECT_ID
 
 	REPO_CHROMIUM           = "https://chromium.googlesource.com/chromium/src.git"
 	REPO_DEPOT_TOOLS        = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"

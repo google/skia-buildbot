@@ -29,7 +29,10 @@
       left: 0;
     }
     </style>
-    <app-sk id="app" class="fit" no_drawer>
+    <app-sk id="app" class="fit">
+      <div navigation>
+        <menu-item-sk label="Logs" url="/logs" icon="icons:find-in-page"></menu-item-sk>
+      </div>
       <h1 toolbar>{{.ProjectName}} AutoRoll Bot</h1>
       <arb-status-sk></arb-status-sk>
     </app-sk>
