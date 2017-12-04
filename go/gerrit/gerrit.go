@@ -28,6 +28,7 @@ import (
 
 var (
 	ErrCookiesMissing = errors.New("Cannot make authenticated post calls without a valid .gitcookies file")
+	ErrNotFound       = errors.New("Requested item was not found")
 )
 
 const (
@@ -257,7 +258,7 @@ func (g *Gerrit) GetUserEmail() (string, error) {
 	g.TurnOnAuthenticatedGets()
 	url := "/accounts/self/detail"
 	var account AccountDetails
-	if err := g.get(url, &account); err != nil {
+	if err := g.get(url, &account, nil); err != nil {
 		return "", fmt.Errorf("Failed to retrieve user: %s", err)
 	}
 	return account.Email, nil
@@ -315,7 +316,7 @@ func fixupChangeInfo(ci *ChangeInfo) *ChangeInfo {
 func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 	url := fmt.Sprintf(URL_TMPL_CHANGE, issue)
 	fullIssue := &ChangeInfo{}
-	if err := g.get(url, fullIssue); err != nil {
+	if err := g.get(url, fullIssue, ErrNotFound); err != nil {
 		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
 	}
 	return fixupChangeInfo(fullIssue), nil
@@ -441,7 +442,10 @@ func (g *Gerrit) addAuthenticationCookie(req *http.Request) error {
 	return nil
 }
 
-func (g *Gerrit) get(suburl string, rv interface{}) error {
+// get retrieves the given sub URL and populates 'rv' with the result.
+// If notFoundError is not nil it will be returned if the requested item doesn't
+// exist.
+func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
 	getURL := g.url + suburl
 	if g.useAuthenticatedGets {
 		getURL = g.url + "/a" + suburl
@@ -462,6 +466,9 @@ func (g *Gerrit) get(suburl string, rv interface{}) error {
 		return fmt.Errorf("Failed to GET %s: %s", getURL, err)
 	}
 	if resp.StatusCode == 404 {
+		if notFoundError != nil {
+			return notFoundError
+		}
 		return fmt.Errorf("Issue not found: %s", getURL)
 	}
 	if resp.StatusCode >= 400 {
@@ -615,7 +622,7 @@ func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-related-changes
 func (g *Gerrit) GetDependencies(changeNum int64, revision int) ([]*RelatedChangeAndCommitInfo, error) {
 	data := RelatedChangesInfo{}
-	err := g.get(fmt.Sprintf("/changes/%d/revisions/%d/related", changeNum, revision), &data)
+	err := g.get(fmt.Sprintf("/changes/%d/revisions/%d/related", changeNum, revision), &data, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -661,7 +668,7 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 		q.Add("n", strconv.Itoa(queryLimit))
 		q.Add("S", strconv.Itoa(skip))
 		searchUrl := "/changes/?" + q.Encode()
-		err := g.get(searchUrl, &data)
+		err := g.get(searchUrl, &data, nil)
 		if err != nil {
 			return nil, fmt.Errorf("Gerrit search failed: %v", err)
 		}
