@@ -616,6 +616,7 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
+	sklog.AddLogsRedirect(r)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))

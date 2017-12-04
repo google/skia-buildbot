@@ -551,6 +551,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
+	sklog.AddLogsRedirect(r)
 	swarming.RegisterPubSubServer(ts, r)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))

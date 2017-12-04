@@ -7,11 +7,13 @@ package sklog
 
 import (
 	"fmt"
+	"net/http"
 	"runtime"
 	"runtime/debug"
 	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 )
 
@@ -24,6 +26,13 @@ const (
 	ERROR    = "ERROR"
 	CRITICAL = "CRITICAL"
 	ALERT    = "ALERT"
+
+	// Template used to build log links.
+	LOG_LINK_TMPL = "https://console.cloud.google.com/logs/viewer?project=%s&minLogLevel=200&expandAll=false&resource=logging_log%%2Fname%%2F%s&logName=projects%%2F%s%%2Flogs%%2F%s"
+
+	// PROJECT_ID is defined here instead of in go/common to prevent an
+	// import cycle.
+	PROJECT_ID = "google.com:skia-buildbots"
 )
 
 type MetricsCallback func(severity string)
@@ -32,8 +41,12 @@ var (
 	// The module-level logger.  If this is nil, we will just log using glog.
 	logger CloudLogger
 
-	// The module-level default report name.  See cloud_logging.go for more information.
+	// The module-level default report name, set in PreInitCloudLogging.
+	// See cloud_logging.go for more information.
 	defaultReportName string
+
+	// The module-level log grouping name, set in PreInitCloudLogging.
+	logGroupingName string
 
 	// used to report metrics about logs seen so we can alert if many ERRORs are seen, for example.
 	// This is set up to break a dependency cycle, such that sklog does not depend on metrics2.
@@ -287,4 +300,17 @@ func CallStack(height, startAt int) []StackTrace {
 		stack = append(stack, StackTrace{File: file, Line: line})
 	}
 	return stack
+}
+
+// LogLink returns a link to the logs for this process.
+func LogLink() string {
+	return fmt.Sprintf(LOG_LINK_TMPL, PROJECT_ID, logGroupingName, PROJECT_ID, defaultReportName)
+}
+
+// AddLogsRedirect adds an endpoint which redirects to the GCloud log page for
+// this process at /logs.
+func AddLogsRedirect(r *mux.Router) {
+	r.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, LogLink(), http.StatusMovedPermanently)
+	})
 }
