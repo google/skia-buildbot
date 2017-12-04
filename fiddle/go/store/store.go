@@ -358,15 +358,15 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 
 	offscreen_width, err := strconv.Atoi(attr.Metadata[OFFSCREEN_WIDTH_METADATA])
 	if err != nil {
-		return "", nil, fmt.Errorf("Failed to parse options offscreen width: %s", err)
+		offscreen_width = 0
 	}
 	offscreen_height, err := strconv.Atoi(attr.Metadata[OFFSCREEN_HEIGHT_METADATA])
 	if err != nil {
-		return "", nil, fmt.Errorf("Failed to parse options offscreen height: %s", err)
+		offscreen_height = 0
 	}
 	offscreen_sample_count, err := strconv.Atoi(attr.Metadata[OFFSCREEN_SAMPLE_COUNT_METADATA])
 	if err != nil {
-		return "", nil, fmt.Errorf("Failed to parse options offscreen sample count: %s", err)
+		offscreen_sample_count = 0
 	}
 	options := &types.Options{
 		Width:                width,
