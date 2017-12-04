@@ -22,6 +22,7 @@ services/bugdroid/bugdroid_log.txt
 .project
 .pydevproject
 **/client_secret.json
+**/client_secret_swarming.json
 **/client_secret_skia-buildbots.json
 **/client_secret_skia-swarming-bots.json
 **/service-account.json
