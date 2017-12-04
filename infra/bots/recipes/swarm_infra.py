@@ -64,7 +64,8 @@ def git_checkout(api, url, dest, ref=None):
   # Run bot_update, just to apply patches.
   cfg_kwargs = {'CACHE_DIR': '/b/cache'}
   gclient_cfg = api.gclient.make_config(**cfg_kwargs)
-  dirname = api.path['start_dir'].join('gopath', 'src', 'go.skia.org')
+  start_dir = api.path['start_dir'].join('..', '..', '..')
+  dirname = start_dir.join('gopath', 'src', 'go.skia.org')
   basename = 'infra'
   sln = gclient_cfg.solutions.add()
   sln.name = basename
@@ -75,7 +76,7 @@ def git_checkout(api, url, dest, ref=None):
 
   # Hack the patch_ref. Yay Python!
   if api.bot_update._issue and api.bot_update._patchset:
-    api.bot_update._gerrit_ref = 'refs/changes/%s/%d/%d' % (
+    api.bot_update._gerrit_ref = 'refs/changes/%s/%s/%s' % (
         str(api.bot_update._issue)[-2:],
         api.bot_update._issue,
         api.bot_update._patchset,
@@ -102,13 +103,14 @@ def RunSteps(api):
   # provided by default. We have to set them manually.
   api.path.c.base_paths['depot_tools'] = (
       api.path.c.base_paths['start_dir'] +
-      ('buildbot', 'infra', 'bots', '.recipe_deps', 'depot_tools'))
+      ('.recipe_deps', 'depot_tools'))
 
-  go_dir = api.path['start_dir'].join('gopath')
+  start_dir = api.path['start_dir'].join('..', '..', '..')
+  go_dir = start_dir.join('gopath')
   go_src = go_dir.join('src')
   api.file.ensure_directory('makedirs go/src', go_src)
   infra_dir = go_src.join(INFRA_GO)
-  go_root = api.path['start_dir'].join('go', 'go')
+  go_root = start_dir.join('go', 'go')
   go_bin = go_root.join('bin')
 
   # Check out the infra repo.
@@ -127,7 +129,7 @@ def RunSteps(api):
       'PATH': api.path.pathsep.join([
           str(go_bin),
           str(go_dir.join('bin')),
-          str(api.path['start_dir'].join('protoc', 'bin')),
+          str(start_dir.join('protoc', 'bin')),
           '%(PATH)s',
       ]),
   }
@@ -204,7 +206,7 @@ def RunSteps(api):
 def GenTests(api):
   yield (
       api.test('Infra-PerCommit') +
-      api.path.exists(api.path['start_dir'].join('gopath', 'src', INFRA_GO,
+      api.path.exists(api.path['start_dir'].join('..', '..', '..', 'gopath', 'src', INFRA_GO,
                                                  '.git')) +
       api.properties(buildername='Infra-PerCommit-Small',
                      slavename='skiabot-linux-infra-001',
