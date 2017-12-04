@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cbf27bf8_1eae297e",
+        "filename": "go/buildbucket/buildbucket.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-04T20:17:08Z",
+      "side": 1,
+      "message": "What\u0027s up with that ?",
+      "range": {
+        "startLine": 269,
+        "startChar": 1,
+        "endLine": 269,
+        "endChar": 29
+      },
+      "revId": "ee97ba634a9e00b4eb593e5ef56a44f03031466b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
