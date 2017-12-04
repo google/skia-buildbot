@@ -16,6 +16,24 @@
       "revId": "9b98854f227389c100541f8263e48b52824675e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1c0b830_9dbbc6cc",
+        "filename": "scripts/bots_failing_in_reverted_cls/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2017-12-04T15:49:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9665324_c06ec179",
+      "revId": "9b98854f227389c100541f8263e48b52824675e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
