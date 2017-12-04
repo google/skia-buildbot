@@ -96,6 +96,7 @@ func PreInitCloudLogging(logGrouping, defaultReport string) error {
 		},
 	}
 	defaultReportName = defaultReport
+	logGroupingName = logGrouping
 	logger = newLogsClient(nil, hostname, r)
 	return nil
 }
