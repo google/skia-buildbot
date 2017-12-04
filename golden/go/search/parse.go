@@ -215,7 +215,7 @@ func ParseQuery(r *http.Request, query *Query) error {
 
 	validate := Validation{}
 
-	// Parse the query strings.
+	// Parse the left and right query strings.
 	validate.QueryFormValue(r, "query", &query.Query)
 	validate.QueryFormValue(r, "rquery", &query.RQuery)
 
@@ -235,12 +235,24 @@ func ParseQuery(r *http.Request, query *Query) error {
 		return err
 	}
 
+	// Blame query.
 	query.BlameGroupID = r.FormValue("blame")
+
+	// Left hand side query.
 	query.Pos = r.FormValue("pos") == "true"
 	query.Neg = r.FormValue("neg") == "true"
 	query.Unt = r.FormValue("unt") == "true"
 	query.Head = r.FormValue("head") == "true"
 	query.IncludeIgnores = r.FormValue("include") == "true"
+
+	// Right hand side query flags.
+	query.RPos = r.FormValue("rpos") == "true"
+	query.RNeg = r.FormValue("rneg") == "true"
+	query.RUnt = r.FormValue("runt") == "true"
+	query.RHead = r.FormValue("rhead") == "true"
+	query.RIncludeIgnores = r.FormValue("rinclude") == "true"
+
+	// Trybot related queries.
 	query.Issue = r.FormValue("issue")
 	query.IncludeMaster = r.FormValue("master") == "true"
 

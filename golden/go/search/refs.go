@@ -49,15 +49,15 @@ func NewRefDiffer(exp *expstorage.Expectations, diffStore diff.DiffStore, idx *i
 // metric. 'match' is the list of parameters that need to match between
 // the digests that are compared, i.e. this allows to restrict comparison
 // of gamma correct images to other digests that are also gamma correct.
-func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest string, params paramtools.ParamSet, includeIgnores bool) (string, map[string]*SRDiffDigest) {
+func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest string, params paramtools.ParamSet, includeIgnores bool, rhsDigests util.StringSet) (string, map[string]*SRDiffDigest) {
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
 		return "", nil
 	}
 
 	paramsByDigest := r.idx.GetParamsetSummaryByTest(false)[test]
-	posDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, types.POSITIVE)
-	negDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, types.NEGATIVE)
+	posDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsDigests, types.POSITIVE)
+	negDigests := r.getDigestsWithLabel(test, match, params, paramsByDigest, unavailableDigests, rhsDigests, types.NEGATIVE)
 
 	ret := make(map[string]*SRDiffDigest, 3)
 	ret[REF_CLOSEST_POSTIVE] = r.getClosestDiff(metric, digest, posDigests)
@@ -90,10 +90,17 @@ func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest stri
 // getDigestsWithLabel return all digests within the given test that
 // have the given label assigned to them and where the parameters
 // listed in 'match' match.
-func (r *RefDiffer) getDigestsWithLabel(test string, match []string, params paramtools.ParamSet, paramsByDigest map[string]paramtools.ParamSet, unavailable map[string]*diff.DigestFailure, targetLabel types.Label) []string {
+func (r *RefDiffer) getDigestsWithLabel(test string, match []string, params paramtools.ParamSet, paramsByDigest map[string]paramtools.ParamSet, unavailable map[string]*diff.DigestFailure, rhsDigests util.StringSet, targetLabel types.Label) []string {
 	ret := []string{}
 	for d, digestParams := range paramsByDigest {
-		if _, ok := unavailable[d]; !ok && (r.exp.Classification(test, d) == targetLabel) && paramSetsMatch(match, params, digestParams) {
+		// Accept all digests that are: available, in the set of allowed digests
+		//                              match the target label and where the required
+		//                              parameter fields match.
+		_, ok := unavailable[d]
+		if !ok &&
+			((rhsDigests == nil) || (rhsDigests[d])) &&
+			(r.exp.Classification(test, d) == targetLabel) &&
+			paramSetsMatch(match, params, digestParams) {
 			ret = append(ret, d)
 		}
 	}

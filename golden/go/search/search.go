@@ -115,19 +115,19 @@ const (
 // Query is the query that Search understands.
 type Query struct {
 	// Diff metric to use.
-	Metric string   `json:"metric"`
-	Sort   string   `json:"sort"`
-	Match  []string `json:"match"`
+	Metric string   `json:"metric"` // g
+	Sort   string   `json:"sort"`   // g
+	Match  []string `json:"match"`  // g
 
 	// Blaming
-	BlameGroupID string `json:"blame"`
+	BlameGroupID string `json:"blame"` // g
 
 	// Image classification
-	Pos            bool `json:"pos"`
-	Neg            bool `json:"neg"`
-	Head           bool `json:"head"`
-	Unt            bool `json:"unt"`
-	IncludeIgnores bool `json:"include"`
+	Pos            bool `json:"pos"`     // left
+	Neg            bool `json:"neg"`     // left
+	Head           bool `json:"head"`    // left
+	Unt            bool `json:"unt"`     // left
+	IncludeIgnores bool `json:"include"` // left
 
 	// URL encoded query string
 	QueryStr string     `json:"query"`
@@ -136,6 +136,12 @@ type Query struct {
 	// URL encoded query string to select the right hand side of comparisons.
 	RQueryStr string     `json:"rquery"`
 	RQuery    url.Values `json:"-"`
+
+	RPos            bool `json:"rpos"`
+	RNeg            bool `json:"rneg"`
+	RHead           bool `json:"rhead"`
+	RUnt            bool `json:"runt"`
+	RIncludeIgnores bool `json:"rinclude"`
 
 	// Trybot support.
 	Issue         string   `json:"issue"`
