@@ -1,0 +1,405 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "59379446_735369c1",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Why do we need to import for side-effects?  Consider leaving a comment",
+      "range": {
+        "startLine": 15,
+        "startChar": 1,
+        "endLine": 15,
+        "endChar": 2
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a5c9a73_204fe002",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "unneeded?",
+      "range": {
+        "startLine": 35,
+        "startChar": 29,
+        "endLine": 35,
+        "endChar": 43
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45e2f147_2e3a9f5e",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Won\u0027t this potentially return error?",
+      "range": {
+        "startLine": 68,
+        "startChar": 1,
+        "endLine": 68,
+        "endChar": 12
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f0d63db_c81b1f4f",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "I don\u0027t quite follow these if trees.  how does returning nil,nil \"create a new issue\"?",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f095cd5_202382b9",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Isn\u0027t the only reason this could be true is if line 178 is error?  Can we move this return up there then?",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6658adbf_be8bd37a",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Function needs a comment, possibly explaining why we ignore builds and/or giving an example",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "419e5056_0a0e77f2",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Function needs a comment",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32884445_a46a2b4e",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Consider naming this group e.g. (?p\u003cpatchset\u003e.+) if it adds value in explaining what you are extracting or if the regex will ever get more complicated",
+      "range": {
+        "startLine": 273,
+        "startChar": 79,
+        "endLine": 273,
+        "endChar": 80
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39e96359_51edd6a2",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "function needs a comment",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8682a0c6_65e26ebb",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Perhaps consider mocking out the TryjobStore using testify/mock - that may make for a simpler test setup.",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94957f2c_40337220",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "ubernit: its",
+      "range": {
+        "startLine": 57,
+        "startChar": 32,
+        "endLine": 57,
+        "endChar": 36
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fb9417c_bc2496e8",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "ubernit: Add to me invokes feelings of appending to a list, where here it seems to be setting a value.  Perhaps rename this method to be a bit more clear on what is getting set or added.",
+      "range": {
+        "startLine": 58,
+        "startChar": 23,
+        "endLine": 58,
+        "endChar": 26
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "111ddbd6_a824fe4d",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "nit: status as a",
+      "range": {
+        "startLine": 36,
+        "startChar": 27,
+        "endLine": 36,
+        "endChar": 35
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6db71aa6_797b87a2",
+        "filename": "golden/go/tryjobstore/tryjob_types_test.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "intentionally omitting the d in second?",
+      "range": {
+        "startLine": 22,
+        "startChar": 1,
+        "endLine": 22,
+        "endChar": 8
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08b10a02_920336c7",
+        "filename": "golden/go/tryjobstore/tryjob_types_test.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "consider testutils.AssertDeepEqual(), especially because there\u0027s time involved.",
+      "range": {
+        "startLine": 40,
+        "startChar": 1,
+        "endLine": 40,
+        "endChar": 13
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5214f1a0_23dc6af3",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Is this defined somewhere, or empirically determined?",
+      "range": {
+        "startLine": 73,
+        "startChar": 61,
+        "endLine": 73,
+        "endChar": 73
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "279642ce_f23ded40",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "deleteable?",
+      "range": {
+        "startLine": 220,
+        "startChar": 2,
+        "endLine": 222,
+        "endChar": 4
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d74f765_9b4b5718",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Splitting this on 3 lines makes it a bit awkward for me to read.  Same in other places, e.g. line 500",
+      "range": {
+        "startLine": 390,
+        "startChar": 13,
+        "endLine": 392,
+        "endChar": 18
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e5a51bf_996ffd34",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-04T21:32:01Z",
+      "side": 1,
+      "message": "Needed?",
+      "range": {
+        "startLine": 504,
+        "startChar": 5,
+        "endLine": 504,
+        "endChar": 29
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
