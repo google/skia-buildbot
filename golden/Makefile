@@ -27,6 +27,10 @@ netdiff:
 sampler:
 	go install -v ./go/sampler
 
+.PHONY: b62
+b62:
+	go install -v ./go/b62
+
 .PHONY: packages
 packages:
 	go build -v ./go/...
@@ -34,7 +38,7 @@ packages:
 # This is the quick version triggered by the presubmit script.
 .PHONY: testgo
 testgo:
-	go test ./go/... -short
+	go test ./go/...
 
 .PHONY: bench
 bench:
