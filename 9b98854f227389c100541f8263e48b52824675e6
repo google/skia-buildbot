@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9665324_c06ec179",
+        "filename": "scripts/bots_failing_in_reverted_cls/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-04T15:33:04Z",
+      "side": 1,
+      "message": "Nit: Maybe also mention that \"-All\" is removed",
+      "revId": "9b98854f227389c100541f8263e48b52824675e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
