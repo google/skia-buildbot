@@ -46,7 +46,8 @@
       <template is="dom-repeat" items="[[_ingested]]" as="commit">
         <h3>[[_header(commit.info, commit.info.*)]]</h3>
         <div class="combined" hidden$="[[!commit.combined.coverage]]">
-            Combined - [[commit.combined.coverage]]%
+            <a href="coverage?commit=[[commit.info.hash]]&job=Combined">Combined</a>
+             - [[commit.combined.coverage]]%
             ([[commit.combined.covered_lines]] / [[commit.combined.total_lines]] lines)
         </div>
         <template is="dom-repeat" items="[[commit.jobs]]" as="job">
