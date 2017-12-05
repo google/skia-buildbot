@@ -1,0 +1,9 @@
+indexes:
+
+- kind: ExpChange
+  ancestor: no
+  properties:
+  - name: IssueID
+  - name: OK
+  - name: TimeStamp
+    direction: asc
