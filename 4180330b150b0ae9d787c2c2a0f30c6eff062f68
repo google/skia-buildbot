@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e198b2af_97581898",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-05T19:34:54Z",
+      "side": 1,
+      "message": "nit: don\u0027t need to declare this here, right?",
+      "range": {
+        "startLine": 171,
+        "startChar": 1,
+        "endLine": 171,
+        "endChar": 14
+      },
+      "revId": "4180330b150b0ae9d787c2c2a0f30c6eff062f68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d354fc15_a088b43b",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-05T19:34:54Z",
+      "side": 1,
+      "message": "For example, BuildBucket can contain",
+      "range": {
+        "startLine": 251,
+        "startChar": 34,
+        "endLine": 251,
+        "endChar": 63
+      },
+      "revId": "4180330b150b0ae9d787c2c2a0f30c6eff062f68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
