@@ -168,8 +168,8 @@ func (b *BuildBucketState) updateTryjobState(params *tryjobstore.Parameters, try
 // return nil.
 func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *tryjobstore.IssueDetails) (*tryjobstore.IssueDetails, error) {
 	// If 'issue' is nil, we need to see if we can find it in Gerrit.
-	var err error
 	if issue == nil {
+		var err error
 		issue, err = b.fetchGerritIssue(issueID)
 		if err != nil {
 			// We didn't find the issue in Gerrit.
@@ -248,7 +248,7 @@ func (b *BuildBucketState) pollBuildBucket(buildsCh chan<- *bb_api.ApiCommonBuil
 }
 
 // ignoreBuild is the central place to determine whether a build from
-// BuildBucket should be ignored. BuildBucket can contain e.g. build jobs
+// BuildBucket should be ignored. For example, BuildBucket can contain build jobs
 // that produce no test output.
 func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
 	return !strings.HasPrefix(params.BuilderName, TestBuilderPrefix)
