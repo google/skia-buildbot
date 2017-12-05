@@ -23,20 +23,21 @@ import (
 
 const (
 	// Swarming tags added by Task Scheduler.
-	SWARMING_TAG_ATTEMPT          = "sk_attempt"
-	SWARMING_TAG_DIMENSION_PREFIX = "sk_dim_"
-	SWARMING_TAG_FORCED_JOB_ID    = "sk_forced_job_id"
-	SWARMING_TAG_ID               = "sk_id"
-	SWARMING_TAG_ISSUE            = "sk_issue"
-	SWARMING_TAG_LUCI_PROJECT     = "luci_project"
-	SWARMING_TAG_NAME             = "sk_name"
-	SWARMING_TAG_PARENT_TASK_ID   = "sk_parent_task_id"
-	SWARMING_TAG_PATCHSET         = "sk_patchset"
-	SWARMING_TAG_PRIORITY         = "sk_priority"
-	SWARMING_TAG_REPO             = "sk_repo"
-	SWARMING_TAG_RETRY_OF         = "sk_retry_of"
-	SWARMING_TAG_REVISION         = "sk_revision"
-	SWARMING_TAG_SERVER           = "sk_issue_server"
+	SWARMING_TAG_ATTEMPT           = "sk_attempt"
+	SWARMING_TAG_DIMENSION_PREFIX  = "sk_dim_"
+	SWARMING_TAG_FORCED_JOB_ID     = "sk_forced_job_id"
+	SWARMING_TAG_ID                = "sk_id"
+	SWARMING_TAG_ISSUE             = "sk_issue"
+	SWARMING_TAG_LUCI_LOG_LOCATION = "log_location"
+	SWARMING_TAG_LUCI_PROJECT      = "luci_project"
+	SWARMING_TAG_NAME              = "sk_name"
+	SWARMING_TAG_PARENT_TASK_ID    = "sk_parent_task_id"
+	SWARMING_TAG_PATCHSET          = "sk_patchset"
+	SWARMING_TAG_PRIORITY          = "sk_priority"
+	SWARMING_TAG_REPO              = "sk_repo"
+	SWARMING_TAG_RETRY_OF          = "sk_retry_of"
+	SWARMING_TAG_REVISION          = "sk_revision"
+	SWARMING_TAG_SERVER            = "sk_issue_server"
 
 	// These two tags allow the swarming ui to point to the GoB repo
 	SWARMING_TAG_SOURCE_REVISION = "source_revision"
@@ -617,20 +618,26 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 	}
 }
 
+// GetLuciLogDogUrl returns the LogDog URL for a task.
+func GetLuciLogDogUrl(repo, taskId string) string {
+	return fmt.Sprintf("logdog://logs.chromium.org/%s/%s/+/annotations", common.REPO_PROJECT_MAPPING[repo], taskId)
+}
+
 // TagsForTask returns the tags which should be set for a Task.
 func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string) []string {
 	tags := map[string]string{
-		SWARMING_TAG_ATTEMPT:         fmt.Sprintf("%d", attempt),
-		SWARMING_TAG_FORCED_JOB_ID:   forcedJobId,
-		SWARMING_TAG_NAME:            name,
-		SWARMING_TAG_ID:              id,
-		SWARMING_TAG_LUCI_PROJECT:    common.REPO_PROJECT_MAPPING[rs.Repo],
-		SWARMING_TAG_PRIORITY:        fmt.Sprintf("%f", priority),
-		SWARMING_TAG_REPO:            rs.Repo,
-		SWARMING_TAG_RETRY_OF:        retryOf,
-		SWARMING_TAG_REVISION:        rs.Revision,
-		SWARMING_TAG_SOURCE_REVISION: rs.Revision,
-		SWARMING_TAG_SOURCE_REPO:     rs.Repo + "/+/%s",
+		SWARMING_TAG_ATTEMPT:           fmt.Sprintf("%d", attempt),
+		SWARMING_TAG_FORCED_JOB_ID:     forcedJobId,
+		SWARMING_TAG_NAME:              name,
+		SWARMING_TAG_ID:                id,
+		SWARMING_TAG_LUCI_LOG_LOCATION: GetLuciLogDogUrl(rs.Repo, id),
+		SWARMING_TAG_LUCI_PROJECT:      common.REPO_PROJECT_MAPPING[rs.Repo],
+		SWARMING_TAG_PRIORITY:          fmt.Sprintf("%f", priority),
+		SWARMING_TAG_REPO:              rs.Repo,
+		SWARMING_TAG_RETRY_OF:          retryOf,
+		SWARMING_TAG_REVISION:          rs.Revision,
+		SWARMING_TAG_SOURCE_REVISION:   rs.Revision,
+		SWARMING_TAG_SOURCE_REPO:       rs.Repo + "/+/%s",
 	}
 	if rs.IsTryJob() {
 		tags[SWARMING_TAG_SERVER] = rs.Server

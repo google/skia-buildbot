@@ -151,6 +151,7 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 		specs.VARIABLE_CODEREVIEW_SERVER:    c.Server,
 		specs.VARIABLE_ISSUE:                c.Issue,
 		specs.VARIABLE_ISSUE_SHORT:          issueShort,
+		specs.VARIABLE_LUCI_LOGDOG_URL:      db.GetLuciLogDogUrl(c.Repo, taskId),
 		specs.VARIABLE_PATCH_REPO:           c.PatchRepo,
 		specs.VARIABLE_PATCH_STORAGE:        getPatchStorage(c.Server),
 		specs.VARIABLE_PATCHSET:             c.Patchset,
