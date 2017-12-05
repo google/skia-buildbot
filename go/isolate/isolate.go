@@ -215,12 +215,12 @@ func (f *isolateFile) Encode(w io.Writer) error {
 
 // isolatedFile is a struct representing the contents of a .isolated file.
 type isolatedFile struct {
-	Algo        string                 `json:"algo"`
-	Command     []string               `json:"command"`
-	Files       map[string]interface{} `json:"files"`
-	Includes    []string               `json:"includes"`
-	RelativeCwd string                 `json:"relative_cwd"`
-	Version     string                 `json:"version"`
+	Algo        string                 `json:"algo,omitempty"`
+	Command     []string               `json:"command,omitempty"`
+	Files       map[string]interface{} `json:"files,omitempty"`
+	Includes    []string               `json:"includes,omitempty"`
+	RelativeCwd string                 `json:"relative_cwd,omitempty"`
+	Version     string                 `json:"version,omitempty"`
 }
 
 // readIsolatedFile reads the given isolated file.
