@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1e822cba_35e92c11",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "59379446_735369c1",
+      "range": {
+        "startLine": 15,
+        "startChar": 1,
+        "endLine": 15,
+        "endChar": 2
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a5c9a73_204fe002",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 29
@@ -45,6 +69,30 @@
       "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1683da3_e2bb18db",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a5c9a73_204fe002",
+      "range": {
+        "startLine": 35,
+        "startChar": 29,
+        "endLine": 35,
+        "endChar": 43
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "bbd38743_ecbe4f94",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "45e2f147_2e3a9f5e",
+      "range": {
+        "startLine": 68,
+        "startChar": 1,
+        "endLine": 68,
+        "endChar": 12
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f0d63db_c81b1f4f",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 29
@@ -85,6 +157,24 @@
       "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23ffad98_aab5e955",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done\nI updated the comments to be clearer. By \u0027create a new one\u0027 I meant that it fetches the issue from Gerrit and adds it to the TryjobStore.",
+      "parentUuid": "3f0d63db_c81b1f4f",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "f51c17de_2492cfdb",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done\nI move the error handling closer to where the actual error happens and made it \nclearer what operation (fetch, update) caused the error. \nThe logic should be simpler now.",
+      "parentUuid": "8f095cd5_202382b9",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6658adbf_be8bd37a",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 29
@@ -122,6 +230,24 @@
     },
     {
       "key": {
+        "uuid": "5dd3105a_af7abcd2",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6658adbf_be8bd37a",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "419e5056_0a0e77f2",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 29
@@ -136,6 +262,24 @@
       "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "255a9de9_2da74903",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "419e5056_0a0e77f2",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -162,6 +306,30 @@
     },
     {
       "key": {
+        "uuid": "11e00ff2_c57cf8e8",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32884445_a46a2b4e",
+      "range": {
+        "startLine": 273,
+        "startChar": 79,
+        "endLine": 273,
+        "endChar": 80
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "39e96359_51edd6a2",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 29
@@ -179,6 +347,24 @@
     },
     {
       "key": {
+        "uuid": "8f498f9a_aabbae6f",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39e96359_51edd6a2",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8682a0c6_65e26ebb",
         "filename": "golden/go/bbstate/bbstate_test.go",
         "patchSetId": 29
@@ -190,6 +376,24 @@
       "writtenOn": "2017-12-04T21:32:01Z",
       "side": 1,
       "message": "Perhaps consider mocking out the TryjobStore using testify/mock - that may make for a simpler test setup.",
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88a39a03_c89e3e65",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Agreed. I will consider that in the solution. I also have a memory base implementation, which amounts to a mock.",
+      "parentUuid": "8682a0c6_65e26ebb",
       "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -219,6 +423,30 @@
     },
     {
       "key": {
+        "uuid": "e0728a91_5e7d6e77",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "94957f2c_40337220",
+      "range": {
+        "startLine": 57,
+        "startChar": 32,
+        "endLine": 57,
+        "endChar": 36
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4fb9417c_bc2496e8",
         "filename": "golden/go/expstorage/expstorage.go",
         "patchSetId": 29
@@ -239,6 +467,30 @@
       "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7e7c300_e22287eb",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4fb9417c_bc2496e8",
+      "range": {
+        "startLine": 58,
+        "startChar": 23,
+        "endLine": 58,
+        "endChar": 26
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -265,6 +517,30 @@
     },
     {
       "key": {
+        "uuid": "3d3fda96_c97b40d0",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "111ddbd6_a824fe4d",
+      "range": {
+        "startLine": 36,
+        "startChar": 27,
+        "endLine": 36,
+        "endChar": 35
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6db71aa6_797b87a2",
         "filename": "golden/go/tryjobstore/tryjob_types_test.go",
         "patchSetId": 29
@@ -276,6 +552,30 @@
       "writtenOn": "2017-12-04T21:32:01Z",
       "side": 1,
       "message": "intentionally omitting the d in second?",
+      "range": {
+        "startLine": 22,
+        "startChar": 1,
+        "endLine": 22,
+        "endChar": 8
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b0df5c6_a9cff66a",
+        "filename": "golden/go/tryjobstore/tryjob_types_test.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Yes, It helped that both variable names were the same length. They line up better.",
+      "parentUuid": "6db71aa6_797b87a2",
       "range": {
         "startLine": 22,
         "startChar": 1,
@@ -311,6 +611,30 @@
     },
     {
       "key": {
+        "uuid": "ff17301a_9045e059",
+        "filename": "golden/go/tryjobstore/tryjob_types_test.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "08b10a02_920336c7",
+      "range": {
+        "startLine": 40,
+        "startChar": 1,
+        "endLine": 40,
+        "endChar": 13
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5214f1a0_23dc6af3",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 29
@@ -322,6 +646,30 @@
       "writtenOn": "2017-12-04T21:32:01Z",
       "side": 1,
       "message": "Is this defined somewhere, or empirically determined?",
+      "range": {
+        "startLine": 73,
+        "startChar": 61,
+        "endLine": 73,
+        "endChar": 73
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "547c4c49_8ebd2876",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Added a comment to make this clearer. It\u0027s based on a very rough estimate of resulting transaction sizes and there is a 500 batchsize limit. \nThis is still a bit in flux because I have used less transactions than initially anticipated. \nWill be tuned in the future.",
+      "parentUuid": "5214f1a0_23dc6af3",
       "range": {
         "startLine": 73,
         "startChar": 61,
@@ -357,6 +705,30 @@
     },
     {
       "key": {
+        "uuid": "0539b406_0741366e",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "279642ce_f23ded40",
+      "range": {
+        "startLine": 220,
+        "startChar": 2,
+        "endLine": 222,
+        "endChar": 4
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9d74f765_9b4b5718",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 29
@@ -368,6 +740,30 @@
       "writtenOn": "2017-12-04T21:32:01Z",
       "side": 1,
       "message": "Splitting this on 3 lines makes it a bit awkward for me to read.  Same in other places, e.g. line 500",
+      "range": {
+        "startLine": 390,
+        "startChar": 13,
+        "endLine": 392,
+        "endChar": 18
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87eec2dd_c20a21dd",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "I agree up to a certain point. I changed all NewQuery-chains that were of size \u003c\u003d 3 to a single line, but if a query chain is long, (see the getExpChangesForIssue function) it makes it more readable IMO to have the options vertically.",
+      "parentUuid": "9d74f765_9b4b5718",
       "range": {
         "startLine": 390,
         "startChar": 13,
@@ -400,6 +796,30 @@
       "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb8059b6_9b7646ca",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-05T17:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e5a51bf_996ffd34",
+      "range": {
+        "startLine": 504,
+        "startChar": 5,
+        "endLine": 504,
+        "endChar": 29
+      },
+      "revId": "832328004a8c026dfdc48ed417367ad733ec7a9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
