@@ -205,6 +205,11 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		}
 	}
 
+	cmd := make([]string, 0, len(c.TaskSpec.Command))
+	for _, arg := range c.TaskSpec.Command {
+		cmd = append(cmd, replaceVars(c, arg, id))
+	}
+
 	extraArgs := make([]string, 0, len(c.TaskSpec.ExtraArgs))
 	for _, arg := range c.TaskSpec.ExtraArgs {
 		extraArgs = append(extraArgs, replaceVars(c, arg, id))
@@ -228,6 +233,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		Priority:       int64(100.0 * c.TaskSpec.Priority),
 		Properties: &swarming_api.SwarmingRpcsTaskProperties{
 			CipdInput:            cipdInput,
+			Command:              cmd,
 			Dimensions:           dims,
 			Env:                  env,
 			ExecutionTimeoutSecs: executionTimeoutSecs,

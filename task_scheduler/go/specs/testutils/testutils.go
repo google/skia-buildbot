@@ -30,9 +30,6 @@ func SetupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, st
 
 	// Commit 1.
 	gb.Add(ctx, "infra/bots/compile_skia.isolate", `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
   'variables': {
     'files': [
       '../../../.gclient',
@@ -67,6 +64,7 @@ func SetupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, st
         "path": "android_sdk",
         "version": "version:0"
       }],
+      "command": ["ninja", "skia"],
       "dimensions": ["pool:Skia", "os:Ubuntu"],
       "isolate": "compile_skia.isolate",
       "max_attempts": 5,

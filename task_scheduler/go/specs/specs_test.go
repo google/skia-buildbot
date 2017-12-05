@@ -37,6 +37,7 @@ func TestCopyTaskSpec(t *testing.T) {
 				Version: "23",
 			},
 		},
+		Command:      []string{"do", "something"},
 		Dependencies: []string{"coffee", "chocolate"},
 		Dimensions:   []string{"width:13", "height:17"},
 		Environment: map[string]string{
