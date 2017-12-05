@@ -56,7 +56,7 @@ func mockProcessingSteps() *db.MockCoverageCache {
 	unTar = func(ctx context.Context, tarpath, outpath string) error {
 		return nil
 	}
-	calculateCoverage = func(folders ...string) (common.CoverageSummary, error) {
+	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 		return common.CoverageSummary{}, nil
 	}
 	mcc := db.MockCoverageCache{}
@@ -77,7 +77,7 @@ func TestBlankIngestion(t *testing.T) {
 	ctx := context.Background()
 	mcc := mockProcessingSteps()
 
-	calculateCoverage = func(folders ...string) (common.CoverageSummary, error) {
+	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 		return common.CoverageSummary{TotalLines: 40, MissedLines: 7}, nil
 	}
 
@@ -154,7 +154,7 @@ func TestPartialIngestion(t *testing.T) {
 	ctx := context.Background()
 	mcc := mockProcessingSteps()
 
-	calculateCoverage = func(folders ...string) (common.CoverageSummary, error) {
+	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 		return common.CoverageSummary{TotalLines: 40, MissedLines: 7}, nil
 	}
 
@@ -281,16 +281,21 @@ func TestCallToCombine(t *testing.T) {
 	mcc := mockProcessingSteps()
 
 	called := 1
-	calculateCoverage = func(folders ...string) (common.CoverageSummary, error) {
+	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 		someFolder := path.Join(tpath, "abcdefgh", "Some-Config", "text", "coverage")
 		otherFolder := path.Join(tpath, "abcdefgh", "Other-Config", "text", "coverage")
 		if len(folders) == 1 && folders[0] == someFolder {
 			called *= 3
+			assert.Equal(t, renderInfo{}, ri, "Expecting empty render info for anything that's not the combined coverage")
 		} else if len(folders) == 1 && folders[0] == otherFolder {
 			called *= 5
+			assert.Equal(t, renderInfo{}, ri, "Expecting empty render info for anything that's not the combined coverage")
 		} else if len(folders) == 2 {
-			assert.Equal(t, []string{otherFolder, someFolder}, folders)
 			called *= 7
+			assert.Equal(t, "Combined", ri.jobName)
+			assert.Equal(t, "abcdefgh", ri.commit)
+			assert.Equal(t, []string{otherFolder, someFolder}, folders)
+			assert.Equal(t, path.Join(tpath, "abcdefgh", "Combined", "html"), ri.outputPath)
 		} else {
 			assert.Failf(t, "unexpected call", "calculateCoverage(%s)", folders)
 		}
@@ -338,7 +343,7 @@ func TestCachingCalls(t *testing.T) {
 	mockProcessingSteps()
 
 	called := 0
-	calculateCoverage = func(folders ...string) (common.CoverageSummary, error) {
+	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 		called++
 		return common.CoverageSummary{MissedLines: 12, TotalLines: 17}, nil
 	}
@@ -412,9 +417,14 @@ func TestCoverageDataOperations(t *testing.T) {
 			7: true,
 			8: false,
 		},
+		sourceLines: map[int]string{
+			1: "alpha",
+			2: "beta",
+			3: "gamma",
+		},
 	}
-	assert.Equal(t, 6, c1.Total())
-	assert.Equal(t, 3, c1.Missed())
+	assert.Equal(t, 6, c1.TotalExecutable())
+	assert.Equal(t, 3, c1.MissedExecutable())
 	c2 := coverageData{
 		executableLines: map[int]bool{
 			1: false,
@@ -424,9 +434,14 @@ func TestCoverageDataOperations(t *testing.T) {
 			5: false,
 			6: true,
 		},
+		sourceLines: map[int]string{
+			1: "alpha",
+			2: "beta",
+			3: "gamma",
+		},
 	}
-	assert.Equal(t, 6, c2.Total())
-	assert.Equal(t, 3, c2.Missed())
+	assert.Equal(t, 6, c2.TotalExecutable())
+	assert.Equal(t, 3, c2.MissedExecutable())
 	expected := &coverageData{
 		executableLines: map[int]bool{
 			1: true,
@@ -438,9 +453,14 @@ func TestCoverageDataOperations(t *testing.T) {
 			7: true,
 			8: false,
 		},
+		sourceLines: map[int]string{
+			1: "alpha",
+			2: "beta",
+			3: "gamma",
+		},
 	}
-	assert.Equal(t, 8, expected.Total())
-	assert.Equal(t, 3, expected.Missed())
+	assert.Equal(t, 8, expected.TotalExecutable())
+	assert.Equal(t, 3, expected.MissedExecutable())
 
 	testutils.AssertDeepEqual(t, expected, c1.Union(&c2))
 	testutils.AssertDeepEqual(t, expected, c2.Union(&c1))
@@ -450,6 +470,7 @@ func TestCoverageDataOperations(t *testing.T) {
 func TestCoverageDataParsingLLVM5(t *testing.T) {
 	testutils.SmallTest(t)
 	contents := testutils.MustReadFile("some-config.main.cpp")
+	expectedHTML := testutils.MustReadFile("someconfig.html")
 	expected := &coverageData{
 		executableLines: map[int]bool{
 			6:  true,
@@ -483,22 +504,23 @@ func TestCoverageDataParsingLLVM5(t *testing.T) {
 			42: false,
 		},
 	}
-	assert.Equal(t, 29, expected.Total())
-	assert.Equal(t, 7, expected.Missed())
-	testutils.AssertDeepEqual(t, expected, parseLinesCovered(contents))
+	parsed := parseLinesCovered(contents)
+	testutils.AssertDeepEqual(t, expected.executableLines, parsed.executableLines)
+	actualHTML, err := parsed.ToHTMLPage(CoverageFileData{
+		FileName: "test.cpp",
+		Commit:   "adbde2143",
+		JobName:  "Combined Report",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 29, parsed.TotalExecutable())
+	assert.Equal(t, 7, parsed.MissedExecutable())
+	assert.Equal(t, 44, parsed.TotalSource())
+
+	assert.Equal(t, expectedHTML, actualHTML)
 }
 
-// Tests that coverage of two folders (one per commit) is properly joined together
-// and analyzed. In this example, the two folders share one file (main.cpp) and have
-// two different headers that were "run".
-func TestCalculateTotalCoverage(t *testing.T) {
-	testutils.MediumTest(t)
-
+func calculateTotalCoverageSetup(t *testing.T, tpath string) {
 	// Set up a directory structure like what the coverage data looks like
-
-	tpath, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
 	somepath := path.Join(tpath, "Some-Config", "coverage", "mnt", "pd0", "work", "skia", "foo")
 	otherpath := path.Join(tpath, "Other-Config", "coverage", "mnt", "pd0", "work", "skia", "foo")
 
@@ -517,8 +539,19 @@ func TestCalculateTotalCoverage(t *testing.T) {
 	testutils.WriteFile(t, path.Join(otherpath, "main.cpp"), contents)
 	contents = testutils.MustReadFile("other-config.header.h")
 	testutils.WriteFile(t, path.Join(otherpath, "two-header.h"), contents)
+}
 
-	tc, err := defaultCalculateTotalCoverage(path.Join(tpath, "Some-Config", "coverage"), path.Join(tpath, "Other-Config", "coverage"))
+// Tests that coverage of two folders (one per commit) is properly joined together
+// and analyzed. In this example, the two folders share one file (main.cpp) and have
+// two different headers that were "run".
+func TestCalculateTotalCoverage(t *testing.T) {
+	testutils.MediumTest(t)
+	tpath, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	calculateTotalCoverageSetup(t, tpath)
+
+	tc, err := defaultCalculateTotalCoverage(renderInfo{}, path.Join(tpath, "Some-Config", "coverage"), path.Join(tpath, "Other-Config", "coverage"))
 	assert.NoError(t, err)
 
 	expected := common.CoverageSummary{
@@ -527,4 +560,35 @@ func TestCalculateTotalCoverage(t *testing.T) {
 	}
 
 	testutils.AssertDeepEqual(t, expected, tc)
+}
+
+func read(t *testing.T, path string) string {
+	contents, err := ioutil.ReadFile(path)
+	assert.NoError(t, err)
+	return string(contents)
+}
+
+func TestCalculateTotalCoverageOutputHTML(t *testing.T) {
+	testutils.MediumTest(t)
+	tpath, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	calculateTotalCoverageSetup(t, tpath)
+
+	ri := renderInfo{
+		outputPath: path.Join(tpath, "Combined"),
+		commit:     "98776ab3",
+		jobName:    "Combined Unit Test",
+	}
+	_, err := defaultCalculateTotalCoverage(ri, path.Join(tpath, "Some-Config", "coverage"), path.Join(tpath, "Other-Config", "coverage"))
+	assert.NoError(t, err)
+
+	assert.Equal(t, testutils.MustReadFile("combined.main.cpp.html"),
+		read(t, path.Join(ri.outputPath, "coverage", "foo", "main.cpp.html")), "main.cpp.html differs")
+	assert.Equal(t, testutils.MustReadFile("combined.one-header.h.html"),
+		read(t, path.Join(ri.outputPath, "coverage", "foo", "one-header.h.html")), "one-header.h.html differs")
+	assert.Equal(t, testutils.MustReadFile("combined.two-header.h.html"),
+		read(t, path.Join(ri.outputPath, "coverage", "foo", "two-header.h.html")), "two-header.h.html differs")
+	assert.Equal(t, testutils.MustReadFile("combined.index.html"),
+		read(t, path.Join(ri.outputPath, "index.html")), "index.html differs")
 }
