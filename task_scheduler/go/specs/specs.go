@@ -151,6 +151,10 @@ type TaskSpec struct {
 	// CipdPackages are CIPD packages which should be installed for the task.
 	CipdPackages []*CipdPackage `json:"cipd_packages,omitempty"`
 
+	// Command is the command to run in the Swarming task. If not specified
+	// here, it should be specified in the .isolate file.
+	Command []string `json:"command,omitempty"`
+
 	// Dependencies are names of other TaskSpecs for tasks which need to run
 	// before this task.
 	Dependencies []string `json:"dependencies,omitempty"`
@@ -224,12 +228,14 @@ func (t *TaskSpec) Copy() *TaskSpec {
 			cipdPackages = append(cipdPackages, &pkgs[i])
 		}
 	}
+	cmd := util.CopyStringSlice(t.Command)
 	deps := util.CopyStringSlice(t.Dependencies)
 	dims := util.CopyStringSlice(t.Dimensions)
 	environment := util.CopyStringMap(t.Environment)
 	extraArgs := util.CopyStringSlice(t.ExtraArgs)
 	return &TaskSpec{
 		CipdPackages:     cipdPackages,
+		Command:          cmd,
 		Dependencies:     deps,
 		Dimensions:       dims,
 		Environment:      environment,
