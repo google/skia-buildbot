@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "f755b79e_b9a1a4a5",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-05T14:20:44Z",
+      "side": 1,
+      "message": "ri.outputPath \u003d\u003d \"\" when we only want to compute the coverage, but don\u0027t need to re-create the HTML pages (e.g. the reports created by the LLVM coverage tool)",
+      "parentUuid": "caa477e1_c204a1c3",
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bfde619_6663cc3f",
         "filename": "coverage/go/coverageingest/ingester.go",
         "patchSetId": 8
@@ -39,6 +57,30 @@
       "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2532b51_ca29c8f5",
+        "filename": "coverage/go/coverageingest/ingester.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-05T14:20:44Z",
+      "side": 1,
+      "message": "This work dir is the one used by the bots to compile on, not where skia is installed on skia-coverage.",
+      "parentUuid": "1bfde619_6663cc3f",
+      "range": {
+        "startLine": 239,
+        "startChar": 28,
+        "endLine": 239,
+        "endChar": 42
+      },
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "0a33c63e_bc9d9be3",
+        "filename": "coverage/go/coverageingest/linecoverage.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-05T14:20:44Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s worth the added complexity and computation.\n\nWhen we start with a blank coverage Data, we don\u0027t have any sourceLines, so that first check would always fail.  Additionally, if there is any difference and we did return an error, I can\u0027t think of a way to recover from that.",
+      "parentUuid": "e69f9d80_9670d3cd",
+      "range": {
+        "startLine": 69,
+        "startChar": 16,
+        "endLine": 70,
+        "endChar": 13
+      },
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "03f12bc2_be6163dd",
         "filename": "coverage/go/coverageingest/linecoverage.go",
         "patchSetId": 8
@@ -85,6 +151,30 @@
       "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "333d5151_ac4cd8ca",
+        "filename": "coverage/go/coverageingest/linecoverage.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-05T14:20:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03f12bc2_be6163dd",
+      "range": {
+        "startLine": 131,
+        "startChar": 3,
+        "endLine": 131,
+        "endChar": 11
+      },
+      "revId": "6f876e025474e58cbb34538a335010335c0cbeca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
