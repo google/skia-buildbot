@@ -26,8 +26,85 @@
     }
   },
   "tasks": {
+    "Housekeeper-PerCommit-BundleRecipes": {
+      "cipd_packages": [
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.14.1.chromium10"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
+        {
+          "name": "infra/python/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.14.chromium14"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:25b0564a204da2bfd6346f26a59b9efb8cfc2212"
+        }
+      ],
+      "command": [
+        "/bin/bash",
+        "bundle_recipes.sh",
+        "${ISOLATED_OUTDIR}"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.2",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE"
+      ],
+      "isolate": "infrabots.isolate",
+      "priority": 0.7
+    },
     "Infra-PerCommit-Large": {
       "cipd_packages": [
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:178957e5b67f42bd0ec25c609febedb66dc5d544"
+        },
+        {
+          "name": "infra/python/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.14.chromium14"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:25b0564a204da2bfd6346f26a59b9efb8cfc2212"
+        },
+        {
+          "name": "infra/tools/authutil/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:9c63809842a277ce10a86afd51b61c639a665d11"
+        },
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.14.1.chromium10"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
         {
           "name": "skia/bots/go",
           "path": "go",
@@ -39,39 +116,168 @@
           "version": "version:0"
         }
       ],
+      "command": [
+        "./kitchen${EXECUTABLE_SUFFIX}",
+        "cook",
+        "-checkout-dir",
+        "recipe_bundle",
+        "-mode",
+        "swarming",
+        "-luci-system-account",
+        "system",
+        "-cache-dir",
+        "cache",
+        "-temp-dir",
+        "tmp",
+        "-set-env-abspath",
+        "VPYTHON_VIRTUALENV_ROOT=cache/vpython",
+        "-prefix-path-env",
+        "go",
+        "-prefix-path-env",
+        "cipd_bin_packages",
+        "-prefix-path-env",
+        "cipd_bin_packages/bin",
+        "-known-gerrit-host",
+        "android.googlesource.com",
+        "-known-gerrit-host",
+        "boringssl.googlesource.com",
+        "-known-gerrit-host",
+        "chromium.googlesource.com",
+        "-known-gerrit-host",
+        "dart.googlesource.com",
+        "-known-gerrit-host",
+        "fuchsia.googlesource.com",
+        "-known-gerrit-host",
+        "go.googlesource.com",
+        "-known-gerrit-host",
+        "llvm.googlesource.com",
+        "-known-gerrit-host",
+        "pdfium.googlesource.com",
+        "-known-gerrit-host",
+        "skia.googlesource.com",
+        "-known-gerrit-host",
+        "webrtc.googlesource.com",
+        "-output-result-json",
+        "${ISOLATED_OUTDIR}/build_result_filename",
+        "-workdir",
+        ".",
+        "-recipe",
+        "swarm_infra",
+        "-properties",
+        "{\"buildername\":\"Infra-PerCommit-Large\",\"buildnumber\":\"2\",\"mastername\":\"fake-master\",\"nobuildbot\":\"True\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"slavename\":\"fake-buildslave\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "-logdog-annotation-url",
+        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BundleRecipes"
+      ],
       "dimensions": [
         "pool:Skia",
         "os:Debian-9.2",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE"
       ],
-      "extra_args": [
-        "--workdir",
-        "../../..",
-        "swarm_infra",
-        "repository=<(REPO)",
-        "buildername=Infra-PerCommit-Large",
-        "mastername=fake-master",
-        "buildnumber=2",
-        "slavename=fake-buildslave",
-        "nobuildbot=True",
-        "swarm_out_dir=${ISOLATED_OUTDIR}",
-        "revision=<(REVISION)",
-        "patch_storage=<(PATCH_STORAGE)",
-        "patch_issue=<(ISSUE)",
-        "patch_set=<(PATCHSET)"
-      ],
-      "isolate": "swarm_recipe.isolate",
+      "isolate": "infrabots.isolate",
       "max_attempts": 2,
       "priority": 0.8
     },
     "Infra-PerCommit-Medium": {
       "cipd_packages": [
         {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:178957e5b67f42bd0ec25c609febedb66dc5d544"
+        },
+        {
+          "name": "infra/python/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.14.chromium14"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:25b0564a204da2bfd6346f26a59b9efb8cfc2212"
+        },
+        {
+          "name": "infra/tools/authutil/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:9c63809842a277ce10a86afd51b61c639a665d11"
+        },
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.14.1.chromium10"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
+        {
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:3"
         }
+      ],
+      "command": [
+        "./kitchen${EXECUTABLE_SUFFIX}",
+        "cook",
+        "-checkout-dir",
+        "recipe_bundle",
+        "-mode",
+        "swarming",
+        "-luci-system-account",
+        "system",
+        "-cache-dir",
+        "cache",
+        "-temp-dir",
+        "tmp",
+        "-set-env-abspath",
+        "VPYTHON_VIRTUALENV_ROOT=cache/vpython",
+        "-prefix-path-env",
+        "go",
+        "-prefix-path-env",
+        "cipd_bin_packages",
+        "-prefix-path-env",
+        "cipd_bin_packages/bin",
+        "-known-gerrit-host",
+        "android.googlesource.com",
+        "-known-gerrit-host",
+        "boringssl.googlesource.com",
+        "-known-gerrit-host",
+        "chromium.googlesource.com",
+        "-known-gerrit-host",
+        "dart.googlesource.com",
+        "-known-gerrit-host",
+        "fuchsia.googlesource.com",
+        "-known-gerrit-host",
+        "go.googlesource.com",
+        "-known-gerrit-host",
+        "llvm.googlesource.com",
+        "-known-gerrit-host",
+        "pdfium.googlesource.com",
+        "-known-gerrit-host",
+        "skia.googlesource.com",
+        "-known-gerrit-host",
+        "webrtc.googlesource.com",
+        "-output-result-json",
+        "${ISOLATED_OUTDIR}/build_result_filename",
+        "-workdir",
+        ".",
+        "-recipe",
+        "swarm_infra",
+        "-properties",
+        "{\"buildername\":\"Infra-PerCommit-Medium\",\"buildnumber\":\"2\",\"mastername\":\"fake-master\",\"nobuildbot\":\"True\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"slavename\":\"fake-buildslave\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "-logdog-annotation-url",
+        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BundleRecipes"
       ],
       "dimensions": [
         "pool:Skia",
@@ -79,91 +285,223 @@
         "gpu:none",
         "cpu:x86-64-Haswell_GCE"
       ],
-      "extra_args": [
-        "--workdir",
-        "../../..",
-        "swarm_infra",
-        "repository=<(REPO)",
-        "buildername=Infra-PerCommit-Medium",
-        "mastername=fake-master",
-        "buildnumber=2",
-        "slavename=fake-buildslave",
-        "nobuildbot=True",
-        "swarm_out_dir=${ISOLATED_OUTDIR}",
-        "revision=<(REVISION)",
-        "patch_storage=<(PATCH_STORAGE)",
-        "patch_issue=<(ISSUE)",
-        "patch_set=<(PATCHSET)"
-      ],
-      "isolate": "swarm_recipe.isolate",
+      "isolate": "infrabots.isolate",
       "max_attempts": 2,
       "priority": 0.8
     },
     "Infra-PerCommit-Race": {
       "cipd_packages": [
         {
-          "name": "skia/bots/go",
-          "path": "go",
-          "version": "version:3"
-        }
-      ],
-      "dimensions": [
-        "pool:Skia",
-        "os:Debian-9.2",
-        "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
-      ],
-      "extra_args": [
-        "--workdir",
-        "../../..",
-        "swarm_infra",
-        "repository=<(REPO)",
-        "buildername=Infra-PerCommit-Race",
-        "mastername=fake-master",
-        "buildnumber=2",
-        "slavename=fake-buildslave",
-        "nobuildbot=True",
-        "swarm_out_dir=${ISOLATED_OUTDIR}",
-        "revision=<(REVISION)",
-        "patch_storage=<(PATCH_STORAGE)",
-        "patch_issue=<(ISSUE)",
-        "patch_set=<(PATCHSET)"
-      ],
-      "isolate": "swarm_recipe.isolate",
-      "max_attempts": 1,
-      "priority": 0.8
-    },
-    "Infra-PerCommit-Small": {
-      "cipd_packages": [
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:178957e5b67f42bd0ec25c609febedb66dc5d544"
+        },
+        {
+          "name": "infra/python/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.14.chromium14"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:25b0564a204da2bfd6346f26a59b9efb8cfc2212"
+        },
+        {
+          "name": "infra/tools/authutil/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:9c63809842a277ce10a86afd51b61c639a665d11"
+        },
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.14.1.chromium10"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
         {
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:3"
         }
       ],
+      "command": [
+        "./kitchen${EXECUTABLE_SUFFIX}",
+        "cook",
+        "-checkout-dir",
+        "recipe_bundle",
+        "-mode",
+        "swarming",
+        "-luci-system-account",
+        "system",
+        "-cache-dir",
+        "cache",
+        "-temp-dir",
+        "tmp",
+        "-set-env-abspath",
+        "VPYTHON_VIRTUALENV_ROOT=cache/vpython",
+        "-prefix-path-env",
+        "go",
+        "-prefix-path-env",
+        "cipd_bin_packages",
+        "-prefix-path-env",
+        "cipd_bin_packages/bin",
+        "-known-gerrit-host",
+        "android.googlesource.com",
+        "-known-gerrit-host",
+        "boringssl.googlesource.com",
+        "-known-gerrit-host",
+        "chromium.googlesource.com",
+        "-known-gerrit-host",
+        "dart.googlesource.com",
+        "-known-gerrit-host",
+        "fuchsia.googlesource.com",
+        "-known-gerrit-host",
+        "go.googlesource.com",
+        "-known-gerrit-host",
+        "llvm.googlesource.com",
+        "-known-gerrit-host",
+        "pdfium.googlesource.com",
+        "-known-gerrit-host",
+        "skia.googlesource.com",
+        "-known-gerrit-host",
+        "webrtc.googlesource.com",
+        "-output-result-json",
+        "${ISOLATED_OUTDIR}/build_result_filename",
+        "-workdir",
+        ".",
+        "-recipe",
+        "swarm_infra",
+        "-properties",
+        "{\"buildername\":\"Infra-PerCommit-Race\",\"buildnumber\":\"2\",\"mastername\":\"fake-master\",\"nobuildbot\":\"True\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"slavename\":\"fake-buildslave\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "-logdog-annotation-url",
+        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BundleRecipes"
+      ],
       "dimensions": [
         "pool:Skia",
         "os:Debian-9.2",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE"
       ],
-      "extra_args": [
-        "--workdir",
-        "../../..",
-        "swarm_infra",
-        "repository=<(REPO)",
-        "buildername=Infra-PerCommit-Small",
-        "mastername=fake-master",
-        "buildnumber=2",
-        "slavename=fake-buildslave",
-        "nobuildbot=True",
-        "swarm_out_dir=${ISOLATED_OUTDIR}",
-        "revision=<(REVISION)",
-        "patch_storage=<(PATCH_STORAGE)",
-        "patch_issue=<(ISSUE)",
-        "patch_set=<(PATCHSET)"
+      "isolate": "infrabots.isolate",
+      "max_attempts": 1,
+      "priority": 0.8
+    },
+    "Infra-PerCommit-Small": {
+      "cipd_packages": [
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:178957e5b67f42bd0ec25c609febedb66dc5d544"
+        },
+        {
+          "name": "infra/python/cpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.14.chromium14"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:25b0564a204da2bfd6346f26a59b9efb8cfc2212"
+        },
+        {
+          "name": "infra/tools/authutil/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:9c63809842a277ce10a86afd51b61c639a665d11"
+        },
+        {
+          "name": "infra/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "version:2.14.1.chromium10"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:fa7a52f4741f5e04bba0dfccc9b8456dc572c60b"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:3"
+        }
       ],
-      "isolate": "swarm_recipe.isolate",
+      "command": [
+        "./kitchen${EXECUTABLE_SUFFIX}",
+        "cook",
+        "-checkout-dir",
+        "recipe_bundle",
+        "-mode",
+        "swarming",
+        "-luci-system-account",
+        "system",
+        "-cache-dir",
+        "cache",
+        "-temp-dir",
+        "tmp",
+        "-set-env-abspath",
+        "VPYTHON_VIRTUALENV_ROOT=cache/vpython",
+        "-prefix-path-env",
+        "go",
+        "-prefix-path-env",
+        "cipd_bin_packages",
+        "-prefix-path-env",
+        "cipd_bin_packages/bin",
+        "-known-gerrit-host",
+        "android.googlesource.com",
+        "-known-gerrit-host",
+        "boringssl.googlesource.com",
+        "-known-gerrit-host",
+        "chromium.googlesource.com",
+        "-known-gerrit-host",
+        "dart.googlesource.com",
+        "-known-gerrit-host",
+        "fuchsia.googlesource.com",
+        "-known-gerrit-host",
+        "go.googlesource.com",
+        "-known-gerrit-host",
+        "llvm.googlesource.com",
+        "-known-gerrit-host",
+        "pdfium.googlesource.com",
+        "-known-gerrit-host",
+        "skia.googlesource.com",
+        "-known-gerrit-host",
+        "webrtc.googlesource.com",
+        "-output-result-json",
+        "${ISOLATED_OUTDIR}/build_result_filename",
+        "-workdir",
+        ".",
+        "-recipe",
+        "swarm_infra",
+        "-properties",
+        "{\"buildername\":\"Infra-PerCommit-Small\",\"buildnumber\":\"2\",\"mastername\":\"fake-master\",\"nobuildbot\":\"True\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"slavename\":\"fake-buildslave\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "-logdog-annotation-url",
+        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BundleRecipes"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.2",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE"
+      ],
+      "isolate": "infrabots.isolate",
       "max_attempts": 2,
       "priority": 0.8
     }
