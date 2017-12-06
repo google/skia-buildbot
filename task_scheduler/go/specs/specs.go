@@ -166,6 +166,11 @@ type TaskSpec struct {
 	// Environment is a set of environment variables needed by the task.
 	Environment map[string]string `json:"environment,omitempty"`
 
+	// EnvPrefixes are prefixes to add to environment variables for the task,
+	// for example, adding directories to PATH. Keys are environment variable
+	// names and values are multiple values to add for the variable.
+	EnvPrefixes map[string][]string `json:"env_prefixes,omitempty"`
+
 	// ExecutionTimeout is the maximum amount of time the task is allowed
 	// to take.
 	ExecutionTimeout time.Duration `json:"execution_timeout_ns,omitempty"`
@@ -176,6 +181,9 @@ type TaskSpec struct {
 
 	// ExtraArgs are extra command-line arguments to pass to the task.
 	ExtraArgs []string `json:"extra_args,omitempty"`
+
+	// ExtraTags are extra tags to add to the Swarming task.
+	ExtraTags map[string]string `json:"extra_tags,omitempty"`
 
 	// IoTimeout is the maximum amount of time which the task may take to
 	// communicate with the server.
@@ -232,16 +240,26 @@ func (t *TaskSpec) Copy() *TaskSpec {
 	deps := util.CopyStringSlice(t.Dependencies)
 	dims := util.CopyStringSlice(t.Dimensions)
 	environment := util.CopyStringMap(t.Environment)
+	var envPrefixes map[string][]string
+	if len(t.EnvPrefixes) > 0 {
+		envPrefixes = make(map[string][]string, len(t.EnvPrefixes))
+		for k, v := range t.EnvPrefixes {
+			envPrefixes[k] = util.CopyStringSlice(v)
+		}
+	}
 	extraArgs := util.CopyStringSlice(t.ExtraArgs)
+	extraTags := util.CopyStringMap(t.ExtraTags)
 	return &TaskSpec{
 		CipdPackages:     cipdPackages,
 		Command:          cmd,
 		Dependencies:     deps,
 		Dimensions:       dims,
 		Environment:      environment,
+		EnvPrefixes:      envPrefixes,
 		ExecutionTimeout: t.ExecutionTimeout,
 		Expiration:       t.Expiration,
 		ExtraArgs:        extraArgs,
+		ExtraTags:        extraTags,
 		IoTimeout:        t.IoTimeout,
 		Isolate:          t.Isolate,
 		MaxAttempts:      t.MaxAttempts,
