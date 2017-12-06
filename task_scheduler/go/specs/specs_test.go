@@ -43,13 +43,19 @@ func TestCopyTaskSpec(t *testing.T) {
 		Environment: map[string]string{
 			"Polluted": "true",
 		},
+		EnvPrefixes: map[string][]string{
+			"PATH": []string{"curdir"},
+		},
 		ExecutionTimeout: 60 * time.Minute,
 		Expiration:       90 * time.Minute,
 		ExtraArgs:        []string{"--do-really-awesome-stuff"},
-		IoTimeout:        10 * time.Minute,
-		Isolate:          "abc123",
-		MaxAttempts:      5,
-		Priority:         19.0,
+		ExtraTags: map[string]string{
+			"dummy_tag": "dummy_val",
+		},
+		IoTimeout:   10 * time.Minute,
+		Isolate:     "abc123",
+		MaxAttempts: 5,
+		Priority:    19.0,
 	}
 	testutils.AssertCopy(t, v, v.Copy())
 }
