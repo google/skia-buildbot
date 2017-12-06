@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d94ea9f3_26e590bf",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-06T16:33:45Z",
+      "side": 1,
+      "message": "I guess maybe it depends on *what* behaviors, but I definitely think the client repo should be able to define its own tags without needing the scheduler\u0027s cooperation.  For what I\u0027m currently working on, I need to define a tag which points to the logs for the task.  I can\u0027t define it for tasks to which it doesn\u0027t apply, or we\u0027ll lose access to the step breakdown for those tasks.  So the repo itself needs to determine which tasks get that tag.",
+      "parentUuid": "3d231505_d132e587",
+      "range": {
+        "startLine": 622,
+        "startChar": 9,
+        "endLine": 622,
+        "endChar": 38
+      },
+      "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a93dab11_a663d881",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
@@ -36,6 +60,24 @@
       "writtenOn": "2017-12-06T16:22:29Z",
       "side": 1,
       "message": "nit: Please document better -- Why would someone want to do this? Can you give an example of how this works? I can guess that the map key is the env var, but I can\u0027t guess why the value is a slice rather than a single string.",
+      "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1cf15ac_6f338c47",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-06T16:33:45Z",
+      "side": 1,
+      "message": "Added doc as best I could.  This diff is the impetus: https://chrome-internal.googlesource.com/infradata/config/+/508e032ccadebf0b617863f29b501c5066c9c6d0..9b24ae60ba7a5db220f46ea1c59921640cbf4177",
+      "parentUuid": "a93dab11_a663d881",
       "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
