@@ -202,13 +202,11 @@ class CsvComparer(object):
                 while rank > slave_num * 100:
                   slave_num += 1
               pageset_link = (
-                  '%s/page_sets/%s/slave%s/alexa%s_%s.py' % (
-                      GS_HTML_DIRECT_LINK, self._pageset_type, slave_num, rank,
-                      rank))
+                  '%s/swarming/page_sets/%s/%s/%s.py' % (
+                      GS_HTML_DIRECT_LINK, self._pageset_type, rank, rank))
               archive_link = (
-                  '%s/webpage_archives/%s/slave%s/alexa%s-%s' % (
-                      GS_HTML_BROWSER_LINK, self._pageset_type, slave_num, rank,
-                      rank))
+                  '%s/swarming/webpage_archives/%s/%s' % (
+                      GS_HTML_BROWSER_LINK, self._pageset_type, rank))
               # Add this page only if its diff is above the threshold.
               l = fieldnames_to_page_values.get(fieldname, [])
               l.append(PageValues(page_name2, csv1_value, csv2_value, perc_diff,
