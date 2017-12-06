@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "c81f464b_421bd064",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-06T18:15:09Z",
+      "side": 1,
+      "message": "I\u0027m being a bit paranoid. Suppose Swarming adds a new tag \"luci_visibility\" that overrides the visibility we set with \"luci_project\", and assume we don\u0027t update the code below to also set \"luci_visibility\". Then a tryjob could put \"luci_visibility:public\" in extraTags. Probably doesn\u0027t matter.",
+      "parentUuid": "590a8211_b4bf53e1",
+      "range": {
+        "startLine": 622,
+        "startChar": 9,
+        "endLine": 622,
+        "endChar": 38
+      },
+      "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a93dab11_a663d881",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
