@@ -205,6 +205,17 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		}
 	}
 
+	var envPrefixes []*swarming_api.SwarmingRpcsStringListPair
+	if len(c.TaskSpec.EnvPrefixes) > 0 {
+		envPrefixes = make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(c.TaskSpec.EnvPrefixes))
+		for k, v := range c.TaskSpec.EnvPrefixes {
+			envPrefixes = append(envPrefixes, &swarming_api.SwarmingRpcsStringListPair{
+				Key:   k,
+				Value: util.CopyStringSlice(v),
+			})
+		}
+	}
+
 	cmd := make([]string, 0, len(c.TaskSpec.Command))
 	for _, arg := range c.TaskSpec.Command {
 		cmd = append(cmd, replaceVars(c, arg, id))
@@ -213,6 +224,11 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 	extraArgs := make([]string, 0, len(c.TaskSpec.ExtraArgs))
 	for _, arg := range c.TaskSpec.ExtraArgs {
 		extraArgs = append(extraArgs, replaceVars(c, arg, id))
+	}
+
+	extraTags := make(map[string]string, len(c.TaskSpec.ExtraTags))
+	for k, v := range c.TaskSpec.ExtraTags {
+		extraTags[k] = replaceVars(c, v, id)
 	}
 
 	expirationSecs := int64(c.TaskSpec.Expiration.Seconds())
@@ -236,6 +252,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 			Command:              cmd,
 			Dimensions:           dims,
 			Env:                  env,
+			EnvPrefixes:          envPrefixes,
 			ExecutionTimeoutSecs: executionTimeoutSecs,
 			ExtraArgs:            extraArgs,
 			Idempotent:           c.ForcedJobId == "",
@@ -248,7 +265,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		},
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
 		ServiceAccount: swarming.GetServiceAccountFromTaskDims(dimsMap),
-		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds),
+		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
 		User:           "skiabot@google.com",
 	}, nil
 }
