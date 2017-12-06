@@ -242,14 +242,10 @@ func (r *AutoRoller) GetMode() string {
 	return r.modeHistory.CurrentMode().Mode
 }
 
-// SetMode sets the desired mode of the bot. This forces the bot to run and
-// blocks until it finishes.
+// SetMode sets the desired mode of the bot.
 func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) error {
 	if err := r.modeHistory.Add(mode, user, message); err != nil {
 		return err
-	}
-	if err := r.Tick(ctx); err != nil {
-		return nil
 	}
 	subject := fmt.Sprintf("%s changed the %s into %s AutoRoller mode", user, r.childName, r.parentName)
 	body := fmt.Sprintf("%s changed the mode to <b>%s</b> with message:<br/><br/>%s<br/><br/>See %s for more details.", user, mode, message, r.serverURL)
