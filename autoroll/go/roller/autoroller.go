@@ -58,7 +58,6 @@ type AutoRoller struct {
 	emails          []string
 	emailsMtx       sync.RWMutex
 	gerrit          *gerrit.Gerrit
-	lastError       error
 	liveness        metrics2.Liveness
 	modeHistory     *modes.ModeHistory
 	parentName      string
@@ -69,6 +68,7 @@ type AutoRoller struct {
 	serverURL       string
 	sm              *state_machine.AutoRollStateMachine
 	status          *AutoRollStatusCache
+	statusMtx       sync.RWMutex
 	rollIntoAndroid bool
 }
 
@@ -253,11 +253,20 @@ func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) er
 	if err != nil {
 		return err
 	}
-	return r.sendEmail(EMAIL_FROM_ADDRESS, r.emails, subject, body, markup)
+	if err := r.sendEmail(EMAIL_FROM_ADDRESS, r.emails, subject, body, markup); err != nil {
+		return err
+	}
+
+	// Update the status so that the mode change shows up on the UI.
+	// We don't want to replace the last error, so we have to look it up.
+	s := r.GetStatus(true)
+	return r.updateStatus(s.Error)
 }
 
 // Return the roll-up status of the bot.
 func (r *AutoRoller) GetStatus(includeError bool) *AutoRollStatus {
+	r.statusMtx.RLock()
+	defer r.statusMtx.RUnlock()
 	return r.status.Get(includeError, nil)
 }
 
@@ -308,20 +317,11 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	return r.rm.Update(ctx)
 }
 
-// Run one iteration of the roller.
-func (r *AutoRoller) Tick(ctx context.Context) error {
-	r.runningMtx.Lock()
-	defer r.runningMtx.Unlock()
+// Update the status information of the roller.
+func (r *AutoRoller) updateStatus(lastError string) error {
+	r.statusMtx.Lock()
+	defer r.statusMtx.Unlock()
 
-	sklog.Infof("Running autoroller.")
-	// Run the state machine.
-	lastErr := r.sm.NextTransitionSequence(ctx)
-
-	// Update the status information.
-	lastErrorStr := ""
-	if lastErr != nil {
-		lastErrorStr = lastErr.Error()
-	}
 	recent := r.recent.GetRecentRolls()
 	numFailures := 0
 	for _, roll := range recent {
@@ -332,13 +332,13 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 		}
 	}
 	sklog.Infof("Updating status (%d)", r.rm.CommitsNotRolled())
-	if err := r.status.Set(&AutoRollStatus{
+	return r.status.Set(&AutoRollStatus{
 		AutoRollMiniStatus: AutoRollMiniStatus{
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: r.rm.CommitsNotRolled(),
 		},
 		CurrentRoll:    r.recent.CurrentRoll(),
-		Error:          lastErrorStr,
+		Error:          lastError,
 		FullHistoryUrl: r.gerrit.Url(0) + "/q/owner:" + r.GetUser(),
 		IssueUrlBase:   r.gerrit.Url(0) + "/c/",
 		LastRoll:       r.recent.LastRoll(),
@@ -346,7 +346,24 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 		Mode:           r.modeHistory.CurrentMode(),
 		Recent:         recent,
 		Status:         string(r.sm.Current()),
-	}); err != nil {
+	})
+}
+
+// Run one iteration of the roller.
+func (r *AutoRoller) Tick(ctx context.Context) error {
+	r.runningMtx.Lock()
+	defer r.runningMtx.Unlock()
+
+	sklog.Infof("Running autoroller.")
+	// Run the state machine.
+	lastErr := r.sm.NextTransitionSequence(ctx)
+	lastErrStr := ""
+	if lastErr != nil {
+		lastErrStr = lastErr.Error()
+	}
+
+	// Update the status information.
+	if err := r.updateStatus(lastErrStr); err != nil {
 		return err
 	}
 	sklog.Infof("Autoroller state %s", r.sm.Current())
