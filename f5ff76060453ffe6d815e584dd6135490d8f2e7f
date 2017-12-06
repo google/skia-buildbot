@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "ab66d56c_f169a7d6",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-06T17:42:37Z",
+      "side": 1,
+      "message": "I guess I should mention that I\u0027m not questioning the feature of adding extra tags, only if there\u0027s a way to ensure the added tags won\u0027t do something bad. E.g. require \"x_\" or \"sk_x_\" prefix for the extra tags.",
+      "parentUuid": "d94ea9f3_26e590bf",
+      "range": {
+        "startLine": 622,
+        "startChar": 9,
+        "endLine": 622,
+        "endChar": 38
+      },
+      "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a93dab11_a663d881",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
