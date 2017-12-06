@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "309eafc5_8d0590df",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-06T18:21:37Z",
+      "side": 1,
+      "message": "I know that\u0027s just an example, but doing the above would require try job access to internal stuff, which implies view access as well, right?",
+      "parentUuid": "c81f464b_421bd064",
+      "range": {
+        "startLine": 622,
+        "startChar": 9,
+        "endLine": 622,
+        "endChar": 38
+      },
+      "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a93dab11_a663d881",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
