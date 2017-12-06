@@ -66,6 +66,7 @@ func SetupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, st
       }],
       "command": ["ninja", "skia"],
       "dimensions": ["pool:Skia", "os:Ubuntu"],
+      "extra_tags": {"is_build_task": "true"},
       "isolate": "compile_skia.isolate",
       "max_attempts": 5,
       "priority": 0.8
@@ -83,6 +84,9 @@ func SetupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, st
       }],
       "dependencies": ["Build-Ubuntu-GCC-Arm7-Release-Android"],
       "dimensions": ["pool:Skia", "os:Android", "device_type:grouper"],
+      "env_prefixes": {
+        "PATH": ["curdir"]
+      },
       "isolate": "test_skia.isolate",
       "priority": 0.8
     }
