@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d231505_d132e587",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-06T16:22:29Z",
+      "side": 1,
+      "message": "IIUC, adding certain Swarming tags can change behavior/permissions of the task. Do we want to allow that? One option might be to use a whitelist and/or allow any tag with a specific prefix.",
+      "range": {
+        "startLine": 622,
+        "startChar": 9,
+        "endLine": 622,
+        "endChar": 38
+      },
+      "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a93dab11_a663d881",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-06T16:22:29Z",
+      "side": 1,
+      "message": "nit: Please document better -- Why would someone want to do this? Can you give an example of how this works? I can guess that the map key is the env var, but I can\u0027t guess why the value is a slice rather than a single string.",
+      "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
