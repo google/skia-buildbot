@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "590a8211_b4bf53e1",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-06T17:44:21Z",
+      "side": 1,
+      "message": "Is there something specific you\u0027re worried about?  My use case here is to add the \"log_location\" tag, which would be disallowed with that rule.",
+      "parentUuid": "ab66d56c_f169a7d6",
+      "range": {
+        "startLine": 622,
+        "startChar": 9,
+        "endLine": 622,
+        "endChar": 38
+      },
+      "revId": "f5ff76060453ffe6d815e584dd6135490d8f2e7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a93dab11_a663d881",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
