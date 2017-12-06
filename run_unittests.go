@@ -387,6 +387,13 @@ func main() {
 	gotests := []*test{}
 
 	// Search for Python tests and Go dirs to test in the repo.
+	// These tests are blacklisted from running on our bots because they
+	// depend on packages (django) which are not included with Python in
+	// CIPD.
+	pythonTestBlacklist := map[string]bool{
+		"csv_comparer_test.py":          true,
+		"json_summary_combiner_test.py": true,
+	}
 	if err := filepath.Walk(rootDir, func(p string, info os.FileInfo, err error) error {
 		basename := path.Base(p)
 		if info.IsDir() {
@@ -408,7 +415,7 @@ func main() {
 				gotests = append(gotests, goTestLarge(path.Dir(p)))
 			}
 		}
-		if strings.HasSuffix(basename, "_test.py") {
+		if strings.HasSuffix(basename, "_test.py") && !pythonTestBlacklist[basename] {
 			tests = append(tests, pythonTest(p))
 		}
 		return nil
@@ -424,7 +431,6 @@ func main() {
 	tests = append(tests, cmdTest([]string{"make", "validate"}, "perf", "perf validator", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", testutils.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"python", "infra/bots/check_cq_cfg.py"}, ".", "check CQ config", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"python", "go/testutils/uncategorized_tests.py"}, ".", "uncategorized tests", testutils.SMALL_TEST))
 
 	if !*race {
