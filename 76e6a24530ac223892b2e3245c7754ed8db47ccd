@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "184aab45_52b1a6d1",
+        "filename": "scripts/bots_failing_in_reverted_cls/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-07T14:52:11Z",
+      "side": 1,
+      "message": "Print percentage too?",
+      "revId": "76e6a24530ac223892b2e3245c7754ed8db47ccd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
