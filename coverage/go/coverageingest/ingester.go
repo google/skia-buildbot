@@ -70,11 +70,8 @@ func New(ingestionDir string, gcsClient gcs.GCSClient, cache db.CoverageCache) *
 
 // The function unTar will untar and unzip a .tar.gz file to a given output path.
 // This tar file is assumed to be produced by our Coverage bots, which have
-// a certain format (see defaultUnTar for details).
-// It is a variable for easier mocking.
-var unTar = defaultUnTar
-
-func defaultUnTar(ctx context.Context, tarpath, outpath string) error {
+// a certain format.
+func unTar(ctx context.Context, tarpath, outpath string) error {
 	if _, err := fileutil.EnsureDirExists(outpath); err != nil {
 		return fmt.Errorf("Could not set up directory to tar to: %s", err)
 	}
@@ -237,6 +234,9 @@ func defaultCalculateTotalCoverage(ri renderInfo, folders ...string) (common.Cov
 // third_party).
 func normalizePath(p string) (string, bool) {
 	p = strings.TrimPrefix(p, "/mnt/pd0/work/skia/")
+	// .txt sneaks on the end of these files because that's the suffix LLVM adds on
+	// in the .txt.tar archive of the analysis.
+	p = strings.TrimSuffix(p, ".txt")
 	// This removes things like /usr/lib/fontconfig, some created things and third_party.
 	// TODO(kjlubick): Keep third_party in and make it configurable from the UI what to show.
 	return p, !strings.HasPrefix(p, "/") && !strings.HasPrefix(p, "out") && !strings.HasPrefix(p, "third_party")
