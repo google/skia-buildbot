@@ -22,6 +22,30 @@
       "revId": "e41d9658e457982bac61beb265999975e8a38cac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "466b0176_a3faa420",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-07T13:38:30Z",
+      "side": 1,
+      "message": "Ah, didn\u0027t realize it was a float64. Fixed.",
+      "parentUuid": "c535abd6_e68d8a52",
+      "range": {
+        "startLine": 148,
+        "startChar": 20,
+        "endLine": 148,
+        "endChar": 21
+      },
+      "revId": "e41d9658e457982bac61beb265999975e8a38cac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
