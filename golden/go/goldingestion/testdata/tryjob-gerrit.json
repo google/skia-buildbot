@@ -1,0 +1,23 @@
+{
+  "id": "skia~master~Ia30a95c750f2a237a8bf60263b2981682673c043",
+  "project": "skia",
+  "branch": "master",
+  "hashtags": [],
+  "change_id": "Ia30a95c750f2a237a8bf60263b2981682673c043",
+  "subject": "[infra] Move commands from isolates to gen_tasks.go",
+  "status": "MERGED",
+  "created": "2017-12-06 19:19:18.000000000",
+  "updated": "2017-12-07 14:54:05.000000000",
+  "submitted": "2017-12-07 14:45:30.000000000",
+  "submitter": {
+    "_account_id": 5005
+  },
+  "insertions": 11053,
+  "deletions": 8569,
+  "unresolved_comment_count": 0,
+  "has_review_started": true,
+  "_number": 81300,
+  "owner": {
+    "_account_id": 5015
+  }
+}

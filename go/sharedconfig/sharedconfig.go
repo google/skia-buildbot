@@ -13,6 +13,7 @@ type DataSource struct {
 }
 
 type IngesterConfig struct {
+	ID          string            // ID of this ingester. If set should match the key value in Config.Ingesters.
 	RunEvery    config.Duration   // How often the ingester should pull data from Google Storage.
 	NCommits    int               // Minimum number of commits that should be ingested.
 	MinDays     int               // Minimum number of days that should be covered by the ingested commits.
