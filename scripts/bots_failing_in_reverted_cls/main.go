@@ -70,6 +70,7 @@ func main() {
 	}
 	lines := strings.Split(output, "\n")
 	counts := map[string]int{}
+	numCommitsReverted := 0
 	for _, line := range lines {
 		// Only include commits that have an odd number of occurrences of the string "Revert" in their title.
 		sklog.Infof("Line: %s", line)
@@ -85,6 +86,7 @@ func main() {
 			match := extractRevertHash.FindStringSubmatch(ci.Body)
 			sklog.Infof("match: %#v", match)
 			if len(match) == 2 {
+				numCommitsReverted += 1
 				badHash := match[1]
 				sklog.Infof("%s was reverted by %s", badHash, line)
 				sklog.Info("Which tasks failed?")
@@ -106,4 +108,5 @@ func main() {
 	for k, v := range counts {
 		fmt.Printf("%d %s\n", v, k)
 	}
+	fmt.Printf("\n\nFound %d commits reverted in %d commits. %.2f%%\n", numCommitsReverted, len(lines), float32(100*numCommitsReverted)/float32(len(lines)))
 }
