@@ -2,6 +2,7 @@ package coverageingest
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -13,13 +14,14 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/coverage/go/common"
 	"go.skia.org/infra/coverage/go/db"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/mockgcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-var ctx = mock.AnythingOfType("*context.emptyCtx")
+var mockctx = mock.Anything
 var callback = mock.AnythingOfType("func(*storage.ObjectAttrs)")
 
 const FILE_CONTENT = "Filler"
@@ -51,18 +53,20 @@ func mockLongCommits(hashes ...string) []*vcsinfo.LongCommit {
 	return retval
 }
 
-func mockProcessingSteps() *db.MockCoverageCache {
-	// TODO(kjlubick): Use exec.NewContext to mock out the call to tar.
-	unTar = func(ctx context.Context, tarpath, outpath string) error {
-		return nil
-	}
+func mockProcessingSteps() (*db.MockCoverageCache, context.Context) {
+	ctx := exec.NewContext(context.Background(), func(c *exec.Command) error {
+		if c.Name == "tar" {
+			return nil
+		}
+		return fmt.Errorf("Unexpected use of context: calling command %#v", c)
+	})
 	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 		return common.CoverageSummary{}, nil
 	}
 	mcc := db.MockCoverageCache{}
 	mcc.On("CheckCache", mock.Anything).Return(common.CoverageSummary{}, false)
 	mcc.On("StoreToCache", mock.Anything, mock.Anything).Return(nil)
-	return &mcc
+	return &mcc, ctx
 }
 
 // Tests that we download files correctly from GCS when starting from fresh.
@@ -74,8 +78,7 @@ func TestBlankIngestion(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	ctx := context.Background()
-	mcc := mockProcessingSteps()
+	mcc, ctx := mockProcessingSteps()
 
 	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 		return common.CoverageSummary{TotalLines: 40, MissedLines: 7}, nil
@@ -84,13 +87,13 @@ func TestBlankIngestion(t *testing.T) {
 	mg := mockgcsclient.New()
 	defer mg.AssertExpectations(t)
 
-	mg.On("AllFilesInDirectory", ctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
+	mg.On("AllFilesInDirectory", mockctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
 		f := args.Get(2).(func(item *storage.ObjectAttrs))
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Some-Config.text.tar"})
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Some-Config.profraw"})
 	}).Return(nil).Once()
 
-	mg.On("AllFilesInDirectory", ctx, "commit/d123045/", callback).Run(func(args mock.Arguments) {
+	mg.On("AllFilesInDirectory", mockctx, "commit/d123045/", callback).Run(func(args mock.Arguments) {
 		f := args.Get(2).(func(item *storage.ObjectAttrs))
 		f(&storage.ObjectAttrs{Name: "commit/d123045/Some-Config.text.tar"})
 		f(&storage.ObjectAttrs{Name: "commit/d123045/Some-Config.profraw"})
@@ -99,7 +102,7 @@ func TestBlankIngestion(t *testing.T) {
 	}).Return(nil).Once()
 
 	contents := []byte(FILE_CONTENT)
-	mg.On("GetFileContents", ctx, mock.Anything).Return(contents, nil)
+	mg.On("GetFileContents", mockctx, mock.Anything).Return(contents, nil)
 
 	i := New(tpath, mg, mcc)
 	i.IngestCommits(ctx, mockLongCommits("abcdefgh", "d123045"))
@@ -151,8 +154,7 @@ func TestPartialIngestion(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	ctx := context.Background()
-	mcc := mockProcessingSteps()
+	mcc, ctx := mockProcessingSteps()
 
 	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
 		return common.CoverageSummary{TotalLines: 40, MissedLines: 7}, nil
@@ -173,13 +175,13 @@ func TestPartialIngestion(t *testing.T) {
 	mg := mockgcsclient.New()
 	defer mg.AssertExpectations(t)
 
-	mg.On("AllFilesInDirectory", ctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
+	mg.On("AllFilesInDirectory", mockctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
 		f := args.Get(2).(func(item *storage.ObjectAttrs))
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Some-Config.text.tar"})
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Some-Config.profraw"})
 	}).Return(nil).Once()
 
-	mg.On("AllFilesInDirectory", ctx, "commit/d123045/", callback).Run(func(args mock.Arguments) {
+	mg.On("AllFilesInDirectory", mockctx, "commit/d123045/", callback).Run(func(args mock.Arguments) {
 		f := args.Get(2).(func(item *storage.ObjectAttrs))
 		f(&storage.ObjectAttrs{Name: "commit/d123045/Some-Config.text.tar"})
 		f(&storage.ObjectAttrs{Name: "commit/d123045/Some-Config.html.tar"})
@@ -188,7 +190,7 @@ func TestPartialIngestion(t *testing.T) {
 	}).Return(nil).Once()
 
 	contents := []byte(FILE_CONTENT)
-	mg.On("GetFileContents", ctx, mock.Anything).Return(contents, nil)
+	mg.On("GetFileContents", mockctx, mock.Anything).Return(contents, nil)
 
 	i := New(tpath, mg, mcc)
 	// Old results should be purgd on new ingest
@@ -196,7 +198,7 @@ func TestPartialIngestion(t *testing.T) {
 	i.IngestCommits(ctx, mockLongCommits("abcdefgh", "d123045"))
 
 	mg.AssertNumberOfCalls(t, "GetFileContents", 1)
-	mg.AssertCalled(t, "GetFileContents", ctx, "commit/d123045/Other-Config.text.tar")
+	mg.AssertCalled(t, "GetFileContents", mockctx, "commit/d123045/Other-Config.text.tar")
 	// Don't download .tar.gz files
 
 	assertFilesExist(t, path.Join(tpath, "abcdefgh"), "Some-Config.text.tar", "Some-Config.profraw")
@@ -236,32 +238,32 @@ func TestTarIngestion(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	ctx := context.Background()
-
 	mg := mockgcsclient.New()
 	defer mg.AssertExpectations(t)
 
-	mcc := mockProcessingSteps()
+	mcc, _ := mockProcessingSteps()
 
 	called := 0
-	unTar = func(ctx context.Context, tarpath, outpath string) error {
-		called++
-		testutils.AssertDeepEqual(t, path.Join(tpath, "abcdefgh", "Some-Config.html.tar"), tarpath)
-		testutils.AssertDeepEqual(t, path.Join(tpath, "abcdefgh", "Some-Config", "html"), outpath)
-		return nil
-	}
+	ctx := exec.NewContext(context.Background(), func(c *exec.Command) error {
+		if c.Name == "tar" {
+			called++
+			expectedArgs := []string{"xf", path.Join(tpath, "abcdefgh", "Some-Config.html.tar"), "--strip-components=6", "-C", path.Join(tpath, "abcdefgh", "Some-Config", "html")}
+			testutils.AssertDeepEqual(t, expectedArgs, c.Args)
+		}
+		return fmt.Errorf("Unexpected use of context: calling command %#v", c)
+	})
 
-	mg.On("AllFilesInDirectory", ctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
+	mg.On("AllFilesInDirectory", mockctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
 		f := args.Get(2).(func(item *storage.ObjectAttrs))
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Some-Config.html.tar"})
 	}).Return(nil).Once()
 
-	mg.On("GetFileContents", ctx, mock.Anything).Return([]byte(FILE_CONTENT), nil)
+	mg.On("GetFileContents", mockctx, mock.Anything).Return([]byte(FILE_CONTENT), nil)
 
 	i := New(tpath, mg, mcc)
 	i.IngestCommits(ctx, mockLongCommits("abcdefgh"))
 
-	mg.AssertCalled(t, "GetFileContents", ctx, "commit/abcdefgh/Some-Config.html.tar")
+	mg.AssertCalled(t, "GetFileContents", mockctx, "commit/abcdefgh/Some-Config.html.tar")
 	testutils.AssertDeepEqual(t, 1, called) // unTar() should be called exactly once
 }
 
@@ -273,12 +275,10 @@ func TestCallToCombine(t *testing.T) {
 	tpath, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	ctx := context.Background()
-
 	mg := mockgcsclient.New()
 	defer mg.AssertExpectations(t)
 
-	mcc := mockProcessingSteps()
+	mcc, ctx := mockProcessingSteps()
 
 	called := 1
 	calculateCoverage = func(ri renderInfo, folders ...string) (common.CoverageSummary, error) {
@@ -309,7 +309,7 @@ func TestCallToCombine(t *testing.T) {
 	testutils.WriteFile(t, path.Join(tpath, "abcdefgh", "Some-Config.text.tar"), FILE_CONTENT)
 	testutils.WriteFile(t, path.Join(tpath, "abcdefgh", "Other-Config.text.tar"), FILE_CONTENT)
 
-	mg.On("AllFilesInDirectory", ctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
+	mg.On("AllFilesInDirectory", mockctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
 		f := args.Get(2).(func(item *storage.ObjectAttrs))
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Some-Config.text.tar"})
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Other-Config.text.tar"})
@@ -355,7 +355,7 @@ func TestCachingCalls(t *testing.T) {
 	testutils.WriteFile(t, path.Join(tpath, "abcdefgh", "Some-Config.text.tar"), FILE_CONTENT)
 	testutils.WriteFile(t, path.Join(tpath, "abcdefgh", "Other-Config.text.tar"), FILE_CONTENT)
 
-	mg.On("AllFilesInDirectory", ctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
+	mg.On("AllFilesInDirectory", mockctx, "commit/abcdefgh/", callback).Run(func(args mock.Arguments) {
 		f := args.Get(2).(func(item *storage.ObjectAttrs))
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Some-Config.text.tar"})
 		f(&storage.ObjectAttrs{Name: "commit/abcdefgh/Other-Config.text.tar"})
@@ -398,7 +398,7 @@ func TestUntarDefaultStructure(t *testing.T) {
 	// The sample tar folder has the same directory structure that comes off
 	// the Linux coverage bots.
 
-	err = defaultUnTar(ctx, tarpath, path.Join(tpath, "SomeFolder"))
+	err = unTar(ctx, tarpath, path.Join(tpath, "SomeFolder"))
 	assert.NoError(t, err, "Problem untarring")
 
 	assertFilesExist(t, path.Join(tpath, "SomeFolder"), "bar.html", "foo.html")
@@ -532,13 +532,14 @@ func calculateTotalCoverageSetup(t *testing.T, tpath string) {
 	}
 
 	contents := testutils.MustReadFile("some-config.main.cpp")
-	testutils.WriteFile(t, path.Join(somepath, "main.cpp"), contents)
+	// Append .txt to mimic the LLVM files that we will analyze.
+	testutils.WriteFile(t, path.Join(somepath, "main.cpp.txt"), contents)
 	contents = testutils.MustReadFile("some-config.header.h")
-	testutils.WriteFile(t, path.Join(somepath, "one-header.h"), contents)
+	testutils.WriteFile(t, path.Join(somepath, "one-header.h.txt"), contents)
 	contents = testutils.MustReadFile("other-config.main.cpp")
-	testutils.WriteFile(t, path.Join(otherpath, "main.cpp"), contents)
+	testutils.WriteFile(t, path.Join(otherpath, "main.cpp.txt"), contents)
 	contents = testutils.MustReadFile("other-config.header.h")
-	testutils.WriteFile(t, path.Join(otherpath, "two-header.h"), contents)
+	testutils.WriteFile(t, path.Join(otherpath, "two-header.h.txt"), contents)
 }
 
 // Tests that coverage of two folders (one per commit) is properly joined together

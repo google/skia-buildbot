@@ -17,6 +17,7 @@ ${INSTALL_DIR} --mode=755                                    ${ROOT}/usr/local/s
 ${INSTALL}     --mode=644    ./templates/*                   ${ROOT}/usr/local/share/${APPNAME}/templates
 ${INSTALL}     --mode=644 -T ./res/vul/elements.html         ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
 ${INSTALL}     --mode=644 -T ./res/js/core.js                ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
+${INSTALL}     --mode=644 -T ./res/css/coverage-style.css    ${ROOT}/usr/local/share/${APPNAME}/res/css/coverage-style.css
 }
 
 source ../bash/release.sh

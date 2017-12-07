@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"html/template"
 	"regexp"
+	"strings"
 
 	"go.skia.org/infra/go/util"
 )
@@ -162,7 +163,7 @@ func (c *coverageData) ToHTMLPage(td CoverageFileData) (string, error) {
 	return b.String(), err
 }
 
-var HTML_TEMPLATE_FILE = template.Must(template.New("page").Parse(`<!DOCTYPE html>
+var HTML_TEMPLATE_FILE = template.Must(template.New("page").Funcs(funcMap).Parse(`<!DOCTYPE html>
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width,initial-scale=1">
@@ -171,7 +172,7 @@ var HTML_TEMPLATE_FILE = template.Must(template.New("page").Parse(`<!DOCTYPE htm
 	</head>
 	<body>
 		<h1 class="coverage-header">{{.JobName}}</h1>
-		<div class="coverage-subheader">{{.FileName}} @ <a href="https://skia.googlesource.com/skia/+/{{.Commit}}" target="_blank">{{.Commit}}</a></div>
+		<div class="coverage-subheader">{{trim .FileName ".txt"}} @ <a href="https://skia.googlesource.com/skia/+/{{.Commit}}" target="_blank">{{.Commit}}</a></div>
 		<table class="coverage-table">
 		<thead>
 			<tr>
@@ -192,3 +193,8 @@ var HTML_TEMPLATE_FILE = template.Must(template.New("page").Parse(`<!DOCTYPE htm
 		</table>
 	</body>
 </html>`))
+
+// This allows us to trim off the extra .txt that sneaks on the Filename due to LLVM's output.
+var funcMap = template.FuncMap{
+	"trim": strings.TrimSuffix,
+}
