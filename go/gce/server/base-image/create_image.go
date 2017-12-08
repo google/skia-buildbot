@@ -21,7 +21,7 @@ const (
 
 var (
 	// Flags.
-	workdir = flag.String("workdir", ".", "Working directory.")
+	workdir = flag.String("workdir", common.DefaultWorkdir(), "Working directory.")
 )
 
 func BaseConfig() *gce.Instance {

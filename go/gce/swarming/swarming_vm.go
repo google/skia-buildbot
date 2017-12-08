@@ -6,10 +6,8 @@ package main
    Bot numbers should be assigned as follows:
      1-99 (skia-gce-0..): Temporary or experimental bots.
      100-499 (skia-gce-[1234]..): Linux
-       400-499: Skylake
      500-699 (skia-gce-[56]..): Windows
        500-599: Win2016
-       600-699: Win2k8
      700-999: unassigned
 */
 
@@ -61,7 +59,7 @@ var (
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
 	opsys          = flag.String("os", OS_DEBIAN_9, fmt.Sprintf("OS identifier; one of %s", strings.Join(VALID_OS, ", ")))
 	skylake        = flag.Bool("skylake", false, "Whether or not the instance(s) should use Intel Skylake CPUs.")
-	workdir        = flag.String("workdir", ".", "Working directory.")
+	workdir        = flag.String("workdir", common.DefaultWorkdir(), "Working directory.")
 )
 
 // Base configs for Swarming GCE instances.

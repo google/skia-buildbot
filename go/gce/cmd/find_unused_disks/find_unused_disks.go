@@ -20,7 +20,7 @@ import (
 
 var (
 	// Flags.
-	workdir = flag.String("workdir", ".", "Working directory.")
+	workdir = flag.String("workdir", common.DefaultWorkdir(), "Working directory.")
 	zone    = flag.String("zone", gce.ZONE_DEFAULT, "Which GCE zone to use.")
 )
 

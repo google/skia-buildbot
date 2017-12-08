@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -44,7 +43,7 @@ var (
 	pool        = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
 	script      = flag.String("script", "", "Path to a Python script to run.")
 	taskName    = flag.String("task_name", "", "Name of the task to run.")
-	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
+	workdir     = flag.String("workdir", common.DefaultWorkdir(), "Working directory. Recommended not to use CWD.")
 	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
 	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
 )

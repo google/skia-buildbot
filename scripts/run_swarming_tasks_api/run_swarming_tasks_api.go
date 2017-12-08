@@ -38,7 +38,7 @@ var (
 	cmd      = flag.String("cmd", "", "Which swarming operation to use. Eg: list, cancel, retry, stdout.")
 	tags     = common.NewMultiStringFlag("tag", nil, "Colon-separated key/value pair, eg: \"runid:testing\" Tags with which to find matching tasks. Can specify multiple times.")
 	pool     = flag.String("pool", "", "Which Swarming pool to use.")
-	workdir  = flag.String("workdir", ".", "Working directory. Optional, but recommended not to use CWD.")
+	workdir  = flag.String("workdir", common.DefaultWorkdir(), "Working directory. Recommended not to use CWD.")
 	state    = flag.String("state", "PENDING", "State the matching tasks should be in. Possible values are: ALL, BOT_DIED, CANCELED, COMPLETED, COMPLETED_FAILURE, COMPLETED_SUCCESS, DEDUPED, EXPIRED, PENDING, PENDING_RUNNING, RUNNING, TIMED_OUT")
 	internal = flag.Bool("internal", false, "Run against internal swarming instance.")
 

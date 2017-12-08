@@ -26,7 +26,7 @@ var (
 	instanceRe     = flag.String("instance", ".*", "Regular expression to match instance names.")
 	outfile        = flag.String("out_file", "", "File to write results, in JSON format. If provided, no output will be printed.")
 	showSuccessful = flag.Bool("show_successful", false, "Show output of successful commands, in addition to failed commands. Only valid if --out_file is not specified.")
-	workdir        = flag.String("workdir", ".", "Working directory to use.")
+	workdir        = flag.String("workdir", common.DefaultWorkdir(), "Working directory to use.")
 )
 
 // result is a struct used for collecting results of a command run on many

@@ -23,7 +23,7 @@ var (
 	includeBots = common.NewMultiStringFlag("include_bot", nil, "Bots which will be affected, even if they don't match the other criteria.  Can specify multiple regexes or strings.")
 	pool        = flag.String("pool", "", "Which Swarming pool to use.")
 	verbose     = flag.Bool("verbose", false, "Display a lot of information.")
-	workdir     = flag.String("workdir", ".", "Working directory used to find the google_storage_token.data Optional, but recommended not to use CWD.")
+	workdir     = flag.String("workdir", common.DefaultWorkdir(), "Working directory used to find the google_storage_token.data.")
 )
 
 var (

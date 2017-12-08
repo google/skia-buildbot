@@ -19,7 +19,7 @@ import (
 var (
 	// Flags.
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
-	workdir            = flag.String("workdir", ".", "Working directory.")
+	workdir            = flag.String("workdir", common.DefaultWorkdir(), "Working directory.")
 )
 
 func printResult(desc string, result []*analysis.Flake) {

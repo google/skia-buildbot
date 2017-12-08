@@ -28,7 +28,7 @@ var (
 	// Flags.
 	local    = flag.Bool("local", true, "Whether we're running on a dev machine vs in production.")
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	workdir  = flag.String("workdir", "workdir", "Working directory to use.")
+	workdir  = flag.String("workdir", common.DefaultWorkdir(), "Working directory to use.")
 
 	// Counters.
 	inserts            = 0

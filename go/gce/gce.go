@@ -121,7 +121,7 @@ type GCloud struct {
 func NewGCloud(project, zone, workdir string) (*GCloud, error) {
 	projectTrimmed := strings.TrimPrefix(project, "google.com:")
 	oauthCacheFile := path.Join(workdir, fmt.Sprintf("gcloud_token_%s.data", projectTrimmed))
-	oauthConfigFile := fmt.Sprintf("client_secret_%s.json", projectTrimmed)
+	oauthConfigFile := path.Join(workdir, fmt.Sprintf("client_secret_%s.json", projectTrimmed))
 	httpClient, err := auth.NewClientWithTransport(true, oauthCacheFile, oauthConfigFile, nil, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
 	if err != nil {
 		return nil, err
