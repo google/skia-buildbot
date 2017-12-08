@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86c8d949_f25496a7",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-08T14:51:08Z",
+      "side": 1,
+      "message": "Doesn\u0027t need an RLock?",
+      "revId": "b86c8933bed675cb2bfd387fc8f6f6a2bb6eed88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
