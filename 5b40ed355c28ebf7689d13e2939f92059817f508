@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a2bf02c_3675c3cd",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-08T15:16:50Z",
+      "side": 1,
+      "message": "serious typo",
+      "revId": "5b40ed355c28ebf7689d13e2939f92059817f508",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
