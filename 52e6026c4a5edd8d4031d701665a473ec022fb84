@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7cda191e_a21f67f6",
+        "filename": "go/common/common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-08T12:31:52Z",
+      "side": 1,
+      "message": "Any reason not to just use /tmp across the board?  Otherwise I\u0027d feel more comfortable if the Errorf\u0027s below were Fatalf.  It also be nice to create the directory if it doesn\u0027t exist; many callers who currently use \".\" probably don\u0027t consider needing to create the workdir.",
+      "range": {
+        "startLine": 190,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 30
+      },
+      "revId": "52e6026c4a5edd8d4031d701665a473ec022fb84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
