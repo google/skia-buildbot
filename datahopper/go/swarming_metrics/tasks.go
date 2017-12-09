@@ -321,7 +321,7 @@ func isolateCacheMissDownload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (
 func isolateCacheMissUpload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error) {
 	if t.TaskResult.PerformanceStats == nil {
 		return 0, errNoValue
-	} else if t.TaskResult.PerformanceStats.IsolatedDownload == nil {
+	} else if t.TaskResult.PerformanceStats.IsolatedUpload == nil {
 		return 0, errNoValue
 	} else {
 		return int64(t.TaskResult.PerformanceStats.IsolatedUpload.TotalBytesItemsCold), nil
