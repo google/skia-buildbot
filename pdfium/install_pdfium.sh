@@ -28,6 +28,9 @@ if [[ -f "${EXE_PATH}" ]]; then
     EXE_MD5=`md5sum ${EXE_PATH} | awk '{ print $1 }'`
 fi
 
+echo "$(which python)"
+echo "$(which gsutil)"
+
 # If the MD5s do not match then download the right version.
 if [[ "$CURR_MD5" != "$EXE_MD5" ]]; then
     gsutil cp "${CLOUD_PATH}" "${EXE_PATH}"
