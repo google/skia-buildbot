@@ -1,12 +1,12 @@
 [Unit]
-Description=PDF ingester
+Description=ChromeVR Gold ingester
 Requires=mnt-pd0.mount
 Wants=network-online.target
 After=mnt-pd0.mount network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/pdf_ingestion \
-    --config_filename=/etc/pdf_ingestion/config.json5 \
+ExecStart=/usr/local/bin/chromevr_gold_ingestion \
+    --config_filename=/etc/chromevr_gold_ingestion/config.json5 \
     --logtostderr \
     --prom_port=:20002
 Restart=always

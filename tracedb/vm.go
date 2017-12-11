@@ -5,24 +5,33 @@ import (
 	"go.skia.org/infra/go/gce/server"
 )
 
-func TraceDbBase(name string) *gce.Instance {
+func IngestionTraceDBBase(name string) *gce.Instance {
 	vm := server.Server20170928(name)
 	vm.DataDisks[0].SizeGb = 1000
 	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
+	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_32
 	vm.Metadata["owner_primary"] = "stephana"
 	vm.Metadata["owner_secondary"] = "jcgregorio"
 	return vm
 }
 
-func Prod() *gce.Instance {
-	vm := TraceDbBase("skia-tracedb")
+func TraceDBProd() *gce.Instance {
+	vm := IngestionTraceDBBase("skia-tracedb")
 	server.SetGitCredsReadOnlyInternal(vm)
+	return vm
+}
+
+func IngestionProd() *gce.Instance {
+	vm := IngestionTraceDBBase("skia-ingestion")
+	server.SetGitCredsReadOnlyInternal(vm)
+	vm.DataDisks[0].SizeGb = 100
+	vm.MachineType = gce.MACHINE_TYPE_STANDARD_16
 	return vm
 }
 
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"prod": Prod(),
+		"tracedb":   TraceDBProd(),
+		"ingestion": IngestionProd(),
 	})
 }
