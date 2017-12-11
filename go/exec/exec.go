@@ -207,9 +207,9 @@ func start(command *Command, cmd *osexec.Cmd) error {
 			dirMsg = " with CWD " + cmd.Dir
 		}
 		if command.Verbose == Info {
-			sklog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
+			sklog.Errorf("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
 		} else if command.Verbose == Debug {
-			sklog.Debugf("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
+			sklog.Errorf("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
 		}
 
 	}
