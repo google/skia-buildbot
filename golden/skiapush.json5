@@ -36,10 +36,21 @@
         "skiacorrectness-stage",
       ],
     },
+    "skia-gold-chromevr": {
+      "AppNames": [
+        "pulld",
+        "skiacorrectness-chromevr",
+      ],
+    },
     "skia-tracedb": {
       "AppNames": [
         "pulld",
         "traceserverd",
+      ],
+    },
+    "skia-ingestion": {
+      "AppNames": [
+        "pulld",
         "ingestiond",
       ],
     },
