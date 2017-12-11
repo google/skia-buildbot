@@ -75,7 +75,7 @@ def git_checkout(api, url, dest, ref=None):
 
   # Hack the patch_ref. Yay Python!
   if api.bot_update._issue and api.bot_update._patchset:
-    api.bot_update._gerrit_ref = 'refs/changes/%s/%d/%d' % (
+    api.bot_update._gerrit_ref = 'refs/changes/%s/%s/%s' % (
         str(api.bot_update._issue)[-2:],
         api.bot_update._issue,
         api.bot_update._patchset,
@@ -102,7 +102,7 @@ def RunSteps(api):
   # provided by default. We have to set them manually.
   api.path.c.base_paths['depot_tools'] = (
       api.path.c.base_paths['start_dir'] +
-      ('buildbot', 'infra', 'bots', '.recipe_deps', 'depot_tools'))
+      ('recipe_bundle', 'depot_tools'))
 
   go_dir = api.path['start_dir'].join('gopath')
   go_src = go_dir.join('src')
@@ -177,11 +177,7 @@ def RunSteps(api):
         cmd=['./setup_test_db'])
 
   # Run tests.
-  buildslave = api.properties['slavename']
-  m = re.search('^[a-zA-Z-]*(\d+)$', buildslave)
   karma_port = '9876'
-  if m and len(m.groups()) > 0:
-    karma_port = '15%s' % m.groups()[0]
   env['KARMA_PORT'] = karma_port
   env['DEPOT_TOOLS'] = api.path['depot_tools']
   env['TMPDIR'] = None
@@ -207,20 +203,17 @@ def GenTests(api):
       api.path.exists(api.path['start_dir'].join('gopath', 'src', INFRA_GO,
                                                  '.git')) +
       api.properties(buildername='Infra-PerCommit-Small',
-                     slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit_initialcheckout') +
       api.properties(buildername='Infra-PerCommit-Small',
-                     slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit_try_gerrit') +
       api.properties(buildername='Infra-PerCommit-Small',
                      revision=REF_HEAD,
-                     slavename='skiabot-linux-infra-001',
                      path_config='kitchen') +
       api.properties.tryserver(
           gerrit_project='skia',
@@ -230,18 +223,15 @@ def GenTests(api):
   yield (
       api.test('Infra-PerCommit-Large') +
       api.properties(buildername='Infra-PerCommit-Large',
-                     slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit-Medium') +
       api.properties(buildername='Infra-PerCommit-Medium',
-                     slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit-Race') +
       api.properties(buildername='Infra-PerCommit-Race',
-                     slavename='skiabot-linux-infra-001',
                      path_config='kitchen')
   )

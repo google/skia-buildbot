@@ -567,12 +567,13 @@ func TestTempGitRepoErr(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
-	assert.Error(t, cache.TempGitRepo(ctx, rs, true, func(c *git.TempCheckout) error {
+	err := cache.TempGitRepo(ctx, rs, true, func(c *git.TempCheckout) error {
 		// This may fail with a nil pointer dereference due to a nil
 		// git.TempCheckout.
 		assert.FailNow(t, "We should not have gotten here.")
 		return nil
-	}))
+	})
+	assert.NoError(t, err)
 }
 
 func TestGetTaskSpecDAG(t *testing.T) {
