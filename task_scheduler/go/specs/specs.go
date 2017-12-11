@@ -953,7 +953,7 @@ func tempGitRepoBotUpdate(ctx context.Context, rs db.RepoState, depotToolsDir, g
 	t := metrics2.NewTimer("bot_update", map[string]string{
 		"patchRepo": patchRepo,
 	})
-	out, err := exec.RunCommand(ctx, &exec.Command{
+	c := &exec.Command{
 		Name: cmd[0],
 		Args: cmd[1:],
 		Dir:  tmp,
@@ -961,7 +961,13 @@ func tempGitRepoBotUpdate(ctx context.Context, rs db.RepoState, depotToolsDir, g
 			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
 		},
 		InheritEnv: true,
-	})
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			sklog.Fatalf("timeout? \n%v", cmd)
+		}
+	}()
+	out, err := exec.RunCommand(ctx, c)
 	dur := t.Stop()
 	if err != nil {
 		sklog.Warningf("bot_update error for %v; output: %s", rs, out)
