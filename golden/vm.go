@@ -71,6 +71,14 @@ func Pdfium() *gce.Instance {
 	return vm
 }
 
+func ChromeVR() *gce.Instance {
+	// Below IP has been whitelisted in skiaperf cloud DB.
+	vm := GoldBase("skia-gold-chromevr", "")
+	vm.DataDisks[0].SizeGb = 500
+	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
+	return vm
+}
+
 func Stage() *gce.Instance {
 	vm := GoldBase("skia-gold-stage", "35.202.197.94")
 	vm.Metadata["auth_white_list"] = "google.com"
@@ -108,6 +116,7 @@ func main() {
 		"prod":             Prod(),
 		"public":           Public(),
 		"pdfium":           Pdfium(),
+		"chromevr":         ChromeVR(),
 		"stage":            Stage(),
 		"diffserver_prod":  DiffServerProd(),
 		"diffserver_stage": DiffServerStage(),
