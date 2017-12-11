@@ -32,4 +32,11 @@
      "body": "",
      "mimetype": ""
    },
+   "skiagold_chromevr": {
+     "urls": ["https://chrome-vr-gold.skia.org"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
 }
