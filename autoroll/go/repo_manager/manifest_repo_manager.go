@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"strings"
 
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -43,10 +42,7 @@ func newManifestRepoManager(ctx context.Context, workdir, parentRepo, parentBran
 	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
 	childDir := path.Join(wd, childPath)
-	childRepo, err := git.NewCheckout(ctx, common.REPO_SKIA, wd)
-	if err != nil {
-		return nil, err
-	}
+	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
 	user, err := g.GetUserEmail()
 	if err != nil {
@@ -75,7 +71,7 @@ func newManifestRepoManager(ctx context.Context, workdir, parentRepo, parentBran
 				g:              g,
 			},
 			depot_tools: depot_tools,
-			gclient:     path.Join(depot_tools, "gclient"),
+			gclient:     path.Join(depot_tools, "gclient.py"),
 			parentDir:   parentDir,
 			parentRepo:  parentRepo,
 		},
@@ -97,7 +93,7 @@ func (mr *manifestRepoManager) Update(ctx context.Context) error {
 	}
 
 	if err := mr.childRepo.Update(ctx); err != nil {
-		return err
+		return fmt.Errorf("Failed to update child repo: %s", err)
 	}
 
 	// Get the last roll revision.
