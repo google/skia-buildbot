@@ -1,36 +1,32 @@
 #!/bin/bash
 # Builds and uploads a debian package for traceserver.
 APPNAME="ingestiond"
-SYSTEMD="gold-ingestion.service pdf-ingestion.service pdfium-gold-ingestion.service"
+SYSTEMD="gold-ingestion.service pdfium-gold-ingestion.service chromevr-gold-ingestion.service"
+
 DESCRIPTION="Ingestion services."
 
 set -x -e
 
-# Install pdfium_test if necessary. This will do nothing if the latest version
-# of pdfium_test is already installed.
-../pdfium/install_pdfium.sh
-
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/gold/skiarepo
+${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/pdfium_gold/pdfium_repo
+${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/chromevr_gold/chromevr_repo
 
-INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/pdfium_test      ${ROOT}/usr/local/bin/pdfium_test
-${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/gold/skiarepo
-${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/pdfium_gold/pdfium_repo
-${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/pdf
-${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/pdf/cache
-
-${INSTALL}     --mode=644 -T ./sys/gold-ingestion.service   ${ROOT}/etc/systemd/system/gold-ingestion.service
+${INSTALL}     --mode=644 -T ./sys/gold-ingestion.service          ${ROOT}/etc/systemd/system/gold-ingestion.service
 ${INSTALL}     --mode=644 -T ./sys/pdfium-gold-ingestion.service   ${ROOT}/etc/systemd/system/pdfium-gold-ingestion.service
-${INSTALL}     --mode=644 -T ./sys/pdf-ingestion.service    ${ROOT}/etc/systemd/system/pdf-ingestion.service
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/gold_ingestion
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/pdfium_gold_ingestion
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/pdf_ingestion
-${INSTALL}     --mode=644 -T ./sys/gold.json5               ${ROOT}/etc/gold_ingestion/config.json5
-${INSTALL}     --mode=644 -T ./sys/pdfium-gold.json5        ${ROOT}/etc/pdfium_gold_ingestion/config.json5
-${INSTALL}     --mode=644 -T ./sys/pdf.json5                ${ROOT}/etc/pdf_ingestion/config.json5
+${INSTALL}     --mode=644 -T ./sys/chromevr-gold-ingestion.service ${ROOT}/etc/systemd/system/chromevr-gold-ingestion.service
+
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/gold_ingestion
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/pdfium_gold_ingestion
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/chromevr_gold_ingestion
+
+${INSTALL}     --mode=644 -T ./sys/gold.json5                      ${ROOT}/etc/gold_ingestion/config.json5
+${INSTALL}     --mode=644 -T ./sys/pdfium-gold.json5               ${ROOT}/etc/pdfium_gold_ingestion/config.json5
+${INSTALL}     --mode=644 -T ./sys/chromevr-gold.json5             ${ROOT}/etc/chromevr_gold_ingestion/config.json5
 }
 
 source ../bash/release.sh

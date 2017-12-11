@@ -310,6 +310,33 @@ server {
     return 301 https://pdfium-gold.skia.org$request_uri;
 }
 
+#####   chrome-vr-gold.skia.org   #####################
+server {
+    listen      443;
+    server_name chrome-vr-gold.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/chromevr-gold.access.log;
+    error_log /var/log/nginx/chromevr-gold.error.log error;
+
+    client_max_body_size 100M;
+
+    location /_/hashes {
+      proxy_pass https://storage.googleapis.com/skia-chromevr-gm/hash_files/gold-chromevr-hashes.txt;
+    }
+
+    location / {
+        proxy_pass http://skia-gold-chromevr:8001;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name chrome-vr-gold.skia.org;
+    return 301 https://chrome-vr-gold.skia.org$request_uri;
+}
+
 #####   alerts.skia.org   ###########################
 server {
     listen      443;
