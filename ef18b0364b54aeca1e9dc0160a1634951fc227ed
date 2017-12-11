@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49f6a59f_67599cd2",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 100
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-11T21:50:51Z",
+      "side": 1,
+      "message": "not used anymore? or rename it to gclient.py",
+      "revId": "ef18b0364b54aeca1e9dc0160a1634951fc227ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2835ac13_406221f9",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 100
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-11T21:50:51Z",
+      "side": 1,
+      "message": "just curious: why is it no longer just gclient.",
+      "range": {
+        "startLine": 54,
+        "startChar": 36,
+        "endLine": 54,
+        "endChar": 46
+      },
+      "revId": "ef18b0364b54aeca1e9dc0160a1634951fc227ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "901b241c_247ddc7a",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 100
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-11T21:50:51Z",
+      "side": 1,
+      "message": "This list is unfortunate",
+      "revId": "ef18b0364b54aeca1e9dc0160a1634951fc227ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
