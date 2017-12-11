@@ -37,8 +37,8 @@ func GitInit(t *testing.T, ctx context.Context) *GitBuilder {
 		branch: "master",
 	}
 
-	g.run(ctx, "git", "init")
-	g.run(ctx, "git", "remote", "add", "origin", ".")
+	g.run(ctx, "git", "-log-level", "debug", "init")
+	g.run(ctx, "git", "-log-level", "debug", "remote", "add", "origin", ".")
 
 	return g
 }
@@ -82,7 +82,7 @@ func (g *GitBuilder) write(filepath, contents string) {
 }
 
 func (g *GitBuilder) push(ctx context.Context) {
-	g.run(ctx, "git", "push", "origin", g.branch)
+	g.run(ctx, "git", "-log-level", "debug", "push", "origin", g.branch)
 }
 
 // genString returns a string with arbitrary content.
@@ -93,7 +93,7 @@ func genString() string {
 // Add writes contents to file and adds it to the index.
 func (g *GitBuilder) Add(ctx context.Context, file, contents string) {
 	g.write(file, contents)
-	g.run(ctx, "git", "add", file)
+	g.run(ctx, "git", "-log-level", "debug", "add", file)
 }
 
 // AddGen writes arbitrary content to file and adds it to the index.
@@ -102,7 +102,7 @@ func (g *GitBuilder) AddGen(ctx context.Context, file string) {
 }
 
 func (g *GitBuilder) lastCommitHash(ctx context.Context) string {
-	return strings.TrimSpace(g.run(ctx, "git", "rev-parse", "HEAD"))
+	return strings.TrimSpace(g.run(ctx, "git", "-log-level", "debug", "rev-parse", "HEAD"))
 }
 
 // CommitMsg commits files in the index with the given commit message using the
@@ -112,7 +112,7 @@ func (g *GitBuilder) lastCommitHash(ctx context.Context) string {
 func (g *GitBuilder) CommitMsgAt(ctx context.Context, msg string, time time.Time) string {
 	g.runCommand(ctx, &exec.Command{
 		Name: "git",
-		Args: []string{"commit", "-m", msg},
+		Args: []string{"-log-level", "debug", "commit", "-m", msg},
 		Env:  []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", time.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", time.Unix())},
 	})
 	g.push(ctx)
@@ -158,7 +158,7 @@ func (g *GitBuilder) CommitGenMsg(ctx context.Context, file, msg string) string 
 // CreateBranchTrackBranch creates a new branch tracking an existing branch,
 // checks out the new branch, and pushes the new branch.
 func (g *GitBuilder) CreateBranchTrackBranch(ctx context.Context, newBranch, existingBranch string) {
-	g.run(ctx, "git", "checkout", "-b", newBranch, "-t", existingBranch)
+	g.run(ctx, "git", "-log-level", "debug", "checkout", "-b", newBranch, "-t", existingBranch)
 	g.branch = newBranch
 	g.push(ctx)
 }
@@ -166,21 +166,21 @@ func (g *GitBuilder) CreateBranchTrackBranch(ctx context.Context, newBranch, exi
 // CreateBranchTrackBranch creates a new branch pointing at the given commit,
 // checks out the new branch, and pushes the new branch.
 func (g *GitBuilder) CreateBranchAtCommit(ctx context.Context, name, commit string) {
-	g.run(ctx, "git", "checkout", "--no-track", "-b", name, commit)
+	g.run(ctx, "git", "-log-level", "debug", "checkout", "--no-track", "-b", name, commit)
 	g.branch = name
 	g.push(ctx)
 }
 
 // CreateOrphanBranch creates a new orphan branch.
 func (g *GitBuilder) CreateOrphanBranch(ctx context.Context, newBranch string) {
-	g.run(ctx, "git", "checkout", "--orphan", newBranch)
+	g.run(ctx, "git", "-log-level", "debug", "checkout", "--orphan", newBranch)
 	g.branch = newBranch
 	// Can't push, since the branch doesn't currently point to any commit.
 }
 
 // CheckoutBranch checks out the given branch.
 func (g *GitBuilder) CheckoutBranch(ctx context.Context, name string) {
-	g.run(ctx, "git", "checkout", name)
+	g.run(ctx, "git", "-log-level", "debug", "checkout", name)
 	g.branch = name
 }
 
@@ -188,7 +188,7 @@ func (g *GitBuilder) CheckoutBranch(ctx context.Context, name string) {
 // current branch. Returns the hash of the new commit.
 func (g *GitBuilder) MergeBranch(ctx context.Context, name string) string {
 	assert.NotEqual(g.t, g.branch, name, "Can't merge a branch into itself.")
-	cmd := []string{"git", "merge", name}
+	cmd := []string{"git", "-log-level", "debug", "merge", name}
 	major, minor, err := git_common.Version(ctx)
 	assert.NoError(g.t, err)
 	if (major == 2 && minor >= 9) || major > 2 {
@@ -201,14 +201,14 @@ func (g *GitBuilder) MergeBranch(ctx context.Context, name string) string {
 
 // Reset runs "git reset" in the repo.
 func (g *GitBuilder) Reset(ctx context.Context, args ...string) {
-	cmd := append([]string{"git", "reset"}, args...)
+	cmd := append([]string{"git", "-log-level", "debug", "reset"}, args...)
 	g.run(ctx, cmd...)
 	g.push(ctx)
 }
 
 // UpdateRef runs "git update-ref" in the repo.
 func (g *GitBuilder) UpdateRef(ctx context.Context, args ...string) {
-	cmd := append([]string{"git", "update-ref"}, args...)
+	cmd := append([]string{"git", "-log-level", "debug", "update-ref"}, args...)
 	g.run(ctx, cmd...)
 	g.push(ctx)
 }
@@ -216,7 +216,7 @@ func (g *GitBuilder) UpdateRef(ctx context.Context, args ...string) {
 // CreateFakeGerritCLGen creates a Gerrit-like ref so that it can be applied like
 // a CL on a trybot.
 func (g *GitBuilder) CreateFakeGerritCLGen(ctx context.Context, issue, patchset string) {
-	currentBranch := strings.TrimSpace(g.run(ctx, "git", "rev-parse", "--abbrev-ref", "HEAD"))
+	currentBranch := strings.TrimSpace(g.run(ctx, "git", "-log-level", "debug", "rev-parse", "--abbrev-ref", "HEAD"))
 	g.CreateBranchTrackBranch(ctx, "fake-patch", "master")
 	patchCommit := g.CommitGen(ctx, "somefile")
 	g.UpdateRef(ctx, fmt.Sprintf("refs/changes/%s/%s/%s", issue[len(issue)-2:], issue, patchset), patchCommit)
