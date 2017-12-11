@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	depot_tools "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -80,13 +81,15 @@ func setupManifest(t *testing.T) (context.Context, string, *git_testutils.GitBui
 					return nil
 				}
 			}
-		} else if cmd.Name == "gclient" {
-			if cmd.Args[0] == "sync" {
+		} else if cmd.Name == "python" {
+			if strings.Contains(cmd.Args[0], "gclient.py") && cmd.Args[1] == "sync" {
 				// This needs to be deferred until the repo manager creates the dir,
 				// so we run it at "gclient sync".
-				dest := path.Join(wd, "repo_manager", "skia")
+				dest := path.Join(wd, "repo_manager", childPath)
 				if _, err := os.Stat(dest); os.IsNotExist(err) {
 					co, err := git.NewCheckout(ctx, child.RepoUrl(), cmd.Dir)
+					assert.NoError(t, err)
+					err = os.MkdirAll(path.Dir(dest), os.ModePerm)
 					assert.NoError(t, err)
 					assert.NoError(t, os.Rename(co.Dir(), dest))
 				}
@@ -144,7 +147,7 @@ func TestManifestRepoManager(t *testing.T) {
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
+	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -169,7 +172,7 @@ func TestCreateNewManifestRoll(t *testing.T) {
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
+	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -190,7 +193,7 @@ func TestRanPreUploadStepsManifest(t *testing.T) {
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, "fake.server.com")
+	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
 	assert.NoError(t, err)
 	ran := false
 	rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{
