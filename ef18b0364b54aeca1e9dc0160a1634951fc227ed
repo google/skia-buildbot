@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c7dc2e52_c6e07639",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 100
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-12T12:46:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49f6a59f_67599cd2",
+      "revId": "ef18b0364b54aeca1e9dc0160a1634951fc227ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2835ac13_406221f9",
         "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
         "patchSetId": 100
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "29e47d53_c40958a7",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 100
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-12T12:46:12Z",
+      "side": 1,
+      "message": "This change causes us to use bundled recipes, instead of calling recipes.py directly and having it sync the recipe deps.  We were using the depot_tools from recipe deps, which is just a normal checkout.  The bundled recipes are stripped down a bit, so we don\u0027t get all of depot_tools.  In particular, the update_depot_tools script (which is called by the gclient wrapper script) is missing.  So we have to call gclient.py directly.",
+      "parentUuid": "2835ac13_406221f9",
+      "range": {
+        "startLine": 54,
+        "startChar": 36,
+        "endLine": 54,
+        "endChar": 46
+      },
+      "revId": "ef18b0364b54aeca1e9dc0160a1634951fc227ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "901b241c_247ddc7a",
         "filename": "infra/bots/gen_tasks.go",
         "patchSetId": 100
@@ -53,6 +95,24 @@
       "writtenOn": "2017-12-11T21:50:51Z",
       "side": 1,
       "message": "This list is unfortunate",
+      "revId": "ef18b0364b54aeca1e9dc0160a1634951fc227ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e7f6e8b_7d55689a",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 100
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-12T12:46:12Z",
+      "side": 1,
+      "message": "I guess we could put it in a constant inside the specs package and do something like this:\n\ncmd :\u003d []string{\n    \"./kitchen\",\n    ...\n}\nfor _, host in specs.KNOWN_GERRIT_HOSTS {\n    cmd \u003d append(cmd, []string{\"-known-gerrit-host\", host}...)\n}\ncmd \u003d append(cmd, []string{\n    \"-workdir\", \".\",\n    ...\n})\n\nBut IMO that\u0027s worse.",
+      "parentUuid": "901b241c_247ddc7a",
       "revId": "ef18b0364b54aeca1e9dc0160a1634951fc227ed",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
