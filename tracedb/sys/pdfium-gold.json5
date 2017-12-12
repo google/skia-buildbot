@@ -19,7 +19,7 @@
         }
       ],
       ExtraParams: {
-        TraceService: "localhost:9091"
+        TraceService: "skia-tracedb:9091"
       }
     },
 
@@ -38,7 +38,7 @@
         }
       ],
       ExtraParams: {
-        TraceService: "localhost:9091",
+        TraceService: "skia-tracedb:9091",
         RietveldCodeReviewURL: "https://codereview.chromium.org",
         GerritCodeReviewURL: "https://pdfium-review.googlesource.com"
       }
