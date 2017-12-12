@@ -542,6 +542,9 @@ func TestTempGitRepoParallel(t *testing.T) {
 }
 
 func TestTempGitRepoErr(t *testing.T) {
+	// bot_update uses lots of retries with exponential backoff, which makes
+	// this really slow.
+	t.Skip("TestTempGitRepoErr is very slow.")
 	testutils.LargeTest(t)
 
 	ctx, gb, c1, _ := specs_testutils.SetupTestRepo(t)

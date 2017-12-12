@@ -12,6 +12,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
+	depot_tools "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -24,7 +25,6 @@ import (
 const (
 	childPath       = "path/to/child"
 	cqExtraTrybots  = ""
-	depotTools      = ""
 	issueNum        = int64(12345)
 	mockServer      = "https://skia-review.googlesource.com"
 	mockUser        = "user@chromium.org"
@@ -110,7 +110,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	g := setupFakeGerrit(t, wd)
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -149,7 +149,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	s, err := GetNextRollStrategy(strategy, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -186,7 +186,7 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, nil, "fake.server.com")
 	assert.NoError(t, err)
 
 	ran := false
@@ -215,7 +215,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
 
-		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, includeLog, nil, "fake.server.com")
+		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, includeLog, nil, "fake.server.com")
 		assert.NoError(t, err)
 
 		// Create a roll.
@@ -225,7 +225,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		// Ensure that --no-log is present or not, according to includeLog.
 		found := false
 		for _, c := range mockRun.Commands() {
-			if c.Name == "roll-dep" {
+			if strings.Contains(c.Name, "roll-dep") {
 				found = true
 				assert.Equal(t, !includeLog, util.In("--no-log", c.Args))
 			}
@@ -251,7 +251,7 @@ func TestDEPSRepoManagerCustomVars(t *testing.T) {
 		"a=b",
 		"c=d",
 	}
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depotTools, g, s, nil, true, customVars, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, customVars, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll.
@@ -262,7 +262,7 @@ func TestDEPSRepoManagerCustomVars(t *testing.T) {
 	found1 := false
 	found2 := false
 	for _, c := range mockRun.Commands() {
-		if c.Name == "gclient" && c.Args[0] == "config" {
+		if c.Name == "python" && strings.Contains(c.Args[0], "gclient.py") && c.Args[1] == "config" {
 			for idx, arg := range c.Args {
 				if arg == "--custom-var" {
 					if c.Args[idx+1] == customVars[0] {

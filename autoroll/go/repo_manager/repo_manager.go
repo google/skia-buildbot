@@ -172,8 +172,8 @@ func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
-		Name: r.gclient,
-		Args: []string{"revert", "--nohooks"},
+		Name: "python",
+		Args: []string{r.gclient, "revert", "--nohooks"},
 	}); err != nil {
 		return err
 	}
@@ -201,14 +201,14 @@ func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 		}
 	}
 
-	args := []string{"config", r.parentRepo}
+	args := []string{r.gclient, "config", r.parentRepo}
 	for _, v := range r.depsCustomVars {
 		args = append(args, "--custom-var", v)
 	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
-		Name: r.gclient,
+		Name: "python",
 		Args: args,
 	}); err != nil {
 		return err
@@ -216,8 +216,8 @@ func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
 		Env:  r.GetEnvForDepotTools(),
-		Name: r.gclient,
-		Args: []string{"sync", "--nohooks"},
+		Name: "python",
+		Args: []string{r.gclient, "sync", "--nohooks"},
 	}); err != nil {
 		return err
 	}

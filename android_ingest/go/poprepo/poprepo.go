@@ -116,6 +116,7 @@ func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64) error {
 		Args:           []string{"commit", "-m", fmt.Sprintf("https://%s.skia.org/r/%d", p.subdomain, buildid), fmt.Sprintf("--date=%d", ts)},
 		Env:            []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
 		Dir:            p.checkout.Dir(),
+		InheritEnv:     true,
 		CombinedOutput: &output,
 	}
 	if !p.local {
