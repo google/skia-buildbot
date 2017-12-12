@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	GCLIENT  = "gclient"
+	GCLIENT  = "gclient.py"
 	ROLL_DEP = "roll-dep"
 
 	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
@@ -51,12 +51,8 @@ type depsRepoManager struct {
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
 func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool, depsCustomVars []string, serverURL string) (RepoManager, error) {
-	gclient := GCLIENT
-	rollDep := ROLL_DEP
-	if depot_tools != "" {
-		gclient = path.Join(depot_tools, gclient)
-		rollDep = path.Join(depot_tools, rollDep)
-	}
+	gclient := path.Join(depot_tools, GCLIENT)
+	rollDep := path.Join(depot_tools, ROLL_DEP)
 
 	wd := path.Join(workdir, "repo_manager")
 	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
@@ -146,7 +142,7 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
-	output, err := exec.RunCwd(ctx, dr.parentDir, dr.gclient, "revinfo")
+	output, err := exec.RunCwd(ctx, dr.parentDir, "python", dr.gclient, "revinfo")
 	if err != nil {
 		return "", err
 	}
