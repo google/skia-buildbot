@@ -12,14 +12,6 @@ import (
 
 type Kind string
 
-// One const for each Datastore Kind.
-const (
-	SHORTCUT   Kind = "Shortcut"
-	ACTIVITY   Kind = "Activity"
-	REGRESSION Kind = "Regression"
-	ALERT      Kind = "Alert"
-)
-
 var (
 	// DS is the Cloud Datastore client. Valid after Init() has been called.
 	DS *datastore.Client
