@@ -23,6 +23,7 @@ import (
 
 	storage "cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/paramreducer"
@@ -49,7 +50,6 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
-	"go.skia.org/infra/perf/go/ds"
 	"go.skia.org/infra/perf/go/notify"
 	_ "go.skia.org/infra/perf/go/ptraceingest"
 	"go.skia.org/infra/perf/go/ptracestore"
