@@ -161,6 +161,13 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      []string{},
 		ArgsAfterExecutable: []string{"--type", "sksl2glsl", "--bytes"},
 	},
+	"skp": {
+		PrettyName:          "SKP from ReadBuffer",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "reed",
+		ExtraBugLabels:      []string{},
+		ArgsAfterExecutable: []string{"--type", "skp", "--bytes"},
+	},
 	"textblob": {
 		PrettyName:          "TextBlob deserialize",
 		Status:              STABLE_FUZZER,
