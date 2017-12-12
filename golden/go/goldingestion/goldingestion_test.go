@@ -168,8 +168,6 @@ func testProcessor(t *testing.T, ctx context.Context, processor ingestion.Proces
 	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(filterCommitIDs(commitIDs, "master")))
-	assert.Equal(t, 0, len(filterCommitIDs(commitIDs, TEST_CODE_RIETVELDREVIEW_URL)))
-
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
 		Timestamp: TEST_COMMITS[0].Timestamp.Unix(),

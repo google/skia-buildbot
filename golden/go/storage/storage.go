@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -392,14 +391,4 @@ func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(
 
 	sklog.Infof("File written to GS path %s", targetPath)
 	return nil
-}
-
-// splitGSPath takes a GCS path and splits it into a <bucket,path> pair.
-// It assumes the format: {bucket_name}/{path_within_bucket}.
-func splitGSPath(path string) (string, string) {
-	parts := strings.SplitN(strings.TrimLeft(path, "/"), "/", 2)
-	if len(parts) > 1 {
-		return parts[0], parts[1]
-	}
-	return path, ""
 }
