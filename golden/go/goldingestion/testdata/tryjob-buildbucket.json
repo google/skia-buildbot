@@ -1,0 +1,31 @@
+{
+  "build": {
+   "status": "COMPLETED",
+   "created_ts": "1512654470653360",
+   "canary_preference": "AUTO",
+   "tags": [
+    "builder:Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All",
+    "buildset:patch/gerrit/skia-review.googlesource.com/81300/9",
+    "cq_experimental:false",
+    "master:skia.primary",
+    "user_agent:cq"
+   ],
+   "url": "https://task-scheduler.skia.org/job/20171207T134806.613216732Z_00000000002610de",
+   "bucket": "skia.primary",
+   "result_details_json": "{\"job\": {\"status\": \"SUCCESS\", \"dbModified\": \"2017-12-07T14:05:18.051277995Z\", \"tasks\": {\"Housekeeper-PerCommit-IsolateSkImage\": [{\"status\": \"SUCCESS\", \"swarmingTaskId\": \"3a4a0dc39333ba10\", \"attempt\": 0, \"id\": \"20171207T134839.005803293Z_000000000037e8a0\", \"max_attempts\": 2}], \"Upload-Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All\": [{\"status\": \"SUCCESS\", \"swarmingTaskId\": \"3a4a1cac834d0710\", \"attempt\": 0, \"id\": \"20171207T140456.277735456Z_000000000037ea15\", \"max_attempts\": 2}], \"Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All\": [{\"status\": \"SUCCESS\", \"swarmingTaskId\": \"3a4a14fd195d2010\", \"attempt\": 0, \"id\": \"20171207T135632.608641634Z_000000000037e960\", \"max_attempts\": 1}], \"Housekeeper-PerCommit-IsolateSKP\": [{\"status\": \"SUCCESS\", \"swarmingTaskId\": \"3a4a0dc3084b1b10\", \"attempt\": 0, \"id\": \"20171207T134839.002962981Z_000000000037e89e\", \"max_attempts\": 2}], \"Build-Mac-Clang-arm64-Debug-iOS\": [{\"status\": \"SUCCESS\", \"swarmingTaskId\": \"3a4a0faa4517f410\", \"attempt\": 0, \"id\": \"20171207T135043.725915003Z_000000000037e8c2\", \"max_attempts\": 2}], \"Housekeeper-PerCommit-IsolateSVG\": [{\"status\": \"SUCCESS\", \"swarmingTaskId\": \"3a4a0dc312849610\", \"attempt\": 0, \"id\": \"20171207T134839.001279682Z_000000000037e89d\", \"max_attempts\": 2}], \"Housekeeper-PerCommit-BundleRecipes\": [{\"status\": \"SUCCESS\", \"swarmingTaskId\": \"3a4a0dc303f2ef10\", \"attempt\": 0, \"id\": \"20171207T134838.999968442Z_000000000037e89c\", \"max_attempts\": 2}]}, \"name\": \"Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All\", \"created\": \"2017-12-07T13:48:06.613216732Z\", \"patchset\": \"9\", \"isForce\": false, \"server\": \"https://skia-review.googlesource.com\", \"repo\": \"https://skia.googlesource.com/skia.git\", \"finished\": \"2017-12-07T14:05:18.025978511Z\", \"patch_repo\": \"https://skia.googlesource.com/skia.git\", \"dependencies\": {\"Housekeeper-PerCommit-IsolateSkImage\": [], \"Upload-Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All\": [\"Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All\", \"Housekeeper-PerCommit-BundleRecipes\"], \"Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All\": [\"Build-Mac-Clang-arm64-Debug-iOS\", \"Housekeeper-PerCommit-BundleRecipes\", \"Housekeeper-PerCommit-IsolateSKP\", \"Housekeeper-PerCommit-IsolateSVG\", \"Housekeeper-PerCommit-IsolateSkImage\"], \"Housekeeper-PerCommit-IsolateSKP\": [], \"Build-Mac-Clang-arm64-Debug-iOS\": [\"Housekeeper-PerCommit-BundleRecipes\"], \"Housekeeper-PerCommit-IsolateSVG\": [], \"Housekeeper-PerCommit-BundleRecipes\": []}, \"id\": \"20171207T134806.613216732Z_00000000002610de\", \"priority\": 0.80000000000000004, \"buildbucketBuildId\": 8960860541739306896, \"issue\": \"81300\", \"buildbucketLeaseKey\": 2114644941, \"revision\": \"b351817588baf94ac725e35f10ee1d5ff8178834\"}}",
+   "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+   "status_changed_ts": "1512655545180320",
+   "canary": false,
+   "id": "8960860541739306896",
+   "project": "skia",
+   "updated_ts": "1512655545180550",
+   "result": "SUCCESS",
+   "utcnow_ts": "1512662054350480",
+   "parameters_json": "{\"builder_name\": \"Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-All\", \"changes\": [{\"author\": {\"email\": \"borenet@google.com\"}, \"repo_url\": \"https://skia.googlesource.com/skia\"}], \"properties\": {\"attempt_start_ts\": 1512654450000000, \"category\": \"cq\", \"master\": \"skia.primary\", \"patch_gerrit_url\": \"https://skia-review.googlesource.com\", \"patch_issue\": 81300, \"patch_project\": \"skia\", \"patch_ref\": \"refs/changes/00/81300/9\", \"patch_repository_url\": \"https://skia.googlesource.com/skia\", \"patch_set\": 9, \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"revision\": \"HEAD\"}}",
+   "completed_ts": "1512655545180340",
+   "experimental": false,
+   "started_ts": "1512654496301860"
+  },
+  "kind": "buildbucket#resourcesItem",
+  "etag": "\"HplIYpH9KrEVLYrsy3yPqFb6sR4/iA4ran_SzI1BZ1AbM8UBcfhfluY\""
+ }
