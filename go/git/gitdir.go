@@ -38,11 +38,30 @@ func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (GitDi
 			// Clone the repo.
 			cmd := []string{"git", "clone"}
 			if mirror {
-				cmd = append(cmd, "--mirror")
+				// We don't use a "real" mirror, since that syncs
+				// ALL refs, including every patchset of every CL
+				// that gets uploaded. Instead, we use a bare
+				// clone and then add the "mirror" config after
+				// cloning. It would be equivalent to use
+				// --mirror and then update the refspec to only
+				// sync the branches, but that would force the
+				// initial clone step to sync every ref.
+				cmd = append(cmd, "--bare")
 			}
 			cmd = append(cmd, repoUrl, dest)
 			if _, err := exec.RunCwd(ctx, workdir, cmd...); err != nil {
 				return "", fmt.Errorf("Failed to clone repo: %s", err)
+			}
+			if mirror {
+				if _, err := exec.RunCwd(ctx, dest, "git", "config", "remote.origin.mirror", "true"); err != nil {
+					return "", fmt.Errorf("Failed to set git mirror config: %s", err)
+				}
+				if _, err := exec.RunCwd(ctx, dest, "git", "config", "remote.origin.fetch", "refs/heads/*:refs/heads/*"); err != nil {
+					return "", fmt.Errorf("Failed to set git mirror config: %s", err)
+				}
+				if _, err := exec.RunCwd(ctx, dest, "git", "fetch", "--force", "--all"); err != nil {
+					return "", fmt.Errorf("Failed to set git mirror config: %s", err)
+				}
 			}
 		} else {
 			return "", fmt.Errorf("There is a problem with the git directory: %s", err)

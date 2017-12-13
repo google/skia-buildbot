@@ -158,7 +158,7 @@ func TestGetRevision(t *testing.T) {
 	}
 	_, r, _, err := trybots.getRepo(props)
 	assert.NoError(t, err)
-	c, err := r.Repo().RevParse(ctx, "origin/master")
+	c, err := r.Repo().RevParse(ctx, "master")
 	assert.NoError(t, err)
 
 	// Fake response from Gerrit.
