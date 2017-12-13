@@ -46,7 +46,7 @@ func TestBuildBucketState(t *testing.T) {
 	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", client)
 	assert.NoError(t, err)
 
-	tjStatus, err := NewBuildBucketState(DefaultSkiaBuildBucketURL, client, tjStore, gerritAPI)
+	tjStatus, err := NewBuildBucketState(DefaultSkiaBuildBucketURL, DefaultSkiaBucketName, client, tjStore, gerritAPI)
 	assert.NoError(t, err)
 	assert.NotNil(t, tjStatus)
 

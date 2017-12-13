@@ -173,10 +173,12 @@ func (c *cloudTryjobStore) DeleteIssue(issueID int64) error {
 // GetTryjob implements the TryjobStore interface.
 func (c *cloudTryjobStore) GetTryjob(issueID, buildBucketID int64) (*Tryjob, error) {
 	ret := &Tryjob{}
-	if err := c.client.Get(context.Background(), c.getTryjobKey(buildBucketID), ret); err != nil {
+	ctx := context.Background()
+	if err := c.client.Get(ctx, c.getTryjobKey(buildBucketID, c.getIssueKey(issueID)), ret); err != nil {
 		if err == datastore.ErrNoSuchEntity {
 			return nil, nil
 		}
+		fmt.Printf("gOT error\n")
 		return nil, err
 	}
 
@@ -185,7 +187,16 @@ func (c *cloudTryjobStore) GetTryjob(issueID, buildBucketID int64) (*Tryjob, err
 
 // UpdateTryjob implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateTryjob(issueID int64, tryjob *Tryjob) error {
-	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID), tryjob)
+	issue, err := c.GetIssue(issueID, false, nil)
+	if err != nil {
+		return fmt.Errorf("Error retrieving issue: %s", err)
+	}
+
+	if issue == nil {
+		return fmt.Errorf("Issue %d does not exist for tryjob %d", issueID, tryjob.BuildBucketID)
+	}
+
+	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID, c.getIssueKey(issueID)), tryjob)
 }
 
 // GetTryjobResults implements the TryjobStore interface.
@@ -205,7 +216,7 @@ func (c *cloudTryjobStore) GetTryjobResults(issueID int64, patchsetIDs []int64) 
 
 // UpdateTryjobResults implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateTryjobResult(tryjob *Tryjob, results []*TryjobResult) error {
-	tryjobKey := c.getTryjobKey(tryjob.BuildBucketID)
+	tryjobKey := c.getTryjobKey(tryjob.BuildBucketID, c.getIssueKey(tryjob.IssueID))
 	keys := make([]*datastore.Key, 0, len(results))
 	for _, result := range results {
 		keys = append(keys, c.getTryjobResultKey(tryjobKey, result.Digest))
@@ -477,11 +488,12 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 	keysArr := make([][]*datastore.Key, n, n)
 	valsArr := make([][]*Tryjob, n, n)
 	resultSize := int32(0)
+	issueKey := c.getIssueKey(issueID)
 	var egroup errgroup.Group
 	for idx, patchsetID := range patchsetIDs {
 		func(idx int, patchsetID int64) {
 			egroup.Go(func() error {
-				query := datastore.NewQuery(kind_Tryjob).Namespace(c.namespace).Filter("IssueID =", issueID)
+				query := datastore.NewQuery(kind_Tryjob).Namespace(c.namespace).Ancestor(issueKey)
 				if patchsetID > 0 {
 					query = query.Filter("PatchsetID =", patchsetID)
 				}
@@ -576,8 +588,8 @@ func (c *cloudTryjobStore) getIssueKey(id int64) *datastore.Key {
 }
 
 // getTryjobKey returns a datastore key for the given buildbucketID.
-func (c *cloudTryjobStore) getTryjobKey(buildBucketID int64) *datastore.Key {
-	ret := datastore.IDKey(kind_Tryjob, buildBucketID, nil)
+func (c *cloudTryjobStore) getTryjobKey(buildBucketID int64, issueKey *datastore.Key) *datastore.Key {
+	ret := datastore.IDKey(kind_Tryjob, buildBucketID, issueKey)
 	ret.Namespace = c.namespace
 	return ret
 }
