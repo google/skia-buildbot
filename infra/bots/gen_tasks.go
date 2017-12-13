@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -164,7 +165,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	if strings.Contains(name, "Race") {
 		attempts = 1
 	}
-	b.MustAddTask(name, &specs.TaskSpec{
+	task := &specs.TaskSpec{
 		CipdPackages: cipd(pkgs),
 		Command: []string{
 			"./kitchen${EXECUTABLE_SUFFIX}", "cook",
@@ -209,7 +210,11 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		Isolate:     "infrabots.isolate",
 		Priority:    0.8,
 		MaxAttempts: attempts,
-	})
+	}
+	if strings.Contains(name, "Race") {
+		task.IoTimeout = 40 * time.Minute
+	}
+	b.MustAddTask(name, task)
 	return name
 }
 
