@@ -27,7 +27,7 @@ type AddFn func(test, digest, traceID string, trace *types.GoldenTrace, acceptRe
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, storages *storage.Storage, idx *indexer.SearchIndex) error {
+func iterTile(query *TileQuery, qBlameGroupID string, addFn AddFn, acceptFn AcceptFn, storages *storage.Storage, idx *indexer.SearchIndex) error {
 	exp, err := storages.ExpectationsStore.Get()
 	if err != nil {
 		return err
@@ -68,10 +68,10 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, storages *storage.St
 				}
 
 				// Fix blamer to make this easier.
-				if query.BlameGroupID != "" {
+				if qBlameGroupID != "" {
 					if cl == types.UNTRIAGED {
 						b := idx.GetBlame(test, digest, tile.Commits)
-						if query.BlameGroupID != blameGroupID(b, tile.Commits) {
+						if qBlameGroupID != blameGroupID(b, tile.Commits) {
 							continue
 						}
 					} else {
