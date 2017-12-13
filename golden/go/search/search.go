@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/goldingestion"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
@@ -278,7 +277,7 @@ func searchByIssue(ctx context.Context, issueID string, q *Query, exp *expstorag
 		queryRule = ignore.NewQueryRule(parsedQuery)
 	}
 
-	pidMap := util.NewStringSet(issue.TargetPatchsets)
+	// pidMap := util.NewStringSet(issue.TargetPatchsets)
 
 	// TODO(stephana): Sort out how digests from trybots relate to ignored and
 	// followed digests. Are we ok with ignored digests being triaged "by accident"
@@ -287,11 +286,11 @@ func searchByIssue(ctx context.Context, issueID string, q *Query, exp *expstorag
 	talliesByTest := idx.TalliesByTest(false)
 	digestMap := map[string]*Digest{}
 
-	for idx, cid := range issue.CommitIDs {
-		_, pid := goldingestion.ExtractIssueInfo(cid.CommitID, storages.RietveldAPI, storages.GerritAPI)
-		if !pidMap[pid] {
-			continue
-		}
+	for idx := range issue.CommitIDs {
+		// _, pid := goldingestion.ExtractIssueInfo(cid.CommitID, storages.RietveldAPI, storages.GerritAPI)
+		// if !pidMap[pid] {
+		// 	continue
+		// }
 
 		for _, trace := range tile.Traces {
 			gTrace := trace.(*types.GoldenTrace)

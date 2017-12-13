@@ -401,12 +401,12 @@ func (t *TrybotResults) getCommits(ctx context.Context, startTime, endTime time.
 
 	// Only get the commitIDs we are interested in.
 	temp := make([]*tracedb.CommitIDLong, 0, len(earlierCommits))
-	for _, cid := range earlierCommits {
-		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
-		if issueIDs[iid] {
-			temp = append(temp, cid)
-		}
-	}
+	// for _, cid := range earlierCommits {
+	// 	// iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
+	// 	// if issueIDs[iid] {
+	// 	// 	temp = append(temp, cid)
+	// 	// }
+	// }
 	commits = append(temp, commits...)
 	return commits, issueIDs, nil
 }
@@ -415,48 +415,49 @@ func (t *TrybotResults) getCommits(ctx context.Context, startTime, endTime time.
 // of issue ids. It is assumed that issueIDs only contains issues that have Rietveld details
 // attached to them. Any commit that is not in issueIDs will be ommitted.
 func (t *TrybotResults) getIssuesFromCommits(commits []*tracedb.CommitIDLong, issueIDs map[string]bool, isGerrit bool) []*Issue {
-	issueMap := make(map[string]*Issue, len(issueIDs))
-	for _, cid := range commits {
-		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
+	// issueMap := make(map[string]*Issue, len(issueIDs))
+	// for _, cid := range commits {
+	// 	// iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
 
-		// Ignore issues that are not in issueIDs
-		if !issueIDs[iid] {
-			continue
-		}
+	// 	// // Ignore issues that are not in issueIDs
+	// 	// if !issueIDs[iid] {
+	// 	// 	continue
+	// 	// }
 
-		// if the iid is not numeric it is wrong.
-		numIID, err := strconv.ParseInt(iid, 10, 64)
-		if err != nil {
-			sklog.Errorf("Unable to parse issue id %s. Got error: %s", iid, err)
-			continue
-		}
+	// 	// if the iid is not numeric it is wrong.
+	// 	numIID, err := strconv.ParseInt(iid, 10, 64)
+	// 	if err != nil {
+	// 		sklog.Errorf("Unable to parse issue id %s. Got error: %s", iid, err)
+	// 		continue
+	// 	}
 
-		getURL := t.rietveldAPI.Url
-		if isGerrit {
-			getURL = t.gerritAPI.Url
-		}
+	// 	getURL := t.rietveldAPI.Url
+	// 	if isGerrit {
+	// 		getURL = t.gerritAPI.Url
+	// 	}
 
-		issue, ok := issueMap[iid]
-		if !ok {
-			patchsets, modified := getIssuePatchSetsAndModified(cid, isGerrit)
-			issue = &Issue{
-				ID:        iid,
-				Subject:   cid.Desc,
-				Owner:     cid.Author,
-				Updated:   modified,
-				URL:       getURL(numIID),
-				Patchsets: patchsets,
-			}
-			issueMap[iid] = issue
-		}
-	}
+	// 	issue, ok := issueMap[iid]
+	// 	if !ok {
+	// 		patchsets, modified := getIssuePatchSetsAndModified(cid, isGerrit)
+	// 		issue = &Issue{
+	// 			ID:        iid,
+	// 			Subject:   cid.Desc,
+	// 			Owner:     cid.Author,
+	// 			Updated:   modified,
+	// 			URL:       getURL(numIID),
+	// 			Patchsets: patchsets,
+	// 		}
+	// 		issueMap[iid] = issue
+	// 	}
+	// }
 
-	ret := make([]*Issue, 0, len(issueMap))
-	for _, issue := range issueMap {
-		ret = append(ret, issue)
-	}
+	// ret := make([]*Issue, 0, len(issueMap))
+	// for _, issue := range issueMap {
+	// 	ret = append(ret, issue)
+	// }
 
-	return ret
+	// return ret
+	return nil
 }
 
 // uniqueIssues returns the set of all issues contained in the given list of commit ids. If an issue does not
@@ -472,8 +473,8 @@ func (t *TrybotResults) uniqueIssues(commitIDs []*tracedb.CommitIDLong, isGerrit
 			continue
 		}
 		ret = append(ret, cid)
-		iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
-		issueIDs[iid] = true
+		// iid, _ := goldingestion.ExtractIssueInfo(cid.CommitID, t.rietveldAPI, t.gerritAPI)
+		// issueIDs[iid] = true
 		createTime := getIssueCreateTime(cid, isGerrit)
 		if minTime.After(createTime) {
 			minTime = createTime
