@@ -31,14 +31,14 @@ type Branch struct {
 type GitDir string
 
 // newGitDir creates a GitDir instance based in the given directory.
-func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (GitDir, error) {
+func newGitDir(ctx context.Context, repoUrl, workdir string, bare bool) (GitDir, error) {
 	dest := path.Join(workdir, strings.TrimSuffix(path.Base(repoUrl), ".git"))
 	if _, err := os.Stat(dest); err != nil {
 		if os.IsNotExist(err) {
 			// Clone the repo.
 			cmd := []string{"git", "clone"}
-			if mirror {
-				cmd = append(cmd, "--mirror")
+			if bare {
+				cmd = append(cmd, "--bare")
 			}
 			cmd = append(cmd, repoUrl, dest)
 			if _, err := exec.RunCwd(ctx, workdir, cmd...); err != nil {
