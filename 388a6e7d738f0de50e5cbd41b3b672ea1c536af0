@@ -16,6 +16,24 @@
       "revId": "388a6e7d738f0de50e5cbd41b3b672ea1c536af0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a67245c_a3081afb",
+        "filename": "task_scheduler/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-13T20:34:15Z",
+      "side": 0,
+      "message": "This is a case of \"I don\u0027t know why this ever worked\".  With either --mirror or --bare, the refs should be mapped to local paths, ie. \"master\" instead of \"origin/master\".  When we switched to using --mirror, I had to make that change in a lot of places.  So... yeah, I\u0027m not sure why this worked.",
+      "parentUuid": "0b434784_ea3c1ed2",
+      "revId": "388a6e7d738f0de50e5cbd41b3b672ea1c536af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
