@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/rietveld"
@@ -336,7 +336,7 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) er
 // loadKnownDigests loads the digests that have previously been written
 // to GS via WriteKnownDigests. Used for testing.
 func (g *GStorageClient) loadKnownDigests() ([]string, error) {
-	bucketName, storagePath := splitGSPath(g.options.HashesGSPath)
+	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
 
 	ctx := context.Background()
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
@@ -363,7 +363,7 @@ func (g *GStorageClient) loadKnownDigests() ([]string, error) {
 
 // removeGSPath removes the given file. Primarily used for testing.
 func (g *GStorageClient) removeGSPath(targetPath string) error {
-	bucketName, storagePath := splitGSPath(targetPath)
+	bucketName, storagePath := gcs.SplitGSPath(targetPath)
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 	return target.Delete(context.Background())
 }
@@ -371,7 +371,7 @@ func (g *GStorageClient) removeGSPath(targetPath string) error {
 // writeToPath is a generic function that allows to write data to the given
 // target path in GCS. The actual writing is done in the passed write function.
 func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(w *gstorage.Writer) error) error {
-	bucketName, storagePath := splitGSPath(targetPath)
+	bucketName, storagePath := gcs.SplitGSPath(targetPath)
 
 	// Only write the known digests if a target path was given.
 	if (bucketName == "") || (storagePath == "") {
@@ -392,14 +392,4 @@ func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(
 
 	sklog.Infof("File written to GS path %s", targetPath)
 	return nil
-}
-
-// splitGSPath takes a GCS path and splits it into a <bucket,path> pair.
-// It assumes the format: {bucket_name}/{path_within_bucket}.
-func splitGSPath(path string) (string, string) {
-	parts := strings.SplitN(strings.TrimLeft(path, "/"), "/", 2)
-	if len(parts) > 1 {
-		return parts[0], parts[1]
-	}
-	return path, ""
 }
