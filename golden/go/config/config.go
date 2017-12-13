@@ -10,5 +10,6 @@ const (
 	CONSTRUCTOR_GOLD         = DATASET_GOLD
 	CONSTRUCTOR_ANDROID_GOLD = "android-gold"
 	CONSTRUCTOR_GOLD_TRYBOT  = "gold-trybot"
+	CONSTRUCTOR_GOLD_TRYJOB  = "gold-tryjob"
 	CONSTRUCTOR_PDF          = "pdf"
 )
