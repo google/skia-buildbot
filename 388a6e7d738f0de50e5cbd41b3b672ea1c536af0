@@ -16,6 +16,24 @@
       "revId": "388a6e7d738f0de50e5cbd41b3b672ea1c536af0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47407066_20f7467d",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-14T18:30:22Z",
+      "side": 0,
+      "message": "Yes, I need to finish adding accounts, giving them the correct access, and setting up quota before it\u0027s okay to land this.",
+      "parentUuid": "747bd931_0c26c7ed",
+      "revId": "388a6e7d738f0de50e5cbd41b3b672ea1c536af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

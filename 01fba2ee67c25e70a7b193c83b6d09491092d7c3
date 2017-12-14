@@ -86,6 +86,24 @@
       "revId": "01fba2ee67c25e70a7b193c83b6d09491092d7c3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e0d15d7_cd9c1449",
+        "filename": "git_cookie_authdaemon/build_release",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-14T18:30:22Z",
+      "side": 1,
+      "message": "Copypasta from the android_ingest version :-/  Will fix in the next patch set.",
+      "parentUuid": "5224d5d5_77925e13",
+      "revId": "01fba2ee67c25e70a7b193c83b6d09491092d7c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
