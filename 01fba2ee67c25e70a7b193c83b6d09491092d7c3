@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ad6979ca_a6dcf3d3",
+        "filename": "autoroll/setup-script-internal.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-14T18:04:40Z",
+      "side": 1,
+      "message": "Only that we don\u0027t seem to need any of the other deps of that package.",
+      "parentUuid": "fa8c2072_dbac5cc2",
+      "range": {
+        "startLine": 3,
+        "startChar": 24,
+        "endLine": 3,
+        "endChar": 32
+      },
+      "revId": "01fba2ee67c25e70a7b193c83b6d09491092d7c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3f97a4b1_ee764e11",
         "filename": "autoroll/vm.go",
         "patchSetId": 3
