@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f97a4b1_ee764e11",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-14T17:48:32Z",
+      "side": 1,
+      "message": "I have not yet created all of these accounts.  Creating them is easy; making sure they have the correct access is not.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 95
+      },
+      "revId": "01fba2ee67c25e70a7b193c83b6d09491092d7c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
