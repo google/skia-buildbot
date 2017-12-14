@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fa8c2072_dbac5cc2",
+        "filename": "autoroll/setup-script-internal.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-14T18:01:36Z",
+      "side": 1,
+      "message": "why not just build-essential, which includes both of these.",
+      "range": {
+        "startLine": 3,
+        "startChar": 24,
+        "endLine": 3,
+        "endChar": 32
+      },
+      "revId": "01fba2ee67c25e70a7b193c83b6d09491092d7c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3f97a4b1_ee764e11",
         "filename": "autoroll/vm.go",
         "patchSetId": 3
