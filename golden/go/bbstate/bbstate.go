@@ -20,7 +20,16 @@ import (
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
+// IssueBuildFetcher fetches issue and build information from the relevant services.
+// This defines the interfaces of BuildBucketState and is used to mock it in tests.
+type IssueBuildFetcher interface {
+	FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.IssueDetails, *tryjobstore.Tryjob, error)
+}
+
 const (
+	// DefaultSkiaBucketName is the name for the Skia BuildBucket.
+	DefaultSkiaBucketName = "skia.primary"
+
 	// DefaultSkiaBuildBucketURL is the default URL for the BuildBucketService used by Skia.
 	DefaultSkiaBuildBucketURL = "https://cr-buildbucket.appspot.com/api/buildbucket/v1/"
 
@@ -46,6 +55,7 @@ const (
 type BuildBucketState struct {
 	// service client to access buildbucket.
 	service     *bb_api.Service
+	bucketName  string
 	tryjobStore tryjobstore.TryjobStore
 	gerritAPI   *gerrit.Gerrit
 }
@@ -53,7 +63,7 @@ type BuildBucketState struct {
 // NewBuildBucketState creates a new instance of BuildBucketState.
 // bbURL is the URL of the target BuildBucket instance and client is an
 // authenticated http client.
-func NewBuildBucketState(bbURL string, client *http.Client, tryjobStore tryjobstore.TryjobStore, gerritAPI *gerrit.Gerrit) (*BuildBucketState, error) {
+func NewBuildBucketState(bbURL string, bucketName string, client *http.Client, tryjobStore tryjobstore.TryjobStore, gerritAPI *gerrit.Gerrit) (IssueBuildFetcher, error) {
 	service, err := bb_api.New(client)
 	if err != nil {
 		return nil, err
@@ -61,6 +71,7 @@ func NewBuildBucketState(bbURL string, client *http.Client, tryjobStore tryjobst
 	service.BasePath = bbURL
 	ret := &BuildBucketState{
 		service:     service,
+		bucketName:  bucketName,
 		tryjobStore: tryjobStore,
 		gerritAPI:   gerritAPI,
 	}
@@ -70,10 +81,51 @@ func NewBuildBucketState(bbURL string, client *http.Client, tryjobStore tryjobst
 	return ret, nil
 }
 
-// LoadGerritIssue loads the given Gerrit issue and store it in the TryjobStore.
-func (b *BuildBucketState) LoadGerritIssue(issueID int64) (bool, error) {
-	issue, err := b.syncGerritIssue(issueID, -1, nil)
-	return issue != nil, err
+// FetchIssueAndTryjob forces a synchronous fetch of the issue information from
+// Gerrit and the Tryjob information from BuildBucket. This is an expensive
+// operation and should be the exception. If either does not exist in
+// Gerrit or BuildBucket the function will return an error.
+func (b *BuildBucketState) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.IssueDetails, *tryjobstore.Tryjob, error) {
+	// syncTryjob will also sync the issue referenced by the tryjob.
+	tryjob, err := b.syncTryjob(buildBucketID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// The reference tryjob doesn't exist.
+	if tryjob == nil {
+		return nil, nil, fmt.Errorf("Tryjob with BuildBucket id %d for issue %d does not exist.", buildBucketID, issueID)
+	}
+
+	if tryjob.IssueID != issueID {
+		return nil, nil, fmt.Errorf("Issue %d is not referenced by tryjob %d.", issueID, buildBucketID)
+	}
+
+	issue, err := b.tryjobStore.GetIssue(issueID, false, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if issue == nil {
+		return nil, nil, fmt.Errorf("Issue %d does not exist.", issueID)
+	}
+
+	return issue, tryjob, nil
+}
+
+// syncTryjob fetches the given tryjob from BuildBucket and makes sure the
+// referenced Gerrit issue exists and all data is in the tryjob store.
+func (b *BuildBucketState) syncTryjob(buildBucketID int64) (*tryjobstore.Tryjob, error) {
+	buildResp, err := b.service.Get(buildBucketID).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	if buildResp.Error.Message != "" {
+		return nil, fmt.Errorf("Unable to retrieve build %d. Got %s", buildBucketID, buildResp.Error.Message)
+	}
+
+	return b.processBuild(buildResp.Build)
 }
 
 // start continuously processes data it gets from buildbucket by polling.
@@ -92,28 +144,8 @@ func (b *BuildBucketState) start() error {
 				// Give up work permission at the end.
 				defer func() { <-workPermissions }()
 
-				// Parse the parameters encoded in the ParametersJson field.
-				params := &tryjobstore.Parameters{}
-				if err := json.Unmarshal([]byte(build.ParametersJson), params); err != nil {
-					sklog.Errorf("Error unmarshalling params: %s", err)
-					return
-				}
-
-				// Check if this is a builder we can ignore.
-				if b.ignoreBuild(build, params) {
-					return
-				}
-
-				// Extract the tryjob info.
-				tryjob, err := getTryjobInfo(build, params)
-				if err != nil {
-					sklog.Errorf("Error extracting tryjob info: %s", err)
-					return
-				}
-
-				if err := b.updateTryjobState(params, tryjob); err != nil {
-					sklog.Errorf("Error adding build info to tryjob store: %s", err)
-					return
+				if _, err := b.processBuild(build); err != nil {
+					sklog.Errorf("Error processing build: %s", err)
 				}
 			}(build)
 		}
@@ -125,6 +157,33 @@ func (b *BuildBucketState) start() error {
 	}
 
 	return nil
+}
+
+// processBuild processes a single Build record returned from BuildBucket.
+// It makes sure the referenced issue exists in Gerrit and stores the issue
+// and tryjob information in the TryjobStore.
+func (b *BuildBucketState) processBuild(build *bb_api.ApiCommonBuildMessage) (*tryjobstore.Tryjob, error) {
+	// Parse the parameters encoded in the ParametersJson field.
+	params := &tryjobstore.Parameters{}
+	if err := json.Unmarshal([]byte(build.ParametersJson), params); err != nil {
+		return nil, fmt.Errorf("Error unmarshalling params: %s", err)
+	}
+
+	// Check if this is a builder we can ignore.
+	if b.ignoreBuild(build, params) {
+		return nil, nil
+	}
+
+	// Extract the tryjob info.
+	tryjob, err := getTryjobInfo(build, params)
+	if err != nil {
+		return nil, fmt.Errorf("Error extracting tryjob info: %s", err)
+	}
+
+	if err := b.updateTryjobState(params, tryjob); err != nil {
+		return nil, fmt.Errorf("Error adding build info to tryjob store: %s", err)
+	}
+	return tryjob, nil
 }
 
 // updateTryjobState adds the provided tryjob information to the TryjobStore.
@@ -238,7 +297,7 @@ func (b *BuildBucketState) pollBuildBucket(buildsCh chan<- *bb_api.ApiCommonBuil
 	searchCall := b.service.Search()
 
 	timeWindowStart := time.Now().Add(-timeWindow).UnixNano() / int64(time.Microsecond)
-	searchCall.Bucket("skia.primary").CreationTsLow(timeWindowStart)
+	searchCall.Bucket(b.bucketName).CreationTsLow(timeWindowStart)
 
 	if err := searchCall.Run(buildsCh, 0, nil); err != nil {
 		return fmt.Errorf("Error querying build bucket: %s", err)
@@ -323,11 +382,16 @@ func getTryjobInfo(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Para
 		return nil, fmt.Errorf("Unknown tryjob state. Got (status, result): (%s, %s)", build.Status, build.Result)
 	}
 
+	// UpdateTs is in micro seconds.
+	// Note: Multiplying by time.Microsecond results in the correct number of nanoseconds.
+	const microPerSec = int64(time.Second / time.Microsecond)
+	updated := time.Unix(build.UpdatedTs/microPerSec, (build.UpdatedTs%microPerSec)*int64(time.Microsecond))
 	ret := &tryjobstore.Tryjob{
 		IssueID:       issueID,
 		PatchsetID:    patchsetID,
 		Builder:       params.BuilderName,
 		BuildBucketID: build.Id,
+		Updated:       updated,
 		Status:        status,
 	}
 

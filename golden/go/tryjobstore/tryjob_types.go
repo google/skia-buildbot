@@ -122,6 +122,7 @@ type Tryjob struct {
 	PatchsetID    int64        `json:"patchsetID"`
 	Builder       string       `json:"builder"`
 	Status        TryjobStatus `json:"status"`
+	Updated       time.Time    `json:"updated"`
 }
 
 // String returns a string representation for the Tryjob
@@ -132,9 +133,9 @@ func (t *Tryjob) String() string {
 // newer implments newerInterface.
 func (t *Tryjob) newer(r interface{}) bool {
 	right := r.(*Tryjob)
-	return (t.Builder < right.Builder) ||
-		(t.BuildBucketID < right.BuildBucketID) ||
-		(t.Status < right.Status)
+	// A tryjob is newer if the status is updated or the BuildBucket record has been
+	// updated.
+	return t.Updated.Before(right.Updated) || (t.Status > right.Status)
 }
 
 // TryjobResult stores results. It is stored in the database as a child of
