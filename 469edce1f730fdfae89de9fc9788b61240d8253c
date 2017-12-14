@@ -16,6 +16,24 @@
       "revId": "469edce1f730fdfae89de9fc9788b61240d8253c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00b87794_0553f719",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-14T14:58:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74f7b075_34dd389e",
+      "revId": "469edce1f730fdfae89de9fc9788b61240d8253c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
