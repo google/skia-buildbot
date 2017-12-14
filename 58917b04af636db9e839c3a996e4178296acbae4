@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "60734bf6_8225a622",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-14T22:47:31Z",
+      "side": 1,
+      "message": "This is causing some strange behavior when there is an isolated includes.\nLooks like the includes relative cwd is overriding the relative cwd of the original isolate.\nFor example I uploaded a task that just outputs the cwd (look at the isolated inputs): https://chromium-swarm.appspot.com/task?id\u003d3a6fdf11c74e5f10\u0026refresh\u003d10\u0026show_raw\u003d1\nIt outputted /mnt/pd0/s/w/ir/skia/infra/bots even though the relative_cwd was \"\".\n\nHow do I work around this in my .isolate? I tried specifying a relative_cwd there but it does not seem to work.\n(Kevin, this is the issue we were looking at today).",
+      "range": {
+        "startLine": 222,
+        "startChar": 56,
+        "endLine": 222,
+        "endChar": 65
+      },
+      "revId": "58917b04af636db9e839c3a996e4178296acbae4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
