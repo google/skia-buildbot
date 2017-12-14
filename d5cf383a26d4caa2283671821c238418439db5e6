@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "72309b9c_ae8cc4fc",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-14T21:23:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "180910ec_2bdcd460",
+      "range": {
+        "startLine": 295,
+        "startChar": 25,
+        "endLine": 295,
+        "endChar": 52
+      },
+      "revId": "d5cf383a26d4caa2283671821c238418439db5e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a25e57f_da2b2818",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 12
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "afbe4aa2_3e57a255",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-14T21:23:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a25e57f_da2b2818",
+      "range": {
+        "startLine": 387,
+        "startChar": 81,
+        "endLine": 387,
+        "endChar": 104
+      },
+      "revId": "d5cf383a26d4caa2283671821c238418439db5e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a0b4e7d7_2be53cc0",
         "filename": "golden/go/bbstate/bbstate_test.go",
         "patchSetId": 12
@@ -59,6 +107,30 @@
       "writtenOn": "2017-12-13T21:16:17Z",
       "side": 1,
       "message": "Why is this needed twice?",
+      "range": {
+        "startLine": 38,
+        "startChar": 2,
+        "endLine": 38,
+        "endChar": 29
+      },
+      "revId": "d5cf383a26d4caa2283671821c238418439db5e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da509349_26bc7614",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-14T21:23:31Z",
+      "side": 1,
+      "message": "That\u0027s a precaution if a previous test run did not clean up properly. We start out with removing what\u0027s in the database. \nThis testing will undergo more improvements, right now it\u0027s only run locally to make sure the code is correct, but it will have to run on the bots eventually.",
+      "parentUuid": "a0b4e7d7_2be53cc0",
       "range": {
         "startLine": 38,
         "startChar": 2,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "64f51865_dcdc759e",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-14T21:23:31Z",
+      "side": 1,
+      "message": "Done.\nGood catch. That was a bug, it should return an error.",
+      "parentUuid": "507d1198_67a99476",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 2
+      },
+      "revId": "d5cf383a26d4caa2283671821c238418439db5e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "41202fb1_59ea790b",
         "filename": "golden/go/tryjobstore/tryjob_types.go",
         "patchSetId": 12
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5c223084_c4c99441",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-14T21:23:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "41202fb1_59ea790b",
+      "range": {
+        "startLine": 136,
+        "startChar": 50,
+        "endLine": 136,
+        "endChar": 59
+      },
+      "revId": "d5cf383a26d4caa2283671821c238418439db5e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "079355a4_27e1e277",
         "filename": "golden/go/tryjobstore/tryjobstore_test.go",
         "patchSetId": 12
@@ -137,6 +257,30 @@
       "revId": "d5cf383a26d4caa2283671821c238418439db5e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42cb9d22_dd34734c",
+        "filename": "golden/go/tryjobstore/tryjobstore_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-14T21:23:31Z",
+      "side": 1,
+      "message": "Done\nReplaced by 0 and added comment to explain why this is here: Cloud datastore can only handle up to microsec resolution, so the nano secs need to be cut off for the equal below to work.",
+      "parentUuid": "079355a4_27e1e277",
+      "range": {
+        "startLine": 38,
+        "startChar": 44,
+        "endLine": 38,
+        "endChar": 67
+      },
+      "revId": "d5cf383a26d4caa2283671821c238418439db5e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
