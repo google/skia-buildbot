@@ -1,8 +1,11 @@
 package search
 
 import (
+	"fmt"
 	"sort"
 	"sync"
+
+	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
@@ -108,13 +111,40 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	}
 	idx := s.ixr.GetIndex()
 
-	// Unconditional query stage. Iterate through the tile and get an intermediate
-	// representation that contains all the traces matching the queries.
-	inter, err := s.filterTile(q, idx)
+	// Run getting the left hand side and right hand side in parallel.
+	var inter map[string]map[string]*srIntermediate = nil
+	var ret []*SRDigest = nil
+	var rhsByTest = map[string]util.StringSet{}
 
-	// Convert the intermediate representation to the list of digests that we
-	// are going to return to the client.
-	ret := s.getDigestRecs(inter, exp)
+	// Get the left hand side of the diff => the digests we are interested in.
+	var egroup errgroup.Group
+	egroup.Go(func() error {
+		// Unconditional query stage. Iterate through the tile and get an intermediate
+		// representation that contains all the traces matching the queries.
+		var err error
+		inter, err = s.filterTile(q, idx)
+		if err != nil {
+			return fmt.Errorf("Error iterating over tile: %s", err)
+		}
+
+		// Convert the intermediate representation to the list of digests that we
+		// are going to return to the client.
+		ret = s.getDigestRecs(inter, exp)
+		return nil
+	})
+
+	// Get the right hand side candidates only if want to get reference diffs and
+	// if a right hand side query was defined.
+	if getRefDiffs && q.rhsQuery != nil {
+		egroup.Go(func() error {
+			var err error
+			rhsByTest, err = s.filterDigestByTest(q.rhsQuery, idx)
+			return err
+		})
+	}
+	if err := egroup.Wait(); err != nil {
+		return nil, err
+	}
 
 	// displayRet captures the portion of the result that is displayed.
 	displayRet := ret
@@ -124,7 +154,7 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		s.getReferenceDiffs(ret, q.Metric, q.Match, q.IncludeIgnores, exp, idx)
+		s.getReferenceDiffs(ret, q.Metric, q.Match, q.IncludeIgnores, rhsByTest, exp, idx)
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +218,7 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := map[string]map[string]*srIntermediate{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	s.getReferenceDiffs(ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, exp, idx)
+	s.getReferenceDiffs(ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, nil, exp, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -269,11 +299,15 @@ func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]m
 		}
 	}
 
-	if err := iterTile(q, addFn, acceptFn, s.storages, idx); err != nil {
+	if err := iterTile(&q.TileQuery, q.BlameGroupID, addFn, acceptFn, s.storages, idx); err != nil {
 		return nil, err
 	}
 
 	return ret, nil
+}
+
+func (s *SearchAPI) filterDigestByTest(q *TileQuery, idx *indexer.SearchIndex) (map[string]util.StringSet, error) {
+	return nil, nil
 }
 
 // getDigestRecs takes the intermediate results and converts them to the list
@@ -301,13 +335,13 @@ func (s *SearchAPI) getDigestRecs(inter map[string]map[string]*srIntermediate, e
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(resultDigests []*SRDigest, metric string, match []string, includeIgnores bool, exp *expstorage.Expectations, idx *indexer.SearchIndex) {
+func (s *SearchAPI) getReferenceDiffs(resultDigests []*SRDigest, metric string, match []string, includeIgnores bool, rhsByTest map[string]util.StringSet, exp *expstorage.Expectations, idx *indexer.SearchIndex) {
 	refDiffer := NewRefDiffer(exp, s.storages.DiffStore, idx)
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(retDigest *SRDigest) {
-			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores)
+			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores, rhsByTest[retDigest.Test])
 			retDigest.ClosestRef = closestRef
 			retDigest.RefDiffs = refDiffs
 

@@ -215,9 +215,8 @@ func ParseQuery(r *http.Request, query *Query) error {
 
 	validate := Validation{}
 
-	// Parse the query strings.
+	// Parse the left query strings.
 	validate.QueryFormValue(r, "query", &query.Query)
-	validate.QueryFormValue(r, "rquery", &query.RQuery)
 
 	// TODO(stephan) Add range limiting to the validation of limit and offset.
 	validate.Int32FormValue(r, "limit", &query.Limit, 50)
@@ -231,16 +230,26 @@ func ParseQuery(r *http.Request, query *Query) error {
 	validate.Int32FormValue(r, "frgbamin", &query.FRGBAMin, 0)
 	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, 255)
 	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
+
+	// Right hand side query flags.
+	query.rhsQuery = parseRHSQuery(r, query, &validate)
+
+	// If he have found problems at this point we can return an error.
 	if err := validate.Errors(); err != nil {
 		return err
 	}
 
+	// Blame query.
 	query.BlameGroupID = r.FormValue("blame")
+
+	// Left hand side query.
 	query.Pos = r.FormValue("pos") == "true"
 	query.Neg = r.FormValue("neg") == "true"
 	query.Unt = r.FormValue("unt") == "true"
 	query.Head = r.FormValue("head") == "true"
 	query.IncludeIgnores = r.FormValue("include") == "true"
+
+	// Trybot related queries.
 	query.Issue = r.FormValue("issue")
 	query.IncludeMaster = r.FormValue("master") == "true"
 
@@ -254,4 +263,47 @@ func ParseQuery(r *http.Request, query *Query) error {
 	query.NoDiff = r.FormValue("nodiff") == "true"
 
 	return nil
+}
+
+// parseRHSQuery parses the form fields into the fields of the right and side query
+// and also returns the values as a tile query.
+func parseRHSQuery(r *http.Request, query *Query, validate *Validation) *TileQuery {
+	// If none of the rhs fields are present we set the result to nil saving us a query.
+	if !formContainsAny(r, "rpos", "rneg", "runt", "rhead", "rinclude", "rquery") {
+		return nil
+	}
+
+	query.RPos = boolFromForm(r, "rpos", false)
+	query.RNeg = boolFromForm(r, "rneg", false)
+	query.RUnt = boolFromForm(r, "runt", true)
+	query.RHead = boolFromForm(r, "rhead", true)
+	query.RIncludeIgnores = boolFromForm(r, "rinclude", false)
+	validate.QueryFormValue(r, "rquery", &query.RQuery)
+	return &TileQuery{
+		Pos:            query.RPos,
+		Neg:            query.RNeg,
+		Unt:            query.RUnt,
+		Head:           query.RHead,
+		IncludeIgnores: query.RIncludeIgnores,
+		Query:          query.RQuery,
+	}
+}
+
+// boolFrom
+func boolFromForm(r *http.Request, name string, defaultVal bool) bool {
+	vals, ok := r.Form[name]
+	if !ok {
+		return defaultVal
+	}
+	return len(vals) == 1 && vals[0] == "true"
+}
+
+// Form returns true if any of the given fiels are defined in the form.
+func formContainsAny(r *http.Request, fields ...string) bool {
+	for _, field := range fields {
+		if _, ok := r.Form[field]; ok {
+			return true
+		}
+	}
+	return false
 }

@@ -112,16 +112,8 @@ const (
 	GROUP_TEST_MAX_COUNT = "count"
 )
 
-// Query is the query that Search understands.
-type Query struct {
-	// Diff metric to use.
-	Metric string   `json:"metric"`
-	Sort   string   `json:"sort"`
-	Match  []string `json:"match"`
-
-	// Blaming
-	BlameGroupID string `json:"blame"`
-
+// TileQuery defines all the query fields available
+type TileQuery struct {
 	// Image classification
 	Pos            bool `json:"pos"`
 	Neg            bool `json:"neg"`
@@ -132,10 +124,43 @@ type Query struct {
 	// URL encoded query string
 	QueryStr string     `json:"query"`
 	Query    url.Values `json:"-"`
+}
 
-	// URL encoded query string to select the right hand side of comparisons.
+// excludeClassification returns true if the given label/status for a digest
+// should be excluded based on the values in the query.
+func (q *TileQuery) excludeClassification(cl types.Label) bool {
+	return ((cl == types.NEGATIVE) && !q.Neg) ||
+		((cl == types.POSITIVE) && !q.Pos) ||
+		((cl == types.UNTRIAGED) && !q.Unt)
+}
+
+// Query is the query that Search understands.
+type Query struct {
+	// Diff metric to use.
+	Metric string   `json:"metric"`
+	Sort   string   `json:"sort"`
+	Match  []string `json:"match"`
+
+	// Blaming
+	BlameGroupID string `json:"blame"`
+
+	// Fields to select the left hand side of the comparison.
+	TileQuery
+
+	// Fields select the right hand side of the comparisons. They are consolidated
+	// into rhsQuery by the parse routines.
 	RQueryStr string     `json:"rquery"`
 	RQuery    url.Values `json:"-"`
+
+	RPos            bool `json:"rpos"`
+	RNeg            bool `json:"rneg"`
+	RHead           bool `json:"rhead"`
+	RUnt            bool `json:"runt"`
+	RIncludeIgnores bool `json:"rinclude"`
+
+	// rhsQuery is populated when the query is parsed and determines which digests
+	// are on the right-hand-side of the comparison. It maps to search selectors above.
+	rhsQuery *TileQuery
 
 	// Trybot support.
 	Issue         string   `json:"issue"`
@@ -174,14 +199,6 @@ type SearchResponse struct {
 type IssueResponse struct {
 	*trybot.IssueDetails
 	QueryPatchsets []string
-}
-
-// excludeClassification returns true if the given label/status for a digest
-// should be excluded based on the values in the query.
-func (q *Query) excludeClassification(cl types.Label) bool {
-	return ((cl == types.NEGATIVE) && !q.Neg) ||
-		((cl == types.POSITIVE) && !q.Pos) ||
-		((cl == types.UNTRIAGED) && !q.Unt)
 }
 
 // intermediate is the intermediate representation of the results coming from Search.
@@ -886,7 +903,7 @@ func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchInde
 		}
 	}
 
-	if err := iterTile(query, addFn, nil, storages, idx); err != nil {
+	if err := iterTile(&query.TileQuery, query.BlameGroupID, addFn, nil, storages, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -985,7 +1002,7 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 		}
 	}
 
-	if err := iterTile(query, addFn, acceptFn, storages, idx); err != nil {
+	if err := iterTile(&query.TileQuery, query.BlameGroupID, addFn, acceptFn, storages, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
