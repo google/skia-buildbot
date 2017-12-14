@@ -60,6 +60,12 @@ var (
 	}
 
 	isolateServerPath string
+
+	gsutilPackage = &swarming_api.SwarmingRpcsCipdPackage{
+		PackageName: "infra/gsutil",
+		Path:        "cipd_bin_packages",
+		Version:     "version:4.28",
+	}
 )
 
 func SwarmingInit() error {
@@ -227,7 +233,7 @@ func GetSwarmingTaskMetadata(pool, taskId string) (*swarming_api.SwarmingRpcsTas
 	return swarmingClient.GetTaskMetadata(taskId)
 }
 
-func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId, serverURLstring, isolateHash string, isolateDetails *IsolateDetails) (string, error) {
+func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, arch, botId, serverURLstring, isolateHash string, isolateDetails *IsolateDetails, setupDebugger bool) (string, error) {
 	dimsMap := map[string]string{
 		"pool": pool,
 	}
@@ -256,11 +262,30 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 		"--debug-command", strings.Join(isolateDetails.Command, " "),
 		"--command-relative-dir", isolateDetails.RelativeCwd,
 	}
+	if setupDebugger {
+		skiaserveGSPath, err := GetSkiaServeGSPath(arch)
+		if err != nil {
+			return "", fmt.Errorf("Could not find skiaserve for %s: s", arch, err)
+		}
+		extraArgs = append(extraArgs, "--skiaserve-gs-path", skiaserveGSPath)
+
+		// Add GsUtil CIPD package to isolate input. It will be used to download
+		// the skiaserve binary from Google Storage.
+		if isolateDetails.CipdInput == nil {
+			isolateDetails.CipdInput = &swarming_api.SwarmingRpcsCipdInput{}
+		}
+		if isolateDetails.CipdInput.Packages == nil {
+			isolateDetails.CipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{gsutilPackage}
+		} else {
+			isolateDetails.CipdInput.Packages = append(isolateDetails.CipdInput.Packages, gsutilPackage)
+		}
+	}
 	isolateServer := GetSwarmingInstance(pool).IsolateServer
 	expirationSecs := int64(swarming.RECOMMENDED_EXPIRATION.Seconds())
 	executionTimeoutSecs := int64(SWARMING_HARD_TIMEOUT.Seconds())
 	ioTimeoutSecs := int64(SWARMING_HARD_TIMEOUT.Seconds())
 	taskName := fmt.Sprintf("Leased by %s using leasing.skia.org", requester)
+
 	taskRequest := &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
 		Name:           taskName,
