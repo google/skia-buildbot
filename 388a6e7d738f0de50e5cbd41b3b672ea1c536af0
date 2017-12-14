@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "747bd931_0c26c7ed",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-14T18:25:07Z",
+      "side": 0,
+      "message": "Is it OK to remove this already? Seems like we need to add accounts for other servers, right?",
+      "revId": "388a6e7d738f0de50e5cbd41b3b672ea1c536af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
