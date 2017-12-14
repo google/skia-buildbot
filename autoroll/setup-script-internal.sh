@@ -1,3 +1,3 @@
 #! /bin/bash
 
-sudo apt-get -y install gcc
+sudo apt-get -y install gcc make
