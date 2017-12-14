@@ -34,12 +34,18 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	issueID := int64(99)
 	patchsetID := int64(1099)
 	buildBucketID := int64(30099)
+
+	// Note: Cloud datastore only stores up to microseconds correctly, so if we
+	// kept the time down to nanoseconds the test would fail. So we drop everything
+	// smaller than a second.
+	nowSec := time.Unix(time.Now().Unix(), 0)
 	tryjob_1 := &Tryjob{
 		IssueID:       issueID,
 		PatchsetID:    patchsetID,
 		Builder:       "Test-Builder-1",
 		BuildBucketID: buildBucketID,
 		Status:        TRYJOB_RUNNING,
+		Updated:       nowSec,
 	}
 
 	patchsetID_2 := int64(1200)
@@ -50,12 +56,15 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		Builder:       "Test-Builder-2",
 		BuildBucketID: buildBucketID_2,
 		Status:        TRYJOB_COMPLETE,
+		Updated:       nowSec,
 	}
 
 	// Delete the tryjobs from the datastore.
 	assert.NoError(t, store.DeleteIssue(issueID))
 	fmt.Printf("Deleted tryjobs. Starting to insert.\n")
-	time.Sleep(30 * time.Second)
+	defer func() {
+		assert.NoError(t, store.DeleteIssue(issueID))
+	}()
 
 	expChangeKeys, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID)
 	assert.NoError(t, err)
@@ -65,6 +74,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	assert.NoError(t, store.UpdateTryjob(issueID, tryjob_1))
 	found, err := store.GetTryjob(issueID, buildBucketID)
 	assert.NoError(t, err)
+	assert.Equal(t, tryjob_1.Updated, found.Updated)
 	assert.Equal(t, tryjob_1, found)
 	assert.NoError(t, store.UpdateTryjob(issueID, tryjob_2))
 

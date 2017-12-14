@@ -1,0 +1,18 @@
+[Unit]
+Description=Gold Tryjob Stage Ingester
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/gold_ingestion \
+    --config_filename=/etc/gold_trybjob_ingestion/config.json5 \
+    --logtostderr \
+    --prom_port=:20005
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

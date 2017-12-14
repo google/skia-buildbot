@@ -33,27 +33,22 @@ func TestBuildBucketState(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Remove all issues.
-	issues, _, err := tjStore.ListIssues()
-	assert.NoError(t, err)
-
-	for _, entry := range issues {
-		assert.NoError(t, tjStore.DeleteIssue(entry.ID))
-	}
-	fmt.Printf("All entities cleared.\n")
-	time.Sleep(5 * time.Second)
-	fmt.Printf("Continuing.\n")
+	deleteAllIssues(t, tjStore)
+	defer func() {
+		deleteAllIssues(t, tjStore)
+	}()
 
 	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", client)
 	assert.NoError(t, err)
 
-	tjStatus, err := NewBuildBucketState(DefaultSkiaBuildBucketURL, client, tjStore, gerritAPI)
+	tjStatus, err := NewBuildBucketState(DefaultSkiaBuildBucketURL, DefaultSkiaBucketName, client, tjStore, gerritAPI)
 	assert.NoError(t, err)
 	assert.NotNil(t, tjStatus)
 
 	time.Sleep(10 * time.Second)
 
 	// Output all the issue we have found.
-	issues, _, err = tjStore.ListIssues()
+	issues, _, err := tjStore.ListIssues()
 	assert.NoError(t, err)
 	for _, issueEntry := range issues {
 		if issueEntry.ID == 54204 {
@@ -69,5 +64,14 @@ func TestBuildBucketState(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func deleteAllIssues(t *testing.T, tjStore tryjobstore.TryjobStore) {
+	issues, _, err := tjStore.ListIssues()
+	assert.NoError(t, err)
+
+	for _, entry := range issues {
+		assert.NoError(t, tjStore.DeleteIssue(entry.ID))
 	}
 }

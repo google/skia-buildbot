@@ -355,8 +355,6 @@ func (c *cloudTryjobStore) deleteTryjobsForIssue(issueID int64) error {
 	if err := c.client.DeleteMulti(ctx, tryjobKeys); err != nil {
 		return fmt.Errorf("Error deleting %d tryjobs for issue %d: %s", len(tryjobKeys), issueID, err)
 	}
-	sklog.Infof("Deleted %d for issue %d", len(tryjobKeys), issueID)
-
 	return nil
 }
 

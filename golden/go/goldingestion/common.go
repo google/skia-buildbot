@@ -34,6 +34,7 @@ package goldingestion
 //           "options" : {
 //              "ext" : "png"
 //           }
+//
 
 import (
 	"encoding/json"
@@ -42,6 +43,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -112,26 +114,19 @@ func (r *Result) UnmarshalJSON(data []byte) error {
 
 // DMResults is the top level structure for decoding DM JSON output.
 type DMResults struct {
-	Master       string            `json:"master"`
-	Builder      string            `json:"builder"`
-	BuildNumber  int64             `json:"build_number,string"`
-	GitHash      string            `json:"gitHash"`
-	Key          map[string]string `json:"key"`
-	Issue        int64             `json:"issue,string"`
-	Patchset     int64             `json:"patchset,string"`
-	Results      []*Result         `json:"results"`
-	PatchStorage string            `json:"patch_storage"`
+	Builder        string            `json:"builder"`
+	GitHash        string            `json:"gitHash"`
+	Key            map[string]string `json:"key"`
+	Issue          int64             `json:"issue,string"`
+	Patchset       int64             `json:"patchset,string"`
+	Results        []*Result         `json:"results"`
+	PatchStorage   string            `json:"patch_storage"`
+	SwarmingBotID  string            `json:"swarming_bot_id"`
+	SwarmingTaskID string            `json:"swarming_task_id"`
+	BuildBucketID  int64             `json:"buildbucket_build_id,string"`
 
 	// name is the name/path of the file where this came from.
 	name string
-}
-
-// TODO(stephana): Remove isGerritIssue once we switch to Gerrit.
-
-// isGerritIssue returns true if the issue comes from an instance of the Gerrit
-// code review system.
-func (d *DMResults) isGerritIssue() bool {
-	return (d.Issue != 0) && (d.PatchStorage == "gerrit")
 }
 
 // idAndParams constructs the Trace ID and the Trace params from the keys and options.
@@ -220,4 +215,14 @@ func ParseDMResultsFromReader(r io.ReadCloser, name string) (*DMResults, error) 
 	}
 	dmResults.name = name
 	return dmResults, nil
+}
+
+// processDMResults opens the given input file and processes it.
+func processDMResults(resultsFile ingestion.ResultFileLocation) (*DMResults, error) {
+	r, err := resultsFile.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseDMResultsFromReader(r, resultsFile.Name())
 }

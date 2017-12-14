@@ -288,3 +288,13 @@ func WriteObj(o *storage.ObjectHandle, content []byte) (err error) {
 	}
 	return w.Close()
 }
+
+// SplitGSPath takes a GCS path and splits it into a <bucket,path> pair.
+// It assumes the format: {bucket_name}/{path_within_bucket}.
+func SplitGSPath(path string) (string, string) {
+	parts := strings.SplitN(path, "/", 2)
+	if len(parts) > 1 {
+		return parts[0], parts[1]
+	}
+	return path, ""
+}
