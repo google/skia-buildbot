@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5621a33_dbf66c23",
+        "filename": "leasing/go/leasing/debugger.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "fyi: vcsinfo allows you to do this through its API.  You may consider using it if your needs get more complex.",
+      "range": {
+        "startLine": 64,
+        "startChar": 17,
+        "endLine": 64,
+        "endChar": 37
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "849ede45_95dc1194",
+        "filename": "leasing/go/leasing/debugger.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "This may not work on windows, given the \\ is in the wrong way.",
+      "range": {
+        "startLine": 87,
+        "startChar": 20,
+        "endLine": 87,
+        "endChar": 33
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e998d00_79cca4c2",
+        "filename": "leasing/go/leasing/mail.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "If this gets much more complicated, you may consider doing a proper HTML template - it would also make me feel better about XSS",
+      "range": {
+        "startLine": 88,
+        "startChar": 2,
+        "endLine": 88,
+        "endChar": 4
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a02feb35_885b26ce",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "This is a lot of parameters - consider using a struct to make it more readable. (but only if you call it from more than one place).",
+      "range": {
+        "startLine": 401,
+        "startChar": 44,
+        "endLine": 401,
+        "endChar": 242
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7e3ef80_17fb798a",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "Add a comment specifying which of the following commands actually needs root.  We should be able to push w/o root - is it the port forwarding?",
+      "range": {
+        "startLine": 54,
+        "startChar": 34,
+        "endLine": 54,
+        "endChar": 43
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "471c0325_24089e6c",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "You may consider doing a similar check to https://github.com/google/skia/blob/67a86d50f38d3a646ed165f7c6a7d58fda45cbab/infra/bots/recipe_modules/flavor/gn_android_flavor.py#L152 to make sure root was acquired.\n\nAlso consider printing the output of this for the human to see.",
+      "range": {
+        "startLine": 55,
+        "startChar": 4,
+        "endLine": 55,
+        "endChar": 42
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a7f955f_f5c7118d",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "nit: single quotes",
+      "range": {
+        "startLine": 73,
+        "startChar": 29,
+        "endLine": 73,
+        "endChar": 30
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ab23ef8_dd73b1f6",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "Should this be run in a finally of a try?",
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f9f8569_7e0cc693",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "ubernit: consider replacing bot with host to have a better distinction between host and device.",
+      "range": {
+        "startLine": 105,
+        "startChar": 55,
+        "endLine": 105,
+        "endChar": 58
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0af78979_b3984d96",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-15T15:43:50Z",
+      "side": 1,
+      "message": "If we require root - we won\u0027t be able to offer debugger for all devices - you will want a whitelist of those.",
+      "range": {
+        "startLine": 134,
+        "startChar": 8,
+        "endLine": 134,
+        "endChar": 123
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
