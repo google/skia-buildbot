@@ -8,8 +8,8 @@ package main
      100-499 (skia-gce-[1234]..): Linux
        400-499: Skylake
      500-699 (skia-gce-[56]..): Windows
-       500-599: Win2016
-       600-699: Win2k8
+       500-599: Win2016, n1-standard-16
+       600-699: Win2016, n1-highcpu-64
      700-999: unassigned
 */
 
@@ -41,12 +41,11 @@ const (
 	USER_CHROME_BOT = "chrome-bot"
 
 	OS_DEBIAN_9 = "Debian9"
-	OS_WIN_2K8  = "Win2k8"
 	OS_WIN_2016 = "Win2016"
 )
 
 var (
-	VALID_OS = []string{OS_DEBIAN_9, OS_WIN_2K8, OS_WIN_2016}
+	VALID_OS = []string{OS_DEBIAN_9, OS_WIN_2016}
 )
 
 var (
@@ -59,6 +58,7 @@ var (
 	gpu            = flag.Bool("gpu", false, "Whether or not to add an NVIDIA Tesla k80 GPU on the instance(s)")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
+	machineType    = flag.String("machine-type", gce.MACHINE_TYPE_STANDARD_16, "GCE machine type; see https://cloud.google.com/compute/docs/machine-types.")
 	opsys          = flag.String("os", OS_DEBIAN_9, fmt.Sprintf("OS identifier; one of %s", strings.Join(VALID_OS, ", ")))
 	skylake        = flag.Bool("skylake", false, "Whether or not the instance(s) should use Intel Skylake CPUs.")
 	workdir        = flag.String("workdir", ".", "Working directory.")
@@ -80,7 +80,7 @@ func Swarming20171114(name, serviceAccount string) *gce.Instance {
 		}},
 		Gpu:               *gpu,
 		GSDownloads:       []*gce.GSDownload{},
-		MachineType:       gce.MACHINE_TYPE_STANDARD_16,
+		MachineType:       *machineType,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
 		Name:              name,
@@ -136,8 +136,6 @@ func SkiaCTBot(num int) *gce.Instance {
 func AddWinConfigs(vm *gce.Instance, opsys, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm.BootDisk.SizeGb = 300
 	switch opsys {
-	case OS_WIN_2K8:
-		vm.BootDisk.SourceImage = "projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310"
 	case OS_WIN_2016:
 		vm.BootDisk.SourceImage = "projects/windows-cloud/global/images/windows-server-2016-dc-v20171114"
 	default:
