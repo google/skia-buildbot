@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "6ac1b247_f98bf2a8",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-15T15:06:26Z",
+      "side": 1,
+      "message": "I\u0027ve now created all of the accounts that I think we need.  Still waiting on getting the ones who commit into Chrome the rights to do so.",
+      "parentUuid": "3f97a4b1_ee764e11",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 95
+      },
+      "revId": "01fba2ee67c25e70a7b193c83b6d09491092d7c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5224d5d5_77925e13",
         "filename": "git_cookie_authdaemon/build_release",
         "patchSetId": 3

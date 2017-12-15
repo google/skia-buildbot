@@ -34,6 +34,24 @@
       "revId": "388a6e7d738f0de50e5cbd41b3b672ea1c536af0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b83fc6a9_45321614",
+        "filename": "go/gce/server/server.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2017-12-15T15:06:26Z",
+      "side": 0,
+      "message": "I\u0027ve created all of the accounts, and they should all have the correct view access.  Some servers will run as the default GCE service account, which should be just fine for default public read-only access.  The one caveat is that the server will need to be running the authdaemon in order to actually authenticate as that service account (and therefore be using not-anonymous quota).",
+      "parentUuid": "47407066_20f7467d",
+      "revId": "388a6e7d738f0de50e5cbd41b3b672ea1c536af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
