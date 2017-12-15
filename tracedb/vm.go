@@ -16,14 +16,12 @@ func IngestionTraceDBBase(name string) *gce.Instance {
 }
 
 func TraceDBProd() *gce.Instance {
-	vm := IngestionTraceDBBase("skia-tracedb")
-	server.SetGitCredsReadOnlyInternal(vm)
-	return vm
+	return IngestionTraceDBBase("skia-tracedb")
 }
 
 func IngestionProd() *gce.Instance {
 	vm := IngestionTraceDBBase("skia-ingestion")
-	server.SetGitCredsReadOnlyInternal(vm)
+	vm.ServiceAccount = "gold-ingestion@skia-buildbots.google.com.iam.gserviceaccount.com"
 	vm.DataDisks[0].SizeGb = 100
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_16
 	return vm
