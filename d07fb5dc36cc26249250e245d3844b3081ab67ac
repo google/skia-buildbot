@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9af454b_c95dd632",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-15T16:05:35Z",
+      "side": 1,
+      "message": "nit: no roller here",
+      "range": {
+        "startLine": 630,
+        "startChar": 9,
+        "endLine": 630,
+        "endChar": 16
+      },
+      "revId": "d07fb5dc36cc26249250e245d3844b3081ab67ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01eee4b8_e2d3a913",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-15T16:05:35Z",
+      "side": 1,
+      "message": "I think this means you need git-cookie-authdaemon for both task scheduler instances.",
+      "revId": "d07fb5dc36cc26249250e245d3844b3081ab67ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

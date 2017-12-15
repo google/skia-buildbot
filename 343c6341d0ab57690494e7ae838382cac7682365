@@ -34,6 +34,24 @@
       "revId": "343c6341d0ab57690494e7ae838382cac7682365",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99dc360e_0e08f2e6",
+        "filename": "autoroll/skiapush.json5",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-15T16:05:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3c089220_35a6062c",
+      "revId": "343c6341d0ab57690494e7ae838382cac7682365",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
