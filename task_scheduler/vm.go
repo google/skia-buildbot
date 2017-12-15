@@ -34,7 +34,8 @@ func TaskSchedulerProd() *gce.Instance {
 
 func TaskSchedulerInternal() *gce.Instance {
 	vm := TaskSchedulerBase("skia-task-scheduler-internal", "35.184.167.88" /* Whitelisted in swarming, isolate and buildbucket servers */)
-	return server.SetGitCredsReadOnlyInternal(vm)
+	vm.ServiceAccount = "task-scheduler-internal@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func main() {

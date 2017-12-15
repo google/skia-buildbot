@@ -5,13 +5,12 @@ import (
 	"runtime"
 
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
 
 func AutoRollBase(name, ipAddress string) *gce.Instance {
-	vm := server.SetGitCredsReadWrite(server.Server20170928(name), name)
+	vm := server.Server20170928(name)
 	vm.DataDisks[0].SizeGb = 64
 	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	if ipAddress != "" {
@@ -20,18 +19,18 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "rmistry"
-	vm.Scopes = append(vm.Scopes,
-		auth.SCOPE_GERRIT,
-	)
 	return vm
 }
 
 func Skia() *gce.Instance {
-	return AutoRollBase("skia-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("skia-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "skia-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func SkiaInternal() *gce.Instance {
 	vm := AutoRollBase("skia-internal-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "skia-internal-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
 	vm.SetupScript = path.Join(dir, "setup-script-internal.sh")
@@ -39,39 +38,57 @@ func SkiaInternal() *gce.Instance {
 }
 
 func AngleSkia() *gce.Instance {
-	return AutoRollBase("angle-skia-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("angle-skia-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "angle-skia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func AngleChromium() *gce.Instance {
-	return AutoRollBase("angle-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("angle-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "angle-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func Catapult() *gce.Instance {
-	return AutoRollBase("catapult-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("catapult-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "catapult-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func DepotTools_Chromium() *gce.Instance {
-	return AutoRollBase("depot-tools-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("depot-tools-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "depot-tools-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func NaCl() *gce.Instance {
-	return AutoRollBase("nacl-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("nacl-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "nacl-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func PDFium() *gce.Instance {
-	return AutoRollBase("pdfium-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("pdfium-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "pdfium-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func Fuchsia() *gce.Instance {
-	return AutoRollBase("fuchsia-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("fuchsia-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "skia-fuchsia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func SrcInternal_Chromium() *gce.Instance {
-	return AutoRollBase("src-internal-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("src-internal-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "src-internal-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func WebRTC_Chromium() *gce.Instance {
-	return AutoRollBase("webrtc-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm := AutoRollBase("webrtc-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.ServiceAccount = "webrtc-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
