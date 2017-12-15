@@ -15,6 +15,7 @@
         "task-scheduler-db-backup",
         "task-scheduler-trigger-nightly",
         "task-scheduler-trigger-weekly",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },

@@ -26,7 +26,9 @@ func StatusProd() *gce.Instance {
 }
 
 func StatusInternal() *gce.Instance {
-	return server.SetGitCredsReadOnlyInternal(StatusBase("skia-status-internal"))
+	vm := StatusBase("skia-status-internal")
+	vm.ServiceAccount = "status-internal@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func StatusStaging() *gce.Instance {
