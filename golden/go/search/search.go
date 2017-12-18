@@ -138,10 +138,10 @@ type Query struct {
 	RQuery    url.Values `json:"-"`
 
 	// Trybot support.
-	Issue         string   `json:"issue"`
-	PatchsetsStr  string   `json:"patchsets"` // Comma-separated list of patchsets.
-	Patchsets     []string `json:"-"`
-	IncludeMaster bool     `json:"master"` // Include digests also contained in master when searching Rietveld issues.
+	Issue         int64   `json:"issue,string"`
+	PatchsetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets     []int64 `json:"-"`
+	IncludeMaster bool    `json:"master"` // Include digests also contained in master when searching Rietveld issues.
 
 	// Filtering.
 	FCommitBegin string  `json:"fbegin"`     // Start commit
@@ -173,7 +173,7 @@ type SearchResponse struct {
 // it extends trybot.IssueDetails.
 type IssueResponse struct {
 	*trybot.IssueDetails
-	QueryPatchsets []string
+	QueryPatchsets []int64
 }
 
 // excludeClassification returns true if the given label/status for a digest
@@ -229,7 +229,7 @@ func Search(ctx context.Context, q *Query, storages *storage.Storage, idx *index
 	var ret []*Digest
 	var issueResponse *IssueResponse = nil
 	var commits []*tiling.Commit = nil
-	if q.Issue != "" {
+	if q.Issue > 0 {
 		ret, issueResponse, err = searchByIssue(ctx, q.Issue, q, e, q.Query, storages, idx)
 	} else {
 		ret, commits, err = searchTile(q, e, q.Query, storages, tile, idx)
@@ -253,7 +253,7 @@ func Search(ctx context.Context, q *Query, storages *storage.Storage, idx *index
 	}, nil
 }
 
-func searchByIssue(ctx context.Context, issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, idx *indexer.SearchIndex) ([]*Digest, *IssueResponse, error) {
+func searchByIssue(ctx context.Context, issueID int64, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, idx *indexer.SearchIndex) ([]*Digest, *IssueResponse, error) {
 	issue, tile, err := storages.TrybotResults.GetIssue(ctx, issueID, q.Patchsets)
 	if err != nil {
 		return nil, nil, err
@@ -278,7 +278,8 @@ func searchByIssue(ctx context.Context, issueID string, q *Query, exp *expstorag
 		queryRule = ignore.NewQueryRule(parsedQuery)
 	}
 
-	pidMap := util.NewStringSet(issue.TargetPatchsets)
+	// pidMap := util.NewStringSet(issue.TargetPatchsets)
+	pidMap := map[int64]bool{}
 
 	// TODO(stephana): Sort out how digests from trybots relate to ignored and
 	// followed digests. Are we ok with ignored digests being triaged "by accident"
@@ -886,7 +887,12 @@ func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchInde
 		}
 	}
 
-	if err := iterTile(query, addFn, nil, storages, idx); err != nil {
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := iterTile(query, addFn, nil, ExpSlice{exp}, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -985,7 +991,12 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 		}
 	}
 
-	if err := iterTile(query, addFn, acceptFn, storages, idx); err != nil {
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := iterTile(query, addFn, acceptFn, ExpSlice{exp}, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil

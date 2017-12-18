@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/tryjobstore"
+
 	"github.com/gorilla/mux"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -47,7 +49,6 @@ import (
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -292,6 +293,11 @@ func main() {
 		sklog.Fatalf("Unable to create GStorageClient: %s", err)
 	}
 
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, serviceAccountFile)
+	if err != nil {
+		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
+	}
+
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
@@ -300,7 +306,7 @@ func main() {
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          evt,
-		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI, gerritAPI, ingestionStore),
+		TryjobStore:       tryjobStore,
 		RietveldAPI:       rietveldAPI,
 		GerritAPI:         gerritAPI,
 		GStorageClient:    gsClient,
@@ -370,7 +376,6 @@ func main() {
 	router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
 	router.HandleFunc("/json/list", jsonListTestsHandler).Methods("GET")
 	router.HandleFunc("/json/paramset", jsonParamsHandler).Methods("GET")
-	router.HandleFunc("/json/legacysearch", jsonLegacySearchHandler).Methods("GET")
 	router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
 	router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
 	router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
