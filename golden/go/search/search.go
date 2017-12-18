@@ -138,10 +138,10 @@ type Query struct {
 	RQuery    url.Values `json:"-"`
 
 	// Trybot support.
-	Issue         string   `json:"issue"`
-	PatchsetsStr  string   `json:"patchsets"` // Comma-separated list of patchsets.
-	Patchsets     []string `json:"-"`
-	IncludeMaster bool     `json:"master"` // Include digests also contained in master when searching Rietveld issues.
+	Issue         int64   `json:"issue,string"`
+	PatchsetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets     []int64 `json:"-"`
+	IncludeMaster bool    `json:"master"` // Include digests also contained in master when searching Rietveld issues.
 
 	// Filtering.
 	FCommitBegin string  `json:"fbegin"`     // Start commit

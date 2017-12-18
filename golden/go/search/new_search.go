@@ -102,7 +102,7 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
-	exp, err := s.storages.ExpectationsStore.Get()
+	exp, err := s.getCombinedExpectations(q)
 	if err != nil {
 		return nil, err
 	}
@@ -116,10 +116,6 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// are going to return to the client.
 	ret := s.getDigestRecs(inter, exp)
 
-	// displayRet captures the portion of the result that is displayed.
-	displayRet := ret
-	offset := 0
-
 	// Get reference diffs unless it was specifically disabled.
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
@@ -132,14 +128,14 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 		// Post-diff stage: Apply all filters that are relevant once we have
 		// diff values for the digests.
 		ret = s.afterDiffResultFilter(ret, q)
-
-		// Sort the digests and fill the ones that are going to be displayed with
-		// additional data. Note we are returning all digests found, so we can do
-		// bulk triage, but only the digests that are going to be shown are padded
-		// with additional information.
-		displayRet, offset = s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
-		s.addParamsAndTraces(displayRet, inter, exp, idx)
 	}
+
+	// Sort the digests and fill the ones that are going to be displayed with
+	// additional data. Note we are returning all digests found, so we can do
+	// bulk triage, but only the digests that are going to be shown are padded
+	// with additional information.
+	displayRet, offset := s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
+	s.addParamsAndTraces(displayRet, inter, exp, idx)
 
 	// Return all digests with the selected offset within the result set.
 	return &NewSearchResponse{
@@ -240,6 +236,22 @@ func (s *srIntermediate) Add(traceID string, trace tiling.Trace) {
 // TODO(stephana): The filterTile function should be merged with the
 // function of the same name at the module level (see search.go).
 
+func (s *SearchAPI) getCombinedExpectations(q *Query) (ExpSlice, error) {
+	exp, err := s.storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	if q.Issue == 0 {
+		tjExp, err := s.storages.TryjobStore.GetExpectations(q.Issue)
+		if err != nil {
+			return nil, err
+		}
+		return []*expstorage.Expectations{exp, tjExp}, nil
+	}
+	return []*expstorage.Expectations{exp}, nil
+}
+
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]map[string]*srIntermediate, error) {
@@ -278,7 +290,7 @@ func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]m
 
 // getDigestRecs takes the intermediate results and converts them to the list
 // of records that will be returned to the client.
-func (s *SearchAPI) getDigestRecs(inter map[string]map[string]*srIntermediate, exp *expstorage.Expectations) []*SRDigest {
+func (s *SearchAPI) getDigestRecs(inter map[string]map[string]*srIntermediate, exps ExpSlice) []*SRDigest {
 	// Get the total number of digests we have at this point.
 	nDigests := 0
 	for _, digestInfo := range inter {
@@ -291,7 +303,7 @@ func (s *SearchAPI) getDigestRecs(inter map[string]map[string]*srIntermediate, e
 			retDigests = append(retDigests, &SRDigest{
 				Test:     interValue.test,
 				Digest:   interValue.digest,
-				Status:   exp.Classification(interValue.test, interValue.digest).String(),
+				Status:   exps.Classification(interValue.test, interValue.digest).String(),
 				ParamSet: interValue.params,
 			})
 		}
