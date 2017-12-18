@@ -13,12 +13,8 @@ const (
 	CONFIG_RIETVELD_CODE_REVIEW_URL = "RietveldCodeReviewURL"
 )
 
+// TODO: remove
 // ExtractIssueInfo returns the issue id and the patchset id for a given commitID.
-func ExtractIssueInfo(commitID *tracedb.CommitID, rietveldReview *rietveld.Rietveld, gerritReview *gerrit.Gerrit) (string, string) {
-	issue, ok := gerritReview.ExtractIssue(commitID.Source)
-	if ok {
-		return issue, commitID.ID
-	}
-	issue, _ = rietveldReview.ExtractIssue(commitID.Source)
-	return issue, commitID.ID
+func ExtractIssueInfo(commitID *tracedb.CommitID, rietveldReview *rietveld.Rietveld, gerritReview *gerrit.Gerrit) (int64, int64) {
+	return 0, 0
 }

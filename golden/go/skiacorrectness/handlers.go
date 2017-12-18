@@ -212,43 +212,10 @@ type TestRollup struct {
 	SampleDigest string `json:"sample_digest"`
 }
 
-// TODO(stephana): Remove jsonLegacySearch and dependencies once the
-// new search proves to be stable enough.
-
-// jsonLegacySearchHandler is the deprecated endpoint for searches.
-func jsonLegacySearchHandler(w http.ResponseWriter, r *http.Request) {
-	query := search.Query{Limit: 50}
-	if err := search.ParseQuery(r, &query); err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
-		return
-	}
-	legacySearchImpl(w, r, &query)
-}
-
-func legacySearchImpl(w http.ResponseWriter, r *http.Request, query *search.Query) {
-	ctx := context.Background()
-	searchResponse, err := search.Search(ctx, query, storages, ixr.GetIndex())
-	if err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
-		return
-	}
-	sendJsonResponse(w, &SearchResult{
-		Digests: searchResponse.Digests,
-		Commits: searchResponse.Commits,
-		Issue:   adaptIssueResponse(searchResponse.IssueResponse),
-	})
-}
-
 // jsonSearchHandler is the endpoint for all searches.
 func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	query, ok := parseSearchQuery(w, r)
 	if !ok {
-		return
-	}
-
-	// If a trybot issue is provided revert to the legacy search.
-	if query.Issue != "" {
-		legacySearchImpl(w, r, query)
 		return
 	}
 
@@ -268,7 +235,7 @@ func jsonExportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (query.Issue != "") || (query.BlameGroupID != "") {
+	if (query.Issue > 0) || (query.BlameGroupID != "") {
 		msg := "Search query cannot contain blame or issue information."
 		httputils.ReportError(w, r, errors.New(msg), msg)
 		return
@@ -333,7 +300,7 @@ type IssueSearchResult struct {
 	Patchsets []*trybot.PatchsetDetail `json:"patchsets"`
 
 	// QueryPatchsets contains the list of patchsets that are included in the returned digests.
-	QueryPatchsets []string `json:"queryPatchsets"`
+	QueryPatchsets []int64 `json:"queryPatchsets"`
 }
 
 func adaptIssueResponse(ir *search.IssueResponse) *IssueSearchResult {

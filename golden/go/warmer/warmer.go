@@ -93,10 +93,10 @@ func warmTrybotDigests(ctx context.Context, storages *storage.Storage, traceDige
 	var mutex sync.Mutex
 	for _, oneIssue := range issues {
 		wg.Add(1)
-		go func(issueID string) {
+		go func(issueID int64) {
 			_, tile, err := storages.TrybotResults.GetIssue(ctx, issueID, nil)
 			if err != nil {
-				sklog.Errorf("Unable to retrieve issue %s. Got error: %s", issueID, err)
+				sklog.Errorf("Unable to retrieve issue %d. Got error: %s", issueID, err)
 				return
 			}
 

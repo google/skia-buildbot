@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
@@ -43,6 +44,7 @@ type goldTryjobProcessor struct {
 
 // newGoldTryjobProcessor implementes the ingestion.Constructor function.
 func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clientx *http.Client) (ingestion.Processor, error) {
+	sklog.Infof("Creating tryjob processor.")
 	gerritURL, ok := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
 	if !ok {
 		return nil, fmt.Errorf("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
@@ -50,6 +52,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 	// Get the config options.
 	svcAccountFile := config.ExtraParams[CONFIG_SERVICE_ACCOUNT_FILE]
+	sklog.Infof("Got service accoutn file '%s'", svcAccountFile)
 
 	tryjobNamespace, ok := config.ExtraParams[CONFIG_TRYJOB_NAMESPACE]
 	if !ok {
@@ -62,7 +65,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, fmt.Errorf("BuildBucketName and BuildBucketURL must not be empty.")
 	}
 
-	client, err := auth.NewJWTServiceAccountClient("", svcAccountFile, nil, gstorage.CloudPlatformScope)
+	client, err := auth.NewJWTServiceAccountClient("", svcAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
 	}
@@ -77,7 +80,17 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, err
 	}
 
-	bbGerritClient, err := bbstate.NewBuildBucketState(buildBucketURL, buildBucketName, client, tryjobStore, gerritReview)
+	bbConf := &bbstate.Config{
+		BuildBucketURL:  buildBucketURL,
+		BuildBucketName: buildBucketName,
+		Client:          client,
+		TryjobStore:     tryjobStore,
+		GerritClient:    gerritReview,
+		PollInterval:    bbstate.DefaultPollInterval,
+		TimeWindow:      bbstate.DefaultTimeWindow,
+	}
+
+	bbGerritClient, err := bbstate.NewBuildBucketState(bbConf)
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +102,8 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 // See ingestion.Processor interface.
 func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
+	return ingestion.IgnoreResultsFileErr
+
 	dmResults, err := processDMResults(resultsFile)
 	if err != nil {
 		return err

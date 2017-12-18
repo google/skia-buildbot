@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/golden/go/tryjobstore"
+
 	gstorage "cloud.google.com/go/storage"
 	"github.com/flynn/json5"
 	"google.golang.org/api/option"
@@ -44,6 +46,7 @@ type Storage struct {
 	DigestStore       digeststore.DigestStore
 	EventBus          eventbus.EventBus
 	TrybotResults     *trybot.TrybotResults
+	TryjobStore       tryjobstore.TryjobStore
 	RietveldAPI       *rietveld.Rietveld
 	GerritAPI         *gerrit.Gerrit
 	GStorageClient    *GStorageClient
