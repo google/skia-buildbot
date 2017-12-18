@@ -106,15 +106,15 @@ scrape_configs:
 
   - job_name: 'ingestion'
     static_configs:
-      - targets: ['skia-tracedb:20000']
+      - targets: ['skia-ingestion:20000']
         labels:
           corpus: gold
-      - targets: ['skia-tracedb:20001']
+      - targets: ['skia-ingestion:20001']
         labels:
           corpus: pdfium_gold
-      - targets: ['skia-tracedb:20002']
+      - targets: ['skia-ingestion:20002']
         labels:
-          corpus: pdf
+          corpus: chromevr_gold
 
   - job_name: 'leasing'
     static_configs:
@@ -168,6 +168,9 @@ scrape_configs:
       - targets: ['skia-tracedb:20004']
         labels:
           corpus: gold
+      - targets: ['skia-tracedb:20005']
+        labels:
+          corpus: chromevr_gold
 
 # pulld for every server.
   - job_name: 'pulld'
