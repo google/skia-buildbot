@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dee9fcd3_13c30bad",
+        "filename": "leasing/go/leasing/debugger.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "Seems slightly better. Done.",
+      "parentUuid": "b5621a33_dbf66c23",
+      "range": {
+        "startLine": 64,
+        "startChar": 17,
+        "endLine": 64,
+        "endChar": 37
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "849ede45_95dc1194",
         "filename": "leasing/go/leasing/debugger.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c525ef55_4fb2e58d",
+        "filename": "leasing/go/leasing/debugger.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "This is supposed to only run on Android hosts right now. But fixed it to always be gs://xyz/abc.",
+      "parentUuid": "849ede45_95dc1194",
+      "range": {
+        "startLine": 87,
+        "startChar": 20,
+        "endLine": 87,
+        "endChar": 33
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c988dce3_ade5cd65",
+        "filename": "leasing/go/leasing/mail.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "Punting on this.",
+      "parentUuid": "4e998d00_79cca4c2",
+      "range": {
+        "startLine": 88,
+        "startChar": 2,
+        "endLine": 88,
+        "endChar": 4
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a02feb35_885b26ce",
         "filename": "leasing/go/leasing/main.go",
         "patchSetId": 7
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "091dbfe9_b3805edc",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "Only called from one place.",
+      "parentUuid": "a02feb35_885b26ce",
+      "range": {
+        "startLine": 401,
+        "startChar": 44,
+        "endLine": 401,
+        "endChar": 242
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b7e3ef80_17fb798a",
         "filename": "leasing/isolates/leasing.py",
         "patchSetId": 7
@@ -105,6 +201,30 @@
       "writtenOn": "2017-12-15T15:43:50Z",
       "side": 1,
       "message": "Add a comment specifying which of the following commands actually needs root.  We should be able to push w/o root - is it the port forwarding?",
+      "range": {
+        "startLine": 54,
+        "startChar": 34,
+        "endLine": 54,
+        "endChar": 43
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d982a54d_323e7a55",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "It was not letting me set the skiaserve binary as executable without this. How do I set the executable bit and execute it without root?",
+      "parentUuid": "b7e3ef80_17fb798a",
       "range": {
         "startLine": 54,
         "startChar": 34,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "0280728b_3ae3aded",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "Removed this.",
+      "parentUuid": "471c0325_24089e6c",
+      "range": {
+        "startLine": 55,
+        "startChar": 4,
+        "endLine": 55,
+        "endChar": 42
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a7f955f_f5c7118d",
         "filename": "leasing/isolates/leasing.py",
         "patchSetId": 7
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "5125700c_67df0380",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a7f955f_f5c7118d",
+      "range": {
+        "startLine": 73,
+        "startChar": 29,
+        "endLine": 73,
+        "endChar": 30
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab23ef8_dd73b1f6",
         "filename": "leasing/isolates/leasing.py",
         "patchSetId": 7
@@ -177,6 +345,24 @@
       "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92fad2e2_a9456b04",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab23ef8_dd73b1f6",
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "9ce638c0_c24561a3",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f9f8569_7e0cc693",
+      "range": {
+        "startLine": 105,
+        "startChar": 55,
+        "endLine": 105,
+        "endChar": 58
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0af78979_b3984d96",
         "filename": "leasing/res/imp/leasing-selections-sk.html",
         "patchSetId": 7
@@ -223,6 +433,30 @@
       "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4292dc97_34bbe45e",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2017-12-18T17:41:08Z",
+      "side": 1,
+      "message": "Removed root requirement.",
+      "parentUuid": "0af78979_b3984d96",
+      "range": {
+        "startLine": 134,
+        "startChar": 8,
+        "endLine": 134,
+        "endChar": 123
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
