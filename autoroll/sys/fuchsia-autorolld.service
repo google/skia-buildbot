@@ -18,6 +18,8 @@ ExecStart=/usr/local/bin/autoroll \
     --childPath=skia \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=brianosman@google.com \
+    --throttle_count=2 \
+    --throttle_time=4h \
     --use_manifest
 Restart=always
 User=default
