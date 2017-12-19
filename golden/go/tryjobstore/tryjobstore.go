@@ -208,6 +208,11 @@ func (c *cloudTryjobStore) UpdateTryjobResult(tryjob *Tryjob, results []*TryjobR
 	tryjobKey := c.getTryjobKey(tryjob.BuildBucketID)
 	keys := make([]*datastore.Key, 0, len(results))
 	for _, result := range results {
+		// Make sure that tests are not bunched together.
+		if len(result.Params[types.PRIMARY_KEY_FIELD]) != 1 {
+			return fmt.Errorf("Parameter value for primary key field '%s' must exactly contain one value. Found: %v", types.PRIMARY_KEY_FIELD, result.Params[types.PRIMARY_KEY_FIELD])
+		}
+
 		keys = append(keys, c.getTryjobResultKey(tryjobKey, result.Digest))
 	}
 

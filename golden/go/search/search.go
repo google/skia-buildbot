@@ -2,7 +2,6 @@
 package search
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"net/url"
@@ -19,13 +18,10 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/goldingestion"
-	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
-	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -138,10 +134,10 @@ type Query struct {
 	RQuery    url.Values `json:"-"`
 
 	// Trybot support.
-	Issue         string   `json:"issue"`
-	PatchsetsStr  string   `json:"patchsets"` // Comma-separated list of patchsets.
-	Patchsets     []string `json:"-"`
-	IncludeMaster bool     `json:"master"` // Include digests also contained in master when searching Rietveld issues.
+	Issue         int64   `json:"issue,string"`
+	PatchsetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets     []int64 `json:"-"`
+	IncludeMaster bool    `json:"master"` // Include digests also contained in master when searching code review issues.
 
 	// Filtering.
 	FCommitBegin string  `json:"fbegin"`     // Start commit
@@ -172,8 +168,7 @@ type SearchResponse struct {
 // IssueResponse contains specific query responses when we search for a trybot issue. Currently
 // it extends trybot.IssueDetails.
 type IssueResponse struct {
-	*trybot.IssueDetails
-	QueryPatchsets []string
+	QueryPatchsets []int64
 }
 
 // excludeClassification returns true if the given label/status for a digest
@@ -215,204 +210,6 @@ type DigestSlice []*Digest
 func (p DigestSlice) Len() int           { return len(p) }
 func (p DigestSlice) Less(i, j int) bool { return p[i].Diff.Diff > p[j].Diff.Diff }
 func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// Search returns a slice of Digests that match the input query, and the total number of Digests
-// that matched the query. It also returns a slice of Commits that were used in the calculations.
-func Search(ctx context.Context, q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*SearchResponse, error) {
-	tile := idx.GetTile(q.IncludeIgnores)
-
-	e, err := storages.ExpectationsStore.Get()
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
-	}
-
-	var ret []*Digest
-	var issueResponse *IssueResponse = nil
-	var commits []*tiling.Commit = nil
-	if q.Issue != "" {
-		ret, issueResponse, err = searchByIssue(ctx, q.Issue, q, e, q.Query, storages, idx)
-	} else {
-		ret, commits, err = searchTile(q, e, q.Query, storages, tile, idx)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Sort(DigestSlice(ret))
-	fullLength := int32(len(ret))
-	if fullLength > q.Limit {
-		ret = ret[0:q.Limit]
-	}
-
-	return &SearchResponse{
-		Digests:       ret,
-		Total:         fullLength,
-		Commits:       commits,
-		IssueResponse: issueResponse,
-	}, nil
-}
-
-func searchByIssue(ctx context.Context, issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, idx *indexer.SearchIndex) ([]*Digest, *IssueResponse, error) {
-	issue, tile, err := storages.TrybotResults.GetIssue(ctx, issueID, q.Patchsets)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if issue == nil {
-		return nil, nil, fmt.Errorf("Issue not found.")
-	}
-
-	// Get a matcher for the ignore rules if we filter ignores.
-	var ignoreMatcher ignore.RuleMatcher = nil
-	if !q.IncludeIgnores {
-		ignoreMatcher, err = storages.IgnoreStore.BuildRuleMatcher()
-		if err != nil {
-			return nil, nil, fmt.Errorf("Unable to build rules matcher: %s", err)
-		}
-	}
-
-	// Set up a rule to match the query.
-	var queryRule ignore.QueryRule = nil
-	if len(parsedQuery) > 0 {
-		queryRule = ignore.NewQueryRule(parsedQuery)
-	}
-
-	pidMap := util.NewStringSet(issue.TargetPatchsets)
-
-	// TODO(stephana): Sort out how digests from trybots relate to ignored and
-	// followed digests. Are we ok with ignored digests being triaged "by accident"
-	// when triaging trybot results?
-	talliesByTestWithIgnores := idx.TalliesByTest(true)
-	talliesByTest := idx.TalliesByTest(false)
-	digestMap := map[string]*Digest{}
-
-	for idx, cid := range issue.CommitIDs {
-		_, pid := goldingestion.ExtractIssueInfo(cid.CommitID, storages.RietveldAPI, storages.GerritAPI)
-		if !pidMap[pid] {
-			continue
-		}
-
-		for _, trace := range tile.Traces {
-			gTrace := trace.(*types.GoldenTrace)
-			digest := gTrace.Values[idx]
-
-			if digest == types.MISSING_DIGEST {
-				continue
-			}
-
-			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
-			params := gTrace.Params_
-
-			// 	If we have seen this before process it.
-			key := testName + ":" + digest
-			if found, ok := digestMap[key]; ok {
-				util.AddParamsToParamSet(found.ParamSet, params)
-				continue
-			}
-
-			// Should this trace be ignored.
-			if ignoreMatcher != nil {
-				if _, ok := ignoreMatcher(params); ok {
-					continue
-				}
-			}
-
-			// Does it match a given query.
-			if (queryRule == nil) || queryRule.IsMatch(params) {
-				if !q.IncludeMaster {
-					if _, ok := talliesByTestWithIgnores[testName][digest]; ok {
-						continue
-					}
-				}
-
-				if cl := exp.Classification(testName, digest); !q.excludeClassification(cl) {
-					digestMap[key] = &Digest{
-						Test:     testName,
-						Digest:   digest,
-						ParamSet: util.AddParamsToParamSet(make(map[string][]string, len(params)), params),
-						Status:   cl.String(),
-					}
-				}
-			}
-		}
-	}
-
-	ret := make([]*Digest, 0, len(digestMap))
-	allDigests := make([]string, len(digestMap))
-	emptyTraces := &Traces{}
-	for _, digestEntry := range digestMap {
-		digestEntry.Diff = buildDiff(digestEntry.Test, digestEntry.Digest, exp, nil, talliesByTest, storages.DiffStore, idx, q.IncludeIgnores)
-		digestEntry.Traces = emptyTraces
-		ret = append(ret, digestEntry)
-		allDigests = append(allDigests, digestEntry.Digest)
-	}
-	// This has priority PRIORITY_NOW because this is used in a HTTP request where
-	// the requester expects the images to be be available.
-	storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, allDigests, false)
-
-	issueResponse := &IssueResponse{
-		IssueDetails:   issue,
-		QueryPatchsets: issue.TargetPatchsets,
-	}
-
-	return ret, issueResponse, nil
-}
-
-// searchTile queries across a tile.
-func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tile *tiling.Tile, idx *indexer.SearchIndex) ([]*Digest, []*tiling.Commit, error) {
-	// TODO Use CommitRange to create a trimmed tile.
-
-	traceTally := idx.TalliesByTrace(q.IncludeIgnores)
-	lastCommitIndex := tile.LastCommitIndex()
-
-	// Loop over the tile and pull out all the digests that match
-	// the query, collecting the matching traces as you go. Build
-	// up a set of intermediate's that can then be used to calculate
-	// Digest's.
-
-	// map [test:digest] *intermediate
-	inter := map[string]*intermediate{}
-	for id, trace := range tile.Traces {
-		if tiling.Matches(trace, parsedQuery) {
-			tr := trace.(*types.GoldenTrace)
-			test := tr.Params()[types.PRIMARY_KEY_FIELD]
-			// Get all the digests
-			digests := digestsFromTrace(id, tr, q.Head, lastCommitIndex, traceTally)
-			for _, digest := range digests {
-				cl := e.Classification(test, digest)
-				if q.excludeClassification(cl) {
-					continue
-				}
-
-				// Fix blamer to make this easier.
-				if q.BlameGroupID != "" {
-					if cl == types.UNTRIAGED {
-						b := idx.GetBlame(test, digest, tile.Commits)
-						if q.BlameGroupID != blameGroupID(b, tile.Commits) {
-							continue
-						}
-					} else {
-						continue
-					}
-				}
-				key := fmt.Sprintf("%s:%s", test, digest)
-				if i, ok := inter[key]; !ok {
-					inter[key] = newIntermediate(test, digest, id, tr)
-				} else {
-					i.addTrace(id, tr)
-				}
-			}
-		}
-	}
-	// Now loop over all the intermediates and build a Digest for each one.
-	ret := make([]*Digest, 0, len(inter))
-	for key, i := range inter {
-		parts := strings.Split(key, ":")
-		ret = append(ret, digestFromIntermediate(parts[0], parts[1], i, e, tile, idx, storages.DiffStore, q.IncludeIgnores))
-	}
-	return ret, tile.Commits, nil
-}
 
 func digestFromIntermediate(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, idx *indexer.SearchIndex, diffStore diff.DiffStore, includeIgnores bool) *Digest {
 	traceTally := idx.TalliesByTrace(true)
@@ -886,7 +683,12 @@ func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchInde
 		}
 	}
 
-	if err := iterTile(query, addFn, nil, storages, idx); err != nil {
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := iterTile(query, addFn, nil, ExpSlice{exp}, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -985,7 +787,12 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 		}
 	}
 
-	if err := iterTile(query, addFn, acceptFn, storages, idx); err != nil {
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := iterTile(query, addFn, acceptFn, ExpSlice{exp}, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
