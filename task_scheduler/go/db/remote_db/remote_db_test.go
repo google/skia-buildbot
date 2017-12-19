@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/dbtestutil"
 )
 
 // clientWithBackdoor allows us to test the client/server pair as a db.DB, using
@@ -64,61 +65,61 @@ func TestRemoteDBTaskDB(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestTaskDB(t, d)
+	dbtestutil.TestTaskDB(t, d)
 }
 
 func TestRemoteDBTaskDBTooManyUsers(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestTaskDBTooManyUsers(t, d)
+	dbtestutil.TestTaskDBTooManyUsers(t, d)
 }
 
 func TestRemoteDBTaskDBConcurrentUpdate(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestTaskDBConcurrentUpdate(t, d)
+	dbtestutil.TestTaskDBConcurrentUpdate(t, d)
 }
 
 func TestRemoteDBTaskDBUpdateTasksWithRetries(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestUpdateTasksWithRetries(t, d)
+	dbtestutil.TestUpdateTasksWithRetries(t, d)
 }
 
 func TestRemoteDBJobDB(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestJobDB(t, d)
+	dbtestutil.TestJobDB(t, d)
 }
 
 func TestRemoteDBJobDBTooManyUsers(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestJobDBTooManyUsers(t, d)
+	dbtestutil.TestJobDBTooManyUsers(t, d)
 }
 
 func TestRemoteDBJobDBConcurrentUpdate(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestJobDBConcurrentUpdate(t, d)
+	dbtestutil.TestJobDBConcurrentUpdate(t, d)
 }
 
 func TestRemoteDBUpdateJobsWithRetries(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestUpdateJobsWithRetries(t, d)
+	dbtestutil.TestUpdateJobsWithRetries(t, d)
 }
 
 func TestRemoteDBCommentDB(t *testing.T) {
 	testutils.SmallTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
-	db.TestCommentDB(t, d)
+	dbtestutil.TestCommentDB(t, d)
 }

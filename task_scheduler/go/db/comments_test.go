@@ -8,6 +8,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/dbtestutil"
 )
 
 func TestCopyTaskComment(t *testing.T) {
@@ -53,7 +54,7 @@ func TestCopyRepoComments(t *testing.T) {
 // TestCommentBox checks that CommentBox correctly implements CommentDB.
 func TestCommentBox(t *testing.T) {
 	testutils.SmallTest(t)
-	TestCommentDB(t, &CommentBox{})
+	dbtestutil.TestCommentDB(t, &CommentBox{})
 }
 
 // TestCommentBoxWithPersistence checks that NewCommentBoxWithPersistence can be

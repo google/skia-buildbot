@@ -1,4 +1,4 @@
-package db
+package dbtestutil
 
 import (
 	"fmt"

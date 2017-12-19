@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/dbtestutil"
 )
 
 // Check that formatId and ParseId are inverse operations and produce the
@@ -592,7 +593,7 @@ func TestLocalDBTaskDB(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBTaskDB")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestTaskDB(t, d)
+	dbtestutil.TestTaskDB(t, d)
 }
 
 func TestLocalDBTaskDBTooManyUsers(t *testing.T) {
@@ -600,7 +601,7 @@ func TestLocalDBTaskDBTooManyUsers(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBTaskDBTooManyUsers")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestTaskDBTooManyUsers(t, d)
+	dbtestutil.TestTaskDBTooManyUsers(t, d)
 }
 
 func TestLocalDBTaskDBConcurrentUpdate(t *testing.T) {
@@ -608,7 +609,7 @@ func TestLocalDBTaskDBConcurrentUpdate(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBTaskDBConcurrentUpdate")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestTaskDBConcurrentUpdate(t, d)
+	dbtestutil.TestTaskDBConcurrentUpdate(t, d)
 }
 
 func TestLocalDBTaskDBUpdateTasksWithRetries(t *testing.T) {
@@ -616,7 +617,7 @@ func TestLocalDBTaskDBUpdateTasksWithRetries(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBTaskDBUpdateTasksWithRetries")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestUpdateTasksWithRetries(t, d)
+	dbtestutil.TestUpdateTasksWithRetries(t, d)
 }
 
 func TestLocalDBJobDB(t *testing.T) {
@@ -624,7 +625,7 @@ func TestLocalDBJobDB(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBJobDB")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestJobDB(t, d)
+	dbtestutil.TestJobDB(t, d)
 }
 
 func TestLocalDBJobDBTooManyUsers(t *testing.T) {
@@ -632,7 +633,7 @@ func TestLocalDBJobDBTooManyUsers(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBJobDBTooManyUsers")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestJobDBTooManyUsers(t, d)
+	dbtestutil.TestJobDBTooManyUsers(t, d)
 }
 
 func TestLocalDBJobDBConcurrentUpdate(t *testing.T) {
@@ -640,7 +641,7 @@ func TestLocalDBJobDBConcurrentUpdate(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBJobDBConcurrentUpdate")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestJobDBConcurrentUpdate(t, d)
+	dbtestutil.TestJobDBConcurrentUpdate(t, d)
 }
 
 func TestLocalDBJobDBUpdateJobsWithRetries(t *testing.T) {
@@ -648,7 +649,7 @@ func TestLocalDBJobDBUpdateJobsWithRetries(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBJobDBUpdateJobsWithRetries")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestUpdateJobsWithRetries(t, d)
+	dbtestutil.TestUpdateJobsWithRetries(t, d)
 }
 
 func TestLocalDBCommentDB(t *testing.T) {
@@ -656,7 +657,7 @@ func TestLocalDBCommentDB(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBCommentDB")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
-	db.TestCommentDB(t, d)
+	dbtestutil.TestCommentDB(t, d)
 }
 
 func TestLocalDBIncrementalBackupTime(t *testing.T) {

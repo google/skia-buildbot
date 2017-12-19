@@ -1,4 +1,4 @@
-package dstestutil
+package testutil
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/perf/go/ds"
+	"go.skia.org/infra/go/ds"
 	"google.golang.org/api/iterator"
 )
 
