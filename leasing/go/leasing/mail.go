@@ -60,7 +60,7 @@ func getRecipients(taskOwner string) []string {
 	return append(recipients, trooper)
 }
 
-func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdForIsolates string) error {
+func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdForIsolates string, setupDebugger bool) error {
 	sectionAboutIsolates := ""
 	if TaskIdForIsolates != "" {
 		sectionAboutIsolatesTemplate := `
@@ -69,12 +69,23 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 		`
 		sectionAboutIsolates = fmt.Sprintf(sectionAboutIsolatesTemplate, GetSwarmingTaskLink(swarmingServer, TaskIdForIsolates), GetSwarmingTaskLink(swarmingServer, swarmingId))
 	}
+	sectionAboutDebugger := ""
+	if setupDebugger {
+		sectionAboutDebuggerTemplate := `
+			Add to your .ssh/config the section from <a href="https://docs.google.com/document/d/1zTR1YtrIFBo-fRWgbUgvJNVJ-s_4_sNjTrHIoX2vulo/edit#heading=h.mf3a1j4xx7fx">here</a>.<br/>
+			To use the device's debugger on your machine, setup port forwarding in a terminal with:<br/>
+			ssh -v -N -L 8888:localhost:8888 chrome-bot@%s.r1.sk<br/>
+			Then connect to http://localhost:8888 from your browser.<br/><br/>
+		`
+		sectionAboutDebugger = fmt.Sprintf(sectionAboutDebuggerTemplate, swarmingBot)
+	}
 
 	subject := getSubject(ownerEmail, swarmingBot, "is now active", swarmingId)
 	taskLink := GetSwarmingTaskLink(swarmingServer, swarmingId)
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has been picked up by the swarming bot <a href="%s">%s</a>.
 		<br/><br/>
+		%s
 		%s
 		Please see <a href="%s">this page</a> for instructions on how to connect to the bot.
 		<br/>
@@ -86,7 +97,7 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, GetSwarmingBotLink(swarmingServer, swarmingBot), swarmingBot, sectionAboutIsolates, CONNECTION_INSTRUCTIONS_PAGE, fmt.Sprintf("%s%s", PROD_URI, MY_LEASES_URI))
+	body := fmt.Sprintf(bodyTemplate, taskLink, GetSwarmingBotLink(swarmingServer, swarmingBot), swarmingBot, sectionAboutDebugger, sectionAboutIsolates, CONNECTION_INSTRUCTIONS_PAGE, fmt.Sprintf("%s%s", PROD_URI, MY_LEASES_URI))
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
