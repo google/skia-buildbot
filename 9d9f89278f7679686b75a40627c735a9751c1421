@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "bf27c4ab_836092e1",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-19T13:08:16Z",
+      "side": 1,
+      "message": "Discussed in person.",
+      "parentUuid": "d982a54d_323e7a55",
+      "range": {
+        "startLine": 54,
+        "startChar": 34,
+        "endLine": 54,
+        "endChar": 43
+      },
+      "revId": "9d9f89278f7679686b75a40627c735a9751c1421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "471c0325_24089e6c",
         "filename": "leasing/isolates/leasing.py",
         "patchSetId": 7
