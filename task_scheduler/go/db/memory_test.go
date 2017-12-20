@@ -1,10 +1,16 @@
 package db
 
 import (
+	"os"
 	"testing"
 
 	"go.skia.org/infra/go/testutils"
 )
+
+func TestMain(m *testing.M) {
+	AssertDeepEqual = testutils.AssertDeepEqual
+	os.Exit(m.Run())
+}
 
 func TestInMemoryTaskDB(t *testing.T) {
 	testutils.SmallTest(t)
