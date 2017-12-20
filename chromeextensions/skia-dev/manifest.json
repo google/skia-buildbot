@@ -1,16 +1,19 @@
 {
    "name": "Assorted Tools for Skia Developers",
-   "version": "3.0",
+   "version": "3.1",
    "description": "Assorted Tools for Skia Developers.",
    "permissions": [
      "notifications",
      "storage",
+     "webRequest",
+     "webRequestBlocking",
      "*://skia.org/*",
      "https://gold.skia.org/",
      "https://perf.skia.org/",
      "https://promalerts.skia.org/",
      "http://skia-tree-status.appspot.com/",
-     "*://skia-review.googlesource.com/"
+     "*://skia-review.googlesource.com/",
+     "https://chromium-swarm.appspot.com/*"
    ],
    "background": {
      "scripts": [

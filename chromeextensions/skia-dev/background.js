@@ -4,6 +4,29 @@
 
 (function() {
 
+  // TODO(kjlubick): Remove this CSP re-write when the CSP rules have been changed upstream
+  var filter = {
+    urls: ["https://chromium-swarm.appspot.com/*"],
+    types: ["main_frame"]
+  };
+
+  var onHeadersReceived = function(details) {
+    for (var i = 0; i < details.responseHeaders.length; i++) {
+      if ('content-security-policy' === details.responseHeaders[i].name.toLowerCase()) {
+        details.responseHeaders[i].value = details.responseHeaders[i].value.replace('child-src',
+                                          'child-src https://ci.chromium.org/raw/build/');
+      }
+    }
+
+    return {
+      responseHeaders: details.responseHeaders
+    };
+  };
+
+  chrome.webRequest.onHeadersReceived.addListener(onHeadersReceived, filter,
+                                                  ["blocking", "responseHeaders"]);
+  // End CSP rewrite
+
   function updateBadgeOnErrorStatus() {
     chrome.browserAction.setBadgeText({text:'?'});
     chrome.browserAction.setBadgeBackgroundColor({color:[0,0,255,255]});
@@ -29,7 +52,7 @@
   function getLastStatusTime(callback, type) {
     sk.get('http://skia-tree-status.appspot.com/allstatus?limit=20&format=json').then(function(text) {
       var entries = JSON.parse(text);
-      
+
       for (var i = 0; i < entries.length; i++) {
         if (entries[i].general_state == type) {
           callback(new Date(entries[i].date + ' UTC'));
