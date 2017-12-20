@@ -9,8 +9,7 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/datastore"
-
-	"go.skia.org/infra/perf/go/ds"
+	"go.skia.org/infra/go/ds"
 )
 
 const (
