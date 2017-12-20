@@ -5,19 +5,19 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
-	"go.skia.org/infra/perf/go/ds"
-	"go.skia.org/infra/perf/go/dstestutil"
+	"go.skia.org/infra/perf/go/dsconst"
 )
 
 // TestDS test storing regressions in the datastore.
 func TestDS(t *testing.T) {
 	testutils.MediumTest(t)
 
-	cleanup := dstestutil.InitDatastore(t, ds.REGRESSION)
+	cleanup := testutil.InitDatastore(t, dsconst.REGRESSION)
 
 	defer cleanup()
 

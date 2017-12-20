@@ -8,7 +8,8 @@ import (
 
 	"google.golang.org/api/iterator"
 
-	"go.skia.org/infra/perf/go/ds"
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/perf/go/dsconst"
 )
 
 // Activity stores information on one user action activity. This corresponds to
@@ -33,7 +34,7 @@ func Write(r *Activity) error {
 	if r.TS == 0 {
 		r.TS = time.Now().Unix()
 	}
-	key := ds.NewKey(ds.ACTIVITY)
+	key := ds.NewKey(dsconst.ACTIVITY)
 	key.ID = r.ID
 	if _, err := ds.DS.Put(context.TODO(), key, r); err != nil {
 		return fmt.Errorf("Failed to store activity: %s", err)
@@ -44,7 +45,7 @@ func Write(r *Activity) error {
 // GetRecent returns the most recent n activity records in Activity struct format.
 func GetRecent(n int) ([]*Activity, error) {
 	ret := []*Activity{}
-	q := ds.NewQuery(ds.ACTIVITY).EventualConsistency().Limit(n).Order("-TS")
+	q := ds.NewQuery(dsconst.ACTIVITY).EventualConsistency().Limit(n).Order("-TS")
 	it := ds.DS.Run(context.TODO(), q)
 	for {
 		a := &Activity{}
