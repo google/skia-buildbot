@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "59d79b8b_ebe35712",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2017-12-20T15:36:16Z",
+      "side": 1,
+      "message": "We really should use the cache, unless this is only meant for background processing.",
+      "revId": "769d1d4b340d9254be2158b0a64324fcaa40eb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
