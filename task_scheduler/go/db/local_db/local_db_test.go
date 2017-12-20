@@ -3,6 +3,7 @@ package local_db
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -13,6 +14,11 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
+
+func TestMain(m *testing.M) {
+	db.AssertDeepEqual = testutils.AssertDeepEqual
+	os.Exit(m.Run())
+}
 
 // Check that formatId and ParseId are inverse operations and produce the
 // expected result.
