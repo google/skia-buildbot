@@ -168,6 +168,24 @@ func getRepoNames() []string {
 	return repoNames
 }
 
+func commentsForRepoHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "application/json")
+	_, repoUrl, err := getRepo(r)
+	if err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
+	comments, err := taskDb.GetCommentsForRepos([]string{repoUrl}, time.Now().Add(-10000*time.Hour))
+	if err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
+	if err := json.NewEncoder(w).Encode(comments); err != nil {
+		sklog.Errorf("Failed to encode comments as JSON: %s", err)
+	}
+}
+
 func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "application/json")
@@ -616,6 +634,7 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
+	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
 	sklog.AddLogsRedirect(r)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
