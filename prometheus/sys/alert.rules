@@ -541,7 +541,7 @@ ALERT TaskSchedulerIncrementalBackupReset
   }
 
 ALERT TaskSchedulerDBFreePages
-  IF bolt_db{metric="FreePageCount",database="task_scheduler_db",instance!="skia-task-scheduler-internal:20000"} > 150
+  IF bolt_db{metric="FreePageCount",database="task_scheduler_db",instance!="skia-task-scheduler-internal:20000"} > 1000
   FOR 1h
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
