@@ -6,13 +6,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
 
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -30,16 +27,9 @@ var (
 	httpClient = httputils.NewTimeoutClient()
 )
 
-func MailInit(tokenPath string) error {
-	emailTokenPath := tokenPath
-	emailClientId := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
-	emailClientSecret := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
-	cachedGMailToken := metadata.Must(metadata.ProjectGet(GMAIL_CACHED_TOKEN))
-	if err := ioutil.WriteFile(emailTokenPath, []byte(cachedGMailToken), os.ModePerm); err != nil {
-		return fmt.Errorf("Failed to cache token: %s", err)
-	}
+func MailInit(emailClientId, emailClientSecret, tokenFile string) error {
 	var err error
-	gmail, err = email.NewGMail(emailClientId, emailClientSecret, emailTokenPath)
+	gmail, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
@@ -80,7 +70,7 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 		sectionAboutDebugger = fmt.Sprintf(sectionAboutDebuggerTemplate, swarmingBot)
 	}
 
-	subject := getSubject(ownerEmail, swarmingBot, "is now active", swarmingId)
+	subject := getSubject(ownerEmail, swarmingBot, swarmingId)
 	taskLink := GetSwarmingTaskLink(swarmingServer, swarmingId)
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has been picked up by the swarming bot <a href="%s">%s</a>.
@@ -109,7 +99,7 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 }
 
 func SendWarningEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot string) error {
-	subject := getSubject(ownerEmail, swarmingBot, "will expire in ~15 mins", swarmingId)
+	subject := getSubject(ownerEmail, swarmingBot, swarmingId)
 	taskLink := GetSwarmingTaskLink(swarmingServer, swarmingId)
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has less than 15 mins remaining.
@@ -130,7 +120,7 @@ func SendWarningEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot string
 }
 
 func SendFailureEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, swarmingTaskState string) error {
-	subject := getSubject(ownerEmail, swarmingBot, "unexpectedly completed", swarmingId)
+	subject := getSubject(ownerEmail, swarmingBot, swarmingId)
 	taskLink := GetSwarmingTaskLink(swarmingServer, swarmingId)
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> unexpectedly ended with the state: %s.
@@ -153,7 +143,7 @@ func SendFailureEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, swarm
 }
 
 func SendExtensionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot string, durationHrs int) error {
-	subject := getSubject(ownerEmail, swarmingBot, fmt.Sprintf("has been extended by %dhr", durationHrs), swarmingId)
+	subject := getSubject(ownerEmail, swarmingBot, swarmingId)
 	taskLink := GetSwarmingTaskLink(swarmingServer, swarmingId)
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has been extended by %dhr.
@@ -174,7 +164,7 @@ func SendExtensionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot stri
 }
 
 func SendCompletionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot string) error {
-	subject := getSubject(ownerEmail, swarmingBot, "has completed", swarmingId)
+	subject := getSubject(ownerEmail, swarmingBot, swarmingId)
 	taskLink := GetSwarmingTaskLink(swarmingServer, swarmingId)
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has completed.
@@ -194,9 +184,9 @@ func SendCompletionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot str
 	return nil
 }
 
-func getSubject(ownerEmail, swarmingBot, leasingTaskStatus, swarmingId string) string {
-	subjectTemplate := "%s's leasing task for %s %s (id:%s)"
-	return fmt.Sprintf(subjectTemplate, getUsernameFromEmail(ownerEmail), swarmingBot, leasingTaskStatus, swarmingId)
+func getSubject(ownerEmail, swarmingBot, swarmingId string) string {
+	subjectTemplate := "%s's leasing task for %s update (id:%s)"
+	return fmt.Sprintf(subjectTemplate, getUsernameFromEmail(ownerEmail), swarmingBot, swarmingId)
 
 }
 

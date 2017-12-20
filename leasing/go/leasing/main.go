@@ -10,7 +10,9 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
@@ -24,6 +26,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -53,13 +56,15 @@ const (
 
 var (
 	// Flags
-	host         = flag.String("host", "localhost", "HTTP service host")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	port         = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	workdir      = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
-	pollInterval = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
+	host                  = flag.String("host", "localhost", "HTTP service host")
+	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	port                  = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
+	pollInterval          = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
+	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
+	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "leasing-server", "The Cloud Datastore namespace, such as 'leasing-server'.")
@@ -475,7 +480,22 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := MailInit(filepath.Join(usr.HomeDir, "email.data")); err != nil {
+	tokenFile := filepath.Join(usr.HomeDir, "email.data")
+	emailClientId := *emailClientIdFlag
+	emailClientSecret := *emailClientSecretFlag
+	if !*local {
+		emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
+		emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
+		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
+		err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
+		if err != nil {
+			sklog.Fatalf("Failed to cache token: %s", err)
+		}
+	}
+	if *local && (emailClientId == "" || emailClientSecret == "") {
+		sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
+	}
+	if err := MailInit(emailClientId, emailClientSecret, tokenFile); err != nil {
 		sklog.Fatalf("Failed to init mail library: %s", err)
 	}
 
