@@ -105,7 +105,7 @@ window.addEventListener("WebComponentsReady", function(e) {
       return;
     }
 
-    // a map of all task tags that begins with sk_ or source_
+    // a map of all task tags_
     var skData = {};
 
     // The tbody #more_details has all of the tags in it, which are in the form
@@ -114,12 +114,10 @@ window.addEventListener("WebComponentsReady", function(e) {
     var cells = moreDetails.getElementsByTagName("td");
     for (var i = 0; i < cells.length; i++) {
       var content = cells[i].textContent.trim();
-      if (content.startsWith("sk_") || content.startsWith("source_")) {
-        var split = content.split(":", 1);
-        var tag = split[0];
-        var rest = content.substring(tag.length + 1);
-        skData[tag] = rest;
-      }
+      var split = content.split(":", 1);
+      var tag = split[0];
+      var rest = content.substring(tag.length + 1);
+      skData[tag] = rest;
     }
 
     drawExtraTableEntries(
@@ -131,7 +129,17 @@ window.addEventListener("WebComponentsReady", function(e) {
         skData.sk_retry_of,
         skData.sk_parent_task_id,
         skData.sk_id);
+
+    // TODO(kjlubick): remove this when it lands upstream
+    if (skData.log_location) {
+      var iframe = document.getElementById("miloFrame");
+      var expectedSrc = skData.log_location.replace("logdog://", "https://ci.chromium.org/raw/build/")
+      if (iframe.src !== expectedSrc) {
+        iframe.src = expectedSrc;
+      }
+    }
   }, 100);
 
 });
 })();
+
