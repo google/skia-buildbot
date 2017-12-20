@@ -88,12 +88,21 @@
             <template is="dom-if" if="[[task.osType]]">
               <br/>
               Dimensions: [[ displayDimensions(task) ]]
+            <template is="dom-if" if="[[task.taskIdForIsolates]]">
+              <br/>
+              Task For Isolates: <a href="[[ getSwarmingTaskLink(task.taskIdForIsolates, task.swarmingServer) ]]" target="_blank">Link</a>
+            </template>
+            <template is="dom-if" if="[[task.setupDebugger]]">
+              <br/>
+              Debugger setup: [[task.setupDebugger]]
+            </template>
+          </td>
             </template>
           </td>
           <td>
 	    Task Log:
             <template is="dom-if" if="[[task.swarmingTaskId]]">
-              <a href="[[ getSwarmingTaskLink(task) ]]" target="_blank">Link</a>
+              <a href="[[ getSwarmingTaskLink(task.swarmingTaskId, task.swarmingServer) ]]" target="_blank">Link</a>
             </template>
             <template is="dom-if" if="[[!task.swarmingTaskId]]">
               Processing
@@ -184,8 +193,8 @@
       return ret;
     },
 
-    getSwarmingTaskLink: function(task) {
-      return "https://" + task.swarmingServer + "/task?id="+ task.swarmingTaskId;
+    getSwarmingTaskLink: function(taskId, swarmingServer) {
+      return "https://" + swarmingServer + "/task?id="+ taskId;
     },
 
     displayTaskStatus: function(task) {
