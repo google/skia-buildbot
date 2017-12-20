@@ -2,6 +2,7 @@ package remote_db
 
 import (
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -9,6 +10,11 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
+
+func TestMain(m *testing.M) {
+	db.AssertDeepEqual = testutils.AssertDeepEqual
+	os.Exit(m.Run())
+}
 
 // clientWithBackdoor allows us to test the client/server pair as a db.DB, using
 // the generic DB test utils. All method calls supported by RemoteDB use the

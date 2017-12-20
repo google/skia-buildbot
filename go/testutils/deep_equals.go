@@ -33,7 +33,6 @@ package testutils
 import (
 	"fmt"
 	"reflect"
-	"testing"
 	"unsafe"
 
 	"github.com/davecgh/go-spew/spew"
@@ -296,7 +295,7 @@ func DeepEqual(x, y interface{}) bool {
 var superVerbose = false
 
 // AssertDeepEqual fails the test if the two objects do not pass reflect.DeepEqual.
-func AssertDeepEqual(t *testing.T, expected, actual interface{}) {
+func AssertDeepEqual(t assert.TestingT, expected, actual interface{}) {
 	if !DeepEqual(expected, actual) {
 		// The formatting is inspired by stretchr/testify's assert.Equal() output.
 		extra := ""

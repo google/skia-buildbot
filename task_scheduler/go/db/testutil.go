@@ -3,16 +3,23 @@ package db
 import (
 	"fmt"
 	"net/url"
-	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
 
 const DEFAULT_TEST_REPO = "go-on-now.git"
+
+// AssertDeepEqual does a deep equals comparison using the assert.TestingT interface.
+//
+// Callers of these tests utils should assign a value to AssertDeepEqual beforehand, e.g.:
+//
+//	AssertDeepEqual = testutils.AssertDeepEqual
+//
+// This is necessary to break the hard linking of this file to the "testing" module.
+var AssertDeepEqual func(t assert.TestingT, expected, actual interface{})
 
 func makeTask(ts time.Time, commits []string) *Task {
 	return &Task{
@@ -42,7 +49,7 @@ func makeJob(ts time.Time) *Job {
 }
 
 // TestTaskDB performs basic tests for an implementation of TaskDB.
-func TestTaskDB(t *testing.T, db TaskDB) {
+func TestTaskDB(t assert.TestingT, db TaskDB) {
 	_, err := db.GetModifiedTasks("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -82,12 +89,12 @@ func TestTaskDB(t *testing.T, db TaskDB) {
 	// Task can now be retrieved by Id.
 	t1Again, err := db.GetTaskById(t1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, t1, t1Again)
+	AssertDeepEqual(t, t1, t1Again)
 
 	// Ensure that the task shows up in the modified list.
 	tasks, err = db.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	// Ensure that the task shows up in the correct date ranges.
 	timeStart := time.Time{}
@@ -99,7 +106,7 @@ func TestTaskDB(t *testing.T, db TaskDB) {
 	assert.Equal(t, 0, len(tasks))
 	tasks, err = db.GetTasksFromDateRange(t1Before, t1After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	AssertDeepEqual(t, []*Task{t1}, tasks)
 	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
@@ -120,7 +127,7 @@ func TestTaskDB(t *testing.T, db TaskDB) {
 	// Ensure that both tasks show up in the modified list.
 	tasks, err = db.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
 	// Make an update to t1 and t2. Ensure modified times change.
 	t2LastModified := t2.DbModified
@@ -133,7 +140,7 @@ func TestTaskDB(t *testing.T, db TaskDB) {
 	// Ensure that both tasks show up in the modified list.
 	tasks, err = db.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2}, tasks)
+	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
 	t2Before := t2.Created
@@ -150,55 +157,55 @@ func TestTaskDB(t *testing.T, db TaskDB) {
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t2Before)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t2After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2}, tasks)
+	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t3Before)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2}, tasks)
+	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t3After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t1Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t2Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t2After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+	AssertDeepEqual(t, []*Task{t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t3Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+	AssertDeepEqual(t, []*Task{t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{}, tasks)
+	AssertDeepEqual(t, []*Task{}, tasks)
 }
 
 // Test that a TaskDB properly tracks its maximum number of users.
-func TestTaskDBTooManyUsers(t *testing.T, db TaskDB) {
+func TestTaskDBTooManyUsers(t assert.TestingT, db TaskDB) {
 	// Max out the number of modified-tasks users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedTasks()
@@ -210,7 +217,7 @@ func TestTaskDBTooManyUsers(t *testing.T, db TaskDB) {
 
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
 // has been updated in the DB.
-func TestTaskDBConcurrentUpdate(t *testing.T, db TaskDB) {
+func TestTaskDBConcurrentUpdate(t assert.TestingT, db TaskDB) {
 	// Insert a task.
 	t1 := makeTask(time.Now(), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
@@ -218,7 +225,7 @@ func TestTaskDBConcurrentUpdate(t *testing.T, db TaskDB) {
 	// Retrieve a copy of the task.
 	t1Cached, err := db.GetTaskById(t1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, t1, t1Cached)
+	AssertDeepEqual(t, t1, t1Cached)
 
 	// Update the original task.
 	t1.Commits = []string{"a", "b"}
@@ -233,7 +240,7 @@ func TestTaskDBConcurrentUpdate(t *testing.T, db TaskDB) {
 		// DB should still have the old value of t1.
 		t1Again, err := db.GetTaskById(t1.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, t1, t1Again)
+		AssertDeepEqual(t, t1, t1Again)
 	}
 
 	// Insert a second task.
@@ -250,16 +257,16 @@ func TestTaskDBConcurrentUpdate(t *testing.T, db TaskDB) {
 		// DB should still have the old value of t1 and t2.
 		t1Again, err := db.GetTaskById(t1.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, t1, t1Again)
+		AssertDeepEqual(t, t1, t1Again)
 
 		t2Again, err := db.GetTaskById(t2.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, t2Before, t2Again)
+		AssertDeepEqual(t, t2Before, t2Again)
 	}
 }
 
 // Test UpdateTasksWithRetries when no errors or retries.
-func testUpdateTasksWithRetriesSimple(t *testing.T, db TaskDB) {
+func testUpdateTasksWithRetriesSimple(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Test no-op.
@@ -299,8 +306,8 @@ func testUpdateTasksWithRetriesSimple(t *testing.T, db TaskDB) {
 	assert.NoError(t, err)
 	t2, err := db.GetTaskById(tasks[1].Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, tasks[0], t1)
-	testutils.AssertDeepEqual(t, tasks[1], t2)
+	AssertDeepEqual(t, tasks[0], t1)
+	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
 	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
@@ -311,7 +318,7 @@ func testUpdateTasksWithRetriesSimple(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when there are some retries, but eventual success.
-func testUpdateTasksWithRetriesSuccess(t *testing.T, db TaskDB) {
+func testUpdateTasksWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -350,8 +357,8 @@ func testUpdateTasksWithRetriesSuccess(t *testing.T, db TaskDB) {
 	assert.NoError(t, err)
 	t2, err := db.GetTaskById(tasks[1].Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, tasks[0], t1)
-	testutils.AssertDeepEqual(t, tasks[1], t2)
+	AssertDeepEqual(t, tasks[0], t1)
+	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
 	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
@@ -362,7 +369,7 @@ func testUpdateTasksWithRetriesSuccess(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when f returns an error.
-func testUpdateTasksWithRetriesErrorInFunc(t *testing.T, db TaskDB) {
+func testUpdateTasksWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
@@ -386,7 +393,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when PutTasks returns an error.
-func testUpdateTasksWithRetriesErrorInPutTasks(t *testing.T, db TaskDB) {
+func testUpdateTasksWithRetriesErrorInPutTasks(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	callCount := 0
@@ -409,7 +416,7 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when retries are exhausted.
-func testUpdateTasksWithRetriesExhausted(t *testing.T, db TaskDB) {
+func testUpdateTasksWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -442,7 +449,7 @@ func testUpdateTasksWithRetriesExhausted(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when no errors or retries.
-func testUpdateTaskWithRetriesSimple(t *testing.T, db TaskDB) {
+func testUpdateTaskWithRetriesSimple(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -464,7 +471,7 @@ func testUpdateTaskWithRetriesSimple(t *testing.T, db TaskDB) {
 	// Check that return value matches what's in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, t1Again, t1Updated)
+	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the TaskDB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
@@ -474,7 +481,7 @@ func testUpdateTaskWithRetriesSimple(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when there are some retries, but eventual success.
-func testUpdateTaskWithRetriesSuccess(t *testing.T, db TaskDB) {
+func testUpdateTaskWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -501,7 +508,7 @@ func testUpdateTaskWithRetriesSuccess(t *testing.T, db TaskDB) {
 	// Check that return value matches what's in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, t1Again, t1Updated)
+	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the DB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
@@ -511,7 +518,7 @@ func testUpdateTaskWithRetriesSuccess(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when f returns an error.
-func testUpdateTaskWithRetriesErrorInFunc(t *testing.T, db TaskDB) {
+func testUpdateTaskWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -535,7 +542,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t *testing.T, db TaskDB) {
 	// Check task did not change in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, t1, t1Again)
+	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
@@ -545,7 +552,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when retries are exhausted.
-func testUpdateTaskWithRetriesExhausted(t *testing.T, db TaskDB) {
+func testUpdateTaskWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -574,7 +581,7 @@ func testUpdateTaskWithRetriesExhausted(t *testing.T, db TaskDB) {
 	// Check task did not change in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, t1, t1Again)
+	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
@@ -584,7 +591,7 @@ func testUpdateTaskWithRetriesExhausted(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when the given ID is not found in the DB.
-func testUpdateTaskWithRetriesTaskNotFound(t *testing.T, db TaskDB) {
+func testUpdateTaskWithRetriesTaskNotFound(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
@@ -609,7 +616,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t *testing.T, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries and UpdateTaskWithRetries.
-func TestUpdateTasksWithRetries(t *testing.T, db TaskDB) {
+func TestUpdateTasksWithRetries(t assert.TestingT, db TaskDB) {
 	testUpdateTasksWithRetriesSimple(t, db)
 	testUpdateTasksWithRetriesSuccess(t, db)
 	testUpdateTasksWithRetriesErrorInFunc(t, db)
@@ -623,7 +630,7 @@ func TestUpdateTasksWithRetries(t *testing.T, db TaskDB) {
 }
 
 // TestJobDB performs basic tests on an implementation of JobDB.
-func TestJobDB(t *testing.T, db JobDB) {
+func TestJobDB(t assert.TestingT, db JobDB) {
 	_, err := db.GetModifiedJobs("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -651,12 +658,12 @@ func TestJobDB(t *testing.T, db JobDB) {
 	// Job can now be retrieved by Id.
 	j1Again, err := db.GetJobById(j1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, j1, j1Again)
+	AssertDeepEqual(t, j1, j1Again)
 
 	// Ensure that the job shows up in the modified list.
 	jobs, err = db.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+	AssertDeepEqual(t, []*Job{j1}, jobs)
 
 	// Ensure that the job shows up in the correct date ranges.
 	timeStart := time.Time{}
@@ -668,7 +675,7 @@ func TestJobDB(t *testing.T, db JobDB) {
 	assert.Equal(t, 0, len(jobs))
 	jobs, err = db.GetJobsFromDateRange(j1Before, j1After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+	AssertDeepEqual(t, []*Job{j1}, jobs)
 	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
@@ -689,7 +696,7 @@ func TestJobDB(t *testing.T, db JobDB) {
 	// Ensure that both jobs show up in the modified list.
 	jobs, err = db.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+	AssertDeepEqual(t, []*Job{j2, j3}, jobs)
 
 	// Make an update to j1 and j2. Ensure modified times change.
 	j2LastModified := j2.DbModified
@@ -702,7 +709,7 @@ func TestJobDB(t *testing.T, db JobDB) {
 	// Ensure that both jobs show up in the modified list.
 	jobs, err = db.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+	AssertDeepEqual(t, []*Job{j1, j2}, jobs)
 
 	// Ensure that all jobs show up in the correct time ranges, in sorted order.
 	j2Before := j2.Created
@@ -719,55 +726,55 @@ func TestJobDB(t *testing.T, db JobDB) {
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j1After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+	AssertDeepEqual(t, []*Job{j1}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j2Before)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+	AssertDeepEqual(t, []*Job{j1}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j2After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+	AssertDeepEqual(t, []*Job{j1, j2}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j3Before)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+	AssertDeepEqual(t, []*Job{j1, j2}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j3After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+	AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+	AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j1Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+	AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+	AssertDeepEqual(t, []*Job{j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j2Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+	AssertDeepEqual(t, []*Job{j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j2After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j3}, jobs)
+	AssertDeepEqual(t, []*Job{j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j3Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j3}, jobs)
+	AssertDeepEqual(t, []*Job{j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j3After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{}, jobs)
+	AssertDeepEqual(t, []*Job{}, jobs)
 }
 
 // Test that a JobDB properly tracks its maximum number of users.
-func TestJobDBTooManyUsers(t *testing.T, db JobDB) {
+func TestJobDBTooManyUsers(t assert.TestingT, db JobDB) {
 	// Max out the number of modified-jobs users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedJobs()
@@ -779,7 +786,7 @@ func TestJobDBTooManyUsers(t *testing.T, db JobDB) {
 
 // Test that PutJob and PutJobs return ErrConcurrentUpdate when a cached Job
 // has been updated in the DB.
-func TestJobDBConcurrentUpdate(t *testing.T, db JobDB) {
+func TestJobDBConcurrentUpdate(t assert.TestingT, db JobDB) {
 	// Insert a job.
 	j1 := makeJob(time.Now())
 	assert.NoError(t, db.PutJob(j1))
@@ -787,7 +794,7 @@ func TestJobDBConcurrentUpdate(t *testing.T, db JobDB) {
 	// Retrieve a copy of the job.
 	j1Cached, err := db.GetJobById(j1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, j1, j1Cached)
+	AssertDeepEqual(t, j1, j1Cached)
 
 	// Update the original job.
 	j1.Repo = "another-repo"
@@ -802,7 +809,7 @@ func TestJobDBConcurrentUpdate(t *testing.T, db JobDB) {
 		// DB should still have the old value of j1.
 		j1Again, err := db.GetJobById(j1.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, j1, j1Again)
+		AssertDeepEqual(t, j1, j1Again)
 	}
 
 	// Insert a second job.
@@ -819,16 +826,16 @@ func TestJobDBConcurrentUpdate(t *testing.T, db JobDB) {
 		// DB should still have the old value of j1 and j2.
 		j1Again, err := db.GetJobById(j1.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, j1, j1Again)
+		AssertDeepEqual(t, j1, j1Again)
 
 		j2Again, err := db.GetJobById(j2.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, j2Before, j2Again)
+		AssertDeepEqual(t, j2Before, j2Again)
 	}
 }
 
 // Test UpdateJobsWithRetries when no errors or retries.
-func testUpdateJobsWithRetriesSimple(t *testing.T, db JobDB) {
+func testUpdateJobsWithRetriesSimple(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Test no-op.
@@ -868,8 +875,8 @@ func testUpdateJobsWithRetriesSimple(t *testing.T, db JobDB) {
 	assert.NoError(t, err)
 	j2, err := db.GetJobById(jobs[1].Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, jobs[0], j1)
-	testutils.AssertDeepEqual(t, jobs[1], j2)
+	AssertDeepEqual(t, jobs[0], j1)
+	AssertDeepEqual(t, jobs[1], j2)
 
 	// Check no extra jobs in the DB.
 	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
@@ -880,7 +887,7 @@ func testUpdateJobsWithRetriesSimple(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when there are some retries, but eventual success.
-func testUpdateJobsWithRetriesSuccess(t *testing.T, db JobDB) {
+func testUpdateJobsWithRetriesSuccess(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -920,8 +927,8 @@ func testUpdateJobsWithRetriesSuccess(t *testing.T, db JobDB) {
 	assert.NoError(t, err)
 	j2, err := db.GetJobById(jobs[1].Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, jobs[0], j1)
-	testutils.AssertDeepEqual(t, jobs[1], j2)
+	AssertDeepEqual(t, jobs[0], j1)
+	AssertDeepEqual(t, jobs[1], j2)
 
 	// Check no extra jobs in the DB.
 	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
@@ -932,7 +939,7 @@ func testUpdateJobsWithRetriesSuccess(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when f returns an error.
-func testUpdateJobsWithRetriesErrorInFunc(t *testing.T, db JobDB) {
+func testUpdateJobsWithRetriesErrorInFunc(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
@@ -956,7 +963,7 @@ func testUpdateJobsWithRetriesErrorInFunc(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when PutJobs returns an error.
-func testUpdateJobsWithRetriesErrorInPutJobs(t *testing.T, db JobDB) {
+func testUpdateJobsWithRetriesErrorInPutJobs(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	callCount := 0
@@ -979,7 +986,7 @@ func testUpdateJobsWithRetriesErrorInPutJobs(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when retries are exhausted.
-func testUpdateJobsWithRetriesExhausted(t *testing.T, db JobDB) {
+func testUpdateJobsWithRetriesExhausted(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -1012,7 +1019,7 @@ func testUpdateJobsWithRetriesExhausted(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when no errors or retries.
-func testUpdateJobWithRetriesSimple(t *testing.T, db JobDB) {
+func testUpdateJobWithRetriesSimple(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
@@ -1032,7 +1039,7 @@ func testUpdateJobWithRetriesSimple(t *testing.T, db JobDB) {
 	// Check that return value matches what's in the DB.
 	j1Again, err := db.GetJobById(j1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, j1Again, j1Updated)
+	AssertDeepEqual(t, j1Again, j1Updated)
 
 	// Check no extra jobs in the JobDB.
 	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
@@ -1042,7 +1049,7 @@ func testUpdateJobWithRetriesSimple(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when there are some retries, but eventual success.
-func testUpdateJobWithRetriesSuccess(t *testing.T, db JobDB) {
+func testUpdateJobWithRetriesSuccess(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
@@ -1069,7 +1076,7 @@ func testUpdateJobWithRetriesSuccess(t *testing.T, db JobDB) {
 	// Check that return value matches what's in the DB.
 	j1Again, err := db.GetJobById(j1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, j1Again, j1Updated)
+	AssertDeepEqual(t, j1Again, j1Updated)
 
 	// Check no extra jobs in the DB.
 	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
@@ -1079,7 +1086,7 @@ func testUpdateJobWithRetriesSuccess(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when f returns an error.
-func testUpdateJobWithRetriesErrorInFunc(t *testing.T, db JobDB) {
+func testUpdateJobWithRetriesErrorInFunc(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
@@ -1103,7 +1110,7 @@ func testUpdateJobWithRetriesErrorInFunc(t *testing.T, db JobDB) {
 	// Check job did not change in the DB.
 	j1Again, err := db.GetJobById(j1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, j1, j1Again)
+	AssertDeepEqual(t, j1, j1Again)
 
 	// Check no extra jobs in the DB.
 	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
@@ -1113,7 +1120,7 @@ func testUpdateJobWithRetriesErrorInFunc(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when retries are exhausted.
-func testUpdateJobWithRetriesExhausted(t *testing.T, db JobDB) {
+func testUpdateJobWithRetriesExhausted(t assert.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
@@ -1142,7 +1149,7 @@ func testUpdateJobWithRetriesExhausted(t *testing.T, db JobDB) {
 	// Check job did not change in the DB.
 	j1Again, err := db.GetJobById(j1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, j1, j1Again)
+	AssertDeepEqual(t, j1, j1Again)
 
 	// Check no extra jobs in the DB.
 	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
@@ -1152,7 +1159,7 @@ func testUpdateJobWithRetriesExhausted(t *testing.T, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries and UpdateJobWithRetries.
-func TestUpdateJobsWithRetries(t *testing.T, db JobDB) {
+func TestUpdateJobsWithRetries(t assert.TestingT, db JobDB) {
 	testUpdateJobsWithRetriesSimple(t, db)
 	testUpdateJobsWithRetriesSuccess(t, db)
 	testUpdateJobsWithRetriesErrorInFunc(t, db)
@@ -1206,7 +1213,7 @@ func makeCommitComment(n int, repo int, commit int, ts time.Time) *CommitComment
 }
 
 // TestCommentDB validates that db correctly implements the CommentDB interface.
-func TestCommentDB(t *testing.T, db CommentDB) {
+func TestCommentDB(t assert.TestingT, db CommentDB) {
 	now := time.Now()
 
 	// Empty db.
@@ -1310,7 +1317,7 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expected, actual)
+		AssertDeepEqual(t, expected, actual)
 	}
 
 	// Specifying a cutoff time shouldn't drop required comments.
@@ -1325,8 +1332,8 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 			if !tcs[0].Timestamp.Equal(tc3.Timestamp) {
 				offset = 1
 			}
-			testutils.AssertDeepEqual(t, tc3, tcs[offset])
-			testutils.AssertDeepEqual(t, tc2, tcs[offset+1])
+			AssertDeepEqual(t, tc3, tcs[offset])
+			AssertDeepEqual(t, tc2, tcs[offset+1])
 		}
 		{
 			scs := actual[0].TaskSpecComments["n1"]
@@ -1335,8 +1342,8 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 			if !scs[0].Timestamp.Equal(sc3.Timestamp) {
 				offset = 1
 			}
-			testutils.AssertDeepEqual(t, sc3, scs[offset])
-			testutils.AssertDeepEqual(t, sc2, scs[offset+1])
+			AssertDeepEqual(t, sc3, scs[offset])
+			AssertDeepEqual(t, sc2, scs[offset+1])
 		}
 		{
 			ccs := actual[0].CommitComments["c1"]
@@ -1345,8 +1352,8 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 			if !ccs[0].Timestamp.Equal(cc3.Timestamp) {
 				offset = 1
 			}
-			testutils.AssertDeepEqual(t, cc3, ccs[offset])
-			testutils.AssertDeepEqual(t, cc2, ccs[offset+1])
+			AssertDeepEqual(t, cc3, ccs[offset])
+			AssertDeepEqual(t, cc2, ccs[offset+1])
 		}
 	}
 
@@ -1376,7 +1383,7 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expected, actual)
+		AssertDeepEqual(t, expected, actual)
 	}
 
 	// Delete all the comments.
