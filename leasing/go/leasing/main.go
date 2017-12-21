@@ -361,6 +361,19 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	defer util.Close(r.Body)
 
 	key := GetNewDSKey()
+	if task.SwarmingBotId != "" {
+		// If BotId is specified then validate it so that we can fail fast if
+		// necessary.
+		validBotId, err := IsBotIdValid(task.SwarmingPool, task.SwarmingBotId)
+		if err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Error querying swarming for botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool))
+			return
+		}
+		if !validBotId {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Could not find botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool))
+			return
+		}
+	}
 	if task.OsType != "Android" {
 		// Populate deviceType and architecture only if Android is the osType.
 		task.DeviceType = ""

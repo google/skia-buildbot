@@ -233,6 +233,30 @@ func GetSwarmingTaskMetadata(pool, taskId string) (*swarming_api.SwarmingRpcsTas
 	return swarmingClient.GetTaskMetadata(taskId)
 }
 
+func IsBotIdValid(pool, botId string) (bool, error) {
+	swarmingClient := *GetSwarmingClient(pool)
+	dims := map[string]string{
+		"pool": pool,
+		"id":   botId,
+	}
+	bots, err := swarmingClient.ListBots(dims)
+	if err != nil {
+		return false, fmt.Errorf("Could not query swarming bots with %s: %s", dims, err)
+	}
+	if len(bots) > 1 {
+		return false, fmt.Errorf("Something went wrong, more than 1 bot was returned with %s: %s", dims, err)
+	}
+	if len(bots) == 0 {
+		// There were no matches for the pool + botId combination.
+		return false, nil
+	}
+	if bots[0].BotId == botId {
+		return true, nil
+	} else {
+		return false, fmt.Errorf("%s returned %s instead of the expected %s", dims, bots[1].BotId, botId)
+	}
+}
+
 func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, arch, botId, serverURLstring, isolateHash string, isolateDetails *IsolateDetails, setupDebugger bool) (string, error) {
 	dimsMap := map[string]string{
 		"pool": pool,
