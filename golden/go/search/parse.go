@@ -52,10 +52,6 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 		return fmt.Errorf("Rowquery and columnquery must not be null.")
 	}
 
-	// Parse the list of patchsets from a comma separated list in the stringsted.
-	ctQuery.ColumnQuery.Patchsets = strings.Split(ctQuery.ColumnQuery.PatchsetsStr, ",")
-	ctQuery.RowQuery.Patchsets = strings.Split(ctQuery.RowQuery.PatchsetsStr, ",")
-
 	// Parse the query string into a url.Values instance.
 	if ctQuery.RowQuery.Query, err = url.ParseQuery(ctQuery.RowQuery.QueryStr); err != nil {
 		return err
@@ -90,6 +86,12 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 	ctQuery.ColumnQuery.Limit = util.MinInt32(ctQuery.ColumnQuery.Limit, MAX_LIMIT)
 
 	validate := Validation{}
+
+	// Parse the patchsets.
+	ctQuery.ColumnQuery.Patchsets = validate.Int64SliceValue("patchsets", ctQuery.ColumnQuery.PatchsetsStr, nil)
+	ctQuery.RowQuery.Patchsets = validate.Int64SliceValue("patchsets", ctQuery.RowQuery.PatchsetsStr, nil)
+
+	// Parse the general parameters of the query.
 	validate.StrValue("sortRows", &ctQuery.SortRows, rowSortFields, SORT_FIELD_COUNT)
 	validate.StrValue("rowsDir", &ctQuery.RowsDir, sortDirections, SORT_DESC)
 	validate.StrValue("sortColumns", &ctQuery.SortColumns, columnSortFields, SORT_FIELD_DIFF)
@@ -128,44 +130,67 @@ func (v *Validation) StrFormValue(r *http.Request, name string, val *string, opt
 	v.StrValue(name, val, options, defaultVal)
 }
 
-// Float32Value parses the value given in strVal and stores it in *val. If strVal is empty
-// the default value is written to *val.
-func (v *Validation) Float32Value(name string, strVal string, val *float32, defaultVal float32) {
+// Float64Value parses the value given in strVal and returns it. If strVal is empty
+// the default value is returned.
+func (v *Validation) Float64Value(name string, strVal string, defaultVal float64) float64 {
 	if strVal == "" {
-		*val = defaultVal
-		return
+		return defaultVal
 	}
 
-	tempVal, err := strconv.ParseFloat(strVal, 32)
+	tempVal, err := strconv.ParseFloat(strVal, 64)
 	if err != nil {
 		*v = append(*v, fmt.Sprintf("Field '%s' is not a valid float: %s", name, err))
 	}
-	*val = float32(tempVal)
+	return tempVal
 }
 
-// Int32Value parses the value given in strVal and stores it in *val. If strVal is empty
-// the default value is written to *val.
-func (v *Validation) Int32Value(name string, strVal string, val *int32, defaultVal int32) {
+// Int64Value parses the value given in strVal and returns it. If strVal is empty
+// the default value is returned.
+func (v *Validation) Int64Value(name string, strVal string, defaultVal int64) int64 {
 	if strVal == "" {
-		*val = defaultVal
-		return
+		return defaultVal
 	}
 
-	tempVal, err := strconv.ParseInt(strVal, 10, 32)
+	tempVal, err := strconv.ParseInt(strVal, 10, 64)
 	if err != nil {
 		*v = append(*v, fmt.Sprintf("Field '%s' is not a valid int: %s", name, err))
 	}
-	*val = int32(tempVal)
+	return tempVal
 }
 
-// Float32FormValue does the same as Float32Value but extracts the value from the request object.
-func (v *Validation) Float32FormValue(r *http.Request, name string, val *float32, defaultVal float32) {
-	v.Float32Value(name, r.FormValue(name), val, defaultVal)
+// Float64FormValue does the same as Float64Value but extracts the value from the request object.
+func (v *Validation) Float64FormValue(r *http.Request, name string, defaultVal float64) float64 {
+	return v.Float64Value(name, r.FormValue(name), defaultVal)
 }
 
-// Int32FormValue does the same as Int32Value but extracts the value from the request object.
-func (v *Validation) Int32FormValue(r *http.Request, name string, val *int32, defaultVal int32) {
-	v.Int32Value(name, r.FormValue(name), val, defaultVal)
+// Int64FormValue does the same as Int64Value but extracts the value from the request object.
+func (v *Validation) Int64FormValue(r *http.Request, name string, defaultVal int64) int64 {
+	return v.Int64Value(name, r.FormValue(name), defaultVal)
+}
+
+// Int64SliceValue parses a comma-separated list of int values and returns them.
+func (v *Validation) Int64SliceValue(name string, strVal string, defaultVal []int64) []int64 {
+	if strVal == "" {
+		return defaultVal
+	}
+
+	splitVals := strings.Split(strVal, ",")
+	ret := make([]int64, 0, len(splitVals))
+	for _, oneStrVal := range splitVals {
+		tempVal, err := strconv.ParseInt(oneStrVal, 10, 64)
+		if err != nil {
+			*v = append(*v, fmt.Sprintf("Field '%s' is not a valid list of comma separated integers: %s", name, err))
+			return nil
+		}
+		ret = append(ret, tempVal)
+	}
+	return ret
+}
+
+// Int64SliceFormValue does the same as Int64SliceValue but extracts the given
+// name from the request.
+func (v *Validation) Int64SliceFormValue(r *http.Request, name string, defaultVal []int64) []int64 {
+	return v.Int64SliceValue(name, r.FormValue(name), defaultVal)
 }
 
 // QueryFormValue extracts a URL-encoded query from the form values and decodes it.
@@ -197,11 +222,6 @@ func (v *Validation) Errors() error {
 // ParseQuery parses the request parameters from the URL query string or from the
 // form parameters and stores the parsed and validated values in query.
 func ParseQuery(r *http.Request, query *Query) error {
-	// Parse out the patchsets.
-	if temp := r.FormValue("patchsets"); temp != "" {
-		query.Patchsets = strings.Split(temp, ",")
-	}
-
 	// Parse the list of fields that need to match and ensure the
 	// test name is in it.
 	var ok bool
@@ -220,17 +240,23 @@ func ParseQuery(r *http.Request, query *Query) error {
 	validate.QueryFormValue(r, "rquery", &query.RQuery)
 
 	// TODO(stephan) Add range limiting to the validation of limit and offset.
-	validate.Int32FormValue(r, "limit", &query.Limit, 50)
-	validate.Int32FormValue(r, "offset", &query.Offset, 0)
+	query.Limit = int32(validate.Int64FormValue(r, "limit", 50))
+	query.Offset = int32(validate.Int64FormValue(r, "offset", 0))
 	query.Offset = util.MaxInt32(query.Offset, 0)
 
 	validate.StrFormValue(r, "metric", &query.Metric, diff.GetDiffMetricIDs(), diff.METRIC_COMBINED)
 	validate.StrFormValue(r, "sort", &query.Sort, []string{SORT_DESC, SORT_ASC}, SORT_DESC)
 
 	// Parse and validate the filter values.
-	validate.Int32FormValue(r, "frgbamin", &query.FRGBAMin, 0)
-	validate.Int32FormValue(r, "frgbamax", &query.FRGBAMax, 255)
-	validate.Float32FormValue(r, "fdiffmax", &query.FDiffMax, -1.0)
+	query.FRGBAMin = int32(validate.Int64FormValue(r, "frgbamin", 0))
+	query.FRGBAMax = int32(validate.Int64FormValue(r, "frgbamax", 255))
+	query.FDiffMax = float32(validate.Float64FormValue(r, "fdiffmax", -1.0))
+
+	// Parse out the issue and patchsets.
+	query.Patchsets = validate.Int64SliceFormValue(r, "patchsets", nil)
+	query.Issue = validate.Int64FormValue(r, "issue", 0)
+
+	// Check wether any of the validations failed.
 	if err := validate.Errors(); err != nil {
 		return err
 	}
@@ -241,7 +267,6 @@ func ParseQuery(r *http.Request, query *Query) error {
 	query.Unt = r.FormValue("unt") == "true"
 	query.Head = r.FormValue("head") == "true"
 	query.IncludeIgnores = r.FormValue("include") == "true"
-	query.Issue = r.FormValue("issue")
 	query.IncludeMaster = r.FormValue("master") == "true"
 
 	// Extract the filter values.
