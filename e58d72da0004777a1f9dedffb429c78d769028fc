@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40034287_654b2ef9",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-21T19:41:06Z",
+      "side": 1,
+      "message": "strconv.AtoI() or fmt.Sprintf this whole line?",
+      "range": {
+        "startLine": 323,
+        "startChar": 44,
+        "endLine": 323,
+        "endChar": 81
+      },
+      "revId": "e58d72da0004777a1f9dedffb429c78d769028fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ffee0b4_4b0f10a7",
+        "filename": "golden/go/search/search_types.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-21T19:41:06Z",
+      "side": 1,
+      "message": "nit: parens not needed?",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 49,
+        "endChar": 5
+      },
+      "revId": "e58d72da0004777a1f9dedffb429c78d769028fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bf3a482_3341e70e",
+        "filename": "tracedb/Makefile",
+        "patchSetId": 12
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2017-12-21T19:41:06Z",
+      "side": 1,
+      "message": "Any chance you can break this up onto 3 lines for easier reading?",
+      "range": {
+        "startLine": 7,
+        "startChar": 75,
+        "endLine": 7,
+        "endChar": 79
+      },
+      "revId": "e58d72da0004777a1f9dedffb429c78d769028fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
