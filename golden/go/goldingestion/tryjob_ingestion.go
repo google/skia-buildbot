@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
@@ -22,11 +25,13 @@ import (
 // Define configuration options to be used in the config file under
 // ExtraParams.
 const (
-	CONFIG_GERRIT_CODE_REVIEW_URL = "GerritCodeReviewURL"
-	CONFIG_TRYJOB_NAMESPACE       = "TryjobDatastoreNameSpace"
-	CONFIG_SERVICE_ACCOUNT_FILE   = "ServiceAccountFile"
-	CONFIG_BUILD_BUCKET_URL       = "BuildBucketURL"
-	CONFIG_BUILD_BUCKET_NAME      = "BuildBucketName"
+	CONFIG_GERRIT_CODE_REVIEW_URL     = "GerritCodeReviewURL"
+	CONFIG_TRYJOB_NAMESPACE           = "TryjobDatastoreNameSpace"
+	CONFIG_SERVICE_ACCOUNT_FILE       = "ServiceAccountFile"
+	CONFIG_BUILD_BUCKET_URL           = "BuildBucketURL"
+	CONFIG_BUILD_BUCKET_NAME          = "BuildBucketName"
+	CONFIG_BUILD_BUCKET_POLL_INTERVAL = "BuildBucketPollInterval"
+	CONFIG_BUILD_BUCKET_TIME_WINDOW   = "BuildBucketTimeWindow"
 )
 
 // Register the ingestion Processor with the ingestion framework.
@@ -43,6 +48,7 @@ type goldTryjobProcessor struct {
 
 // newGoldTryjobProcessor implementes the ingestion.Constructor function.
 func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clientx *http.Client) (ingestion.Processor, error) {
+	sklog.Infof("Creating tryjob processor.")
 	gerritURL, ok := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
 	if !ok {
 		return nil, fmt.Errorf("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
@@ -50,6 +56,17 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 	// Get the config options.
 	svcAccountFile := config.ExtraParams[CONFIG_SERVICE_ACCOUNT_FILE]
+	sklog.Infof("Got service accoutn file '%s'", svcAccountFile)
+
+	pollInterval, err := parseDuration(config.ExtraParams[CONFIG_BUILD_BUCKET_POLL_INTERVAL], bbstate.DefaultPollInterval)
+	if err != nil {
+		return nil, err
+	}
+
+	timeWindow, err := parseDuration(config.ExtraParams[CONFIG_BUILD_BUCKET_TIME_WINDOW], bbstate.DefaultTimeWindow)
+	if err != nil {
+		return nil, err
+	}
 
 	tryjobNamespace, ok := config.ExtraParams[CONFIG_TRYJOB_NAMESPACE]
 	if !ok {
@@ -62,7 +79,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, fmt.Errorf("BuildBucketName and BuildBucketURL must not be empty.")
 	}
 
-	client, err := auth.NewJWTServiceAccountClient("", svcAccountFile, nil, gstorage.CloudPlatformScope)
+	client, err := auth.NewJWTServiceAccountClient("", svcAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
 	}
@@ -77,7 +94,17 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, err
 	}
 
-	bbGerritClient, err := bbstate.NewBuildBucketState(buildBucketURL, buildBucketName, client, tryjobStore, gerritReview)
+	bbConf := &bbstate.Config{
+		BuildBucketURL:  buildBucketURL,
+		BuildBucketName: buildBucketName,
+		Client:          client,
+		TryjobStore:     tryjobStore,
+		GerritClient:    gerritReview,
+		PollInterval:    pollInterval,
+		TimeWindow:      timeWindow,
+	}
+
+	bbGerritClient, err := bbstate.NewBuildBucketState(bbConf)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +119,11 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	dmResults, err := processDMResults(resultsFile)
 	if err != nil {
 		return err
+	}
+
+	// Make sure we have an issue, patchset and a buildbucket id.
+	if (dmResults.Issue <= 0) || (dmResults.Patchset <= 0) || (dmResults.BuildBucketID <= 0) {
+		return fmt.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.Issue, dmResults.Patchset, dmResults.BuildBucketID)
 	}
 
 	entries, err := dmResults.getTraceDBEntries()
@@ -118,13 +150,15 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	// Convert to a trybotstore.TryjobResult slice by aggregating parameters for each test/digest pair.
 	resultsMap := make(map[string]*tryjobstore.TryjobResult, len(entries))
 	for _, entry := range entries {
-		key := entry.Params[types.PRIMARY_KEY_FIELD] + string(entry.Value)
+		testName := entry.Params[types.PRIMARY_KEY_FIELD]
+		key := testName + string(entry.Value)
 		if found, ok := resultsMap[key]; ok {
 			found.Params.AddParams(entry.Params)
 		} else {
 			resultsMap[key] = &tryjobstore.TryjobResult{
-				Digest: string(entry.Value),
-				Params: paramtools.NewParamSet(entry.Params),
+				TestName: testName,
+				Digest:   string(entry.Value),
+				Params:   paramtools.NewParamSet(entry.Params),
 			}
 		}
 	}
@@ -145,3 +179,12 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 
 // See ingestion.Processor interface.
 func (g *goldTryjobProcessor) BatchFinished() error { return nil }
+
+// parseDuration parses the given duration. If strVal is empty the default value
+// will be returned. If the given duration is invalid an error will be returned.
+func parseDuration(strVal string, defaultVal time.Duration) (time.Duration, error) {
+	if strVal == "" {
+		return defaultVal, nil
+	}
+	return human.ParseDuration(strVal)
+}

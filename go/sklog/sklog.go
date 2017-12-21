@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"runtime"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 
@@ -313,4 +314,12 @@ func AddLogsRedirect(r *mux.Router) {
 	r.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, LogLink(), http.StatusMovedPermanently)
 	})
+}
+
+// FmtError is a wrapper around fmt.Errorf that prepends the source location
+// (filename and line number) of the caller.
+func FmtErrorf(fmtStr string, args ...interface{}) error {
+	stackEntry := CallStack(1, 2)[0]
+	codeRef := stackEntry.File + ":" + strconv.FormatInt(int64(stackEntry.Line), 10) + ":"
+	return fmt.Errorf(codeRef+fmtStr, args...)
 }

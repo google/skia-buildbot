@@ -7,7 +7,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -31,12 +30,12 @@ const (
 
 // RefDiffer aggregates the helper objects needed to calculate reference diffs.
 type RefDiffer struct {
-	exp       *expstorage.Expectations
+	exp       ExpSlice
 	diffStore diff.DiffStore
 	idx       *indexer.SearchIndex
 }
 
-func NewRefDiffer(exp *expstorage.Expectations, diffStore diff.DiffStore, idx *indexer.SearchIndex) *RefDiffer {
+func NewRefDiffer(exp ExpSlice, diffStore diff.DiffStore, idx *indexer.SearchIndex) *RefDiffer {
 	return &RefDiffer{
 		exp:       exp,
 		diffStore: diffStore,

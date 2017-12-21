@@ -186,8 +186,6 @@ func setupStorages(t assert.TestingT, ctx context.Context) (*storage.Storage, ex
 		DigestStore:       &mocks.MockDigestStore{IssueIDs: []int{}, OkValue: true},
 		NCommits:          N_COMMITS,
 		EventBus:          evt,
-		TrybotResults:     nil,
-		RietveldAPI:       nil,
 	}
 
 	ret.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, ret.ExpectationsStore, ret.GetTileStreamNow(time.Minute))
