@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0fd9e758_eaae1aa9",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-21T20:17:45Z",
+      "side": 1,
+      "message": "Done\nI think you meant strconv.Itoa(...) which is shorthand for strconv.FormatInt(x, 10). \nI switched to fmt.Sprintf(...), because it\u0027s error handling code, but generally strconv IMO is preferable since it\u0027s faster. \nhttps://gist.github.com/evalphobia/caee1602969a640a4530",
+      "parentUuid": "40034287_654b2ef9",
+      "range": {
+        "startLine": 323,
+        "startChar": 44,
+        "endLine": 323,
+        "endChar": 81
+      },
+      "revId": "e58d72da0004777a1f9dedffb429c78d769028fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ffee0b4_4b0f10a7",
         "filename": "golden/go/search/search_types.go",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2017-12-21T19:41:06Z",
       "side": 1,
       "message": "nit: parens not needed?",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 49,
+        "endChar": 5
+      },
+      "revId": "e58d72da0004777a1f9dedffb429c78d769028fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5cf7ffd_71e02190",
+        "filename": "golden/go/search/search_types.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-21T20:17:45Z",
+      "side": 1,
+      "message": "The parentheses are not needed, but I find the code a lot easier to read that way. \nBecause I don\u0027t have to think about operator precedence at all. \nhttps://golang.org/ref/spec#Operators",
+      "parentUuid": "0ffee0b4_4b0f10a7",
       "range": {
         "startLine": 49,
         "startChar": 4,
@@ -68,6 +116,30 @@
       "revId": "e58d72da0004777a1f9dedffb429c78d769028fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f32ec920_778740c2",
+        "filename": "tracedb/Makefile",
+        "patchSetId": 12
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2017-12-21T20:17:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bf3a482_3341e70e",
+      "range": {
+        "startLine": 7,
+        "startChar": 75,
+        "endLine": 7,
+        "endChar": 79
+      },
+      "revId": "e58d72da0004777a1f9dedffb429c78d769028fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
