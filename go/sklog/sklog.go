@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"runtime"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 
@@ -300,6 +301,11 @@ func CallStack(height, startAt int) []StackTrace {
 		stack = append(stack, StackTrace{File: file, Line: line})
 	}
 	return stack
+}
+
+func LineRef() string {
+	stack := CallStack(1, 2)
+	return stack[0].File + ":" + strconv.FormatInt(int64(stack[0].Line), 10)
 }
 
 // LogLink returns a link to the logs for this process.
