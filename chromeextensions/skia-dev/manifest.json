@@ -1,6 +1,6 @@
 {
    "name": "Assorted Tools for Skia Developers",
-   "version": "3.1",
+   "version": "3.2",
    "description": "Assorted Tools for Skia Developers.",
    "permissions": [
      "notifications",
