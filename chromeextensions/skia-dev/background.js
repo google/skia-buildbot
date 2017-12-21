@@ -14,7 +14,7 @@
     for (var i = 0; i < details.responseHeaders.length; i++) {
       if ('content-security-policy' === details.responseHeaders[i].name.toLowerCase()) {
         details.responseHeaders[i].value = details.responseHeaders[i].value.replace('child-src',
-                                          'child-src https://ci.chromium.org/raw/build/');
+                                          'child-src https://ci.chromium.org/raw/build/ https://logs.chromium.org/');
       }
     }
 
