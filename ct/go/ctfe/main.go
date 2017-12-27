@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httputil"
-	"os/user"
+	//"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -249,7 +249,8 @@ func main() {
 		}
 	}
 
-	common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	common.InitWithMust("ctfe")
+	// common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		sklog.Fatal(err)
@@ -262,11 +263,11 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	usr, err := user.Current()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	ctutil.MailInit(filepath.Join(usr.HomeDir, "email.data"))
+	//usr, err := user.Current()
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
+	//ctutil.MailInit(filepath.Join(usr.HomeDir, "email.data"))
 
 	redirectURL := serverURL + ctfeutil.OAUTH2_CALLBACK_PATH
 	if err := login.Init(redirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " ")); err != nil {
