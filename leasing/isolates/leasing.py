@@ -65,7 +65,7 @@ def main():
       # Start the debugger and setup adb port forwarding from host to device.
       print 'Bringing up the debugger'
       subprocess.check_call(
-          ['adb', 'shell', 'chmod', '+x', skiaserve_device_location])
+          ['adb', 'shell', 'chmod', '777', skiaserve_device_location])
       proc = subprocess.Popen(['adb', 'shell', skiaserve_device_location])
       print 'Running adb forward tcp:8888 tcp:8888'
       subprocess.check_call(['adb', 'forward', 'tcp:8888', 'tcp:8888'])
