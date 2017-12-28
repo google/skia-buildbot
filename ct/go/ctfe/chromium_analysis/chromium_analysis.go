@@ -59,6 +59,7 @@ type DBTask struct {
 	Platform       string         `db:"platform"`
 	RunOnGCE       bool           `db:"run_on_gce"`
 	RawOutput      sql.NullString `db:"raw_output"`
+	CountStdoutTxt string         `db:"count_stdout_txt"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -83,6 +84,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.RunInParallel = dbTask.RunInParallel
 	taskVars.Platform = dbTask.Platform
 	taskVars.RunOnGCE = dbTask.RunOnGCE
+	taskVars.CountStdoutTxt = dbTask.CountStdoutTxt
 	return taskVars
 }
 
@@ -132,6 +134,7 @@ type AddTaskVars struct {
 	RunInParallel  bool   `json:"run_in_parallel"`
 	Platform       string `json:"platform"`
 	RunOnGCE       bool   `json:"run_on_gce"`
+	CountStdoutTxt string `json:"count_stdout_txt"`
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
@@ -157,6 +160,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "benchmark_patch", Value: task.BenchmarkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "v8_patch", Value: task.V8Patch, Limit: db.LONG_TEXT_MAX_LENGTH},
+		{Name: "count_stdout_txt", Value: task.CountStdoutTxt, Limit: db.LONG_TEXT_MAX_LENGTH},
 	}); err != nil {
 		return "", nil, err
 	}
@@ -168,7 +172,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	if task.RunOnGCE {
 		runOnGCE = 1
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,custom_webpages,benchmark_args,browser_args,description,chromium_patch,catapult_patch,benchmark_patch,v8_patch,ts_added,repeat_after_days,run_in_parallel,platform,run_on_gce) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,custom_webpages,benchmark_args,browser_args,description,chromium_patch,catapult_patch,benchmark_patch,v8_patch,ts_added,repeat_after_days,run_in_parallel,platform,run_on_gce,count_stdout_txt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_ANALYSIS_TASKS),
 		[]interface{}{
 			task.Username,
@@ -187,6 +191,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 			runInParallel,
 			task.Platform,
 			runOnGCE,
+			task.CountStdoutTxt,
 		},
 		nil
 }

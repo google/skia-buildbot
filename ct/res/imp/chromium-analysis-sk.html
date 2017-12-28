@@ -128,6 +128,13 @@
       </tr>
 
       <tr>
+        <td>Look for text in stdout</td>
+        <td>
+          <paper-input value="" id="count_stdout_txt" class="long-field"></paper-input>
+        </td>
+      </tr>
+
+      <tr>
         <td>Benchmark Arguments</td>
         <td>
           <paper-input value="--output-format=csv" id="benchmark_args" class="long-field"></paper-input>
@@ -362,6 +369,7 @@
        params["benchmark"] = this.selectedBenchmarkName;
        params["page_sets"] = this.$.page_sets.selected;
        params["custom_webpages"] = this.$.custom_webpages.webpages;
+       params["count_stdout_txt"] = this.$.count_stdout_txt.value;
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["browser_args"] = this.$.browser_args.value;
        params["desc"] = this.$.desc.value;

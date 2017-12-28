@@ -644,18 +644,21 @@ func RemoveFlagsFromArgs(benchmarkArgs string, flags ...string) string {
 	return strings.Join(strings.Fields(benchmarkArgs), " ")
 }
 
-func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int) error {
+// RunBenchmark runs the specified benchmark with the specified arguments. It prints the output of
+// the run_benchmark command and also returns the output incase the caller needs to do any
+// post-processing on it. Incase of any errors the output will be empty.
+func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int) (string, error) {
 	pagesetBaseName := filepath.Base(fileInfoName)
 	if filepath.Ext(pagesetBaseName) == ".pyc" {
 		// Ignore .pyc files.
-		return nil
+		return "", nil
 	}
 	// Read the pageset.
 	pagesetName := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
 	pagesetPath := filepath.Join(pathToPagesets, fileInfoName)
 	decodedPageset, err := ReadPageset(pagesetPath)
 	if err != nil {
-		return fmt.Errorf("Could not read %s: %s", pagesetPath, err)
+		return "", fmt.Errorf("Could not read %s: %s", pagesetPath, err)
 	}
 	sklog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
 	args := []string{
@@ -672,7 +675,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	// Figure out which browser and device should be used.
 	if targetPlatform == PLATFORM_ANDROID {
 		if err := InstallChromeAPK(ctx, chromiumBuildName); err != nil {
-			return fmt.Errorf("Error while installing APK: %s", err)
+			return "", fmt.Errorf("Error while installing APK: %s", err)
 		}
 		args = append(args, "--browser=android-chromium")
 	} else {
@@ -715,28 +718,35 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	// Create buffer for capturing the stdout and stderr of the benchmark run.
 	var b bytes.Buffer
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", pagesetPath)); err != nil {
-		return fmt.Errorf("Error writing to output buffer: %s", err)
+		return "", fmt.Errorf("Error writing to output buffer: %s", err)
 	}
 	if err := ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		if targetPlatform == PLATFORM_ANDROID {
 			// Kill the port-forwarder to start from a clean slate.
 			util.LogErr(ExecuteCmdWithConfigurableLogging(ctx, "pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))
 		}
-		util.LogErr(printRunBenchmarkOutput(b, pagesetPath))
-		return fmt.Errorf("Run benchmark command failed with: %s", err)
+		output, getErr := getRunBenchmarkOutput(b, pagesetPath)
+		util.LogErr(getErr)
+		fmt.Println(output)
+		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
-	return printRunBenchmarkOutput(b, pagesetPath)
+	output, err := getRunBenchmarkOutput(b, pagesetPath)
+	if err != nil {
+		return "", fmt.Errorf("Could not get run benchmark output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return output, nil
 }
 
-func printRunBenchmarkOutput(b bytes.Buffer, pagesetPath string) error {
+func getRunBenchmarkOutput(b bytes.Buffer, pagesetPath string) (string, error) {
 	if _, err := b.WriteString("===================="); err != nil {
-		return fmt.Errorf("Error writing to output buffer: %s", err)
+		return "", fmt.Errorf("Error writing to output buffer: %s", err)
 	}
-	fmt.Println(b.String())
-	return nil
+	return b.String(), nil
 }
 
-func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GcsUtil, startRange int, handleStrings bool) error {
+func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GcsUtil, startRange int, handleStrings bool, pageRankToAdditionalFields map[string]map[string]string) error {
 	// Move all results into a single directory.
 	fileInfos, err := ioutil.ReadDir(localOutputDir)
 	if err != nil {
@@ -759,11 +769,31 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 			continue
 		}
 		pageRank := fileInfo.Name()
+		pageNameWithRank := ""
 		for i := range headers {
 			for j := range values {
 				if headers[i] == "stories" {
-					values[j][i] = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
+					pageNameWithRank = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
+					values[j][i] = pageNameWithRank
 				}
+			}
+		}
+		// Add additionalFields (if any) to the output CSV.
+		if additionalFields, ok := pageRankToAdditionalFields[fileInfo.Name()]; ok {
+			for h, v := range additionalFields {
+				valueLine := make([]string, len(headers))
+				for i := range headers {
+					if headers[i] == "name" {
+						valueLine[i] = h
+					} else if headers[i] == "avg" {
+						valueLine[i] = v
+					} else if headers[i] == "stories" {
+						valueLine[i] = pageNameWithRank
+					} else {
+						valueLine[i] = ""
+					}
+				}
+				values = append(values, valueLine)
 			}
 		}
 		if err := writeRowsToCSV(newFile, headers, values); err != nil {

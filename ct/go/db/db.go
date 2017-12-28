@@ -405,6 +405,14 @@ var v23_down = []string{
 	`ALTER TABLE ChromiumPerfTasks DROP swarming_logs`,
 }
 
+var v24_up = []string{
+	`ALTER TABLE ChromiumAnalysisTasks ADD count_stdout_txt longtext NOT NULL DEFAULT ""`,
+}
+
+var v24_down = []string{
+	`ALTER TABLE ChromiumAnalysisTasks DROP count_stdout_txt`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -523,6 +531,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v23_up,
 		MySQLDown: v23_down,
+	},
+	// version 24: Add count_stdout_txt to ChromiumAnalysisTasks.
+	{
+		MySQLUp:   v24_up,
+		MySQLDown: v24_down,
 	},
 }
 
