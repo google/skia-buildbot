@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
@@ -31,6 +32,8 @@ const (
 	// The number of allowed benchmark timeouts in a row before the worker
 	// script fails.
 	MAX_ALLOWED_SEQUENTIAL_TIMEOUTS = 20
+
+	STDOUT_COUNT_CSV_FIELD = "CT_stdout_count"
 )
 
 var (
@@ -45,6 +48,7 @@ var (
 	runInParallel      = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 	chromeCleanerTimer = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
+	countStdoutText    = flag.String("count_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. Every occurence of the text is counted and added to the CSV of the web page under the CT_stdout_count field.")
 )
 
 func runChromiumAnalysis() error {
@@ -139,7 +143,7 @@ func runChromiumAnalysis() error {
 	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
 		return err
 	}
-	//Delete the chromium build to save space when we are done.
+	// Delete the chromium build to save space when we are done.
 	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 
 	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
@@ -210,6 +214,10 @@ func runChromiumAnalysis() error {
 	timeoutTracker := util.TimeoutTracker{}
 	// The num of times run_benchmark binary should be retried if there are errors.
 	retryNum := util.GetNumAnalysisRetriesValue(*benchmarkExtraArgs, 2)
+	// Map that keeps track of which additional fields need to be added to the output CSV.
+	pageRankToAdditionalFields := map[string]map[string]string{}
+	// Mutex that controls access to the above map.
+	var additionalFieldsMutex sync.Mutex
 
 	// Loop through workers in the worker pool.
 	for i := 0; i < numWorkers; i++ {
@@ -225,9 +233,23 @@ func runChromiumAnalysis() error {
 
 				mutex.RLock()
 				for i := 0; ; i++ {
-					err = util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1)
+					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1)
 					if err == nil {
 						timeoutTracker.Reset()
+						// If *countStdoutText is specified then add the number of times the text shows up in stdout
+						// to the pageRankToAdditionalFields map. See skbug.com/7448 for context.
+						if *countStdoutText != "" && output != "" {
+							rank, err := util.GetRankFromPageset(pagesetName)
+							if err != nil {
+								sklog.Errorf("Could not get rank out of pageset %s: %s", pagesetName, err)
+								continue
+							}
+							fieldToCount := map[string]string{STDOUT_COUNT_CSV_FIELD: strconv.Itoa(strings.Count(output, *countStdoutText))}
+							additionalFieldsMutex.Lock()
+							pageRankToAdditionalFields[strconv.Itoa(rank)] = fieldToCount
+							additionalFieldsMutex.Unlock()
+
+						}
 						break
 					} else if exec.IsTimeout(err) {
 						timeoutTracker.Increment()
@@ -263,7 +285,7 @@ func runChromiumAnalysis() error {
 
 	// If "--output-format=csv" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, gs, *startRange, true /* handleStrings */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, gs, *startRange, true /* handleStrings */, pageRankToAdditionalFields); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
 	}
