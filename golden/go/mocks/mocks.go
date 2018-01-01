@@ -8,7 +8,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"time"
 
 	"cloud.google.com/go/storage"
 
@@ -98,18 +97,6 @@ type MockTileBuilder struct {
 
 func (m *MockTileBuilder) GetTile() *tiling.Tile {
 	return m.tile
-}
-
-func (m *MockTileBuilder) ListLong(start, end time.Time, source string) ([]*tracedb.CommitIDLong, error) {
-	return nil, nil
-}
-
-func (m *MockTileBuilder) TileFromCommits(commitIDs []*tracedb.CommitIDLong) (*tiling.Tile, []string, error) {
-	return m.tile, nil, nil
-}
-
-func (m *MockTileBuilder) ListMD5(commitIDs []*tracedb.CommitID) ([]string, error) {
-	return nil, nil
 }
 
 // Mock the tilestore for GoldenTraces

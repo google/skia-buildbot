@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/golden/go/tryjobstore"
+
 	gstorage "cloud.google.com/go/storage"
 	"github.com/flynn/json5"
 	"google.golang.org/api/option"
@@ -19,7 +21,6 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -29,7 +30,6 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -40,11 +40,9 @@ type Storage struct {
 	ExpectationsStore expstorage.ExpectationsStore
 	IgnoreStore       ignore.IgnoreStore
 	MasterTileBuilder tracedb.MasterTileBuilder
-	BranchTileBuilder tracedb.BranchTileBuilder
 	DigestStore       digeststore.DigestStore
 	EventBus          eventbus.EventBus
-	TrybotResults     *trybot.TrybotResults
-	RietveldAPI       *rietveld.Rietveld
+	TryjobStore       tryjobstore.TryjobStore
 	GerritAPI         *gerrit.Gerrit
 	GStorageClient    *GStorageClient
 
@@ -237,20 +235,6 @@ func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.
 	}
 
 	return digestInfo, nil
-}
-
-// GetTileFromTimeRange returns a tile that contains the commits in the given time range.
-func (s *Storage) GetTileFromTimeRange(ctx context.Context, begin, end time.Time) (*tiling.Tile, error) {
-	commitIDs, err := s.BranchTileBuilder.ListLong(ctx, begin, end, "master")
-	if err != nil {
-		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
-	}
-
-	tile, err := s.BranchTileBuilder.CachedTileFromCommits(tracedb.ShortFromLong(commitIDs))
-	if err != nil {
-		return nil, err
-	}
-	return s.getWhiteListedTile(tile), nil
 }
 
 // getWhiteListedTile creates a new tile from the given tile that contains
