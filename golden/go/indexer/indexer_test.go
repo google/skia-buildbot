@@ -182,12 +182,9 @@ func setupStorages(t assert.TestingT, ctx context.Context) (*storage.Storage, ex
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewMemExpectationsStore(evt),
 		MasterTileBuilder: masterTileBuilder,
-		BranchTileBuilder: nil,
 		DigestStore:       &mocks.MockDigestStore{IssueIDs: []int{}, OkValue: true},
 		NCommits:          N_COMMITS,
 		EventBus:          evt,
-		TrybotResults:     nil,
-		RietveldAPI:       nil,
 	}
 
 	ret.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, ret.ExpectationsStore, ret.GetTileStreamNow(time.Minute))

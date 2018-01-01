@@ -116,20 +116,25 @@ func (c *cloudTryjobStore) ListIssues() ([]*Issue, int, error) {
 func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatchsets []int64) (*IssueDetails, error) {
 	target := &IssueDetails{}
 	key := c.getIssueKey(issueID)
-	if ok, err := c.getEntity(key, target, nil); (err != nil) || !ok {
-		return nil, err
+	ok, err := c.getEntity(key, target, nil)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Error in getEntity for %s: %s", key, err)
+	}
+
+	if !ok {
+		return nil, nil
 	}
 
 	if loadTryjobs {
 		_, tryjobs, err := c.getTryjobsForIssue(issueID, nil, false)
 		if err != nil {
-			return nil, err
+			return nil, sklog.FmtErrorf("Error getting tryjobs for issue: %s", err)
 		}
 
 		for _, tj := range tryjobs {
-			ps, _ := target.findPatchset(tj.PatchsetID)
+			ps := target.findPatchsetx(tj.PatchsetID)
 			if ps == nil {
-				return nil, fmt.Errorf("Unable to find patchset %d in issue %d:", tj.PatchsetID, target.ID)
+				return nil, sklog.FmtErrorf("Unable to find patchset %d in issue %d:", tj.PatchsetID, target.ID)
 			}
 			ps.Tryjobs = append(ps.Tryjobs, tj)
 		}
@@ -156,13 +161,20 @@ func (c *cloudTryjobStore) DeleteIssue(issueID int64) error {
 	ctx := context.Background()
 	key := c.getIssueKey(issueID)
 
-	// Delete any tryjobs that are still there.
-	if err := c.deleteTryjobsForIssue(issueID); err != nil {
-		return err
-	}
+	var egroup errgroup.Group
 
-	// Delete all expectations for this issue.
-	if err := c.deleteExpectationsForIssue(issueID); err != nil {
+	egroup.Go(func() error {
+		// Delete any tryjobs that are still there.
+		return c.deleteTryjobsForIssue(issueID)
+	})
+
+	egroup.Go(func() error {
+		// Delete all expectations for this issue.
+		return c.deleteExpectationsForIssue(issueID)
+	})
+
+	// Make sure all dependents are deleted.
+	if err := egroup.Wait(); err != nil {
 		return err
 	}
 
@@ -207,8 +219,19 @@ func (c *cloudTryjobStore) GetTryjobResults(issueID int64, patchsetIDs []int64) 
 func (c *cloudTryjobStore) UpdateTryjobResult(tryjob *Tryjob, results []*TryjobResult) error {
 	tryjobKey := c.getTryjobKey(tryjob.BuildBucketID)
 	keys := make([]*datastore.Key, 0, len(results))
+	uniqueEntries := util.StringSet{}
 	for _, result := range results {
-		keys = append(keys, c.getTryjobResultKey(tryjobKey, result.Digest))
+		// Make sure that tests are not bunched together.
+		if len(result.Params[types.PRIMARY_KEY_FIELD]) != 1 {
+			return fmt.Errorf("Parameter value for primary key field '%s' must exactly contain one value. Found: %v", types.PRIMARY_KEY_FIELD, result.Params[types.PRIMARY_KEY_FIELD])
+		}
+
+		keys = append(keys, c.getTryjobResultKey(tryjobKey))
+		uniqueEntries[result.TestName+result.Digest] = true
+	}
+
+	if len(uniqueEntries) != len(keys) {
+		return fmt.Errorf("All (test,digest) pairs must be unique when adding tryjob results.")
 	}
 
 	// var egroup errgroup.Group
@@ -581,8 +604,8 @@ func (c *cloudTryjobStore) getTryjobKey(buildBucketID int64) *datastore.Key {
 }
 
 // getTryjobResultKey returns a key for the given tryjobResult.
-func (c *cloudTryjobStore) getTryjobResultKey(tryjobKey *datastore.Key, keyStr string) *datastore.Key {
-	ret := datastore.NameKey(kind_TryjobResult, keyStr, tryjobKey)
+func (c *cloudTryjobStore) getTryjobResultKey(tryjobKey *datastore.Key) *datastore.Key {
+	ret := datastore.IncompleteKey(kind_TryjobResult, tryjobKey)
 	ret.Namespace = c.namespace
 	return ret
 }

@@ -5,9 +5,6 @@
 package warmer
 
 import (
-	"context"
-	"sync"
-
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
@@ -74,49 +71,5 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 	sklog.Infof("FOUND %d digests to fetch.", len(digests))
 	w.storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests, false)
 
-	// TODO(stephana): Re-enable this once we have figured out crashes.
-
-	// if err := warmTrybotDigests(storages, traceDigests); err != nil {
-	// 	sklog.Errorf("Error retrieving trybot digests: %s", err)
-	// 	return
-	// }
-}
-
-func warmTrybotDigests(ctx context.Context, storages *storage.Storage, traceDigests map[string]bool) error {
-	issues, _, err := storages.TrybotResults.ListTrybotIssues(ctx, 0, 100)
-	if err != nil {
-		return err
-	}
-
-	trybotDigests := util.NewStringSet()
-	var wg sync.WaitGroup
-	var mutex sync.Mutex
-	for _, oneIssue := range issues {
-		wg.Add(1)
-		go func(issueID string) {
-			_, tile, err := storages.TrybotResults.GetIssue(ctx, issueID, nil)
-			if err != nil {
-				sklog.Errorf("Unable to retrieve issue %s. Got error: %s", issueID, err)
-				return
-			}
-
-			for _, trace := range tile.Traces {
-				gTrace := trace.(*types.GoldenTrace)
-				for _, digest := range gTrace.Values {
-					if !traceDigests[digest] {
-						mutex.Lock()
-						trybotDigests[digest] = true
-						mutex.Unlock()
-					}
-				}
-			}
-			wg.Done()
-		}(oneIssue.ID)
-	}
-
-	wg.Wait()
-	digests := trybotDigests.Keys()
-	sklog.Infof("FOUND %d trybot digests to fetch.", len(digests))
-	storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests, false)
-	return nil
+	// TODO(stephana): Add warmer for Tryjob digests.
 }

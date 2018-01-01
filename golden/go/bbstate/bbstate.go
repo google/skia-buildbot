@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	bb_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 
 	"go.skia.org/infra/go/buildbucket"
@@ -34,7 +35,7 @@ const (
 	DefaultSkiaBuildBucketURL = "https://cr-buildbucket.appspot.com/api/buildbucket/v1/"
 
 	// DefaultTimeWindow is the time window we track in build bucket.
-	DefaultTimeWindow = 12 * time.Hour // Time we look back at the build bucket
+	DefaultTimeWindow = 5 * time.Hour // Time we look back at the build bucket
 
 	// DefaultPollInterval is the interval at which we poll BuildBucket.
 	DefaultPollInterval = 5 * time.Minute // Interval at which we poll buildbucket
@@ -46,6 +47,30 @@ const (
 	// underlying TryjobStore.
 	maxConcurrentWrites = 1000
 )
+
+// Config defines the configaration options for BuildBucketState.
+type Config struct {
+	// BuildBucketURL is the URL of the BuildBucket instance to poll for tryjobs.
+	BuildBucketURL string
+
+	// BuildBucketName is the name of the BuildBucket to poll.
+	BuildBucketName string
+
+	// Client is an authenticated http client used to connect to BuildBucket.
+	Client *http.Client
+
+	// TryjobStore stores tryjob related data.
+	TryjobStore tryjobstore.TryjobStore
+
+	// GerritClient is used to query Gerrit for issue details.
+	GerritClient *gerrit.Gerrit
+
+	// PollInterval is the interval at which to poll BuildBucket.
+	PollInterval time.Duration
+
+	// TimeWindow is the time delta that defines how far back in time BuildBucket is queried.
+	TimeWindow time.Duration
+}
 
 // BuildBucketState captures all tryjobs that are being run by BuildBucket.
 // These are the tryjobs that were run within a time windows.
@@ -63,19 +88,19 @@ type BuildBucketState struct {
 // NewBuildBucketState creates a new instance of BuildBucketState.
 // bbURL is the URL of the target BuildBucket instance and client is an
 // authenticated http client.
-func NewBuildBucketState(bbURL string, bucketName string, client *http.Client, tryjobStore tryjobstore.TryjobStore, gerritAPI *gerrit.Gerrit) (IssueBuildFetcher, error) {
-	service, err := bb_api.New(client)
+func NewBuildBucketState(config *Config) (IssueBuildFetcher, error) {
+	service, err := bb_api.New(config.Client)
 	if err != nil {
 		return nil, err
 	}
-	service.BasePath = bbURL
+	service.BasePath = config.BuildBucketURL
 	ret := &BuildBucketState{
 		service:     service,
-		bucketName:  bucketName,
-		tryjobStore: tryjobStore,
-		gerritAPI:   gerritAPI,
+		bucketName:  config.BuildBucketName,
+		tryjobStore: config.TryjobStore,
+		gerritAPI:   config.GerritClient,
 	}
-	if err := ret.start(); err != nil {
+	if err := ret.start(config.PollInterval, config.TimeWindow); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -121,7 +146,15 @@ func (b *BuildBucketState) syncTryjob(buildBucketID int64) (*tryjobstore.Tryjob,
 		return nil, err
 	}
 
-	if buildResp.Error.Message != "" {
+	if buildResp == nil {
+		return nil, fmt.Errorf("buildResp is nil. No result found.")
+	}
+
+	if buildResp.Build == nil {
+		return nil, fmt.Errorf("Build information is nil. No result found.")
+	}
+
+	if (buildResp.Error != nil) && (buildResp.Error.Message != "") {
 		return nil, fmt.Errorf("Unable to retrieve build %d. Got %s", buildBucketID, buildResp.Error.Message)
 	}
 
@@ -129,7 +162,7 @@ func (b *BuildBucketState) syncTryjob(buildBucketID int64) (*tryjobstore.Tryjob,
 }
 
 // start continuously processes data it gets from buildbucket by polling.
-func (b *BuildBucketState) start() error {
+func (b *BuildBucketState) start(pollInterval, timeWindow time.Duration) error {
 	// Create the channel that will receive the buildbot results.
 	buildsCh := make(chan *bb_api.ApiCommonBuildMessage)
 	workPermissions := make(chan bool, maxConcurrentWrites)
@@ -152,7 +185,7 @@ func (b *BuildBucketState) start() error {
 	}()
 
 	// Start the poller.
-	if err := b.startBuildPoller(buildsCh, DefaultPollInterval, DefaultTimeWindow); err != nil {
+	if err := b.startBuildPoller(buildsCh, pollInterval, timeWindow); err != nil {
 		return err
 	}
 
@@ -181,7 +214,7 @@ func (b *BuildBucketState) processBuild(build *bb_api.ApiCommonBuildMessage) (*t
 	}
 
 	if err := b.updateTryjobState(params, tryjob); err != nil {
-		return nil, fmt.Errorf("Error adding build info to tryjob store: %s", err)
+		return nil, fmt.Errorf("Error adding build info to tryjob store. \n%s\nError: %s", spew.Sdump(tryjob), err)
 	}
 	return tryjob, nil
 }
@@ -250,6 +283,7 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 	if err := b.tryjobStore.UpdateIssue(issue); err != nil {
 		return nil, err
 	}
+	sklog.Infof("Added information for issue %d", issueID)
 
 	return issue, nil
 }

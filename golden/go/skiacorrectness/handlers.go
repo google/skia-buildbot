@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,7 +27,6 @@ import (
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/summary"
-	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
 )
@@ -212,43 +210,10 @@ type TestRollup struct {
 	SampleDigest string `json:"sample_digest"`
 }
 
-// TODO(stephana): Remove jsonLegacySearch and dependencies once the
-// new search proves to be stable enough.
-
-// jsonLegacySearchHandler is the deprecated endpoint for searches.
-func jsonLegacySearchHandler(w http.ResponseWriter, r *http.Request) {
-	query := search.Query{Limit: 50}
-	if err := search.ParseQuery(r, &query); err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
-		return
-	}
-	legacySearchImpl(w, r, &query)
-}
-
-func legacySearchImpl(w http.ResponseWriter, r *http.Request, query *search.Query) {
-	ctx := context.Background()
-	searchResponse, err := search.Search(ctx, query, storages, ixr.GetIndex())
-	if err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
-		return
-	}
-	sendJsonResponse(w, &SearchResult{
-		Digests: searchResponse.Digests,
-		Commits: searchResponse.Commits,
-		Issue:   adaptIssueResponse(searchResponse.IssueResponse),
-	})
-}
-
 // jsonSearchHandler is the endpoint for all searches.
 func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	query, ok := parseSearchQuery(w, r)
 	if !ok {
-		return
-	}
-
-	// If a trybot issue is provided revert to the legacy search.
-	if query.Issue != "" {
-		legacySearchImpl(w, r, query)
 		return
 	}
 
@@ -268,7 +233,7 @@ func jsonExportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (query.Issue != "") || (query.BlameGroupID != "") {
+	if (query.Issue > 0) || (query.BlameGroupID != "") {
 		msg := "Search query cannot contain blame or issue information."
 		httputils.ReportError(w, r, errors.New(msg), msg)
 		return
@@ -312,48 +277,6 @@ func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search.Query, bo
 		return nil, false
 	}
 	return &query, true
-}
-
-// SearchResult encapsulates the results of a search request.
-type SearchResult struct {
-	Digests    []*search.Digest   `json:"digests"`
-	Commits    []*tiling.Commit   `json:"commits"`
-	Issue      *IssueSearchResult `json:"issue"`
-	NumMatches int
-}
-
-// TODO (stephana): Replace search.IssueResponse with IssueSearchResult
-// as soon as the search2Handler is retired.
-
-// IssueSearchResult is the (temporary) output struct for search.IssueResponse.
-type IssueSearchResult struct {
-	*trybot.Issue
-
-	// Override the Patchsets field of trybot.Issue to contain a list of PatchsetDetails.
-	Patchsets []*trybot.PatchsetDetail `json:"patchsets"`
-
-	// QueryPatchsets contains the list of patchsets that are included in the returned digests.
-	QueryPatchsets []string `json:"queryPatchsets"`
-}
-
-func adaptIssueResponse(ir *search.IssueResponse) *IssueSearchResult {
-	if ir == nil {
-		return nil
-	}
-
-	// Create a list of PatchsetDetails in the same order as the patchsets in the issue.
-	patchSets := make([]*trybot.PatchsetDetail, 0, len(ir.IssueDetails.PatchsetDetails))
-	for _, pid := range ir.Patchsets {
-		if pSet, ok := ir.PatchsetDetails[pid]; ok {
-			patchSets = append(patchSets, pSet)
-		}
-	}
-
-	return &IssueSearchResult{
-		Issue:          ir.IssueDetails.Issue,
-		Patchsets:      patchSets,
-		QueryPatchsets: ir.QueryPatchsets,
-	}
 }
 
 // jsonDetailsHandler returns the details about a single digest.
@@ -676,7 +599,6 @@ func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
 func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
 	// Extract the test name as we only allow clustering within a test.
 	q := search.Query{Limit: 50}
 	if err := search.ParseQuery(r, &q); err != nil {
@@ -690,14 +612,16 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idx := ixr.GetIndex()
-	searchResponse, err := search.Search(ctx, &q, storages, ixr.GetIndex())
+	searchResponse, err := searchAPI.Search(&q)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
-	// Sort the digests so they are displayed with untriaged last, which means
-	// they will be displayed 'on top', because in SVG document order is z-order.
-	sort.Sort(SearchDigestSlice(searchResponse.Digests))
+
+	// TODO(stephana): Check if this is still necessary.
+	// // Sort the digests so they are displayed with untriaged last, which means
+	// // they will be displayed 'on top', because in SVG document order is z-order.
+	// sort.Sort(SearchDigestSlice(searchResponse.Digests))
 
 	digests := []string{}
 	for _, digest := range searchResponse.Digests {
@@ -999,31 +923,6 @@ func jsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Send the same response as a query for the first page.
 	jsonTriageLogHandler(w, r)
-}
-
-// jsonListTrybotsHandler returns a list of issues (Rietveld) that have
-// trybot results associated with them.
-func jsonListTrybotsHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-	var trybotRuns []*trybot.Issue
-	var total int
-
-	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
-	if err == nil {
-		trybotRuns, total, err = storages.TrybotResults.ListTrybotIssues(ctx, offset, size)
-	}
-
-	if err != nil {
-		httputils.ReportError(w, r, err, "Retrieving trybot results failed.")
-		return
-	}
-
-	pagination := &httputils.ResponsePagination{
-		Offset: offset,
-		Size:   size,
-		Total:  total,
-	}
-	sendResponse(w, trybotRuns, 200, pagination)
 }
 
 // makeResourceHandler creates a static file handler that sets a caching policy.

@@ -3,6 +3,7 @@ package tryjobstore
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -71,17 +72,18 @@ func (is *IssueDetails) HasPatchset(patchsetID int64) bool {
 	if is == nil {
 		return false
 	}
-	found, _ := is.findPatchset(patchsetID)
+	found := is.findPatchsetx(patchsetID)
 	return found != nil
 }
 
 // findPatchset returns the patchset for the issue.
-func (is *IssueDetails) findPatchset(id int64) (*PatchsetDetail, int) {
-	foundIdx := sort.Search(len(is.PatchsetDetails), func(i int) bool { return is.PatchsetDetails[i].ID >= id })
-	if (foundIdx == len(is.PatchsetDetails)) || (is.PatchsetDetails[foundIdx].ID > id) {
-		return nil, foundIdx
+func (is *IssueDetails) findPatchsetx(id int64) *PatchsetDetail {
+	for _, psd := range is.PatchsetDetails {
+		if psd.ID == id {
+			return psd
+		}
 	}
-	return is.PatchsetDetails[foundIdx], foundIdx
+	return nil
 }
 
 // UpdatePatchset merges the given patchset information into this issue.
@@ -93,11 +95,14 @@ func (is *IssueDetails) UpdatePatchsets(patchsets []*PatchsetDetail) {
 	//	fmt.Printf("patchsets: %s", spew.Sdump(patchsets))
 	for _, psd := range patchsets {
 		// Only insert the patchset if it's not already there.
-		if found, idx := is.findPatchset(psd.ID); found == nil {
+		if found := is.findPatchsetx(psd.ID); found == nil {
 			is.clean = false
 			// insert patchset in the right spot.
-			is.PatchsetDetails = append(is.PatchsetDetails[:idx], append([]*PatchsetDetail{psd}, is.PatchsetDetails[idx:]...)...)
+			is.PatchsetDetails = append(is.PatchsetDetails, psd)
 		}
+	}
+	if !is.clean {
+		sort.Slice(is.PatchsetDetails, func(i, j int) bool { return is.PatchsetDetails[i].ID < is.PatchsetDetails[j].ID })
 	}
 }
 
@@ -141,35 +146,46 @@ func (t *Tryjob) newer(r interface{}) bool {
 // TryjobResult stores results. It is stored in the database as a child of
 // a Tryjob entity.
 type TryjobResult struct {
-	Digest string // Key
-	Params paramtools.ParamSet
+	TestName string
+	Digest   string
+	Params   paramtools.ParamSet `datastore:"-"`
 }
+
+const (
+	tjrParamPrefix = "param."
+)
 
 // Save implements the datastore.PropertyLoadSaver interface.
 func (t *TryjobResult) Save() ([]datastore.Property, error) {
-	ret := make([]datastore.Property, len(t.Params), len(t.Params))
+	props, err := datastore.SaveStruct(t)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make it large enough to hold the struct props and the parameters.
+	ret := make([]datastore.Property, len(t.Params), len(props)+len(t.Params))
 	idx := 0
 	for param, value := range t.Params {
-		ret[idx].Name = param
+		ret[idx].Name = tjrParamPrefix + param
 		ret[idx].Value = strToInterfaceSlice(value)
 		idx += 1
 	}
+	ret = append(ret, props...)
 	return ret, nil
 }
 
 // Load implements the datastore.PropertyLoadSaver interface.
 func (t *TryjobResult) Load(props []datastore.Property) error {
-	t.Params = make(paramtools.ParamSet, len(props))
+	nonParams := make([]datastore.Property, 0, 2)
+	t.Params = make(paramtools.ParamSet, len(props)-2)
 	for _, prop := range props {
-		t.Params[prop.Name] = interfaceToStrSlice(prop.Value.([]interface{}))
+		if strings.HasPrefix(prop.Name, tjrParamPrefix) {
+			t.Params[strings.TrimPrefix(prop.Name, tjrParamPrefix)] = interfaceToStrSlice(prop.Value.([]interface{}))
+		} else {
+			nonParams = append(nonParams, prop)
+		}
 	}
-	return nil
-}
-
-// LoadKey implements the datastore.KeyLoader interface.
-func (t *TryjobResult) LoadKey(k *datastore.Key) error {
-	t.Digest = k.Name
-	return nil
+	return datastore.LoadStruct(t, nonParams)
 }
 
 // strToInterfaceSlice copies a slice of string to a slice of interface{}.
