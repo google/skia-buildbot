@@ -65,6 +65,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	defer func() {
 		assert.NoError(t, store.DeleteIssue(issueID))
 	}()
+	time.Sleep(10 * time.Second)
 
 	expChangeKeys, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID)
 	assert.NoError(t, err)
@@ -87,9 +88,12 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 
 		for i := 0; i < 100; i++ {
 			digestStr := fmt.Sprintf("%010d", digestStart+int64(i))
+			testName := fmt.Sprintf("%d", i%5)
 			results = append(results, &TryjobResult{
-				Digest: "digest-" + digestStr,
+				Digest:   "digest-" + digestStr,
+				TestName: testName,
 				Params: map[string][]string{
+					"name":    []string{testName},
 					"param-1": []string{"value-1-1-" + digestStr, "value-1-2-" + digestStr},
 					"param-2": []string{"value-2-1" + digestStr, "value-2-2-" + digestStr},
 				},
@@ -112,11 +116,11 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	allChanges := expstorage.NewExpectations()
 	for i := 0; i < 10; i++ {
 		changes := expstorage.NewExpectations()
-		for j := 0; j < 5; j++ {
-			testName := fmt.Sprintf("test-%04d", j)
-			for k := 0; k < 5; k++ {
-				digest := fmt.Sprintf("digest-%04d-%04d", j, k)
-				label := (i + j + k) % 3
+		for testCount := 0; testCount < 5; testCount++ {
+			testName := fmt.Sprintf("test-%04d", testCount)
+			for digestCount := 0; digestCount < 5; digestCount++ {
+				digest := fmt.Sprintf("digest-%04d-%04d", testCount, digestCount)
+				label := (i + testCount + digestCount) % 3
 				changes.SetTestExpectation(testName, digest, types.Label(label))
 			}
 		}
@@ -124,6 +128,8 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		allChanges.AddDigests(changes.Tests)
 		time.Sleep(5 * time.Millisecond)
 	}
+
+	time.Sleep(10 * time.Second)
 
 	foundExp, err := store.GetExpectations(issueID)
 	assert.NoError(t, err)

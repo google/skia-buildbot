@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/tryjobstore"
+
 	"github.com/gorilla/mux"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -30,7 +32,6 @@ import (
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
@@ -41,13 +42,11 @@ import (
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/goldingestion"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -60,6 +59,7 @@ var (
 	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
+	dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
 	eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 	forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
 	gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
@@ -74,11 +74,11 @@ var (
 	nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
 	noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 	port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	projectID           = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 	promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	pubWhiteList        = flag.String("public_whitelist", "", "File name of a JSON5 file that contains a query with the traces to white list. This is required if force_login is false.")
 	redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 	resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	rietveldURL         = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
 	gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
 	storageDir          = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
 	gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
@@ -259,7 +259,6 @@ func main() {
 		evt = eventbus.New()
 	}
 
-	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	gerritAPI, err := gerrit.NewGerrit(*gerritURL, "", httputils.NewTimeoutClient())
 	if err != nil {
 		sklog.Fatalf("Failed to create Gerrit client: %s", err)
@@ -275,12 +274,6 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
-	branchTileBuilder := tracedb.NewBranchTileBuilder(db, git, rietveldAPI, gerritAPI, evt)
-
-	ingestionStore, err := goldingestion.NewIngestionStore(*traceservice)
-	if err != nil {
-		sklog.Fatalf("Unable to open ingestion store: %s", err)
-	}
 
 	gsClientOpt := &storage.GSClientOptions{
 		HashesGSPath:   *hashesGSPath,
@@ -292,16 +285,19 @@ func main() {
 		sklog.Fatalf("Unable to create GStorageClient: %s", err)
 	}
 
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, *serviceAccountFile)
+	if err != nil {
+		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
+	}
+
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
 		MasterTileBuilder: masterTileBuilder,
-		BranchTileBuilder: branchTileBuilder,
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          evt,
-		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI, gerritAPI, ingestionStore),
-		RietveldAPI:       rietveldAPI,
+		TryjobStore:       tryjobStore,
 		GerritAPI:         gerritAPI,
 		GStorageClient:    gsClient,
 	}
@@ -370,7 +366,6 @@ func main() {
 	router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
 	router.HandleFunc("/json/list", jsonListTestsHandler).Methods("GET")
 	router.HandleFunc("/json/paramset", jsonParamsHandler).Methods("GET")
-	router.HandleFunc("/json/legacysearch", jsonLegacySearchHandler).Methods("GET")
 	router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
 	router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
 	router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
@@ -378,7 +373,6 @@ func main() {
 	router.HandleFunc("/json/cmp", jsonCompareTestHandler).Methods("POST")
 	router.HandleFunc("/json/triagelog", jsonTriageLogHandler).Methods("GET")
 	router.HandleFunc("/json/triagelog/undo", jsonTriageUndoHandler).Methods("POST")
-	router.HandleFunc("/json/trybot", jsonListTrybotsHandler).Methods("GET")
 	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
 	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
