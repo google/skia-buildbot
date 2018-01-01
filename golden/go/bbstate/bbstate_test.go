@@ -2,6 +2,7 @@ package bbstate
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -29,11 +30,14 @@ func TestBuildBucketState(t *testing.T) {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
-	tjStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", serviceAccountFile)
+	tjStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold_ingestion-localhost-stephana", serviceAccountFile)
 	assert.NoError(t, err)
 
 	// Remove all issues.
 	deleteAllIssues(t, tjStore)
+	if tjStore != nil {
+		return
+	}
 	defer func() {
 		deleteAllIssues(t, tjStore)
 	}()
@@ -41,7 +45,17 @@ func TestBuildBucketState(t *testing.T) {
 	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", client)
 	assert.NoError(t, err)
 
-	tjStatus, err := NewBuildBucketState(DefaultSkiaBuildBucketURL, DefaultSkiaBucketName, client, tjStore, gerritAPI)
+	bbConf := &Config{
+		BuildBucketURL:  DefaultSkiaBuildBucketURL,
+		BuildBucketName: DefaultSkiaBucketName,
+		Client:          client,
+		TryjobStore:     tjStore,
+		GerritClient:    gerritAPI,
+		PollInterval:    time.Hour,
+		TimeWindow:      5 * time.Hour,
+	}
+
+	tjStatus, err := NewBuildBucketState(bbConf)
 	assert.NoError(t, err)
 	assert.NotNil(t, tjStatus)
 
@@ -70,8 +84,20 @@ func TestBuildBucketState(t *testing.T) {
 func deleteAllIssues(t *testing.T, tjStore tryjobstore.TryjobStore) {
 	issues, _, err := tjStore.ListIssues()
 	assert.NoError(t, err)
+	fmt.Printf("Got %d issues\n", len(issues))
 
+	perm := make(chan bool, 10)
+	var wg sync.WaitGroup
 	for _, entry := range issues {
-		assert.NoError(t, tjStore.DeleteIssue(entry.ID))
+		wg.Add(1)
+		go func(entry *tryjobstore.Issue) {
+			perm <- true
+			defer wg.Done()
+			if err := tjStore.DeleteIssue(entry.ID); err != nil {
+				fmt.Printf("ERROR: %s\n", err)
+			}
+			<-perm
+		}(entry)
 	}
+	wg.Wait()
 }
