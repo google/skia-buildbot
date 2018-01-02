@@ -274,11 +274,11 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 	}
 	ret = &promFloat64{
 		delete: func() error {
+			p.float64Mutex.Lock()
+			defer p.float64Mutex.Unlock()
 			if !gaugeVec.Delete(labels) {
 				return fmt.Errorf("Failed to delete metric %s-%#v.", measurement, labels)
 			}
-			p.float64Mutex.Lock()
-			defer p.float64Mutex.Unlock()
 			delete(p.float64Gauges, gaugeKey)
 			return nil
 		},
