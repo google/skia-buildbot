@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/common"
@@ -18,6 +19,8 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
+
+const LOGGER_NAME_AFL = "afl_fuzz_logs"
 
 type Generator struct {
 	Category         string
@@ -31,6 +34,26 @@ func New(category string) *Generator {
 		Category:      category,
 		fuzzProcesses: nil,
 	}
+}
+
+// writeLog implements the io.Writer interface and writes to the given log function.
+type writeLog struct {
+	Severity string
+	Source   string
+	Category string
+}
+
+func (wl writeLog) Write(b []byte) (n int, err error) {
+	sklog.CustomLog(LOGGER_NAME_AFL, &sklog.LogPayload{
+		Time:     time.Now(),
+		Severity: wl.Severity,
+		Payload:  string(b),
+		ExtraLabels: map[string]string{
+			"source":   wl.Source,
+			"category": wl.Category,
+		},
+	})
+	return len(b), nil
 }
 
 // Start starts up 1 goroutine running a "master" afl-fuzz and n-1 "slave" afl-fuzz processes, where
@@ -47,13 +70,13 @@ func (g *Generator) Start(ctx context.Context) error {
 	}
 
 	masterCmd := &exec.Command{
-		Name:      "./afl-fuzz",
-		Args:      common.GenerationArgsFor(g.Category, executable, "fuzzer0", true),
-		Dir:       config.Generator.AflRoot,
-		LogStdout: true,
-		LogStderr: true,
-		Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
-		Verbose:   exec.Debug,
+		Name:    "./afl-fuzz",
+		Args:    common.GenerationArgsFor(g.Category, executable, "fuzzer0", true),
+		Dir:     config.Generator.AflRoot,
+		Stdout:  &writeLog{Severity: sklog.DEBUG, Category: g.Category, Source: "master"},
+		Stderr:  &writeLog{Severity: sklog.ERROR, Category: g.Category, Source: "master"},
+		Env:     []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
+		Verbose: exec.Debug,
 	}
 	if config.Generator.WatchAFL {
 		masterCmd.Stdout = os.Stdout
@@ -75,13 +98,13 @@ func (g *Generator) Start(ctx context.Context) error {
 	for i := 1; i < fuzzCount; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
 		slaveCmd := &exec.Command{
-			Name:      "./afl-fuzz",
-			Args:      common.GenerationArgsFor(g.Category, executable, fuzzerName, false),
-			Dir:       config.Generator.AflRoot,
-			LogStdout: true,
-			LogStderr: true,
-			Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
-			Verbose:   exec.Debug,
+			Name:    "./afl-fuzz",
+			Args:    common.GenerationArgsFor(g.Category, executable, fuzzerName, false),
+			Dir:     config.Generator.AflRoot,
+			Stdout:  &writeLog{Severity: sklog.DEBUG, Category: g.Category, Source: fuzzerName},
+			Stderr:  &writeLog{Severity: sklog.ERROR, Category: g.Category, Source: fuzzerName},
+			Env:     []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
+			Verbose: exec.Debug,
 		}
 		g.fuzzProcesses = append(g.fuzzProcesses, g.run(slaveCmd))
 	}
@@ -139,7 +162,7 @@ func (g *Generator) run(command *exec.Command) exec.Process {
 	go func() {
 		err := <-status
 		g.fuzzProcessCount.Dec(int64(1))
-		sklog.Infof(`[%s] afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, g.Category, command.Args, err, g.fuzzProcessCount.Get())
+		sklog.Warningf(`[%s] afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, g.Category, command.Args, err, g.fuzzProcessCount.Get())
 	}()
 	return p
 }
