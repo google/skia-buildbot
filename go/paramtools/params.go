@@ -159,3 +159,12 @@ func (p ParamSet) Normalize() {
 		sort.Strings(arr)
 	}
 }
+
+func (p ParamSet) Matches(query Params) bool {
+	for qKey, qVal := range query {
+		if vals, ok := p[qKey]; !(ok && util.In(qVal, vals)) {
+			return false
+		}
+	}
+	return true
+}
