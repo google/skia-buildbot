@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5dbfcb73_f8123877",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 719,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-02T18:44:05Z",
+      "side": 1,
+      "message": "(Not a new issue, but mentioning it anyway.) Might want to use https://skia.googlesource.com/buildbot/+/master/go/util/limitwriter/limitwriter.go in case the benchmark spews tons of output. (I think the only reason to use limitwriter would be to debug why the benchmark is creating so much output and/or running so slowly, since it\u0027s also fine to crash the swarming task in that case.)",
+      "range": {
+        "startLine": 719,
+        "startChar": 1,
+        "endLine": 719,
+        "endChar": 19
+      },
+      "revId": "97988ca34af1240ba651753bf5be8d4e4cb6dfc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "280e5952_846c9928",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 766,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-02T18:44:05Z",
+      "side": 1,
+      "message": "nit: More documentation about the structure of this CSV file or a pointer to docs would be helpful.",
+      "revId": "97988ca34af1240ba651753bf5be8d4e4cb6dfc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69f2a233_ea9184ac",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-02T18:44:05Z",
+      "side": 1,
+      "message": "nit: seems line lines 774 and 773 should be swapped.",
+      "range": {
+        "startLine": 774,
+        "startChar": 0,
+        "endLine": 774,
+        "endChar": 26
+      },
+      "revId": "97988ca34af1240ba651753bf5be8d4e4cb6dfc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
