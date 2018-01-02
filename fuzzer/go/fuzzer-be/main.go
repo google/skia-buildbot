@@ -233,7 +233,7 @@ func setupOAuth(ctx context.Context) error {
 	}
 
 	if storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client)); err != nil {
-		return fmt.Errorf("Problem authenticating: %v", err)
+		return fmt.Errorf("Problem authenticating to GCS: %v", err)
 	}
 	issueManager = issues.NewManager(client)
 	return nil
