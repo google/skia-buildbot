@@ -179,7 +179,7 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 		return nil, err
 	}
 
-	oneInter := newSrIntermediate(test, digest, "", nil)
+	oneInter := newSrIntermediate(test, digest, "", nil, nil)
 	for traceId, trace := range tile.Traces {
 		if trace.Params()[types.PRIMARY_KEY_FIELD] != test {
 			continue
