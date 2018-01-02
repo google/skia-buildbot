@@ -8,6 +8,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -28,7 +29,9 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	logging "google.golang.org/api/logging/v2"
 	"google.golang.org/api/option"
 )
 
@@ -71,6 +74,7 @@ var (
 	requiredFlags                       = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir", "fuzz_to_run", "executable_cache_path", "architecture"}
 	storageClient *storage.Client       = nil
 	issueManager  *issues.IssuesManager = nil
+	aflLogger     sklog.CloudLogger
 )
 
 func main() {
@@ -113,7 +117,7 @@ func main() {
 	}
 
 	for _, category := range *fuzzesToRun {
-		gen := generator.New(category)
+		gen := generator.New(category, aflLogger)
 
 		if err := gen.DownloadSeedFiles(client); err != nil {
 			sklog.Fatalf("Problem downloading seed files: %s", err)
@@ -233,8 +237,36 @@ func setupOAuth(ctx context.Context) error {
 	}
 
 	if storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client)); err != nil {
-		return fmt.Errorf("Problem authenticating: %v", err)
+		return fmt.Errorf("Problem authenticating to GCS: %v", err)
 	}
 	issueManager = issues.NewManager(client)
+
+	transport := &http.Transport{
+		Dial: httputils.FastDialTimeout,
+	}
+	path := ""
+	if *local {
+		path = auth.DEFAULT_JWT_FILENAME
+	}
+	logClient, err := auth.NewJWTServiceAccountClient("", path, transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	if err != nil {
+		return fmt.Errorf("Problem setting up auth for logs: %s", err)
+	}
+	lc, err := logging.New(logClient)
+	if err != nil {
+		return fmt.Errorf("Problem setting up logging.Service: %s", err)
+	}
+	r := &logging.MonitoredResource{
+		Type: "logging_log",
+		Labels: map[string]string{
+			"name": generator.LOGGER_NAME_AFL,
+		},
+	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("Could not get hostname: %s", err)
+	}
+
+	aflLogger = sklog.NewLogsClient(lc, hostname, r)
 	return nil
 }
