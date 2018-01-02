@@ -97,7 +97,7 @@ func PreInitCloudLogging(logGrouping, defaultReport string) error {
 	}
 	defaultReportName = defaultReport
 	logGroupingName = logGrouping
-	logger = newLogsClient(nil, hostname, r)
+	logger = NewLogsClient(nil, hostname, r)
 	return nil
 }
 
@@ -190,7 +190,7 @@ type logsClient struct {
 	buffer []*logging.LogEntry
 }
 
-func newLogsClient(service *logging.Service, hostname string, loggingResource *logging.MonitoredResource) *logsClient {
+func NewLogsClient(service *logging.Service, hostname string, loggingResource *logging.MonitoredResource) *logsClient {
 	logger := &logsClient{
 		flush:           make(chan chan struct{}),
 		service:         service,
