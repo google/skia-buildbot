@@ -264,7 +264,7 @@ ALERT EventMetricsLiveness
 # Swarming
 
 ALERT BotMissing
-  IF swarming_bots_last_seen{bot!~"ct-gce-.*"}/1000/1000/1000/60 > 15
+  IF swarming_bots_last_seen{bot!~"(ct-gce-.*)|(build4.+device.+)"}/1000/1000/1000/60 > 15
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
@@ -278,6 +278,14 @@ ALERT CtGceBotMissing
     description = "1 or more CT GCE bots are down: https://chrome-swarming.appspot.com/botlist?f=status%3Adead&f=gpu%3Anone&f=pool%3ACT&l=100"
   }
 
+ALERT GoloBotMissing
+  IF swarming_bots_last_seen{bot=~"build4.+device.+"}/1000/1000/1000/60/60/24 > 14
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    abbr = "{{ $labels.bot }}",
+    description = "Golo Swarming bot {{ $labels.bot }} is missing and hasn't been fixed in 2 weeks. Probably time to file a bug. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance#heading=h.hc5mjpv8qfqo"
+  }
+
 ALERT BotUnemployed
   IF swarming_bots_last_task{pool=~"Skia.*"}/1000/1000/1000/60/60 >= 72
   LABELS { category = "infra", severity = "critical"}
@@ -287,11 +295,19 @@ ALERT BotUnemployed
   }
 
 ALERT BotQuarantined
-  IF avg_over_time(swarming_bots_quarantined[10m]) >= 1
+  IF avg_over_time(swarming_bots_quarantined{bot!~"build4.+device.+"}[10m]) >= 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
     description = "Swarming bot {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+  }
+
+ALERT GoloBotQuarantined
+  IF avg_over_time(swarming_bots_quarantined{bot=~"build4.+device.+"}[14d]) >= 0.95
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    abbr = "{{ $labels.bot }}",
+    description = "Golo swarming bot {{ $labels.bot }} is quarantined and hasn't been fixed in 2 weeks. Probably time to file a bug. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance#heading=h.hc5mjpv8qfqo"
   }
 # Swarming Logger
 
