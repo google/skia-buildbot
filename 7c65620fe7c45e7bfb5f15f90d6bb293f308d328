@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c3b8ec3_7d7d035a",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-02T18:48:39Z",
+      "side": 1,
+      "message": "Maybe, \"The count of non-overlapping exact matches of this field in stdout will show up under CT_stdout_count in the output CSV.\" Or link to documentation and/or working example.",
+      "revId": "7c65620fe7c45e7bfb5f15f90d6bb293f308d328",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
