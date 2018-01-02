@@ -240,15 +240,12 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 	measurement, cleanTags, keys, gaugeKey, gaugeVecKey := p.commonGet(name, tags...)
 
 	p.float64Mutex.Lock()
-	ret, ok := p.float64Gauges[gaugeKey]
-	p.float64Mutex.Unlock()
-
-	if ok {
+	defer p.float64Mutex.Unlock()
+	if ret, ok := p.float64Gauges[gaugeKey]; ok {
 		return ret
 	}
 
 	// Didn't find the metric, so we need to look for a GaugeVec to create it under.
-	p.float64Mutex.Lock()
 	gaugeVec, ok := p.float64GaugeVecs[gaugeVecKey]
 	if !ok {
 		// Register a new gauge vec.
@@ -265,20 +262,19 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 		}
 		p.float64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
-	p.float64Mutex.Unlock()
 
 	labels := prometheus.Labels(cleanTags)
 	gauge, err := gaugeVec.GetMetricWith(labels)
 	if err != nil {
 		glog.Fatalf("Failed to get gauge: %s", err)
 	}
-	ret = &promFloat64{
+	ret := &promFloat64{
 		delete: func() error {
+			p.float64Mutex.Lock()
+			defer p.float64Mutex.Unlock()
 			if !gaugeVec.Delete(labels) {
 				return fmt.Errorf("Failed to delete metric %s-%#v.", measurement, labels)
 			}
-			p.float64Mutex.Lock()
-			defer p.float64Mutex.Unlock()
 			delete(p.float64Gauges, gaugeKey)
 			return nil
 		},
