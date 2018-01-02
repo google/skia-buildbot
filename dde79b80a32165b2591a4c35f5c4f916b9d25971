@@ -46,6 +46,30 @@
       "revId": "dde79b80a32165b2591a4c35f5c4f916b9d25971",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e56d3134_8b51b88a",
+        "filename": "skolo/sys/powercycle-linux-01.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-02T21:51:29Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "c1e71759_62c2a4bd",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 7
+      },
+      "revId": "dde79b80a32165b2591a4c35f5c4f916b9d25971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
