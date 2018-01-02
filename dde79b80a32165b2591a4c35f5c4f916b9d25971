@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b692d543_4d28d07d",
+        "filename": "skolo/sys/powercycle-linux-01.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-02T21:24:34Z",
+      "side": 0,
+      "message": "These completely gone or replaced by something else ? \nIn either case we should re-use the powerswitch somewhere else.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 7
+      },
+      "revId": "dde79b80a32165b2591a4c35f5c4f916b9d25971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
