@@ -122,7 +122,7 @@ func StartAggregator(ctx context.Context, s *storage.Client, im *issues.IssuesMa
 	b := Aggregator{
 		storageClient:      s,
 		issueManager:       im,
-		forAnalysis:        make(chan analysisPackage, 10000),
+		forAnalysis:        make(chan analysisPackage, 1000000),
 		forUpload:          make(chan uploadPackage, 10000),
 		forBugReporting:    make(chan bugReportingPackage, 10000),
 		MakeBugOnBadFuzz:   true,
@@ -257,11 +257,11 @@ func (agg *Aggregator) scanForNewCandidates() {
 	}
 }
 
-// scanHelper runs findBadFuzzPaths for every category, logs the output and keeps
+// scanHelper runs findFuzzPaths for every category, logs the output and keeps
 // alreadyFoundFuzzes up to date.
 func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
 	for _, category := range config.Generator.FuzzesToGenerate {
-		newlyFound, err := findBadFuzzPaths(category, alreadyFoundFuzzes)
+		newlyFound, err := findFuzzPaths(category, alreadyFoundFuzzes)
 		if err != nil {
 			return err
 		}
@@ -283,19 +283,24 @@ func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
 	return nil
 }
 
-// findBadFuzzPaths looks through all the afl-fuzz directories contained in the passed in path and
-// returns the path to all files that are in a crash* folder that are not already in
+// findFuzzPaths looks through all the afl-fuzz directories contained in the passed in path and
+// returns the absolute path to all files that need to be analyzied which are not already in
 // 'alreadyFoundFuzzes'.  It also sends them to the forAnalysis channel when it finds them.
 // The output from afl-fuzz looks like:
 // afl_output_path/category/
 //		-fuzzer0/
-//			-crashes/  <-- bad fuzzes end up here
+//			-crashes/  <-- bad fuzzes end up here (search)
 //			-hangs/
-//			-queue/
+//			-queue/   <-- all fuzzes end up here (search, may catch ASAN-only)
 //			-fuzzer_stats
 //		-fuzzer1/
+//			-crashes/  <-- bad fuzzes end up here (search)
+//			-hangs/
+//			-queue/   <-- all fuzzes end up here (search, may catch ASAN-only)
+//			-fuzzer_stats
+//		-fuzzer2/
 //		...
-func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([]string, error) {
+func findFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([]string, error) {
 	badFuzzPaths := make([]string, 0)
 
 	scanPath := filepath.Join(config.Generator.AflOutputPath, category)
@@ -328,8 +333,8 @@ func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([
 			return nil, err
 		}
 		for _, info := range fuzzerContents {
-			// Look through fuzzerN/crashes
-			if info.IsDir() && strings.HasPrefix(info.Name(), "crashes") {
+			// Look through fuzzerN/crashes and fuzzerN/queue
+			if info.IsDir() && (strings.HasPrefix(info.Name(), "crashes") || strings.HasPrefix(info.Name(), "queue")) {
 				crashPath := filepath.Join(path, info.Name())
 				crashDir, err := os.Open(crashPath)
 				if err != nil {
@@ -343,7 +348,7 @@ func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([
 				}
 				for _, crash := range crashContents {
 					// Make sure the files are actually crashable files we haven't found before
-					if crash.Name() != "README.txt" {
+					if crash.Name() != "README.txt" && !crash.IsDir() {
 						if fuzzPath := filepath.Join(crashPath, crash.Name()); !alreadyFoundFuzzes.Contains(fuzzPath) {
 							badFuzzPaths = append(badFuzzPaths, fuzzPath)
 						}
@@ -429,6 +434,11 @@ func (agg *Aggregator) waitForAnalysis(ctx context.Context, identifier int) {
 // wrong.  On success, the results will be placed in the upload queue.
 func (agg *Aggregator) analysisHelper(ctx context.Context, executableDir string, badFuzz analysisPackage) error {
 	hash, data, err := calculateHash(badFuzz.FilePath)
+	if err == os.ErrNotExist {
+		// fuzzes from the queue sometimes are transient (e.g. the most recent one, if it is found to be
+		// a duplicate).
+		return nil
+	}
 	if err != nil {
 		return err
 	}
@@ -547,6 +557,9 @@ func performAnalysis(ctx context.Context, workingDirPath, executableName, pathTo
 // hex-encoded string and the contents of the file.
 func calculateHash(path string) (hash string, data []byte, err error) {
 	data, err = ioutil.ReadFile(path)
+	if err == os.ErrNotExist {
+		return "", nil, err
+	}
 	if err != nil {
 		return "", nil, fmt.Errorf("Problem reading file for hashing %s: %s", path, err)
 	}

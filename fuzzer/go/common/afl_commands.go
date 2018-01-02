@@ -45,7 +45,9 @@ func GenerationArgsFor(category, pathToExecutable, fuzzerName string, isMaster b
 	seedPath := filepath.Join(config.Generator.FuzzSamples, category)
 	outputPath := filepath.Join(config.Generator.AflOutputPath, category)
 
-	cmd := append([]string{"-i", seedPath, "-o", outputPath, "-m", "5000", masterFlag, fuzzerName, "--", pathToExecutable}, f.ArgsAfterExecutable...)
+	cmd := append([]string{"-i", seedPath, "-o", outputPath}, f.GenerationArgs...)
 
-	return append(cmd, "@@")
+	cmd2 := append([]string{masterFlag, fuzzerName, "--", pathToExecutable}, f.ArgsAfterExecutable...)
+
+	return append(append(cmd, cmd2...), "@@")
 }

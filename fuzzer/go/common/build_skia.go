@@ -33,7 +33,7 @@ func BuildASANHarness(ctx context.Context, buildType buildskia.ReleaseType, isCl
 	buildArgs := []string{
 		fmt.Sprintf("cc=%q", config.Common.ClangPath),
 		fmt.Sprintf("cxx=%q", config.Common.ClangPlusPlusPath),
-		`sanitize="ASAN"`,
+		`sanitize="address"`, // No UBSAN, to avoid noise.
 	}
 	return buildOrGetCachedHarness(ctx, "asan", buildType, isClean, buildArgs)
 }

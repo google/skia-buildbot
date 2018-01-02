@@ -190,6 +190,9 @@ type logsClient struct {
 	buffer []*logging.LogEntry
 }
 
+// newLogsClient creates a logsClient which implements the CloudLogger interface.
+// If you are considering making your own logsClient, you likely want to use
+// sklog.CustomLog() which allows clients to log to a new custom log file.
 func newLogsClient(service *logging.Service, hostname string, loggingResource *logging.MonitoredResource) *logsClient {
 	logger := &logsClient{
 		flush:           make(chan chan struct{}),
