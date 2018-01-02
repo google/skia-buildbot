@@ -22,6 +22,30 @@
       "revId": "dde79b80a32165b2591a4c35f5c4f916b9d25971",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1e71759_62c2a4bd",
+        "filename": "skolo/sys/powercycle-linux-01.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-02T21:30:56Z",
+      "side": 0,
+      "message": "I put the mpower back on the shelf.\n\nI used a spare mpower for skia-e-linux-0{26-33}, but it\u0027s not configured because they\u0027ve been stable. I considered swapping the one I just put back on the shelf for that one, but it seemed like a pain especially if we never end up using it.",
+      "parentUuid": "b692d543_4d28d07d",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 7
+      },
+      "revId": "dde79b80a32165b2591a4c35f5c4f916b9d25971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
