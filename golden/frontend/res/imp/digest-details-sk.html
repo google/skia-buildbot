@@ -178,7 +178,7 @@
 
         </div>
         <div class="horizontal layout">
-          <div class="flex self-start testHeader">Left: [[details.digest]]</div>
+          <div class="flex self-start testHeader">Left:[[_abbrev(details.digest, 32)]]</div>
           <div class="flex self-start testHeader" hidden$="[[!_hasRight(_right)]]">Right: [[_right.digest]]</div>
         </div>
         <div class="horizontal layout">
@@ -194,7 +194,8 @@
               <div><span class="metricHead">Pixels:</span> [[_diff.numDiffPixels]]</div>
               <div><span class="metricHead">Max RGBA:</span> [<span>[[_diff.maxRGBADiffs]]</span>]</div>
             </div>
-            <triage-sk value="{{details.status}}"
+            <triage-sk hidden$="[[!details.status]]"
+                       value="{{details.status}}"
                        id="triageControls"
                        data-digest$="[[details.digest]]"
                        data-test$="[[details.test]]">
@@ -543,11 +544,15 @@
         }
       },
 
-      _abbrev: function(str) {
-        if (str.length <= 12) {
+      _abbrev: function(str, maxLen) {
+        if (!maxLen) {
+          maxLen = 12;
+        }
+
+        if (str.length <= maxLen) {
           return str;
         }
-        return str.substr(0, 12) + '...';
+        return str.substr(0, maxLen) + '...';
       },
 
       _noData: function(details) {

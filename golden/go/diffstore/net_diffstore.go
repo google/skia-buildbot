@@ -59,6 +59,21 @@ func (n *NetDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 	return diffMetrics, nil
 }
 
+// // GetImage implements the DiffStore interface.
+// func (n *NetDiffStore) GetImage(imageID string) (*image.NRGBA, error) {
+// 	path := n.remoteURLPrefix + strings.Join([]string{DEFAULT_IMG_DIR_NAME, imageID}, "/") + ".png"
+// 	url := fmt.Sprintf("http://%s", n.diffServerImageAddress+path)
+
+// 	// Open the url.
+// 	res, err := http.Get(url)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer util.Close(res.Body)
+
+// 	return diff.OpenNRGBAFromReader(res.Body)
+// }
+
 // ImageHandler, see the diff.DiffStore interface. This is not implemented and
 // will always return an error. The images are expected to be served by the
 // the server that implements the backend of the DiffService.
