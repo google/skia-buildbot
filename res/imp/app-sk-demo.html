@@ -27,18 +27,22 @@
   <link rel=import href="app-sk.html">
 </head>
 <body>
+<!--We must use is=custom-style here so the variables get piped through to the
+    app properly. Note that using custom-style inside <dom-module> can lead to
+    unintended consequences, such as CSS mixins not being visible.
+    https://www.polymer-project.org/1.0/docs/devguide/styling#custom-style -->
   <style is="custom-style">
-  app-sk {
-    --app-sk-drawer: {
-      background-color: #CDCDCD;
-    };
-    --app-sk-main: {
-      background-color: #AAAAAA;
-    };
-    --app-sk-toolbar: {
-      background-color: #AB1234;
-    };
-  }
+    :root{
+      --app-sk-drawer: {
+        background-color: #CDCDCD;
+      };
+      --app-sk-main: {
+        background-color: #AAAAAA;
+      };
+      --app-sk-toolbar: {
+        background-color: #AB1234;
+      };
+    }
   </style>
   <app-sk mode="standard" responsive_width="600px" drawer_width="230px">
     <h1 header>Title goes here</h1>

@@ -9,6 +9,10 @@
   <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
   <link rel="stylesheet" href="res/common/css/md.css" type="text/css" media="all" />
   <link rel=import href="paramset.html">
+<!--We must use is=custom-style here so the variables get piped through to the
+    app properly. Note that using custom-style inside <dom-module> can lead to
+    unintended consequences, such as CSS mixins not being visible.
+    https://www.polymer-project.org/1.0/docs/devguide/styling#custom-style -->
   <style is="custom-style">
     body {
       font-family: sans-serif;

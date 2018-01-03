@@ -9,9 +9,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/res/js/core.js" type="text/javascript" charset="utf-8"></script>
     <link href="/res/vul/elements.html" rel="import" />
-    <style is="custom-style" include="iron-flex iron-flex-alignment">
-    </style>
-    <style type="text/css" media="screen">
+    <!--We must use is=custom-style here so styles don't get leaked into local DOM.
+    Note that using custom-style inside <dom-module> can lead to
+    unintended consequences, such as CSS mixins not being visible.
+    https://www.polymer-project.org/1.0/docs/devguide/styling#custom-style -->
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style is="custom-style" type="text/css" media="screen">
       body {
         margin: 0;
         padding: 0;

@@ -9,5 +9,8 @@
   "license": "BSD",
   "devDependencies": {
     "http-server": "^0.10.0"
+  },
+  "dependencies": {
+    "sinon": "^1.17.2"
   }
 }
