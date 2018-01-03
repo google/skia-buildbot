@@ -22,6 +22,30 @@
       "revId": "59f9b98df6b5f082ae907f43fa0ed09d9adf53d2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e387ed6_1b89bf4e",
+        "filename": "golden/go/tsuite/tsuite.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-03T14:11:46Z",
+      "side": 1,
+      "message": "Generally I agree and this needs testing, but I would prefer to keep it like this \nfor now, since it\u0027s just a support package for this CL \n\nhttps://skia-review.googlesource.com/c/skia/+/89163\n\nand was factored out from a much bigger CL:\n\nhttps://skia-review.googlesource.com/c/buildbot/+/25803\n\nSome of that later code will land overtime and I will make this a cleaner (and tested) API.\nI added a TODO to that effect.",
+      "parentUuid": "dfe8789f_3dd580c4",
+      "range": {
+        "startLine": 52,
+        "startChar": 54,
+        "endLine": 52,
+        "endChar": 73
+      },
+      "revId": "59f9b98df6b5f082ae907f43fa0ed09d9adf53d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
