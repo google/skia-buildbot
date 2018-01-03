@@ -70,6 +70,17 @@ func main() {
 	mutex := sync.Mutex{}
 	response := types.BulkResponse{}
 
+	c := httputils.NewTimeoutClient()
+	resp, err := c.Get("https://fiddle.skia.org/reset_gpu/")
+	if resp.StatusCode != 200 {
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("Failed to read response when resetting GPU: %s", err)
+		} else {
+			log.Fatalf("Failed to reset GPU: %s", string(b))
+		}
+	}
+
 	// Spin up workers.
 	for i := 0; i < *procs; i++ {
 		g.Go(func() error {
