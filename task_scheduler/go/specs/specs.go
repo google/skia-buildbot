@@ -198,6 +198,10 @@ type TaskSpec struct {
 
 	// Priority indicates the relative priority of the task, with 0 < p <= 1
 	Priority float64 `json:"priority"`
+
+	// ServiceAccount indicates the Swarming service account to use for the
+	// task. If not specified, we will attempt to choose a suitable default.
+	ServiceAccount string `json:"service_account,omitempty"`
 }
 
 // Validate ensures that the TaskSpec is defined properly.
@@ -264,6 +268,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		Isolate:          t.Isolate,
 		MaxAttempts:      t.MaxAttempts,
 		Priority:         t.Priority,
+		ServiceAccount:   t.ServiceAccount,
 	}
 }
 
