@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/util"
 
-	"github.com/satori/go.uuid"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -23,7 +23,7 @@ func (db *inMemoryTaskDB) AssignId(t *Task) error {
 	if t.Id != "" {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
-	t.Id = uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
+	t.Id = uuid.New()
 	return nil
 }
 
@@ -114,7 +114,7 @@ func (db *inMemoryJobDB) assignId(j *Job) error {
 	if j.Id != "" {
 		return fmt.Errorf("Job Id already assigned: %v", j.Id)
 	}
-	j.Id = uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
+	j.Id = uuid.New()
 	return nil
 }
 

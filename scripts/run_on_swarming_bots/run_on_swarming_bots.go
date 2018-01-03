@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/isolate"
@@ -135,7 +135,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	group := fmt.Sprintf("%s_%s", *taskName, uuid.NewV1())
+	group := fmt.Sprintf("%s_%s", *taskName, uuid.New())
 	tags := map[string]string{
 		"group": group,
 	}

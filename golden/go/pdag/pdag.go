@@ -34,7 +34,7 @@ package pdag
 import (
 	"sync"
 
-	"github.com/satori/go.uuid"
+	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -62,7 +62,7 @@ func NoOp(ctx interface{}) error {
 // to be executed in this node and an optional list of parent nodes.
 func NewNode(fn ProcessFn, parents ...*Node) *Node {
 	// Create a new node with a unique id.
-	id := uuid.NewV4().String()
+	id := uuid.New()
 	node := &Node{
 		id:       id,
 		name:     id,
@@ -98,7 +98,7 @@ func (n *Node) Child(fn ProcessFn) *Node {
 func (n *Node) Trigger(state interface{}) error {
 	// Create a call message.
 	msg := call{
-		id:    uuid.NewV4().String(),
+		id:    uuid.New(),
 		state: state,
 		errCh: make(chan error, 1),
 	}

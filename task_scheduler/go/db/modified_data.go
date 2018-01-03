@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -98,7 +98,7 @@ func (m *modifiedData) StartTrackingModifiedEntries() (string, error) {
 	} else if len(m.expiration) >= MAX_MODIFIED_DATA_USERS {
 		return "", ErrTooManyUsers
 	}
-	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
+	id := uuid.New()
 	m.expiration[id] = time.Now().Add(MODIFIED_DATA_TIMEOUT)
 	return id, nil
 }
