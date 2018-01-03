@@ -416,7 +416,7 @@ func run(ctx context.Context, user string, req *types.FiddleContext) (*types.Run
 	if res.Execute.Errors != "" {
 		sklog.Infof("Execution errors: %q", res.Execute.Errors)
 		maybeSecViolation = true
-		resp.RunTimeError = "Failed to run, possibly violated security container."
+		resp.RunTimeError = fmt.Sprintf("Failed to run, possibly violated security container: %q", res.Execute.Errors)
 	}
 	// Take the compiler output and strip off all the implementation dependant information
 	// and format it to be retured in types.RunResults.
