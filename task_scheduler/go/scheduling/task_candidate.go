@@ -243,6 +243,10 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 	if ioTimeoutSecs == int64(0) {
 		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds())
 	}
+	serviceAccount := c.TaskSpec.ServiceAccount
+	if serviceAccount == "" {
+		serviceAccount = swarming.GetServiceAccountFromTaskDims(dimsMap)
+	}
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
 		Name:           c.Name,
@@ -264,7 +268,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 			IoTimeoutSecs: ioTimeoutSecs,
 		},
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
-		ServiceAccount: swarming.GetServiceAccountFromTaskDims(dimsMap),
+		ServiceAccount: serviceAccount,
 		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
 		User:           "skiabot@google.com",
 	}, nil
