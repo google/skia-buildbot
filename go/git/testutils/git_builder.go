@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/pborman/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
@@ -87,7 +87,7 @@ func (g *GitBuilder) push(ctx context.Context) {
 
 // genString returns a string with arbitrary content.
 func genString() string {
-	return uuid.NewV1().String()
+	return uuid.New()
 }
 
 // Add writes contents to file and adds it to the index.
