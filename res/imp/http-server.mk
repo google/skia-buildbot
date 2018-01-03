@@ -18,7 +18,7 @@ common_dir = $(shell realpath $(shell if [ -f bower.json ]; then echo ".."; else
 httpserver = $(bower_dir)/node_modules/.bin/http-server
 
 # List of all dependencies.
-deps_list = bower_components res/imp/bower_components res/common res/js res/imp/sinon-1.17.2.js $(httpserver)
+deps_list = bower_components res/imp/bower_components res/common res/img res/js res/imp/sinon-1.17.2.js $(httpserver)
 
 $(httpserver):
 	npm install http-server
@@ -39,11 +39,11 @@ res/common:
 
 res/img:
 	mkdir -p res/imp
-	ln -sfT $(common_dir)/img res/img
+	ln -sfT $(bower_dir)/res/img res/img
 
 res/js:
 	mkdir -p res/imp
-	ln -sfT $(common_dir)/js res/js
+	ln -sfT $(bower_dir)/res/js res/js
 
 res/imp/sinon-1.17.2.js:
 	mkdir -p res/imp
@@ -65,6 +65,7 @@ run: $(deps_list)
 .PHONY: echo
 echo:
 	echo $(bower_dir)
+	echo $(common_dir)
 	echo $(server)
 	echo $(port)
 	echo $(httpserver)

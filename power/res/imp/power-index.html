@@ -34,34 +34,22 @@
 
 <dom-module id="power-index">
   <template>
-    <style is="custom-style">
-        app-sk {
+    <style include="iron-positioning">
+      :host {
+        --login-sk-color: #FFF;
+
+        --app-sk-toolbar: {
+          background-color: #6b367d;
+        };
         --app-sk-main: {
           background-color: #FFFFFF;
           font-family: sans-serif;
           padding: 5px;
         };
-
-        --app-sk-toolbar: {
-          background-color: #6b367d;
-          font-family: sans-serif;
-        };
-
-        login-sk{
-          --login-sk-color: white;
-        };
       }
 
       .header {
         font-size: 20px;
-      }
-
-      .fit {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
       }
 
       table {

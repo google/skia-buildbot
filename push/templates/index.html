@@ -5,22 +5,24 @@
 
     {{template "header.html" .}}
 
+<!--We must use is=custom-style here so the variables get piped through to the
+    app properly. Note that using custom-style inside <dom-module> can lead to
+    unintended consequences, such as CSS mixins not being visible.
+    https://www.polymer-project.org/1.0/docs/devguide/styling#custom-style -->
     <style is="custom-style" type="text/css" media="screen">
       :root {
         --default-primary-color: #1f78b4;
-        paper-input {
-          --paper-input-container-color: white;
-          --paper-input-container-input-color: white;
-        }
-      }
-
-      paper-toolbar {
+        --paper-input-container-color: white;
+        --paper-input-container-input-color: white;
         --paper-toolbar-background: #1f78b4;
+        --login-sk-color: #FFF;
+
+        --paper-header-panel-container:{
+          background: white;
+          padding: 2em 1em;
+        };
       }
 
-    </style>
-
-    <style type="text/css" media="screen">
       body {
         font-family: Arial, sans-serif;
         font-size: 11px;
@@ -28,20 +30,6 @@
 
       login-sk {
         margin-left: auto;
-      }
-
-      login-sk a {
-        color: white;
-      }
-
-      a {
-        color: #1f78b4;
-        font-weight: bold;
-      }
-
-      #mainContainer {
-        background: white;
-        padding: 2em 1em;
       }
 
       paper-toast {
