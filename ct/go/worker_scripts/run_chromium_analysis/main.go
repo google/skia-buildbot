@@ -34,6 +34,7 @@ const (
 	MAX_ALLOWED_SEQUENTIAL_TIMEOUTS = 20
 
 	STDOUT_COUNT_CSV_FIELD = "CT_stdout_count"
+	STDOUT_LINES_CSV_FIELD = "CT_stdout_lines"
 )
 
 var (
@@ -237,16 +238,26 @@ func runChromiumAnalysis() error {
 					if err == nil {
 						timeoutTracker.Reset()
 						// If *countStdoutText is specified then add the number of times the text shows up in stdout
-						// to the pageRankToAdditionalFields map. See skbug.com/7448 for context.
+						// and the lines it shows up in to the pageRankToAdditionalFields map.
+						// See skbug.com/7448 and skbug.com/7455 for context.
 						if *countStdoutText != "" && output != "" {
 							rank, err := util.GetRankFromPageset(pagesetName)
 							if err != nil {
 								sklog.Errorf("Could not get rank out of pageset %s: %s", pagesetName, err)
 								continue
 							}
-							fieldToCount := map[string]string{STDOUT_COUNT_CSV_FIELD: strconv.Itoa(strings.Count(output, *countStdoutText))}
+							linesWithText := []string{}
+							for _, l := range strings.Split(output, "\n") {
+								if strings.Contains(l, *countStdoutText) {
+									linesWithText = append(linesWithText, l)
+								}
+							}
+							additionalFields := map[string]string{
+								STDOUT_COUNT_CSV_FIELD: strconv.Itoa(strings.Count(output, *countStdoutText)),
+								STDOUT_LINES_CSV_FIELD: strings.Join(linesWithText, "\n"),
+							}
 							additionalFieldsMutex.Lock()
-							pageRankToAdditionalFields[strconv.Itoa(rank)] = fieldToCount
+							pageRankToAdditionalFields[strconv.Itoa(rank)] = additionalFields
 							additionalFieldsMutex.Unlock()
 
 						}
