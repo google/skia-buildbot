@@ -7,6 +7,10 @@
 
   </head>
   <body>
+<!--We must use is=custom-style here so the variables get piped through to the
+    app properly. Note that using custom-style inside <dom-module> can lead to
+    unintended consequences, such as CSS mixins not being visible.
+    https://www.polymer-project.org/1.0/docs/devguide/styling#custom-style -->
     <style is="custom-style">
     app-sk {
       --app-sk-main: {
