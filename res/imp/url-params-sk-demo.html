@@ -12,6 +12,10 @@
 <body>
 <dom-module id="url-param-demo">
   <template>
+    <!--We must use is=custom-style here so styles don't get leaked into local DOM.
+    Note that using custom-style inside <dom-module> can lead to
+    unintended consequences, such as CSS mixins not being visible.
+    https://www.polymer-project.org/1.0/docs/devguide/styling#custom-style -->
     <style is="custom-style">
       iron-selector > * {
         padding: 8px;

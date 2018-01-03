@@ -55,33 +55,34 @@ Events:
 <link rel="import" href="login.html">
 <link rel="import" href="version-sk.html">
 <dom-module id="app-sk">
-  <style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning">
-  #drawer {
-    box-shadow: 1px 0 1px rgba(0, 0, 0, 0.1);
-  }
-  #mainContent {
-    overflow: auto;
-  }
-  #menuButton  {
-    min-width: 40px;
-    padding: 8px 0px;
-  }
-  #headerPanel {
-    height: 100vh;
-  }
-  paper-toolbar {
-    @apply(--app-sk-toolbar);
-  }
-  paper-drawer-panel {
-    --paper-drawer-panel-main-container: {
-      @apply(--app-sk-main);
-    };
-    --paper-drawer-panel-left-drawer-container: {
-      z-index: 10;
-      @apply(--app-sk-drawer);
-    };
-  }
+  <style include="iron-flex iron-flex-alignment iron-positioning">
+    paper-toolbar {
+      @apply --app-sk-toolbar;
+    }
+    paper-drawer-panel {
+      --paper-drawer-panel-main-container: {
+        @apply--app-sk-main);
+      };
+      --paper-drawer-panel-left-drawer-container: {
+        z-index: 10;
+        @apply(--app-sk-drawer);
+      };
+    }
+    #drawer {
+      box-shadow: 1px 0 1px rgba(0, 0, 0, 0.1);
+    }
+    #mainContent {
+      overflow: auto;
+    }
+    #menuButton  {
+      min-width: 40px;
+      padding: 8px 0px;
+    }
+    #headerPanel {
+      height: 100vh;
+    }
   </style>
+
   <template>
     <paper-header-panel id="headerPanel" mode="{{mode}}" tall-class="{{tall_class}}" class=flex>
       <paper-toolbar id="header" style$="{{_headerStyle(narrow,header_height,header_responsive_height)}}">
