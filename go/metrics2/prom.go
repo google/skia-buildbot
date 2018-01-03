@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	"go.skia.org/infra/go/util"
 
@@ -30,17 +29,22 @@ func clean(s string) string {
 type promInt64 struct {
 	// i tracks the value of the gauge, because prometheus client lib doesn't
 	// support get on Gauge values.
+	mutex  sync.Mutex
 	i      int64
 	gauge  prometheus.Gauge
 	delete func() error
 }
 
 func (m *promInt64) Get() int64 {
-	return atomic.LoadInt64(&(m.i))
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.i
 }
 
 func (m *promInt64) Update(v int64) {
-	atomic.StoreInt64(&(m.i), v)
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.i = v
 	m.gauge.Set(float64(v))
 }
 
@@ -86,22 +90,32 @@ func (m *promFloat64Summary) Observe(v float64) {
 
 // promCounter implements the Counter interface.
 type promCounter struct {
-	pi *promInt64
+	pi    *promInt64
+	mutex sync.Mutex
 }
 
 func (pc *promCounter) Get() int64 {
+	// Doesn't need to be locked: Get is atomic, and if Inc or Dec is called concurrently, either old
+	// or new value is fine.
 	return pc.pi.Get()
 }
 
 func (pc *promCounter) Inc(i int64) {
+	pc.mutex.Lock()
+	defer pc.mutex.Unlock()
 	pc.pi.Update(pc.pi.Get() + i)
 }
 
 func (pc *promCounter) Dec(i int64) {
+	pc.mutex.Lock()
+	defer pc.mutex.Unlock()
 	pc.pi.Update(pc.pi.Get() - i)
 }
 
 func (pc *promCounter) Reset() {
+	// Needs a lock to avoid race with Inc/Dec.
+	pc.mutex.Lock()
+	defer pc.mutex.Unlock()
 	pc.pi.Update(0)
 }
 
@@ -178,15 +192,13 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 	measurement, cleanTags, keys, gaugeKey, gaugeVecKey := p.commonGet(name, tags...)
 
 	p.int64Mutex.Lock()
-	ret, ok := p.int64Gauges[gaugeKey]
-	p.int64Mutex.Unlock()
+	defer p.int64Mutex.Unlock()
 
-	if ok {
+	if ret, ok := p.int64Gauges[gaugeKey]; ok {
 		return ret
 	}
 
 	// Didn't find the metric, so we need to look for a GaugeVec to create it under.
-	p.int64Mutex.Lock()
 	gaugeVec, ok := p.int64GaugeVecs[gaugeVecKey]
 	if !ok {
 		// Register a new gauge vec.
@@ -203,29 +215,26 @@ func (p *promClient) GetInt64Metric(name string, tags ...map[string]string) Int6
 		}
 		p.int64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
-	p.int64Mutex.Unlock()
 
 	labels := prometheus.Labels(cleanTags)
 	gauge, err := gaugeVec.GetMetricWith(labels)
 	if err != nil {
 		glog.Fatalf("Failed to get gauge: %s", err)
 	}
-	ret = &promInt64{
+	ret := &promInt64{
 		delete: func() error {
+			p.int64Mutex.Lock()
+			defer p.int64Mutex.Unlock()
 			if !gaugeVec.Delete(labels) {
 				return fmt.Errorf("Failed to delete metric %s-%#v.", measurement, labels)
 			}
-			p.int64Mutex.Lock()
-			defer p.int64Mutex.Unlock()
 			delete(p.int64Gauges, gaugeKey)
 			return nil
 		},
 		gauge: gauge,
 	}
 
-	p.int64Mutex.Lock()
 	p.int64Gauges[gaugeKey] = ret
-	p.int64Mutex.Unlock()
 	return ret
 }
 
@@ -240,15 +249,13 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 	measurement, cleanTags, keys, gaugeKey, gaugeVecKey := p.commonGet(name, tags...)
 
 	p.float64Mutex.Lock()
-	ret, ok := p.float64Gauges[gaugeKey]
-	p.float64Mutex.Unlock()
+	defer p.float64Mutex.Unlock()
 
-	if ok {
+	if ret, ok := p.float64Gauges[gaugeKey]; ok {
 		return ret
 	}
 
 	// Didn't find the metric, so we need to look for a GaugeVec to create it under.
-	p.float64Mutex.Lock()
 	gaugeVec, ok := p.float64GaugeVecs[gaugeVecKey]
 	if !ok {
 		// Register a new gauge vec.
@@ -265,20 +272,19 @@ func (p *promClient) GetFloat64Metric(name string, tags ...map[string]string) Fl
 		}
 		p.float64GaugeVecs[gaugeVecKey] = gaugeVec
 	}
-	p.float64Mutex.Unlock()
 
 	labels := prometheus.Labels(cleanTags)
 	gauge, err := gaugeVec.GetMetricWith(labels)
 	if err != nil {
 		glog.Fatalf("Failed to get gauge: %s", err)
 	}
-	ret = &promFloat64{
+	ret := &promFloat64{
 		delete: func() error {
+			p.float64Mutex.Lock()
+			defer p.float64Mutex.Unlock()
 			if !gaugeVec.Delete(labels) {
 				return fmt.Errorf("Failed to delete metric %s-%#v.", measurement, labels)
 			}
-			p.float64Mutex.Lock()
-			defer p.float64Mutex.Unlock()
 			delete(p.float64Gauges, gaugeKey)
 			return nil
 		},
@@ -292,15 +298,13 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 	measurement, cleanTags, keys, summaryKey, summaryVecKey := p.commonGet(name, tags...)
 
 	p.float64SummaryMutex.Lock()
-	ret, ok := p.float64Summaries[summaryKey]
-	p.float64SummaryMutex.Unlock()
+	defer p.float64SummaryMutex.Unlock()
 
-	if ok {
+	if ret, ok := p.float64Summaries[summaryKey]; ok {
 		return ret
 	}
 
 	// Didn't find the metric, so we need to look for a SummaryVec to create it under.
-	p.float64SummaryMutex.Lock()
 	summaryVec, ok := p.float64SummaryVecs[summaryVecKey]
 	if !ok {
 		// Register a new summary vec.
@@ -318,19 +322,16 @@ func (p *promClient) GetFloat64SummaryMetric(name string, tags ...map[string]str
 		}
 		p.float64SummaryVecs[summaryVecKey] = summaryVec
 	}
-	p.float64SummaryMutex.Unlock()
 
 	observer, err := summaryVec.GetMetricWith(prometheus.Labels(cleanTags))
 	if err != nil {
 		glog.Fatalf("Failed to get observer: %s", err)
 	}
-	ret = &promFloat64Summary{
+	ret := &promFloat64Summary{
 		observer: observer,
 	}
 
-	p.float64SummaryMutex.Lock()
 	p.float64Summaries[summaryKey] = ret
-	p.float64SummaryMutex.Unlock()
 	return ret
 }
 
