@@ -575,7 +575,7 @@ func StartTryNamed(ctx context.Context) {
 	}()
 }
 
-func smi(ctx context.Context) {
+func smi(ctx context.Context) error {
 	output := &bytes.Buffer{}
 	runCmd := &exec.Command{
 		Name:      "nvidia-smi",
@@ -583,23 +583,36 @@ func smi(ctx context.Context) {
 		LogStdout: true,
 		Stdout:    output,
 	}
-	defer metrics2.FuncTimer().Stop()
-	if err := exec.Run(ctx, runCmd); err != nil {
+	var err error
+	if err = exec.Run(ctx, runCmd); err != nil {
 		sklog.Errorf("nvidia-smi failed %#v: %s", *runCmd, err)
 	}
 	sklog.Infof("nvidia-smi output: %s", output.String())
-	smiLiveness.Reset()
+	return err
+}
+
+func smiStep(ctx context.Context) {
+	defer metrics2.FuncTimer().Stop()
+	if err := smi(ctx); err != nil {
+		smiLiveness.Reset()
+	}
 }
 
 // StartSMI starts a Go routine that periodically runs 'nvidia-smi' which seems
 // to knock the GPU back into a running state.
 func StartSMI(ctx context.Context) {
 	go func() {
-		smi(ctx)
+		smiStep(ctx)
 		for range time.Tick(5 * time.Minute) {
-			smi(ctx)
+			smiStep(ctx)
 		}
 	}()
+}
+
+func resetGpuHandler(w http.ResponseWriter, r *http.Request) {
+	if err := smi(r.Context()); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to run smi: %s", err))
+	}
 }
 
 func main() {
@@ -658,6 +671,7 @@ func main() {
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/f/", failedHandler)
 	r.HandleFunc("/named/", namedHandler)
+	r.HandleFunc("/reset_gpu/", resetGpuHandler).Methods("GET")
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
