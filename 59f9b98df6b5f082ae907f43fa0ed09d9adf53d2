@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dfe8789f_3dd580c4",
+        "filename": "golden/go/tsuite/tsuite.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-03T13:34:50Z",
+      "side": 1,
+      "message": "Would it make more sense to pass in a *storage.Client instead rather than a bare http.Client?  To me, that helps signal what is required better.\n\nOne other thing to consider is using GCSClient (https://github.com/google/skia-buildbot/blob/master/go/gcs/storage.go#L33), as I\u0027ve found GCSClient to be much easier to mock out for testing.",
+      "range": {
+        "startLine": 52,
+        "startChar": 54,
+        "endLine": 52,
+        "endChar": 73
+      },
+      "revId": "59f9b98df6b5f082ae907f43fa0ed09d9adf53d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
