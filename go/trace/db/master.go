@@ -81,6 +81,7 @@ func NewMasterTileBuilder(ctx context.Context, db DB, git *gitinfo.GitInfo, tile
 			return nil, fmt.Errorf("NewTraceStore: Failed to load initial Tile: %s", err)
 		}
 	}
+	sklog.Infof("Done loaing the tile will return soon.")
 
 	evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile(), false)
 	go func() {
@@ -109,6 +110,7 @@ func NewMasterTileBuilder(ctx context.Context, db DB, git *gitinfo.GitInfo, tile
 // Users of Builder should not normally need to call this func, as it is called
 // periodically by the Builder to keep the tile fresh.
 func (t *masterTileBuilder) LoadTile(ctx context.Context) error {
+	sklog.Infof("Starting to load tile.")
 	// Build CommitIDs for the last INITIAL_TILE_SIZE commits to the repo.
 	if err := t.git.Update(ctx, true, false); err != nil {
 		sklog.Errorf("Failed to update Git repo: %s", err)
@@ -122,12 +124,14 @@ func (t *masterTileBuilder) LoadTile(ctx context.Context) error {
 			Timestamp: t.git.Timestamp(h).Unix(),
 		})
 	}
+	sklog.Infof("Go %d commits.", len(commitIDs))
 
 	// Build a Tile from those CommitIDs.
 	tile, _, err := t.db.TileFromCommits(commitIDs)
 	if err != nil {
 		return fmt.Errorf("Failed to load tile: %s", err)
 	}
+	sklog.Infof("Loaded tile from commits.")
 
 	// Now populate the author for each commit.
 	for _, c := range tile.Commits {
@@ -136,6 +140,7 @@ func (t *masterTileBuilder) LoadTile(ctx context.Context) error {
 			return fmt.Errorf("Couldn't fill in author info in tile for commit %s: %s", c.Hash, err)
 		}
 		c.Author = details.Author
+		sklog.Infof("Author %s populated.")
 	}
 	if err != nil {
 		return fmt.Errorf("Failed to load initial tile: %s", err)
@@ -149,6 +154,7 @@ func (t *masterTileBuilder) LoadTile(ctx context.Context) error {
 			}
 		}()
 	}
+	sklog.Infof("Populated tiles with authors.")
 
 	t.mutex.Lock()
 	defer t.mutex.Unlock()

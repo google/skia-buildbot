@@ -274,6 +274,10 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
+	sklog.Infof("Done with master tile builder")
+
+	sklog.Infof("MasterTileBuilder created.")
+	sklog.Infof("IngestionStore created.")
 
 	gsClientOpt := &storage.GSClientOptions{
 		HashesGSPath:   *hashesGSPath,
@@ -284,6 +288,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Unable to create GStorageClient: %s", err)
 	}
+	sklog.Infof("GS client created.")
 
 	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, *serviceAccountFile)
 	if err != nil {
@@ -319,6 +324,7 @@ func main() {
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
+	sklog.Infof("Ignorestore created.")
 
 	// Rebuild the index every two minutes.
 	ixr, err = indexer.New(storages, *indexInterval)
@@ -330,6 +336,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create instance of search API: %s", err)
 	}
+	sklog.Infof("SearchAPI created.")
 
 	if !*local {
 		*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))

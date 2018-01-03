@@ -473,6 +473,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 	// Rebuild the ParamSet.
 	sklog.Infof("Finished loading params. Starting to rebuild ParamSet.")
 	tiling.GetParamSet(tile.Traces, tile.ParamSet)
+	sklog.Infof("Done rebuilding ParamSet.")
 	return tile, hash, nil
 }
 
