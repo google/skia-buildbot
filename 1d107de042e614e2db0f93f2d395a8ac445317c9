@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ea6a883_2d29efb6",
+        "filename": "autoroll/templates/main.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-03T18:12:21Z",
+      "side": 1,
+      "message": "Nit: indent, several instances of this",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 78
+      },
+      "revId": "1d107de042e614e2db0f93f2d395a8ac445317c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
