@@ -130,8 +130,9 @@
       <tr>
         <td>Look for text in stdout</td>
         <td>
-          <paper-input value="" id="count_stdout_txt" class="long-field"></paper-input>
-          <span class="smaller-font"><b>Note:</b> Text counts will show up under CT_stdout_count in the output CSV.</span><br/>
+          <paper-input value="" id="match_stdout_txt" class="long-field"></paper-input>
+          <span class="smaller-font"><b>Note:</b> All lines that contain this field in stdout will show up under CT_stdout_lines in the output CSV.</span><br/>
+          <span class="smaller-font"><b>Note:</b> The count of non-overlapping exact matches of this field in stdout will show up under CT_stdout_count in the output CSV.</span>
         </td>
       </tr>
 
@@ -370,7 +371,7 @@
        params["benchmark"] = this.selectedBenchmarkName;
        params["page_sets"] = this.$.page_sets.selected;
        params["custom_webpages"] = this.$.custom_webpages.webpages;
-       params["count_stdout_txt"] = this.$.count_stdout_txt.value;
+       params["match_stdout_txt"] = this.$.match_stdout_txt.value;
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["browser_args"] = this.$.browser_args.value;
        params["desc"] = this.$.desc.value;

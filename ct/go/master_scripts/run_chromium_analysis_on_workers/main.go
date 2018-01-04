@@ -40,7 +40,7 @@ var (
 	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 	runOnGCE           = flag.Bool("run_on_gce", true, "Run on Linux GCE instances. Used only if Linux is used for the target_platform.")
 	runInParallel      = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
-	countStdoutText    = flag.String("count_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. Every occurence of the text is counted and added to the CSV of the web page under the CT_stdout_count field.")
+	matchStdoutText    = flag.String("match_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. The count of the text's occurence and the lines containing it are added to the CSV of the web page.")
 
 	taskCompletedSuccessfully = false
 
@@ -197,7 +197,7 @@ func main() {
 		"BROWSER_EXTRA_ARGS": *browserExtraArgs,
 		"RUN_IN_PARALLEL":    strconv.FormatBool(*runInParallel),
 		"TARGET_PLATFORM":    *targetPlatform,
-		"COUNT_STDOUT_TXT":   *countStdoutText,
+		"MATCH_STDOUT_TXT":   *matchStdoutText,
 	}
 
 	// Figure out priority of analysis swarming tasks.

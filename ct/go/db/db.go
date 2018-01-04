@@ -413,6 +413,14 @@ var v24_down = []string{
 	`ALTER TABLE ChromiumAnalysisTasks DROP count_stdout_txt`,
 }
 
+var v25_up = []string{
+	`ALTER TABLE ChromiumAnalysisTasks CHANGE count_stdout_txt match_stdout_txt longtext NOT NULL DEFAULT ""`,
+}
+
+var v25_down = []string{
+	`ALTER TABLE ChromiumAnalysisTasks CHANGE match_stdout_txt count_stdout_txt longtext NOT NULL DEFAULT ""`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -536,6 +544,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v24_up,
 		MySQLDown: v24_down,
+	},
+	// version 25: Rename count_stdout_txt to match_stdout_txt in ChromiumAnalysisTasks.
+	{
+		MySQLUp:   v25_up,
+		MySQLDown: v25_down,
 	},
 }
 
