@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predict</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=egde,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h1>Predict</h1>
+  <div>
+    Last run: {{ .SinceLastRun }} seconds ago.
+  </div>
+  <div>
+    {{ .FlakyRanges.Len }} Flaky or Ignored bots.
+  </div>
+  <ol>
+    {{ range $key, $ranges := .FlakyRanges }}
+    <li>{{ $key }}</li>
+    <ul>
+      {{ range $ranges }}
+      <li>{{ .Begin.UTC.String }} - {{ .End.UTC.String }}</li>
+      {{ end }}
+    </ul>
+    {{ end }}
+  </ol>
+</body>
+</html>
