@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "77d88113_41dd14a8",
+        "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-04T15:07:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "115743cc_a74f823d",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 52
+      },
+      "revId": "77173db644d59706ea703dcd6f5c0b8009c7874f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "319e1270_849eeee8",
         "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-03T19:26:13Z",
       "side": 1,
       "message": "Will people be confused if the count and the number of lines don\u0027t match because one or more lines contain *countStdoutText multiple times?",
+      "range": {
+        "startLine": 256,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 66
+      },
+      "revId": "77173db644d59706ea703dcd6f5c0b8009c7874f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5452823_32ff05c9",
+        "filename": "ct/go/worker_scripts/run_chromium_analysis/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-04T15:07:06Z",
+      "side": 1,
+      "message": "I don\u0027t think so because the message in the UI is pretty clear. We can update it to make it more clear later if necessary.",
+      "parentUuid": "319e1270_849eeee8",
       "range": {
         "startLine": 256,
         "startChar": 0,
