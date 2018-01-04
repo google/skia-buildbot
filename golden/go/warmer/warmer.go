@@ -5,6 +5,8 @@
 package warmer
 
 import (
+	"sync"
+
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
@@ -72,4 +74,23 @@ func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *t
 	w.storages.DiffStore.WarmDigests(diff.PRIORITY_BACKGROUND, digests, false)
 
 	// TODO(stephana): Add warmer for Tryjob digests.
+}
+
+func (w *Warmer) RunAll(tallies *tally.Tallies) {
+	byTest := tallies.ByTest()
+	var wg sync.WaitGroup
+	for testName, digests := range byTest {
+		sklog.Infof("Warming for test: %s", testName)
+		wg.Add(1)
+		go func(digests map[string]int) {
+			defer wg.Done()
+			digestSlice := make([]string, 0, len(digests))
+			for d := range digests {
+				digestSlice = append(digestSlice, d)
+			}
+			w.storages.DiffStore.WarmDiffs(diff.PRIORITY_BACKGROUND, digestSlice, digestSlice)
+
+		}(digests)
+	}
+	wg.Wait()
 }

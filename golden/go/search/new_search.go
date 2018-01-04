@@ -4,6 +4,9 @@ import (
 	"sort"
 	"sync"
 
+	"go.skia.org/infra/go/paramtools"
+
+	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/golden/go/tryjobstore"
 
 	"go.skia.org/infra/go/sklog"
@@ -121,7 +124,7 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	if isTryjobSearch {
 		sklog.Infof("Querying issue: %d", q.Issue)
 		// Search the tryjob results for the issue at hand.
-		inter, issue, queryPatchsets, err = s.queryIssue(q, exp)
+		inter, issue, queryPatchsets, err = s.queryIssue(q, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
@@ -131,9 +134,12 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 		return nil, err
 	}
 
+	sklog.Infof("search: before get digest recs")
+
 	// Convert the intermediate representation to the list of digests that we
 	// are going to return to the client.
 	ret := s.getDigestRecs(inter, exp)
+	sklog.Infof("search: before get ref diffs")
 
 	// Get reference diffs unless it was specifically disabled.
 	if getRefDiffs {
@@ -143,10 +149,12 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 		if err != nil {
 			return nil, err
 		}
+		sklog.Infof("search: digest ref diffs done")
 
 		// Post-diff stage: Apply all filters that are relevant once we have
 		// diff values for the digests.
 		ret = s.afterDiffResultFilter(ret, q)
+		sklog.Infof("search: after diff result filter")
 	}
 
 	// Sort the digests and fill the ones that are going to be displayed with
@@ -154,7 +162,10 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// bulk triage, but only the digests that are going to be shown are padded
 	// with additional information.
 	displayRet, offset := s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
+	sklog.Infof("search: sorted and limited results")
+
 	s.addParamsAndTraces(displayRet, inter, exp, idx)
+	sklog.Infof("search: added params and have %d digests:", len(ret))
 
 	// Return all digests with the selected offset within the result set.
 	return &NewSearchResponse{
@@ -179,7 +190,7 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 		return nil, err
 	}
 
-	oneInter := newSrIntermediate(test, digest, "", nil)
+	oneInter := newSrIntermediate(test, digest, "", nil, nil)
 	for traceId, trace := range tile.Traces {
 		if trace.Params()[types.PRIMARY_KEY_FIELD] != test {
 			continue
@@ -242,11 +253,17 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(q *Query, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
+func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
+	sklog.Infof("Starting queryIssue")
 	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true, q.Patchsets)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
+	if issue == nil {
+		return nil, nil, nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
+	}
+	sklog.Infof("query: Issue %d found.", q.Issue)
 
 	queryPatchsets := q.Patchsets
 	if queryPatchsets == nil {
@@ -256,18 +273,63 @@ func (s *SearchAPI) queryIssue(q *Query, exp ExpSlice) (srInterMap, *tryjobstore
 		}
 	}
 
-	_, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, queryPatchsets)
+	sklog.Infof("queryIssue: query patchsets: %s", spew.Sdump(queryPatchsets))
+
+	tryJobs, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, queryPatchsets)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	sklog.Infof("queryIssue: got %d tryjobresults.", len(tjResults))
+	sklog.Infof("queryIssue: got %d tryjobs.", len(tryJobs))
+	for idx, tj := range tryJobs {
+		sklog.Infof("tj: %s", spew.Sdump(tj))
+		sklog.Infof("results: %d", len(tjResults[idx]))
+	}
+
+	// Filter the ignored results by setting the results to nil.
+	if !q.IncludeIgnores {
+		ignoreMatcher := idx.GetIgnoreMatcher()
+		sklog.Infof("IgnoreMatcher:")
+		for _, rule := range ignoreMatcher {
+			sklog.Infof("rule: %s", spew.Sdump(rule))
+		}
+		count := 0
+		for _, oneTryjob := range tjResults {
+			for idx, trj := range oneTryjob {
+				if ignoreMatcher.Match(trj.Params) {
+					oneTryjob[idx] = nil
+					count++
+				}
+			}
+		}
+		sklog.Infof("Excluded %d digests.", count)
+	}
 
 	ret := srInterMap{}
-	for _, oneTryjob := range tjResults {
-		for _, tjr := range oneTryjob {
-			ret.add(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
+	addFn := ret.add
+	if !q.IncludeMaster {
+		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
+		sklog.Infof("Excluding master")
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
+			// Check if the tile contains a known digests.
+			if dMap, ok := talliesByTest[test]; ok {
+				if _, ok = dMap[digest]; !ok {
+					sklog.Infof("Adding %s - %s", test, digest)
+					ret.add(test, digest, traceID, trace, params)
+				}
+			}
 		}
 	}
 
+	for _, oneTryjob := range tjResults {
+		for _, tjr := range oneTryjob {
+			if tjr != nil {
+				addFn(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
+			}
+		}
+	}
+
+	sklog.Infof("queryIssue: tests: %d  with %d digests", len(ret), ret.digests())
 	return ret, issue, queryPatchsets, nil
 }
 
@@ -344,6 +406,7 @@ func (s *SearchAPI) getReferenceDiffs(resultDigests []*SRDigest, metric string, 
 			wg.Done()
 		}(retDigest)
 	}
+	sklog.Infof("Scheduled %d ref diffs.", len(resultDigests))
 	wg.Wait()
 }
 

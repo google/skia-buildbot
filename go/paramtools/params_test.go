@@ -193,3 +193,29 @@ func TestParamSetCopy(t *testing.T) {
 
 	assert.Equal(t, ParamSet{}, ParamSet{}.Copy())
 }
+
+func TestMatching(t *testing.T) {
+	recParams := ParamSet{
+		"foo": {"1", "2"},
+		"bar": {"a", "b", "c"},
+		"baz": {"u", "v", "w"},
+	}
+
+	rule1 := ParamSet{"foo": {"1"}}
+	rule2 := ParamSet{"bar": {"e"}}
+	rule3 := ParamSet{"baz": {"v", "w"}}
+	rule4 := ParamSet{"x": {"something"}}
+	empty := ParamSet{}
+
+	assert.True(t, ParamMatcher{rule1}.Match(recParams))
+	assert.False(t, ParamMatcher{rule2}.Match(recParams))
+	assert.True(t, ParamMatcher{rule3}.Match(recParams))
+	assert.False(t, ParamMatcher{rule4}.Match(recParams))
+	assert.True(t, ParamMatcher{empty}.Match(recParams))
+
+	assert.True(t, ParamMatcher{rule1, rule2}.Match(recParams))
+	assert.True(t, ParamMatcher{rule1, rule3}.Match(recParams))
+	assert.True(t, ParamMatcher{rule2, rule3}.Match(recParams))
+	assert.False(t, ParamMatcher{rule2, rule4}.Match(recParams))
+	assert.True(t, ParamMatcher{rule2, rule4, empty}.Match(recParams))
+}
