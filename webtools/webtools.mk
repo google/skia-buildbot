@@ -58,7 +58,7 @@ $(BOWER_DIR)/lastupdate: bower.json ./node_modules/.bin/bower
 	touch $(BOWER_DIR)/lastupdate
 
 res/common:
-	ln -sfr $(WEBTOOLS_DIR)/../res res/common
+	ln -sf $(WEBTOOLS_DIR)/../res res/common
 
 #### elements_html ####
 
