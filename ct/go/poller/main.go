@@ -133,7 +133,7 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
 			"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 			"--target_platform=" + task.Platform,
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
-			"--count_stdout_txt=" + task.CountStdoutTxt,
+			"--match_stdout_txt=" + task.MatchStdoutTxt,
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,

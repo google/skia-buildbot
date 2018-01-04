@@ -87,9 +87,9 @@
         </paper-dialog-scrollable>
       </paper-dialog>
 
-      <paper-dialog heading="Count Stdout Text" id="{{ getCountStdoutTxtId(index) }}">
+      <paper-dialog heading="Match Stdout Text" id="{{ getMatchStdoutTxtId(index) }}">
         <paper-dialog-scrollable>
-          <pre>{{chromiumAnalysisTask.CountStdoutTxt}}</pre>
+          <pre>{{chromiumAnalysisTask.MatchStdoutTxt}}</pre>
         </paper-dialog-scrollable>
       </paper-dialog>
 
@@ -246,8 +246,8 @@
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="browserArgs">Browser Args</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumAnalysisTask.CountStdoutTxt}}">
-              <a href="javascript:void(0);" data-index$="{{index}}" data-type="countStdoutTxt">Count Stdout Text</a>
+            <template is="dom-if" if="{{chromiumAnalysisTask.MatchStdoutTxt}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="matchStdoutTxt">Match Stdout Text</a>
               <br/>
             </template>
           </td>
@@ -341,8 +341,8 @@
              that.toggleDialog(that.getBenchmarkArgsId(id));
            } else if (anchor.dataset.type == "browserArgs") {
              that.toggleDialog(that.getBrowserArgsId(id));
-           } else if (anchor.dataset.type == "countStdoutTxt") {
-             that.toggleDialog(that.getCountStdoutTxtId(id));
+           } else if (anchor.dataset.type == "matchStdoutTxt") {
+             that.toggleDialog(that.getMatchStdoutTxtId(id));
            } else if (anchor.dataset.type == "chromiumPatch") {
              that.toggleDialog(that.getChromiumPatchId(id));
            } else if (anchor.dataset.type == "v8Patch") {
@@ -401,8 +401,8 @@
        return "browser_args" + index;
      },
 
-     getCountStdoutTxtId: function(index) {
-       return "count_stdout_txt" + index;
+     getMatchStdoutTxtId: function(index) {
+       return "match_stdout_txt" + index;
      },
 
      getChromiumPatchId: function(index) {

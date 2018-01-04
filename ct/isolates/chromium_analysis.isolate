@@ -24,7 +24,7 @@
           '--browser_extra_args=<(BROWSER_EXTRA_ARGS)',
           '--run_in_parallel=<(RUN_IN_PARALLEL)',
           '--target_platform=<(TARGET_PLATFORM)',
-          '--count_stdout_txt=<(COUNT_STDOUT_TXT)',
+          '--match_stdout_txt=<(MATCH_STDOUT_TXT)',
         ],
       },
     }],

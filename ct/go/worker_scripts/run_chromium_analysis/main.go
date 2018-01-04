@@ -34,6 +34,7 @@ const (
 	MAX_ALLOWED_SEQUENTIAL_TIMEOUTS = 20
 
 	STDOUT_COUNT_CSV_FIELD = "CT_stdout_count"
+	STDOUT_LINES_CSV_FIELD = "CT_stdout_lines"
 )
 
 var (
@@ -48,7 +49,7 @@ var (
 	runInParallel      = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 	chromeCleanerTimer = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
-	countStdoutText    = flag.String("count_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. Every occurence of the text is counted and added to the CSV of the web page under the CT_stdout_count field.")
+	matchStdoutText    = flag.String("match_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. The count of the text's occurence and the lines containing it are added to the CSV of the web page.")
 )
 
 func runChromiumAnalysis() error {
@@ -236,17 +237,27 @@ func runChromiumAnalysis() error {
 					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1)
 					if err == nil {
 						timeoutTracker.Reset()
-						// If *countStdoutText is specified then add the number of times the text shows up in stdout
-						// to the pageRankToAdditionalFields map. See skbug.com/7448 for context.
-						if *countStdoutText != "" && output != "" {
+						// If *matchStdoutText is specified then add the number of times the text shows up in stdout
+						// and the lines it shows up in to the pageRankToAdditionalFields map.
+						// See skbug.com/7448 and skbug.com/7455 for context.
+						if *matchStdoutText != "" && output != "" {
 							rank, err := util.GetRankFromPageset(pagesetName)
 							if err != nil {
 								sklog.Errorf("Could not get rank out of pageset %s: %s", pagesetName, err)
 								continue
 							}
-							fieldToCount := map[string]string{STDOUT_COUNT_CSV_FIELD: strconv.Itoa(strings.Count(output, *countStdoutText))}
+							linesWithText := []string{}
+							for _, l := range strings.Split(output, "\n") {
+								if strings.Contains(l, *matchStdoutText) {
+									linesWithText = append(linesWithText, l)
+								}
+							}
+							additionalFields := map[string]string{
+								STDOUT_COUNT_CSV_FIELD: strconv.Itoa(strings.Count(output, *matchStdoutText)),
+								STDOUT_LINES_CSV_FIELD: strings.Join(linesWithText, "\n"),
+							}
 							additionalFieldsMutex.Lock()
-							pageRankToAdditionalFields[strconv.Itoa(rank)] = fieldToCount
+							pageRankToAdditionalFields[strconv.Itoa(rank)] = additionalFields
 							additionalFieldsMutex.Unlock()
 
 						}
