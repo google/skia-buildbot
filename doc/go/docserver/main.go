@@ -198,12 +198,19 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func main() {
 	defer common.LogPanic()
+	opts := []common.Opt{
+		common.PrometheusOpt(promPort),
+	}
+	if !*local {
+		opts = append(opts, common.CloudLoggingOpt())
+	}
 	common.InitWithMust(
 		"docserver",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		opts...,
 	)
-	login.SimpleInitMust(*port, *local)
+	if !*local {
+		login.SimpleInitMust(*port, *local)
+	}
 
 	Init()
 
