@@ -198,19 +198,29 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func main() {
 	defer common.LogPanic()
+	flag.Parse()
+	opts := []common.Opt{
+		common.PrometheusOpt(promPort),
+	}
+	if !*local {
+		opts = append(opts, common.CloudLoggingOpt())
+	}
 	common.InitWithMust(
 		"docserver",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		opts...,
 	)
-	login.SimpleInitMust(*port, *local)
+	if !*local {
+		login.SimpleInitMust(*port, *local)
+	}
 
 	Init()
 
 	// Resources are served directly.
-	http.HandleFunc("/logout/", login.LogoutHandler)
-	http.HandleFunc("/loginstatus/", login.StatusHandler)
-	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	if !*local {
+		http.HandleFunc("/logout/", login.LogoutHandler)
+		http.HandleFunc("/loginstatus/", login.StatusHandler)
+		http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	}
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 
