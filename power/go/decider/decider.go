@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/sklog"
@@ -97,7 +98,7 @@ func (d *decider) ShouldPowercycleDevice(bot *swarming.SwarmingRpcsBotInfo) bool
 	for _, dev := range s.Devices {
 		if status, ok := dev["state"].(string); ok && status == "too_hot" {
 			return false
-		} else if ok && (status == "usb_failure" || status == "booting") {
+		} else if ok && (status == "usb_failure" || strings.Contains(status, "booting")) {
 			return true
 		}
 		break
