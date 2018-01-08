@@ -128,7 +128,7 @@ func SkiaCTBot(num int) *gce.Instance {
 	vm := AddLinuxConfigs(Swarming20171114(fmt.Sprintf("skia-ct-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM), GS_URL_NETRC_EXTERNAL)
 	vm.DataDisks[0].SizeGb = 3000
 	// SkiaCT bots use a datadisk with a snapshot that is prepopulated with 1M SKPS.
-	vm.DataDisks[0].SourceSnapshot = "skia-ct-skps-snapshot-2"
+	vm.DataDisks[0].SourceSnapshot = "skia-ct-skps-snapshot-3"
 	return vm
 }
 
