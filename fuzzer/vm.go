@@ -37,7 +37,7 @@ func FrontEnd() *gce.Instance {
 
 func BackEnd(num int) *gce.Instance {
 	vm := FuzzerBase(fmt.Sprintf("skia-fuzzer-be-%d", num))
-	vm.MachineType = gce.MACHINE_TYPE_STANDARD_32
+	vm.MachineType = gce.MACHINE_TYPE_HIGHCPU_64
 	return vm
 }
 
