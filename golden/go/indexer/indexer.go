@@ -82,6 +82,10 @@ func (idx *SearchIndex) GetTile(includeIgnores bool) *tiling.Tile {
 	return idx.tilePair.Tile
 }
 
+func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
+	return idx.tilePair.IgnoreRules
+}
+
 // Proxy to tally.Tallies.ByTest
 func (idx *SearchIndex) TalliesByTest(includeIgnores bool) map[string]tally.Tally {
 	if includeIgnores {
@@ -256,7 +260,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 				}
 			}
 
-			// If there is tile, re-index everything and forget the
+			// If there is a tile, re-index everything and forget the
 			// individual tests that changed.
 			if tilePair != nil {
 				if err := ixr.indexTilePair(tilePair); err != nil {
@@ -441,5 +445,6 @@ func runWarmer(state interface{}) error {
 	// TODO (stephana): Instead of warming everything we should warm non-ignored
 	// traces with higher priority.
 	go idx.warmer.Run(idx.tilePair.TileWithIgnores, idx.summariesWithIgnores, idx.talliesWithIgnores)
+	// go idx.warmer.RunAll(idx.talliesWithIgnores)
 	return nil
 }

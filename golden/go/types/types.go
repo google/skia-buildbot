@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 )
 
@@ -83,6 +84,8 @@ type TilePair struct {
 
 	// TileWithIgnores is the current tile containing all available data.
 	TileWithIgnores *tiling.Tile
+
+	IgnoreRules paramtools.ParamMatcher
 }
 
 const (
