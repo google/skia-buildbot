@@ -123,6 +123,14 @@ var fuzzers = map[string]FuzzerInfo{
 		// than that (the plus sign after 500).
 		GenerationArgs: []string{"-m", "5000", "-t", "500+"},
 	},
+	"image_filter_deserialize": {
+		PrettyName:          "FilterFuzz Stub",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "reed",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "filter_fuzz", "--bytes"},
+		GenerationArgs:      []string{"-m", "5000", "-t", "200+"},
+	},
 	"n32_canvas": {
 		PrettyName:          "Canvas to raster n32 backend",
 		Status:              EXPERIMENTAL_FUZZER,
