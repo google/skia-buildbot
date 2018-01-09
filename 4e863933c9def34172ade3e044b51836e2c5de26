@@ -416,6 +416,24 @@
       "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5929371_562fe658",
+        "filename": "metadata_server/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-09T18:53:01Z",
+      "side": 1,
+      "message": "file-backup (for example) needs  auth.SCOPE_READ_WRITE, sklog.CLOUD_LOGGING_WRITE_SCOPE to write to the backup bucket.  It might also need it for cloud logging?  I can\u0027t quite remember.\n\nTo clarify, this on jumphost and rpi-master, which is only reachable from swarming bots if they know the login password (and we can lock that down even further if we want)\n\nAlthough we should probably change rpi-backup and hotspare to make the credentials not globally readable",
+      "parentUuid": "444f0af1_22c6fdc1",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
