@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f59478b_f05d5357",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-09T18:41:28Z",
+      "side": 1,
+      "message": "If I understand correctly, this means right is a superset(supermap?) or equal to p?",
+      "revId": "43f03ba00dfd5e55f32a17b057c3ea62b25946fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99fd6a96_75f29a3c",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-09T18:41:28Z",
+      "side": 1,
+      "message": "ubernit: MatchAny may be more explanatory of a name.",
+      "range": {
+        "startLine": 193,
+        "startChar": 22,
+        "endLine": 193,
+        "endChar": 27
+      },
+      "revId": "43f03ba00dfd5e55f32a17b057c3ea62b25946fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4268d25_800b45f6",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-09T18:41:28Z",
+      "side": 1,
+      "message": "ubernit: no space between these imports.  See also line 10",
+      "revId": "43f03ba00dfd5e55f32a17b057c3ea62b25946fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c189973_b58d44a3",
+        "filename": "golden/go/search/search_types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-09T18:41:28Z",
+      "side": 1,
+      "message": "digests seems to indicate it returns the digests - numDigests instead?",
+      "range": {
+        "startLine": 74,
+        "startChar": 21,
+        "endLine": 74,
+        "endChar": 28
+      },
+      "revId": "43f03ba00dfd5e55f32a17b057c3ea62b25946fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
