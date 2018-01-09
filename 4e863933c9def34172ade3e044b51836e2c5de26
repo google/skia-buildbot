@@ -1,0 +1,169 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c8bb5766_96547c0d",
+        "filename": "get_oauth2_token/go/get_oauth2_token/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "nit: Maybe move this to skolo/go/get_oauth2_token/main.go?",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f999e6b_68447a9f",
+        "filename": "get_oauth2_token/go/get_oauth2_token/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "nit: In other places in our repo, this is either \nserviceAccountFile \u003d flag.String(\"service_account_file\", \"\", \"Credentials file for service account.\")\nor\nserviceAccountPath    \u003d flag.String(\"service_account_path\", \"\", \"Path to the service account.  ...\"",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db920b81_9d63136c",
+        "filename": "get_oauth2_token/go/get_oauth2_token/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "nit: How are we handling monitoring and logging?",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1279831f_0a70f07f",
+        "filename": "get_oauth2_token/go/get_oauth2_token/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "nit: It\u0027s undocumented what permissions *dest will have, but looking at https://golang.org/src/io/ioutil/tempfile.go?s\u003d1285:1342#L55, it\u0027s 0600. Will that work, assuming this app runs as root?",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c544277_245a6950",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "nit: \"The placeholder is for the level.\"",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c7df559_b675150a",
+        "filename": "go/metadata/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "nit: Reader",
+      "range": {
+        "startLine": 61,
+        "startChar": 36,
+        "endLine": 61,
+        "endChar": 42
+      },
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c9127cd_ddaeb543",
+        "filename": "go/metadata/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "I\u0027m wondering if rather than configuring key-value data on the local machine, we should just proxy metadata requests to a \"skolo\" GCE project. E.g. if this server gets a request for \"/computeMetadata/v1/project/attributes/{key}\", it would in turn query \"https://www.googleapis.com/compute/v1/projects/skolo/attributes/{key}\".\n\nThis wouldn\u0027t work for instance metadata, unless we want to map that to specially-formatted project-level metadata.\n\nAnother option would be to store key-value data in GCS (with caching).",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 73
+      },
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a74ab2ba_a15999ab",
+        "filename": "metadata_server/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "nit: Maybe move to skolo/go/metadata_server/main.go?",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "677c14ca_a971c7d4",
+        "filename": "metadata_server/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T16:34:46Z",
+      "side": 1,
+      "message": "nit: Other apps running in Skolo, e.g. hotspare and powercycle-daemon, already have direct access to the service account JWT, not running as root. Is there any reason metadata_server needs to be more secure (or is it wrong for hotspare, etc. to have access to the JWT)? Or would it be fine and simpler to just provide this app with the JWT and generate tokens directly (i.e. get rid of get_oauth2_token app)?",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
