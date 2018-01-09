@@ -331,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "5ebd2e46_5e941ce3",
+        "filename": "go/metadata/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-09T20:06:00Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "a5a13e9d_d27bbde4",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 73
+      },
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a74ab2ba_a15999ab",
         "filename": "metadata_server/go/metadata_server/main.go",
         "patchSetId": 1
