@@ -497,7 +497,7 @@ func setupScriptToMetadata(vm *Instance) error {
 		if vm.MetadataDownloads == nil {
 			vm.MetadataDownloads = map[string]string{}
 		}
-		vm.MetadataDownloads[SETUP_SCRIPT_PATH_LINUX] = fmt.Sprintf(metadata.METADATA_URL, "instance", SETUP_SCRIPT_KEY_LINUX)
+		vm.MetadataDownloads[SETUP_SCRIPT_PATH_LINUX] = fmt.Sprintf(metadata.METADATA_URL, metadata.LEVEL_INSTANCE, SETUP_SCRIPT_KEY_LINUX)
 	}
 	return scriptToMetadata(vm, key, vm.SetupScript)
 }
