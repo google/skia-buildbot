@@ -82,6 +82,12 @@ func (idx *SearchIndex) GetTile(includeIgnores bool) *tiling.Tile {
 	return idx.tilePair.Tile
 }
 
+// GetIgnoreMatcher returns a matcher for the ignore rules that were used to
+// build the tile with ignores.
+func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
+	return idx.tilePair.IgnoreRules
+}
+
 // Proxy to tally.Tallies.ByTest
 func (idx *SearchIndex) TalliesByTest(includeIgnores bool) map[string]tally.Tally {
 	if includeIgnores {
@@ -256,7 +262,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 				}
 			}
 
-			// If there is tile, re-index everything and forget the
+			// If there is a tile, re-index everything and forget the
 			// individual tests that changed.
 			if tilePair != nil {
 				if err := ixr.indexTilePair(tilePair); err != nil {
