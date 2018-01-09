@@ -189,7 +189,10 @@ func setupStorages(t assert.TestingT, ctx context.Context) (*storage.Storage, ex
 
 	ret.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, ret.ExpectationsStore, ret.GetTileStreamNow(time.Minute))
 
-	_, err = ret.GetLastTileTrimmed()
+	tilePair, err := ret.GetLastTileTrimmed()
 	assert.NoError(t, err)
+
+	assert.True(t, len(tilePair.IgnoreRules) > 0)
+	sklog.Infof("ignore rules: %d", len(tilePair.IgnoreRules))
 	return ret, expStore
 }
