@@ -172,7 +172,7 @@ func TestCalcSummaries(t *testing.T) {
 		Query:   "config=565",
 	}))
 
-	tileWithoutIgnored, err := storage.FilterIgnored(tile, storages.IgnoreStore)
+	tileWithoutIgnored, _, err := storage.FilterIgnored(tile, storages.IgnoreStore)
 	assert.NoError(t, err)
 
 	blamer := blame.New(storages)

@@ -31,14 +31,14 @@ type srIntermediate struct {
 
 // newSrIntermediate creates a new srIntermediate for a digest and adds
 // the given trace to it.
-func newSrIntermediate(test, digest, traceID string, trace tiling.Trace) *srIntermediate {
+func newSrIntermediate(test, digest, traceID string, trace tiling.Trace, params paramtools.ParamSet) *srIntermediate {
 	ret := &srIntermediate{
 		test:   test,
 		digest: digest,
 		params: paramtools.ParamSet{},
 		traces: map[string]*types.GoldenTrace{},
 	}
-	ret.add(traceID, trace, nil)
+	ret.add(traceID, trace, params)
 	return ret
 }
 
@@ -61,10 +61,20 @@ type srInterMap map[string]map[string]*srIntermediate
 // add adds the given information to the srInterMap instance.
 func (sm srInterMap) add(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
 	if testMap, ok := sm[test]; !ok {
-		sm[test] = map[string]*srIntermediate{digest: newSrIntermediate(test, digest, traceID, trace)}
+		sm[test] = map[string]*srIntermediate{digest: newSrIntermediate(test, digest, traceID, trace, params)}
 	} else if entry, ok := testMap[digest]; !ok {
-		testMap[digest] = newSrIntermediate(test, digest, traceID, trace)
+		testMap[digest] = newSrIntermediate(test, digest, traceID, trace, params)
 	} else {
 		entry.add(traceID, trace, params)
 	}
+}
+
+// digests is mostly used for debugging and returns all digests contained in
+// a collection of intermediate search results.
+func (sm srInterMap) numDigests() int {
+	ret := 0
+	for _, digests := range sm {
+		ret += len(digests)
+	}
+	return ret
 }

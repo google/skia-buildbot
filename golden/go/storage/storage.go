@@ -56,6 +56,7 @@ type Storage struct {
 	lastTrimmedTile        *tiling.Tile
 	lastTrimmedIgnoredTile *tiling.Tile
 	lastIgnoreRev          int64
+	lastIgnoreRules        paramtools.ParamMatcher
 	mutex                  sync.Mutex
 	whiteListQuery         url.Values
 }
@@ -148,7 +149,6 @@ func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-
 	if s.NCommits <= 0 {
 		return &types.TilePair{
 			Tile:            tile,
@@ -163,11 +163,12 @@ func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
 		return &types.TilePair{
 			Tile:            s.lastTrimmedIgnoredTile,
 			TileWithIgnores: s.lastTrimmedTile,
+			IgnoreRules:     s.lastIgnoreRules,
 		}, nil
 	}
 
 	// Get the tile without the ignored traces.
-	retIgnoredTile, err := FilterIgnored(tile, s.IgnoreStore)
+	retIgnoredTile, ignoreRules, err := FilterIgnored(tile, s.IgnoreStore)
 	if err != nil {
 		return nil, err
 	}
@@ -176,19 +177,22 @@ func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
 	s.lastIgnoreRev = currentIgnoreRev
 	s.lastTrimmedTile = tile
 	s.lastTrimmedIgnoredTile = retIgnoredTile
+	s.lastIgnoreRules = ignoreRules
 
 	return &types.TilePair{
 		Tile:            s.lastTrimmedIgnoredTile,
 		TileWithIgnores: s.lastTrimmedTile,
+		IgnoreRules:     s.lastIgnoreRules,
 	}, nil
 }
 
 // FilterIgnored returns a copy of the given tile with all traces removed
-// that match the ignore rules in the given ignore store.
-func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*tiling.Tile, error) {
+// that match the ignore rules in the given ignore store. It also returns the
+// ignore rules for later matching.
+func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*tiling.Tile, paramtools.ParamMatcher, error) {
 	ignores, err := ignoreStore.List(false)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get ignores to filter tile: %s", err)
+		return nil, nil, fmt.Errorf("Failed to get ignores to filter tile: %s", err)
 	}
 
 	// Now copy the tile by value.
@@ -197,7 +201,7 @@ func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*til
 	// Then remove traces that should be ignored.
 	ignoreQueries, err := ignore.ToQuery(ignores)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	for id, tr := range ret.Traces {
 		for _, q := range ignoreQueries {
@@ -207,7 +211,12 @@ func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*til
 			}
 		}
 	}
-	return ret, nil
+
+	ignoreRules := make([]paramtools.ParamSet, len(ignoreQueries), len(ignoreQueries))
+	for idx, q := range ignoreQueries {
+		ignoreRules[idx] = paramtools.ParamSet(q)
+	}
+	return ret, ignoreRules, nil
 }
 
 // GetOrUpdateDigestInfo is a helper function that retrieves the DigestInfo for

@@ -39,6 +39,12 @@ func (t TryjobStatus) String() string {
 	return statusStringRepr[t]
 }
 
+// Serialize TryjobStatus as string to JSON.
+// Note: We only output JSON so we omit the UnmarshalJSON function.
+func (t TryjobStatus) MarshalJSON() ([]byte, error) {
+	return []byte("\"" + t.String() + "\""), nil
+}
+
 // Reuse types from the buildbucket package.
 type Parameters = buildbucket.Parameters
 type Properties = buildbucket.Properties
@@ -63,7 +69,7 @@ type Issue struct {
 // contain information about tryjobs for patchsets.
 type IssueDetails struct {
 	*Issue
-	PatchsetDetails []*PatchsetDetail `json:"-"`
+	PatchsetDetails []*PatchsetDetail `json:"patchsets"`
 	clean           bool
 }
 
@@ -72,12 +78,12 @@ func (is *IssueDetails) HasPatchset(patchsetID int64) bool {
 	if is == nil {
 		return false
 	}
-	found := is.findPatchsetx(patchsetID)
+	found := is.findPatchset(patchsetID)
 	return found != nil
 }
 
 // findPatchset returns the patchset for the issue.
-func (is *IssueDetails) findPatchsetx(id int64) *PatchsetDetail {
+func (is *IssueDetails) findPatchset(id int64) *PatchsetDetail {
 	for _, psd := range is.PatchsetDetails {
 		if psd.ID == id {
 			return psd
@@ -95,7 +101,7 @@ func (is *IssueDetails) UpdatePatchsets(patchsets []*PatchsetDetail) {
 	//	fmt.Printf("patchsets: %s", spew.Sdump(patchsets))
 	for _, psd := range patchsets {
 		// Only insert the patchset if it's not already there.
-		if found := is.findPatchsetx(psd.ID); found == nil {
+		if found := is.findPatchset(psd.ID); found == nil {
 			is.clean = false
 			// insert patchset in the right spot.
 			is.PatchsetDetails = append(is.PatchsetDetails, psd)
@@ -114,10 +120,8 @@ func (is *IssueDetails) newer(right interface{}) bool {
 // PatchsetDetails accumulates information about one patchset and the connected
 // tryjobs.
 type PatchsetDetail struct {
-	ID       int64     `json:"id"`
-	Tryjobs  []*Tryjob `json:"tryjobs"   datastore:"-"`
-	JobTotal int64     `json:"jobTotal"  datastore:"-"`
-	JobDone  int64     `json:"jobDone"   datastore:"-"`
+	ID      int64     `json:"id"`
+	Tryjobs []*Tryjob `json:"tryjobs"   datastore:"-"`
 }
 
 // Tryjob captures information about a tryjob in BuildBucket.
