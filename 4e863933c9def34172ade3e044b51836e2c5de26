@@ -107,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "664b5d9a_ccef3581",
+        "filename": "get_oauth2_token/go/get_oauth2_token/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T18:29:37Z",
+      "side": 1,
+      "message": "See hotspare for example.",
+      "parentUuid": "55d65dff_994812a4",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1279831f_0a70f07f",
         "filename": "get_oauth2_token/go/get_oauth2_token/main.go",
         "patchSetId": 1
@@ -271,6 +289,30 @@
     },
     {
       "key": {
+        "uuid": "a5a13e9d_d27bbde4",
+        "filename": "go/metadata/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T18:29:37Z",
+      "side": 1,
+      "message": "Oh, right. Apparently I have a short memory. Maybe use an interface instead of passing projectMetadata and instanceMetadata as maps?",
+      "parentUuid": "1c6be6cf_42fcd4b1",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 73
+      },
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a74ab2ba_a15999ab",
         "filename": "metadata_server/go/metadata_server/main.go",
         "patchSetId": 1
@@ -335,6 +377,24 @@
       "side": 1,
       "message": "My understanding is that it\u0027s not safe to have the JWT sitting on a machine (which is accessible from any machine in the lab) and readable by any user.  I was not aware that we already had the JWT on the machine.  What do those other apps need it for?",
       "parentUuid": "677c14ca_a971c7d4",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "444f0af1_22c6fdc1",
+        "filename": "metadata_server/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-09T18:29:37Z",
+      "side": 1,
+      "message": "+kjlubick",
+      "parentUuid": "c638cc27_0e6769c1",
       "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
