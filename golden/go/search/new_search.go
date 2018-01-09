@@ -4,8 +4,7 @@ import (
 	"sort"
 	"sync"
 
-	"go.skia.org/infra/golden/go/tryjobstore"
-
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -14,6 +13,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -67,12 +67,17 @@ type SRDiffDigest struct {
 // Search(...) function of SearchAPI and intended to be
 // returned as JSON in an HTTP response.
 type NewSearchResponse struct {
-	Digests        []*SRDigest               `json:"digests"`
-	Offset         int                       `json:"offset"`
-	Size           int                       `json:"size"`
-	Commits        []*tiling.Commit          `json:"commits"`
-	Issue          *tryjobstore.IssueDetails `json:"issue"`
-	QueryPatchsets []int64                   `json:"queryPatchsets"`
+	Digests []*SRDigest          `json:"digests"`
+	Offset  int                  `json:"offset"`
+	Size    int                  `json:"size"`
+	Commits []*tiling.Commit     `json:"commits"`
+	Issue   *IssueSearchResponse `json:"issue"`
+}
+
+// IssueSearchResponse contains the information about the code review issue.
+type IssueSearchResponse struct {
+	*tryjobstore.IssueDetails
+	QueryPatchsets []int64 `json:"queryPatchsets"`
 }
 
 // DigestDetails contains details about a digest.
@@ -114,14 +119,13 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	idx := s.ixr.GetIndex()
 
 	var inter srInterMap = nil
-	var issue *tryjobstore.IssueDetails = nil
-	var queryPatchsets []int64 = nil
+	var issueResp *IssueSearchResponse = nil
 
 	// Find the digests (left hand side) we are interested in.
 	if isTryjobSearch {
-		sklog.Infof("Querying issue: %d", q.Issue)
 		// Search the tryjob results for the issue at hand.
-		inter, issue, queryPatchsets, err = s.queryIssue(q, exp)
+		issueResp = &IssueSearchResponse{}
+		inter, issueResp.IssueDetails, issueResp.QueryPatchsets, err = s.queryIssue(q, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
@@ -158,19 +162,16 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 
 	// Return all digests with the selected offset within the result set.
 	return &NewSearchResponse{
-		Digests:        ret,
-		Offset:         offset,
-		Size:           len(displayRet),
-		Commits:        idx.GetTile(false).Commits,
-		Issue:          issue,
-		QueryPatchsets: queryPatchsets,
+		Digests: ret,
+		Offset:  offset,
+		Size:    len(displayRet),
+		Commits: idx.GetTile(false).Commits,
+		Issue:   issueResp,
 	}, nil
 }
 
 // GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
 func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, error) {
-	sklog.Infof("\n\nGOT: %s   %s\n\n", test, digest)
-
 	idx := s.ixr.GetIndex()
 	tile := idx.GetTile(true)
 
@@ -179,7 +180,7 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 		return nil, err
 	}
 
-	oneInter := newSrIntermediate(test, digest, "", nil)
+	oneInter := newSrIntermediate(test, digest, "", nil, nil)
 	for traceId, trace := range tile.Traces {
 		if trace.Params()[types.PRIMARY_KEY_FIELD] != test {
 			continue
@@ -242,10 +243,14 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(q *Query, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
+func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
 	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true, q.Patchsets)
 	if err != nil {
 		return nil, nil, nil, err
+	}
+
+	if issue == nil {
+		return nil, nil, nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
 	}
 
 	queryPatchsets := q.Patchsets
@@ -261,10 +266,37 @@ func (s *SearchAPI) queryIssue(q *Query, exp ExpSlice) (srInterMap, *tryjobstore
 		return nil, nil, nil, err
 	}
 
+	// Filter the ignored results by setting the results to nil.
+	if !q.IncludeIgnores {
+		ignoreMatcher := idx.GetIgnoreMatcher()
+		for _, oneTryjob := range tjResults {
+			for idx, trj := range oneTryjob {
+				if ignoreMatcher.MatchAny(trj.Params) {
+					oneTryjob[idx] = nil
+				}
+			}
+		}
+	}
+
 	ret := srInterMap{}
+	addFn := ret.add
+	if !q.IncludeMaster {
+		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
+			// Check if the tile contains a known digests.
+			if dMap, ok := talliesByTest[test]; ok {
+				if _, ok = dMap[digest]; !ok {
+					ret.add(test, digest, traceID, trace, params)
+				}
+			}
+		}
+	}
+
 	for _, oneTryjob := range tjResults {
 		for _, tjr := range oneTryjob {
-			ret.add(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
+			if tjr != nil {
+				addFn(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
+			}
 		}
 	}
 

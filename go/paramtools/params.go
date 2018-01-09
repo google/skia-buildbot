@@ -159,3 +159,41 @@ func (p ParamSet) Normalize() {
 		sort.Strings(arr)
 	}
 }
+
+// Matches returns true if the params in 'p' match the sets given in 'right'.
+// For every key in 'p' there has to be a matching key in 'right' and
+// the intersection of their values must be not empty.
+func (p ParamSet) Matches(right ParamSet) bool {
+	for key, vals := range p {
+		rightVals, ok := right[key]
+		if !ok {
+			return false
+		}
+
+		found := false
+		for _, targetVal := range vals {
+			if util.In(targetVal, rightVals) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+// ParamMatcher is a list of Paramsets that can be matched against. The primary
+// purpose is to match against a set of rules, e.g. ignore rules.
+type ParamMatcher []ParamSet
+
+// MatchAny returns true if the given Paramset matches any of the rules in the matcher.
+func (p ParamMatcher) MatchAny(params ParamSet) bool {
+	for _, oneRule := range p {
+		if oneRule.Matches(params) {
+			return true
+		}
+	}
+	return false
+}
