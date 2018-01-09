@@ -1,6 +1,7 @@
 package tryjobstore
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -43,4 +44,12 @@ func TestIssueDetails(t *testing.T) {
 	// Make sure we are sorted.
 	testutils.AssertDeepEqual(t, []*PatchsetDetail{seconPS, firstPS, thirdPS}, issue.PatchsetDetails)
 	assert.NoError(t, nil)
+}
+
+func TestSerialize(t *testing.T) {
+	testutils.SmallTest(t)
+	status := TryjobStatus(TRYJOB_INGESTED)
+	jsonStatus, err := json.Marshal(status)
+	assert.NoError(t, err)
+	assert.Equal(t, "\"ingested\"", string(jsonStatus))
 }

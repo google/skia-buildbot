@@ -193,3 +193,54 @@ func TestParamSetCopy(t *testing.T) {
 
 	assert.Equal(t, ParamSet{}, ParamSet{}.Copy())
 }
+
+func TestMatching(t *testing.T) {
+	testutils.SmallTest(t)
+	recParams := ParamSet{
+		"foo": {"1", "2"},
+		"bar": {"a", "b", "c"},
+		"baz": {"u", "v", "w"},
+	}
+
+	rule1 := ParamSet{"foo": {"1"}}
+	rule2 := ParamSet{"bar": {"e"}}
+	rule3 := ParamSet{"baz": {"v", "w"}}
+	rule4 := ParamSet{"x": {"something"}}
+	empty := ParamSet{}
+
+	assert.True(t, ParamMatcher{rule1}.MatchAny(recParams))
+	assert.False(t, ParamMatcher{rule2}.MatchAny(recParams))
+	assert.True(t, ParamMatcher{rule3}.MatchAny(recParams))
+	assert.False(t, ParamMatcher{rule4}.MatchAny(recParams))
+	assert.True(t, ParamMatcher{empty}.MatchAny(recParams))
+
+	assert.True(t, ParamMatcher{rule1, rule2}.MatchAny(recParams))
+	assert.True(t, ParamMatcher{rule1, rule3}.MatchAny(recParams))
+	assert.True(t, ParamMatcher{rule2, rule3}.MatchAny(recParams))
+	assert.False(t, ParamMatcher{rule2, rule4}.MatchAny(recParams))
+	assert.True(t, ParamMatcher{rule2, rule4, empty}.MatchAny(recParams))
+
+	// Test with some realistice data.
+	testVal := ParamSet{
+		"cpu_or_gpu":       {"GPU"},
+		"config":           {"gles", "glesdft"},
+		"ext":              {"png"},
+		"name":             {"drrect_small_inner"},
+		"source_type":      {"gm"},
+		"cpu_or_gpu_value": {"GT7800"},
+		"os":               {"iOS"},
+		"gamma_correct":    {"no"},
+		"configuration":    {"Release"},
+		"model":            {"iPadPro"},
+		"compiler":         {"Clang"},
+		"arch":             {"arm64"},
+	}
+
+	testRule := ParamSet{
+		"config":      {"gldft", "glesdft"},
+		"model":       {"AlphaR2", "AndroidOne", "ShuttleC", "ZBOX", "iPadPro", "iPhone7"},
+		"name":        {"drrect_small_inner"},
+		"source_type": {"gm"},
+	}
+	assert.True(t, ParamMatcher{testRule}.MatchAny(testVal))
+}
