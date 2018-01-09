@@ -434,6 +434,24 @@
       "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1020b26a_f370b894",
+        "filename": "metadata_server/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-09T18:57:13Z",
+      "side": 1,
+      "message": "Do they actually need the JWT itself, or could they use a token?",
+      "parentUuid": "d5929371_562fe658",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
