@@ -132,7 +132,7 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatch
 		}
 
 		for _, tj := range tryjobs {
-			ps := target.findPatchsetx(tj.PatchsetID)
+			ps := target.findPatchset(tj.PatchsetID)
 			if ps == nil {
 				return nil, sklog.FmtErrorf("Unable to find patchset %d in issue %d:", tj.PatchsetID, target.ID)
 			}

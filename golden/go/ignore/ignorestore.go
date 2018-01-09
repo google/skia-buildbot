@@ -11,6 +11,8 @@ import (
 // set of parameters.
 type RuleMatcher func(map[string]string) ([]*IgnoreRule, bool)
 
+type SetMatcher func(map[string][]string) bool
+
 // IgnoreStore stores and matches ignore rules.
 type IgnoreStore interface {
 	// Create adds a new rule to the ignore store.

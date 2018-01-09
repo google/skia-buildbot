@@ -159,3 +159,35 @@ func (p ParamSet) Normalize() {
 		sort.Strings(arr)
 	}
 }
+
+func (p ParamSet) Matches(right ParamSet) bool {
+	for key, vals := range p {
+		rightVals, ok := right[key]
+		if !ok {
+			return false
+		}
+
+		found := false
+		for _, targetVal := range vals {
+			if util.In(targetVal, rightVals) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+type ParamMatcher []ParamSet
+
+func (p ParamMatcher) Match(params ParamSet) bool {
+	for _, oneRule := range p {
+		if oneRule.Matches(params) {
+			return true
+		}
+	}
+	return false
+}
