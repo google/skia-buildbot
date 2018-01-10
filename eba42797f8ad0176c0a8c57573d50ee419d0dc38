@@ -93,6 +93,30 @@
       "revId": "eba42797f8ad0176c0a8c57573d50ee419d0dc38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7bdf234a_c15b1db5",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-10T15:58:13Z",
+      "side": 1,
+      "message": "Maybe we should just call it \"swarm_out_dir\" like in recipes?",
+      "parentUuid": "9745df93_4e58e22f",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "eba42797f8ad0176c0a8c57573d50ee419d0dc38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
