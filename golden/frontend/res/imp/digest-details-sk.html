@@ -331,6 +331,10 @@
           type: String,
         },
 
+        issue: {
+          type: Number,
+        },
+
         _negIsClosest: {
           type: Boolean,
           value: false
@@ -367,9 +371,8 @@
 
       triggerTriage: function (status) {
         this.set('$.triageControls.value', status);
-        var detail = gold.makeTriageQuery(this.$.triageControls.dataset.test,
-                                          this.$.triageControls.dataset.digest,
-                                          status);
+        var detail = new gold.TriageQuery(this.$.triageControls.dataset.test,
+                                          this.$.triageControls.dataset.digest);
         this.fire('triage', detail);
       },
 
@@ -391,9 +394,10 @@
 
       _triageChangeHandler: function(e) {
         // Convert the change event from the triage button into a more detailed triage event.
-        var detail = gold.makeTriageQuery(this.details.test,
+        var detail = new gold.TriageQuery(this.details.test,
                                           this.details.digest,
-                                          this.details.status);
+                                          this.details.status,
+                                          this.issue);
         this.fire('triage', detail);
       },
 
