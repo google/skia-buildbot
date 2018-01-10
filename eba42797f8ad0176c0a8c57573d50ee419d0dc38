@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d7c5a1da_2b6d25de",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-10T13:46:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "826c0d65_acf3fc43",
+      "range": {
+        "startLine": 23,
+        "startChar": 62,
+        "endLine": 23,
+        "endChar": 71
+      },
+      "revId": "eba42797f8ad0176c0a8c57573d50ee419d0dc38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "78b7dc3c_a67c3649",
         "filename": "task_scheduler/go/scheduling/task_candidate.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-09T21:01:44Z",
       "side": 1,
       "message": "I don\u0027t really understand when \"isolated\" with-d vs. \"isolate\" without-d is appropriate, so I\u0027m going to assume this is right despite what I would guess.",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "eba42797f8ad0176c0a8c57573d50ee419d0dc38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9745df93_4e58e22f",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-10T13:46:02Z",
+      "side": 1,
+      "message": "TL;DR: I don\u0027t really know.\n\nI used this spelling here because I want to replace our usage of the ${ISOLATED_OUTDIR} placeholder, which points to an output dir provided by Swarming whose location is not predictable, with a subdir of the Swarming task workdir, which is predictable.  This is all to work around a weird issue resulting from interplay between kitchen and run_isolated.\n\nWe have .isolate files in the repo which specify which files to send to the task.  Running the \"isolate\" binary on them causes those files to be hashed and maybe uploaded to the server.  The result of that is a .isolated file, which contains the hash of everything that was uploaded, plus some metadata.  So IIUC \"isolate\" means \"these are things I\u0027d like to be uploaded\", and \"isolated\" means, \"these are things that have been uploaded\".  In this case, it seems like \"isolate\" is more appropriate, so I don\u0027t know why it\u0027s named with the D.",
+      "parentUuid": "78b7dc3c_a67c3649",
       "range": {
         "startLine": 25,
         "startChar": 8,
