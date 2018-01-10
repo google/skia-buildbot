@@ -156,7 +156,8 @@
                       triage
                       details="[[item]]"
                       commits="[[data.commits]]"
-                      metric="[[_state.metric]]">
+                      metric="[[_state.metric]]"
+                      issue="[[data.issue.id]]">
               </digest-details-sk>
             </template>
           </detail-list-sk>
@@ -320,7 +321,8 @@
             triageList.push([digests[i].test, digests[i].digest, targetStatus]);
           }
         }
-        var query = gold.makeTriageQuery(triageList);
+        var query = new gold.TriageQuery(triageList);
+        query.setIssue(sk.robust_get(this._issue, ["id"]));
         this.$.activityBar.startSpinner("Triaging ...");
         sk.post('/json/triage', JSON.stringify(query)).then(function() {
           this.$.activityBar.stopSpinner();
@@ -343,6 +345,7 @@
           this.set('_uniqueTests', this._getUniqueTests(displayData.digests));
 
           this.set('data', displayData);
+          this.set('_issue', json.issue);
           this.$.trybotControls.setIssue(json.issue);
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
