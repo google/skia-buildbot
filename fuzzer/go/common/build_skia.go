@@ -65,7 +65,7 @@ func buildOrGetCachedHarness(ctx context.Context, buildName string, buildType bu
 	}
 	// This makes crashing because we ran out of memory or because someone called SK_ABORT turn
 	// into an exit(1), so we don't count it as a "crash".
-	buildArgs = append(buildArgs, `extra_cflags=["-DIS_FUZZING"]`)
+	buildArgs = append(buildArgs, `extra_cflags=["-DIS_FUZZING", "-DIS_FUZZING_AFL"]`)
 	// System freetype has many MSAN-like bugs, which can throw off our fuzzer. Build our own
 	// (newer) freetype to minimize these.
 	buildArgs = append(buildArgs, "skia_use_system_freetype2=false")
