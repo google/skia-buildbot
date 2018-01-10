@@ -22,6 +22,30 @@
       "revId": "348576e6bae4bd8f0dca92db40f4abe9aafbbcfc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbe9625d_ab51c22e",
+        "filename": "golden/frontend/res/js/gold.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-10T20:43:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a1e2d867_218dcb12",
+      "range": {
+        "startLine": 262,
+        "startChar": 18,
+        "endLine": 262,
+        "endChar": 35
+      },
+      "revId": "348576e6bae4bd8f0dca92db40f4abe9aafbbcfc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
