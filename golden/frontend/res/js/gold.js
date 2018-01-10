@@ -221,14 +221,19 @@ var gold = gold || {};
     return ISSUE_TRACKER_URL + '/detail?id=' + issueID;
   };
 
-  // makeTriageQuery returns an object that can be sent as a query to the
-  // backend to triage digests. The arguments can either be a triple:
-  //    makeTriageQuery(testName, digests, status)
-  // or an array containing triples (as arrays) with the same information.
-  // Note: 'digests' can either be a single string or an array of strings.
-  gold.makeTriageQuery = function(triageList) {
-    if (arguments.length === 3) {
+  // TriageQuery returns an object that can be sent as a query to the
+  // backend to triage digests. The arguments can either be a 4-tuple:
+  //    makeTriageQuery(testName, digests, status, issue)
+  // or a pair:
+  //    makeTriageQuery(arr, issue)
+  // where 'arr' is an array of triples: <testName, digests, status>.
+  // Note: 'digests' can either be a single string or an array.
+  // 'issue' is the id of the code review issue for which we want to triage.
+  // It has to be a positive integer (> 0) to be considered.
+  gold.TriageQuery = function(triageList, issue) {
+    if (arguments.length > 2) {
       triageList = [[arguments[0], arguments[1], arguments[2]]];
+      issue = arguments[3];
     }
 
     var ret = {};
@@ -248,9 +253,16 @@ var gold = gold || {};
         found[digests[i]] = status;
       }
     });
-    return {
-      testDigestStatus: ret
-    };
+
+    this.testDigestStatus = ret;
+    this.setIssue(issue);
+  };
+
+  // setIssue sets the correct value for this TriageQuery instance. If
+  // issue is not a positive number the issue will be set to 0 indicating that
+  // we want to set the expectations for the master branch.
+  gold.TriageQuery.prototype.setIssue = function(issue) {
+    this.issue = ((typeof(issue) === 'number') && (issue > 0)) ? issue : 0;
   };
 
   // flattenTriageQuery is the inverse operation of makeTriageQuery.

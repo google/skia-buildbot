@@ -204,7 +204,7 @@
 
         _handleBulkTriageChange: function(ev) {
           ev.stopPropagation();
-          var detail = gold.makeTriageQuery(this._data.test, this._digestList, ev.detail);
+          var detail = new gold.TriageQuery(this._data.test, this._digestList, ev.detail);
           this.fire('triage', detail);
         },
 
