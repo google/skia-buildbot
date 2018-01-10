@@ -355,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "21e0a98a_9d0698cf",
+        "filename": "go/metadata/server.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-10T16:28:59Z",
+      "side": 1,
+      "message": "Metadata served by the jumphosts would only be project level metadata, the instance level can be dropped.",
+      "parentUuid": "5ebd2e46_5e941ce3",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 73
+      },
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a74ab2ba_a15999ab",
         "filename": "metadata_server/go/metadata_server/main.go",
         "patchSetId": 1
@@ -473,6 +497,24 @@
       "side": 1,
       "message": "Do they actually need the JWT itself, or could they use a token?",
       "parentUuid": "d5929371_562fe658",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63938e74_1d426bc7",
+        "filename": "metadata_server/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-10T16:28:59Z",
+      "side": 1,
+      "message": "If our \u0027go/auth\u0027 package doesn\u0027t support using a straight access token we can always update it so that it does. Given that, I agree that if we can just store an access token in the metadata and use that for backup then we should be moving to that.",
+      "parentUuid": "1020b26a_f370b894",
       "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
