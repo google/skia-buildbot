@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "570209f7_169335ae",
+        "filename": "golden/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-10T17:31:27Z",
+      "side": 1,
+      "message": "A 30 TB persistent SSD?  Is that necessary?",
+      "range": {
+        "startLine": 51,
+        "startChar": 14,
+        "endLine": 51,
+        "endChar": 20
+      },
+      "revId": "f62ab5fecf5e64fda337943b8df3ca8830ea79d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
