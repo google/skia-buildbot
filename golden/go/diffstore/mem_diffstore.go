@@ -266,21 +266,21 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		path := r.URL.Path
 		idx := strings.Index(path, "/")
 		if idx == -1 {
-			http.NotFound(w, r)
+			noCacheNotFound(w, r)
 			return
 		}
 		dir := path[:idx]
 
 		// Limit the requests to directories with the images and diff images.
 		if (dir != DEFAULT_DIFFIMG_DIR_NAME) && (dir != DEFAULT_IMG_DIR_NAME) {
-			http.NotFound(w, r)
+			noCacheNotFound(w, r)
 			return
 		}
 
 		// Get the file that was requested and verify that it's a valid PNG file.
 		file := path[idx+1:]
 		if (len(file) <= len(dotExt)) || (!strings.HasSuffix(file, dotExt)) {
-			http.NotFound(w, r)
+			noCacheNotFound(w, r)
 			return
 		}
 
@@ -290,7 +290,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		if dir == DEFAULT_IMG_DIR_NAME {
 			// Validate the requested image ID.
 			if !m.mapper.IsValidImgID(imgID) {
-				http.NotFound(w, r)
+				noCacheNotFound(w, r)
 				return
 			}
 
@@ -298,7 +298,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 			if !m.imgLoader.IsOnDisk(imgID) {
 				if _, err = m.imgLoader.Get(diff.PRIORITY_NOW, []string{imgID}); err != nil {
 					sklog.Errorf("Errorf retrieving digests: %s", imgID)
-					http.NotFound(w, r)
+					noCacheNotFound(w, r)
 					return
 				}
 			}
@@ -306,7 +306,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		} else {
 			// Validate the requested diff image ID.
 			if !m.mapper.IsValidDiffImgID(imgID) {
-				http.NotFound(w, r)
+				noCacheNotFound(w, r)
 				return
 			}
 
@@ -324,6 +324,12 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 
 	// The above function relies on the URL prefix being stripped.
 	return http.StripPrefix(urlPrefix, http.HandlerFunc(handlerFunc)), nil
+}
+
+// noCacheNotFound disables caching and returns a 404.
+func noCacheNotFound(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	http.NotFound(w, r)
 }
 
 // diffMetricsWorker calculates the diff if it's not in the cache.
