@@ -248,7 +248,7 @@ func TestParseGCSPackage_AssertDuringRendering(t *testing.T) {
 
 	result := ParseGCSPackage(g)
 	expectedDebugFlags := ASANCrashed | ClangCrashed | AssertionViolated
-	expectedReleaseFlags := ASANCrashed | ASAN_HeapBufferOverflow | SKPICTURE_DuringRendering
+	expectedReleaseFlags := ASANCrashed | ASAN_HeapBufferOverflow
 	if result.Debug.Flags != expectedDebugFlags {
 		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
 	}
@@ -365,8 +365,8 @@ func TestParseGCSPackage_BadAlloc(t *testing.T) {
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := BadAlloc | ASANCrashed | ClangCrashed
-	expectedReleaseFlags := BadAlloc | ASANCrashed | ClangCrashed
+	expectedDebugFlags := BadAlloc
+	expectedReleaseFlags := BadAlloc
 	if result.Debug.Flags != expectedDebugFlags {
 		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
 	}
@@ -556,8 +556,8 @@ func TestParseGCSPackage_BadAllocNoCrash(t *testing.T) {
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := BadAlloc | ClangCrashed | ASANCrashed
-	expectedReleaseFlags := BadAlloc | ClangCrashed | ASANCrashed
+	expectedDebugFlags := BadAlloc
+	expectedReleaseFlags := BadAlloc
 	if result.Debug.Flags != expectedDebugFlags {
 		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
 	}

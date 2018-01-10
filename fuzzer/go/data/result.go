@@ -57,11 +57,10 @@ const (
 	ASAN_HeapBufferOverflow
 	ASAN_StackBufferOverflow
 	ASAN_HeapUseAfterFree
-
-	SKPICTURE_DuringRendering
 )
 
-var _GREY_FLAGS = TerminatedGracefully | TimedOut
+// BadAlloc means Out of Memory, which is not a thing fuzzing cares about.
+var _GREY_FLAGS = TerminatedGracefully | TimedOut | BadAlloc
 
 var _FLAG_NAMES = []string{
 	"TerminatedGracefully",
@@ -78,8 +77,6 @@ var _FLAG_NAMES = []string{
 	"ASAN_heap-buffer-overflow",
 	"ASAN_stack-buffer-overflow",
 	"ASAN_heap-use-after-free",
-
-	"SKPICTURE_DuringRendering",
 }
 
 // ToHumanReadableFlags creates a sorted slice of strings that represents the flags.  The slice
@@ -184,11 +181,9 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 		f := FuzzFlag(0)
 		if strings.Contains(data.Asan, "AddressSanitizer failed to allocate") {
 			f |= BadAlloc
-			f |= ASANCrashed
 		}
 		if strings.Contains(data.StdErr, "std::bad_alloc") {
 			f |= BadAlloc
-			f |= ClangCrashed
 		}
 		if f != 0 {
 			return f
@@ -214,7 +209,7 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 func parseAsan(category, asan string) FuzzFlag {
 	f := FuzzFlag(0)
 	if strings.Contains(asan, "AddressSanitizer failed to allocate") {
-		f |= BadAlloc
+		return BadAlloc
 	}
 	if !asanCrashed(asan) {
 		return f
@@ -239,10 +234,11 @@ func parseAsan(category, asan string) FuzzFlag {
 	// Split off the stderr that happened before the crash.
 	errs := strings.Split(asan, "=================")
 	if len(errs) > 0 {
-		err := errs[0]
-		if category == "skpicture" && strings.Contains(err, "Rendering") {
-			f |= SKPICTURE_DuringRendering
-		}
+		// err := errs[0]
+		// An example on doing a category specific parsing
+		// if category == "skpicture" && strings.Contains(err, "Rendering") {
+		// 	f |= SKPICTURE_DuringRendering
+		// }
 	}
 	return f
 }
@@ -257,7 +253,7 @@ func asanCrashed(asan string) bool {
 func parseCatchsegv(category, dump, err string) FuzzFlag {
 	f := FuzzFlag(0)
 	if strings.Contains(err, "std::bad_alloc") {
-		f |= BadAlloc
+		return BadAlloc
 	}
 	if !clangDumped(dump) && strings.Contains(err, "[terminated]") {
 		return f
@@ -265,9 +261,6 @@ func parseCatchsegv(category, dump, err string) FuzzFlag {
 	f |= ClangCrashed
 	if strings.Contains(err, "failed assertion") {
 		f |= AssertionViolated
-	}
-	if category == "skpicture" && strings.Contains(err, "Rendering") {
-		f |= SKPICTURE_DuringRendering
 	}
 	return f
 }
