@@ -518,6 +518,24 @@
       "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e79af205_72d29ab7",
+        "filename": "metadata_server/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-10T18:10:10Z",
+      "side": 1,
+      "message": "Just to confirm, the following is the plan, correct?\n1. Add the metadata server on jumphosts.\n2. Implement a TokenSource that queries the jumphost metadata server.\n3. Use the new TokenSource for apps that need service account in Skolo.",
+      "parentUuid": "63938e74_1d426bc7",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
