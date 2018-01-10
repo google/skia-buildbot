@@ -536,6 +536,24 @@
       "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7387041a_f2e95fda",
+        "filename": "metadata_server/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-10T18:41:25Z",
+      "side": 1,
+      "message": "Seems reasonable to me.  My only concern is that we only want to serve tokens for a single service account on a given jumphost.  Otherwise we have to try to enforce that certain machines get a certain account but not access to others.  That combined with the fact that we want the service accounts used by bots to have zero permissions may require us to do something else if there are apps that need more permissions.",
+      "parentUuid": "e79af205_72d29ab7",
+      "revId": "4e863933c9def34172ade3e044b51836e2c5de26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
