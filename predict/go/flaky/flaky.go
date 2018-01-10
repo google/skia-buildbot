@@ -1,0 +1,224 @@
+// flaky is a module for tracking which bots are flaky and for which time periods.
+//
+// This is more complicated than it seems because Status only tracks if a bot is
+// currently marked as flaky, so we need to periodically poll Status for all the
+// flaky bots and notice when a bot is no longer flagged as flaky.
+
+package flaky
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/predict/go/dsconst"
+	"google.golang.org/api/iterator"
+)
+
+// FlakyProvider is a type for a func that returns the current list of bots that are flaky and when they were flagged.
+type FlakyProvider func() (map[string]time.Time, error)
+
+type TimeRange struct {
+	Begin time.Time
+	End   time.Time
+}
+
+// In returns true if the timestamp fits within the open
+// interval of TimeRange, i.e. ts in (Begin, End).
+func (t *TimeRange) In(ts time.Time) bool {
+	sklog.Info(ts, t.Begin, t.End)
+	return ts.After(t.Begin) && ts.Before(t.End)
+}
+
+type Flaky map[string][]*TimeRange
+
+// WasFlaky returns true of the given bot was flaky at the given time.
+func (f Flaky) WasFlaky(botname string, ts time.Time) bool {
+	if ranges, ok := f[botname]; ok {
+		sklog.Infof("Testing range for bot %s", botname)
+		for _, tr := range ranges {
+			if tr.In(ts) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (f Flaky) Len() int {
+	return len(f)
+}
+
+// FlakyBuilder tracks flaky information and builds 'Flaky' instances.
+type FlakyBuilder struct {
+	provider FlakyProvider
+}
+
+func NewFlakyBuilder(provider FlakyProvider) *FlakyBuilder {
+	return &FlakyBuilder{
+		provider: provider,
+	}
+}
+
+type timeRangeStored struct {
+	Begin   time.Time
+	End     time.Time
+	BotName string
+	Open    bool
+}
+
+func (fb *FlakyBuilder) createOrUpdateFlaky(botname string, begin, end time.Time, open bool) error {
+	begin = begin.UTC()
+	end = end.UTC()
+	defer metrics2.FuncTimer().Stop()
+
+	ctx := context.Background()
+	query := ds.NewQuery(dsconst.FLAKY_RANGES).
+		Filter("Open =", true).
+		Filter("BotName =", botname)
+	slice_stored := []*timeRangeStored{}
+	keys, err := ds.DS.GetAll(ctx, query, &slice_stored)
+	if len(slice_stored) == 1 {
+		stored := slice_stored[0]
+		stored.Begin = begin
+		stored.End = end
+		stored.Open = open
+		_, err = ds.DS.Put(ctx, keys[0], stored)
+		if err != nil {
+			return fmt.Errorf("Failed to update time range %v: %s", stored, err)
+		}
+	} else if len(slice_stored) == 0 {
+		stored := &timeRangeStored{
+			Begin:   begin,
+			End:     end,
+			BotName: botname,
+			Open:    open,
+		}
+		_, err = ds.DS.Put(ctx, ds.NewKey(dsconst.FLAKY_RANGES), stored)
+		if err != nil {
+			return fmt.Errorf("Failed to create time range %v: %s", stored, err)
+		}
+	} else {
+		return fmt.Errorf("Got wrong number of matches for Open query: %s", botname)
+	}
+
+	return nil
+}
+
+// closeFlaky closes an open range for the given bot.
+func (fb *FlakyBuilder) closeFlaky(botname string) error {
+	defer metrics2.FuncTimer().Stop()
+
+	ctx := context.Background()
+	query := ds.NewQuery(dsconst.FLAKY_RANGES).Filter("Open =", true).Filter("BotName =", botname)
+	slice_stored := []*timeRangeStored{}
+	keys, err := ds.DS.GetAll(ctx, query, &slice_stored)
+	if len(slice_stored) == 1 {
+		stored := slice_stored[0]
+		stored.Open = false
+		_, err = ds.DS.Put(ctx, keys[0], stored)
+		if err != nil {
+			return fmt.Errorf("Failed to update time range %v: %s", stored, err)
+		}
+	}
+	return nil
+}
+
+// allOpenFlakyBots returns all bots that currently have an open flaky range.
+func (fb *FlakyBuilder) allOpenFlakyBots() (map[string]bool, error) {
+	ret := map[string]bool{}
+	ctx := context.Background()
+	query := ds.NewQuery(dsconst.FLAKY_RANGES).Filter("Open =", true)
+	it := ds.DS.Run(ctx, query)
+	row := &timeRangeStored{}
+	for {
+		_, err := it.Next(row)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed loading flaky ranges: %s", err)
+		}
+		ret[row.BotName] = false
+	}
+	return ret, nil
+}
+
+// Update uses the flakyProvider and updates the time ranges of all known flaky bots.
+func (fb *FlakyBuilder) Update() error {
+	sklog.Info("Getting flakes from provider.")
+	flakes, err := fb.provider()
+	if err != nil {
+		return fmt.Errorf("Failed to get current comments: %s", err)
+	}
+	sklog.Info("Retrieved flakes from provider.")
+
+	// First, list all bots that are Open.
+	open, err := fb.allOpenFlakyBots()
+	if err != nil {
+		return fmt.Errorf("Failed to get all open flaky bots: %s", err)
+	}
+	stillOpen := map[string]bool{}
+	now := time.Now()
+
+	// Loop over all the flakes and add/update them in the datastore.
+	for botname, begin := range flakes {
+		stillOpen[botname] = true
+		err := fb.createOrUpdateFlaky(botname, begin, now, true)
+		if err != nil {
+			return fmt.Errorf("Failed to update flaky bot %s: %s", botname, err)
+		}
+	}
+
+	// Close all bots that were Open but aren't in 'flakes'.
+	for botname, _ := range open {
+		if !stillOpen[botname] {
+			err := fb.closeFlaky(botname)
+			if err != nil {
+				return fmt.Errorf("Failed to close flaky bot %s: %s", botname, err)
+			}
+		}
+	}
+	return nil
+}
+
+// Build returns a 'Flaky' the covers the given time range.
+//
+// The End of each open TimeRange will be 'now'.
+// The value for since must be a positive duration.
+func (fb *FlakyBuilder) Build(since time.Duration, now time.Time) (Flaky, error) {
+	now = now.UTC()
+	defer metrics2.FuncTimer().Stop()
+	ret := Flaky{}
+	ctx := context.Background()
+
+	// Find all the timeRangeStored's that are within the given time range.
+	timeSince := now.Add(-1 * since)
+	query := ds.NewQuery(dsconst.FLAKY_RANGES).Filter("End >=", timeSince).Order("End")
+	it := ds.DS.Run(ctx, query)
+	row := &timeRangeStored{}
+	for {
+		_, err := it.Next(row)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed loading flaky ranges: %s", err)
+		}
+		end := row.End
+		if row.Open {
+			end = now
+		}
+		tr := &TimeRange{
+			Begin: row.Begin,
+			End:   end,
+		}
+		if _, ok := ret[row.BotName]; !ok {
+			ret[row.BotName] = []*TimeRange{tr}
+		} else {
+			ret[row.BotName] = append(ret[row.BotName], tr)
+		}
+	}
+	return ret, nil
+}
