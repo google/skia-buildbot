@@ -44,7 +44,7 @@ ALERT DiskSpaceLow
   }
 
 ALERT DiskSpaceLow
-  IF df_complex_free{resource=~"df-mnt-pd0|df-mnt-dds0"} < 1e10
+  IF df_complex_free{resource=~"df-mnt-.*"} < 1e10
   FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
@@ -472,6 +472,13 @@ ALERT GoldErrorRate
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     description = "The error rate for Gold {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
+  }
+
+ALERT GoldDiffServerErrorRate
+  IF rate(num_log_lines{level="ERROR", instance="skia-diffserver-prod:20000"}[2m]) > 1
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    description = "The error rate for Gold Diffserver {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 ALERT GoldIngestionStalled
