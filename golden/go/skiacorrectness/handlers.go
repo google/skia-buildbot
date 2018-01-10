@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
@@ -450,20 +449,13 @@ func jsonIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	jsonIgnoresHandler(w, r)
 }
 
-// TODO(stephana): Triage by query is not used on the front-end and we should
-// see if we can remove it from jsonTriageHandler.
-
 // TriageRequest is the form of the JSON posted to jsonTriageHandler.
 type TriageRequest struct {
 	// TestDigestStatus maps status to test name and digests as: map[testName][digest]status
 	TestDigestStatus map[string]map[string]string `json:"testDigestStatus"`
-	All              bool                         `json:"all"`     // Ignore TestDigestStatus and instead use the query, filter, and include.
-	Test             string                       `json:"qTest"`   // Name of the test to query for.
-	Status           string                       `json:"qStatus"` // Status for the digests in the query result.
-	Query            string                       `json:"query"`
-	Filter           string                       `json:"filter"`
-	Include          bool                         `json:"include"` // Include ignored digests.
-	Head             bool                         `json:"head"`    // Only include digests at head if true.
+
+	// Issue is the id of the code review issue for which we want to change the expectations.
+	Issue int64 `json:"issue"`
 }
 
 // jsonTriageHandler handles a request to change the triage status of one or more
@@ -487,48 +479,31 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 
 	var tc map[string]types.TestClassification
 
-	// Build the expectations change request from filter, query, and include.
-	if req.All {
-		exp, err := storages.ExpectationsStore.Get()
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to load expectations.")
-			return
-		}
-
-		e := exp.Tests[req.Test]
-		digests, err := filterDigests(req.Filter, req.Query, req.Test, e, req.Include, req.Head)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to filter requested digests.")
-			return
-		}
-		// Label the digests.
-		labelledDigests := map[string]types.Label{}
-		for _, d := range digests {
-			labelledDigests[d] = types.LabelFromString(req.Status)
-		}
-
-		tc = map[string]types.TestClassification{
-			req.Test: labelledDigests,
-		}
-	} else {
-		// Build the expecations change request from the list of digests passed in.
-		tc = make(map[string]types.TestClassification, len(req.TestDigestStatus))
-		for test, digests := range req.TestDigestStatus {
-			labeledDigests := make(map[string]types.Label, len(digests))
-			for d, label := range digests {
-				if !types.ValidLabel(label) {
-					httputils.ReportError(w, r, nil, "Receive invalid label in triage request.")
-					return
-				}
-				labeledDigests[d] = types.LabelFromString(label)
+	// Build the expecations change request from the list of digests passed in.
+	tc = make(map[string]types.TestClassification, len(req.TestDigestStatus))
+	for test, digests := range req.TestDigestStatus {
+		labeledDigests := make(map[string]types.Label, len(digests))
+		for d, label := range digests {
+			if !types.ValidLabel(label) {
+				httputils.ReportError(w, r, nil, "Receive invalid label in triage request.")
+				return
 			}
-			tc[test] = labeledDigests
+			labeledDigests[d] = types.LabelFromString(label)
 		}
+		tc[test] = labeledDigests
 	}
 
-	if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
-		httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
-		return
+	// If it's an issue set the expectations for the given issue.
+	if req.Issue > 0 {
+		if err := storages.TryjobStore.AddChange(req.Issue, tc, user); err != nil {
+			httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
+			return
+		}
+	} else {
+		if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
+			httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -536,58 +511,6 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 	if err := enc.Encode(map[string]string{}); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
-}
-
-// TODO(stephana): Replace filterDigests with a call to search where this
-// functionality is already implementd but not exposed as a function.
-
-// filterDigests returns a slice of digests based on the filter and
-// queryString passed in.
-// If head is true then only return digests that appear at head.
-// If includeIgnores it true, ignored traces are included.
-func filterDigests(filter, queryString, testName string, e types.TestClassification, includeIgnores bool, head bool) ([]string, error) {
-	query, err := url.ParseQuery(queryString)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
-	}
-	query[types.PRIMARY_KEY_FIELD] = []string{testName}
-
-	idx := ixr.GetIndex()
-	t := timer.New("finding digests")
-	digests := map[string]int{}
-	if head {
-		tile := idx.GetTile(includeIgnores)
-		lastCommitIndex := tile.LastCommitIndex()
-		for _, tr := range tile.Traces {
-			if tiling.Matches(tr, query) {
-				for i := lastCommitIndex; i >= 0; i-- {
-					if tr.IsMissing(i) {
-						continue
-					} else {
-						digests[tr.(*types.GoldenTrace).Values[i]] = 1
-						break
-					}
-				}
-			}
-		}
-	} else {
-		digests = idx.TalliesByQuery(query, includeIgnores)
-	}
-	t.Stop()
-
-	label := types.LabelFromString(filter)
-	// Now filter digests by their expectations status here.
-	t = timer.New("apply expectations")
-	ret := make([]string, 0, len(digests))
-	for digest := range digests {
-		if e[digest] != label {
-			continue
-		}
-		ret = append(ret, digest)
-	}
-	t.Stop()
-
-	return ret, nil
 }
 
 // jsonStatusHandler returns the current status of with respect to HEAD.

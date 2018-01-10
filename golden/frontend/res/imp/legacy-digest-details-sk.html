@@ -339,7 +339,7 @@
 
       triggerTriage: function (status) {
         this.set('$.triageControls.value', status);
-        var detail = gold.makeTriageQuery(this.$.triageControls.dataset.test,
+        var detail = new gold.TriageQuery(this.$.triageControls.dataset.test,
                                           this.$.triageControls.dataset.digest,
                                           status);
         this.fire('triage', detail);
@@ -363,7 +363,7 @@
 
       _triageChangeHandler: function(e) {
         // Convert the change event from the triage button into a more detailed triage event.
-        var detail = gold.makeTriageQuery(this.details.test,
+        var detail = new gold.TriageQuery(this.details.test,
                                           this.details.digest,
                                           this.details.status);
         this.fire('triage', detail);

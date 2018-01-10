@@ -269,7 +269,8 @@
             triageList.push([digests[i].test, digests[i].digest, targetStatus]);
           }
         }
-        var query = gold.makeTriageQuery(triageList);
+        var query = new gold.TriageQuery(triageList);
+        query.setIssue(sk.robust_get(this._issue, ["id"]));
         this.$.activityBar.startSpinner("Triaging ...");
         sk.post('/json/triage', JSON.stringify(query)).then(function() {
           this.$.activityBar.stopSpinner();

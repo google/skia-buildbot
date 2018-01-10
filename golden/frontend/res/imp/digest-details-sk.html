@@ -22,6 +22,8 @@
     commits - Array, a list of commits that 'details' refers to.
     embedded - Boolean, a flag that indicates that this is embedded as an
                auxiliary view and some field like title should be omitted.
+    issue - Number, the id of the code review issue that generated this digest
+            via a tryjob run.
 
   Events:
     triage - A triage event is generated when the triage button is pressed. The e.detail
@@ -331,6 +333,11 @@
           type: String,
         },
 
+        issue: {
+          type: Number,
+          value: 0,
+        },
+
         _negIsClosest: {
           type: Boolean,
           value: false
@@ -367,9 +374,8 @@
 
       triggerTriage: function (status) {
         this.set('$.triageControls.value', status);
-        var detail = gold.makeTriageQuery(this.$.triageControls.dataset.test,
-                                          this.$.triageControls.dataset.digest,
-                                          status);
+        var detail = new gold.TriageQuery(this.$.triageControls.dataset.test,
+                                          this.$.triageControls.dataset.digest);
         this.fire('triage', detail);
       },
 
@@ -391,9 +397,10 @@
 
       _triageChangeHandler: function(e) {
         // Convert the change event from the triage button into a more detailed triage event.
-        var detail = gold.makeTriageQuery(this.details.test,
+        var detail = new gold.TriageQuery(this.details.test,
                                           this.details.digest,
-                                          this.details.status);
+                                          this.details.status,
+                                          this.issue);
         this.fire('triage', detail);
       },
 
