@@ -72,10 +72,16 @@
         content: "*";
       }
 
+      .triagelogLink {
+        font-size: smaller;
+      }
     </style>
     <template is="dom-if" if={{_issue}}>
-      <div class="issueHeader">Issue: <a href$="{{_issue.url}}" target="_blank" rel="noopener">
-        {{_issue.id}} ({{_issue.owner}}) {{_issue.subject}}</a>
+      <div class="issueHeader">Issue:
+        <a href$="{{_issue.url}}" target="_blank" rel="noopener">
+          {{_issue.id}} ({{_issue.owner}}) {{_issue.subject}}
+        </a>
+        <span class="triagelogLink">(<a href$="/triagelog?issue=[[_issue.id]]">Triagelog</a>)</span>
       </div>
 
       <table class="issueTable">
