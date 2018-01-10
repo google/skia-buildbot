@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b753ef32_3ce7b83b",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-10T17:44:08Z",
+      "side": 1,
+      "message": "2 minutes seems like an awfully short time - blink and you miss it?",
+      "range": {
+        "startLine": 478,
+        "startChar": 78,
+        "endLine": 478,
+        "endChar": 80
+      },
+      "revId": "8fa9f3cea5bc7c128d963b30caf2ec07e3294251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
