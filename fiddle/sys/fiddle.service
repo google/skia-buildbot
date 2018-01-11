@@ -6,6 +6,7 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/fiddle \
   --logtostderr \
+  --head \
   --resources_dir=/usr/local/share/fiddle/ \
   --fiddle_root=/mnt/pd0/fiddle
 Restart=always
