@@ -1,7 +1,6 @@
 package gevent
 
 import (
-	"os"
 	"sort"
 	"testing"
 	"time"
@@ -27,20 +26,20 @@ type testType struct {
 func TestEventBus(t *testing.T) {
 	testutils.MediumTest(t)
 
-	if os.Getenv("PUBSUB_EMULATOR_HOST") == "" {
-		t.Skip(`Skipping tests that require a local Cloud PubSub emulator.
-Set the environment: $(gcloud beta emulators pubsub env-init)
-Run the emulator: gcloud beta emulators pubsub start`)
-	}
+	// 	if os.Getenv("PUBSUB_EMULATOR_HOST") == "" {
+	// 		t.Skip(`Skipping tests that require a local Cloud PubSub emulator.
+	// Set the environment: $(gcloud beta emulators pubsub env-init)
+	// Run the emulator: gcloud beta emulators pubsub start`)
+	// 	}
 
 	testCodec := util.JSONCodec(&testType{})
 	RegisterCodec("channel1", testCodec)
 	RegisterCodec("channel2", testCodec)
 
-	eventBus, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1)
+	eventBus, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1, nil)
 	assert.NoError(t, err)
 
-	eventBusTwo, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2)
+	eventBusTwo, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2, nil)
 	assert.NoError(t, err)
 
 	ch := make(chan int, 5)

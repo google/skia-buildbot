@@ -6,6 +6,8 @@ import (
 	"sync"
 
 	"cloud.google.com/go/pubsub"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/sklog"
@@ -49,14 +51,29 @@ type channelWrapper struct {
 //   event bus.
 // - subscriberName is an id that uniquely identifies this node within the
 //   event bus network.
-func New(projectID, topicName, subscriberName string) (eventbus.EventBus, error) {
+func New(projectID, topicName, subscriberName string, tokenSrc oauth2.TokenSource) (eventbus.EventBus, error) {
 	ret := &distEventBus{
 		localEventBus: eventbus.New(),
 		wrapperCodec:  util.JSONCodec(&channelWrapper{}),
 	}
 
+	// Create a client.
+	var err error
+	opts := []option.ClientOption{}
+
+	// If a service account file was given, then use it.
+	if tokenSrc != nil {
+		opts = append(opts, option.WithTokenSource(tokenSrc))
+	}
+
+	// Create the client.
+	ret.client, err = pubsub.NewClient(context.Background(), projectID, opts...)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Error creating pubsub client: %s", err)
+	}
+
 	// Set up the pubsub client, topic and subscription.
-	if err := ret.setupClientTopicSub(projectID, topicName, subscriberName); err != nil {
+	if err := ret.setupTopicSub(topicName, subscriberName); err != nil {
 		return nil, err
 	}
 
@@ -98,16 +115,9 @@ func (d *distEventBus) SubscribeAsync(eventType string, callback eventbus.Callba
 	d.localEventBus.SubscribeAsync(eventType, callback)
 }
 
-// setupclientTopicSub sets up the pubsub client, topic and subscription.
-func (d *distEventBus) setupClientTopicSub(projectID, topicName, subscriberName string) error {
+// setupTopicSub sets up the topic and subscription.
+func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 	ctx := context.Background()
-
-	// Create a client.
-	var err error
-	d.client, err = pubsub.NewClient(ctx, projectID)
-	if err != nil {
-		return fmt.Errorf("Error creating pubsub client: %s", err)
-	}
 
 	// Create the topic if it doesn't exist yet.
 	d.topic = d.client.Topic(topicName)
