@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa12e75a_2dacb886",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Add comment:\n\n// Ignore /COMMIT_MSG as it appears in every CL.",
+      "parentUuid": "a72c17d0_a929f269",
+      "range": {
+        "startLine": 54,
+        "startChar": 1,
+        "endLine": 54,
+        "endChar": 38
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b96cdfc4_9a075145",
         "filename": "predict/go/failures/failures.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "ddfc5fa0_6d54ff85",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b96cdfc4_9a075145",
+      "range": {
+        "startLine": 58,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 41
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e7633611_9a7b5fdd",
         "filename": "predict/go/failures/failures.go",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2018-01-11T14:57:41Z",
       "side": 1,
       "message": "nit: This would seem more natural to me:\nfor {\n  if counts, ok :\u003d f[filename]; ok {\n    return counts\n  }\n  filename \u003d path.Dir(filename)\n  if filename \u003d\u003d \".\" {\n    return BotCounts{}\n  }\n}",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 2
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96f78bde_8f09bc20",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Much nicer! Done.",
+      "parentUuid": "e7633611_9a7b5fdd",
       "range": {
         "startLine": 57,
         "startChar": 0,
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "0d7e7593_8b51faf2",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3fd6c5a2_6baeac68",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ecad242e_817af017",
         "filename": "predict/go/failures/failures.go",
         "patchSetId": 1
@@ -108,6 +198,30 @@
       "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f30a19e1_648034c6",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ecad242e_817af017",
+      "range": {
+        "startLine": 101,
+        "startChar": 3,
+        "endLine": 101,
+        "endChar": 36
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +265,24 @@
     },
     {
       "key": {
+        "uuid": "a1e3bfcf_c3b47543",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e82ce60d_36e3a0a7",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d5cbe190_7f56f5da",
         "filename": "predict/go/failures/failurestore.go",
         "patchSetId": 1
@@ -171,6 +303,30 @@
       "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1adae29d_d43ee0c4",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d5cbe190_7f56f5da",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 109
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -197,6 +353,30 @@
     },
     {
       "key": {
+        "uuid": "990090b6_9158769d",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a8cba8d7_963bff2f",
+      "range": {
+        "startLine": 25,
+        "startChar": 49,
+        "endLine": 25,
+        "endChar": 94
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b99e943_8e29b73d",
         "filename": "predict/go/failures/failurestore.go",
         "patchSetId": 1
@@ -211,6 +391,24 @@
       "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce48f40a_ddf2063e",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b99e943_8e29b73d",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -237,6 +435,30 @@
     },
     {
       "key": {
+        "uuid": "bac73eec_0625401f",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ce988a1b_4eafaf13",
+      "range": {
+        "startLine": 42,
+        "startChar": 23,
+        "endLine": 42,
+        "endChar": 24
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d1be93f3_d15b55a9",
         "filename": "predict/go/failures/failurestore.go",
         "patchSetId": 1
@@ -254,6 +476,24 @@
     },
     {
       "key": {
+        "uuid": "623cced3_165e1cb4",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1be93f3_d15b55a9",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aeff4446_90f84d21",
         "filename": "predict/go/failures/failurestore.go",
         "patchSetId": 1
@@ -268,6 +508,24 @@
       "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1df6388f_a5895607",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-11T21:16:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "aeff4446_90f84d21",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
