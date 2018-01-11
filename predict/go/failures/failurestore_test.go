@@ -99,7 +99,7 @@ func TestStore(t *testing.T) {
 	httpmock.RegisterResponder("GET", "https://skia-review.googlesource.com/changes/82041/revisions/1/files/",
 		httpmock.NewStringResponder(200, `)]}' {"somefile.txt":{}}`))
 
-	cleanup := testutil.InitDatastore(t, dsconst.FLAKY_RANGES)
+	cleanup := testutil.InitDatastore(t, dsconst.FAILURES)
 	defer cleanup()
 
 	ctx := context.Background()
