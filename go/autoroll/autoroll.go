@@ -190,12 +190,14 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 			}
 		}
 	} else {
-		for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
-			if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
-				cq = true
-				dryRun = true
-			} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
-				cq = true
+		if _, ok := i.Labels[gerrit.COMMITQUEUE_LABEL]; ok {
+			for _, lb := range i.Labels[gerrit.COMMITQUEUE_LABEL].All {
+				if lb.Value == gerrit.COMMITQUEUE_LABEL_DRY_RUN {
+					cq = true
+					dryRun = true
+				} else if lb.Value == gerrit.COMMITQUEUE_LABEL_SUBMIT {
+					cq = true
+				}
 			}
 		}
 	}
