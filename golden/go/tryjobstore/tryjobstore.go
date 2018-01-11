@@ -62,11 +62,11 @@ type TryjobStore interface {
 
 // Define constants for the kinds of entities in cloud datastore.
 const (
-	kind_Issue         = "Issue"
-	kind_Tryjob        = "Tryjob"
-	kind_TryjobResult  = "TryjobResult"
-	kind_ExpChange     = "ExpChange"
-	kind_TestDigestExp = "TestDigestExp"
+	kind_Issue           = "Issue"
+	kind_Tryjob          = "Tryjob"
+	kind_TryjobResult    = "TryjobResult"
+	kind_TryjobExpChange = "TryjobExpChange"
+	kind_TestDigestExp   = "TestDigestExp"
 )
 
 const (
@@ -255,7 +255,7 @@ func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.Tes
 	}
 
 	var changeKey *datastore.Key
-	if changeKey, err = c.client.Put(ctx, c.getIncompleteKey(kind_ExpChange, nil), expChange); err != nil {
+	if changeKey, err = c.client.Put(ctx, c.getIncompleteKey(kind_TryjobExpChange, nil), expChange); err != nil {
 		return err
 	}
 
@@ -303,7 +303,7 @@ func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.Tes
 // GetExpectations implements the TryjobStore interface.
 func (c *cloudTryjobStore) GetExpectations(issueID int64) (exp *expstorage.Expectations, err error) {
 	// Get all expectation changes and iterate over them updating the result.
-	expChangeKeys, err := c.getExpChangesForIssue(issueID)
+	expChangeKeys, _, err := c.getExpChangesForIssue(issueID, -1, -1, true)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +346,30 @@ func (c *cloudTryjobStore) UndoChange(issueID int64, changeID int64, userID stri
 
 // QueryLog implements the TryjobStore interface.
 func (c *cloudTryjobStore) QueryLog(issueID int64, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
-	return nil, 0, nil
+	// TODO(stephana): Optimize this so we don't make the first request just to obtain the total.
+	allKeys, _, err := c.getExpChangesForIssue(issueID, -1, -1, true)
+	if err != nil {
+		return nil, 0, sklog.FmtErrorf("Error retrieving keys for expectation changes: %s", err)
+	}
+
+	_, expChanges, err := c.getExpChangesForIssue(issueID, offset, size, false)
+	if err != nil {
+		return nil, 0, sklog.FmtErrorf("Error retrieving expectation changes: %s", err)
+	}
+
+	ret := make([]*expstorage.TriageLogEntry, 0, len(expChanges))
+	for _, change := range expChanges {
+		ret = append(ret, &expstorage.TriageLogEntry{
+			ID:           int(change.ChangeID.ID),
+			Name:         change.UserID,
+			TS:           change.TimeStamp,
+			ChangeCount:  int(change.Count),
+			Details:      nil,
+			UndoChangeID: int(change.UndoChangeID),
+		})
+	}
+
+	return ret, len(allKeys), nil
 }
 
 // deleteTryjobsForIssue deletes all tryjob information for the given issue.
@@ -430,7 +453,7 @@ func (c *cloudTryjobStore) deleteExpChanges(keys []*datastore.Key) error {
 
 // deleteExpectationsForIssue deletes all expectations for the given issue.
 func (c *cloudTryjobStore) deleteExpectationsForIssue(issueID int64) error {
-	keys, err := c.getExpChangesForIssue(issueID)
+	keys, _, err := c.getExpChangesForIssue(issueID, -1, -1, true)
 	if err != nil {
 		return err
 	}
@@ -460,15 +483,31 @@ func (c *cloudTryjobStore) deleteExpectationsForIssue(issueID int64) error {
 }
 
 // getExpChangesForIssue returns all the expectation changes for the given issue
-// in chronological order.
-func (c *cloudTryjobStore) getExpChangesForIssue(issueID int64) ([]*datastore.Key, error) {
-	expChangeQuery := datastore.NewQuery(kind_ExpChange).
+// in revers chronological order. offset and size pick a subset of the result.
+// Both are only considered if they are larger than 0. keysOnly indicates that we
+// want keys only.
+func (c *cloudTryjobStore) getExpChangesForIssue(issueID int64, offset, size int, keysOnly bool) ([]*datastore.Key, []*ExpChange, error) {
+	q := datastore.NewQuery(kind_TryjobExpChange).
 		Namespace(c.namespace).
 		Filter("IssueID =", issueID).
 		Filter("OK =", true).
-		Order("TimeStamp").KeysOnly()
+		Order("TimeStamp")
 
-	return c.client.GetAll(context.Background(), expChangeQuery, nil)
+	if keysOnly {
+		q = q.KeysOnly()
+	}
+
+	if offset > 0 {
+		q = q.Offset(offset)
+	}
+
+	if size > 0 {
+		q = q.Limit(size)
+	}
+
+	var expChanges []*ExpChange
+	keys, err := c.client.GetAll(context.Background(), q, &expChanges)
+	return keys, expChanges, err
 }
 
 // getTestDigstExpectations gets all expectations for the given change.
