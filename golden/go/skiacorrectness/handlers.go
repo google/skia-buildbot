@@ -798,8 +798,19 @@ func jsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	offset, size, err := httputils.PaginationParams(q, 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
+		validate := search.Validation{}
+		issue := validate.Int64Value("issue", q.Get("issue"), 0)
+		if err := validate.Errors(); err != nil {
+			httputils.ReportError(w, r, err, "Unable to retrieve triage log.")
+			return
+		}
+
 		details := q.Get("details") == "true"
-		logEntries, total, err = storages.ExpectationsStore.QueryLog(offset, size, details)
+		if issue > 0 {
+			logEntries, total, err = storages.TryjobStore.QueryLog(issue, offset, size, details)
+		} else {
+			logEntries, total, err = storages.ExpectationsStore.QueryLog(offset, size, details)
+		}
 	}
 
 	if err != nil {

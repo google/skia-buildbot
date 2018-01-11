@@ -15,7 +15,7 @@ import (
 )
 
 func TestCloudTryjobStore(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	// TODO(stephana): This test should be tested shomehow, probably by running
 	// the simulator in the bot.
@@ -67,7 +67,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	}()
 	time.Sleep(10 * time.Second)
 
-	expChangeKeys, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID)
+	expChangeKeys, _, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID, -1, -1, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(expChangeKeys))
 
@@ -86,7 +86,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		digestStart := int64((idx + 1) * 1000)
 		results := []*TryjobResult{}
 
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 5; i++ {
 			digestStr := fmt.Sprintf("%010d", digestStart+int64(i))
 			testName := fmt.Sprintf("%d", i%5)
 			results = append(results, &TryjobResult{
@@ -105,6 +105,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 
 	foundTJs, foundTJResults, err := store.GetTryjobResults(issueID, []int64{patchsetID, patchsetID_2})
 	assert.NoError(t, err)
+	assert.Equal(t, len(allTryjobs), len(foundTJs))
 	for idx := range allTryjobs {
 		assert.Equal(t, allTryjobs[idx], foundTJs[idx])
 		tjr := foundTJResults[idx]
@@ -114,24 +115,37 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 
 	// Add changes to the issue
 	allChanges := expstorage.NewExpectations()
-	for i := 0; i < 10; i++ {
+	expLogEntries := []*expstorage.TriageLogEntry{}
+	userName := "jdoe@example.com"
+	for i := 0; i < 5; i++ {
+		triageDetails := []*expstorage.TriageDetail{}
 		changes := expstorage.NewExpectations()
 		for testCount := 0; testCount < 5; testCount++ {
 			testName := fmt.Sprintf("test-%04d", testCount)
 			for digestCount := 0; digestCount < 5; digestCount++ {
 				digest := fmt.Sprintf("digest-%04d-%04d", testCount, digestCount)
-				label := (i + testCount + digestCount) % 3
-				changes.SetTestExpectation(testName, digest, types.Label(label))
+				label := types.Label((i + testCount + digestCount) % 3)
+				changes.SetTestExpectation(testName, digest, label)
+				triageDetails = append(triageDetails, &expstorage.TriageDetail{
+					TestName: testName, Digest: digest, Label: label.String(),
+				})
 			}
 		}
-		assert.NoError(t, store.AddChange(issueID, changes.Tests, "jdoe@example.com"))
+		assert.NoError(t, store.AddChange(issueID, changes.Tests, userName))
 		allChanges.AddDigests(changes.Tests)
-		time.Sleep(5 * time.Millisecond)
+		expLogEntries = append(expLogEntries, &expstorage.TriageLogEntry{
+			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
+		})
+		time.Sleep(2 * time.Second)
 	}
 
 	time.Sleep(10 * time.Second)
-
 	foundExp, err := store.GetExpectations(issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, allChanges, foundExp)
+
+	logEntries, total, err := store.QueryLog(issueID, 0, -1, false)
+	assert.NoError(t, err)
+	assert.Equal(t, 5, total)
+	assert.Equal(t, 5, len(logEntries))
 }

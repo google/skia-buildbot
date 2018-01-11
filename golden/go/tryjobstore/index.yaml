@@ -1,6 +1,6 @@
 indexes:
 
-- kind: ExpChange
+- kind: TryjobExpChange
   ancestor: no
   properties:
   - name: IssueID
