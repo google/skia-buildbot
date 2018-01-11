@@ -549,6 +549,30 @@
       "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e89d28e_b0f37443",
+        "filename": "predict/go/failures/failurestore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T21:39:50Z",
+      "side": 1,
+      "message": "I think this is still a problem.",
+      "parentUuid": "b5ecff35_dd497c15",
+      "range": {
+        "startLine": 101,
+        "startChar": 38,
+        "endLine": 101,
+        "endChar": 58
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
