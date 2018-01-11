@@ -108,7 +108,7 @@ func (b *ContinuousBuilder) singleBuildLatest(ctx context.Context) {
 		b.repoSyncFailures.Inc(1)
 	}
 	b.repoSyncFailures.Reset()
-	ci, err := b.BuildLatestSkia(ctx, false, false, false)
+	ci, err := b.BuildLatestSkia(ctx, false, true, false)
 	if err != nil {
 		sklog.Errorf("Failed to build LKGR: %s", err)
 		// Only measure real build failures, not a failure if LKGR hasn't updated.
