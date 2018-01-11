@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8a19bbf2_4f4bcba3",
+        "filename": "golden/go/tryjobstore/tryjobstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-11T13:54:12Z",
+      "side": 1,
+      "message": "Default timeout for a medium test is 15 seconds - I count at least 20 seconds of sleep.",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 24
+      },
+      "revId": "93c41ba755b2fe2f12512207dff885c651f69d16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
