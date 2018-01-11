@@ -1,0 +1,296 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a72c17d0_a929f269",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "I don\u0027t understand this.",
+      "range": {
+        "startLine": 54,
+        "startChar": 1,
+        "endLine": 54,
+        "endChar": 38
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b96cdfc4_9a075145",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "nit: This will be very noisy. Several in this file.",
+      "range": {
+        "startLine": 58,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 41
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7633611_9a7b5fdd",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "nit: This would seem more natural to me:\nfor {\n  if counts, ok :\u003d f[filename]; ok {\n    return counts\n  }\n  filename \u003d path.Dir(filename)\n  if filename \u003d\u003d \".\" {\n    return BotCounts{}\n  }\n}",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 2
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fd6c5a2_6baeac68",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "nit: \"Summary\u0027s are sorted descending by Count, with BotName as a tiebreaker.\"",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecad242e_817af017",
+        "filename": "predict/go/failures/failures.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "nit: totals[bot] +\u003d count",
+      "range": {
+        "startLine": 101,
+        "startChar": 3,
+        "endLine": 101,
+        "endChar": 36
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3af846a5_3044dc82",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "nit: duplicated from failures.go",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 74
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e82ce60d_36e3a0a7",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "nit: const TS_FORMAT \u003d swarming.TIMESTAMP_FORMAT",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5cbe190_7f56f5da",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "Doc seems to imply this based on completion time. Does Swarming API support querying on that?",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 109
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8cba8d7_963bff2f",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "Maybe ask Eric if there\u0027s a reason to prefer querying TaskScheduler rather than Swarming.",
+      "range": {
+        "startLine": 25,
+        "startChar": 49,
+        "endLine": 25,
+        "endChar": 94
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b99e943_8e29b73d",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "Is this git revision? Consider renaming or documenting.",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce988a1b_4eafaf13",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "Probably OK as-is, but BotName contains dashes.",
+      "range": {
+        "startLine": 42,
+        "startChar": 23,
+        "endLine": 42,
+        "endChar": 24
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1be93f3_d15b55a9",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "nit: This should be passed as a method param.",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aeff4446_90f84d21",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "Probably not important, but the task also gives the revision that the patch was applied to.",
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5ecff35_dd497c15",
+        "filename": "predict/go/failures/failurestore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-11T14:57:41Z",
+      "side": 1,
+      "message": "wrong kind",
+      "range": {
+        "startLine": 101,
+        "startChar": 38,
+        "endLine": 101,
+        "endChar": 58
+      },
+      "revId": "9ca4d98bff285fa395dff9b3b4fec02fa7e8acc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
