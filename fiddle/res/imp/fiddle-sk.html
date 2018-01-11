@@ -309,37 +309,35 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
       <div id=results class="horizontal layout self-start">
 
         <template is="dom-if" if="{{_showCpu(cpu_embedded,gpu_embedded,embedded)}}">
-          <template is="dom-if" if="{{_not(animated)}}">
-            <div class="vertical layout center-justified">
-              <img src="[[domain]]/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
+          <div class="vertical layout center-justified">
+            <template is="dom-if" if="{{_not(animated)}}">
+              <img title=CPU src="[[domain]]/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
+            </template>
+            <template is="dom-if" if="{{animated}}">
+              <video title=CPU on-ended="_playEnded" autoplay loop="[[loop]]" src="[[domain]]/i/{{fiddlehash}}_cpu.webm" width="{{width}}" height="{{height}}"></video>
+            </template>
+            <template is="dom-if" if="{{_not(embedded)}}">
               <p>
                 CPU
               </p>
-            </div>
-          </template>
-          <template is="dom-if" if="{{animated}}">
-            <div class="vertical layout center-justified">
-              <video on-ended="_playEnded" autoplay loop="[[loop]]" src="[[domain]]/i/{{fiddlehash}}_cpu.webm" width="{{width}}" height="{{height}}"></video>
-              <p>CPU</p>
-            </div>
-          </template>
+            </template>
+          </div>
         </template>
 
         <template is="dom-if" if="{{_showGpu(gpu_embedded,embedded)}}">
-            <div class="vertical layout center-justified">
-                <template is="dom-if" if="{{_not(animated)}}">
-                    <img src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
-                    <p>
-                        GPU
-                    </p>
-                </template>
-                <template is="dom-if" if="{{animated}}">
-                    <video loop="[[loop]]" autoplay src="[[domain]]/i/{{fiddlehash}}_gpu.webm" width="{{width}}" height="{{height}}"></video>
-                    <p>
-                        GPU
-                    </p>
-                </template>
-            </div>
+          <div class="vertical layout center-justified">
+            <template is="dom-if" if="{{_not(animated)}}">
+              <img title=GPU src="[[domain]]/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
+            </template>
+            <template is="dom-if" if="{{animated}}">
+              <video title=GPU loop="[[loop]]" autoplay src="[[domain]]/i/{{fiddlehash}}_gpu.webm" width="{{width}}" height="{{height}}"></video>
+            </template>
+            <template is="dom-if" if="{{_not(embedded)}}">
+              <p>
+                GPU
+              </p>
+            </template>
+          </div>
         </template>
 
         <template is="dom-if" if="{{_showLinks(animated,embedded)}}">
