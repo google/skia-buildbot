@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "57000fc5_6f6b2f7a",
+        "filename": "predict/go/validbots/validbots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-12T20:53:05Z",
+      "side": 1,
+      "message": "https://github.com/google/skia/blob/master/bin/list-skia-bots is wrong too?",
+      "parentUuid": "8a001548_5c64c19e",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 42
+      },
+      "revId": "775de808e7afe2670754efe1d482e27768040cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "186156b7_55155c3d",
         "filename": "predict/go/validbots/validbots.go",
         "patchSetId": 1
