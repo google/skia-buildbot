@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "89b8518c_2fbb2a1e",
+        "filename": "predict/go/validbots/validbots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T21:59:13Z",
+      "side": 1,
+      "message": "SG, sorry for the confusion.",
+      "parentUuid": "d476c80b_a33bbab8",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 42
+      },
+      "revId": "775de808e7afe2670754efe1d482e27768040cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "186156b7_55155c3d",
         "filename": "predict/go/validbots/validbots.go",
         "patchSetId": 1
