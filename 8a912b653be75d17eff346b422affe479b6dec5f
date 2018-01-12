@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e7c38ae4_30f5e6a6",
+        "filename": "predict/go/failures/failurestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:16:25Z",
+      "side": 1,
+      "message": "nit: Maybe worth documenting here: assuming the caller is calling this function periodically with a period P, \"since\" should be P + L, where L is the longest task duration among the tasks that we care about. That\u0027s because provider is searching by task start time, but will only return results for completed tasks. So, if a task finished P seconds ago and took L seconds to finish, the start time would be P+L seconds ago.\n\n(I meant to mention this after you clarified the documentation for TaskListProvider, but I forgot.)",
+      "revId": "8a912b653be75d17eff346b422affe479b6dec5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
