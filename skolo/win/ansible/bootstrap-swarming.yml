@@ -1,0 +1,39 @@
+---
+- hosts: all
+  # We need to run a scheduled task because the bootstrap script reboots the machine without
+  # exiting, which would cause Ansible run_command to fail.
+  vars:
+    task_name: bootstrap-swarming
+    task_script_path: C:\Users\chrome-bot\bootstrap-swarming.ps1
+  tasks:
+  - name: Check if host has already been bootstrapped
+    win_stat:
+      path: C:\b
+    register: results
+  - debug:
+      var: results.stat
+  - when: not results.stat.exists
+    block:
+      - name: Add bootstrap script {{ task_script_path }}
+        win_template:
+          src: templates/bootstrap-swarming.ps1.j2
+          dest: "{{ task_script_path }}"
+      - name: Schedule {{ task_name }} task
+        # The win_scheduled_task module does not handle ONSTART or similar directives, and there's
+        # no way in Windows to schedule a task for immediate execution.
+        win_command: schtasks /Create /TN {{ task_name }} /SC ONSTART /TR \
+          "powershell.exe -executionpolicy Unrestricted -file {{ task_script_path }}" \
+          /RU {{ ansible_user }} /RP {{ ansible_password }} /F /RL LIMITED
+        #win_scheduled_task:
+        #  name: "{{ task_name }}"
+        #  description: Bootstrap Swarming
+        #  executable: powershell.exe
+        #  arguments: -ExecutionPolicy Unrestricted -File {{ task_script_path }}
+        #  frequency: ONSTART
+        #  user: "{{ ansible_user }}"
+        #  password: "{{ ansible_password }}"
+        #  state: present
+      - name: Reboot to run {{ task_name }} task
+        win_reboot:
+      # TODO(dogben): After reboot, the task will bootstrap swarming, which triggers another
+      # reboot. We should ensure the host is up before exiting this play.

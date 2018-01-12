@@ -1,0 +1,5 @@
+$ErrorActionPreference = 'Stop'
+
+schtasks /Delete /TN {{ task_name }} /F
+
+python -c "import urllib; exec urllib.urlopen('{{ swarming_server }}/bootstrap').read()"

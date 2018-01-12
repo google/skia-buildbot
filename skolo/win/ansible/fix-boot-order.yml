@@ -1,0 +1,30 @@
+---
+# This playbook uses bcdedit to move the PXE boot IP4 entry to first. Windows automatically moves
+# its boot entry to first after imaging, so this is necessary in order to reimage automatically.
+- hosts: all
+  vars:
+    backup_filename: C:\Users\chrome-bot\Documents\BCD-Backup
+  tasks:
+  - name: Backup BCD store
+    win_command: bcdedit /export {{ backup_filename }}
+    args:
+      creates: "{{ backup_filename }}"
+  - name: List BCD firmware entries
+    win_command: bcdedit /enum FIRMWARE
+    register: bcd_firmware_out
+  - set_fact:
+      bcd_firmware_out_no_cr: "{{ bcd_firmware_out.stdout | regex_replace('\\r\\n', '\\n') }}"
+  # Output looks like:
+  # Firmware Application (101fffff)
+  # -------------------------------
+  # identifier              {abcdef01-abcd-abcd-abcd-abcdef0123456}
+  # description             UEFI: IP4 Realtek PCIe GBE Family Controller
+  - set_fact:
+      bcd_ip4_block: "{{ bcd_firmware_out_no_cr |
+        regex_search('(?m)^-+\\nidentifier\\s+\\{[-\\w]+\\}\\ndescription\\s+[^\\{\\}]*IP4') }}"
+  - set_fact:
+      bcd_ip4_id: "{{ bcd_ip4_block | regex_search('\\{[-\\w]+\\}') }}"
+  - debug:
+      var: bcd_ip4_id
+  - name: Set IP4 BCD entry first
+    win_command: bcdedit /set "{fwbootmgr}" displayorder "{{ bcd_ip4_id }}" /addfirst

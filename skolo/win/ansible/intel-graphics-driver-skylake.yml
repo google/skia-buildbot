@@ -1,0 +1,21 @@
+---
+- hosts: skylake
+  tasks:
+  - name: Create Temp
+    win_file:
+      path: c:\Temp
+      state: directory
+  - name: Copy the Intel Graphics Driver EXE to the host
+    win_copy:
+      src: "{{ win_package_src }}/Intel Graphics Skylake win64_15.60.2.4901.exe"
+      dest: c:\Temp\intel_gfx.exe
+  - name: Install Intel Graphics Driver for Skylake
+    win_package:
+      path: c:\Temp\intel_gfx.exe
+      product_id: '{F0E3AD40-2BBD-4360-9C76-B9AC9A5886EA}'
+      arguments: -s -A -overwrite -s
+      state: present
+  - name: Cleanup
+    win_file:
+      path: c:\Temp\intel_gfx.exe
+      state: absent

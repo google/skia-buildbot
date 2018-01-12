@@ -1,0 +1,14 @@
+# This file is here mostly as an example. There is also a group_vars dir that I can't check in.
+all:
+  vars:
+    swarming_server: https://chromium-swarm.appspot.com
+  children:
+    # TODO(dogben): Would be nice to use PyWin32 to identify the GPU, then use group_by to run the
+    # correct playbook.
+    skylake:
+      hosts:
+        skia-e-win-205:
+        skia-e-win-207:
+    nvidia:
+      hosts:
+        skia-e-win-206
