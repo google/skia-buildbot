@@ -1,0 +1,377 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a524ffc3_e1a22092",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "Maybe we should change the comment DB to keep track of the history of comments?",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 66
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87f21e50_850579c8",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: \"foo.In(bar)\" sounds like \"Is the TimeRange foo contained by the TimeRange bar.\" Maybe rename \"Contains\"?",
+      "range": {
+        "startLine": 31,
+        "startChar": 20,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe4b48a8_51ec878d",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: noisy logging, several in this file",
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b452df9_ba5d7ead",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "This gives \"begin \u003c ts \u003c end\", but I think you want \"begin \u003c\u003d ts \u003c end\".",
+      "range": {
+        "startLine": 33,
+        "startChar": 8,
+        "endLine": 33,
+        "endChar": 25
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "492fcf8c_d6d91a79",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: Consider keeping time ranges sorted and using sort.Search. (The sort.Search API is awkward at first, but after a few times it starts to make sense.)",
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdd7bd75_215aea5e",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: I can guess what this is, but needs doc anyway.",
+      "range": {
+        "startLine": 70,
+        "startChar": 1,
+        "endLine": 70,
+        "endChar": 13
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd927731_59bf8b43",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: Needs doc. Several things that I assumed from reading the signature and first few lines was wrong.",
+      "range": {
+        "startLine": 73,
+        "startChar": 24,
+        "endLine": 73,
+        "endChar": 43
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8d69a0e_4713b22a",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "I don\u0027t think this function does the correct thing when open \u003d\u003d false. Maybe just remove this param and use closeFlaky instead?",
+      "range": {
+        "startLine": 73,
+        "startChar": 103,
+        "endLine": 73,
+        "endChar": 112
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bb1c3b8_913385ef",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "Seems like we need to ensure we\u0027re only expanding the time range. At least for Begin, we should only move Begin earlier, not later.\n\nThis matters for a situation like:\n1. I add a comment \"jennifer is following up\" and mark it flaky.\n2. Two hours later, I remove the old comment and add a new one \"skia:1234\" and again mark it flaky.\n\nThe Begin will come from the second comment rather than the first, so we\u0027ll miss 2 hours of flakiness.",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 18
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb3b2be1_966fdba0",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: maybe use util.StringSet",
+      "range": {
+        "startLine": 129,
+        "startChar": 63,
+        "endLine": 129,
+        "endChar": 78
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90a95d27_5b3de6c4",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be true?",
+      "range": {
+        "startLine": 141,
+        "startChar": 21,
+        "endLine": 141,
+        "endChar": 26
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8e8d7ba_888ddc4c",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "ISTM that it would be more correct to set End in closeFlaky, so that the time range includes the entire time that the bot was marked flaky, rather than ending at the last time we checked. Probably doesn\u0027t matter normally, but if for some reason this process goes down for a while, End would be set to the last time the process was successful, which could miss a large time range.",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 175,
+        "endChar": 37
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "caf44c11_997c39f4",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "typo that",
+      "range": {
+        "startLine": 184,
+        "startChar": 27,
+        "endLine": 184,
+        "endChar": 30
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c9bc9d4_54790a75",
+        "filename": "predict/go/flaky/flaky.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: These 5 lines are equivalent to this 1 line:\nret[row.BotName] \u003d append(ret[row.BotName], tr)",
+      "range": {
+        "startLine": 213,
+        "startChar": 0,
+        "endLine": 217,
+        "endChar": 3
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6c19175_b1c0a05a",
+        "filename": "predict/go/flaky/flaky_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "Seems like this should be true.",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 46
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aeb5ab2e_f428f8be",
+        "filename": "predict/go/flaky/flaky_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: Why not something like:\nvar comments map[string]time.Time\nprovider :\u003d func() (map[string]time.Time, error) {\n\treturn comments, nil\n}\n\n...\n\n// 1 - empty.\ncomments \u003d map[string]time.Time{}\nerr :\u003d fb.Update(ctx)\n...\n\nThat would keep the test cases together and make the test more readable.",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 17
+      },
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a1bef15_c8e29ba6",
+        "filename": "predict/go/flaky/flaky_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T18:11:23Z",
+      "side": 1,
+      "message": "nit: Last four cases don\u0027t seem to have enough assertions to make them worthwhile.",
+      "revId": "fb26645be007badbdec62fd39daeead1d4543cdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
