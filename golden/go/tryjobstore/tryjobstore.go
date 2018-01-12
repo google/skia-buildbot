@@ -303,9 +303,18 @@ func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.Tes
 // GetExpectations implements the TryjobStore interface.
 func (c *cloudTryjobStore) GetExpectations(issueID int64) (exp *expstorage.Expectations, err error) {
 	// Get all expectation changes and iterate over them updating the result.
-	expChangeKeys, _, err := c.getExpChangesForIssue(issueID, -1, -1, true)
+	expChangeKeys, expChanges, err := c.getExpChangesForIssue(issueID, -1, -1, true)
 	if err != nil {
 		return nil, err
+	}
+
+	last := time.Now().Add(-time.Hour*24*360).UnixNano() / int64(time.Millisecond)
+	for _, exp := range expChanges {
+		if last > exp.TimeStamp {
+			sklog.Infof("\n\n\n Alert alter alter time not increasing \n\n")
+			return nil, fmt.Errorf("time not ascending")
+		}
+		last = exp.TimeStamp
 	}
 
 	testChanges := make([][]*TestDigestExp, len(expChangeKeys), len(expChangeKeys))

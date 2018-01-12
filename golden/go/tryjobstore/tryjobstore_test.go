@@ -19,11 +19,11 @@ func TestCloudTryjobStore(t *testing.T) {
 
 	// TODO(stephana): This test should be tested shomehow, probably by running
 	// the simulator in the bot.
-	t.Skip()
+	//t.Skip()
 
 	serviceAccountFile := "./service-account.json"
 
-	store, err := NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", serviceAccountFile)
+	store, err := NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana-2", serviceAccountFile)
 	assert.NoError(t, err)
 
 	testTryjobStore(t, store)
@@ -62,9 +62,9 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	// Delete the tryjobs from the datastore.
 	assert.NoError(t, store.DeleteIssue(issueID))
 	fmt.Printf("Deleted tryjobs. Starting to insert.\n")
-	defer func() {
-		assert.NoError(t, store.DeleteIssue(issueID))
-	}()
+	// defer func() {
+	// 	assert.NoError(t, store.DeleteIssue(issueID))
+	// }()
 	time.Sleep(10 * time.Second)
 
 	expChangeKeys, _, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID, -1, -1, true)
@@ -148,4 +148,17 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	assert.NoError(t, err)
 	assert.Equal(t, 5, total)
 	assert.Equal(t, 5, len(logEntries))
+
+	// Flip all expectations to untriaged.
+	for _, digests := range foundExp.Tests {
+		for digest := range digests {
+			digests[digest] = types.UNTRIAGED
+		}
+	}
+
+	assert.NoError(t, store.AddChange(issueID, foundExp.Tests, userName))
+	time.Sleep(10 * time.Second)
+	untriagedExp, err := store.GetExpectations(issueID)
+	assert.NoError(t, err)
+	assert.Equal(t, foundExp, untriagedExp)
 }
