@@ -40,9 +40,19 @@ const (
 	// and email address that are allowed to perform admin tasks.
 	ADMIN_WHITE_LIST = "admin_white_list"
 
+	// METADATA_URL_PREFIX_TMPL is the template for the first part of the
+	// metadata URL. The placeholder is for the level ("instance" or
+	// "project").
+	METADATA_URL_PREFIX_TMPL = "/computeMetadata/v1/%s"
+
+	// METADATA_SUB_URL_TMPL is the URL template for metadata. The
+	// placeholders are for the level ("instance" or "project") and the
+	// metadata key.
+	METADATA_SUB_URL_TMPL = METADATA_URL_PREFIX_TMPL + "/attributes/%s"
+
 	// METADATA_URL is the URL template for metadata. The placeholders are
 	// for the level ("instance" or "project") and the metadata key.
-	METADATA_URL = "http://metadata/computeMetadata/v1/%s/attributes/%s"
+	METADATA_URL = "http://metadata" + METADATA_SUB_URL_TMPL
 
 	// WEBHOOK_REQUEST_SALT is used to authenticate webhook requests. The value stored in
 	// Metadata is base64-encoded.
@@ -55,6 +65,15 @@ const (
 
 	// NSQ_TEST_SERVER refers to a test server in GCE which runs NSQ for testing purposes.
 	NSQ_TEST_SERVER = "nsq-test-server"
+
+	// Metadata levels.
+	LEVEL_INSTANCE = "instance"
+	LEVEL_PROJECT  = "project"
+
+	// The "Metadata-Flavor: Google" header must be set for HTTP requests
+	// to the metadata server.
+	HEADER_MD_FLAVOR_KEY = "Metadata-Flavor"
+	HEADER_MD_FLAVOR_VAL = "Google"
 )
 
 // get retrieves the named value from the Metadata server. See
@@ -68,7 +87,7 @@ func get(name string, level string) (string, error) {
 		return "", fmt.Errorf("metadata.Get() failed to build request: %s", err)
 	}
 	c := httputils.NewTimeoutClient()
-	req.Header.Add("Metadata-Flavor", "Google")
+	req.Header.Add(HEADER_MD_FLAVOR_KEY, HEADER_MD_FLAVOR_VAL)
 	resp, err := c.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("metadata.Get() failed to make HTTP request for %s: %s", name, err)
@@ -87,7 +106,7 @@ func get(name string, level string) (string, error) {
 // Get retrieves the named value from the instance Metadata server. See
 // https://developers.google.com/compute/docs/metadata
 func Get(name string) (string, error) {
-	return get(name, "instance")
+	return get(name, LEVEL_INSTANCE)
 }
 
 // GetWithDefault is Get, but returns the default value on error.
@@ -103,7 +122,7 @@ func GetWithDefault(name, defaultValue string) string {
 // ProjectGet retrieves the named value from the project Metadata server. See
 // https://developers.google.com/compute/docs/metadata
 func ProjectGet(name string) (string, error) {
-	return get(name, "project")
+	return get(name, LEVEL_PROJECT)
 }
 
 // ProjectGetWithDefault is ProjectGet, but returns the default value on error.
