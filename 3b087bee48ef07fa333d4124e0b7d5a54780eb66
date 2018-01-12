@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97d979dc_4759eb7a",
+        "filename": "skolo/win/ansible/bootstrap-swarming.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T21:20:30Z",
+      "side": 1,
+      "message": "Maybe I should just do run_command with \"ignore_errors: True\"? Then wait for machine to come back and stat C:\\b to see if it succeeded.",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 59
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
