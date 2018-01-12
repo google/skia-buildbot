@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16cdae67_4545cb39",
+        "filename": "predict/go/gerrit/gerrit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:26:15Z",
+      "side": 1,
+      "message": "nit: seems noisy",
+      "revId": "a534dcada8dd410c75b27d68267653090c337a6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
