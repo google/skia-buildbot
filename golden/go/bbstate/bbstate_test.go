@@ -21,7 +21,7 @@ func TestBuildBucketState(t *testing.T) {
 
 	// TODO(stephana): This test should be tested shomehow, probably by running
 	// the simulator in the bot.
-	t.Skip()
+	//	t.Skip()
 
 	// Get the client to be used to access GCS and the Monorail issue tracker.
 	serviceAccountFile := "./service-account.json"
