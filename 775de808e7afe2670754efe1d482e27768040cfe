@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "6ba7608c_de5bdb24",
+        "filename": "predict/go/validbots/validbots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T20:59:19Z",
+      "side": 1,
+      "message": "I don\u0027t have context for what that script is trying to do.\n\nIn the context of looking at whether a Task Scheduler Swarming Task sk_name tag is a valid task name at head, you want to look at the tasks.\n\nIn the context of listing the things you can pass to \"git cl try\" or CQ_INCLUDE_TRYBOTS, you want to look at jobs.",
+      "parentUuid": "57000fc5_6f6b2f7a",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 42
+      },
+      "revId": "775de808e7afe2670754efe1d482e27768040cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "186156b7_55155c3d",
         "filename": "predict/go/validbots/validbots.go",
         "patchSetId": 1
