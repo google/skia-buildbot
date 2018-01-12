@@ -8,24 +8,28 @@
     },
     "skia-rpi-master-spare": {
       "AppNames": [
-        "pulld-not-gce",
         "hotspare",
+        "pulld-not-gce",
       ],
     },
     "jumphost-rpi-01": {
       "AppNames": [
-        "trooper-tools-rpi-01",
+        "get-oauth2-token",
+        "metadata-server",
         "prometheus-jumphost-rpi-01",
         "pulld-not-gce",
         "router-backup",
+        "trooper-tools-rpi-01",
       ],
     },
     "jumphost-linux-01": {
       "AppNames": [
-        "trooper-tools-linux-01",
+        "get-oauth2-token",
+        "metadata-server",
         "prometheus-jumphost-linux-01",
         "pulld-not-gce",
         "router-backup",
+        "trooper-tools-linux-01",
       ],
     },
   }
