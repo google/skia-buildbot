@@ -7,7 +7,7 @@ build:
 
 prom:
 	-mkdir -p tmp
-	curl -L https://github.com/prometheus/prometheus/releases/download/v1.8.0/prometheus-1.8.0.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
+	curl -L https://github.com/prometheus/prometheus/releases/download/v2.0.0/prometheus-2.0.0.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
 	cp ./tmp/prometheus-1.8.0.linux-amd64/prometheus ./tmp/prometheus
 	cp ./tmp/prometheus-1.8.0.linux-amd64/promtool ./tmp/promtool
 
