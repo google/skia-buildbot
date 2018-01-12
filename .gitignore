@@ -69,6 +69,9 @@ doc/third_party
 alertserver/third_party
 status/third_party
 android_ingest/third_party
+android_compile/third_party
+android_compile/android_compile
+android_compile/go/android_compile
 res/imp/res
 res/imp/9/res
 res/imp/9/res/js
