@@ -171,6 +171,14 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "region_deserialize", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
+	"region_set_path": {
+		PrettyName:          "SkRegion set_path",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "herb",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "region_set_path", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
 	"skcodec_scale": {
 		PrettyName:          "SkCodec (Scaling)",
 		Status:              STABLE_FUZZER,
