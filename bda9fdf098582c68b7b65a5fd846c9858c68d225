@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d002ea0c_722d1e77",
+        "filename": "predict/go/statusprovider/statusprovider.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:40:47Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 18,
+        "startChar": 3,
+        "endLine": 18,
+        "endChar": 10
+      },
+      "revId": "bda9fdf098582c68b7b65a5fd846c9858c68d225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d49fa2e_e79bda08",
+        "filename": "predict/go/statusprovider/statusprovider.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:40:47Z",
+      "side": 1,
+      "message": "nit: Should probably filter by repo. Doesn\u0027t matter now, but could matter in the future if we run other repos in the Skia pool.",
+      "revId": "bda9fdf098582c68b7b65a5fd846c9858c68d225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da123812_c9aed10c",
+        "filename": "predict/go/statusprovider/statusprovider.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:40:47Z",
+      "side": 1,
+      "message": "nit: \"!ok || currentTime.After(c.Timestamp)\"",
+      "range": {
+        "startLine": 40,
+        "startChar": 41,
+        "endLine": 44,
+        "endChar": 6
+      },
+      "revId": "bda9fdf098582c68b7b65a5fd846c9858c68d225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac44bbb0_e24ba0da",
+        "filename": "predict/go/statusprovider/statusprovider.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:40:47Z",
+      "side": 1,
+      "message": "I thought we were going to use remote_db going forward? https://skia.googlesource.com/buildbot/+/c4e2bc45355770d3f1f5f9b7d2f415aa530edc4a/task_scheduler/go/db/remote_db/remote_db.go#88",
+      "range": {
+        "startLine": 54,
+        "startChar": 27,
+        "endLine": 54,
+        "endChar": 75
+      },
+      "revId": "bda9fdf098582c68b7b65a5fd846c9858c68d225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
