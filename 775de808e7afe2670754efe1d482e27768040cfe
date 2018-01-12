@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1cefd069_235c5fb6",
+        "filename": "predict/go/validbots/validbots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:22:20Z",
+      "side": 1,
+      "message": "You want tasks, not jobs.\n\n(datahopper is wrong too)",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 42
+      },
+      "revId": "775de808e7afe2670754efe1d482e27768040cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "186156b7_55155c3d",
+        "filename": "predict/go/validbots/validbots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:22:20Z",
+      "side": 1,
+      "message": "nit: Shouldn\u0027t be necessary to initialize.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 2
+      },
+      "revId": "775de808e7afe2670754efe1d482e27768040cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
