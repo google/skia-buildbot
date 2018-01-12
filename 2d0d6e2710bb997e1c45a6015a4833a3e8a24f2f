@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "339b4ee3_804df4c6",
+        "filename": "predict/go/tasklistprovider/tasklistprovider.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-12T19:17:46Z",
+      "side": 1,
+      "message": "Maybe relevant here too: https://skia-review.googlesource.com/c/buildbot/+/93421#message-efadc615334452e79accbe7b63b6737986458dc0",
+      "revId": "2d0d6e2710bb997e1c45a6015a4833a3e8a24f2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
