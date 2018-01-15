@@ -11,7 +11,7 @@ type ExpSlice []*expstorage.Expectations
 
 func (e ExpSlice) Classification(test, digest string) types.Label {
 	for _, exp := range e {
-		if label, ok := exp.Tests[test][digest]; ok {
+		if label, ok := exp.Tests[test][digest]; ok && (label != types.UNTRIAGED) {
 			return label
 		}
 	}
