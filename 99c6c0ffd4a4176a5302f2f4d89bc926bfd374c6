@@ -226,6 +226,30 @@
     },
     {
       "key": {
+        "uuid": "e520c008_81c81d82",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-16T16:23:30Z",
+      "side": 1,
+      "message": "Removed. \nThe FetchIssueAndTrybot(...) call has to cover this. \nMight have been a leftover from debugging.",
+      "parentUuid": "02704f67_f47e2715",
+      "range": {
+        "startLine": 160,
+        "startChar": 6,
+        "endLine": 160,
+        "endChar": 45
+      },
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c74a9f8b_03f404ed",
         "filename": "golden/go/search/new_search.go",
         "patchSetId": 8
