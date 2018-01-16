@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	"go.skia.org/infra/go/sklog"
 )
@@ -16,6 +17,7 @@ import (
 // Checkout is a struct used for managing a local git checkout.
 type Checkout struct {
 	GitDir
+	RepoUrl string
 }
 
 // NewCheckout returns a Checkout instance based in the given working directory.
@@ -27,13 +29,37 @@ func NewCheckout(ctx context.Context, repoUrl, workdir string) (*Checkout, error
 	if err != nil {
 		return nil, err
 	}
-	return &Checkout{g}, nil
+	return &Checkout{g, repoUrl}, nil
+}
+
+// FetchRef syncs the specified ref from the repo without modifying the working
+// copy.
+func (c *Checkout) FetchRef(ctx context.Context, ref string) error {
+	_, err := c.Git(ctx, c.RepoUrl, "fetch", ref)
+	return err
 }
 
 // Fetch syncs refs from the remote without modifying the working copy.
 func (c *Checkout) Fetch(ctx context.Context) error {
 	_, err := c.Git(ctx, "fetch", "origin")
 	return err
+}
+
+// AddRemote checks to see if a remote already exists in the checkout, if it
+// does not then the remote is added. Note: Only the remote name is checked not
+// the actual URL that it points to.
+func (c *Checkout) AddRemote(ctx context.Context, remote, repoUrl string) error {
+	// Check to see whether there is an upstream yet.
+	remoteOutput, err := c.Git(ctx, "remote", "show")
+	if err != nil {
+		return err
+	}
+	if !strings.Contains(remoteOutput, remote) {
+		if _, err := c.Git(ctx, "remote", "add", remote, repoUrl); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Cleanup forcibly resets all changes and checks out the master branch at
