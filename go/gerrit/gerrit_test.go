@@ -2,6 +2,8 @@ package gerrit
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -301,4 +303,48 @@ func TestUrlAndExtractIssue(t *testing.T) {
 	found, ok = api.ExtractIssue("random string")
 	assert.Equal(t, "", found)
 	assert.False(t, ok)
+}
+
+func TestFiles(t *testing.T) {
+	testutils.SmallTest(t)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintln(w, `)]}'
+{
+  "/COMMIT_MSG": {
+    "status": "A",
+    "lines_inserted": 10,
+    "size_delta": 353,
+    "size": 353
+  },
+  "BUILD.gn": {
+    "lines_inserted": 20,
+    "lines_deleted": 5,
+    "size_delta": 531,
+    "size": 50072
+  },
+  "include/gpu/vk/GrVkDefines.h": {
+    "lines_inserted": 28,
+    "lines_deleted": 21,
+    "size_delta": 383,
+    "size": 1615
+  },
+  "tools/gpu/vk/GrVulkanDefines.h": {
+    "status": "A",
+    "lines_inserted": 33,
+    "size_delta": 861,
+    "size": 861
+  }
+}
+`)
+	}))
+
+	defer ts.Close()
+
+	api, err := NewGerrit(ts.URL, "", nil)
+	files, err := api.Files(12345678, "current")
+	assert.NoError(t, err)
+	assert.Len(t, files, 4)
+	assert.Contains(t, files, "/COMMIT_MSG")
+	assert.Contains(t, files, "tools/gpu/vk/GrVulkanDefines.h")
 }
