@@ -70,6 +70,9 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(shmctl),
         ALLOW_SYSCALL(prlimit64),
 
+        ALLOW_SYSCALL(dup),
+        ALLOW_SYSCALL(kill),
+
         TRACE_SYSCALL(mkdir),
         TRACE_SYSCALL(unlink),
         TRACE_SYSCALL(execve),
