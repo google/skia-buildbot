@@ -114,7 +114,10 @@ func (is *IssueDetails) UpdatePatchsets(patchsets []*PatchsetDetail) {
 
 // newer implments newerInterface.
 func (is *IssueDetails) newer(right interface{}) bool {
-	return is.Updated.Before(right.(*IssueDetails).Updated)
+	// Comparing the length of the patchsets is strictly not necessary, but that
+	// more robust than simply relying on the update time.
+	return is.Updated.After(right.(*IssueDetails).Updated) ||
+		len(is.PatchsetDetails) > len(right.(*IssueDetails).PatchsetDetails)
 }
 
 // PatchsetDetails accumulates information about one patchset and the connected

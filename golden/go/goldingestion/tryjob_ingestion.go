@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/auth"
@@ -138,12 +139,27 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return err
 	}
 
+	if strings.Contains(resultsFile.Name(), "1515769814") {
+		sklog.Infof("Found it")
+	}
+
+	// Fetch the issue and check if the trybot is contained.
+	issue, err := g.tryjobStore.GetIssue(issueID, false, nil)
+	if err != nil {
+		return sklog.FmtErrorf("Unable to retrieve issue %d to process file %s. Got error: %s", issueID, resultsFile.Name(), err)
+	}
+
 	// If we haven't loaded the tryjob then see if we can fetch it from
 	// Gerrit and Buildbucket. This should be the exception since tryjobs should
 	// be picket up by BuildBucketState as they are added.
-	if tryjob == nil {
-		if _, tryjob, err = g.issueBuildFetcher.FetchIssueAndTryjob(issueID, dmResults.BuildBucketID); err != nil {
+	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
+		if issue, tryjob, err = g.issueBuildFetcher.FetchIssueAndTryjob(issueID, dmResults.BuildBucketID); err != nil {
 			return err
+		}
+
+		// Verify again if we fetched it correctly.
+		if !issue.HasPatchset(tryjob.PatchsetID) {
+			return sklog.FmtErrorf("Unable to retrieve issue or patchset in processing file %s.", resultsFile.Name())
 		}
 	}
 
