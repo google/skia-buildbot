@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5c5ae77e_1c1ab508",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-16T14:18:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b7eaa0ab_4e1588e3",
+      "range": {
+        "startLine": 292,
+        "startChar": 35,
+        "endLine": 292,
+        "endChar": 42
+      },
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5f5c8345_bcb6da55",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-16T13:30:56Z",
       "side": 1,
       "message": "This might be a silly question, but why all the pointer passing?  Saving memory? Less awkward method signatures?",
+      "range": {
+        "startLine": 295,
+        "startChar": 60,
+        "endLine": 295,
+        "endChar": 91
+      },
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e664eadf_3df0ec2f",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-16T14:18:31Z",
+      "side": 1,
+      "message": "I assume you mean why I return the same type as I pass in. \n\nI want to be able to call updateGerrit issue even when issue is nil. In that case \nthe function should allocate it. But for that to work I would have pass a **IssueDetails \nwhich felt more awkward and hard to read.",
+      "parentUuid": "5f5c8345_bcb6da55",
       "range": {
         "startLine": 295,
         "startChar": 60,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "071735d1_3b3faf67",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-16T14:18:31Z",
+      "side": 1,
+      "message": "Done\nThanks for catching this.",
+      "parentUuid": "c5b2f78b_b03510da",
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ffd9cdb_bf7430b9",
         "filename": "golden/go/goldingestion/tryjob_ingestion.go",
         "patchSetId": 8
@@ -85,6 +151,30 @@
       "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e0a3d6a_bfae0986",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-16T14:18:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ffd9cdb_bf7430b9",
+      "range": {
+        "startLine": 160,
+        "startChar": 6,
+        "endLine": 160,
+        "endChar": 45
+      },
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "216300e7_c900a9ee",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-16T14:18:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c74a9f8b_03f404ed",
+      "range": {
+        "startLine": 241,
+        "startChar": 14,
+        "endLine": 241,
+        "endChar": 17
+      },
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c585614a_f8b12d14",
         "filename": "golden/go/tryjobstore/tryjob_types.go",
         "patchSetId": 8
@@ -131,6 +245,30 @@
       "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fe061b5_548af6ab",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-16T14:18:31Z",
+      "side": 1,
+      "message": "Done\n\nRemoved comment and check for patchset length. \nI have since verified that updates to the patchsets are reflected in the update time of the Gerrit issue.",
+      "parentUuid": "c585614a_f8b12d14",
+      "range": {
+        "startLine": 118,
+        "startChar": 43,
+        "endLine": 118,
+        "endChar": 54
+      },
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
