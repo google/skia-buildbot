@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fcd3a4a7_a7d1a793",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T14:25:29Z",
+      "side": 1,
+      "message": "nit: issue",
+      "range": {
+        "startLine": 155,
+        "startChar": 55,
+        "endLine": 155,
+        "endChar": 61
+      },
+      "revId": "24b7315d4c86c3538e1c9231b8d2f678809ca59f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

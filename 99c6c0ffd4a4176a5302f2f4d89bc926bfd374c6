@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "f2d6d9b4_9b3ac946",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T14:25:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e664eadf_3df0ec2f",
+      "range": {
+        "startLine": 295,
+        "startChar": 60,
+        "endLine": 295,
+        "endChar": 91
+      },
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5b2f78b_b03510da",
         "filename": "golden/go/goldingestion/tryjob_ingestion.go",
         "patchSetId": 8
@@ -175,6 +199,30 @@
       "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02704f67_f47e2715",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T14:25:29Z",
+      "side": 1,
+      "message": "Sorry, I still don\u0027t get it - is there a race condition if the issue was deleted between line 150 and 157?  If so, I don\u0027t understand how checking at line 157 resolves that and not, say, at line 184.",
+      "parentUuid": "8e0a3d6a_bfae0986",
+      "range": {
+        "startLine": 160,
+        "startChar": 6,
+        "endLine": 160,
+        "endChar": 45
+      },
+      "revId": "99c6c0ffd4a4176a5302f2f4d89bc926bfd374c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
