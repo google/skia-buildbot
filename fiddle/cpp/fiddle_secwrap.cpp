@@ -69,6 +69,7 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(getrandom),
         ALLOW_SYSCALL(shmctl),
         ALLOW_SYSCALL(prlimit64),
+        ALLOW_SYSCALL(dup),
 
         TRACE_SYSCALL(mkdir),
         TRACE_SYSCALL(unlink),
@@ -79,8 +80,8 @@ static bool install_syscall_filter() {
         // Uncomment the following when trying to figure out which new
         // syscall's are being made:
 
-        TRACE_ALL,
-        //ALLOW_ALL,
+        // TRACE_ALL,
+        // ALLOW_ALL,
         KILL_PROCESS,
     };
     struct sock_fprog prog = {
@@ -212,14 +213,6 @@ const char *writing_allowed_prefixes[] = {
     NULL,
 };
 
-const char *openat_allowed_prefixes[] = {
-    "/etc/fonts",
-    "/usr/local/share/fonts",
-    "/usr/share/fonts",
-    "/var/cache/fontconfig",
-    NULL,
-};
-
 const char *readonly_allowed_prefixes[] = {
     "/dev/dri",
     "/etc/fonts",
@@ -308,7 +301,12 @@ int do_trace(pid_t child, char *allowed_exec) {
                 free(name);
             } else if (syscall == SYS_openat) {
                 char *name = read_string(child, regs.rsi);
-                test_against_prefixes(child, "openat", name, openat_allowed_prefixes);
+                int flags = regs.rdx;
+                const char **prefixes = readonly_allowed_prefixes;
+                if (O_RDONLY != (flags & O_ACCMODE)) {
+                    prefixes = writing_allowed_prefixes;
+                }
+                test_against_prefixes(child, "openat", name, prefixes);
                 free(name);
             } else if (syscall == SYS_mkdir) {
                 char *name = read_string(child, regs.rdi);
