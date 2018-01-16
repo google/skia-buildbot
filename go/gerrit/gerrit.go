@@ -157,6 +157,7 @@ type GerritInterface interface {
 	SetTopic(string, int64) error
 	Search(int, ...*SearchTerm) ([]*ChangeInfo, error)
 	GetTrybotResults(int64, int64) ([]*buildbucket.Build, error)
+	Files(issue int64, patch string) ([]string, error)
 }
 
 // Gerrit is an object used for iteracting with the issue tracker.
@@ -690,6 +691,38 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 
 func (g *Gerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
 	return g.buildbucketClient.GetTrybotsForCL(issueID, patchsetID, "gerrit", g.url)
+}
+
+// Files returns the list of files for the given issue at the given patch. If
+// patch is the empty string then the most recent patch is queried.
+func (g *Gerrit) Files(issue int64, patch string) ([]string, error) {
+	if patch == "" {
+		patch = "current"
+	}
+	url := fmt.Sprintf("%s/changes/%d/revisions/%s/files/", g.url, issue, patch)
+	resp, err := g.client.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get commit file list from Gerrit: %s", err)
+	}
+	defer util.Close(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read response body: %s", err)
+	}
+
+	// Strip off the XSS protection chars.
+	parts := strings.SplitN(string(body), "\n", 2)
+
+	// The Gerrit response is a map of filenames to extra info, we only need the filenames.
+	files := map[string]interface{}{}
+	if err := json.Unmarshal([]byte(parts[1]), &files); err != nil {
+		return nil, fmt.Errorf("Failed to get decode file list from Gerrit: %s", err)
+	}
+	ret := []string{}
+	for filename, _ := range files {
+		ret = append(ret, filename)
+	}
+	return ret, nil
 }
 
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if
