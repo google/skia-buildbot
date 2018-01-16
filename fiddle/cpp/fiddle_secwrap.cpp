@@ -70,6 +70,9 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(shmctl),
         ALLOW_SYSCALL(prlimit64),
 
+        ALLOW_SYSCALL(dup),
+        ALLOW_SYSCALL(kill),
+
         TRACE_SYSCALL(mkdir),
         TRACE_SYSCALL(unlink),
         TRACE_SYSCALL(execve),
@@ -217,6 +220,7 @@ const char *openat_allowed_prefixes[] = {
     "/usr/local/share/fonts",
     "/usr/share/fonts",
     "/var/cache/fontconfig",
+    "/mnt/pd0/fiddle/tmp"
     NULL,
 };
 
