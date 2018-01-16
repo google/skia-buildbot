@@ -71,5 +71,9 @@ func (g *MockedGerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*bui
 	return nil, nil
 }
 
+func (g *MockedGerrit) Files(issue int64, patch string) ([]string, error) {
+	return nil, nil
+}
+
 // Make sure MockGerrit fulfills GerritInterface
 var _ GerritInterface = (*MockedGerrit)(nil)
