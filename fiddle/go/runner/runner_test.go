@@ -167,7 +167,7 @@ func TestRun(t *testing.T) {
 	assert.NoError(t, err)
 
 	execStrings = []string{}
-	res, err := Run(ctx, tmp+"/checkout/", tmp+"/fiddleroot/", tmp+"/depot_tools/", "abcdef", true, "", opts)
+	res, err := Run(ctx, tmp+"/checkout/", tmp+"/fiddleroot/", tmp+"/depot_tools/", "abcdef", true, "", opts, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, fmt.Sprintf("sudo mount -t overlayfs -o lowerdir=%s/fiddleroot/versions/abcdef,upperdir=upper,workdir=work none overlay", tmp), execStrings[0])
@@ -176,7 +176,7 @@ func TestRun(t *testing.T) {
 	assert.NoError(t, err)
 
 	execStrings = []string{}
-	res, err = Run(ctx, tmp+"/checkout/", tmp+"/fiddleroot/", tmp+"/depot_tools/", "abcdef", false, tmp+"/draw0123", opts)
+	res, err = Run(ctx, tmp+"/checkout/", tmp+"/fiddleroot/", tmp+"/depot_tools/", "abcdef", false, tmp+"/draw0123", opts, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, fmt.Sprintf("sudo mount -t overlay -o lowerdir=%s/fiddleroot/versions/abcdef,upperdir=%s/draw0123/upper,workdir=%s/draw0123/work none %s/draw0123/overlay", tmp, tmp, tmp, tmp), execStrings[0])
