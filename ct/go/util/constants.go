@@ -41,9 +41,6 @@ const (
 	PAGESET_TYPE_MOBILE_100k = "Mobile100k"
 	PAGESET_TYPE_10k         = "10k"
 	PAGESET_TYPE_MOBILE_10k  = "Mobile10k"
-	PAGESET_TYPE_SVG_5m      = "SVG5m"
-	PAGESET_TYPE_SVG_300k    = "SVG300k"
-	PAGESET_TYPE_SVG_1k      = "SVG1k"
 	PAGESET_TYPE_PDF_400m    = "PDF400m"
 	PAGESET_TYPE_PDF_1m      = "PDF1m"
 	PAGESET_TYPE_PDF_1k      = "PDF1k"
@@ -298,39 +295,6 @@ var (
 			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
-		},
-		PAGESET_TYPE_SVG_5m: {
-			NumPages:                   5000000,
-			CSVSource:                  "csv/svgs-5m.csv",
-			UserAgent:                  "desktop",
-			CreatePagesetsTimeoutSecs:  1800,
-			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
-			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "SVG 5M",
-		},
-		PAGESET_TYPE_SVG_300k: {
-			NumPages:                   300000,
-			CSVSource:                  "csv/svgs-5m.csv",
-			UserAgent:                  "desktop",
-			CreatePagesetsTimeoutSecs:  1800,
-			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
-			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "SVG 300K",
-		},
-		PAGESET_TYPE_SVG_1k: {
-			NumPages:                   1000,
-			CSVSource:                  "csv/svgs-5m.csv",
-			UserAgent:                  "desktop",
-			CreatePagesetsTimeoutSecs:  1800,
-			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
-			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "SVG 1K",
 		},
 		PAGESET_TYPE_PDF_400m: {
 			NumPages:                   400000000,
