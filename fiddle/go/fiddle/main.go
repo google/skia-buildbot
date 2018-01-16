@@ -403,7 +403,7 @@ func run(ctx context.Context, user string, req *types.FiddleContext) (*types.Run
 	if err != nil {
 		return resp, fmt.Errorf("Failed to write the fiddle.")
 	}
-	res, err := runner.Run(ctx, checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, &req.Options)
+	res, err := runner.Run(ctx, checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, &req.Options, *preserveTemp)
 	if !*local && !*preserveTemp {
 		if err := os.RemoveAll(tmpDir); err != nil {
 			sklog.Errorf("Failed to remove temp dir: %s", err)
@@ -541,7 +541,7 @@ func singleStepTryNamed(ctx context.Context) {
 			sklog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
 			continue
 		}
-		res, err := runner.Run(ctx, checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, options)
+		res, err := runner.Run(ctx, checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, options, *preserveTemp)
 		if err != nil {
 			sklog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
 			failing = append(failing, name)
