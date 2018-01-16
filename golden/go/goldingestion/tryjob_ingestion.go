@@ -138,12 +138,24 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return err
 	}
 
+	// Fetch the issue and check if the trybot is contained.
+	issue, err := g.tryjobStore.GetIssue(issueID, false, nil)
+	if err != nil {
+		return sklog.FmtErrorf("Unable to retrieve issue %d to process file %s. Got error: %s", issueID, resultsFile.Name(), err)
+	}
+
 	// If we haven't loaded the tryjob then see if we can fetch it from
 	// Gerrit and Buildbucket. This should be the exception since tryjobs should
 	// be picket up by BuildBucketState as they are added.
-	if tryjob == nil {
-		if _, tryjob, err = g.issueBuildFetcher.FetchIssueAndTryjob(issueID, dmResults.BuildBucketID); err != nil {
+	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
+		if issue, tryjob, err = g.issueBuildFetcher.FetchIssueAndTryjob(issueID, dmResults.BuildBucketID); err != nil {
 			return err
+		}
+
+		// There is a possibility that we have not found the isssue (e.g. it was deleted in Gerrit)
+		// Verify again if we fetched it correctly to make sure our data are consistent.
+		if !issue.HasPatchset(tryjob.PatchsetID) {
+			return sklog.FmtErrorf("Unable to retrieve issue or patchset in processing file %s.", resultsFile.Name())
 		}
 	}
 

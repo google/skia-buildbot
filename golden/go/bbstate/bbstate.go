@@ -262,7 +262,7 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 	// If 'issue' is nil, we need to see if we can find it in Gerrit.
 	if issue == nil {
 		var err error
-		issue, err = b.fetchGerritIssue(issueID)
+		issue, err = b.updateGerritIssue(issueID, issue)
 		if err != nil {
 			// We didn't find the issue in Gerrit.
 			if err == gerrit.ErrNotFound {
@@ -273,7 +273,8 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 	} else {
 		// Check if the issue is up to date.
 		if !issue.HasPatchset(patchsetID) {
-			if err := b.updateGerritIssue(issueID, issue); err != nil {
+			var err error
+			if issue, err = b.updateGerritIssue(issueID, issue); err != nil {
 				return nil, fmt.Errorf("Error updating issue %d: %s", issueID, err)
 			}
 		}
@@ -288,27 +289,21 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 	return issue, nil
 }
 
-// fetchGerritIssue retrieves the given issue from Gerrit.
-func (b *BuildBucketState) fetchGerritIssue(issueID int64) (*tryjobstore.IssueDetails, error) {
+// updateGerritIssue fetches issue details from Gerrit and merges them into the
+// internal representation of the Gerrit issues. If issue is nil a new instance
+// will be allocated and returned.
+func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.IssueDetails) (*tryjobstore.IssueDetails, error) {
 	changeInfo, err := b.gerritAPI.GetIssueProperties(issueID)
 	if err != nil {
 		return nil, err
 	}
 
-	ret := &tryjobstore.IssueDetails{Issue: &tryjobstore.Issue{}}
-	b.setIssueDetails(issueID, changeInfo, ret)
-	return ret, nil
-}
-
-// updateGerritIssue fetches issue detaisl from Gerrit and merges them into the
-// internal representation of the Gerrit issues.
-func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.IssueDetails) error {
-	changeInfo, err := b.gerritAPI.GetIssueProperties(issueID)
-	if err != nil {
-		return err
+	if issue == nil {
+		issue = &tryjobstore.IssueDetails{Issue: &tryjobstore.Issue{}}
 	}
+
 	b.setIssueDetails(issueID, changeInfo, issue)
-	return nil
+	return issue, nil
 }
 
 // setIssueDetails set the properties of the given IssueDetails from the values
@@ -320,7 +315,13 @@ func (b *BuildBucketState) setIssueDetails(issueID int64, changeInfo *gerrit.Cha
 	issue.Issue.Updated = changeInfo.Updated
 	issue.Issue.URL = b.gerritAPI.Url(issueID)
 	issue.Status = changeInfo.Status
-	issue.UpdatePatchsets(extractPatchsetDetails(changeInfo))
+
+	// extract the patchset detail.
+	psDetails := make([]*tryjobstore.PatchsetDetail, 0, len(changeInfo.Patchsets))
+	for _, revision := range changeInfo.Patchsets {
+		psDetails = append(psDetails, &tryjobstore.PatchsetDetail{ID: revision.Number})
+	}
+	issue.UpdatePatchsets(psDetails)
 }
 
 // pollBuildBucket queries the BuildBucket instance from (now - timeWindow) to now.
@@ -364,16 +365,6 @@ func (b *BuildBucketState) startBuildPoller(buildsCh chan<- *bb_api.ApiCommonBui
 	return nil
 }
 
-// extractPatchsetDetails produces instances of PatchsetDetail from the change
-// info retrieved from Gerrit.
-func extractPatchsetDetails(changeInfo *gerrit.ChangeInfo) []*tryjobstore.PatchsetDetail {
-	ret := make([]*tryjobstore.PatchsetDetail, 0, len(changeInfo.Patchsets))
-	for _, revision := range changeInfo.Patchsets {
-		ret = append(ret, &tryjobstore.PatchsetDetail{ID: revision.Number})
-	}
-	return ret
-}
-
 // extractPatchsetRegex is used to extract the patchset ID from BuildBucket builds.
 var extractPatchsetRegex = regexp.MustCompile(`^refs\/changes\/[0-9]*\/[0-9]*\/(?P<patchset>.+)$`)
 
@@ -393,6 +384,11 @@ func getTryjobInfo(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Para
 	}
 
 	issueID := int64(params.Properties.GerritIssue)
+
+	// Make sure the relevant ids are correct.
+	if (issueID <= 0) || (patchsetID <= 0) {
+		return nil, sklog.FmtErrorf("Invalid issue id (%d) or patchset id (%d).", issueID, patchsetID)
+	}
 
 	// Translate the two result fields into one for tryjobs.
 	var status tryjobstore.TryjobStatus = tryjobstore.TRYJOB_UNKNOWN
