@@ -302,3 +302,9 @@ func TestUrlAndExtractIssue(t *testing.T) {
 	assert.Equal(t, "", found)
 	assert.False(t, ok)
 }
+
+func TestFiles(t *testing.T) {
+	testutils.SmallTest(t)
+
+	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+}
