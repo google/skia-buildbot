@@ -200,13 +200,6 @@ func main() {
 		"MATCH_STDOUT_TXT":   *matchStdoutText,
 	}
 
-	// Figure out priority of analysis swarming tasks.
-	priority := util.USER_TASKS_PRIORITY
-	if *pagesetType == util.PAGESET_TYPE_SVG_5m {
-		// Run long running tasks like SVG5M at a lower priority to avoid starving other user triggered tasks.
-		priority = util.LONG_RUNNING_TASKS_PRIORITY
-	}
-
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
 	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
 	if err != nil {
@@ -215,7 +208,7 @@ func main() {
 	}
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, priority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, 1))
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, 1))
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
