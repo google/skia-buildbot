@@ -25,6 +25,7 @@ const (
 
 	REPO_CHROMIUM           = "https://chromium.googlesource.com/chromium/src.git"
 	REPO_DEPOT_TOOLS        = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
+	REPO_SKCMS              = "https://skia.googlesource.com/skcms.git"
 	REPO_SKIA               = "https://skia.googlesource.com/skia.git"
 	REPO_SKIA_INFRA         = "https://skia.googlesource.com/buildbot.git"
 	REPO_SKIA_INTERNAL      = "https://skia.googlesource.com/skia_internal.git"
@@ -34,7 +35,7 @@ const (
 )
 
 var (
-	PUBLIC_REPOS  = []string{REPO_SKIA, REPO_SKIA_INFRA}
+	PUBLIC_REPOS  = []string{REPO_SKIA, REPO_SKIA_INFRA, REPO_SKCMS}
 	PRIVATE_REPOS = []string{REPO_SKIA_INTERNAL, REPO_SKIA_INTERNAL_TEST}
 	ALL_REPOS     = append(PUBLIC_REPOS, PRIVATE_REPOS...)
 
