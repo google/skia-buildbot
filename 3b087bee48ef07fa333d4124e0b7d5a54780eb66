@@ -22,6 +22,437 @@
       "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e35f6342_523f241c",
+        "filename": "skolo/win/ansible/bootstrap-swarming.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "That\u0027s what I\u0027ve done for some maintanence scripts.  Depends on what\u0027s more reliable.",
+      "parentUuid": "97d979dc_4759eb7a",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 59
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "957788db_eb5c21df",
+        "filename": "skolo/win/ansible/bootstrap-swarming.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Add msg here or remove to avoid random output \"Swarming detected: {{ results.stat.exists }}\"",
+      "range": {
+        "startLine": 13,
+        "startChar": 4,
+        "endLine": 13,
+        "endChar": 9
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba79e3d4_75a9a8a4",
+        "filename": "skolo/win/ansible/bootstrap-swarming.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Delete?  Or is it an illustrative example?",
+      "range": {
+        "startLine": 27,
+        "startChar": 9,
+        "endLine": 35,
+        "endChar": 25
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "075c3428_5b9c7a5b",
+        "filename": "skolo/win/ansible/fix-boot-order.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "I did not know about this option - neat!",
+      "range": {
+        "startLine": 11,
+        "startChar": 6,
+        "endLine": 11,
+        "endChar": 13
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f3147b7_45c6dae9",
+        "filename": "skolo/win/ansible/fix-boot-order.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Add a comment to make this a touch easier to parse: \"Create a new variable with carriage return (\\r) removed\"  Perhaps include why \\r is bad",
+      "range": {
+        "startLine": 16,
+        "startChar": 6,
+        "endLine": 16,
+        "endChar": 28
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c47eba9e_8e84618b",
+        "filename": "skolo/win/ansible/fix-boot-order.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Will there only be one block or does this file have multiple entries?  My guess off the regex is that there are multiple entries, but only one has IPV4 in the description, so this block is for the ipv4.  Would you mind adding a comment clarifying that?",
+      "range": {
+        "startLine": 23,
+        "startChar": 6,
+        "endLine": 23,
+        "endChar": 19
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61d69e78_0e0e13c1",
+        "filename": "skolo/win/ansible/fix-boot-order.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "nit: If it\u0027s hex, I prefer 0-9a-f instead of \\\\w, just because it\u0027s a bit easier to read (I like to minimize escapes where possible)",
+      "range": {
+        "startLine": 24,
+        "startChar": 51,
+        "endLine": 24,
+        "endChar": 54
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49c6b9be_8db955c8",
+        "filename": "skolo/win/ansible/fix-boot-order.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Maybe also add a comment that ansible makes this cumbersome to do with groups, so you break it into two steps to get the ID.",
+      "range": {
+        "startLine": 24,
+        "startChar": 8,
+        "endLine": 24,
+        "endChar": 20
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b73eac98_1caf72b6",
+        "filename": "skolo/win/ansible/fix-boot-order.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Can you either add a msg to this (e.g. \"The id of the IPv4 boot is {{ bcd_ip4_id }}, moving to first position\") or remove it so as not to have mysterious value be printed?",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 9
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc870abe_d6a5de3a",
+        "filename": "skolo/win/ansible/fix-boot-order.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "This doesn\u0027t make a duplicate entry, right?  (I\u0027m only going off my impression from what the command says - perhaps add a link to the docs or explain that it doesn\u0027t duplicate it)",
+      "range": {
+        "startLine": 30,
+        "startChar": 77,
+        "endLine": 30,
+        "endChar": 85
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0491fbc0_2cc9e734",
+        "filename": "skolo/win/ansible/intel-graphics-driver-skylake.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Top level comment explaining what this does \"Install Intel Graphics Driver for Skylake\"?",
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a3232ab_dcad5f74",
+        "filename": "skolo/win/ansible/intel-graphics-driver-skylake.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Where does this come from, how do I make it if the driver needs updating? (add comment)",
+      "range": {
+        "startLine": 15,
+        "startChar": 19,
+        "endLine": 15,
+        "endChar": 57
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7710be4f_8bebb78a",
+        "filename": "skolo/win/ansible/intel-graphics-driver-skylake.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "What do these do?  Why do I need -s?  (add comment)",
+      "range": {
+        "startLine": 16,
+        "startChar": 17,
+        "endLine": 16,
+        "endChar": 36
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e46c2a1_277d4d23",
+        "filename": "skolo/win/ansible/nvidia-graphics-driver.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Add top level comment \"Installs Nvidia Driver to bot\"",
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3cf5493_d0a16ef9",
+        "filename": "skolo/win/ansible/nvidia-graphics-driver.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "-s for silent?  (add comment)",
+      "range": {
+        "startLine": 19,
+        "startChar": 81,
+        "endLine": 19,
+        "endChar": 83
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6b08ea0_a1b9142b",
+        "filename": "skolo/win/ansible/python.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Add a top level comment explaining what it does e.g \"Install python 2.7.14 on machine\"",
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dddb3e37_15b392a3",
+        "filename": "skolo/win/ansible/python.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Where does this variable get set?  Add a comment reminding/instructing the reader where this variable is made?  If it\u0027s CLI, can you add a README file explaining how to run the ansible script?",
+      "range": {
+        "startLine": 14,
+        "startChar": 15,
+        "endLine": 14,
+        "endChar": 30
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf195c88_07a08dfb",
+        "filename": "skolo/win/ansible/python.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Where does this magic thing come from?  If I updated python, where would I find the new version, if any?",
+      "range": {
+        "startLine": 19,
+        "startChar": 19,
+        "endLine": 19,
+        "endChar": 57
+      },
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a66734a3_07f4e684",
+        "filename": "skolo/win/ansible/setup-skolo-bot.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Do we put intel driver and nvidia driver on everything?  That\u0027s okay, even on non-nvidia gpu bots?",
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89a1135c_b00749eb",
+        "filename": "skolo/win/ansible/skolo-credentials.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-16T13:18:35Z",
+      "side": 1,
+      "message": "Add top level comment",
+      "revId": "3b087bee48ef07fa333d4124e0b7d5a54780eb66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
