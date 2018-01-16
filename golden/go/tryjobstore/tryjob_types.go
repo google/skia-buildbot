@@ -231,3 +231,6 @@ type TestDigestExp struct {
 	Digest string
 	Label  string
 }
+
+type TryjobsSummary struct {
+}
