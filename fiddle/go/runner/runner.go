@@ -180,6 +180,8 @@ func GitHashTimeStamp(ctx context.Context, fiddleRoot, gitHash string) (time.Tim
 //        fiddle_run under fiddle_secwrap.
 //    tmpDir - The directory outside the container to mount as FIDDLE_ROOT/src
 //        that contains the user's draw.cpp file. Only used if local is false.
+//    opts - The compile time options that are passed to draw.cpp.
+//    preserve - Should the overlay mount be preserverd?
 //
 // Returns the parsed JSON that fiddle_run emits to stdout.
 //
@@ -215,7 +217,7 @@ func GitHashTimeStamp(ctx context.Context, fiddleRoot, gitHash string) (time.Tim
 // the point of making the bindings and then xargs will be able to execute the
 // exe within the container.
 //
-func Run(ctx context.Context, checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string, opts *types.Options) (*types.Result, error) {
+func Run(ctx context.Context, checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string, opts *types.Options, preserve bool) (*types.Result, error) {
 	/*
 		Do the equivalent of the following bash script that creates the overlayfs
 		mount.
@@ -280,23 +282,25 @@ func Run(ctx context.Context, checkout, fiddleRoot, depotTools, gitHash string, 
 	}
 
 	// Queue up the umount in a defer.
-	defer func() {
-		name = "sudo"
-		args = []string{
-			"umount", overlay,
-		}
-		output = &bytes.Buffer{}
-		umountCmd := &exec.Command{
-			Name:      name,
-			Args:      args,
-			LogStderr: true,
-			Stdout:    output,
-		}
+	if !preserve {
+		defer func() {
+			name = "sudo"
+			args = []string{
+				"umount", overlay,
+			}
+			output = &bytes.Buffer{}
+			umountCmd := &exec.Command{
+				Name:      name,
+				Args:      args,
+				LogStderr: true,
+				Stdout:    output,
+			}
 
-		if err := exec.Run(ctx, umountCmd); err != nil {
-			sklog.Errorf("umount failed to run %#v: %s", *umountCmd, err)
-		}
-	}()
+			if err := exec.Run(ctx, umountCmd); err != nil {
+				sklog.Errorf("umount failed to run %#v: %s", *umountCmd, err)
+			}
+		}()
+	}
 
 	// Run fiddle_run.
 	name = filepath.Join(fiddleRoot, "bin", "fiddle_run")
