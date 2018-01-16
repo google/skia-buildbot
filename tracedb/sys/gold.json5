@@ -33,32 +33,27 @@
       }
     },
 
-    // Gold trybot ingester
-    "gold-trybot": {
+    // Gold Tryjob Ingester for gold-stage.
+    "gold-tryjob": {
       RunEvery: "5m",
       NCommits: 10,
-      MinDays: 7,
-      StatusDir: "/mnt/pd0/gold/ingest_status",
-      MetricName: "gold-ingest-trybot",
+      MinDays: 10,
+      StatusDir: "/mnt/pd0/gold-tryjob/ingest_status",
+      MetricName: "gold-ingest-tryjob",
       LocalCache: false,
       Sources: [
         {
           Bucket: "skia-infra-gm",
           Dir: "trybot/dm-json-v1"
         },
-        {
-          Bucket: "skia-infra-gm-internal",
-          Dir: "trybot/dm-json-v1"
-        },
-        {
-          Bucket: "chromium-skia-gm",
-          Dir: "trybot/dm-json-v1"
-        }
       ],
       ExtraParams: {
-        TraceService: "skia-tracedb:9090",
-        RietveldCodeReviewURL: "https://codereview.chromium.org",
         GerritCodeReviewURL: "https://skia-review.googlesource.com",
+        TryjobDatastoreNameSpace: "gold-skia-prod",
+        BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
+        BuildBucketName: "skia.primary",
+        BuildBucketPollInterval: "10m",
+        BuildBucketTimeWindow: "5d",
       }
     }
   }

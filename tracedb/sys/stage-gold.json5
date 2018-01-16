@@ -1,16 +1,13 @@
 {
-  GitRepoDir: "/mnt/pd0/gold/skiarepo",             // Directory location for the Skia repo.
+  GitRepoDir: "/mnt/pd0/stage_gold/skiarepo",       // Directory location for the Skia repo.
   GitRepoURL: "https://skia.googlesource.com/skia", // URL location for the repo.
-  SecondaryRepoURL: "https://skia.googlesource.com/internal_test",
-  SecondaryRepoDir: "/mnt/pd0/gold/internal_test",
-  SecondaryRegEx: "^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$",
 
   Ingesters: {
     // Gold Tryjob Ingester for gold-stage.
     "gold-tryjob-stage": {
       RunEvery: "5m",
       NCommits: 10,
-      MinDays: 7,
+      MinDays: 10,
       StatusDir: "/mnt/pd0/gold-tryjob-stage/ingest_status",
       MetricName: "gold-ingest-tryjob-stage",
       LocalCache: false,
@@ -19,16 +16,14 @@
           Bucket: "skia-infra-gm",
           Dir: "trybot/dm-json-v1"
         },
-        {
-          Bucket: "skia-infra-gm-internal",
-          Dir: "trybot/dm-json-v1"
-        }
       ],
       ExtraParams: {
-        TryjobDatastoreNameSpace: "gold-stage",
+        GerritCodeReviewURL: "https://skia-review.googlesource.com",
+        TryjobDatastoreNameSpace: "gold-skia-stage",
         BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
         BuildBucketName: "skia.primary",
-        GerritCodeReviewURL: "https://skia-review.googlesource.com"
+        BuildBucketPollInterval: "10m",
+        BuildBucketTimeWindow: "5d",
       }
     }
   }

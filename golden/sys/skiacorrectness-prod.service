@@ -27,7 +27,8 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --baseline_gs_path=skia-infra-gm/hash_files/gold-prod-baseline.json \
     --diff_server_grpc=skia-diffserver-prod:8000 \
     --diff_server_http=skia-diffserver-prod:8001 \
-    --force_login
+    --force_login \
+    --ds_namespace=gold-skia-prod
 
 Restart=always
 User=default
