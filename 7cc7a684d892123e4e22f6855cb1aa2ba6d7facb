@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c25e2d5_8cf26a4f",
+        "filename": "fiddle/go/runner/runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-16T18:58:23Z",
+      "side": 1,
+      "message": "Document opts and preserve here?",
+      "revId": "7cc7a684d892123e4e22f6855cb1aa2ba6d7facb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
