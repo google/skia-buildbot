@@ -79,7 +79,7 @@ static bool install_syscall_filter() {
         // Uncomment the following when trying to figure out which new
         // syscall's are being made:
 
-        //TRACE_ALL,
+        TRACE_ALL,
         //ALLOW_ALL,
         KILL_PROCESS,
     };
