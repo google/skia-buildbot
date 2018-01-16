@@ -100,7 +100,7 @@ ALERT CTPollerHealthCheck
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     summary = "CT poller healthy check failed.",
-    description = "CT poller health check is failing. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ct_poller_health_check."
+    description = "CT poller health check is failing. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ct_poller_health_check"
   }
 
 ALERT CTFEPendingTaskCount
@@ -185,7 +185,7 @@ ALERT AndroidIngestFailures
   IF rate(process_failures[2m]) > 0.1
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    description = "Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures."
+    description = "Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures"
   }
 
 ALERT PerfIngestErrorTooHigh
@@ -382,14 +382,14 @@ ALERT SkiaAutoRoll
   FOR 10m
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
-    description = "The last DEPS roll attempt for Skia failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed."
+    description = "The last DEPS roll attempt for Skia failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed"
   }
 
 ALERT SkiaAutoRoll24H
   IF liveness_last_autoroll_landed_s{child_path="src/third_party/skia"}/60/60 > 24
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
-    description = "The last-landed AutoRoll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h."
+    description = "The last-landed AutoRoll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h"
   }
 
 ALERT Google3AutoRoll
@@ -404,7 +404,7 @@ ALERT Google3AutoRoll24H
   IF liveness_last_autoroll_landed_s{instance="google3-autoroll:20000"}/60/60 > 24
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
-    description = "The last-landed Google3 roll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h."
+    description = "The last-landed Google3 roll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h"
   }
 
 ALERT InternalAutoRoll
@@ -412,14 +412,14 @@ ALERT InternalAutoRoll
   FOR 10m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
-    description = "The last DEPS roll into internal_test repo failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed."
+    description = "The last DEPS roll into internal_test repo failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed"
   }
 
 ALERT InternalAutoRoll24H
   IF liveness_last_autoroll_landed_s{instance="skia-internal-autoroll:20000"}/60/60 > 24
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
-    description = "The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h."
+    description = "The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h"
   }
 
 ALERT AutoRollLatency
@@ -427,14 +427,14 @@ ALERT AutoRollLatency
   FOR 10m
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The endpoint for {{ $labels.probename }} {{ $labels.url }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#http_latency."
+    description = "The endpoint for {{ $labels.probename }} {{ $labels.url }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#http_latency"
   }
 
 ALERT AutoRollErrorRate
   IF rate(num_log_lines{level="ERROR",log_source="autoroll"}[1h]) > 0.001
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate."
+    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate"
   }
 
 ALERT AutoRollLastTransition
@@ -485,14 +485,14 @@ ALERT GoldIngestionStalled
   IF liveness_gold_s{metric="since-last-run",source="poll"} > 750
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "At least two rounds of gold ingestion have failed back to back for {{ $labels.corpus }}. See https://mon.skia.org/dashboard/db/gold-panel.",
+    description = "At least two rounds of gold ingestion have failed back to back for {{ $labels.corpus }}. See https://mon.skia.org/dashboard/db/gold-panel",
   }
 
 ALERT GoldIngestionErrorRate
   IF rate(num_log_lines{level="ERROR",job="ingestion"}[2m]) > 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See https://mon.skia.org/dashboard/db/gold-panel. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
+    description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See https://mon.skia.org/dashboard/db/gold-panel https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
   }
 
 # Task Scheduler
@@ -602,7 +602,7 @@ ALERT RpiMaster
   IF skolo_hotspare_spare_active == 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    description = "skia-rpi-master-spare is active. Something is possibly wrong with skia-rpi-master. http://go/skolo-maintenance.",
+    description = "skia-rpi-master-spare is active. Something is possibly wrong with skia-rpi-master. http://go/skolo-maintenance",
   }
 
 #
