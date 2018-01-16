@@ -28,7 +28,7 @@ ExecStart=/usr/local/bin/skiacorrectness-stage  \
     --diff_server_http=skia-diffserver-stage:8001 \
     --force_login \
     --event_topic=testing-gold-stage-eventbus \
-    --ds_namespace=gold_ingestion-localhost-stephana
+    --ds_namespace=gold-skia-stage
 
 Restart=always
 User=default
