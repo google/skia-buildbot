@@ -114,7 +114,7 @@ func (is *IssueDetails) UpdatePatchsets(patchsets []*PatchsetDetail) {
 
 // newer implments newerInterface.
 func (is *IssueDetails) newer(right interface{}) bool {
-	return is.Updated.Before(right.(*IssueDetails).Updated)
+	return is.Updated.After(right.(*IssueDetails).Updated)
 }
 
 // PatchsetDetails accumulates information about one patchset and the connected
