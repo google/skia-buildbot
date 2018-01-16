@@ -1,0 +1,31 @@
+---
+# Ensure Swarming has been bootstrapped.
+- hosts: all
+  vars:
+    swarming_path: C:\b
+  tasks:
+  - name: Check if host has already been bootstrapped
+    win_stat:
+      path: "{{ swarming_path }}"
+    register: results
+  - debug:
+      msg: Did we find an existing Swarming installation? {{ results.stat.exists }}
+  - when: not results.stat.exists
+    block:
+      - name: Bootstrap Swarming (triggers reboot, so expected to fail)
+        win_command: python -c \
+          "import urllib; exec urllib.urlopen('{{ swarming_server }}/bootstrap').read()"
+        ignore_errors: True
+      - name: Wait for reboot after bootstrapping Swarming
+        wait_for_connection:
+          # Don't start checking before reboot is initiated.
+          delay: 30
+          # Only wait for 3 minutes before failing. (Default is 10 min.)
+          timeout: 180
+      - name: Check if bootstrap was successful
+        win_stat:
+          path: "{{ swarming_path }}"
+        register: results
+      - when: not results.stat.exists
+        fail:
+          msg: "{{ swarming_path }} does not exist after bootstrapping."

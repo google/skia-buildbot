@@ -1,0 +1,31 @@
+---
+# Install Intel Graphics Driver for Skylake and later GPUs; applies only to group "skylake".
+- hosts: skylake
+  tasks:
+  - name: Create Temp
+    win_file:
+      path: c:\Temp
+      state: directory
+  - name: Copy the Intel Graphics Driver EXE to the host
+    win_copy:
+      src: "{{ win_package_src }}/Intel Graphics Skylake win64_15.60.2.4901.exe"
+      dest: c:\Temp\intel_gfx.exe
+  - name: Install Intel Graphics Driver for Skylake
+    win_package:
+      path: c:\Temp\intel_gfx.exe
+      # See docs for win_package here:
+      # http://docs.ansible.com/ansible/latest/win_package_module.html
+      # Unfortunately, the only way I have found to get this product_id is to install the software
+      # and dig through the registry. And even then it might not work (see
+      # nvidia-graphics-driver.yml). Hopefully future versions of win_package will make this better
+      # (or just make the product_id optional).
+      product_id: '{F0E3AD40-2BBD-4360-9C76-B9AC9A5886EA}'
+      # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
+      # The "-overwrite" option allows downgrading the driver if a newer one is already installed
+      # for some reason (e.g. Windows Update).
+      arguments: -s -A -overwrite -s
+      state: present
+  - name: Cleanup
+    win_file:
+      path: c:\Temp\intel_gfx.exe
+      state: absent
