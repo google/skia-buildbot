@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -227,23 +226,27 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 // querying tryjob results. If query is nil the expectations of the master
 // tile are returned.
 func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
-	exp, err := s.storages.ExpectationsStore.Get()
-	if err != nil {
-		return nil, err
-	}
+	ret := make(ExpSlice, 0, 2)
 
-	if (q == nil) || (q.Issue > 0) {
+	if (q != nil) && (q.Issue > 0) {
 		tjExp, err := s.storages.TryjobStore.GetExpectations(q.Issue)
 		if err != nil {
-			return nil, err
+			return nil, sklog.FmtErrorf("Unable to load expectations from tryjobstore: %s", err)
 		}
-		return []*expstorage.Expectations{exp, tjExp}, nil
+		ret = append(ret, tjExp)
 	}
-	return []*expstorage.Expectations{exp}, nil
+
+	exp, err := s.storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, sklog.FmtErrorf("Unable to load expectations for master: %s", err)
+	}
+	ret = append(ret, exp)
+	return ret, nil
 }
 
 // query issue returns the digest related to this issues.
 func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
+	// Get the issue.
 	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true, q.Patchsets)
 	if err != nil {
 		return nil, nil, nil, err
@@ -253,6 +256,7 @@ func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice)
 		return nil, nil, nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
 	}
 
+	// Determine the patchsets we need to retrieve.
 	queryPatchsets := q.Patchsets
 	if queryPatchsets == nil {
 		queryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
@@ -261,6 +265,7 @@ func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice)
 		}
 	}
 
+	// Get the results
 	_, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, queryPatchsets)
 	if err != nil {
 		return nil, nil, nil, err
@@ -278,6 +283,7 @@ func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice)
 		}
 	}
 
+	// Adjust the add function to exclude digests already in the master branch
 	ret := srInterMap{}
 	addFn := ret.add
 	if !q.IncludeMaster {
@@ -292,10 +298,19 @@ func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice)
 		}
 	}
 
-	for _, oneTryjob := range tjResults {
-		for _, tjr := range oneTryjob {
+	// Iterate over the remaining results.
+	pq := paramtools.ParamSet(q.Query)
+	for _, tryjobResults := range tjResults {
+		for _, tjr := range tryjobResults {
 			if tjr != nil {
-				addFn(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
+				// Filter by query.
+				if pq.Matches(tjr.Params) {
+					// Filter by classification.
+					cl := exp.Classification(tjr.TestName, tjr.Digest)
+					if !q.excludeClassification(cl) {
+						addFn(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
+					}
+				}
 			}
 		}
 	}

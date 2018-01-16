@@ -148,4 +148,17 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	assert.NoError(t, err)
 	assert.Equal(t, 5, total)
 	assert.Equal(t, 5, len(logEntries))
+
+	// Flip all expectations to untriaged.
+	for _, digests := range foundExp.Tests {
+		for digest := range digests {
+			digests[digest] = types.UNTRIAGED
+		}
+	}
+
+	assert.NoError(t, store.AddChange(issueID, foundExp.Tests, userName))
+	time.Sleep(10 * time.Second)
+	untriagedExp, err := store.GetExpectations(issueID)
+	assert.NoError(t, err)
+	assert.Equal(t, foundExp, untriagedExp)
 }
