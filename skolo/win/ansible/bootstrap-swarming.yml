@@ -1,0 +1,42 @@
+---
+# Ensure Swarming has been bootstrapped.
+- hosts: all
+  vars:
+    swarming_path: C:\b
+    bootstrap_script_path: C:\Users\chrome-bot\bootstrap-swarming.py
+  tasks:
+  - name: Check if host has already been bootstrapped
+    win_stat:
+      path: "{{ swarming_path }}"
+    register: results
+  - debug:
+      msg: Did we find an existing Swarming installation? {{ results.stat.exists }}
+  - when: not results.stat.exists
+    block:
+      - name: Download Swarming bootstrap script {{ bootstrap_script_path }}
+        win_get_url:
+          url: "{{ swarming_server }}/bootstrap"
+          dest: "{{ bootstrap_script_path }}"
+      - name: Fix bootstrap script encoding
+        # TODO(dogben): Remove after
+        # https://chrome-internal-review.googlesource.com/c/infradata/config/+/547820
+        win_lineinfile:
+          insertbefore: BOF
+          line: "# coding: utf-8"
+          path: "{{ bootstrap_script_path }}"
+      - name: Bootstrap Swarming (triggers reboot, so expected to fail)
+        win_command: python -u {{ bootstrap_script_path }}
+        ignore_errors: True
+      - name: Wait for reboot after bootstrapping Swarming
+        wait_for_connection:
+          # Don't start checking before the Swarming bootstrap script initiates a reboot.
+          delay: 30
+          # Only wait for 3 minutes before failing. (Default is 10 min.)
+          timeout: 180
+      - name: Check if bootstrap was successful
+        win_stat:
+          path: "{{ swarming_path }}"
+        register: results
+      - when: not results.stat.exists
+        fail:
+          msg: "{{ swarming_path }} does not exist after bootstrapping."

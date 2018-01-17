@@ -1,0 +1,8 @@
+---
+# Do all the things to set up a Skolo bot. See win-02-hosts for an example command.
+- import_playbook: fix-boot-order.yml
+- import_playbook: python.yml
+- import_playbook: intel-graphics-driver-skylake.yml
+- import_playbook: nvidia-graphics-driver.yml
+- import_playbook: skolo-credentials.yml
+- import_playbook: bootstrap-swarming.yml
