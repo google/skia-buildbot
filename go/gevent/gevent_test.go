@@ -29,8 +29,8 @@ func TestEventBus(t *testing.T) {
 
 	if os.Getenv("PUBSUB_EMULATOR_HOST") == "" {
 		t.Skip(`Skipping tests that require a local Cloud PubSub emulator.
-Set the environment: $(gcloud beta emulators pubsub env-init)
-Run the emulator: gcloud beta emulators pubsub start`)
+	Set the environment: $(gcloud beta emulators pubsub env-init)
+	Run the emulator: gcloud beta emulators pubsub start`)
 	}
 
 	testCodec := util.JSONCodec(&testType{})
