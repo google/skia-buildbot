@@ -1,0 +1,55 @@
+---
+# Ensure Python 2.7 and PyWin32 are installed.
+- hosts: all
+  vars:
+    python_path: C:\Python27
+    pywin32_creates_path: C:\Windows\System32\pywintypes27.dll
+    python_site_packages_path: "{{ python_path }}\\Lib\\site-packages\\"
+  tasks:
+  - name: Create Temp
+    win_file:
+      path: c:\Temp\python
+      state: directory
+  - name: Copy the Python MSI to the host
+    win_copy:
+      src: "{{ win_package_src }}/python-2.7.14.amd64.msi"
+      dest: c:\Temp\python\python.msi
+  - name: Install Python
+    win_package:
+      path: c:\Temp\python\python.msi
+      # See docs for win_package here:
+      # http://docs.ansible.com/ansible/latest/win_package_module.html
+      # Unfortunately, the only way I have found to get this product_id is to install the software
+      # and dig through the registry. And even then it might not work (see
+      # nvidia-graphics-driver.yml). Hopefully future versions of win_package will make this better
+      # (or just make the product_id optional).
+      product_id: '{0398A685-FD8D-46B3-9816-C47319B0CF5f}'
+      state: present
+  - name: Add Python to PATH
+    win_path:
+      elements: "{{ python_path }}"
+      state: present
+  - name: Copy the pywin32 ZIP to the host
+    win_copy:
+      src: "{{ win_package_src }}/pywin32-221.win-amd64-py2.7.zip"
+      dest: c:\Temp\python\pywin32.zip
+  # See http://www.itninja.com/question/anyone-know-how-to-silently-install-pywin32-1
+  # pywin32-221.win-amd64-py2.7.zip is a repackaged version of the exe that only has the contents of
+  # PLATLIB.
+  - name: Unzip pywin32
+    win_unzip:
+      src: c:\Temp\python\pywin32.zip
+      dest: "{{ python_site_packages_path }}"
+  - name: Copy the pywin32 install script to the host
+    win_copy:
+      src: "{{ win_package_src }}/pywin32-221.win-amd64-py2.7_postinstall.py"
+      dest: c:\Temp\python\pywin32_postinstall.py
+  - name: Install pywin32
+    win_command: python -u c:\Temp\python\pywin32_postinstall.py -silent -install
+    args:
+      chdir: "{{ python_site_packages_path }}"
+      creates: "{{ pywin32_creates_path }}"
+  - name: Cleanup
+    win_file:
+      path: c:\Temp\python
+      state: absent

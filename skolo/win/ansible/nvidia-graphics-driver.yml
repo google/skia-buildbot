@@ -1,0 +1,25 @@
+---
+# Install NVIDIA Graphics Driver; applies only to group "nvidia".
+- hosts: nvidia
+  tasks:
+  - name: Create Temp
+    win_file:
+      path: c:\Temp
+      state: directory
+  # The NVIDIA driver Uses the same product_id for multiple versions, so win_package doesn't work.
+  - name: Copy the NVIDIA driver ZIP to the host
+    win_copy:
+      src: "{{ win_package_src }}/NVIDIA Graphics 390.65-desktop-win10-64bit-international-whql.zip"
+      dest: c:\Temp\nvidia_gfx.zip
+  - name: Extract the NVIDIA driver ZIP
+    win_unzip:
+      src: c:\Temp\nvidia_gfx.zip
+      dest: C:\
+      delete_archive: yes
+  - name: Install NVIDIA Graphics Driver
+    # http://nvidia.custhelp.com/app/answers/detail/a_id/2985/~/how-can-i-perform-a-silent-install-of-the-gpu-driver%3F
+    win_command: C:\NVIDIA\DisplayDriver\390.65\Win10_64\International\setup.exe -s
+  - name: Cleanup
+    win_file:
+      path: c:\NVIDIA
+      state: absent
