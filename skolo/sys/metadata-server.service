@@ -1,0 +1,17 @@
+[Unit]
+Description=Serve metadata to machines in the lab.
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/metadata-server \
+  --logtostderr \
+  --prom_port=:20002 \
+  --token_file=/var/local/swarming_token.json
+
+Restart=always
+User=chrome-bot
+Group=chrome-bot
+
+[Install]
+WantedBy=multi-user.target

@@ -82,3 +82,30 @@ android_watchdog:
 	@echo "  [NDK_DIR]/build/tools/make_standalone_toolchain.py --arch arm --api 21 --install-dir [NDK_TOOLCHAIN]"
 	@echo "  Where [NDK_TOOLCHAIN] is anywhere you like (e.g. /opt/android_toolchains)"
 	CC="$(NDK_TOOLCHAIN)/bin/arm-linux-androideabi-clang" CXX="$(NDK_TOOLCHAIN)/bin/arm-linux-androideabi-clang++" GOOS=android GOARCH=arm GOARM=7 CGO_ENABLED=1 go build -o out/android_watchdog -v ./cgo/android_watchdog
+
+.PHONY: metadata_server
+metadata_server:
+	go install -v ./go/metadata_server
+
+.PHONY: metadata_server_release
+metadata_server_release: metadata_server
+	./build_release_metadata_server "`git log -n1 --format=%s`"
+
+.PHONY: metadata_server_push
+metadata_server_push: metadata_server_release
+	pushcli "metadata-server" "jumphost-linux-01"
+	pushcli "metadata-server" "jumphost-rpi-01"
+
+.PHONY: get_oauth2_token
+get_oauth2_token:
+	go install -v ./go/get_oauth2_token
+
+.PHONY: get_oauth2_token_release
+get_oauth2_token_release: get_oauth2_token
+	./build_release_get_oauth2_token "`git log -n1 --format=%s`"
+
+.PHONY: get_oauth2_token_push
+get_oauth2_token_push: get_oauth2_token_release
+	pushcli "get-oauth2-token" "jumphost-linux-01"
+	pushcli "get-oauth2-token" "jumphost-rpi-01"
+
