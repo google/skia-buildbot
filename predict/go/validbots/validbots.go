@@ -36,5 +36,4 @@ func ValidBots(gitRepoDir string) ([]string, error) {
 		jobs = append(jobs, key)
 	}
 	return jobs, nil
-
 }
