@@ -22,6 +22,30 @@
       "revId": "572fa057a25f5e9dfce32e7563dc87bee687ded0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e77c9bd8_2b91ade7",
+        "filename": "tracedb/build_release_ingestiond",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-17T17:56:52Z",
+      "side": 1,
+      "message": "Yes for now, because user \u0027default\u0027 writes there and I believe the install would fail locally if the user \u0027default\u0027 doesn\u0027t exist. I\u0027ll look into it and fix in a separate CL.",
+      "parentUuid": "b27ba78e_cf3863a9",
+      "range": {
+        "startLine": 16,
+        "startChar": 22,
+        "endLine": 16,
+        "endChar": 25
+      },
+      "revId": "572fa057a25f5e9dfce32e7563dc87bee687ded0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
