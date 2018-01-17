@@ -15,9 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/golden/go/tryjobstore"
-
 	"github.com/gorilla/mux"
+	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
 
@@ -47,6 +46,7 @@ import (
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -285,7 +285,12 @@ func main() {
 		sklog.Fatalf("Unable to create GStorageClient: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, *serviceAccountFile)
+	// Instantiate the tryjob store with the correct credentials.
+	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope)
+	if err != nil {
+		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
+	}
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, option.WithTokenSource(tokenSource))
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
