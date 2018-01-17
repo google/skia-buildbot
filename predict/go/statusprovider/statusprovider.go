@@ -14,8 +14,11 @@ type Provider struct {
 	repos  []string
 }
 
-func New(repos []string) (*Provider, error) {
-	client, err := remote_db.NewClient("https://task-scheduler.skia.org/db/")
+// New returns a new Provider.
+//
+// serverRoot is the URL of the task scheduler remote_db.
+func New(repos []string, serverRoot string) (*Provider, error) {
+	client, err := remote_db.NewClient(serverRoot)
 	if err != nil {
 		return nil, err
 	}
