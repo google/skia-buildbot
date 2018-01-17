@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9df088d8_192b2e8b",
+        "filename": "skolo/build_release_get_oauth2_token",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-17T16:15:48Z",
+      "side": 1,
+      "message": "Unfortunately, APPNAME can\u0027t contain underscores.  I don\u0027t remember which piece of the puzzle doesn\u0027t like them.",
+      "parentUuid": "a0301c93_5faa887e",
+      "range": {
+        "startLine": 14,
+        "startChar": 39,
+        "endLine": 14,
+        "endChar": 55
+      },
+      "revId": "ed769b4cc948a4c6c4a96fb2529fe7479df8d09f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2227710e_30727a00",
         "filename": "skolo/build_release_metadata_server",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "c6675bcd_e980fcaf",
+        "filename": "skolo/build_release_metadata_server",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-17T16:15:48Z",
+      "side": 1,
+      "message": "Nope. Bad copypasta.  Should be fixed.",
+      "parentUuid": "2227710e_30727a00",
+      "range": {
+        "startLine": 13,
+        "startChar": 25,
+        "endLine": 13,
+        "endChar": 32
+      },
+      "revId": "ed769b4cc948a4c6c4a96fb2529fe7479df8d09f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2982088e_dd56cccd",
         "filename": "skolo/sys/get-oauth2-token.timer",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2018-01-12T19:56:59Z",
       "side": 1,
       "message": "Why not 0? https://www.freedesktop.org/software/systemd/man/systemd.timer.html says, \"If a timer configured with OnBootSec\u003d or OnStartupSec\u003d is already in the past when the timer unit is activated, it will immediately elapse and the configured unit is started.\"\n\nMaybe this also needs \"Wants\u003dnetwork-online.target/After\u003dnetwork-online.target\"?",
+      "range": {
+        "startLine": 5,
+        "startChar": 10,
+        "endLine": 5,
+        "endChar": 15
+      },
+      "revId": "ed769b4cc948a4c6c4a96fb2529fe7479df8d09f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bc1ea0f_ac378e4b",
+        "filename": "skolo/sys/get-oauth2-token.timer",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-17T16:15:48Z",
+      "side": 1,
+      "message": "Changed to 0min.  The service file has network-online.target; I think that should be enough?",
+      "parentUuid": "2982088e_dd56cccd",
       "range": {
         "startLine": 5,
         "startChar": 10,
