@@ -15,7 +15,7 @@ type Provider struct {
 }
 
 func New(repos []string) (*Provider, error) {
-	client, err := remote_db.NewClient("https://task-scheduler.skia.org/db/")
+	client, err := remote_db.NewClient("http://skia-task-scheduler:8008/db/")
 	if err != nil {
 		return nil, err
 	}
