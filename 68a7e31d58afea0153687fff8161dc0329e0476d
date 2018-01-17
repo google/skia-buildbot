@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c2feb300_78628e43",
+        "filename": "predict/go/statusprovider/statusprovider.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-17T18:50:27Z",
+      "side": 1,
+      "message": "This URL shouldn\u0027t work. Does it?",
+      "range": {
+        "startLine": 18,
+        "startChar": 37,
+        "endLine": 18,
+        "endChar": 72
+      },
+      "revId": "68a7e31d58afea0153687fff8161dc0329e0476d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
