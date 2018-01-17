@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b27ba78e_cf3863a9",
+        "filename": "tracedb/build_release_ingestiond",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-17T16:53:59Z",
+      "side": 1,
+      "message": "Minor nit, does this really need to be 777, not, 755? (same for other 777)",
+      "range": {
+        "startLine": 16,
+        "startChar": 22,
+        "endLine": 16,
+        "endChar": 25
+      },
+      "revId": "572fa057a25f5e9dfce32e7563dc87bee687ded0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
