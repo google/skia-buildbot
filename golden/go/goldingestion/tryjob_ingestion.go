@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
+	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 )
 
@@ -69,7 +70,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	}
 
 	tryjobNamespace, ok := config.ExtraParams[CONFIG_TRYJOB_NAMESPACE]
-	if !ok {
+	if !ok || (tryjobNamespace == "") {
 		return nil, fmt.Errorf("Missing cloud datastore namespace for tryjob data.")
 	}
 
@@ -79,14 +80,19 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, fmt.Errorf("BuildBucketName and BuildBucketURL must not be empty.")
 	}
 
+	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", svcAccountFile, gstorage.CloudPlatformScope)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create auth token source: %s", err)
+	}
+
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, tryjobNamespace, option.WithTokenSource(tokenSrc))
+	if err != nil {
+		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
+	}
+
 	client, err := auth.NewJWTServiceAccountClient("", svcAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
-	}
-
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, tryjobNamespace, svcAccountFile)
-	if err != nil {
-		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
 
 	gerritReview, err := gerrit.NewGerrit(gerritURL, "", client)
