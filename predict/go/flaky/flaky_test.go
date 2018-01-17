@@ -1,7 +1,10 @@
 package flaky
 
 import (
+<<<<<<< HEAD
 	"context"
+=======
+>>>>>>> suggester wip
 	"testing"
 	"time"
 
@@ -19,10 +22,17 @@ func TestTimeRange(t *testing.T) {
 		Begin: now.Add(-1 * time.Hour),
 		End:   now,
 	}
+<<<<<<< HEAD
 	assert.False(t, tr.Contains(now.Add(-2*time.Hour)))
 	assert.True(t, tr.Contains(now.Add(-1*time.Hour)))
 	assert.True(t, tr.Contains(now.Add(-1*time.Minute)))
 	assert.False(t, tr.Contains(now))
+=======
+	assert.False(t, tr.In(now.Add(-2*time.Hour)))
+	assert.False(t, tr.In(now.Add(-1*time.Hour)))
+	assert.True(t, tr.In(now.Add(-1*time.Minute)))
+	assert.False(t, tr.In(now))
+>>>>>>> suggester wip
 }
 
 func TestFlaky(t *testing.T) {
@@ -61,6 +71,7 @@ func TestFlakyReadWrite(t *testing.T) {
 	fb := NewFlakyBuilder(provider)
 
 	// Add a range that ends 3 hours ago.
+<<<<<<< HEAD
 	ctx := context.Background()
 	now := time.Now().UTC()
 	begin := now.Add(-5 * time.Hour)
@@ -73,34 +84,71 @@ func TestFlakyReadWrite(t *testing.T) {
 	assert.Len(t, flaky, 1)
 
 	flaky, err = fb.Build(ctx, 1*time.Minute, now)
+=======
+	now := time.Now().UTC()
+	begin := now.Add(-5 * time.Hour)
+	err := fb.createOrUpdateFlaky(BOTNAME, begin, now.Add(-3*time.Hour), true)
+	assert.NoError(t, err)
+
+	// Test that querying works.
+	flaky, err := fb.Build(24*time.Hour, now)
+	assert.NoError(t, err)
+	assert.Len(t, flaky, 1)
+
+	flaky, err = fb.Build(1*time.Minute, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flaky, 0)
 
 	// Update the existing range's endpoint.
+<<<<<<< HEAD
 	err = fb.createOrUpdateFlaky(ctx, BOTNAME, begin, now.Add(-2*time.Hour))
 	assert.NoError(t, err)
 
 	// Query again.
 	flaky, err = fb.Build(ctx, 4*time.Hour, now)
+=======
+	err = fb.createOrUpdateFlaky(BOTNAME, begin, now.Add(-2*time.Hour), true)
+	assert.NoError(t, err)
+
+	// Query again.
+	flaky, err = fb.Build(4*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flaky, 1)
 	assert.Equal(t, flaky[BOTNAME][0].Begin.Unix(), begin.Unix())
 
 	// Close the range.
+<<<<<<< HEAD
 	err = fb.closeFlaky(ctx, BOTNAME)
 	assert.NoError(t, err)
 
 	// Query again.
 	flaky, err = fb.Build(ctx, 4*time.Hour, now)
+=======
+	err = fb.createOrUpdateFlaky(BOTNAME, begin, now.Add(-2*time.Hour), false)
+	assert.NoError(t, err)
+
+	// Query again.
+	flaky, err = fb.Build(4*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flaky, 1)
 
 	// Add a new range that ends 2 minutes ago.
+<<<<<<< HEAD
 	err = fb.createOrUpdateFlaky(ctx, BOTNAME, now.Add(-1*time.Hour), now.Add(-2*time.Minute))
 	assert.NoError(t, err)
 
 	// Query that should get both.
 	flaky, err = fb.Build(ctx, 24*time.Hour, now)
+=======
+	err = fb.createOrUpdateFlaky(BOTNAME, now.Add(-1*time.Hour), now.Add(-2*time.Minute), true)
+	assert.NoError(t, err)
+
+	// Query that should get both.
+	flaky, err = fb.Build(24*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flaky[BOTNAME], 2)
 }
@@ -111,7 +159,11 @@ func TestBuilder(t *testing.T) {
 	cleanup := testutil.InitDatastore(t, dsconst.FLAKY_RANGES)
 	defer cleanup()
 
+<<<<<<< HEAD
 	now := time.Now().UTC()
+=======
+	now := time.Now()
+>>>>>>> suggester wip
 	calledIndex := 0
 	comments := []map[string]time.Time{
 		// 1 - empty.
@@ -146,6 +198,7 @@ func TestBuilder(t *testing.T) {
 		return comments[calledIndex-1], nil
 	}
 
+<<<<<<< HEAD
 	ctx := context.Background()
 	fb := NewFlakyBuilder(provider)
 
@@ -153,21 +206,41 @@ func TestBuilder(t *testing.T) {
 	err := fb.Update(ctx)
 	assert.NoError(t, err)
 	flakes, err := fb.Build(ctx, 24*time.Hour, now)
+=======
+	fb := NewFlakyBuilder(provider)
+
+	// 1 - empty.
+	err := fb.Update()
+	assert.NoError(t, err)
+	flakes, err := fb.Build(24*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flakes, 0)
 
 	// 2 - One open range.
+<<<<<<< HEAD
 	err = fb.Update(ctx)
 	assert.NoError(t, err)
 	flakes, err = fb.Build(ctx, 24*time.Hour, now)
+=======
+	err = fb.Update()
+	assert.NoError(t, err)
+	flakes, err = fb.Build(24*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flakes, 1)
 	assert.True(t, flakes.WasFlaky("Bot-1", now.Add(-8*time.Hour)))
 
 	// 3 - Two open ranges.
+<<<<<<< HEAD
 	err = fb.Update(ctx)
 	assert.NoError(t, err)
 	flakes, err = fb.Build(ctx, 24*time.Hour, now)
+=======
+	err = fb.Update()
+	assert.NoError(t, err)
+	flakes, err = fb.Build(24*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flakes, 2)
 	assert.True(t, flakes.WasFlaky("Bot-1", now.Add(-8*time.Hour)))
@@ -176,34 +249,58 @@ func TestBuilder(t *testing.T) {
 	assert.False(t, flakes.WasFlaky("Bot-2", now.Add(-6*time.Hour)))
 
 	// 4 - Back to just one open range.
+<<<<<<< HEAD
 	err = fb.Update(ctx)
 	assert.NoError(t, err)
 	flakes, err = fb.Build(ctx, 24*time.Hour, now)
+=======
+	err = fb.Update()
+	assert.NoError(t, err)
+	flakes, err = fb.Build(24*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flakes, 2)
 
 	// 5 - Open a new range for Bot-1.
+<<<<<<< HEAD
 	err = fb.Update(ctx)
 	assert.NoError(t, err)
 	flakes, err = fb.Build(ctx, 24*time.Hour, now)
+=======
+	err = fb.Update()
+	assert.NoError(t, err)
+	flakes, err = fb.Build(24*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flakes, 2)
 	assert.Len(t, flakes["Bot-1"], 2)
 	assert.Len(t, flakes["Bot-2"], 1)
 
 	// 6 - Close all the ranges.
+<<<<<<< HEAD
 	err = fb.Update(ctx)
 	assert.NoError(t, err)
 	flakes, err = fb.Build(ctx, 24*time.Hour, now)
+=======
+	err = fb.Update()
+	assert.NoError(t, err)
+	flakes, err = fb.Build(24*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flakes, 2)
 	assert.Len(t, flakes["Bot-1"], 2)
 	assert.Len(t, flakes["Bot-2"], 1)
 
 	// 7 - Open a new range for Bot-2.
+<<<<<<< HEAD
 	err = fb.Update(ctx)
 	assert.NoError(t, err)
 	flakes, err = fb.Build(ctx, 24*time.Hour, now)
+=======
+	err = fb.Update()
+	assert.NoError(t, err)
+	flakes, err = fb.Build(24*time.Hour, now)
+>>>>>>> suggester wip
 	assert.NoError(t, err)
 	assert.Len(t, flakes, 2)
 	assert.Len(t, flakes["Bot-1"], 2)
