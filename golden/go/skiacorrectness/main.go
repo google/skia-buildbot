@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/golden/go/tryjobstore"
 
 	"github.com/gorilla/mux"
@@ -250,7 +252,14 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Error getting unique subscriber name: %s", err)
 		}
-		evt, err = gevent.New(common.PROJECT_ID, *eventTopic, subscriberName)
+
+		// Get the token source from the same service account. Needed by Cloud pubsub.
+		tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope)
+		if err != nil {
+			sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
+		}
+
+		evt, err = gevent.New(common.PROJECT_ID, *eventTopic, subscriberName, option.WithTokenSource(tokenSource))
 		if err != nil {
 			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
 		}
