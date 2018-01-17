@@ -1,0 +1,17 @@
+[Unit]
+Description=Obtain an OAuth2 access token.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/get_oauth2_token \
+  --logtostderr \
+  --service_account_file=/etc/skiabot/swarming_service_account.json \
+  --dest=/var/local/swarming_token.json
+User=root
+Group=root
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

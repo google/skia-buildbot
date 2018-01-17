@@ -1,0 +1,9 @@
+[Unit]
+Description=Run get-oauth2-token.service every 45 minutes.
+
+[Timer]
+OnBootSec=0min
+OnUnitActiveSec=45min
+
+[Install]
+WantedBy=timers.target
