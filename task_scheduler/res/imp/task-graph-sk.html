@@ -67,12 +67,7 @@
       ],
 
       _computeTaskLink: function(taskId) {
-        var taskLinkUrlPrefix = "https://luci-milo.appspot.com/swarming/task/";
-        if ($$$("login-sk").email &&
-            $$$("login-sk").email.endsWith("@google.com")) {
-          taskLinkUrlPrefix = "https://" + this.swarmingServer + "/task?id=";
-        }
-        return taskLinkUrlPrefix + taskId;
+        return "https://" + this.swarmingServer + "/task?id=" + taskId;
       },
 
       _draw: function() {
