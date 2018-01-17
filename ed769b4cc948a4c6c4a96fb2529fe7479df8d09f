@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "6edfc9fd_274c5892",
+        "filename": "skolo/build_release_metadata_server",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-17T16:21:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c6675bcd_e980fcaf",
+      "range": {
+        "startLine": 13,
+        "startChar": 25,
+        "endLine": 13,
+        "endChar": 32
+      },
+      "revId": "ed769b4cc948a4c6c4a96fb2529fe7479df8d09f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2982088e_dd56cccd",
         "filename": "skolo/sys/get-oauth2-token.timer",
         "patchSetId": 1
@@ -140,6 +164,30 @@
       "revId": "ed769b4cc948a4c6c4a96fb2529fe7479df8d09f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b2a9b62_5315baa3",
+        "filename": "skolo/sys/get-oauth2-token.timer",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-17T16:21:57Z",
+      "side": 1,
+      "message": "Sorry, yes, the comment about network-online was just a suggestion in case 0min didn\u0027t work as expected.",
+      "parentUuid": "3bc1ea0f_ac378e4b",
+      "range": {
+        "startLine": 5,
+        "startChar": 10,
+        "endLine": 5,
+        "endChar": 15
+      },
+      "revId": "ed769b4cc948a4c6c4a96fb2529fe7479df8d09f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
