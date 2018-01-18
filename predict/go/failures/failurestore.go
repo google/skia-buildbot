@@ -20,6 +20,10 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+const (
+	MAX_BOT_TIME = time.Hour
+)
+
 // TaskListProvider is a type of func that returns completed failing swarming bots started between now and now-since.
 type TaskListProvider func(since time.Duration) ([]*swarmingv1.SwarmingRpcsTaskRequestMetadata, error)
 
@@ -62,7 +66,7 @@ func New(filter BadBot, provider TaskListProvider, git *git.Checkout, httpClient
 
 // Update writes new StoredFailures into the datastore if any appeared between now and now-since.
 func (f *FailureStore) Update(ctx context.Context, since time.Duration) error {
-	resp, err := f.provider(since)
+	resp, err := f.provider(since + MAX_BOT_TIME)
 	if err != nil {
 		return fmt.Errorf("Failed to query swarming: %s", err)
 	}
