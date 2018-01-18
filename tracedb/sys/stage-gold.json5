@@ -10,7 +10,6 @@
       MinDays: 10,
       StatusDir: "/mnt/pd0/gold-tryjob-stage/ingest_status",
       MetricName: "gold-ingest-tryjob-stage",
-      LocalCache: false,
       Sources: [
         {
           Bucket: "skia-infra-gm",
