@@ -13,7 +13,6 @@
       MinDays: 3,
       StatusDir: "/mnt/pd0/gold/ingest_status",
       MetricName: "gold-ingest",
-      LocalCache: false,
       Sources: [
         {
           Bucket: "skia-infra-gm",
@@ -40,7 +39,6 @@
       MinDays: 10,
       StatusDir: "/mnt/pd0/gold-tryjob/ingest_status",
       MetricName: "gold-ingest-tryjob",
-      LocalCache: false,
       Sources: [
         {
           Bucket: "skia-infra-gm",

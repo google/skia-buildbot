@@ -9,13 +9,6 @@ import (
 	assert "github.com/stretchr/testify/require"
 )
 
-func TestIngesterConfig(t *testing.T) {
-	testutils.SmallTest(t)
-	conf, err := ConfigFromTomlFile("./test-file.toml")
-	assert.NoError(t, err)
-	checkTestConfig(t, conf)
-}
-
 func TestIngesterJson5Config(t *testing.T) {
 	testutils.SmallTest(t)
 	conf, err := ConfigFromJson5File("./test-file.json5")

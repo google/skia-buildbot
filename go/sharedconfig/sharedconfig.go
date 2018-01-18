@@ -1,7 +1,6 @@
 package sharedconfig
 
 import (
-	"github.com/BurntSushi/toml"
 	"go.skia.org/infra/go/config"
 )
 
@@ -18,7 +17,6 @@ type IngesterConfig struct {
 	MinDays     int               // Minimum number of days that should be covered by the ingested commits.
 	StatusDir   string            // Path where the ingest process keeps its status between restarts.
 	MetricName  string            // What to call this ingester's data when imported to Graphite
-	LocalCache  bool              // Should the ingester keep a local cache of ingested files.
 	Sources     []*DataSource     // Input sources where the ingester reads from.
 	ExtraParams map[string]string // Any additional needed parameters (ingester specific)
 }
@@ -31,15 +29,6 @@ type Config struct {
 	SecondaryRepoDir string // Directory location for the secondary repo.
 	SecondaryRegEx   string // Regular expression to extract the commit hash from the DEPS file.
 	Ingesters        map[string]*IngesterConfig
-}
-
-// ConfigFromTomlFile parses a TOML file into a Config struct.
-func ConfigFromTomlFile(path string) (*Config, error) {
-	ret := &Config{}
-	if _, err := toml.DecodeFile(path, ret); err != nil {
-		return nil, err
-	}
-	return ret, nil
 }
 
 // ConfigFromJson5File parses a JSON5 file into a Config struct.

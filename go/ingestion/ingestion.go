@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -96,7 +95,6 @@ type Ingester struct {
 	doneCh         chan bool
 	statusDB       *bolt.DB
 	resultFilesDir string
-	localCache     bool
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
@@ -109,9 +107,6 @@ type Ingester struct {
 
 	// processTimer measure the overall time it takes to process a set of files.
 	processTimer metrics2.Timer
-
-	// fileWriterWg allows to synchronize file writes - testing only.
-	fileWriterWg sync.WaitGroup
 }
 
 // NewIngester creates a new ingester with the given id and configuration around
@@ -135,7 +130,6 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		processor:      processor,
 		statusDB:       statusDB,
 		resultFilesDir: resultFilesDir,
-		localCache:     ingesterConf.LocalCache,
 	}
 	ret.setupMetrics()
 	return ret, nil
@@ -310,11 +304,6 @@ func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileL
 				return
 			}
 
-			if i.localCache {
-				// Write the process file to disk.
-				i.saveFileAsync(resultLocation)
-			}
-
 			// Gather all successfully processed MD5s
 			processedCounter++
 			processedMD5s = append(processedMD5s, resultLocation.MD5())
@@ -338,43 +327,6 @@ func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileL
 	} else {
 		i.addToProcessedFiles(processedMD5s)
 	}
-}
-
-// saveFileAsync asynchronously saves the given result file to disk.
-func (i *Ingester) saveFileAsync(resultFile ResultFileLocation) {
-	i.fileWriterWg.Add(1)
-	go func() {
-		defer i.fileWriterWg.Done()
-		content := resultFile.Content()
-		if content == nil {
-			sklog.Errorf("Received file to save without content.")
-			return
-		}
-
-		filePath := filepath.Join(i.resultFilesDir, resultFile.Name())
-		targetDir, _ := filepath.Split(filePath)
-
-		if err := os.MkdirAll(targetDir, 0700); err != nil {
-			sklog.Errorf("Unable to create directory %s. Got error: %s", targetDir, err)
-			return
-		}
-
-		f, err := os.Create(filePath)
-		if err != nil {
-			sklog.Errorf("Unable to create file %s. Got error: %s", filePath, err)
-			return
-		}
-
-		if _, err := f.Write(content); err != nil {
-			sklog.Errorf("Could not write file %s. Got error: %s", filePath, err)
-			return
-		}
-	}()
-}
-
-// syncFileWrite waits for all files to be written. Use for testing only.
-func (i *Ingester) syncFileWrite() {
-	i.fileWriterWg.Wait()
 }
 
 // getCommitRangeOfInterest returns the time range (start, end) that
