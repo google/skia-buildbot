@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "25985fed_f0d469c0",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-18T18:24:05Z",
+      "side": 1,
+      "message": "nit: maybe name this knownBranchHeads and use a rename knownBranchHeads to knownBranchNames or something.",
+      "range": {
+        "startLine": 374,
+        "startChar": 1,
+        "endLine": 374,
+        "endChar": 4
+      },
+      "revId": "63e4c809060192acb3fb49650915974033257c83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "10c37eab_85b3ddbb",
         "filename": "go/git/repograph/graph_test.go",
         "patchSetId": 2
