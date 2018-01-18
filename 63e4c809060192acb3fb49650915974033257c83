@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dc2de1d8_3747c48a",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-18T18:50:15Z",
+      "side": 1,
+      "message": "I don\u0027t really understand.  Having two different variables with such close names seems confusing.",
+      "parentUuid": "25985fed_f0d469c0",
+      "range": {
+        "startLine": 374,
+        "startChar": 1,
+        "endLine": 374,
+        "endChar": 4
+      },
+      "revId": "63e4c809060192acb3fb49650915974033257c83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "10c37eab_85b3ddbb",
         "filename": "go/git/repograph/graph_test.go",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2018-01-18T17:43:43Z",
       "side": 1,
       "message": "Is this needed for the test?",
+      "revId": "63e4c809060192acb3fb49650915974033257c83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17be2789_a50d24a4",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-18T18:50:15Z",
+      "side": 1,
+      "message": "Whoops, debugging and forgot to remove. Fixed.",
+      "parentUuid": "10c37eab_85b3ddbb",
       "revId": "63e4c809060192acb3fb49650915974033257c83",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
