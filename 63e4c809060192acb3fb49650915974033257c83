@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "449ab216_97fb49ff",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-18T20:02:44Z",
+      "side": 1,
+      "message": "When reading this code, the name \"oldBranchHeads\" makes me think \"the branch heads before update\", but you\u0027ve called that \"existingBranchHeads\". You are using \"oldBranchHeads\" to store the current branch heads for the branches that the caller passed in.\n\nThe part of my comment about \"knownBranchNames\" can be ignored. I was just mentioning it because I was suggesting renaming \"oldBranchHeads\" to \"knownBranchHeads\" which conflicts with another variable name.",
+      "parentUuid": "dc2de1d8_3747c48a",
+      "range": {
+        "startLine": 374,
+        "startChar": 1,
+        "endLine": 374,
+        "endChar": 4
+      },
+      "revId": "63e4c809060192acb3fb49650915974033257c83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "10c37eab_85b3ddbb",
         "filename": "go/git/repograph/graph_test.go",
         "patchSetId": 2
