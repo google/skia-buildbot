@@ -21,7 +21,7 @@ type Tasks struct {
 // which jobs are associated with that task.  Today that's only the coverage
 // bot, so we will take the easy path for now.
 func ValidBots(gitRepoDir string) ([]string, error) {
-	f, err := os.Open(path.Join(gitRepoDir, "skia", "infra", "bots", "tasks.json"))
+	f, err := os.Open(path.Join(gitRepoDir, "infra", "bots", "tasks.json"))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open tasks.json: %s", err)
 	}

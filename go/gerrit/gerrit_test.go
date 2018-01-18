@@ -347,4 +347,7 @@ func TestFiles(t *testing.T) {
 	assert.Len(t, files, 4)
 	assert.Contains(t, files, "/COMMIT_MSG")
 	assert.Contains(t, files, "tools/gpu/vk/GrVulkanDefines.h")
+
+	files, err = api.Files(12345678, "alert()")
+	assert.Error(t, err)
 }

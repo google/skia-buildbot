@@ -693,12 +693,18 @@ func (g *Gerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbuck
 	return g.buildbucketClient.GetTrybotsForCL(issueID, patchsetID, "gerrit", g.url)
 }
 
+var revisionRegex = regexp.MustCompile("^[a-z0-9]+$")
+
 // Files returns the list of files for the given issue at the given patch. If
 // patch is the empty string then the most recent patch is queried.
 func (g *Gerrit) Files(issue int64, patch string) ([]string, error) {
 	if patch == "" {
 		patch = "current"
 	}
+	if !revisionRegex.MatchString(patch) {
+		return nil, fmt.Errorf("Invalid 'patch' value.")
+	}
+
 	url := fmt.Sprintf("%s/changes/%d/revisions/%s/files/", g.url, issue, patch)
 	resp, err := g.client.Get(url)
 	if err != nil {
