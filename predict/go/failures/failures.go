@@ -6,8 +6,6 @@ import (
 	"path"
 	"sort"
 	"strings"
-
-	"go.skia.org/infra/go/sklog"
 )
 
 // BotCounts is a map of bot name to the number of times it has failed.
@@ -97,7 +95,6 @@ func (f Failures) Predict(filenames []string) []*Summary {
 			totals[bot] += count
 		}
 	}
-	sklog.Infof("Totals: %#v", totals)
 	ordered := make([]*Summary, 0, len(totals))
 	for k, v := range totals {
 		ordered = append(ordered, &Summary{
