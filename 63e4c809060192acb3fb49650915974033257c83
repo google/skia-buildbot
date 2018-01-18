@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10c37eab_85b3ddbb",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-18T17:43:43Z",
+      "side": 1,
+      "message": "Is this needed for the test?",
+      "revId": "63e4c809060192acb3fb49650915974033257c83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
