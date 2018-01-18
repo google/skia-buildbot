@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
-	"path/filepath"
 	"sort"
 	"sync"
 	"testing"
@@ -13,7 +12,6 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/config"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -65,11 +63,10 @@ func testIngester(t *testing.T, statusDir string) {
 
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
-		RunEvery:   config.Duration{Duration: 1 * time.Second},
-		NCommits:   totalCommits / 2,
-		MinDays:    3,
-		StatusDir:  statusDir,
-		LocalCache: true,
+		RunEvery:  config.Duration{Duration: 1 * time.Second},
+		NCommits:  totalCommits / 2,
+		MinDays:   3,
+		StatusDir: statusDir,
 	}
 
 	// Instantiate ingester and start it.
@@ -96,13 +93,6 @@ func testIngester(t *testing.T, statusDir string) {
 	for _, result := range sources[0].(*mockSource).data[totalCommits/2:] {
 		_, ok := collected[result.Name()]
 		assert.True(t, ok)
-	}
-
-	// Make sure that all the files were written to disk.
-	ingester.syncFileWrite()
-	for _, result := range resultFiles {
-		fPath := filepath.Join(ingester.resultFilesDir, result.Name())
-		assert.True(t, fileutil.FileExists(fPath), fmt.Sprintf("File: %s does not exist", fPath))
 	}
 }
 
