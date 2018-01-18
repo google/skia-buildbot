@@ -1,0 +1,65 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <list-tasks-sk>
+
+  This is the side navigation menu for the Skia Fuzzer
+
+  To use this file import it:
+
+    <link href="list-tasks-sk.html" rel="import" />
+
+  Usage:
+
+    <list-tasks-sk></list-tasks-sk>
+
+  Attributes:
+    tasks - An array of leasing tasks that should be displayed in this element.
+
+  Events:
+    None
+
+  Methods:
+    displayCurrentTime - Returns the current UTC time.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/common/imp/app-sk.html" />
+
+<dom-module id="list-tasks-sk">
+  <template>
+    <style include="iron-positioning leasing-app-style">
+      .current-time {
+        padding-right: 3em;
+      }
+    </style>
+
+   <app-sk class="fit" header_height="60px">
+      <span header class="title">Android Compile Server for Skia Bots</span>
+      <android-compile-menu-sk navigation></android-compile-menu-sk>
+      <br/><br/>
+      <template is="dom-repeat" items="{{tasks}}">
+        <compile-task-sk task="[[item]]"></compile-task-sk>
+        <br/>
+      </template>
+    </app-sk>
+
+  </template>
+  <script>
+  Polymer({
+    is: "list-tasks-sk",
+    properties: {
+      tasks: {
+        type: Array,
+        value: [],
+      }
+    },
+
+    displayCurrentTime: function() {
+      var d = new Date();
+      return d.toUTCString();
+    },
+  });
+  </script>
+</dom-module>

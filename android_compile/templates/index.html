@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Android compile server for Skia bots</title>
+    {{template "header.html" .}}
+</head>
+<body>
+    <list-tasks-sk></list-tasks-sk>
+
+    <script type="text/javascript" charset="utf-8">
+      (function() {
+         $$$('list-tasks-sk').tasks = {{.Tasks}};
+       })();
+    </script>
+</body>
+</html>
