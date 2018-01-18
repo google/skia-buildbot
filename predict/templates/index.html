@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Predict</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=egde,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css" media="screen">
+      h1 {
+        grid-area: header;
+        margin: 0;
+        padding: 0;
+        color: white;
+        background: #1F78B4;
+        padding: 0.2em;
+      }
+
+      #flakes {
+        grid-area: flakes;
+        padding: 1em;
+      }
+
+      #failures {
+        grid-area: failures;
+        padding: 1em;
+      }
+
+      #summary {
+        grid-area: summary;
+        padding: 1em;
+      }
+
+      #computed {
+        grid-area: computed;
+        padding: 1em;
+      }
+
+      body {
+        font: 400 16px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 64px 1fr;
+        grid-template-areas:
+        "header header header"
+        "summary summary summary"
+        "flakes failures computed"
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Predict</h1>
+    <section id=summary>
+      <h2>Summary</h2>
+      <div>
+        Last run: {{ .SinceLastRun }} seconds ago.
+      </div>
+      <div>
+        {{ .FlakyRanges.Len }} Flaky or Ignored bots.
+      </div>
+    </section>
+    <section id=flakes>
+      <h2>Flaky Ranges</h2>
+      <p>All bots that have been flaky and their time ranges.</p>
+      <ol>
+        {{ range $key, $ranges := .FlakyRanges }}
+        <li>{{ $key }}</li>
+        <ul>
+          {{ range $ranges }}
+          <li>{{ .Begin.UTC.String }} - {{ .End.UTC.String }}</li>
+          {{ end }}
+        </ul>
+        {{ end }}
+      </ol>
+    </section>
+    <section id=failures>
+      <h2>Failures</h2>
+      <p>Failures in the last 24 hours.</p>
+      <ol>
+        {{ range .Failures }}
+        <li>
+          {{ .Name }}
+          <ul>
+            {{ range .Files }}
+            <li>{{ . }}</li>
+            {{ end }}
+          </ul>
+        </li>
+        {{ end }}
+      </ol>
+    </section>
+    <section id=computed>
+      <h2>Computed</h2>
+      <ol>
+        {{ range $file, $botcounts :=  .ComputedFailures }}
+        <li>
+          {{ $file }}
+          <ul>
+            {{ range $botname, $count := $botcounts }}
+            <li>{{ $botname }} - {{ $count }}</li>
+            {{ end }}
+          </ul>
+        </li>
+        {{ end }}
+      </ol>
+    </section>
+  </body>
+</html>
