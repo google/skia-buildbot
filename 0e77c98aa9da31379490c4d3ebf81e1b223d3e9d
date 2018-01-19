@@ -111,6 +111,30 @@
     },
     {
       "key": {
+        "uuid": "aa30edaf_f57005a7",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-19T17:54:04Z",
+      "side": 1,
+      "message": "Same result, I get very slightly noisy logs.",
+      "parentUuid": "77c42f8d_82510e14",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 28
+      },
+      "revId": "0e77c98aa9da31379490c4d3ebf81e1b223d3e9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ee0141de_4cf790fb",
         "filename": "scripts/rotate_keys/rotate_keys.go",
         "patchSetId": 3
