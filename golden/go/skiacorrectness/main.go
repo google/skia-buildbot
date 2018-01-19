@@ -188,6 +188,12 @@ func main() {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
+	// Get the token source from the same service account. Needed to access cloud pubsub and datastore.
+	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope)
+	if err != nil {
+		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
+	}
+
 	// If the addresses for a remote DiffStore were given, then set it up
 	// otherwise create an embedded DiffStore instance.
 	var diffStore diff.DiffStore = nil
@@ -250,7 +256,8 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Error getting unique subscriber name: %s", err)
 		}
-		evt, err = gevent.New(common.PROJECT_ID, *eventTopic, subscriberName)
+
+		evt, err = gevent.New(common.PROJECT_ID, *eventTopic, subscriberName, option.WithTokenSource(tokenSource))
 		if err != nil {
 			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
 		}
@@ -285,11 +292,6 @@ func main() {
 		sklog.Fatalf("Unable to create GStorageClient: %s", err)
 	}
 
-	// Instantiate the tryjob store with the correct credentials.
-	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope)
-	if err != nil {
-		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
-	}
 	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, option.WithTokenSource(tokenSource))
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
