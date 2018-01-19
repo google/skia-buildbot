@@ -1,0 +1,153 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <list-tasks-sk>
+
+  This is the side navigation menu for the Skia Fuzzer
+
+  To use this file import it:
+
+    <link href="list-tasks-sk.html" rel="import" />
+
+  Usage:
+
+    <list-tasks-sk></list-tasks-sk>
+
+  Attributes:
+    waitingTasks - An array of compile tasks waiting to be picked up.
+    runningTasks - An array of currently running compile tasks.
+
+  Events:
+    None
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/common/imp/app-sk.html" />
+
+<dom-module id="list-tasks-sk">
+  <template>
+    <style include="iron-positioning leasing-app-style">
+      .current-time {
+        padding-right: 3em;
+      }
+      table.tasktable {
+        border:solid black 1px;
+        border-spacing: 0px;
+        width: 80%;
+      }
+      tr.headers {
+        background-color: #CCCCFF;
+        text-align: center;
+      }
+      tr {
+        text-align: center;
+      }
+      td {
+        white-space: nowrap;
+      }
+    </style>
+
+   <app-sk class="fit" header_height="60px">
+      <span header class="title">Android Compile Server</span>
+      <span rtoolbar class="current-time">Current time: [[ displayCurrentTime() ]]</span>
+      <compile-menu-sk navigation></compile-menu-sk>
+      <br/><br/>
+
+      <table class="tasktable" cellpadding="5" border="1">
+        <col width = "50%">
+        <col width = "50%">
+        <tr class="headers">
+          <td colspan=2>
+            [[waitingTasks.length]] Tasks waiting in Queue
+          </td>
+        </tr>
+        <template is="dom-repeat" items="{{waitingTasks}}">
+          <tr>
+            <td>
+              <template is="dom-if" if="[[item.hash]]">
+                <a href="[[ getHashLink(item.hash) ]]" target="_blank">[[ getShortHash(item.hash) ]]</a>
+              </template>
+              <template is="dom-if" if="[[item.issue]]">
+                <a href="[[ getGerritLink(item.issue, item.patchset) ]]" target="_blank">skrev/[[item.issue]]/[[item.patchset]]</a>
+              </template>
+            </td>
+            <td>
+              Created: [[ formatTimestamp(item.created) ]]
+            </td>
+          </tr>
+        </template>
+      </table>
+
+      <br/><br/>
+
+      <table class="tasktable" cellpadding="5" border="1">
+        <col width = "50%">
+        <col width = "50%">
+        <tr class="headers">
+          <td colspan=2>
+            Currently Running Tasks
+          </td>
+        </tr>
+        <template is="dom-repeat" items="{{runningTasks}}">
+          <tr>
+            <td>
+              Running on [[item.checkout]] :
+              <template is="dom-if" if="[[item.hash]]">
+                <a href="[[ getHashLink(item.hash) ]]" target="_blank">[[ getShortHash(item.hash) ]]</a>
+              </template>
+              <template is="dom-if" if="[[item.issue]]">
+                <a href="[[ getGerritLink(item.issue, item.patchset) ]]" target="_blank">skrev/[[item.issue]]/[[item.patchset]]</a>
+              </template>
+            </td>
+            <td>
+              Created: [[ formatTimestamp(item.created) ]]
+            </td>
+          </tr>
+        </template>
+      </table>
+    </app-sk>
+  </template>
+
+  <script>
+  Polymer({
+    is: "list-tasks-sk",
+    properties: {
+      waitingTasks: {
+        type: Array,
+        value: [],
+      },
+      runningTasks: {
+        type: Array,
+        value: [],
+      },
+    },
+
+    getShortHash: function(hash) {
+      return hash.substring(0, 7);
+    },
+
+    getHashLink: function(hash) {
+      return "https://skia.googlesource.com/skia/+/" + hash;
+    },
+
+    getGerritLink: function(issue, patchset) {
+      return "https://skia-review.googlesource.com/c/skia/+/" + issue +
+             "/" + patchset;
+    },
+
+    formatTimestamp: function(timestamp) {
+      if (!timestamp) {
+        return timestamp;
+      }
+      const d = new Date(timestamp);
+      return d.toUTCString();
+    },
+
+    displayCurrentTime: function() {
+      var d = new Date();
+      return d.toUTCString();
+    },
+  });
+  </script>
+</dom-module>
