@@ -32,13 +32,11 @@ type CommitableBaseLine struct {
 	// Commit is the commit for which this baseline was collected.
 	Commit *tiling.Commit `json:"commit"`
 
-	// Master captures the baseline of the current commit.
-	Master BaseLine `json:"master"`
+	// Baseline captures the baseline of the current commit.
+	Baseline BaseLine `json:"master"`
 
-	// ChangeLists captures baselines for pending commits. These baselines have
-	// been added by running baselines trybots and are commited to the master
-	// baseline when the CL lands.
-	ChangeLists map[string]BaseLine `json:"changeLists"`
+	// Issue indicates the Gerrit issue of this baseline. 0 indicates the master branch.
+	Issue int64
 }
 
 // GetBaseline calculates the master baseline for the given configuration of
@@ -56,9 +54,9 @@ func GetBaseline(exps *expstorage.Expectations, tile *tiling.Tile) *CommitableBa
 	}
 
 	ret := &CommitableBaseLine{
-		Commit:      tile.Commits[tile.LastCommitIndex()],
-		Master:      masterBaseline,
-		ChangeLists: map[string]BaseLine{},
+		Commit:   tile.Commits[tile.LastCommitIndex()],
+		Baseline: masterBaseline,
+		Issue:    0,
 	}
 	return ret
 }

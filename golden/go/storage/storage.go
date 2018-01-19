@@ -1,24 +1,15 @@
 package storage
 
 import (
-	"bufio"
-	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"sync"
 	"time"
 
-	"go.skia.org/infra/golden/go/tryjobstore"
-
-	gstorage "cloud.google.com/go/storage"
 	"github.com/flynn/json5"
-	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
@@ -30,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -59,6 +51,83 @@ type Storage struct {
 	lastIgnoreRules        paramtools.ParamMatcher
 	mutex                  sync.Mutex
 	whiteListQuery         url.Values
+}
+
+// Init contains initialialization code once all subsystems have been set.
+// It should be called after the public values of the Storage have been set.
+func (s *Storage) Init() {
+	if s.EventBus != nil {
+		// Write the master baseline if the expectations change.
+		s.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, s.pushMasterBaseline)
+	}
+}
+
+// pushMasterBaseline writes the baseline for the master branch to GCS.
+func (s *Storage) pushMasterBaseline(evData interface{}) {
+	if s.GStorageClient.options.BaselineGSDir == "" {
+		return
+	}
+
+	baseline, err := s.getMasterBaseline()
+	if err != nil {
+		sklog.FmtErrorf("Error retrieving master baseline: %s", err)
+		return
+	}
+
+	// Load the results of the issue.
+
+	// Load the expectations of the issue.
+
+	// Calculate all digests that are not covered by the master baseline and
+	// have expectations set in the issue
+
+	// Write the baseline to GCS.
+	if err := s.GStorageClient.WriteBaseLine(baseLine); err != nil {
+		sklog.Errorf("Error writing baseline to GCS: %s", err)
+		return
+	}
+}
+
+func (s *Storage) getMasterBaseline() (baseline.BaseLine, error) {
+	exps, err := s.ExpectationsStore.Get()
+	if err != nil {
+		sklog.Errorf("Error retrieving expectations: %s", err)
+		return
+	}
+
+	tilePair, err := s.GetLastTileTrimmed()
+	if err != nil {
+		sklog.Errorf("Error retrieving last tile.")
+		return
+	}
+	return baseline.GetBaseline(exps, tilePair.Tile)
+}
+
+// pushIssueBaseline writes the baseline for a Gerrit issue to GCS.
+func (s *Storage) pushIssueBaseline(evData interface{}) {
+	if s.GStorageClient.options.BaselineGSDir == "" {
+		return
+	}
+
+	issueID := evData.(*tryjobstore.IssueDetails).ID
+	if issueID <= 0 {
+		sklog.Errorf("Got event with invalid issue ID: %d", issueID)
+	}
+
+	masterBaseLine := s.getMasterBaseline()
+
+	exp, err := s.TryjobStore.GetExpectations(result.IssueID)
+	if err != nil {
+		sklog.Errorf("Error retrieving issue expectations: %s", err)
+		return
+	}
+
+	// Write the baseline to GCS.
+	baseLine := baseline.GetBaselineForIssue(exps, result)
+	if err := s.GStorageClient.WriteBaseLine(baseLine); err != nil {
+		sklog.Errorf("Error writing baseline to GCS: %s", err)
+		return
+	}
 }
 
 // LoadWhiteList loads the given JSON5 file that defines that query to
@@ -147,43 +216,70 @@ func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
 	// Retieve the most recent tile.
 	tile := s.getWhiteListedTile(s.MasterTileBuilder.GetTile())
 
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	if s.NCommits <= 0 {
-		return &types.TilePair{
-			Tile:            tile,
-			TileWithIgnores: tile,
-		}, nil
-	}
+	// Run updating the tile in a closure so we unlock the mutex before
+	// we call pushMasterBaseline below, which will re-aquire it.
+	var ret *types.TilePair
+	tileChanged := false
+	err := func() error {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
 
-	currentIgnoreRev := s.IgnoreStore.Revision()
+		// Figure out if the tile has changed from the cache.
+		currentIgnoreRev := s.IgnoreStore.Revision()
+		tileChanged = s.lastTrimmedTile != nil && tile == s.lastTrimmedTile && s.lastTrimmedIgnoredTile != nil && currentIgnoreRev == s.lastIgnoreRev
 
-	// Check if the tile hasn't changed and the ignores haven't changed.
-	if s.lastTrimmedTile != nil && tile == s.lastTrimmedTile && s.lastTrimmedIgnoredTile != nil && currentIgnoreRev == s.lastIgnoreRev {
-		return &types.TilePair{
+		// If the tile hasn't changed we are done.
+		if !tileChanged {
+			//
+			ret = &types.TilePair{
+				Tile:            s.lastTrimmedIgnoredTile,
+				TileWithIgnores: s.lastTrimmedTile,
+				IgnoreRules:     s.lastIgnoreRules,
+			}
+			return nil
+		}
+
+		// If NCommits is not given return the entire tile. Used for testing.
+		if s.NCommits <= 0 {
+			ret = &types.TilePair{
+				Tile:            tile,
+				TileWithIgnores: tile,
+			}
+			return nil
+		}
+
+		// Get the tile without the ignored traces.
+		retIgnoredTile, ignoreRules, err := FilterIgnored(tile, s.IgnoreStore)
+		if err != nil {
+			return err
+		}
+
+		// Cache this tile.
+		s.lastIgnoreRev = currentIgnoreRev
+		s.lastTrimmedTile = tile
+		s.lastTrimmedIgnoredTile = retIgnoredTile
+		s.lastIgnoreRules = ignoreRules
+
+		ret = &types.TilePair{
 			Tile:            s.lastTrimmedIgnoredTile,
 			TileWithIgnores: s.lastTrimmedTile,
 			IgnoreRules:     s.lastIgnoreRules,
-		}, nil
-	}
+		}
+		return nil
+	}()
 
-	// Get the tile without the ignored traces.
-	retIgnoredTile, ignoreRules, err := FilterIgnored(tile, s.IgnoreStore)
 	if err != nil {
 		return nil, err
 	}
 
-	// Cache this tile.
-	s.lastIgnoreRev = currentIgnoreRev
-	s.lastTrimmedTile = tile
-	s.lastTrimmedIgnoredTile = retIgnoredTile
-	s.lastIgnoreRules = ignoreRules
-
-	return &types.TilePair{
-		Tile:            s.lastTrimmedIgnoredTile,
-		TileWithIgnores: s.lastTrimmedTile,
-		IgnoreRules:     s.lastIgnoreRules,
-	}, nil
+	// If the tile has changed, we need to update the baseline in GCS.
+	if tileChanged {
+		// push the baseline that results from the tile update.
+		go func() {
+			s.pushMasterBaseline(nil)
+		}()
+	}
+	return ret, nil
 }
 
 // FilterIgnored returns a copy of the given tile with all traces removed
@@ -271,118 +367,4 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 	ret.ParamSet = paramSet
 	sklog.Infof("Whitelisted %d of %d traces.", len(ret.Traces), len(tile.Traces))
 	return ret
-}
-
-// GSClientOptions is used to define input parameters to the GStorageClient.
-type GSClientOptions struct {
-	HashesGSPath   string // bucket and path for storing the list of known digests.
-	BaselineGSPath string // bucket and path for storing the base line information.
-}
-
-// GStorageClient provides read/write to Google storage for one-off
-// use cases, i.e. the list of known hash files or the base line.
-type GStorageClient struct {
-	storageClient *gstorage.Client
-	options       GSClientOptions
-}
-
-// NewGStorageClient creates a new instance of GStorage client. The various
-// output paths are set in GSClientOptions.
-func NewGStorageClient(client *http.Client, options *GSClientOptions) (*GStorageClient, error) {
-	storageClient, err := gstorage.NewClient(context.Background(), option.WithHTTPClient(client))
-	if err != nil {
-		return nil, err
-	}
-
-	return &GStorageClient{
-		storageClient: storageClient,
-		options:       *options,
-	}, nil
-}
-
-// WriteKnownDigests writes the given list of digests to GS as newline
-// separated strings.
-func (g *GStorageClient) WriteKnownDigests(digests []string) error {
-	writeFn := func(w *gstorage.Writer) error {
-		for _, digest := range digests {
-			if _, err := w.Write([]byte(digest + "\n")); err != nil {
-				return fmt.Errorf("Error writing digests: %s", err)
-			}
-		}
-		return nil
-	}
-
-	return g.writeToPath(g.options.HashesGSPath, "text/plain", writeFn)
-}
-
-// WriteBaseLine writes the given baseline to GCS.
-func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) error {
-	writeFn := func(w *gstorage.Writer) error {
-		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
-			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
-		}
-		return nil
-	}
-	return g.writeToPath(g.options.BaselineGSPath, "application/json", writeFn)
-}
-
-// loadKnownDigests loads the digests that have previously been written
-// to GS via WriteKnownDigests. Used for testing.
-func (g *GStorageClient) loadKnownDigests() ([]string, error) {
-	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
-
-	ctx := context.Background()
-	target := g.storageClient.Bucket(bucketName).Object(storagePath)
-
-	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
-	_, err := target.Attrs(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	reader, err := target.NewReader(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(reader)
-
-	scanner := bufio.NewScanner(reader)
-	ret := []string{}
-	for scanner.Scan() {
-		ret = append(ret, scanner.Text())
-	}
-	return ret, nil
-}
-
-// removeGSPath removes the given file. Primarily used for testing.
-func (g *GStorageClient) removeGSPath(targetPath string) error {
-	bucketName, storagePath := gcs.SplitGSPath(targetPath)
-	target := g.storageClient.Bucket(bucketName).Object(storagePath)
-	return target.Delete(context.Background())
-}
-
-// writeToPath is a generic function that allows to write data to the given
-// target path in GCS. The actual writing is done in the passed write function.
-func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(w *gstorage.Writer) error) error {
-	bucketName, storagePath := gcs.SplitGSPath(targetPath)
-
-	// Only write the known digests if a target path was given.
-	if (bucketName == "") || (storagePath == "") {
-		return nil
-	}
-
-	ctx := context.Background()
-	target := g.storageClient.Bucket(bucketName).Object(storagePath)
-	writer := target.NewWriter(ctx)
-	writer.ObjectAttrs.ContentType = contentType
-	writer.ObjectAttrs.ACL = []gstorage.ACLRule{{Entity: gstorage.AllUsers, Role: gstorage.RoleReader}}
-	defer util.Close(writer)
-
-	// Write the actual data.
-	if err := wrtFn(writer); err != nil {
-		return err
-	}
-
-	sklog.Infof("File written to GS path %s", targetPath)
-	return nil
 }
