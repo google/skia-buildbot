@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "ad195af2_35aff176",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-19T13:27:33Z",
+      "side": 1,
+      "message": "Looking with fresh eyes, yeah, this is all really confusing.  I changed to use \"previous\" instead of \"existing\" and \"old\", and used \"updated\" to indicate where the branch names were the same but may now point to new commits.  I think this is better.",
+      "parentUuid": "449ab216_97fb49ff",
+      "range": {
+        "startLine": 374,
+        "startChar": 1,
+        "endLine": 374,
+        "endChar": 4
+      },
+      "revId": "63e4c809060192acb3fb49650915974033257c83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "10c37eab_85b3ddbb",
         "filename": "go/git/repograph/graph_test.go",
         "patchSetId": 2
