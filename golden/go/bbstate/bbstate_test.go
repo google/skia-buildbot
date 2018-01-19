@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/tryjobstore"
+	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 )
 
@@ -30,7 +31,7 @@ func TestBuildBucketState(t *testing.T) {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
-	tjStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold_ingestion-localhost-stephana", serviceAccountFile)
+	tjStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold_ingestion-localhost-stephana", option.WithServiceAccountFile(serviceAccountFile))
 	assert.NoError(t, err)
 
 	// Remove all issues.

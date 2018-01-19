@@ -4,7 +4,7 @@
 
   Ingesters: {
     // Gold Tryjob Ingester for gold-stage.
-    "gold-tryjob-stage": {
+    "gold-tryjob": {
       RunEvery: "5m",
       NCommits: 10,
       MinDays: 10,

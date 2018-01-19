@@ -7,6 +7,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/testutils"
@@ -22,8 +23,7 @@ func TestCloudTryjobStore(t *testing.T) {
 	t.Skip()
 
 	serviceAccountFile := "./service-account.json"
-
-	store, err := NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", serviceAccountFile)
+	store, err := NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", option.WithServiceAccountFile(serviceAccountFile))
 	assert.NoError(t, err)
 
 	testTryjobStore(t, store)

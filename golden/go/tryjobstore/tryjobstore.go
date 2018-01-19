@@ -84,9 +84,9 @@ type cloudTryjobStore struct {
 
 // NewCloudTryjobStore creates a new instance of TryjobStore based on cloud datastore.
 // namespace is the namespace in cloud datastore that this instance should use.
-func NewCloudTryjobStore(projectID, namespace string, serviceAccountFile string) (TryjobStore, error) {
+func NewCloudTryjobStore(projectID, namespace string, opts ...option.ClientOption) (TryjobStore, error) {
 	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, projectID, option.WithServiceAccountFile(serviceAccountFile))
+	client, err := datastore.NewClient(ctx, projectID, opts...)
 	if err != nil {
 		return nil, err
 	}
