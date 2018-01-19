@@ -383,7 +383,8 @@ func collectFuzzerMetrics() error {
 		statsFile := filepath.Join(config.Generator.AflOutputPath, category, "fuzzer0", "fuzzer_stats")
 		b, err := ioutil.ReadFile(statsFile)
 		if err != nil {
-			return err
+			sklog.Errorf("Cannot read metrics file %s, continuing anyway: %s", statsFile, err)
+			continue
 		}
 		contents := string(b)
 		for i, m := range aflMetrics {
