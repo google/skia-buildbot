@@ -10,8 +10,8 @@ set -x -e
 copy_release_files()
 {
 INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}          ${ROOT}${CHROOT}/usr/local/bin/${APPNAME}
-${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}${CHROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=755 -T ${GOPATH}/bin/metadata_server ${ROOT}${CHROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}${CHROOT}/etc/systemd/system/${APPNAME}.service
 }
 
 source ../bash/release.sh
