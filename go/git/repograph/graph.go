@@ -351,21 +351,78 @@ func (r *Graph) BranchHeads() []*gitinfo.GitBranch {
 
 // GetNewCommits returns the new commits in the repo, given a previous set of
 // branch heads.
-func (r *Graph) GetNewCommits(oldBranchHeads []*gitinfo.GitBranch) ([]*vcsinfo.LongCommit, error) {
-	visited := make(map[string]bool, len(oldBranchHeads))
-	for _, branch := range oldBranchHeads {
+func (r *Graph) GetNewCommits(previousBranchHeads []*gitinfo.GitBranch) ([]*vcsinfo.LongCommit, error) {
+	// We're going to trace all branches back in time until we get to a
+	// commit that the caller has already seen. As an optimization, we just
+	// trace each branch from the new HEAD back to the old HEAD. Note that
+	// this does NOT work if there are any newly-created branches, since
+	// we'll end up returning the entire history of that branch, including
+	// any commits shared with existing branches. To avoid returning
+	// already-seen commits, we take a slow path for new branches in which
+	// we check to see whether every commit on the new branch is part of an
+	// existing branch. We will see a similar problem if history is ever
+	// changed such that the old HEAD is not an ancestor of the new HEAD.
+	// For now we just hope that doesn't happen, since it should be a last
+	// resort.
+
+	// Separate the previously-existing branch heads from the new.
+	previousBranchNames := make(map[string]bool, len(previousBranchHeads))
+	for _, bh := range previousBranchHeads {
+		previousBranchNames[bh.Name] = true
+	}
+	currentBranchHeads := r.BranchHeads()
+	updatedPreviousBranchHeads := make([]*gitinfo.GitBranch, 0, len(previousBranchNames))
+	newBranchHeads := make([]*gitinfo.GitBranch, 0, len(currentBranchHeads)-len(previousBranchNames))
+	for _, bh := range currentBranchHeads {
+		if _, ok := previousBranchNames[bh.Name]; !ok {
+			newBranchHeads = append(newBranchHeads, bh)
+		} else {
+			updatedPreviousBranchHeads = append(updatedPreviousBranchHeads, bh)
+		}
+	}
+
+	// Mark the old branch HEADs as visited.
+	visited := make(map[string]bool, len(previousBranchHeads))
+	for _, branch := range previousBranchHeads {
 		visited[branch.Head] = true
 	}
+
+	// Find new commits for the branches the caller has already seen.
 	newCommits := []*vcsinfo.LongCommit{}
-	if err := r.RecurseAllBranches(func(c *Commit) (bool, error) {
-		if visited[c.Hash] {
-			return false, nil
+	for _, bh := range updatedPreviousBranchHeads {
+		if err := r.Get(bh.Head).Recurse(func(c *Commit) (bool, error) {
+			if visited[c.Hash] {
+				return false, nil
+			}
+			newCommits = append(newCommits, c.LongCommit)
+			visited[c.Hash] = true
+			return true, nil
+		}); err != nil {
+			return nil, err
 		}
-		newCommits = append(newCommits, c.LongCommit)
-		visited[c.Hash] = true
-		return true, nil
-	}); err != nil {
-		return nil, err
+	}
+
+	// Find new commits on any branches the caller has not yet seen, double
+	// checking each commit to make sure it's not already an ancestor of
+	// another branch.
+	for _, bh := range newBranchHeads {
+		if err := r.Get(bh.Head).Recurse(func(c *Commit) (bool, error) {
+			// Shortcut.
+			if visited[c.Hash] {
+				return false, nil
+			}
+			// SLOW! Check whether this commit exists on any other branch.
+			for _, oldBranch := range updatedPreviousBranchHeads {
+				if r.Get(oldBranch.Head).HasAncestor(c.Hash) {
+					return false, nil
+				}
+			}
+			newCommits = append(newCommits, c.LongCommit)
+			visited[c.Hash] = true
+			return true, nil
+		}); err != nil {
+			return nil, err
+		}
 	}
 	return newCommits, nil
 }
