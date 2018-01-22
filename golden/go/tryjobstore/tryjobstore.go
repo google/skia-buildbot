@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.skia.org/infra/go/eventbus"
+
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -15,6 +17,10 @@ import (
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/option"
+)
+
+const (
+	EV_TRYJOB_EXP_CHANGED = "tryjobstore:change"
 )
 
 // TryjobStore define methods to store tryjob information and code review
@@ -79,12 +85,13 @@ const (
 // cloudTryjobStore implements the TryjobStore interface on top of cloud datastore.
 type cloudTryjobStore struct {
 	client    *datastore.Client
+	eventBus  eventbus.EventBus
 	namespace string
 }
 
 // NewCloudTryjobStore creates a new instance of TryjobStore based on cloud datastore.
 // namespace is the namespace in cloud datastore that this instance should use.
-func NewCloudTryjobStore(projectID, namespace string, opts ...option.ClientOption) (TryjobStore, error) {
+func NewCloudTryjobStore(projectID, namespace string, eventBus eventbus.EventBus, opts ...option.ClientOption) (TryjobStore, error) {
 	ctx := context.Background()
 	client, err := datastore.NewClient(ctx, projectID, opts...)
 	if err != nil {
@@ -94,6 +101,7 @@ func NewCloudTryjobStore(projectID, namespace string, opts ...option.ClientOptio
 	return &cloudTryjobStore{
 		client:    client,
 		namespace: namespace,
+		eventBus:  eventBus,
 	}, nil
 }
 
@@ -207,6 +215,28 @@ func (c *cloudTryjobStore) GetTryjobResults(issueID int64, patchsetIDs []int64) 
 		return nil, nil, err
 	}
 
+	project := true
+
+	if project {
+		// sort tryjobs by patchset and when they were last updated.
+		sort.Slice(tryjobKeys, func(i, j int) bool {
+			return (tryjobs[i].PatchsetID < tryjobs[j].PatchsetID) ||
+				((tryjobs[i].PatchsetID == tryjobs[j].PatchsetID) && (tryjobs[i].Updated.Before(tryjobs[j].Updated)))
+		})
+
+		// Iterate the builders in reverse order filter out duplicates by builder.
+		builders := util.StringSet{}
+		for i := len(tryjobs); i >= 0; i-- {
+			if !builders[tryjobs[i].Builder] {
+				builders[tryjobs[i].Builder] = true
+				tryjobs[i] = nil
+			}
+		}
+
+		// xxx
+		// for idx, tryjob := range tryjobs {
+		// }
+	}
 	_, tryjobResults, err := c.getResultsForTryjobs(tryjobKeys, false)
 	if err != nil {
 		return nil, nil, err
@@ -295,6 +325,10 @@ func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.Tes
 	expChange.OK = true
 	if _, err = c.client.Put(ctx, changeKey, expChange); err != nil {
 		return err
+	}
+
+	if c.eventBus != nil {
+		c.eventBus.Publish(EV_TRYJOB_EXP_CHANGED, &IssueExpChange{IssueID: issueID}, false)
 	}
 
 	return nil

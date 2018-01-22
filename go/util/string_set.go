@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -99,4 +100,31 @@ func (s StringSet) AddLists(lists ...[]string) StringSet {
 		}
 	}
 	return s
+}
+
+func (s *StringSet) UnmarshalJSON(data []byte) error {
+	keys := []string{}
+	if err := json.Unmarshal(data, &keys); err != nil {
+		return err
+	}
+
+	// Handle the null value.
+	if keys == nil {
+		*s = nil
+		return nil
+	}
+
+	if *s == nil {
+		*s = StringSet{}
+	}
+	s.AddLists(keys)
+	return nil
+}
+
+func (s StringSet) MarshalJSON() ([]byte, error) {
+	if s == nil {
+		return json.Marshal([]string(nil))
+	}
+	keys := s.Keys()
+	return json.Marshal(keys)
 }
