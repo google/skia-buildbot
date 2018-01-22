@@ -88,6 +88,9 @@ addToRegistryPath "C:\Program` Files` (x86)\CMake\bin"
 banner "Set up Auto-Logon"
 setupAutoLogon
 
+banner "Set Windows Defender exception paths"
+Set-MpPreference -ExclusionPath ("$userDir\depot_tools", "C:\b")
+
 banner "Startup script complete"
 
 }
