@@ -1,0 +1,10 @@
+{
+  "Servers": {
+    "skia-predict": {
+      "AppNames": [
+        "pulld",
+        "predict",
+      ],
+    },
+  },
+}
