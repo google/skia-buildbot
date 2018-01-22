@@ -5,10 +5,10 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/get_oauth2_token \
+ExecStart=/usr/local/bin/get-oauth2-token \
   --logtostderr \
-  --service_account_file=/etc/skiabot/swarming_service_account.json \
-  --dest=/var/local/swarming_token.json
+  --service_account_file=/etc/service_account_swarming.json \
+  --dest=/var/local/token_swarming.json
 User=root
 Group=root
 LimitNOFILE=10000

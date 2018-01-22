@@ -6,8 +6,9 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/metadata-server \
   --logtostderr \
-  --prom_port=:20002 \
-  --token_file=/var/local/swarming_token.json
+  --port=:8001 \
+  --prom_port=:20003 \
+  --token_file=/var/local/token_swarming.json
 
 Restart=always
 User=chrome-bot
