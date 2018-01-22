@@ -34,10 +34,11 @@ func ValidateToken(tok *oauth2.Token) error {
 	if util.TimeIsZero(tok.Expiry) {
 		return fmt.Errorf("Token has no expiration!")
 	}
-	if time.Now().After(tok.Expiry) {
+	now := time.Now()
+	if now.After(tok.Expiry) {
 		// This case is covered by tok.Valid(), but we want to provide a
 		// better error message.
-		return fmt.Errorf("Token is expired!")
+		return fmt.Errorf("Token is expired! Expiry: %s; time is now %s.", tok.Expiry, now)
 	}
 	if !tok.Valid() {
 		return fmt.Errorf("Token is invalid!")
