@@ -1348,3 +1348,24 @@ server {
     server_name leasing.skia.org;
     return 301 https://leasing.skia.org$request_uri;
 }
+
+#####   predict.skia.org   ###########################
+server {
+    listen      443;
+    server_name predict.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/predict.access.log;
+    error_log /var/log/nginx/predict.error.log error;
+
+    location / {
+        proxy_pass http://skia-predict:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name predict.skia.org;
+    return 301 https://predict.skia.org$request_uri;
+}

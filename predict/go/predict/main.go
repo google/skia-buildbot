@@ -153,7 +153,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	httpClient, err = auth.NewDefaultClient(true, swarming.AUTH_SCOPE)
+	httpClient, err = auth.NewDefaultClient(*local, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
