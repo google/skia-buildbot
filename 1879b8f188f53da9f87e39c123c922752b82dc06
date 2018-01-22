@@ -22,6 +22,30 @@
       "revId": "1879b8f188f53da9f87e39c123c922752b82dc06",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ec3ac80_eac11f59",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-22T12:18:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e9486dc_77439f2f",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 63
+      },
+      "revId": "1879b8f188f53da9f87e39c123c922752b82dc06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
