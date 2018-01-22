@@ -52,6 +52,9 @@
     - name: Get collectd config situated
       copy: src=../common/collectd.conf dest=/etc/collectd/collectd.conf owner=root group=root mode=0644
 
+    - name: Fix nsswitch.conf
+      copy: src=./nsswitch.conf /etc/nsswitch.conf
+
     - name: Start collectd
       service: name=collectd state=restarted enabled=true
 
