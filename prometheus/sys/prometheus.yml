@@ -132,6 +132,10 @@ scrape_configs:
     static_configs:
       - targets: ['skia-monitoring:20005']
 
+  - job_name: 'predict'
+    static_configs:
+      - targets: ['skia-predict:20000']
+
   - job_name: 'push'
     static_configs:
       - targets: ['skia-push:20000']
@@ -207,6 +211,7 @@ scrape_configs:
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-perf:11000']
+      - targets: ['skia-predict:11000']
       - targets: ['skia-prom:11000']
       - targets: ['skia-proxy:11000']
       - targets: ['skia-push:11000']
