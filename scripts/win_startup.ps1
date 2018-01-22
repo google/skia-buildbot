@@ -88,6 +88,9 @@ addToRegistryPath "C:\Program` Files` (x86)\CMake\bin"
 banner "Set up Auto-Logon"
 setupAutoLogon
 
+banner "Uninstall Windows Defender"
+Uninstall-WindowsFeature -Name Windows-Defender
+
 banner "Startup script complete"
 
 }
