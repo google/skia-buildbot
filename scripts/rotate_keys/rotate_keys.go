@@ -18,32 +18,28 @@ import (
 )
 
 var (
-	// Service account with no permissions, used for testing this program.
-	borenetTesting = &serviceAccount{
+	// Default service account used for bots which connect to
+	// chromium-swarm.appspot.com.
+	chromiumSwarm = &serviceAccount{
 		project:  "skia-swarming-bots",
-		email:    "borenet-testing@skia-swarming-bots.iam.gserviceaccount.com",
-		nickname: "testing",
-	}
-
-	// List of all service accounts whose keys are managed by this program.
-	serviceAccounts = []*serviceAccount{
-		borenetTesting,
+		email:    "chromium-swarm-bots@skia-swarming-bots.iam.gserviceaccount.com",
+		nickname: "swarming",
 	}
 
 	// Determines which keys go on which machines:
 	// map[jumphost_name][]*serviceAccount
 	jumphostServiceAccountMapping = map[string][]*serviceAccount{
 		"linux-01.skolo": []*serviceAccount{
-			borenetTesting,
+			chromiumSwarm,
 		},
 		"rpi-01.skolo": []*serviceAccount{
-			borenetTesting,
+			chromiumSwarm,
 		},
 		"win-01.skolo": []*serviceAccount{
-			borenetTesting,
+			chromiumSwarm,
 		},
 		"win-02.skolo": []*serviceAccount{
-			borenetTesting,
+			chromiumSwarm,
 		},
 	}
 )
@@ -89,8 +85,14 @@ func main() {
 	// Create new keys for all service accounts. Track the previous keys so
 	// that we can delete them later.
 	fmt.Println("Generating new keys.")
+	serviceAccounts := map[*serviceAccount]bool{}
+	for _, accounts := range jumphostServiceAccountMapping {
+		for _, acc := range accounts {
+			serviceAccounts[acc] = true
+		}
+	}
 	deleteKeys := []string{}
-	for _, acc := range serviceAccounts {
+	for acc, _ := range serviceAccounts {
 		serviceAccountPath := admin.IamServiceAccountPath(acc.project, acc.email)
 		resp, err := c.ListServiceAccountKeys(ctx, &adminpb.ListServiceAccountKeysRequest{
 			Name: serviceAccountPath,
