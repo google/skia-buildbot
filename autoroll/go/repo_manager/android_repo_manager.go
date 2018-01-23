@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 
+	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -29,9 +30,9 @@ var (
 	// overridden for testing.
 	NewAndroidRepoManager func(context.Context, string, string, string, string, gerrit.GerritInterface, NextRollStrategy, []string, string) (RepoManager, error) = newAndroidRepoManager
 
-	IGNORE_MERGE_CONFLICT_FILES = []string{"include/config/SkUserConfig.h"}
+	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
 
-	FILES_GENERATED_BY_GN_TO_GP = []string{"include/config/SkUserConfig.h", "Android.bp"}
+	FILES_GENERATED_BY_GN_TO_GP = []string{android_skia_checkout.SkUserConfigRelPath, android_skia_checkout.AndroidBpRelPath}
 
 	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
 )
@@ -312,25 +313,10 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		}
 	}
 
-	// Install GN.
-	if _, syncErr := exec.RunCwd(ctx, r.childDir, "./bin/sync"); syncErr != nil {
-		// Sync may return errors, but this is ok.
-	}
-	if _, fetchGNErr := exec.RunCwd(ctx, r.childDir, "./bin/fetch-gn"); fetchGNErr != nil {
-		return 0, fmt.Errorf("Failed to install GN: %s", fetchGNErr)
-	}
-
-	// Generate and add files created by gn/gn_to_bp.py
-	gnEnv := []string{fmt.Sprintf("PATH=%s/:%s", path.Join(r.childDir, "bin"), os.Getenv("PATH"))}
-	_, gnToBpErr := exec.RunCommand(ctx, &exec.Command{
-		Env:  gnEnv,
-		Dir:  r.childDir,
-		Name: "python",
-		Args: []string{"-c", "from gn import gn_to_bp"},
-	})
-	if gnToBpErr != nil {
+	if err := android_skia_checkout.RunGnToBp(ctx, r.childDir); err != nil {
 		util.LogErr(r.abortMerge(ctx))
-		return 0, fmt.Errorf("Failed to run gn_to_bp: %s", gnToBpErr)
+		return 0, fmt.Errorf("Error when running gn_to_bp: %s", err)
+
 	}
 	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
 		if _, err := exec.RunCwd(ctx, r.childDir, "git", "add", genFile); err != nil {
