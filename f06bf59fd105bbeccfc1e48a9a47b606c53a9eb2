@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b41c4bf_fe3a725d",
+        "filename": "go/tiling/tiling.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:59:06Z",
+      "side": 1,
+      "message": "Possible optimization, if this is in an inner inner inner loop or something, would be to make a map of the commit hashes -\u003e Commit and just access that instead of calling this function repeatedly.  May not be needed, but something to consider.",
+      "range": {
+        "startLine": 127,
+        "startChar": 5,
+        "endLine": 127,
+        "endChar": 15
+      },
+      "revId": "f06bf59fd105bbeccfc1e48a9a47b606c53a9eb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3c93edb_c753a27a",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:59:06Z",
+      "side": 1,
+      "message": "cut off.  Any chance you can explain the arguments a bit more, e.g. talliesByTest?",
+      "range": {
+        "startLine": 80,
+        "startChar": 3,
+        "endLine": 80,
+        "endChar": 13
+      },
+      "revId": "f06bf59fd105bbeccfc1e48a9a47b606c53a9eb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9d20124_51ae4a5b",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:59:06Z",
+      "side": 1,
+      "message": "Don\u0027t you need to log or return this error?",
+      "range": {
+        "startLine": 443,
+        "startChar": 9,
+        "endLine": 443,
+        "endChar": 18
+      },
+      "revId": "f06bf59fd105bbeccfc1e48a9a47b606c53a9eb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d545c276_6e87b9cc",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:59:06Z",
+      "side": 1,
+      "message": "use sklog.FmtErrorf here?",
+      "range": {
+        "startLine": 81,
+        "startChar": 19,
+        "endLine": 81,
+        "endChar": 22
+      },
+      "revId": "f06bf59fd105bbeccfc1e48a9a47b606c53a9eb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7be8cdd7_8c85a4bc",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:59:06Z",
+      "side": 1,
+      "message": "information",
+      "range": {
+        "startLine": 236,
+        "startChar": 64,
+        "endLine": 236,
+        "endChar": 74
+      },
+      "revId": "f06bf59fd105bbeccfc1e48a9a47b606c53a9eb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08500b60_a54abfb3",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:59:06Z",
+      "side": 1,
+      "message": "What does this mean?  Also, is project a verb or noun here?  Maybe use a less ambiguous naming",
+      "range": {
+        "startLine": 49,
+        "startChar": 40,
+        "endLine": 49,
+        "endChar": 55
+      },
+      "revId": "f06bf59fd105bbeccfc1e48a9a47b606c53a9eb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
