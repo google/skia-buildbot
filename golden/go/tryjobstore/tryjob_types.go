@@ -132,6 +132,7 @@ type Tryjob struct {
 	Builder       string       `json:"builder"`
 	Status        TryjobStatus `json:"status"`
 	Updated       time.Time    `json:"updated"`
+	MasterCommit  string       `json:"masterCommit"`
 }
 
 // String returns a string representation for the Tryjob
@@ -152,6 +153,7 @@ func (t *Tryjob) newer(r interface{}) bool {
 type TryjobResult struct {
 	TestName string
 	Digest   string
+	TraceIDs []string
 	Params   paramtools.ParamSet `datastore:"-"`
 }
 
@@ -230,4 +232,8 @@ type TestDigestExp struct {
 	Name   string
 	Digest string
 	Label  string
+}
+
+type IssueExpChange struct {
+	IssueID int64
 }
