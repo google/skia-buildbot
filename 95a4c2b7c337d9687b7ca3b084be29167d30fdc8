@@ -118,6 +118,30 @@
       "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9403b2a3_e5011f87",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T19:58:44Z",
+      "side": 1,
+      "message": "I mean, it\u0027s mildly annoying, but if there\u0027s a good reason to do it, then it\u0027s probably worth doing.  For now my vote is just to have internal and external accounts.  It\u0027 shouldn\u0027t be too hard to add others later if we decide we need to.",
+      "parentUuid": "3afe9e50_60e9c28e",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
