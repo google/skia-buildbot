@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fb5b7786_df203c3c",
+        "filename": "golden/frontend/res/imp/dots2-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-23T20:24:38Z",
+      "side": 1,
+      "message": "nit: Since the element doesn\u0027t expose any attribute these should be \"private\" with a prefixed \"_\".",
+      "range": {
+        "startLine": 85,
+        "startChar": 15,
+        "endLine": 85,
+        "endChar": 22
+      },
+      "revId": "e1ecd77f412d1530965c268df06c8f82e3976cdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5658b90d_c9ba2dfd",
+        "filename": "golden/frontend/res/imp/dots2-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-23T20:24:38Z",
+      "side": 1,
+      "message": "Since these are constant could they be defined outside the element ?",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 12
+      },
+      "revId": "e1ecd77f412d1530965c268df06c8f82e3976cdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e78e724f_c59d27f5",
+        "filename": "golden/frontend/res/imp/dots2-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-23T20:24:38Z",
+      "side": 1,
+      "message": "nit: Maybe a good idea to define these as constants ?",
+      "range": {
+        "startLine": 154,
+        "startChar": 39,
+        "endLine": 154,
+        "endChar": 48
+      },
+      "revId": "e1ecd77f412d1530965c268df06c8f82e3976cdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03b33832_06fed3f0",
+        "filename": "golden/frontend/res/imp/dots2-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-23T20:24:38Z",
+      "side": 1,
+      "message": "Can you add some (short) documentation why/how mouseMove is used here? \nIt should also have support for \u0027tap\u0027 events.",
+      "range": {
+        "startLine": 185,
+        "startChar": 6,
+        "endLine": 185,
+        "endChar": 35
+      },
+      "revId": "e1ecd77f412d1530965c268df06c8f82e3976cdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
