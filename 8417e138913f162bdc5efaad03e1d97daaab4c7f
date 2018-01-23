@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fc3206fd_4f233c2e",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-23T18:01:19Z",
+      "side": 1,
+      "message": "The port this uses will be locked down. Only the swarming bot\u0027s service account will be allowed in via a firewall.",
+      "parentUuid": "b72fbc0d_5db1bc25",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 65
+      },
+      "revId": "8417e138913f162bdc5efaad03e1d97daaab4c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1cd92ff8_67ec580c",
         "filename": "android_compile/go/android_compile/main.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-23T16:59:34Z",
       "side": 1,
       "message": "Shouldn\u0027t this be POST?",
+      "range": {
+        "startLine": 222,
+        "startChar": 76,
+        "endLine": 222,
+        "endChar": 79
+      },
+      "revId": "8417e138913f162bdc5efaad03e1d97daaab4c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7521737a_e701b68a",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-23T18:01:19Z",
+      "side": 1,
+      "message": "I had a TODO for this but it vanished. Added it back.",
+      "parentUuid": "1cd92ff8_67ec580c",
       "range": {
         "startLine": 222,
         "startChar": 76,
