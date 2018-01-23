@@ -694,4 +694,11 @@ ALERT BackupNotDone
     description = "A backup of Cloud Datastore hasn't succeeded in the last 25 hours. https://skia.googlesource.com/buildbot/%2B/master/ds/PROD.md#backup_not_done"
   }
 
-
+# Predict
+ALERT PredictLiveness
+  IF liveness_predict_processing_s/60 > 120
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "Predict model building is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to build a prediction model for the last 2 hours. https://skia.googlesource.com/buildbot/%2B/master/predict/PROD.md#build_liveness"
+  }
