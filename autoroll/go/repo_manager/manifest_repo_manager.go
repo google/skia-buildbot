@@ -200,7 +200,7 @@ func (mr *manifestRepoManager) CreateNewRoll(ctx context.Context, from, to strin
 	commitRange := fmt.Sprintf("%s..%s", from[:9], to[:9])
 	childRepoName := path.Base(mr.childDir)
 	commitMsg := fmt.Sprintf(
-		`Roll %s %s (%d commits)
+		`[manifest] Roll %s %s (%d commits)
 
 https://%s.googlesource.com/%s.git/+log/%s
 
