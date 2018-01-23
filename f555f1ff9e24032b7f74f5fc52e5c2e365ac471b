@@ -22,6 +22,30 @@
       "revId": "f555f1ff9e24032b7f74f5fc52e5c2e365ac471b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48246e53_711a325c",
+        "filename": "go/git/checkout.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-23T16:05:38Z",
+      "side": 1,
+      "message": "SGTM. Done.",
+      "parentUuid": "6f4b1850_02f89f21",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 45
+      },
+      "revId": "f555f1ff9e24032b7f74f5fc52e5c2e365ac471b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
