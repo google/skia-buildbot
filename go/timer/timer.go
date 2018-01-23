@@ -4,6 +4,7 @@ package timer
 import (
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -16,8 +17,9 @@ import (
 //     defer timer.New("database sync time").Stop()
 //
 type Timer struct {
-	Begin time.Time
-	Name  string
+	Begin  time.Time
+	Name   string
+	Metric metrics2.Float64Metric
 }
 
 func New(name string) *Timer {
@@ -27,6 +29,18 @@ func New(name string) *Timer {
 	}
 }
 
+func NewWithMetric(name string, m metrics2.Float64Metric) *Timer {
+	return &Timer{
+		Begin:  time.Now(),
+		Name:   name,
+		Metric: m,
+	}
+}
+
 func (t Timer) Stop() {
-	sklog.Infof("%s %v", t.Name, time.Now().Sub(t.Begin))
+	duration := time.Now().Sub(t.Begin)
+	sklog.Infof("%s %v", t.Name, duration)
+	if t.Metric != nil {
+		t.Metric.Update(duration.Seconds())
+	}
 }
