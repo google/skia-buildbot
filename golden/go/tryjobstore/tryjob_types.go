@@ -132,6 +132,7 @@ type Tryjob struct {
 	Builder       string       `json:"builder"`
 	Status        TryjobStatus `json:"status"`
 	Updated       time.Time    `json:"updated"`
+	MasterCommit  string       `json:"masterCommit"`
 }
 
 // String returns a string representation for the Tryjob
@@ -230,4 +231,10 @@ type TestDigestExp struct {
 	Name   string
 	Digest string
 	Label  string
+}
+
+// IssueExpChange is used as the event type when tryjob related information changes
+// and an event is sent to notify client.
+type IssueExpChange struct {
+	IssueID int64 `json:"issueID"`
 }
