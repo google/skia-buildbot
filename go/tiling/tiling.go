@@ -122,6 +122,20 @@ type Commit struct {
 	Author     string `json:"author"                     db:"author"`
 }
 
+// FindCommit searches the given commits for the given hash and returns the
+// matching commit. If the commit cannot be found nil is returned.
+func FindCommit(commits []*Commit, targetHash string) *Commit {
+	if targetHash == "" {
+		return nil
+	}
+	for _, commit := range commits {
+		if commit.Hash == targetHash {
+			return commit
+		}
+	}
+	return nil
+}
+
 // Tile is a config.TILE_SIZE commit slice of data.
 //
 // The length of the Commits array is the same length as all of the Values
