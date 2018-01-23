@@ -87,7 +87,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, fmt.Errorf("Failed to create auth token source: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, tryjobNamespace, option.WithTokenSource(tokenSrc))
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, tryjobNamespace, nil, option.WithTokenSource(tokenSrc))
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
@@ -160,6 +160,13 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		if issue, tryjob, err = g.issueBuildFetcher.FetchIssueAndTryjob(issueID, dmResults.BuildBucketID); err != nil {
 			return err
 		}
+	}
+
+	// Add the Githash of the underlying result.
+	if tryjob.MasterCommit == "" {
+		tryjob.MasterCommit = dmResults.GitHash
+	} else if tryjob.MasterCommit != dmResults.GitHash {
+		return sklog.FmtErrorf("Master commit in tryjob and ingested results do not match.")
 	}
 
 	// Convert to a trybotstore.TryjobResult slice by aggregating parameters for each test/digest pair.
