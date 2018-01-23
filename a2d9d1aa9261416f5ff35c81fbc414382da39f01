@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09d3ad54_4ef6c1a9",
+        "filename": "android_compile/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T16:30:11Z",
+      "side": 1,
+      "message": "Intentional?",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 37
+      },
+      "revId": "a2d9d1aa9261416f5ff35c81fbc414382da39f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8a1f888_f4aa2ba5",
+        "filename": "android_compile/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T16:30:11Z",
+      "side": 1,
+      "message": "I think \"go install\" needs to happen before build_release, otherwise the binary may not exist or may be out of date.",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 33
+      },
+      "revId": "a2d9d1aa9261416f5ff35c81fbc414382da39f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d50264af_50f66b25",
+        "filename": "android_compile/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T16:30:11Z",
+      "side": 1,
+      "message": "Normally, these makefiles have separate targets for \"release\" and \"push\".  Personally, I\u0027d move the pushcli command into a new target which depends on this one.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 41
+      },
+      "revId": "a2d9d1aa9261416f5ff35c81fbc414382da39f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
