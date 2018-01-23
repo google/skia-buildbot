@@ -2,9 +2,11 @@ package git
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	"go.skia.org/infra/go/sklog"
 )
@@ -30,10 +32,40 @@ func NewCheckout(ctx context.Context, repoUrl, workdir string) (*Checkout, error
 	return &Checkout{g}, nil
 }
 
+// FetchRefFromRepo syncs the specified ref from the repo without modifying the
+// working copy.
+func (c *Checkout) FetchRefFromRepo(ctx context.Context, repo, ref string) error {
+	_, err := c.Git(ctx, "fetch", repo, ref)
+	return err
+}
+
 // Fetch syncs refs from the remote without modifying the working copy.
 func (c *Checkout) Fetch(ctx context.Context) error {
 	_, err := c.Git(ctx, "fetch", "origin")
 	return err
+}
+
+// AddRemote checks to see if a remote already exists in the checkout, if it
+// exists then the URL is matched with the repoURL. If the remote does not exist
+// then it is added.
+func (c *Checkout) AddRemote(ctx context.Context, remote, repoUrl string) error {
+	// Check to see whether there is an upstream yet.
+	remoteOutput, err := c.Git(ctx, "remote", "get-url", remote)
+	if err != nil {
+		if strings.Contains(err.Error(), "No such remote") {
+			if _, err := c.Git(ctx, "remote", "add", remote, repoUrl); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		// Remote already exists. Make sure that the URLs match.
+		if strings.TrimRight(remoteOutput, "\n") != repoUrl {
+			return fmt.Errorf("%s points to %s instead of %s", remote, remoteOutput, repoUrl)
+		}
+	}
+	return nil
 }
 
 // Cleanup forcibly resets all changes and checks out the master branch at
