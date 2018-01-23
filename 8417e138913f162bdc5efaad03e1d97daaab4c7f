@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b72fbc0d_5db1bc25",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T16:59:34Z",
+      "side": 1,
+      "message": "There\u0027s no authentication here.  IMO we should lock this down to only the account expected to be triggering tasks.  I assume that\u0027s a service account running in a Swarming task?",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 65
+      },
+      "revId": "8417e138913f162bdc5efaad03e1d97daaab4c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cd92ff8_67ec580c",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T16:59:34Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be POST?",
+      "range": {
+        "startLine": 222,
+        "startChar": 76,
+        "endLine": 222,
+        "endChar": 79
+      },
+      "revId": "8417e138913f162bdc5efaad03e1d97daaab4c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
