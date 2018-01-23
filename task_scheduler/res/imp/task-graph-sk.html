@@ -84,18 +84,22 @@
             }
             graph[taskName] = deps;
           }
-          for (var taskName in job.tasks) {
-            var tasks = taskData[taskName] || [];
-            for (var j = 0; j < job.tasks[taskName].length; j++) {
-              var task = job.tasks[taskName][j];
-              var found = tasks.find(function(item) {
-                return item.id === task.id;
-              });
-              if (!found) {
-                tasks.push(task);
+          if (job.tasks) {
+            for (var taskName in job.tasks) {
+              var tasks = taskData[taskName] || [];
+              if (job.tasks[taskName]) {
+                for (var j = 0; j < job.tasks[taskName].length; j++) {
+                  var task = job.tasks[taskName][j];
+                  var found = tasks.find(function(item) {
+                    return item.id === task.id;
+                  });
+                  if (!found) {
+                    tasks.push(task);
+                  }
+                }
               }
+              taskData[taskName] = tasks;
             }
-            taskData[taskName] = tasks;
           }
         }
 
