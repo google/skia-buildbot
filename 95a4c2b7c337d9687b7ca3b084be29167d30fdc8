@@ -46,6 +46,30 @@
       "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36a82938_489ca0b8",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-23T17:45:34Z",
+      "side": 1,
+      "message": "Let\u0027s suppose an attacker figures out a way to authenticate a \"trojan horse\" machine as a Skia Swarming bot by using these credentials. Would rotating the keys cause this machine to be de-authenticated?\n\nIf that is the case, then that also implies that when we rotate the keys, we need to redeploy all our Swarming bots (or maybe just the Skolo Swarming bots?).\n\nIf that is not the case, we would need to remove Swarming permissions for the service account, create a new service account, and redeploy all bots using the new service account.\n\nEither way, we can limit the damage by using multiple service accounts, so we only need to redeploy the bots on one subnet.",
+      "parentUuid": "18461c96_c43837da",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
