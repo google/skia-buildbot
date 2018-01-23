@@ -125,5 +125,5 @@ func (c *tasksPerCommitCache) update(ctx context.Context) error {
 			delete(c.cached, rs)
 		}
 	}
-	return nil
+	return c.tcc.Cleanup(c.period)
 }
