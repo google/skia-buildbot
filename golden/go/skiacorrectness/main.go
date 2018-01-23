@@ -292,7 +292,7 @@ func main() {
 		sklog.Fatalf("Unable to create GStorageClient: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, option.WithTokenSource(tokenSource))
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, evt, option.WithTokenSource(tokenSource))
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
