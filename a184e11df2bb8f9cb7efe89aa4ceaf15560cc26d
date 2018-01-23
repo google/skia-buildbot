@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7d63e80a_5ff5e950",
+        "filename": "go/android_skia_checkout/android_skia_checkout.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T16:13:02Z",
+      "side": 1,
+      "message": "Strongly recommend using gclient or bot_update.",
+      "range": {
+        "startLine": 28,
+        "startChar": 50,
+        "endLine": 28,
+        "endChar": 60
+      },
+      "revId": "a184e11df2bb8f9cb7efe89aa4ceaf15560cc26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
