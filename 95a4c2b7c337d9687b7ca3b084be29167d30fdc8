@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66be58e1_8afa49dc",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-23T15:21:39Z",
+      "side": 1,
+      "message": "What are the disadvantages of using different accounts for Skolo vs. GCE? If minimal, let\u0027s do that.",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
