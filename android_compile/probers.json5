@@ -1,0 +1,11 @@
+{
+   "android-compile": {
+     "urls": [
+       "http://android-compile:8002",
+     ],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+}
