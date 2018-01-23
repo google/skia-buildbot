@@ -22,6 +22,30 @@
       "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18461c96_c43837da",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T16:49:11Z",
+      "side": 1,
+      "message": "Just more accounts to manage.  What would the advantage be?",
+      "parentUuid": "66be58e1_8afa49dc",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
