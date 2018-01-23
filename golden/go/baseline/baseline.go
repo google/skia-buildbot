@@ -5,6 +5,7 @@ package baseline
 import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -12,7 +13,7 @@ import (
 // Test names are the names of individual tests, e.g. GMs and digests are
 // hashes that uniquely identify an output image.
 // This is used as the export format of baseline.
-type BaseLine map[string]types.TestClassification
+type BaseLine map[string]map[string]types.Label
 
 // add adds a test/digest pair to the baseline.
 func (b BaseLine) add(testName, digest string) {
@@ -22,43 +23,93 @@ func (b BaseLine) add(testName, digest string) {
 	if found, ok := b[testName]; ok {
 		found[digest] = types.POSITIVE
 	} else {
-		b[testName] = types.TestClassification{digest: types.POSITIVE}
+		b[testName] = map[string]types.Label{digest: types.POSITIVE}
 	}
 }
 
 // CommitableBaseLine captures the data necessary to verify test results on the
 // commit queue.
 type CommitableBaseLine struct {
+	// Start commit covered by these baselines.
+	StartCommit *tiling.Commit `json:"startCommit"`
+
 	// Commit is the commit for which this baseline was collected.
-	Commit *tiling.Commit `json:"commit"`
+	EndCommit *tiling.Commit `json:"endCommit"`
 
-	// Master captures the baseline of the current commit.
-	Master BaseLine `json:"master"`
+	// Baseline captures the baseline of the current commit.
+	Baseline BaseLine `json:"master"`
 
-	// ChangeLists captures baselines for pending commits. These baselines have
-	// been added by running baselines trybots and are commited to the master
-	// baseline when the CL lands.
-	ChangeLists map[string]BaseLine `json:"changeLists"`
+	// Issue indicates the Gerrit issue of this baseline. 0 indicates the master branch.
+	Issue int64
 }
 
 // GetBaseline calculates the master baseline for the given configuration of
 // expectations and the given tile. The commit of the baseline is last commit
 // in tile.
 func GetBaseline(exps *expstorage.Expectations, tile *tiling.Tile) *CommitableBaseLine {
+	commits := tile.Commits
+	var startCommit *tiling.Commit = nil
+	var endCommit *tiling.Commit = nil
+
 	masterBaseline := BaseLine{}
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
-		digest := gTrace.LastDigest()
-		if exps.Classification(testName, digest) == types.POSITIVE {
-			masterBaseline.add(testName, digest)
+		if idx := gTrace.LastIndex(); idx >= 0 {
+			digest := gTrace.Values[idx]
+			if exps.Classification(testName, digest) == types.POSITIVE {
+				masterBaseline.add(testName, digest)
+			}
+
+			startCommit = minCommit(startCommit, commits[idx])
+			endCommit = maxCommit(endCommit, commits[idx])
 		}
 	}
 
 	ret := &CommitableBaseLine{
-		Commit:      tile.Commits[tile.LastCommitIndex()],
-		Master:      masterBaseline,
-		ChangeLists: map[string]BaseLine{},
+		StartCommit: startCommit,
+		EndCommit:   endCommit,
+		Baseline:    masterBaseline,
+		Issue:       0,
 	}
 	return ret
+}
+
+func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp *expstorage.Expectations, commits []*tiling.Commit) *CommitableBaseLine {
+	var startCommit *tiling.Commit = nil
+	var endCommit *tiling.Commit = nil
+
+	baseLine := BaseLine{}
+	for idx, tryjob := range tryjobs {
+		for _, result := range tryjobResults[idx] {
+			if exp.Classification(result.TestName, result.Digest) == types.POSITIVE {
+				baseLine.add(result.TestName, result.Digest)
+			}
+
+			c := tiling.FindCommit(commits, tryjob.MasterCommit)
+			startCommit = minCommit(startCommit, c)
+			endCommit = maxCommit(endCommit, c)
+		}
+	}
+	ret := &CommitableBaseLine{
+		StartCommit: startCommit,
+		EndCommit:   endCommit,
+		Baseline:    baseLine,
+		Issue:       issueID,
+	}
+	return ret
+}
+
+func minCommit(current *tiling.Commit, newCommit *tiling.Commit) *tiling.Commit {
+	if current == nil || newCommit == nil || newCommit.CommitTime < current.CommitTime {
+		return newCommit
+	}
+	return current
+}
+
+func maxCommit(current *tiling.Commit, newCommit *tiling.Commit) *tiling.Commit {
+	if current == nil || newCommit == nil || newCommit.CommitTime > current.CommitTime {
+		return newCommit
+	}
+	return current
 }

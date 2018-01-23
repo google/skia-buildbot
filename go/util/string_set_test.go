@@ -1,6 +1,8 @@
 package util
 
 import (
+	"encoding/json"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -129,4 +131,25 @@ func TestStringSetUnion(t *testing.T) {
 	assert.True(t, In("mu", keys))
 	assert.True(t, In("nu", keys))
 	assert.True(t, In("omicron", keys))
+}
+
+func TestStringSetJSON(t *testing.T) {
+	someKeys := []string{"gamma", "beta", "alpha", "zeta"}
+	set := NewStringSet(someKeys)
+
+	setBytes, err := json.Marshal(set)
+	assert.NoError(t, err)
+	assert.True(t, len(setBytes) > 0)
+
+	var foundSet StringSet
+	assert.NoError(t, json.Unmarshal(setBytes, &foundSet))
+	assert.Equal(t, set, foundSet)
+
+	setBytes, err = json.Marshal(StringSet(nil))
+	assert.NoError(t, err)
+	assert.True(t, len(setBytes) > 0)
+	fmt.Printf("bytes: %s\n\n", string(setBytes))
+
+	assert.NoError(t, json.Unmarshal(setBytes, &foundSet))
+	assert.Nil(t, foundSet)
 }

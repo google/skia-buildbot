@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
@@ -87,7 +88,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, fmt.Errorf("Failed to create auth token source: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, tryjobNamespace, option.WithTokenSource(tokenSrc))
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, tryjobNamespace, nil, option.WithTokenSource(tokenSrc))
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
@@ -162,24 +163,34 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		}
 	}
 
+	// Add the Githash of the underlying result.
+	if tryjob.MasterCommit == "" {
+		tryjob.MasterCommit = dmResults.GitHash
+	} else if tryjob.MasterCommit != dmResults.GitHash {
+		return sklog.FmtErrorf("Master commit in tryjob and ingested results do not match.")
+	}
+
 	// Convert to a trybotstore.TryjobResult slice by aggregating parameters for each test/digest pair.
 	resultsMap := make(map[string]*tryjobstore.TryjobResult, len(entries))
-	for _, entry := range entries {
+	for traceID, entry := range entries {
 		testName := entry.Params[types.PRIMARY_KEY_FIELD]
 		key := testName + string(entry.Value)
 		if found, ok := resultsMap[key]; ok {
 			found.Params.AddParams(entry.Params)
+			found.TraceIDs = append(found.TraceIDs, traceID)
 		} else {
 			resultsMap[key] = &tryjobstore.TryjobResult{
 				TestName: testName,
 				Digest:   string(entry.Value),
 				Params:   paramtools.NewParamSet(entry.Params),
+				TraceIDs: []string{traceID},
 			}
 		}
 	}
 
 	tjResults := make([]*tryjobstore.TryjobResult, 0, len(resultsMap))
 	for _, result := range resultsMap {
+		result.TraceIDs = util.NewStringSet(result.TraceIDs).Keys()
 		tjResults = append(tjResults, result)
 	}
 
