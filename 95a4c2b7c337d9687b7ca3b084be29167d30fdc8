@@ -70,6 +70,30 @@
       "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e13f4ed_d34cdb11",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T19:15:09Z",
+      "side": 1,
+      "message": "I don\u0027t actually know if the swarming bot would get de-authenticated.  Given that we only need a token for the initial bootstrap, I suspect not.  That seems dangerous to me; I\u0027d like to see those bots immediately disconnect.  This is probably a question for maruel@ or someone else on that team.\n\nSo what\u0027s the right granularity?  One account for each of: external GCE, internal GCE, and each jumphost?  That seems like a lot to me.",
+      "parentUuid": "36a82938_489ca0b8",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
