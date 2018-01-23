@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "858fe6a2_08a6e4a1",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T19:47:28Z",
+      "side": 1,
+      "message": "Not necessary since it\u0027s created on line 54.",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 43
+      },
+      "revId": "24fc1fc7be4a66727cbbf42167a6a6947f5c9084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "291643b8_62b160e8",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T19:47:28Z",
+      "side": 1,
+      "message": "If you care about checking whether the updates succeed, I suggest using util.NamedErrGroup: https://skia.googlesource.com/buildbot/+/master/go/util/errgroup.go",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 22
+      },
+      "revId": "24fc1fc7be4a66727cbbf42167a6a6947f5c9084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4de3af78_e68c37c6",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T19:47:28Z",
+      "side": 1,
+      "message": "Why not pass this in?  That leaves the opportunity to let the caller set a timeout or otherwise cancel.",
+      "range": {
+        "startLine": 255,
+        "startChar": 1,
+        "endLine": 255,
+        "endChar": 28
+      },
+      "revId": "24fc1fc7be4a66727cbbf42167a6a6947f5c9084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
