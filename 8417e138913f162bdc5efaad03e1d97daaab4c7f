@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "3d9004a5_f664deb1",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T19:12:18Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "fc3206fd_4f233c2e",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 65
+      },
+      "revId": "8417e138913f162bdc5efaad03e1d97daaab4c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1cd92ff8_67ec580c",
         "filename": "android_compile/go/android_compile/main.go",
         "patchSetId": 1
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "I had a TODO for this but it vanished. Added it back.",
       "parentUuid": "1cd92ff8_67ec580c",
+      "range": {
+        "startLine": 222,
+        "startChar": 76,
+        "endLine": 222,
+        "endChar": 79
+      },
+      "revId": "8417e138913f162bdc5efaad03e1d97daaab4c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aca09f3a_2a220c6f",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-23T19:12:18Z",
+      "side": 1,
+      "message": "I\u0027m still confused about why it\u0027s needed for testing.",
+      "parentUuid": "7521737a_e701b68a",
       "range": {
         "startLine": 222,
         "startChar": 76,
