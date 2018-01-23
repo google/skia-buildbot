@@ -59,7 +59,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	}
 
 	opt := option.WithServiceAccountFile("service-account.json")
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", opt)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", nil, opt)
 	assert.NoError(t, err)
 
 	// Make sure the issue is removed.
