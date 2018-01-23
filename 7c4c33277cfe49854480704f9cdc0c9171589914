@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "df7e3878_e76749b9",
+        "filename": "android_compile/res/imp/compile-menu-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:06:07Z",
+      "side": 1,
+      "message": "...",
+      "range": {
+        "startLine": 7,
+        "startChar": 2,
+        "endLine": 7,
+        "endChar": 54
+      },
+      "revId": "7c4c33277cfe49854480704f9cdc0c9171589914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54cb6ef4_c60ec2a8",
+        "filename": "android_compile/res/imp/compile-menu-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:06:07Z",
+      "side": 1,
+      "message": "I\u0027m not sure if these imports are needed",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 79
+      },
+      "revId": "7c4c33277cfe49854480704f9cdc0c9171589914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dc4a167_24fb8138",
+        "filename": "android_compile/res/imp/list-tasks-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:06:07Z",
+      "side": 1,
+      "message": "I\u0027m not sure about this",
+      "range": {
+        "startLine": 7,
+        "startChar": 2,
+        "endLine": 7,
+        "endChar": 54
+      },
+      "revId": "7c4c33277cfe49854480704f9cdc0c9171589914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efc2cccc_ae73c54c",
+        "filename": "android_compile/res/imp/list-tasks-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:06:07Z",
+      "side": 1,
+      "message": "Nit: prepend all of these with _ to indicate they are internal, or add docs for them to the top if they are meant to be external / part of the API.",
+      "range": {
+        "startLine": 126,
+        "startChar": 4,
+        "endLine": 126,
+        "endChar": 16
+      },
+      "revId": "7c4c33277cfe49854480704f9cdc0c9171589914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecb9f18d_46a7917b",
+        "filename": "android_compile/res/imp/list-tasks-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:06:07Z",
+      "side": 1,
+      "message": "#rant: why does JS have substr() and substring()?",
+      "range": {
+        "startLine": 127,
+        "startChar": 18,
+        "endLine": 127,
+        "endChar": 27
+      },
+      "revId": "7c4c33277cfe49854480704f9cdc0c9171589914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "32c4bbb5_46b42d4b",
+        "filename": "android_compile/res/imp/list-tasks-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-23T19:06:07Z",
+      "side": 1,
+      "message": "If we are on the ES6 bandwagon, might as well use const or let here.",
+      "range": {
+        "startLine": 148,
+        "startChar": 6,
+        "endLine": 148,
+        "endChar": 9
+      },
+      "revId": "7c4c33277cfe49854480704f9cdc0c9171589914",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
