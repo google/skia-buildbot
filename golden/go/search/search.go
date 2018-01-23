@@ -3,21 +3,18 @@ package search
 
 import (
 	"fmt"
-	"math"
 	"net/url"
 	"sort"
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digesttools"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
@@ -179,163 +176,12 @@ func (q *Query) excludeClassification(cl types.Label) bool {
 		((cl == types.UNTRIAGED) && !q.Unt)
 }
 
-// intermediate is the intermediate representation of the results coming from Search.
-//
-// To avoid filtering through the tile more than once we first take a pass
-// through the tile and collect all info for the current Query, then we
-// transform each intermediate into a Digest.
-type intermediate struct {
-	Test   string
-	Digest string
-	Traces map[string]tiling.Trace
-}
-
-func (i *intermediate) addTrace(id string, tr tiling.Trace) {
-	i.Traces[id] = tr
-}
-
-func newIntermediate(test, digest, id string, tr tiling.Trace) *intermediate {
-	ret := &intermediate{
-		Test:   test,
-		Digest: digest,
-		Traces: map[string]tiling.Trace{},
-	}
-	ret.addTrace(id, tr)
-	return ret
-}
-
 // DigestSlice is a utility type for sorting slices of Digest by their max diff.
 type DigestSlice []*Digest
 
 func (p DigestSlice) Len() int           { return len(p) }
 func (p DigestSlice) Less(i, j int) bool { return p[i].Diff.Diff > p[j].Diff.Diff }
 func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-func digestFromIntermediate(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, idx *indexer.SearchIndex, diffStore diff.DiffStore, includeIgnores bool) *Digest {
-	traceTally := idx.TalliesByTrace(true)
-	ret := &Digest{
-		Test:     test,
-		Digest:   digest,
-		Status:   e.Classification(test, digest).String(),
-		ParamSet: idx.GetParamsetSummary(test, digest, includeIgnores),
-		Traces:   buildTraces(test, digest, inter.Traces, e, tile, traceTally),
-		Diff:     buildDiff(test, digest, e, tile, idx.TalliesByTest(true), diffStore, idx, includeIgnores),
-	}
-	return ret
-}
-
-// buildDiff creates a Diff for the given intermediate.
-func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Tile, testTally map[string]tally.Tally, diffStore diff.DiffStore, idx *indexer.SearchIndex, includeIgnores bool) *Diff {
-	ret := &Diff{
-		Diff: math.MaxFloat32,
-		Pos:  nil,
-		Neg:  nil,
-	}
-
-	if tile != nil {
-		ret.Blame = idx.GetBlame(test, digest, tile.Commits)
-	}
-
-	t := testTally[test]
-	if t == nil {
-		t = tally.Tally{}
-	}
-
-	var diffVal float32 = 0
-	if closest := digesttools.ClosestDigest(test, digest, e, t, diffStore, types.POSITIVE); closest.Digest != "" {
-		ret.Pos = &DiffDigest{
-			Closest: closest,
-		}
-		ret.Pos.ParamSet = idx.GetParamsetSummary(test, ret.Pos.Closest.Digest, includeIgnores)
-		diffVal = closest.Diff
-	}
-
-	if closest := digesttools.ClosestDigest(test, digest, e, t, diffStore, types.NEGATIVE); closest.Digest != "" {
-		ret.Neg = &DiffDigest{
-			Closest: closest,
-		}
-		ret.Neg.ParamSet = idx.GetParamsetSummary(test, ret.Neg.Closest.Digest, includeIgnores)
-		if (ret.Pos == nil) || (closest.Diff < diffVal) {
-			diffVal = closest.Diff
-		}
-	}
-
-	ret.Diff = diffVal
-	return ret
-}
-
-// buildTraces returns a Trace for the given intermediate.
-func buildTraces(test, digest string, traces map[string]tiling.Trace, e *expstorage.Expectations, tile *tiling.Tile, traceTally map[string]tally.Tally) *Traces {
-	traceNames := make([]string, 0, len(traces))
-	for id := range traces {
-		traceNames = append(traceNames, id)
-	}
-
-	ret := &Traces{
-		TileSize: len(tile.Commits),
-		Traces:   []Trace{},
-		Digests:  []DigestStatus{},
-	}
-
-	sort.Strings(traceNames)
-
-	last := tile.LastCommitIndex()
-	y := 0
-	if len(traceNames) > 0 {
-		ret.Digests = append(ret.Digests, DigestStatus{
-			Digest: digest,
-			Status: e.Classification(test, digest).String(),
-		})
-	}
-	for _, id := range traceNames {
-		t, ok := traceTally[id]
-		if !ok {
-			continue
-		}
-		if count, ok := t[digest]; !ok || count == 0 {
-			continue
-		}
-		trace := traces[id].(*types.GoldenTrace)
-		p := Trace{
-			Data:   []Point{},
-			ID:     id,
-			Params: trace.Params(),
-		}
-		for i := last; i >= 0; i-- {
-			if trace.IsMissing(i) {
-				continue
-			}
-			// s is the status of the digest, it is either 0 for a match, or [1-8] if not.
-			s := 0
-			if trace.Values[i] != digest {
-				if index := digestIndex(trace.Values[i], ret.Digests); index != -1 {
-					s = index
-				} else {
-					if len(ret.Digests) < 9 {
-						d := trace.Values[i]
-						ret.Digests = append(ret.Digests, DigestStatus{
-							Digest: d,
-							Status: e.Classification(test, d).String(),
-						})
-						s = len(ret.Digests) - 1
-					} else {
-						s = 8
-					}
-				}
-			}
-			p.Data = append(p.Data, Point{
-				X: i,
-				Y: y,
-				S: s,
-			})
-		}
-		sort.Sort(PointSlice(p.Data))
-		ret.Traces = append(ret.Traces, p)
-		y += 1
-	}
-
-	return ret
-}
 
 // digestIndex returns the index of the digest d in digestInfo, or -1 if not found.
 func digestIndex(d string, digestInfo []DigestStatus) int {
@@ -391,13 +237,6 @@ func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitInd
 	return digests.Keys()
 }
 
-// PointSlice is a utility type for sorting Points by their X value.
-type PointSlice []Point
-
-func (p PointSlice) Len() int           { return len(p) }
-func (p PointSlice) Less(i, j int) bool { return p[i].X < p[j].X }
-func (p PointSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
 // TODO(stephana): Replace digesttools.Closest here and above with an overall
 // consolidated structure to measure the distance between two digests.
 
@@ -440,52 +279,6 @@ func CompareDigests(test, left, right string, storages *storage.Storage, idx *in
 			ParamSet:    idx.GetParamsetSummary(test, right, true),
 			DiffMetrics: diffResult[right].(*diff.DiffMetrics),
 		},
-	}, nil
-}
-
-// DigestDetails contains details about a digest.
-type DigestDetails struct {
-	Digest  *Digest          `json:"digest"`
-	Commits []*tiling.Commit `json:"commits"`
-}
-
-// GetDigestDetails returns details about a digest as an instance of DigestDetails.
-func GetDigestDetails(test, digest string, storages *storage.Storage, idx *indexer.SearchIndex) (*DigestDetails, error) {
-	tile := idx.GetTile(true)
-
-	exp, err := storages.ExpectationsStore.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	traces := map[string]tiling.Trace{}
-	for traceId, trace := range tile.Traces {
-		if trace.Params()[types.PRIMARY_KEY_FIELD] != test {
-			continue
-		}
-		gTrace := trace.(*types.GoldenTrace)
-		for _, val := range gTrace.Values {
-			if val == digest {
-				traces[traceId] = trace
-			}
-		}
-	}
-
-	// TODO(stephana): Revisit whether we should get these with the ignored
-	// traces or not, once we get rid of buildTraces and buildDiff.
-	talliesByTrace := idx.TalliesByTrace(true)
-	talliesByTest := idx.TalliesByTest(true)
-
-	return &DigestDetails{
-		Digest: &Digest{
-			Test:     test,
-			Digest:   digest,
-			Status:   exp.Classification(test, digest).String(),
-			ParamSet: idx.GetParamsetSummary(test, digest, true),
-			Traces:   buildTraces(test, digest, traces, exp, tile, talliesByTrace),
-			Diff:     buildDiff(test, digest, exp, nil, talliesByTest, storages.DiffStore, idx, true),
-		},
-		Commits: tile.Commits,
 	}, nil
 }
 
