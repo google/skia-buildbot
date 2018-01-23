@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f82aaf11_5c53e7b4",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-23T18:50:29Z",
+      "side": 1,
+      "message": "I think that may be useful if this ever needs to be more generic with needing to specify server and repo. Keeping this simple with only the required fields.",
+      "parentUuid": "39d1e742_3ea6e370",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 30
+      },
+      "revId": "0f9a47057ef6934453fe32f46a489adde9e1b426",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30240df6_115d9d0f",
         "filename": "android_compile/go/android_compile/datastore.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "67bdcde8_297aaac0",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-23T18:50:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30240df6_115d9d0f",
+      "range": {
+        "startLine": 54,
+        "startChar": 5,
+        "endLine": 54,
+        "endChar": 26
+      },
+      "revId": "0f9a47057ef6934453fe32f46a489adde9e1b426",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a16c2f56_d979bbdb",
         "filename": "android_compile/go/android_compile/datastore.go",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2018-01-23T17:15:42Z",
       "side": 1,
       "message": "Could this just be done in a package init() function?",
+      "range": {
+        "startLine": 96,
+        "startChar": 5,
+        "endLine": 96,
+        "endChar": 18
+      },
+      "revId": "0f9a47057ef6934453fe32f46a489adde9e1b426",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0337c476_ed3794f4",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-23T18:50:29Z",
+      "side": 1,
+      "message": "You mean an init() function in main.go?\nThis takes in arguments (project and ns) so not sure if that would work.",
+      "parentUuid": "a16c2f56_d979bbdb",
       "range": {
         "startLine": 96,
         "startChar": 5,
