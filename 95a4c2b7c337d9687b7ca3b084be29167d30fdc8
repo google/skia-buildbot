@@ -94,6 +94,30 @@
       "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3afe9e50_60e9c28e",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-23T19:47:57Z",
+      "side": 1,
+      "message": "Ok, sorry, that\u0027s what I was trying to understand in the original question. If it\u0027s annoying to have lots of accounts, don\u0027t worry about it.",
+      "parentUuid": "2e13f4ed_d34cdb11",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "95a4c2b7c337d9687b7ca3b084be29167d30fdc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
