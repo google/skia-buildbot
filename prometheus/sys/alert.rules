@@ -359,6 +359,13 @@ ALERT StatusLatency
     description = "The JSON endpoint at https://status.skia.org/json/skia/commits/ took more than 10s to respond."
   }
 
+ALERT StatusIncrementalCacheUpdate
+  IF liveness_last_successful_incremental_cache_update_s > 5*60
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    description = "IncrementalCache UpdateLoop on {{ $labels.instance }} has failed to update data for more than 5 minutes. Playbook: Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fstatus"
+  }
+
 # Prober
 
 ALERT ProberLiveness
