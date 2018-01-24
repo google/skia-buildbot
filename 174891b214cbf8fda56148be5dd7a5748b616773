@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3d808e3e_77200e77",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-24T15:56:56Z",
+      "side": 1,
+      "message": "IIUC \"git reset --hard\" does \"git reset --hard HEAD\" to throw away all uncommitted code.\nSo that plus the previous \"git clean -d -f\" should remove all modifications.\nI tried to now make this more explicit and removed the optional argument.",
+      "parentUuid": "f3b7a728_a5ef0068",
+      "range": {
+        "startLine": 167,
+        "startChar": 0,
+        "endLine": 170,
+        "endChar": 2
+      },
+      "revId": "174891b214cbf8fda56148be5dd7a5748b616773",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b7c075aa_594d7f2a",
         "filename": "android_compile/go/android_compile/checkouts.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "174891b214cbf8fda56148be5dd7a5748b616773",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8496d8a_484af742",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-24T15:56:56Z",
+      "side": 1,
+      "message": "Agreed but this function was used in a defer which is why it was just logging errors.\nI was hoping that even if the checkout was in an unpredictable state here the cleanup at the start of the run would fix this.\n\nSo after reevaluating everything here: it was trying to clean up before and after a run causing confusing code paths.\nI removed the after-a-run-cleanup to simplify stuff, and now this is only cleaning up before runs and throwing errors if something goes wrong.",
+      "parentUuid": "b7c075aa_594d7f2a",
+      "range": {
+        "startLine": 180,
+        "startChar": 0,
+        "endLine": 188,
+        "endChar": 2
+      },
+      "revId": "174891b214cbf8fda56148be5dd7a5748b616773",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
