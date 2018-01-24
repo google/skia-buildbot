@@ -64,13 +64,11 @@ trooper_tools:
 
 .PHONY: trooper_tools_release
 trooper_tools_release: trooper_tools service_account
-	@echo "  Be sure to supply a TARGET, such as all or rpi-01"
-	./build_release_trooper_tools "`git log -n1 --format=%s`" "$(TARGET)"
+	./build_release_trooper_tools "`git log -n1 --format=%s`" "linux-01 rpi-01 win-02"
 
 .PHONY: trooper_tools_push_all
-trooper_tools_push_all: trooper_tools service_account
+trooper_tools_push_all: trooper_tools_release
 	go install -v ../push/go/pushcli
-	./build_release_trooper_tools "`git log -n1 --format=%s`" "all"
 	pushcli "trooper-tools-rpi-01"   "jumphost-rpi-01"
 	pushcli "trooper-tools-linux-01" "jumphost-linux-01"
 	pushcli "trooper-tools-win-02"   "jumphost-win-02"

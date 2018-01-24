@@ -7,12 +7,10 @@
 #   - censustaker: enumaterates powercycleable bots on network.
 
 # Make sure we have a rack id.
-ALL_IDS="rpi-01 linux-01"
 print_usage() {
-    echo "Usage: $0 MESSAGE INSTANCE_ID"
+    echo "Usage: $0 MESSAGE INSTANCE_IDS"
     echo "     MESSAGE     is the message to be included in the release package."
-    echo "     INSTANCE_ID is the id of the instance targeted by this package."
-    echo "                 This should be one of: '$ALL_IDS' or 'all'."
+    echo "     INSTANCE_IDS are the ids of the instances targeted by this package."
     exit 1
 }
 if [ "$#" -ne 2 ]; then
@@ -24,11 +22,6 @@ TARGET_INSTANCE_IDS=$2
 
 # Strip the second argument to keep this compatible with the shared build script.
 set -- "$1"
-
-# Determine the instance ids we want to build
-if [ "$TARGET_INSTANCE_IDS" = "all" ]; then
-  TARGET_INSTANCE_IDS=$ALL_IDS
-fi
 
 for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   APPNAME="trooper-tools-${INSTANCE_ID}"
