@@ -190,7 +190,7 @@ func registerRunHandler(w http.ResponseWriter, r *http.Request) {
 // completion the task is marked as Done and updated in the Datastore.
 func triggerCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datastore.Key) {
 	go func() {
-		if err := RunCompileTask(task, datastoreKey); err != nil {
+		if err := RunCompileTask(ctx, task, datastoreKey); err != nil {
 			task.InfraFailure = true
 			sklog.Errorf("Error when compiling task with ID %d: %s", datastoreKey.ID, err)
 		}
