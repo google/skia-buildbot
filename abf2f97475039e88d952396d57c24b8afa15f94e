@@ -16,6 +16,24 @@
       "revId": "abf2f97475039e88d952396d57c24b8afa15f94e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "991e5f50_c5f35c0e",
+        "filename": "golden/go/storage/gsclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-24T16:22:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff6ecac5_af7764f7",
+      "revId": "abf2f97475039e88d952396d57c24b8afa15f94e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
