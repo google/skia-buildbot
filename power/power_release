@@ -23,6 +23,7 @@ ${INSTALL}     --mode=644 -T ./res/vul/elements.html                ${ROOT}/usr/
 ${INSTALL_DIR} --mode=755                                           ${ROOT}/etc/powercycle/
 ${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rpi-01.json5   ${ROOT}/etc/powercycle/powercycle-rpi-01.json5
 ${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-linux-01.json5 ${ROOT}/etc/powercycle/powercycle-linux-01.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-win-02.json5   ${ROOT}/etc/powercycle/powercycle-win-02.json5
 }
 
 source ../bash/release.sh

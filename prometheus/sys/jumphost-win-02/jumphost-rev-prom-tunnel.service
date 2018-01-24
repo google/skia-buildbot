@@ -5,14 +5,14 @@ Wants=sshd.service
 
 [Service]
 Environment=HOME=/home/chrome-bot
-# Start a tunnel that forwards requests to skia-prom:12002 to localhost:8000,
+# Start a tunnel that forwards requests to skia-prom:12003 to localhost:8000,
 # which is where the Prometheus instance runs on the jumphost.
-# The port number 12002 is defined in infra/prometheus/sys/prometheus.yml and is
+# The port number 12003 is defined in infra/prometheus/sys/prometheus.yml and is
 # reserved for this jumphost.
 ExecStart=/usr/bin/gcloud compute ssh default@skia-prom \
     --zone=us-central1-c \
     -- \
-    -NT -R 12002:localhost:8000 \
+    -NT -R 12003:localhost:8000 \
     -o "ExitOnForwardFailure=yes" \
     -o "ServerAliveInterval=30" \
     -o "ServerAliveCountMax=10"

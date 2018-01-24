@@ -44,6 +44,7 @@ router_backup_push_all: backup service_account
 	./build_release_router_backup "`git log -n1 --format=%s`"
 	pushcli "router-backup" "jumphost-rpi-01"
 	pushcli "router-backup" "jumphost-linux-01"
+	pushcli "router-backup" "jumphost-win-02"
 
 
 .PHONY: cloudlogger
@@ -70,8 +71,9 @@ trooper_tools_release: trooper_tools service_account
 trooper_tools_push_all: trooper_tools service_account
 	go install -v ../push/go/pushcli
 	./build_release_trooper_tools "`git log -n1 --format=%s`" "all"
-	pushcli "trooper-tools-rpi-01" "jumphost-rpi-01"
+	pushcli "trooper-tools-rpi-01"   "jumphost-rpi-01"
 	pushcli "trooper-tools-linux-01" "jumphost-linux-01"
+	pushcli "trooper-tools-win-02"   "jumphost-win-02"
 
 .PHONY: android_watchdog
 android_watchdog:
@@ -95,6 +97,7 @@ metadata_server_release: metadata_server
 metadata_server_push: metadata_server_release
 	pushcli "metadata-server" "jumphost-linux-01"
 	pushcli "metadata-server" "jumphost-rpi-01"
+	pushcli "metadata-server" "jumphost-win-02"
 
 .PHONY: get_oauth2_token
 get_oauth2_token:
@@ -108,4 +111,5 @@ get_oauth2_token_release: get_oauth2_token
 get_oauth2_token_push: get_oauth2_token_release
 	pushcli "get-oauth2-token" "jumphost-linux-01"
 	pushcli "get-oauth2-token" "jumphost-rpi-01"
+	pushcli "get-oauth2-token" "jumphost-win-02"
 
