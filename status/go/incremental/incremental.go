@@ -6,6 +6,7 @@ package incremental
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -181,48 +182,59 @@ func (c *IncrementalCache) GetAll(repo string, maxCommits int) (*Update, error) 
 // Update obtains new data and stores it internally keyed by the current time.
 func (c *IncrementalCache) Update(ctx context.Context, reset bool) error {
 	defer metrics2.FuncTimer().Stop()
+	sklog.Debugf("Starting IncrementalCache.Update; reset: %t", reset)
 	c.updateMtx.Lock()
 	defer c.updateMtx.Unlock()
+	sklog.Debugf("Calling window.Window.Update")
 	if err := c.w.Update(); err != nil {
-		return err
+		return fmt.Errorf("Error updating IncrementalCache Window: %s", err)
 	}
 	if reset {
+		sklog.Debugf("Calling commentsCache.Reset")
 		c.comments.Reset()
 	}
+	sklog.Debugf("Calling commentsCache.Update")
 	comments, err := c.comments.Update(c.w)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating IncrementalCache commentsCache: %s", err)
 	}
 	var newTasks map[string][]*Task
 	var startOver bool
 	if reset {
+		sklog.Debugf("Calling taskCache.Reset")
 		// Reset() always returns true for startOver.
 		newTasks, startOver, err = c.tasks.Reset(c.w)
 	} else {
+		sklog.Debugf("Calling taskCache.Update")
 		newTasks, startOver, err = c.tasks.Update(c.w)
 	}
 	if err != nil {
-		return err
+		return fmt.Errorf("Error resetting/updating IncrementalCache taskCache: %s", err)
 	}
 	// Because of the way the tasks cache works, if any step below c.tasks.Update()
 	// fails and we return an error without adding newTasks to an Update object,
 	// we will lose the contents of newTasks forever. Therefore, any failure below
 	// needs careful handling. In particular, we force c.tasks and c.comments to
 	// load from scratch on the next call to Update().
-	onError := func(e error) error {
+	onError := func(errorContext string, e error) error {
+		sklog.Debugf("Calling taskCache.ResetNextTime within onError")
 		c.tasks.ResetNextTime()
+		sklog.Debugf("Calling commentsCache.Reset within onError")
 		c.comments.Reset()
-		return e
+		return fmt.Errorf("Error %s: %s", errorContext, e)
 	}
+	sklog.Debugf("Calling commitsCache.Update; startOver: %t, numCommits: %d", startOver, c.numCommits)
 	branchHeads, commits, err := c.commits.Update(ctx, c.w, startOver, c.numCommits)
 	if err != nil {
-		return onError(err)
+		return onError("updating IncrementalCache commitsCache", err)
 	}
 	if startOver && !reset {
+		sklog.Debugf("Calling commentsCache.Reset")
 		c.comments.Reset()
+		sklog.Debugf("Calling commentsCache.Update")
 		comments, err = c.comments.Update(c.w)
 		if err != nil {
-			return onError(err)
+			return onError("updating IncrementalCache commentsCache", err)
 		}
 	}
 	updates := map[string]*Update{}
@@ -252,6 +264,7 @@ func (c *IncrementalCache) Update(ctx context.Context, reset bool) error {
 			}
 		}
 	}
+	sklog.Debugf("Modifying c.updates")
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if startOver {
@@ -263,6 +276,7 @@ func (c *IncrementalCache) Update(ctx context.Context, reset bool) error {
 		u.Timestamp = ts
 		c.updates[repo] = append(c.updates[repo], u)
 	}
+	sklog.Debugf("Completed IncrementalCache.Update")
 	return nil
 }
 
