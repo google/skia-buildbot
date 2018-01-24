@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c8caaa3_d97b7241",
+        "filename": "prometheus/sys/jumphost-win-02/jumphost-prom-tunnel.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-24T15:20:24Z",
+      "side": 1,
+      "message": "I don\u0027t know why this isn\u0027t showing as copied from one of the other jumphost configs...",
+      "revId": "ac1b0082ef48820cd3a8223d32d824d5e4693c10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
