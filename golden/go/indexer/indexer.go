@@ -334,6 +334,10 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 // writeIssueBaseline handles changes to baselines for Gerrit issues and dumps
 // the updated baseline to disk.
 func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
+	if !ixr.storages.CanWriteBaseline() {
+		return
+	}
+
 	issueID := evData.(*tryjobstore.IssueExpChange).IssueID
 	if issueID <= 0 {
 		sklog.Errorf("Invalid issue id received for issue exp change: %d", issueID)
