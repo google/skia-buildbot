@@ -58,7 +58,7 @@
 <link rel="import" href="../common/imp/triage-sk.html">
 
 <link rel="import" href="blame-sk.html">
-<link rel="import" href="dots-sk.html">
+<link rel="import" href="dots2-sk.html">
 <link rel="import" href="dot-legend-sk.html">
 <link rel="import" href="commits-dialog-sk.html">
 <link rel="import" href="purge-sk.html">
@@ -77,7 +77,7 @@
         margin-bottom: 2em;
       }
 
-      dots-sk {
+      dots2-sk {
         display: block;
       }
 
@@ -271,7 +271,7 @@
 
         <!-- dots, dot-legend and blame -->
         <div class="vertical layout dotInfo" hidden$="[[_hideDotsBlame(details)]]">
-          <dots-sk id="dots"></dots-sk>
+          <dots2-sk id="dots"></dots2-sk>
           <dot-legend-sk id="dotlegend"
                          test="{{details.test}}"
                          digests={{details.traces.digests}}>
