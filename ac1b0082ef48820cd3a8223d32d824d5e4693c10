@@ -39,6 +39,30 @@
       "revId": "ac1b0082ef48820cd3a8223d32d824d5e4693c10",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7908fe8_7731dbff",
+        "filename": "prometheus/sys/jumphost-win-02/jumphost-rev-prom-tunnel.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-24T15:30:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "588b5234_dcd1f460",
+      "range": {
+        "startLine": 10,
+        "startChar": 22,
+        "endLine": 10,
+        "endChar": 23
+      },
+      "revId": "ac1b0082ef48820cd3a8223d32d824d5e4693c10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
