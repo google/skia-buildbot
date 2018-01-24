@@ -104,6 +104,18 @@
       const HIGHLIGHT_COLOR = '#E7298A';
       const LINE_COLOR = '#999999'
 
+      // Maps each dots2-sk _id to the element itself. Members are only
+      // present if they have a pending mousemove update.
+      var pendingMouseMoves = {};
+
+      // Periodically process all pending mousemoves.
+      window.setInterval(() => {
+        for (var key in pendingMouseMoves) {
+          pendingMouseMoves[key]._updatePendingMouseMove();
+        }
+        pendingMouseMoves = {};
+      }, 40);
+
       Polymer({
         is: "dots2-sk",
 
@@ -116,6 +128,12 @@
 
           // The index of the trace that should be highlighted.
           this._hoverIndex =  -1;
+
+          // For capturing the last mousemove event, which is later processed in a timer.
+          this._lastMouseMove = null;
+
+          // Each element needs a unique id, used as a key in pendingMouseMoves.
+          this._id = 'id' + Math.random();
           this._ctx = this.$.dots.getContext('2d');
           this.listen(this.$.dots, 'mousemove', '_onMouseMove');
           this.listen(this.$.dots, 'tap', '_onTap');
@@ -177,6 +195,14 @@
           this._draw();
         },
 
+        _onMouseMove: function(e) {
+          this._lastMouseMove = {
+            clientX: e.clientX,
+            clientY: e.clientY,
+          };
+          pendingMouseMoves[this._id] = this;
+        },
+
         // Gets the coordinates of the mouse event in dot coordinates.
         _toDotSpace(e) {
           let rect = this.$.dots.getBoundingClientRect();
@@ -186,9 +212,14 @@
           };
         },
 
-        // We look at the mousemove event to determine which trace to highlight.
-        _onMouseMove: function(e) {
-          let rect = this._toDotSpace(e);
+
+        // We look at the mousemove event, if one occurred, to determine which trace to highlight.
+        _updatePendingMouseMove() {
+          if (!this._lastMouseMove) {
+            return
+          }
+          let rect = this._toDotSpace(this._lastMouseMove);
+          this._lastMouseMove = null;
           if (this._hoverIndex == rect.y) {
             return
           }
