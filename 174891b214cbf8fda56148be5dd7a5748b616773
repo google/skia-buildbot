@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f3b7a728_a5ef0068",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-24T14:38:51Z",
+      "side": 1,
+      "message": "Just noticed this.  I don\u0027t think \"git reset --hard\" is valid without a commit/ref.  Is there anywhere that doesn\u0027t pass in a resetCommit?",
+      "range": {
+        "startLine": 167,
+        "startChar": 0,
+        "endLine": 170,
+        "endChar": 2
+      },
+      "revId": "174891b214cbf8fda56148be5dd7a5748b616773",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7c075aa_594d7f2a",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-24T14:38:51Z",
+      "side": 1,
+      "message": "I think these two errors indicate some problem and the checkout will be in an unpredictable state if they aren\u0027t resolved.  IMO they should return an error.  The one below is maybe not necessary.",
+      "range": {
+        "startLine": 180,
+        "startChar": 0,
+        "endLine": 188,
+        "endChar": 2
+      },
+      "revId": "174891b214cbf8fda56148be5dd7a5748b616773",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
