@@ -32,6 +32,16 @@
         "trooper-tools-linux-01",
       ],
     },
+    "jumphost-win-02": {
+      "AppNames": [
+        "get-oauth2-token",
+        "metadata-server",
+        "prometheus-jumphost-win-02",
+        "pulld-not-gce",
+        "router-backup",
+        "trooper-tools-win-02",
+      ],
+    },
   }
 }
 

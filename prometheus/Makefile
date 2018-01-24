@@ -34,11 +34,14 @@ push_binaries: build prom alertmanager pushgateway validate
 push_skolo: build prom
 	./tmp/promtool check-config sys/jumphost-rpi-01/prometheus.yml
 	./tmp/promtool check-config sys/jumphost-linux-01/prometheus.yml
-	CONFIG=rpi-01 ./build_skolo_release "`git log -n1 --format=%s`"
+	./tmp/promtool check-config sys/jumphost-win-02/prometheus.yml
+	CONFIG=rpi-01   ./build_skolo_release "`git log -n1 --format=%s`"
 	CONFIG=linux-01 ./build_skolo_release "`git log -n1 --format=%s`"
+	CONFIG=win-02   ./build_skolo_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
-	pushcli prometheus-jumphost-rpi-01 jumphost-rpi-01
+	pushcli prometheus-jumphost-rpi-01   jumphost-rpi-01
 	pushcli prometheus-jumphost-linux-01 jumphost-linux-01
+	pushcli prometheus-jumphost-win-02   jumphost-win-02
 
 push_sheriff_emails: build
 	./build_sheriff_emails_release "`git log -n1 --format=%s`"
