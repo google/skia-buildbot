@@ -16,6 +16,29 @@
       "revId": "ac1b0082ef48820cd3a8223d32d824d5e4693c10",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "588b5234_dcd1f460",
+        "filename": "prometheus/sys/jumphost-win-02/jumphost-rev-prom-tunnel.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-24T15:22:14Z",
+      "side": 1,
+      "message": "nit: 3 here and on line 8 (please also fix the one for jumphost-linux-01, which I realized is mistyped too",
+      "range": {
+        "startLine": 10,
+        "startChar": 22,
+        "endLine": 10,
+        "endChar": 23
+      },
+      "revId": "ac1b0082ef48820cd3a8223d32d824d5e4693c10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
