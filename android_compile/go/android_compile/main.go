@@ -280,8 +280,8 @@ func main() {
 	// "running" CompileTasks means that the server was restarted in the middle
 	// of run(s).
 	ctx := context.Background()
-	_, runningTaskAndKeys, err := GetCompileTaskAndKeys()
-	for _, taskAndKey := range runningTaskAndKeys {
+	_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
+	for _, taskAndKey := range runningTasksAndKeys {
 		sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
 		triggerCompileTask(ctx, taskAndKey.task, taskAndKey.key)
 	}
