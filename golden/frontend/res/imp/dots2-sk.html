@@ -77,6 +77,8 @@
       const DOT_SCALE_Y = 10;
       const DOT_OFFSET_X = 10;
       const DOT_OFFSET_Y = 10;
+      const xFn = x => x * DOT_SCALE_X + DOT_OFFSET_X;
+      const yFn = y => y * DOT_SCALE_Y + DOT_OFFSET_Y;
 
       const STROKE_COLORS = [
         '#000000',
@@ -152,8 +154,6 @@
           let width = this._value.tileSize * DOT_SCALE_X + 2 * DOT_OFFSET_X;
           let height = this._value.traces.length * DOT_SCALE_Y + 2 * DOT_OFFSET_Y;
           // Define functions that go from dot space to canvas coordinates.
-          let x = x => x * DOT_SCALE_X + DOT_OFFSET_X;
-          let y = y => y * DOT_SCALE_Y + DOT_OFFSET_Y;
           this.$.dots.setAttribute('width', width);
           this.$.dots.setAttribute('height', height);
 
@@ -162,15 +162,20 @@
           this._ctx.fillStyle = '#FFFFFF';
           this._ctx.fillRect(0, 0, width, height);
 
-          //Draw lines and dots.
+          // Draw lines and dots.
           this._value.traces.forEach((trace, traceIndex) => {
             this._ctx.strokeStyle = LINE_COLOR;
             this._ctx.beginPath();
-            this._ctx.moveTo(x(trace.data[0].x), y(trace.data[0].y));
-            this._ctx.lineTo(x(trace.data[trace.data.length-1].x), y(trace.data[0].y));
+            this._ctx.moveTo(xFn(trace.data[0].x), yFn(trace.data[0].y));
+            this._ctx.lineTo(xFn(trace.data[trace.data.length-1].x), yFn(trace.data[0].y));
             this._ctx.stroke();
+            this._drawTrace(trace.data, traceIndex);
+          });
+        },
 
-            trace.data.forEach((d, dataIndex) => {
+        // Draws the circles for a single trace.
+        _drawTrace: function(data, traceIndex) {
+          data.forEach((d, dataIndex) => {
               this._ctx.beginPath();
               if (this._hoverIndex == traceIndex || this._highlightIndex == dataIndex) {
                 this._ctx.strokeStyle = HIGHLIGHT_COLOR;
@@ -179,11 +184,19 @@
                 this._ctx.strokeStyle = STROKE_COLORS[d.s];
                 this._ctx.fillStyle = FILL_COLORS[d.s];
               }
-              this._ctx.arc(x(d.x), y(d.y), DOT_RADIUS, 0, Math.PI*2);
+              this._ctx.arc(xFn(d.x), yFn(d.y), DOT_RADIUS, 0, Math.PI*2);
               this._ctx.fill();
               this._ctx.stroke();
-            });
           });
+        },
+
+        // Updates just the circles for a single trace.
+        _overDrawTrace: function(traceIndex) {
+          let trace = this._value.traces[traceIndex];
+          if (!trace) {
+            return
+          }
+          this._drawTrace(trace.data, traceIndex);
         },
 
         setCommits: function(commits) {
@@ -223,11 +236,14 @@
           if (this._hoverIndex == rect.y) {
             return
           }
+          let oldIndex = this._hoverIndex;
           this._hoverIndex = rect.y;
           if (this._hoverIndex >= 0 && this._hoverIndex < this._value.traces.length) {
             this.fire('hover', this._value.traces[this._hoverIndex].label);
           }
-          this._draw();
+          // Just update the dots of the traces that have changed.
+          this._overDrawTrace(oldIndex);
+          this._overDrawTrace(this._hoverIndex);
         },
 
         // When a dot is clicked on produce the show-commits event with all

@@ -33,6 +33,15 @@
           ready: function() {
             var el = this.$.firstDots;
 
+            // Make sure we don't slow down even when there are 1,000 traces.
+            var trace = testdata.traces.traces[0];
+            for (var i = 1; i < 1000; i++) {
+              trace.label = "id" + i;
+              for (var j = 0, len = trace.data.length; j < len; j++) {
+                trace.data[j].y = i
+              }
+              testdata.traces.traces.push(JSON.parse(JSON.stringify(trace)));
+            }
             el.setValue(testdata.traces);
             el.setCommits(testdata.commits);
 
