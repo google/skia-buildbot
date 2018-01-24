@@ -266,7 +266,7 @@ func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice)
 	}
 
 	// Get the results
-	_, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, queryPatchsets)
+	_, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, queryPatchsets, true)
 	if err != nil {
 		return nil, nil, nil, err
 	}

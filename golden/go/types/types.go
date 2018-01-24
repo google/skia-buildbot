@@ -190,12 +190,21 @@ func (g *GoldenTrace) SetAt(index int, value []byte) error {
 
 // LastDigest returns the last digest in the trace (HEAD) or the empty string otherwise.
 func (g *GoldenTrace) LastDigest() string {
-	for i := len(g.Values) - 1; i >= 0; i-- {
-		if g.Values[i] != MISSING_DIGEST {
-			return g.Values[i]
-		}
+	if idx := g.LastIndex(); idx >= 0 {
+		return g.Values[idx]
 	}
 	return ""
+}
+
+// LastIndex returns the index of last non-empty value in this trace and -1 if
+// if the entire trace is empty.
+func (g *GoldenTrace) LastIndex() int {
+	for i := len(g.Values) - 1; i >= 0; i-- {
+		if g.Values[i] != MISSING_DIGEST {
+			return i
+		}
+	}
+	return -1
 }
 
 // NewGoldenTrace allocates a new Trace set up for the given number of samples.

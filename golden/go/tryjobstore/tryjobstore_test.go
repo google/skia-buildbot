@@ -23,7 +23,7 @@ func TestCloudTryjobStore(t *testing.T) {
 	t.Skip()
 
 	serviceAccountFile := "./service-account.json"
-	store, err := NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", option.WithServiceAccountFile(serviceAccountFile))
+	store, err := NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", nil, option.WithServiceAccountFile(serviceAccountFile))
 	assert.NoError(t, err)
 
 	testTryjobStore(t, store)
@@ -103,7 +103,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		tryjobResults[idx] = results
 	}
 
-	foundTJs, foundTJResults, err := store.GetTryjobResults(issueID, []int64{patchsetID, patchsetID_2})
+	foundTJs, foundTJResults, err := store.GetTryjobResults(issueID, []int64{patchsetID, patchsetID_2}, false)
 	assert.NoError(t, err)
 	assert.Equal(t, len(allTryjobs), len(foundTJs))
 	for idx := range allTryjobs {

@@ -31,7 +31,7 @@ func TestBuildBucketState(t *testing.T) {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
-	tjStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold_ingestion-localhost-stephana", option.WithServiceAccountFile(serviceAccountFile))
+	tjStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold_ingestion-localhost-stephana", nil, option.WithServiceAccountFile(serviceAccountFile))
 	assert.NoError(t, err)
 
 	// Remove all issues.

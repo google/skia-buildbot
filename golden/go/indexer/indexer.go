@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/golden/go/baseline"
+	"go.skia.org/infra/golden/go/tryjobstore"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -180,7 +180,7 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 
 	// write baselines whenever a new tile is processed or when the expectations
 	// change.
-	pdag.NewNode(writeBaseline, indexTestsNode)
+	pdag.NewNode(writeMasterBaseline, indexTestsNode)
 
 	// Add the blamer and tallies
 	tallyNode := root.Child(calcTallies)
@@ -227,12 +227,16 @@ func (ixr *Indexer) start(interval time.Duration) error {
 		return err
 	}
 
-	// When the expecations change, update the blamer and its dependents.
+	// When the master expecations change, update the blamer and its dependents.
 	expCh := make(chan map[string]types.TestClassification)
 	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e.(map[string]types.TestClassification)
 	})
+
+	// When the expectations of a Gerrit issue change then trigger pushing the
+	// new expectations to GCS.
+	ixr.storages.EventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_EXP_CHANGED, ixr.writeIssueBaseline)
 
 	// Keep building indices as tiles become available and expecations change.
 	go func() {
@@ -327,6 +331,22 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 	return nil
 }
 
+// writeIssueBaseline handles changes to baselines for Gerrit issues and dumps
+// the updated baseline to disk.
+func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
+	issueID := evData.(*tryjobstore.IssueExpChange).IssueID
+	if issueID <= 0 {
+		sklog.Errorf("Invalid issue id received for issue exp change: %d", issueID)
+		return
+	}
+
+	idx := ixr.GetIndex()
+	if err := ixr.storages.PushIssueBaseline(issueID, idx.GetTile(false), idx.tallies); err != nil {
+		sklog.Errorf("Unable to push baseline for issue %d to GCS: %s", issueID, err)
+		return
+	}
+}
+
 // calcTallies is the pipeline function to calculate the tallies.
 func calcTallies(state interface{}) error {
 	idx := state.(*SearchIndex)
@@ -412,27 +432,18 @@ func writeKnownHashesList(state interface{}) error {
 	return nil
 }
 
-// writeBaseline asynchronously writes the baseline to GCS.
-func writeBaseline(state interface{}) error {
+// writeMasterBaseline asynchronously writes the master baseline to GCS.
+func writeMasterBaseline(state interface{}) error {
 	idx := state.(*SearchIndex)
 
-	// Only write the hash file if a storage client is available.
-	if idx.storages.GStorageClient == nil {
+	if !idx.storages.CanWriteBaseline() {
 		return nil
 	}
 
 	// Write the baseline asynchronously.
 	go func() {
-		exps, err := idx.storages.ExpectationsStore.Get()
-		if err != nil {
-			sklog.Errorf("Error retrieving expectations: %s", err)
-			return
-		}
-
-		// Write the baseline to disk.
-		baseLine := baseline.GetBaseline(exps, idx.GetTile(false))
-		if err := idx.storages.GStorageClient.WriteBaseLine(baseLine); err != nil {
-			sklog.Errorf("Error writing baseline to GCS: %s", err)
+		if err := idx.storages.PushMasterBaseline(idx.GetTile(false)); err != nil {
+			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
 		}
 	}()
 
