@@ -2,8 +2,9 @@
   "Servers": {
     "android-compile": {
       "AppNames": [
-        "pulld",
         "android-compiled",
+        "git-cookie-authdaemon",
+        "pulld",
       ],
     },
   },
