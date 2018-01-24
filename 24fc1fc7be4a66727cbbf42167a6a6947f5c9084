@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da45fbf5_e032212b",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-24T14:32:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "858fe6a2_08a6e4a1",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 43
+      },
+      "revId": "24fc1fc7be4a66727cbbf42167a6a6947f5c9084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "291643b8_62b160e8",
         "filename": "android_compile/go/android_compile/checkouts.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "d0c1e4a9_c2822d61",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-24T14:32:28Z",
+      "side": 1,
+      "message": "Yes, it makes sense to throw an error if any checkout has problems. Done.",
+      "parentUuid": "291643b8_62b160e8",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 22
+      },
+      "revId": "24fc1fc7be4a66727cbbf42167a6a6947f5c9084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4de3af78_e68c37c6",
         "filename": "android_compile/go/android_compile/checkouts.go",
         "patchSetId": 2
@@ -68,6 +116,30 @@
       "revId": "24fc1fc7be4a66727cbbf42167a6a6947f5c9084",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "828ba36b_cfee1644",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-24T14:32:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4de3af78_e68c37c6",
+      "range": {
+        "startLine": 255,
+        "startChar": 1,
+        "endLine": 255,
+        "endChar": 28
+      },
+      "revId": "24fc1fc7be4a66727cbbf42167a6a6947f5c9084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
