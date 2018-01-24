@@ -59,7 +59,7 @@ func (g *GStorageClient) WriteKnownDigests(digests []string) error {
 }
 
 // WriteBaseLine writes the given baseline to GCS.
-func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) error {
+func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (string, error) {
 	writeFn := func(w *gstorage.Writer) error {
 		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
 			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
@@ -73,7 +73,7 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) er
 		outPath = fmt.Sprintf("issue_%d.json", baseLine.Issue)
 	}
 	outPath = g.options.BaselineGSPath + "/" + outPath
-	return g.writeToPath(outPath, "application/json", writeFn)
+	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
 }
 
 // loadKnownDigests loads the digests that have previously been written
