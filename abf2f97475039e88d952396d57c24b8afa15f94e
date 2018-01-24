@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff6ecac5_af7764f7",
+        "filename": "golden/go/storage/gsclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-24T16:14:34Z",
+      "side": 1,
+      "message": "Add comment saying what the string is?",
+      "revId": "abf2f97475039e88d952396d57c24b8afa15f94e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
