@@ -28,6 +28,7 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --diff_server_grpc=skia-diffserver-prod:8000 \
     --diff_server_http=skia-diffserver-prod:8001 \
     --force_login \
+    --event_topic=gold-prod-eventbus \
     --ds_namespace=gold-skia-prod
 
 Restart=always
