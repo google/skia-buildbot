@@ -230,7 +230,7 @@ func (c *cloudTryjobStore) GetTryjobResults(issueID int64, patchsetIDs []int64, 
 
 		// Iterate the builders in reverse order filter out duplicates by builder.
 		builders := util.StringSet{}
-		for i := len(tryjobs); i >= 0; i-- {
+		for i := len(tryjobs) - 1; i >= 0; i-- {
 			if !builders[tryjobs[i].Builder] {
 				builders[tryjobs[i].Builder] = true
 				tryjobs[i] = nil
