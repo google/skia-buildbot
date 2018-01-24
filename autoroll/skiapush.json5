@@ -3,36 +3,42 @@
     "skia-autoroll": {
       "AppNames": [
         "skia-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "skia-internal-autoroll": {
       "AppNames": [
         "skia-internal-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "android-master-autoroll": {
       "AppNames": [
         "android-master-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "android-o-autoroll": {
       "AppNames": [
         "android-o-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "angle-chromium-autoroll": {
       "AppNames": [
         "angle-chromium-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "angle-skia-autoroll": {
       "AppNames": [
         "angle-skia-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
@@ -45,42 +51,49 @@
     "catapult-autoroll": {
       "AppNames": [
         "catapult-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "depot-tools-chromium-autoroll": {
       "AppNames": [
         "depot-tools-chromium-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "nacl-autoroll": {
       "AppNames": [
         "nacl-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "pdfium-autoroll": {
       "AppNames": [
         "pdfium-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "fuchsia-autoroll": {
       "AppNames": [
         "fuchsia-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "src-internal-chromium-autoroll": {
       "AppNames": [
         "src-internal-chromium-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "webrtc-chromium-autoroll": {
       "AppNames": [
         "webrtc-chromium-autorolld",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },
