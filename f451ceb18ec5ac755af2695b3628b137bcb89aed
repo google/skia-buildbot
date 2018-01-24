@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "64a1fa2f_94aa49fc",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-24T13:44:51Z",
+      "side": 1,
+      "message": "is true",
+      "range": {
+        "startLine": 49,
+        "startChar": 17,
+        "endLine": 49,
+        "endChar": 20
+      },
+      "revId": "f451ceb18ec5ac755af2695b3628b137bcb89aed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
