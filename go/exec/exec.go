@@ -238,8 +238,14 @@ func wait(command *Command, cmd *osexec.Cmd) error {
 	}()
 	select {
 	case <-time.After(command.Timeout):
+		if command.Verbose != Silent {
+			sklog.Debugf("About to kill command '%s'", DebugString(command))
+		}
 		if err := cmd.Process.Kill(); err != nil {
 			return fmt.Errorf("Failed to kill timed out process: %s", err)
+		}
+		if command.Verbose != Silent {
+			sklog.Debugf("Waiting for command to exit after killing '%s'", DebugString(command))
 		}
 		<-done // allow goroutine to exit
 		return fmt.Errorf("%s %f secs", TIMEOUT_ERROR_PREFIX, command.Timeout.Seconds())
