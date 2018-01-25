@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "853fa188_06b8a34b",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-25T15:21:39Z",
+      "side": 1,
+      "message": "should this be :8000 like the other places where we proxy to skia-proxy ?",
+      "range": {
+        "startLine": 390,
+        "startChar": 37,
+        "endLine": 390,
+        "endChar": 41
+      },
+      "revId": "c47bb4436396f7310170efec12295f5577bdb6b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
