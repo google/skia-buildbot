@@ -38,6 +38,8 @@
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="bower_components/polymer/polymer.html">
 
+<link rel=import href="../common/imp/commit-picker.html">
+
 <link rel="import" href="query-dialog-sk.html">
 <link rel="import" href="select-popup-sk.html">
 <link rel="import" href="shared-styles.html">
@@ -104,6 +106,12 @@
               <div class="currSelection">
                 [[_splitAmp(_curr.rquery)]]
               </div>
+            </div>
+
+            <div class="filterItem">
+              Commit Range:
+              <commit-picker-sk id="startCommitPicker"></commit-picker-sk>
+              <commit-picker-sk id="endCommitPicker"></commit-picker-sk>
             </div>
 
             <!-- group by test -->
@@ -196,6 +204,8 @@
         "frgbamax",
         "fdiffmax",
         "fgrouptest",
+        "fbegin",
+        "fend",
         "fref",
         "sort"
       ];
@@ -217,6 +227,20 @@
           this.set('_metrics', gold.allMetrics.slice());
           this.set('_groupTests', gold.groupTestOps.slice());
           this.set('_sortOptions', gold.sortOptions.slice());
+          this.listen(this.$.startCommitPicker, 'commit-selected', '_handleCommitSelected');
+          this.listen(this.$.endCommitPicker, 'commit-selected', '_handleCommitSelected');
+        },
+
+        _handleCommitSelected: function(ev) {
+          if (this._curr) {
+            var target = ev.currentTarget;
+            var commit = ev.detail.commit;
+            if (target.id == "startCommitPicker") {
+              this._curr.fbegin = (commit) ? (commit.hash) : ('');
+            } else {
+              this._curr.fend = (commit) ? (commit.hash) : ('');
+            }
+          }
         },
 
         open: function() {
@@ -247,8 +271,20 @@
               }
             }
           }
+          this._setCommitPicker(this.$.startCommitPicker, newVal.fbegin);
+          this._setCommitPicker(this.$.endCommitPicker, newVal.fend);
           this.$.paramsSelect.setSelection(value.match);
           this._value = value;
+        },
+
+        _setCommitPicker: function(pickerEle, hash) {
+          pickerEle.selectHash(hash);
+        },
+
+        setCommitInfo: function(commits) {
+          this._commits = commits;
+          this.$.startCommitPicker.setCommitInfo(commits);
+          this.$.endCommitPicker.setCommitInfo(commits);
         },
 
         _handleEditButton: function(ev) {
