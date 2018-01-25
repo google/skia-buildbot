@@ -376,6 +376,27 @@ server {
     return 301 https://autoroll.skia.org$request_uri;
 }
 
+#####   android-compile.skia.org   ###########################
+server {
+    listen      443;
+    server_name android-compile.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/android-compile.access.log;
+    error_log /var/log/nginx/android-compile.error.log error;
+
+    location / {
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host "android-compile-8002-proxy.skia.org";
+    }
+}
+server {
+    listen      80;
+    server_name android-compile.skia.org;
+    return 301 https://android-compile.skia.org$request_uri;
+}
+
 #####   android-master-roll.skia.org   ###########################
 server {
     listen      443;
