@@ -58,6 +58,8 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(statfs),
         ALLOW_SYSCALL(readlink),
         ALLOW_SYSCALL(getpid),
+        ALLOW_SYSCALL(gettid),
+        ALLOW_SYSCALL(tgkill),
 
         ALLOW_SYSCALL(ftruncate),
         ALLOW_SYSCALL(ioctl),
