@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a91bad47_75008fc8",
+        "filename": "golden/frontend/res/imp/detail-list2-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-25T15:14:13Z",
+      "side": 1,
+      "message": "nit: data and item should be private or documented as exposed attributes.",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 12
+      },
+      "revId": "a0558538e8e6ee33a640f27968bfb145c5ff46fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46a4de8c_305227b7",
+        "filename": "golden/frontend/res/imp/detail-list2-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-25T15:14:13Z",
+      "side": 1,
+      "message": "debug code ?",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 8
+      },
+      "revId": "a0558538e8e6ee33a640f27968bfb145c5ff46fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57dca7ea_c9f166e2",
+        "filename": "golden/frontend/res/imp/detail-list2-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-25T15:14:13Z",
+      "side": 1,
+      "message": "should this be a private function, I don\u0027t see how it would be called from outside the element ?",
+      "range": {
+        "startLine": 143,
+        "startChar": 6,
+        "endLine": 143,
+        "endChar": 20
+      },
+      "revId": "a0558538e8e6ee33a640f27968bfb145c5ff46fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
