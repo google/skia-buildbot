@@ -105,9 +105,6 @@ This is the Go interface to the storage for traces. The interface to tracedb loo
       // shorter actions.
       Add(commitID *CommitID, values map[string]*Entry) error
 
-      // Remove the given commit from the datastore.
-      Remove(commitID *CommitID) error
-
       // List returns all the CommitID's between begin and end.
       List(begin, end time.Time) ([]*CommitID, error)
 

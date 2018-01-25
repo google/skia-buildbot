@@ -37,7 +37,6 @@ var (
 	addCount           = metrics2.GetCounter("added_count", tags)
 	removeCalls        = metrics2.GetCounter("remove_calls", tags)
 	listCalls          = metrics2.GetCounter("list_calls", tags)
-	listMD5Calls       = metrics2.GetCounter("list_md5_calls", tags)
 	getParamsCalls     = metrics2.GetCounter("get_params_calls", tags)
 	getValuesCalls     = metrics2.GetCounter("get_values_calls", tags)
 	getValuesRawCalls  = metrics2.GetCounter("get_values_raw_calls", tags)
@@ -466,26 +465,6 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, er
 	return &Empty{}, nil
 }
 
-func (ts *TraceServiceImpl) Remove(ctx context.Context, in *RemoveRequest) (*Empty, error) {
-	removeCalls.Inc(1)
-	if in == nil {
-		return nil, fmt.Errorf("Received nil request.")
-	}
-	remove := func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(COMMIT_BUCKET_NAME))
-		key, err := CommitIDToBytes(in.Commitid)
-		if err != nil {
-			return err
-		}
-		return c.Delete(key)
-	}
-	if err := ts.db.Update(remove); err != nil {
-		return nil, fmt.Errorf("Failed to remove values from tracedb: %s", err)
-	}
-	ret := &Empty{}
-	return ret, nil
-}
-
 func (ts *TraceServiceImpl) List(ctx context.Context, listRequest *ListRequest) (*ListResponse, error) {
 	listCalls.Inc(1)
 	if listRequest == nil {
@@ -664,41 +643,6 @@ func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *Get
 	}
 	if err := ts.db.View(load); err != nil {
 		return nil, fmt.Errorf("GetParams: Failed to load data: %s", err)
-	}
-
-	return ret, nil
-}
-
-func (ts *TraceServiceImpl) ListMD5(ctx context.Context, listMD5Request *ListMD5Request) (*ListMD5Response, error) {
-	listMD5Calls.Inc(1)
-	if listMD5Request == nil {
-		return nil, fmt.Errorf("Received nil request.")
-	}
-
-	ret := &ListMD5Response{
-		Commitmd5: []*CommitMD5{},
-	}
-	for _, commitid := range listMD5Request.Commitid {
-		key, err := CommitIDToBytes(commitid)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to convert CommitID to bytes: %s", err)
-		}
-		hash := ts.readMD5(key)
-		// If the hash isn't cached then we need to calculate it from the bytes stored in bolt.
-		if hash == "" {
-			load := func(tx *bolt.Tx) error {
-				c := tx.Bucket([]byte(COMMIT_BUCKET_NAME))
-				hash = ts.getMD5(key, c.Get(key))
-				return nil
-			}
-			if err := ts.db.View(load); err != nil {
-				return nil, fmt.Errorf("Failed to load data for commitid: %#v, %s", *commitid, err)
-			}
-		}
-		ret.Commitmd5 = append(ret.Commitmd5, &CommitMD5{
-			Commitid: commitid,
-			Md5:      hash,
-		})
 	}
 
 	return ret, nil
