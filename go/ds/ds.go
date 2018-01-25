@@ -20,21 +20,31 @@ var (
 	Namespace string
 )
 
+// InitWithOpt the Cloud Datastore Client (DS).
+//
+// project - The project name, i.e. "google.com:skia-buildbots".
+// ns      - The datastore namespace to store data into.
+// opt     - Options to pass to the client.
+func InitWithOpt(project string, ns string, opts ...option.ClientOption) error {
+	Namespace = ns
+	var err error
+	DS, err = datastore.NewClient(context.Background(), project, opts...)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
+	}
+	return nil
+}
+
 // Init the Cloud Datastore Client (DS).
 //
 // project - The project name, i.e. "google.com:skia-buildbots".
 // ns      - The datastore namespace to store data into.
 func Init(project string, ns string) error {
-	Namespace = ns
 	tok, err := auth.NewDefaultJWTServiceAccountTokenSource("https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return err
 	}
-	DS, err = datastore.NewClient(context.Background(), project, option.WithTokenSource(tok))
-	if err != nil {
-		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
-	}
-	return nil
+	return InitWithOpt(project, ns, option.WithTokenSource(tok))
 }
 
 // InitForTesting is an init to call when running tests. It doesn't do any
