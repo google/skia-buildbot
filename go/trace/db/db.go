@@ -50,9 +50,6 @@ type DB interface {
 	// shorter actions.
 	Add(commitID *CommitID, values map[string]*Entry) error
 
-	// Remove all info for the given commit.
-	Remove(commitID *CommitID) error
-
 	// List returns all the CommitID's between begin and end.
 	List(begin, end time.Time) ([]*CommitID, error)
 
@@ -66,9 +63,6 @@ type DB interface {
 	//
 	// The md5 hashes for each commitid are also returned.
 	TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, error)
-
-	// ListMD5 returns the md5 hashes of the data stored for each commitid.
-	ListMD5(commitIDs []*CommitID) ([]string, error)
 
 	// Close the datastore.
 	Close() error
@@ -262,15 +256,6 @@ func (ts *TsDB) Add(commitID *CommitID, values map[string]*Entry) error {
 	}
 
 	return nil
-}
-
-// Remove implements DB.Remove().
-func (ts *TsDB) Remove(commitID *CommitID) error {
-	removeRequest := &traceservice.RemoveRequest{
-		Commitid: tsCommitID(commitID),
-	}
-	_, err := ts.traceService.Remove(context.Background(), removeRequest)
-	return err
 }
 
 // List implements DB.List().
@@ -474,26 +459,6 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, 
 	sklog.Infof("Finished loading params. Starting to rebuild ParamSet.")
 	tiling.GetParamSet(tile.Traces, tile.ParamSet)
 	return tile, hash, nil
-}
-
-// ListMD5 returns the md5 hashes of the data stored for each commitid.
-func (ts *TsDB) ListMD5(commitIDs []*CommitID) ([]string, error) {
-	ctx := context.Background()
-	req := &traceservice.ListMD5Request{
-		Commitid: make([]*traceservice.CommitID, len(commitIDs)),
-	}
-	for i, cid := range commitIDs {
-		req.Commitid[i] = tsCommitID(cid)
-	}
-	resp, err := ts.traceService.ListMD5(ctx, req)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to load hashes: %s", err)
-	}
-	ret := make([]string, len(commitIDs))
-	for i, ci5 := range resp.Commitmd5 {
-		ret[i] = ci5.Md5
-	}
-	return ret, nil
 }
 
 // Close the underlying connection to the datastore.
