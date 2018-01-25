@@ -7,9 +7,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ingestion"
-	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -58,8 +56,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
 	}
 
-	opt := option.WithServiceAccountFile("service-account.json")
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", nil, opt)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(nil)
 	assert.NoError(t, err)
 
 	// Make sure the issue is removed.
