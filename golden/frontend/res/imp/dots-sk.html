@@ -64,150 +64,229 @@
 
 <dom-module id="dots-sk">
   <template>
-    <style include="dot-styles"></style>
-    <style>
-      ::content .circHoverCommit {
-        fill: #E7298A !important;
-        stroke: #E7298A !important;
+    <style type="text/css" media="screen">
+      :host {
+        max-height: 10em;
+        display: inline-block;
+        overflow: auto;
       }
     </style>
-    <!-- This content element places the d3 generated element into the light DOM to
-         leave DOM manipulations to d3.  -->
-    <content>
-        <svg id="dots"></svg>
-    </content>
+    <canvas id="dots" width=0 height=0></canvas>
   </template>
   <script>
-    Polymer({
-      is: "dots-sk",
+    (function () {
 
-      properties: {
-        value: {
-          type: Object,
-          value: function() { return { tileSize: 0, traces: [] }; }
+      const STROKE_WIDTH = 2;
+      const DOT_RADIUS = 3;
+
+      // Constants that define how we go from dot space to canvas coordinates.
+      const DOT_SCALE_X = 10;
+      const DOT_SCALE_Y = 10;
+      const DOT_OFFSET_X = 10;
+      const DOT_OFFSET_Y = 10;
+      const xFn = x => x * DOT_SCALE_X + DOT_OFFSET_X;
+      const yFn = y => y * DOT_SCALE_Y + DOT_OFFSET_Y;
+
+      const STROKE_COLORS = [
+        '#000000',
+        '#1B9E77',
+        '#D95F02',
+        '#7570B3',
+        '#E7298A',
+        '#66A61E',
+        '#E6AB02',
+        '#A6761D',
+        '#999999',
+      ];
+      const FILL_COLORS = [
+        '#000000',
+        '#FFFFFF',
+        '#FFFFFF',
+        '#FFFFFF',
+        '#FFFFFF',
+        '#FFFFFF',
+        '#FFFFFF',
+        '#FFFFFF',
+        '#FFFFFF',
+      ];
+
+      const HIGHLIGHT_COLOR = '#E7298A';
+      const LINE_COLOR = '#999999'
+
+      // Maps each dots-sk _id to the element itself. Members are only
+      // present if they have a pending mousemove update.
+      var pendingMouseMoves = {};
+
+      // Periodically process all pending mousemoves.
+      window.setInterval(() => {
+        for (var key in pendingMouseMoves) {
+          pendingMouseMoves[key]._updatePendingMouseMove();
         }
-      },
+        pendingMouseMoves = {};
+      }, 40);
 
-      ready: function() {
-        this.commits = [];
+      Polymer({
+        is: "dots-sk",
 
-        // Keep track of the last element hovered over to reduce the number of
-        // events we generate. Used by _onMouseOver.
-        this.hoverElement =  null;
-        this.listen(this.$.dots, 'mouseover', '_onMouseOver');
-        this.listen(this.$.dots, 'tap', '_onTap');
-      },
+        ready: function() {
+          this._commits = [];
+          this._value = { tileSize: 0, traces: [] };
 
-      setValue: function(value) {
-        if (!value || (value.tileSize === 0)) {
-          return;
-        }
+          // The index of the commit that should be highlighted.
+          this._highlightIndex = -1;
 
-        this.value = value;
-        var width = value.tileSize * 10 + 20;
-        var height = (value.traces.length + 2) * 10;
+          // The index of the trace that should be highlighted.
+          this._hoverIndex =  -1;
 
-        var svg = d3.select(this.$.dots)
-          .attr("width", width)
-          .attr("height", height)
-          .attr("viewBox", "-1 -1 "+(value.tileSize+1) + " " + (value.traces.length+1));
+          // For capturing the last mousemove event, which is later processed in a timer.
+          this._lastMouseMove = null;
 
-        var g = svg.selectAll('g')
-          .data(value.traces)
-          .enter()
-          .append('g')
-          .attr('stroke', '#999')
-          .attr('fill', '#999')
-          .attr('stroke-width', '0.2')
-          .attr('traceid', function(d) { return d.label; });
+          // Each element needs a unique id, used as a key in pendingMouseMoves.
+          this._id = 'id' + Math.random();
+          this._ctx = this.$.dots.getContext('2d');
+          this.listen(this.$.dots, 'mousemove', '_onMouseMove');
+          this.listen(this.$.dots, 'mouseleave', '_onMouseLeave');
+          this.listen(this.$.dots, 'tap', '_onTap');
+        },
 
-        g.append('line')
-          .attr('x1', function(d){ return d.data[0].x; })
-          .attr('y1', function(d){ return d.data[0].y; })
-          .attr('x2', function(d){ return d.data[d.data.length-1].x; })
-          .attr('y2', function(d){ return d.data[0].y; });
-
-        g.selectAll('circle')
-          .data(function(d) { return d.data; })
-          .enter()
-          .append('circle')
-          .attr('cx', function(d) { return d.x; })
-          .attr('cy', function(d) { return d.y; })
-          .attr('r', '0.3')
-          .attr('class', function(d) { return 'status' + d.s; })
-          .attr('id', function(d, col, row) { return 'circ-'+ row +'-'+ col; })
-      },
-
-      setCommits: function(commits) {
-        this.commits = commits;
-      },
-
-      highlight: function(index, b) {
-        for(var i=0, iLen=this.value.traces.length; i < iLen; i++) {
-          for(var j=0, jLen=this.value.traces[i].data.length; j < jLen; j++) {
-            if (this.value.traces[i].data[j].x >= index) {
-              this.$$('#circ-' + i + '-' + j).classList.toggle('circHoverCommit', b);
-              break;
-            }
+        setValue: function(value) {
+          if (!value || (value.tileSize === 0)) {
+            return;
           }
-        }
-      },
 
-      _onMouseOver: function(e) {
-        if (e.target.nodeName == "circle" && this.hoverElement != e.target) {
-          this.hoverElement = e.target;
-          this.fire('hover', e.target.parentElement.attributes.getNamedItem('traceid').value);
-        } else {
-          this.hoverElement = null;
-        }
-      },
+          this._value = value;
+          this._draw();
+        },
 
-      _onTap: function(e) {
-        if (e.target.nodeName == "circle") {
-          // The dots cx value is actually the offset into the list of commits.
-          // The cy is the offset into the list of traces.
-          var x = e.target.cx.baseVal.value;
-          var y = e.target.cy.baseVal.value;
+        _draw: function() {
+          let width = this._value.tileSize * DOT_SCALE_X + 2 * DOT_OFFSET_X;
+          let height = this._value.traces.length * DOT_SCALE_Y + 2 * DOT_OFFSET_Y;
+          // Define functions that go from dot space to canvas coordinates.
+          this.$.dots.setAttribute('width', width);
+          this.$.dots.setAttribute('height', height);
 
+          // First clear the canvas.
+          this._ctx.lineWidth = STROKE_WIDTH;
+          this._ctx.fillStyle = '#FFFFFF';
+          this._ctx.fillRect(0, 0, width, height);
+
+          // Draw lines and dots.
+          this._value.traces.forEach((trace, traceIndex) => {
+            this._ctx.strokeStyle = LINE_COLOR;
+            this._ctx.beginPath();
+            this._ctx.moveTo(xFn(trace.data[0].x), yFn(trace.data[0].y));
+            this._ctx.lineTo(xFn(trace.data[trace.data.length-1].x), yFn(trace.data[0].y));
+            this._ctx.stroke();
+            this._drawTrace(trace.data, traceIndex);
+          });
+        },
+
+        // Draws the circles for a single trace.
+        _drawTrace: function(data, traceIndex) {
+          data.forEach((d, dataIndex) => {
+              this._ctx.beginPath();
+              if (this._hoverIndex == traceIndex || this._highlightIndex == dataIndex) {
+                this._ctx.strokeStyle = HIGHLIGHT_COLOR;
+                this._ctx.fillStyle = HIGHLIGHT_COLOR ;
+              } else {
+                this._ctx.strokeStyle = STROKE_COLORS[d.s];
+                this._ctx.fillStyle = FILL_COLORS[d.s];
+              }
+              this._ctx.arc(xFn(d.x), yFn(d.y), DOT_RADIUS, 0, Math.PI*2);
+              this._ctx.fill();
+              this._ctx.stroke();
+          });
+        },
+
+        // Updates just the circles for a single trace.
+        _overDrawTrace: function(traceIndex) {
+          let trace = this._value.traces[traceIndex];
+          if (!trace) {
+            return
+          }
+          this._drawTrace(trace.data, traceIndex);
+        },
+
+        setCommits: function(commits) {
+          this._commits = commits;
+        },
+
+        highlight: function(index, b) {
+          this._highlightIndex = b ? index : -1;
+          this._draw();
+        },
+
+        _onMouseLeave: function() {
+          let oldIndex = this._hoverIndex;
+          this._hoverIndex =  -1;
+          this._overDrawTrace(oldIndex);
+          this._lastMouseMove = null;
+        },
+
+        _onMouseMove: function(e) {
+          this._lastMouseMove = {
+            clientX: e.clientX,
+            clientY: e.clientY,
+          };
+          pendingMouseMoves[this._id] = this;
+        },
+
+        // Gets the coordinates of the mouse event in dot coordinates.
+        _toDotSpace(e) {
+          let rect = this.$.dots.getBoundingClientRect();
+          return {
+            x: Math.floor((e.clientX - rect.left - DOT_OFFSET_X + STROKE_WIDTH + DOT_RADIUS)/DOT_SCALE_X),
+            y: Math.floor((e.clientY - rect.top  - DOT_OFFSET_Y + STROKE_WIDTH + DOT_RADIUS)/DOT_SCALE_Y)
+          };
+        },
+
+
+        // We look at the mousemove event, if one occurred, to determine which trace to highlight.
+        _updatePendingMouseMove() {
+          if (!this._lastMouseMove) {
+            return
+          }
+          let rect = this._toDotSpace(this._lastMouseMove);
+          this._lastMouseMove = null;
+          if (this._hoverIndex == rect.y) {
+            return
+          }
+          let oldIndex = this._hoverIndex;
+          this._hoverIndex = rect.y;
+          if (this._hoverIndex >= 0 && this._hoverIndex < this._value.traces.length) {
+            this.fire('hover', this._value.traces[this._hoverIndex].label);
+          }
+          // Just update the dots of the traces that have changed.
+          this._overDrawTrace(oldIndex);
+          this._overDrawTrace(this._hoverIndex);
+        },
+
+        // When a dot is clicked on produce the show-commits event with all
+        // the commits that are included upto and including that dot.
+        _onTap: function(e) {
+          let rect = this._toDotSpace(e.detail.sourceEvent);
           // Look backwards in the trace for the previous commit with data.
-          var firstCommit = 0;
-          var trace = this.value.traces[y];
+          let firstCommit = 0;
+          let trace = this._value.traces[rect.y];
+          let found = false;
           for (var i=trace.data.length-1; i>=0; i--) {
-            if (trace.data[i].x == x) {
-              if (i>0) {
+            if (trace.data[i].x == rect.x) {
+              found = true;
+              if (i > 0) {
                 firstCommit = trace.data[i-1].x+1;
                 break;
               }
             }
           }
+          if (!found) {
+            return
+          }
 
-          var commitinfo = this.commits.slice(firstCommit, x+1);
+          let commitinfo = this._commits.slice(firstCommit, rect.x+1);
           commitinfo.reverse();
           this.fire('show-commits', commitinfo);
-        }
-      },
-
-      _getTraces: function(value) {
-        return (value && value.traces) ? (value.traces) : [];
-      },
-
-      _width: function(value) {return value.tileSize * 10 + 20; },
-
-      _height: function(value) { return (value.traces.length+2)*10; },
-
-      _vbWidth: function(value) {
-        return value.tileSize+1;
-      },
-
-      _vbHeight: function(value) {
-        return value.traces.length+1;
-      },
-
-      _firstX: function(d) { return d[0].x; },
-
-      _firstY: function(d) { return d[0].y; },
-
-      _lastX:  function(d) { return d[trace.data.length-1].x; }
-    });
+        },
+      });
+    })();
   </script>
 </dom-module>

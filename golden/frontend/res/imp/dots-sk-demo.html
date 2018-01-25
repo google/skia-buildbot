@@ -4,9 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-  <script src="../../node_modules/native-promise-only/npo.js"></script>
   <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <script src="bower_components/d3/d3.js"></script>
   <script src="../common/js/common.js"></script>
   <script src="testdata.js"></script>
 
@@ -34,6 +32,15 @@
           ready: function() {
             var el = this.$.firstDots;
 
+            // Make sure we don't slow down even when there are 1,000 traces.
+            var trace = testdata.traces.traces[0];
+            for (var i = 1; i < 1000; i++) {
+              trace.label = "id" + i;
+              for (var j = 0, len = trace.data.length; j < len; j++) {
+                trace.data[j].y = i
+              }
+              testdata.traces.traces.push(JSON.parse(JSON.stringify(trace)));
+            }
             el.setValue(testdata.traces);
             el.setCommits(testdata.commits);
 
