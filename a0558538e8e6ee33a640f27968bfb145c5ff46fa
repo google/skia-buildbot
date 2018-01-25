@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ccc8dc71_d219bfa1",
+        "filename": "golden/frontend/res/imp/detail-list2-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-25T15:49:11Z",
+      "side": 1,
+      "message": "data is now documented, item was made private.",
+      "parentUuid": "a91bad47_75008fc8",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 12
+      },
+      "revId": "a0558538e8e6ee33a640f27968bfb145c5ff46fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "46a4de8c_305227b7",
         "filename": "golden/frontend/res/imp/detail-list2-sk.html",
         "patchSetId": 9
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "4e9ba7c9_ee1a212d",
+        "filename": "golden/frontend/res/imp/detail-list2-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-25T15:49:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46a4de8c_305227b7",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 8
+      },
+      "revId": "a0558538e8e6ee33a640f27968bfb145c5ff46fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "57dca7ea_c9f166e2",
         "filename": "golden/frontend/res/imp/detail-list2-sk.html",
         "patchSetId": 9
@@ -68,6 +116,30 @@
       "revId": "a0558538e8e6ee33a640f27968bfb145c5ff46fa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be6cbd63_fc1f364f",
+        "filename": "golden/frontend/res/imp/detail-list2-sk.html",
+        "patchSetId": 9
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-25T15:49:11Z",
+      "side": 1,
+      "message": "It is called from outside the element:\n\n https://github.com/google/skia-buildbot/blob/61f3b5971c40aee3a1e9d55a86512a17bb4b8f86/golden/frontend/res/imp/search-page-sk.html#L251",
+      "parentUuid": "57dca7ea_c9f166e2",
+      "range": {
+        "startLine": 143,
+        "startChar": 6,
+        "endLine": 143,
+        "endChar": 20
+      },
+      "revId": "a0558538e8e6ee33a640f27968bfb145c5ff46fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
