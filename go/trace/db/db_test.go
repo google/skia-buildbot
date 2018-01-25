@@ -60,12 +60,6 @@ func TestAdd(t *testing.T) {
 	assert.True(t, util.In("d41d8cd98f00b204e9800998ecf8427e", hashes))
 	assert.NotEqual(t, hashes[0], hashes[1])
 
-	hashes, err = ts.ListMD5(commitIDs)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(hashes))
-	assert.True(t, util.In("d41d8cd98f00b204e9800998ecf8427e", hashes))
-	assert.NotEqual(t, hashes[0], hashes[1])
-
 	tr := tile.Traces["key:8888:android"].(*perftypes.PerfTrace)
 	assert.Equal(t, 0.01, tr.Values[0])
 	assert.True(t, tr.IsMissing(1))

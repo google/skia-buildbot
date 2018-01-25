@@ -211,28 +211,6 @@ func TestImpl(t *testing.T) {
 	assert.Equal(t, 2, len(traceids.Ids))
 	assert.True(t, util.In(traceids.Ids[0].Id, paramsReq.Traceids))
 	assert.True(t, util.In(traceids.Ids[1].Id, paramsReq.Traceids))
-
-	// List the md5s.
-	listMD5Request := &ListMD5Request{
-		Commitid: commitIDs,
-	}
-	listMD5Response, err := ts.ListMD5(ctx, listMD5Request)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(listMD5Response.Commitmd5))
-	hashes := []string{listMD5Response.Commitmd5[0].Md5, listMD5Response.Commitmd5[1].Md5}
-	assert.True(t, util.In("d41d8cd98f00b204e9800998ecf8427e", hashes))
-	assert.NotEqual(t, hashes[0], hashes[1])
-
-	// Remove the commit.
-	removeRequest := &RemoveRequest{
-		Commitid: commitIDs[0],
-	}
-	_, err = ts.Remove(ctx, removeRequest)
-	assert.NoError(t, err)
-
-	listResp, err = ts.List(ctx, listReq)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(listResp.Commitids))
 }
 
 func TestAtomize(t *testing.T) {
