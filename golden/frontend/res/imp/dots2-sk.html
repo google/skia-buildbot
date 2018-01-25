@@ -64,6 +64,13 @@
 
 <dom-module id="dots2-sk">
   <template>
+    <style type="text/css" media="screen">
+      :host {
+        max-height: 10em;
+        display: inline-block;
+        overflow: auto;
+      }
+    </style>
     <canvas id="dots" width=0 height=0></canvas>
   </template>
   <script>
@@ -138,6 +145,7 @@
           this._id = 'id' + Math.random();
           this._ctx = this.$.dots.getContext('2d');
           this.listen(this.$.dots, 'mousemove', '_onMouseMove');
+          this.listen(this.$.dots, 'mouseleave', '_onMouseLeave');
           this.listen(this.$.dots, 'tap', '_onTap');
         },
 
@@ -206,6 +214,13 @@
         highlight: function(index, b) {
           this._highlightIndex = b ? index : -1;
           this._draw();
+        },
+
+        _onMouseLeave: function() {
+          let oldIndex = this._hoverIndex;
+          this._hoverIndex =  -1;
+          this._overDrawTrace(oldIndex);
+          this._lastMouseMove = null;
         },
 
         _onMouseMove: function(e) {
