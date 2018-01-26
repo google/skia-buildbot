@@ -33,6 +33,8 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 		acceptFn = func(tr *types.GoldenTrace, digests []string) (bool, interface{}) { return true, nil }
 	}
 
+	traceLimiterFn := getTraceLimiter(tile, query.FCommitBegin, query.FCommitEnd)
+
 	traceTally := idx.TalliesByTrace(query.IncludeIgnores)
 	lastCommitIndex := tile.LastCommitIndex()
 
@@ -40,7 +42,7 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 	for id, trace := range tile.Traces {
 		// Check if the query matches.
 		if tiling.Matches(trace, query.Query) {
-			tr := trace.(*types.GoldenTrace)
+			tr := traceLimiterFn(trace.(*types.GoldenTrace))
 			digests := digestsFromTrace(id, tr, query.Head, lastCommitIndex, traceTally)
 
 			// If there is an acceptFn defined then check whether
@@ -79,4 +81,12 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 		}
 	}
 	return nil
+}
+
+func getTraceLimiter(tile *tiling.Tile, startCommit, endCommit string) func(*types.GoldenTrace) *types.GoldenTrace {
+	if startCommit == "" && endCommit == "" {
+		return func(trace *types.GoldenTrace) *types.GoldenTrace { return trace }
+	}
+
+	return func(trace *types.GoldenTrace) *types.GoldenTrace { return trace }
 }
