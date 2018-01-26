@@ -8,15 +8,16 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/dsconst"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -71,15 +72,6 @@ type TryjobStore interface {
 	QueryLog(issueID int64, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error)
 }
 
-// Define constants for the kinds of entities in cloud datastore.
-const (
-	kind_Issue           = "Issue"
-	kind_Tryjob          = "Tryjob"
-	kind_TryjobResult    = "TryjobResult"
-	kind_TryjobExpChange = "TryjobExpChange"
-	kind_TestDigestExp   = "TestDigestExp"
-)
-
 const (
 	// batchsize is the maximal size of entities processed in a single batch. This
 	// is to stay below the limit of 500 and empirically keeps transactions small
@@ -89,30 +81,21 @@ const (
 
 // cloudTryjobStore implements the TryjobStore interface on top of cloud datastore.
 type cloudTryjobStore struct {
-	client    *datastore.Client
-	eventBus  eventbus.EventBus
-	namespace string
+	client   *datastore.Client
+	eventBus eventbus.EventBus
 }
 
 // NewCloudTryjobStore creates a new instance of TryjobStore based on cloud datastore.
-// namespace is the namespace in cloud datastore that this instance should use.
-func NewCloudTryjobStore(projectID, namespace string, eventBus eventbus.EventBus, opts ...option.ClientOption) (TryjobStore, error) {
-	ctx := context.Background()
-	client, err := datastore.NewClient(ctx, projectID, opts...)
-	if err != nil {
-		return nil, err
-	}
-
+func NewCloudTryjobStore(client *datastore.Client, eventBus eventbus.EventBus) (TryjobStore, error) {
 	return &cloudTryjobStore{
-		client:    client,
-		namespace: namespace,
-		eventBus:  eventBus,
+		client:   client,
+		eventBus: eventBus,
 	}, nil
 }
 
 // ListIssues implements the TryjobStore interface.
 func (c *cloudTryjobStore) ListIssues() ([]*Issue, int, error) {
-	query := datastore.NewQuery(kind_Issue).Namespace(c.namespace).KeysOnly()
+	query := ds.NewQuery(dsconst.ISSUE).KeysOnly()
 	keys, err := c.client.GetAll(context.Background(), query, nil)
 	if err != nil {
 		return nil, 0, err
@@ -296,7 +279,7 @@ func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.Tes
 	}
 
 	var changeKey *datastore.Key
-	if changeKey, err = c.client.Put(ctx, c.getIncompleteKey(kind_TryjobExpChange, nil), expChange); err != nil {
+	if changeKey, err = c.client.Put(ctx, ds.NewKey(dsconst.TRYJOB_EXP_CHANGE), expChange); err != nil {
 		return err
 	}
 
@@ -325,7 +308,9 @@ func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.Tes
 
 	tdeKeys := make([]*datastore.Key, len(testChanges), len(testChanges))
 	for idx := range testChanges {
-		tdeKeys[idx] = c.getIncompleteKey(kind_TestDigestExp, changeKey)
+		key := ds.NewKey(dsconst.TEST_DIGEST_EXP)
+		key.Parent = changeKey
+		tdeKeys[idx] = key
 	}
 
 	if _, err = c.client.PutMulti(ctx, tdeKeys, testChanges); err != nil {
@@ -465,7 +450,7 @@ func (c *cloudTryjobStore) getResultsForTryjobs(tryjobKeys []*datastore.Key, key
 	for idx, key := range tryjobKeys {
 		func(idx int, key *datastore.Key) {
 			egroup.Go(func() error {
-				query := datastore.NewQuery(kind_TryjobResult).Namespace(c.namespace).Ancestor(key)
+				query := ds.NewQuery(dsconst.TRYJOB_RESULT).Ancestor(key)
 				if keysOnly {
 					query = query.KeysOnly()
 				}
@@ -532,8 +517,7 @@ func (c *cloudTryjobStore) deleteExpectationsForIssue(issueID int64) error {
 // Both are only considered if they are larger than 0. keysOnly indicates that we
 // want keys only.
 func (c *cloudTryjobStore) getExpChangesForIssue(issueID int64, offset, size int, keysOnly bool) ([]*datastore.Key, []*ExpChange, error) {
-	q := datastore.NewQuery(kind_TryjobExpChange).
-		Namespace(c.namespace).
+	q := ds.NewQuery(dsconst.TRYJOB_EXP_CHANGE).
 		Filter("IssueID =", issueID).
 		Filter("OK =", true).
 		Order("TimeStamp")
@@ -557,7 +541,7 @@ func (c *cloudTryjobStore) getExpChangesForIssue(issueID int64, offset, size int
 
 // getTestDigstExpectations gets all expectations for the given change.
 func (c *cloudTryjobStore) getTestDigestExps(changeKey *datastore.Key, keysOnly bool) ([]*datastore.Key, []*TestDigestExp, error) {
-	q := datastore.NewQuery(kind_TestDigestExp).Namespace(c.namespace).Ancestor(changeKey)
+	q := ds.NewQuery(dsconst.TEST_DIGEST_EXP).Ancestor(changeKey)
 	if keysOnly {
 		q = q.KeysOnly()
 	}
@@ -586,7 +570,8 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 	for idx, patchsetID := range patchsetIDs {
 		func(idx int, patchsetID int64) {
 			egroup.Go(func() error {
-				query := datastore.NewQuery(kind_Tryjob).Namespace(c.namespace).Filter("IssueID =", issueID)
+				query := ds.NewQuery(dsconst.TRYJOB).
+					Filter("IssueID =", issueID)
 				if patchsetID > 0 {
 					query = query.Filter("PatchsetID =", patchsetID)
 				}
@@ -675,29 +660,21 @@ func (c *cloudTryjobStore) getEntity(key *datastore.Key, target interface{}, tx 
 
 // getIssueKey returns a datastore key for the given issue id.
 func (c *cloudTryjobStore) getIssueKey(id int64) *datastore.Key {
-	ret := datastore.IDKey(kind_Issue, id, nil)
-	ret.Namespace = c.namespace
+	ret := ds.NewKey(dsconst.ISSUE)
+	ret.ID = id
 	return ret
 }
 
 // getTryjobKey returns a datastore key for the given buildbucketID.
 func (c *cloudTryjobStore) getTryjobKey(buildBucketID int64) *datastore.Key {
-	ret := datastore.IDKey(kind_Tryjob, buildBucketID, nil)
-	ret.Namespace = c.namespace
+	ret := ds.NewKey(dsconst.TRYJOB)
+	ret.ID = buildBucketID
 	return ret
 }
 
 // getTryjobResultKey returns a key for the given tryjobResult.
 func (c *cloudTryjobStore) getTryjobResultKey(tryjobKey *datastore.Key) *datastore.Key {
-	ret := datastore.IncompleteKey(kind_TryjobResult, tryjobKey)
-	ret.Namespace = c.namespace
-	return ret
-}
-
-// getIncompleteKey returns an incomplete key for the given kind and ancestor. It set's the
-// correct namespace in the process.
-func (c *cloudTryjobStore) getIncompleteKey(kind string, ancenstor *datastore.Key) *datastore.Key {
-	ret := datastore.IncompleteKey(kind, ancenstor)
-	ret.Namespace = c.namespace
+	ret := ds.NewKey(dsconst.TRYJOB_RESULT)
+	ret.Parent = tryjobKey
 	return ret
 }

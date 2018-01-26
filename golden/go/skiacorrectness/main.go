@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
@@ -292,7 +293,11 @@ func main() {
 		sklog.Fatalf("Unable to create GStorageClient: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(*projectID, *dsNamespace, evt, option.WithTokenSource(tokenSource))
+	if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSource)); err != nil {
+		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
+	}
+
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}

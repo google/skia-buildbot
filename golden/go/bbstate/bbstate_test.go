@@ -8,12 +8,11 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/tryjobstore"
-	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 )
 
@@ -31,7 +30,7 @@ func TestBuildBucketState(t *testing.T) {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 
-	tjStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold_ingestion-localhost-stephana", nil, option.WithServiceAccountFile(serviceAccountFile))
+	tjStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, nil)
 	assert.NoError(t, err)
 
 	// Remove all issues.
