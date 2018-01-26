@@ -23,7 +23,7 @@
     },
 
     // Pdfium Gold trybot ingester
-    "gold-trybot": {
+    "gold-tryjob": {
       RunEvery: "5m",
       NCommits: 10,
       MinDays: 20,
@@ -36,10 +36,13 @@
         }
       ],
       ExtraParams: {
-        TraceService: "skia-tracedb:9091",
-        RietveldCodeReviewURL: "https://codereview.chromium.org",
-        GerritCodeReviewURL: "https://pdfium-review.googlesource.com"
+        GerritCodeReviewURL: "https://pdfium-review.googlesource.com",
+        TryjobDatastoreNameSpace: "gold-pdfium",
+        BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
+        BuildBucketName: "master.tryserver.client.pdfium",
+        BuildBucketPollInterval: "10m",
+        BuildBucketTimeWindow: "6h",
       }
-    }
+    },
   }
 }
