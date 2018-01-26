@@ -11,4 +11,5 @@ const (
 	CONSTRUCTOR_ANDROID_GOLD = "android-gold"
 	CONSTRUCTOR_GOLD_TRYJOB  = "gold-tryjob"
 	CONSTRUCTOR_PDF          = "pdf"
+	CONSTRUCTOR_DS_GOLD      = "ds-gold"
 )
