@@ -41,7 +41,7 @@ func (c *Checkout) FetchRefFromRepo(ctx context.Context, repo, ref string) error
 
 // Fetch syncs refs from the remote without modifying the working copy.
 func (c *Checkout) Fetch(ctx context.Context) error {
-	_, err := c.Git(ctx, "fetch", "origin")
+	_, err := c.Git(ctx, "fetch", "--prune", "origin")
 	return err
 }
 

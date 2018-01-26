@@ -33,7 +33,7 @@ func NewRepo(ctx context.Context, repoUrl, workdir string) (*Repo, error) {
 func (r *Repo) Update(ctx context.Context) error {
 	cmd := &exec.Command{
 		Name:    "git",
-		Args:    []string{"remote", "update"},
+		Args:    []string{"remote", "update", "--prune"},
 		Dir:     r.Dir(),
 		Timeout: time.Minute,
 	}
