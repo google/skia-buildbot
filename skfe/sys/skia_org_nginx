@@ -396,6 +396,20 @@ server {
     server_name android-compile.skia.org;
     return 301 https://android-compile.skia.org$request_uri;
 }
+server {
+    listen      8008;
+    server_name android-compile.skia.org;
+
+    location /_/register {
+        proxy_pass http://android-compile:8008/_/register;
+        proxy_set_header Host $host;
+    }
+
+    location /get_task_status {
+        proxy_pass http://android-compile:8008/get_task_status;
+        proxy_set_header Host $host;
+    }
+}
 
 #####   android-master-roll.skia.org   ###########################
 server {
