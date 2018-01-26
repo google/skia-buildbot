@@ -123,17 +123,18 @@ type Commit struct {
 }
 
 // FindCommit searches the given commits for the given hash and returns the
-// matching commit. If the commit cannot be found nil is returned.
-func FindCommit(commits []*Commit, targetHash string) *Commit {
+// index of the commit and the commit itself. If the commit cannot be
+// found (-1, nil) is returned.
+func FindCommit(commits []*Commit, targetHash string) (int, *Commit) {
 	if targetHash == "" {
-		return nil
+		return -1, nil
 	}
-	for _, commit := range commits {
+	for idx, commit := range commits {
 		if commit.Hash == targetHash {
-			return commit
+			return idx, commit
 		}
 	}
-	return nil
+	return -1, nil
 }
 
 // Tile is a config.TILE_SIZE commit slice of data.

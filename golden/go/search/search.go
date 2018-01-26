@@ -511,9 +511,8 @@ func getFilterByTileFunctions(matchFields []string, condDigests map[string]param
 	var addFn AddFn = nil
 	if len(matchFields) >= 0 {
 		matching := make([]string, 0, len(condDigests))
-		acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
+		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) {
 			matching = matching[:0]
-			params := trace.Params()
 			for digest, paramSet := range condDigests {
 				if paramsMatch(matchFields, paramSet, params) {
 					matching = append(matching, digest)
@@ -557,9 +556,8 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 	var addFn AddFn = nil
 	if len(matchFields) >= 0 {
 		matching := make([]string, 0, len(condDigests))
-		acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
+		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) {
 			matching = matching[:0]
-			params := trace.Params()
 			for digest, paramSet := range condDigests {
 				if paramsMatch(matchFields, paramSet, params) {
 					matching = append(matching, digest)

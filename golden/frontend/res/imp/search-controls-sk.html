@@ -32,6 +32,14 @@
 
       setParamSet(params) - Sets the parameters of the enclosed query-dialog-sk element
           and enables the controls accordingly.
+
+      setCommitInfo(commitinfo) - Where commitinfo is an array of objects of the form:
+
+        {
+          author: "foo@example.org"
+          commit_time: 1428574804
+          hash: "d9f8862ab6bed4195cbfe5dda48693e1062b01e2"
+        }
   -->
 <link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
@@ -153,6 +161,10 @@
         setParamSet: function(params) {
           this.$.queryDialog.queryEle.setParamSet(params);
           this.$.filterDialog.setParamSet(params);
+        },
+
+        setCommitInfo: function(commits) {
+          this.$.filterDialog.setCommitInfo(commits);
         },
 
         _handleQueryEdit: function(ev) {
