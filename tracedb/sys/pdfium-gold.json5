@@ -22,24 +22,29 @@
       }
     },
 
-    // Pdfium Gold trybot ingester
-    "gold-trybot": {
-      RunEvery: "5m",
-      NCommits: 10,
-      MinDays: 20,
-      StatusDir: "/mnt/pd0/pdfium_gold/ingest_status",
-      MetricName: "pdfium-gold-ingest-trybot",
-      Sources: [
-        {
-          Bucket: "skia-pdfium-gm",
-          Dir: "trybot/dm-json-v1"
-        }
-      ],
-      ExtraParams: {
-        TraceService: "skia-tracedb:9091",
-        RietveldCodeReviewURL: "https://codereview.chromium.org",
-        GerritCodeReviewURL: "https://pdfium-review.googlesource.com"
-      }
-    }
+    // TODO(stephana): Enable when it works locally.
+    //
+    // // Pdfium Gold trybot ingester
+    // "gold-tryjob": {
+    //   RunEvery: "5m",
+    //   NCommits: 10,
+    //   MinDays: 20,
+    //   StatusDir: "/mnt/pd0/pdfium_gold/ingest_status",
+    //   MetricName: "pdfium-gold-ingest-trybot",
+    //   Sources: [
+    //     {
+    //       Bucket: "skia-pdfium-gm",
+    //       Dir: "trybot/dm-json-v1"
+    //     }
+    //   ],
+    //   ExtraParams: {
+    //     GerritCodeReviewURL: "https://pdfium-review.googlesource.com",
+    //     TryjobDatastoreNameSpace: "gold-pdfium",
+    //     BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
+    //     BuildBucketName: "master.tryserver.client.pdfium",
+    //     BuildBucketPollInterval: "10m",
+    //     BuildBucketTimeWindow: "6h",
+    //   }
+    // },
   }
 }
