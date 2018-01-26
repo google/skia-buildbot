@@ -8,6 +8,7 @@ ExecStart=/usr/local/bin/android_compile \
     --workdir=/mnt/pd0 \
     --host=android-compile.skia.org \
     --resources_dir=/usr/local/share/android-compiled/ \
+    --num_checkouts=5 \
     --logtostderr
 Restart=always
 User=default

@@ -10,7 +10,6 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
-	"runtime"
 
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
@@ -18,7 +17,6 @@ import (
 
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/common"
 	sk_exec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git"
@@ -34,6 +32,7 @@ const (
 
 	ANDROID_MANIFEST_URL = "https://googleplex-android.googlesource.com/a/platform/manifest"
 	ANDROID_SKIA_URL     = "https://googleplex-android.googlesource.com/a/platform/external/skia"
+	SKIA_REPO_URL        = "http://skia.googlesource.com/a/skia.git"
 
 	TRY_BRANCH_NAME = "try_branch"
 
@@ -133,8 +132,9 @@ func updateCheckout(ctx context.Context, checkoutPath string) error {
 	if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "init", "-u", ANDROID_MANIFEST_URL, "-g", "all,-notdefault,-darwin", "-b", "master"); err != nil {
 		return fmt.Errorf("Failed to init the repo at %s: %s", checkoutBase, err)
 	}
-	// Sync the current branch.
-	if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j32"); err != nil {
+	// Sync the current branch, only fetch projects fixed to sha1 if revision
+	// does not exist locally, and delete refs that no longer exist on server.
+	if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j32", "--optimized-fetch", "--prune"); err != nil {
 		return fmt.Errorf("Failed to sync the repo at %s: %s", checkoutBase, err)
 	}
 
@@ -154,7 +154,7 @@ func applyPatch(ctx context.Context, skiaCheckout *git.Checkout, issue, patchset
 	//                |
 	//                +-> Last two digits of Issue ID.
 	issuePostfix := issue % 100
-	if err := skiaCheckout.FetchRefFromRepo(ctx, common.REPO_SKIA, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset)); err != nil {
+	if err := skiaCheckout.FetchRefFromRepo(ctx, SKIA_REPO_URL, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset)); err != nil {
 		return fmt.Errorf("Failed to fetch ref in %s: %s", skiaCheckout.Dir(), err)
 	}
 	if _, err := skiaCheckout.Git(ctx, "reset", "--hard", "FETCH_HEAD"); err != nil {
@@ -254,7 +254,7 @@ func addToCheckoutsChannel(checkout string) {
 // that the tree is not broken by building at Skia HEAD. Update CompileTask
 // with link to logs and whether the no patch run was successful.
 //
-func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datastore.Key) error {
+func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datastore.Key, pathToCompileScript string) error {
 	// Blocking call to wait for an available checkout.
 	checkoutPath := <-availableCheckoutsChan
 	defer addToCheckoutsChannel(checkoutPath)
@@ -291,7 +291,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 	}
 
 	// Add origin remote that points to the Skia repo.
-	if err := skiaCheckout.AddRemote(ctx, "origin", common.REPO_SKIA); err != nil {
+	if err := skiaCheckout.AddRemote(ctx, "origin", SKIA_REPO_URL); err != nil {
 		return fmt.Errorf("Error when adding origin remote: %s", err)
 	}
 	// Fetch origin without updating checkout
@@ -328,7 +328,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 
 	// Step 8: Do the with patch or with hash compilation and update CompileTask
 	// with link to logs and whether it was successful.
-	withPatchSuccess, gsWithPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_withpatch_", datastoreKey.ID))
+	withPatchSuccess, gsWithPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_withpatch_", datastoreKey.ID), pathToCompileScript)
 	if err != nil {
 		return fmt.Errorf("Error when compiling checkout withpatch at %s: %s", checkoutPath, err)
 	}
@@ -354,7 +354,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 			return fmt.Errorf("Could not prepare Skia checkout for compile: %s", err)
 		}
 		// Do the no patch compilation.
-		noPatchSuccess, gsNoPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_nopatch_", datastoreKey.ID))
+		noPatchSuccess, gsNoPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_nopatch_", datastoreKey.ID), pathToCompileScript)
 		if err != nil {
 			return fmt.Errorf("Error when compiling checkout nopatch at %s: %s", checkoutPath, err)
 		}
@@ -375,18 +375,15 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 // We do the compilation via compile.sh and not via exec because
 // ./build/envsetup.sh needs to be sournced before running lunch and mma
 // commands and this was much simpler to do via a bash script.
-func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix string) (bool, string, error) {
+func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCompileScript string) (bool, string, error) {
 	checkoutBase := path.Base(checkoutPath)
 	sklog.Infof("Started compiling %s", checkoutBase)
 	// Create metric and send it to a timer.
 	compileTimesMetric := metrics2.GetFloat64Metric(fmt.Sprintf("android_compile_time_%s", checkoutBase))
 	defer timer.NewWithMetric(fmt.Sprintf("Time taken to compile %s:", checkoutBase), compileTimesMetric).Stop()
 
-	// Find the compile script.
-	_, currentFile, _, _ := runtime.Caller(0)
-	compileScript := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "compile.sh")
 	// Execute the compile script pointing it to the checkout.
-	command := exec.Command(compileScript, checkoutPath)
+	command := exec.Command(pathToCompileScript, checkoutPath)
 	logFile, err := ioutil.TempFile(*workdir, logFilePrefix)
 	defer util.Remove(logFile.Name())
 	if err != nil {

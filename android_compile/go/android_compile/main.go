@@ -44,7 +44,7 @@ var (
 	tasksPort    = flag.String("tasks_port", ":8008", "Port used to register and query status of tasks (e.g., ':8008')")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	workdir      = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
+	resourcesDir = flag.String("resources_dir", "", "The directory to find compile.sh, templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
 	numCheckouts = flag.Int("num_checkouts", 10, "The number of checkouts the Android compile server should maintain.")
 
 	// Datastore params
@@ -190,7 +190,8 @@ func registerRunHandler(w http.ResponseWriter, r *http.Request) {
 // completion the task is marked as Done and updated in the Datastore.
 func triggerCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datastore.Key) {
 	go func() {
-		if err := RunCompileTask(ctx, task, datastoreKey); err != nil {
+		pathToCompileScript := filepath.Join(*resourcesDir, "compile.sh")
+		if err := RunCompileTask(ctx, task, datastoreKey, pathToCompileScript); err != nil {
 			task.InfraFailure = true
 			sklog.Errorf("Error when compiling task with ID %d: %s", datastoreKey.ID, err)
 		}
