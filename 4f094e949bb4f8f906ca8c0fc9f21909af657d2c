@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "620d41f3_8ba6c3d1",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-26T19:14:56Z",
+      "side": 1,
+      "message": "The insteadOf setting in .gitconfig on the instance has:\n\n[url \"https://skia.googlesource.com/a/\"]\n        insteadOf \u003d https://skia.googlesource.com/a/\n        insteadOf \u003d https://skia.googlesource.com/\n\n\nThe strange thing is whatever I set \"git remote add origin URL\" to, \"git remote get-url origin\" still gives me back http://skia.googlesource.com/a/skia.git\nI tried URL as:\nhttps://skia.googlesource.com/skia.git\nhttps://skia.googlesource.com/a/skia.git\n\nWhen the URLs do not match checkout.AddRemote throws an error. I could not reproduce this on my desktop, I assumed that maybe the different git version was doing this.",
+      "parentUuid": "e582ebdc_de60c9c4",
+      "range": {
+        "startLine": 35,
+        "startChar": 25,
+        "endLine": 35,
+        "endChar": 64
+      },
+      "revId": "4f094e949bb4f8f906ca8c0fc9f21909af657d2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0b723aba_53672bd1",
         "filename": "go/git/checkout.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "4f094e949bb4f8f906ca8c0fc9f21909af657d2c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02c79dc5_5a71e4c9",
+        "filename": "go/git/checkout.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-26T19:14:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b723aba_53672bd1",
+      "range": {
+        "startLine": 65,
+        "startChar": 63,
+        "endLine": 65,
+        "endChar": 99
+      },
+      "revId": "4f094e949bb4f8f906ca8c0fc9f21909af657d2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
