@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d2d86744_a21aa963",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-26T13:51:08Z",
+      "side": 1,
+      "message": "Can you add the data store client as an argument. IMO it makes it easier to understand what goes into the instance.  i.e. in main there should then be:\n\n... NewCloudTryjobStore(ds.DS, eventBus) ...",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 75
+      },
+      "revId": "5dd391f2990a30bf52d537b64760e2141584524a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
