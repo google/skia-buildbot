@@ -1,0 +1,116 @@
+package dstilestore
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/dsconst"
+	"go.skia.org/infra/golden/go/types"
+)
+
+func TestTrace(t *testing.T) {
+	testutils.SmallTest(t)
+
+	trace := NewTrace()
+	assert.Equal(t, []string{}, trace.Digests)
+	assert.Equal(t, []int{0, 0, 0, 0}, trace.Trace[:4])
+
+	trace.Add("123", 0)
+	assert.Equal(t, []string{"123"}, trace.Digests)
+	assert.Equal(t, []int{1, 0, 0, 0}, trace.Trace[:4])
+
+	trace.Add("123", 2)
+	assert.Equal(t, []string{"123"}, trace.Digests)
+	assert.Equal(t, []int{1, 0, 1, 0}, trace.Trace[:4])
+
+	trace.Add("456", 1)
+	assert.Equal(t, []string{"123", "456"}, trace.Digests)
+	assert.Equal(t, []int{1, 2, 1, 0}, trace.Trace[:4])
+
+	trace.Add("789", 53)
+	assert.Equal(t, []string{"123", "456", "789"}, trace.Digests)
+	assert.Equal(t, []int{1, 2, 1, 3}, trace.Trace[:4])
+
+	gt := trace.AsGoldenTrace(",arch=x86,config=8888,")
+	assert.Equal(t, map[string]string{"arch": "x86", "config": "8888"}, gt.Params_)
+	assert.Equal(t, []string{"123", "456", "123", "789", ""}, gt.Values[:5])
+}
+
+func TestAdd(t *testing.T) {
+	testutils.LargeTest(t)
+
+	cleanup := testutil.InitDatastore(t,
+		dsconst.TILE,
+		dsconst.TEST_NAME,
+		dsconst.TRACE)
+	defer cleanup()
+
+	d := NewDSTileStore(context.Background(), ds.DS)
+
+	ctx := context.Background()
+	entries := map[string]*types.ParsedIngestionEntry{
+		",arch=arm,compiler=GCC,config=8888,name=shadermaskfilter_image,": &types.ParsedIngestionEntry{
+			Name:   "shadermaskfilter_image",
+			Digest: "123",
+		},
+		",arch=x86,compiler=GCC,config=8888,name=shadermaskfilter_image,": &types.ParsedIngestionEntry{
+			Name:   "shadermaskfilter_image",
+			Digest: "456",
+		},
+		",arch=x86,compiler=GCC,config=8888,name=oval,": &types.ParsedIngestionEntry{
+			Name:   "oval",
+			Digest: "789",
+		},
+	}
+	err := d.Add(102, entries)
+	assert.NoError(t, err)
+	var tile Tile
+	key := tileKey(102)
+	err = ds.DS.Get(ctx, key, &tile)
+	assert.NoError(t, err)
+
+	var testName TestName
+	key = testNameKey(102, "shadermaskfilter_image")
+	err = ds.DS.Get(ctx, key, &testName)
+	assert.NoError(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	var trace Trace
+	key = traceKey(102, "shadermaskfilter_image", ",arch=arm,compiler=GCC,config=8888,name=shadermaskfilter_image,")
+	err = ds.DS.Get(ctx, key, &trace)
+	assert.NoError(t, err)
+
+	key = traceKey(102, "shadermaskfilter_image", ",arch=x86,compiler=GCC,config=8888,name=shadermaskfilter_image,")
+	err = ds.DS.Get(ctx, key, &trace)
+	assert.NoError(t, err)
+
+	key = traceKey(102, "shadermaskfilter_image", "some unknown key")
+	err = ds.DS.Get(ctx, key, &trace)
+	assert.Error(t, err)
+
+	q := ds.NewQuery(dsconst.TRACE).Ancestor(tileKey(102))
+	traces := []*Trace{}
+	_, err = ds.DS.GetAll(ctx, q, &traces)
+	assert.NoError(t, err)
+	assert.Len(t, traces, 2)
+
+	entries = map[string]*types.ParsedIngestionEntry{
+		",arch=x86,compiler=GCC,config=8888,name=oval,": &types.ParsedIngestionEntry{
+			Name:   "oval",
+			Digest: "789",
+		},
+	}
+	err = d.Add(102, entries)
+	assert.NoError(t, err)
+
+	_, err = ds.DS.GetAll(ctx, q, &traces)
+	assert.NoError(t, err)
+	assert.Len(t, traces, 3)
+
+}
