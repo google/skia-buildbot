@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e582ebdc_de60c9c4",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-26T19:03:16Z",
+      "side": 1,
+      "message": "This should be handled by the insteadOf settings in the .gitconfig.  Is that not the case?",
+      "range": {
+        "startLine": 35,
+        "startChar": 25,
+        "endLine": 35,
+        "endChar": 64
+      },
+      "revId": "4f094e949bb4f8f906ca8c0fc9f21909af657d2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b723aba_53672bd1",
+        "filename": "go/git/checkout.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-26T19:03:16Z",
+      "side": 1,
+      "message": "Would strings.TrimSpace work?",
+      "range": {
+        "startLine": 65,
+        "startChar": 63,
+        "endLine": 65,
+        "endChar": 99
+      },
+      "revId": "4f094e949bb4f8f906ca8c0fc9f21909af657d2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
