@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ba01bb2_5c4eceab",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-26T20:59:32Z",
+      "side": 1,
+      "message": "nit: Maybe rename this METADATA_PATH_PREFIX_TMPL",
+      "range": {
+        "startLine": 48,
+        "startChar": 10,
+        "endLine": 48,
+        "endChar": 13
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65c0d026_397e2b8a",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-26T20:59:32Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 55,
+        "startChar": 38,
+        "endLine": 55,
+        "endChar": 40
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bb37605_6c823c58",
+        "filename": "skolo/go/swarming_token/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-26T20:59:32Z",
+      "side": 1,
+      "message": "nit: maybe rename \"freshen_swarming_token\"?",
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b600053_a84ab226",
+        "filename": "skolo/go/swarming_token/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-26T20:59:32Z",
+      "side": 1,
+      "message": "Probably not important, but why every 4 minutes? Aren\u0027t the tokens valid for 60 minutes and refreshed every 45 minutes, meaning there\u0027s a 15 minute grace period?\n\nAlso consider this approach: https://skia.googlesource.com/buildbot/+/e52fe456c0693f0853d7092c3826dcf499cbbf33/pulld/go/pulld/pull.go#113",
+      "range": {
+        "startLine": 17,
+        "startChar": 24,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8368f879_fe7c1fb3",
+        "filename": "skolo/go/swarming_token/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-26T20:59:32Z",
+      "side": 1,
+      "message": "Do we pick this location? Seems like it will be easy to confuse this with C:\\b\\s.",
+      "range": {
+        "startLine": 22,
+        "startChar": 19,
+        "endLine": 22,
+        "endChar": 31
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f01e6d5_00a50e0d",
+        "filename": "skolo/raspberry-pi/setup-swarming.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-26T20:59:32Z",
+      "side": 1,
+      "message": "ISTM that for up to 4 minutes after the bot boots up, it could have an expired token.\n\nWould it be easier for swarming_token to be a long-lived process or service that starts at boot?",
+      "range": {
+        "startLine": 55,
+        "startChar": 9,
+        "endLine": 55,
+        "endChar": 12
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f945865_9df631ad",
+        "filename": "tools/go_build_all_platforms.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-26T20:59:32Z",
+      "side": 1,
+      "message": "Does this auto-add .exe for Windows?",
+      "range": {
+        "startLine": 35,
+        "startChar": 29,
+        "endLine": 35,
+        "endChar": 39
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ece4c64_5680e884",
+        "filename": "tools/go_build_and_upload_all_platforms.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-26T20:59:32Z",
+      "side": 1,
+      "message": "Would there be any advantage to using $GOPATH/out rather than /tmp/out?",
+      "range": {
+        "startLine": 15,
+        "startChar": 9,
+        "endLine": 15,
+        "endChar": 14
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
