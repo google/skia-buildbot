@@ -61,8 +61,8 @@ func (c *Checkout) AddRemote(ctx context.Context, remote, repoUrl string) error 
 		}
 	} else {
 		// Remote already exists. Make sure that the URLs match.
-		if strings.TrimRight(remoteOutput, "\n") != repoUrl {
-			return fmt.Errorf("%s points to %s instead of %s", remote, remoteOutput, repoUrl)
+		if strings.TrimSpace(remoteOutput) != repoUrl {
+			return fmt.Errorf("%s points to %s instead of %s", remote, strings.TrimSpace(remoteOutput), repoUrl)
 		}
 	}
 	return nil
