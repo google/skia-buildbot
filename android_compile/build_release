@@ -19,6 +19,7 @@ ${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/sha
 ${INSTALL}     --mode=644    ./templates/*                 ${ROOT}/usr/local/share/${APPNAME}/templates
 ${INSTALL}     --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
 ${INSTALL}     --mode=644 -T ./res/vul/elements.html       ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
+${INSTALL}     --mode=755 -T ./compile.sh                  ${ROOT}/usr/local/share/${APPNAME}/compile.sh
 }
 
 source ../bash/release.sh
