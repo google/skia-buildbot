@@ -280,3 +280,9 @@ func TileFromJson(r io.Reader, traceExample tiling.Trace) (*tiling.Tile, error) 
 		TileIndex: rawTile.Scale,
 	}, nil
 }
+
+// ParsedIngestionEntry is emitted from ingestion and passed to dstilestore.
+type ParsedIngestionEntry struct {
+	Name   string
+	Digest string
+}
