@@ -111,3 +111,7 @@ get_oauth2_token_push: get_oauth2_token_release
 	pushcli "get-oauth2-token" "jumphost-rpi-01"
 	pushcli "get-oauth2-token" "jumphost-win-02"
 
+.PHONY: swarming_token_upload
+swarming_token_upload:
+	../tools/go_build_and_upload_all_platforms.sh ./go/swarming_token
+
