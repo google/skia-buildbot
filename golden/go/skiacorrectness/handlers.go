@@ -882,6 +882,20 @@ func jsonParamsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// jsonParamsHandler returns the most current commits.
+func jsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
+	tilePair, err := storages.GetLastTileTrimmed()
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load tile")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(tilePair.Tile.Commits); err != nil {
+		sklog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
 // textAllHashesHandler returns the list of all hashes we currently know about
 // regardless of triage status.
 // Endpoint used by the buildbots to avoid transferring already known images.
