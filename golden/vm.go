@@ -60,7 +60,7 @@ func DiffServerBase(name string) *gce.Instance {
 func Prod() *gce.Instance {
 	// Below IP has been whitelisted in Cloud SQL.
 	vm := GoldBase("skia-gold-prod", "35.194.17.199")
-	vm.Metadata["auth_white_list"] = "google.com"
+	vm.Metadata["auth_white_list"] = "google.com mtklein@chromium.org"
 	return vm
 }
 
