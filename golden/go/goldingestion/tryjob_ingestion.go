@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
@@ -82,12 +81,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	}
 
 	// Create the cloud tryjob store.
-	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", svcAccountFile, gstorage.CloudPlatformScope)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create auth token source: %s", err)
-	}
-
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, tryjobNamespace, nil, option.WithTokenSource(tokenSrc))
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}

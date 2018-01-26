@@ -7,10 +7,11 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"google.golang.org/api/option"
 
-	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/dsconst"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -18,12 +19,15 @@ import (
 func TestCloudTryjobStore(t *testing.T) {
 	testutils.LargeTest(t)
 
-	// TODO(stephana): This test should be tested shomehow, probably by running
-	// the simulator in the bot.
-	t.Skip()
+	cleanup := testutil.InitDatastore(t,
+		dsconst.ISSUE,
+		dsconst.TRYJOB,
+		dsconst.TRYJOB_RESULT,
+		dsconst.TRYJOB_EXP_CHANGE,
+		dsconst.TEST_DIGEST_EXP)
+	defer cleanup()
 
-	serviceAccountFile := "./service-account.json"
-	store, err := NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", nil, option.WithServiceAccountFile(serviceAccountFile))
+	store, err := NewCloudTryjobStore(ds.DS, nil)
 	assert.NoError(t, err)
 
 	testTryjobStore(t, store)

@@ -7,11 +7,12 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/ingestion"
-	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/dsconst"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
@@ -27,9 +28,13 @@ const (
 func TestTryjobGoldProcessor(t *testing.T) {
 	testutils.LargeTest(t)
 
-	// TODO(stephana): This test should be tested shomehow, probably by running
-	// the simulator in the bot.
-	t.Skip()
+	cleanup := testutil.InitDatastore(t,
+		dsconst.ISSUE,
+		dsconst.TRYJOB,
+		dsconst.TRYJOB_RESULT,
+		dsconst.TRYJOB_EXP_CHANGE,
+		dsconst.TEST_DIGEST_EXP)
+	defer cleanup()
 
 	issueUpdated, err := time.Parse("2006-01-02 15:04:05 MST", "2017-12-07 14:54:05 EST")
 	assert.NoError(t, err)
@@ -58,8 +63,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
 	}
 
-	opt := option.WithServiceAccountFile("service-account.json")
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(common.PROJECT_ID, "gold-localhost-stephana", nil, opt)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, nil)
 	assert.NoError(t, err)
 
 	// Make sure the issue is removed.
