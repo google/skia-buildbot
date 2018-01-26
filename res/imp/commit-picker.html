@@ -77,9 +77,12 @@
       "panel.commit-selected": "_panelSelect",
     },
 
-
     selectHash: function(hash) {
       this.$.panel.selectHash(hash);
+    },
+
+    setCommitInfo: function(commits) {
+      this.$.panel.setCommitInfo(commits);
     },
 
     _selectTap: function() {

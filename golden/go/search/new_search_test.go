@@ -95,6 +95,11 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 		return 0
 	}
 
+	// Ignore queries for gerrit issues right now.
+	if q.Issue > 0 {
+		return 0
+	}
+
 	// Ignore queries with blames since they are ephemeral.
 	if q.BlameGroupID != "" {
 		return 0
