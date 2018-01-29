@@ -14,7 +14,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -22,6 +21,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -41,8 +41,8 @@ var (
 )
 
 type EntityFilter struct {
-	Kinds        []string `json:"kinds"`
-	NamespaceIds []string `json:"namespaceIds"`
+	Kinds        []ds.Kind `json:"kinds"`
+	NamespaceIds []string  `json:"namespaceIds"`
 }
 
 type Request struct {
@@ -51,37 +51,49 @@ type Request struct {
 }
 
 func step(client *http.Client) error {
-	req := Request{
-		OutputUrlPrefix: "gs://skia-backups/ds/" + time.Now().Format("2006/01/02/15/"),
-		EntityFilter: EntityFilter{
-			//
-			// Configure what gets backed up here by adding to Kinds and NamespaceIds.
-			//
-			Kinds:        []string{"Activity", "Alert", "Regression", "Shortcut"},
-			NamespaceIds: []string{"perf", "perf-android", "perf-androidmaster"},
-		},
+	//
+	// Configure what gets backed up here by adding to ds.KindsToBackup.
+	//
+	success := true
+	for ns, kinds := range ds.KindsToBackup {
+		req := Request{
+			OutputUrlPrefix: "gs://skia-backups/ds/" + time.Now().Format("2006/01/02/15/"),
+			EntityFilter: EntityFilter{
+				Kinds:        kinds,
+				NamespaceIds: []string{ns},
+			},
+		}
+		b, err := json.Marshal(req)
+		if err != nil {
+			sklog.Errorf("Failed to encode request: %s-%v: %s", ns, kinds, err)
+			success = false
+			continue
+		}
+		buf := bytes.NewBuffer(b)
+		resp, err := client.Post(URL, "application/json", buf)
+		if err != nil {
+			sklog.Errorf("Request failed: %s-%v: %s", ns, kinds, err)
+			success = false
+			continue
+		}
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		body := string(bodyBytes)
+		if err != nil {
+			sklog.Errorf("Failed to read response: %s-%v: %s", ns, kinds, err)
+			success = false
+			continue
+		}
+		if resp.StatusCode == 200 {
+			sklog.Info(body)
+		} else if resp.StatusCode >= 500 {
+			success = false
+			sklog.Error(body)
+		} else {
+			sklog.Warning(body)
+		}
 	}
-	b, err := json.Marshal(req)
-	if err != nil {
-		return fmt.Errorf("Failed to encode request: %s", err)
-	}
-	buf := bytes.NewBuffer(b)
-	resp, err := client.Post(URL, "application/json", buf)
-	if err != nil {
-		return fmt.Errorf("Request failed: %s", err)
-	}
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	body := string(bodyBytes)
-	if err != nil {
-		return fmt.Errorf("Failed to read response: %s", err)
-	}
-	if resp.StatusCode == 200 {
-		sklog.Info(body)
+	if success {
 		backupSuccess.Reset()
-	} else if resp.StatusCode >= 500 {
-		sklog.Error(body)
-	} else {
-		sklog.Warning(body)
 	}
 	backupStep.Reset()
 	return nil
