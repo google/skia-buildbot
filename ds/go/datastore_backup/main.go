@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -57,8 +58,37 @@ func step(client *http.Client) error {
 			//
 			// Configure what gets backed up here by adding to Kinds and NamespaceIds.
 			//
-			Kinds:        []string{"Activity", "Alert", "Regression", "Shortcut"},
-			NamespaceIds: []string{"perf", "perf-android", "perf-androidmaster"},
+			Kinds: []string{
+				// Predict
+				// - No backups for Predict since it is easy to rebuild the dataset from Swarming
+
+				// Perf
+				ds.ACTIVITY,
+				ds.ALERT,
+				ds.REGRESSION,
+				ds.SHORTCUT,
+
+				// Gold
+				ds.ISSUE,
+				ds.TRYJOB,
+				ds.TRYJOB_RESULT,
+				ds.TRYJOB_EXP_CHANGE,
+				ds.TEST_DIGEST_EXP,
+
+				// Android Compile
+				ds.COMPILE_TASK,
+
+				// Leasing
+				ds.TASK,
+			},
+			NamespaceIds: []string{
+				ds.PERF_NS,
+				ds.PERF_ANDROID_NS,
+				ds.PERF_ANDROID_MASTER_NS,
+				ds.GOLD_SKIA_PROD_NS,
+				ds.ANDROID_COMPILE_NS,
+				ds.LEASING_SERVER_NS,
+			},
 		},
 	}
 	b, err := json.Marshal(req)
