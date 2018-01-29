@@ -74,7 +74,7 @@ var (
 	resourcesDir    = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
 	rollIntoGoogle3 = flag.Bool("roll_into_google3", false, "Roll into Google3; do not do a Gerrit roll.")
-	sheriff         = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
+	sheriff         = common.NewMultiStringFlag("sheriff", nil, "Email address to CC on rolls, or URL from which to obtain such an email address.")
 	strategy        = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
 	throttleCount   = flag.Int64("throttle_count", 0, "Maximum number of attempts before throttling.")
 	throttleTime    = flag.String("throttle_time", "", "Time window for throttle attempts, eg. \"30m\" or \"1h10m\"")
@@ -102,17 +102,21 @@ type AutoRollerI interface {
 
 // Update the current sheriff list.
 func getSheriff() ([]string, error) {
-	emails, err := getSheriffHelper()
-	if err != nil {
-		return nil, err
-	}
-	// TODO(borenet): Do we need this any more?
-	if strings.Contains(*parentRepo, "chromium") && *childName != "WebRTC" {
-		for i, s := range emails {
-			emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
+	allEmails := []string{}
+	for _, s := range *sheriff {
+		emails, err := getSheriffHelper(s)
+		if err != nil {
+			return nil, err
 		}
+		// TODO(borenet): Do we need this any more?
+		if strings.Contains(*parentRepo, "chromium") && *childName != "WebRTC" {
+			for i, s := range emails {
+				emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
+			}
+		}
+		allEmails = append(allEmails, emails...)
 	}
-	return emails, nil
+	return allEmails, nil
 }
 
 // Parse the sheriff list from JS. Expects the list in this format:
@@ -133,26 +137,26 @@ func getSheriffJS(js string) []string {
 }
 
 // Helper for loading the sheriff list.
-func getSheriffHelper() ([]string, error) {
+func getSheriffHelper(sheriff string) ([]string, error) {
 	// If the passed-in sheriff doesn't look like a URL, it's probably an
 	// email address. Use it directly.
-	if _, err := url.ParseRequestURI(*sheriff); err != nil {
-		if strings.Count(*sheriff, "@") == 1 {
-			return []string{*sheriff}, nil
+	if _, err := url.ParseRequestURI(sheriff); err != nil {
+		if strings.Count(sheriff, "@") == 1 {
+			return []string{sheriff}, nil
 		} else {
-			return nil, fmt.Errorf("Sheriff must be an email address or a valid URL; %q doesn't look like either.", *sheriff)
+			return nil, fmt.Errorf("Sheriff must be an email address or a valid URL; %q doesn't look like either.", sheriff)
 		}
 	}
 
 	// Hit the URL to get the email address. Expect JSON or a JS file which
 	// document.writes the Sheriff(s) in a comma-separated list.
 	client := httputils.NewTimeoutClient()
-	resp, err := client.Get(*sheriff)
+	resp, err := client.Get(sheriff)
 	if err != nil {
 		return nil, err
 	}
 	defer util.Close(resp.Body)
-	if strings.HasSuffix(*sheriff, ".js") {
+	if strings.HasSuffix(sheriff, ".js") {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
