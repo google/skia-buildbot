@@ -22,6 +22,30 @@
       "revId": "7324ab981091e0372cc6e018378c8fcbb1b4b2ed",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1f3ee43_91db1af1",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-29T15:12:15Z",
+      "side": 1,
+      "message": "+1 On the web console most of the times (always?) the entity kinds are presented to together and it makes it hard to see what belongs where. Maybe have an app prefix e.g. gold_Issue, perf_Activity, so that in a sorting they show up in groups.",
+      "parentUuid": "dfcc7ee8_7e5d6ac6",
+      "range": {
+        "startLine": 40,
+        "startChar": 14,
+        "endLine": 40,
+        "endChar": 18
+      },
+      "revId": "7324ab981091e0372cc6e018378c8fcbb1b4b2ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
