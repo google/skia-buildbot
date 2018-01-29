@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -41,8 +42,8 @@ var (
 )
 
 type EntityFilter struct {
-	Kinds        []string `json:"kinds"`
-	NamespaceIds []string `json:"namespaceIds"`
+	Kinds        []ds.Kind `json:"kinds"`
+	NamespaceIds []string  `json:"namespaceIds"`
 }
 
 type Request struct {
@@ -57,8 +58,8 @@ func step(client *http.Client) error {
 			//
 			// Configure what gets backed up here by adding to Kinds and NamespaceIds.
 			//
-			Kinds:        []string{"Activity", "Alert", "Regression", "Shortcut"},
-			NamespaceIds: []string{"perf", "perf-android", "perf-androidmaster"},
+			Kinds:        ds.KindsToBackup,
+			NamespaceIds: ds.NamespacesToBackup,
 		},
 	}
 	b, err := json.Marshal(req)
