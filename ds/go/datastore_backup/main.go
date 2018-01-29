@@ -57,8 +57,37 @@ func step(client *http.Client) error {
 			//
 			// Configure what gets backed up here by adding to Kinds and NamespaceIds.
 			//
-			Kinds:        []string{"Activity", "Alert", "Regression", "Shortcut"},
-			NamespaceIds: []string{"perf", "perf-android", "perf-androidmaster"},
+			Kinds: []string{
+				// Predict
+				// - No backups for Predict since it is easy to rebuild the dataset from Swarming
+
+				// Perf
+				"Activity",
+				"Alert",
+				"Regression",
+				"Shortcut",
+
+				// Gold
+				"Issue",
+				"TryJob",
+				"TryJobResult",
+				"TryJobExpChange",
+				"TestDigestsExp",
+
+				// Android Compile
+				"CompileTask",
+
+				// Leasing
+				"Task",
+			},
+			NamespaceIds: []string{
+				"perf",
+				"perf-android",
+				"perf-androidmaster",
+				"gold-skia-prod",
+				"android-compile",
+				"leasing-server",
+			},
 		},
 	}
 	b, err := json.Marshal(req)

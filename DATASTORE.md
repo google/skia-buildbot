@@ -24,3 +24,7 @@ Examples:
     gold-pdfium
     gold-localhost-stephana
 
+Backups
+-------
+
+Backups are triggered by the app in `/ds/go/datastore_backup/`.

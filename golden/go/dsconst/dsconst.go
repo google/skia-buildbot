@@ -4,9 +4,7 @@ import "go.skia.org/infra/go/ds"
 
 // One const for each Datastore Kind.
 const (
-	TILE      ds.Kind = "Tile"
-	TEST_NAME ds.Kind = "TestName"
-	TRACE     ds.Kind = "Trace"
+	TRACE ds.Kind = "FlatTrace"
 
 	ISSUE             ds.Kind = "Issue"
 	TRYJOB            ds.Kind = "TryJob"
