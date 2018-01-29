@@ -3,7 +3,11 @@
 package baseline
 
 import (
+	"fmt"
+
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -106,6 +110,38 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 		Issue:       issueID,
 	}
 	return ret
+}
+
+func CommitIssueExp(commit *vcsinfo.LongCommit, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
+	issueID, err := commit.GetGerritIssue()
+	if err != nil {
+		return sklog.FmtErrorf("Unable to extract gerrit issue from commit %s. Got error: %s", commit.Hash, err)
+	}
+
+	issue, err := tryjobStore.GetIssue(issueID, false, nil)
+	if err != nil {
+		return err
+	}
+
+	if issue.Commited {
+		return nil
+	}
+
+	issueExp, err := tryjobStore.GetExpectations(issueID)
+	if err != nil {
+		return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)
+	}
+
+	if len(issueExp.Tests) == 0 {
+		return nil
+	}
+
+	syntheticUser := fmt.Sprintf("%s:%d", "", issueID)
+	if err := expStore.AddChange(issueExp.Tests, syntheticUser); err != nil {
+		return sklog.FmtErrorf("Unable to add expectations for issue %d: %s", issueID, err)
+	}
+
+	return tryjobStore.CommitIssueExp(issueID)
 }
 
 // minCommit returns newCommit if it appears before current (or current is nil).

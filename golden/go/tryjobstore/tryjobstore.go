@@ -39,6 +39,8 @@ type TryjobStore interface {
 	// exist in the database it will be created.
 	UpdateIssue(details *IssueDetails) error
 
+	CommitIssueExp(issueID int64) error
+
 	// DeleteIssue deletes the given issue and related information.
 	DeleteIssue(issueID int64) error
 
@@ -149,6 +151,10 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatch
 // UpdateIssue implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateIssue(details *IssueDetails) error {
 	return c.updateIfNewer(c.getIssueKey(details.ID), details)
+}
+
+func (c *cloudTryjobStore) CommitIssueExp(issueID int64) error {
+	return nil
 }
 
 // DeleteIssue implements the TryjobStore interface.

@@ -33,6 +33,10 @@ type LongCommit struct {
 // commits by timestamp, most recent first.
 type LongCommitSlice []*LongCommit
 
+func (l *LongCommit) GetGerritIssue() (int64, error) {
+	return 0, nil
+}
+
 func (s LongCommitSlice) Len() int           { return len(s) }
 func (s LongCommitSlice) Less(i, j int) bool { return s[i].Timestamp.After(s[j].Timestamp) }
 func (s LongCommitSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
