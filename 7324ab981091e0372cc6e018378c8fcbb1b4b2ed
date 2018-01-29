@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dfcc7ee8_7e5d6ac6",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-29T14:43:01Z",
+      "side": 1,
+      "message": "I guess this means that moving forward we should do more descriptive Kind names.",
+      "range": {
+        "startLine": 40,
+        "startChar": 14,
+        "endLine": 40,
+        "endChar": 18
+      },
+      "revId": "7324ab981091e0372cc6e018378c8fcbb1b4b2ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
