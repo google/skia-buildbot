@@ -16,10 +16,6 @@ import (
 	"go.skia.org/infra/go/ds"
 )
 
-const (
-	COMPILE_TASK ds.Kind = "CompileTask"
-)
-
 type CompileTask struct {
 	Issue    int    `json:"issue"`
 	PatchSet int    `json:"patchset"`
@@ -98,16 +94,16 @@ func DatastoreInit(project string, ns string) error {
 }
 
 func GetPendingTasks() *datastore.Iterator {
-	q := ds.NewQuery(COMPILE_TASK).EventualConsistency().Filter("Done =", false)
+	q := ds.NewQuery(ds.COMPILE_TASK).EventualConsistency().Filter("Done =", false)
 	return ds.DS.Run(context.TODO(), q)
 }
 
 func GetNewDSKey() *datastore.Key {
-	return ds.NewKey(COMPILE_TASK)
+	return ds.NewKey(ds.COMPILE_TASK)
 }
 
 func GetDSTask(taskID int64) (*datastore.Key, *CompileTask, error) {
-	key := ds.NewKey(COMPILE_TASK)
+	key := ds.NewKey(ds.COMPILE_TASK)
 	key.ID = taskID
 
 	task := &CompileTask{}

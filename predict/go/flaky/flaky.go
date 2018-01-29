@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/predict/go/dsconst"
 	"google.golang.org/api/iterator"
 )
 
@@ -76,7 +75,7 @@ func (fb *FlakyBuilder) createOrUpdateFlaky(ctx context.Context, botname string,
 	end = end.UTC()
 	defer metrics2.FuncTimer().Stop()
 
-	query := ds.NewQuery(dsconst.FLAKY_RANGES).
+	query := ds.NewQuery(ds.FLAKY_RANGES).
 		Filter("Open =", true).
 		Filter("BotName =", botname)
 	slice_stored := []*timeRangeStored{}
@@ -96,7 +95,7 @@ func (fb *FlakyBuilder) createOrUpdateFlaky(ctx context.Context, botname string,
 			BotName: botname,
 			Open:    true,
 		}
-		_, err = ds.DS.Put(ctx, ds.NewKey(dsconst.FLAKY_RANGES), stored)
+		_, err = ds.DS.Put(ctx, ds.NewKey(ds.FLAKY_RANGES), stored)
 		if err != nil {
 			return fmt.Errorf("Failed to create time range %v: %s", stored, err)
 		}
@@ -111,7 +110,7 @@ func (fb *FlakyBuilder) createOrUpdateFlaky(ctx context.Context, botname string,
 func (fb *FlakyBuilder) closeFlaky(ctx context.Context, botname string) error {
 	defer metrics2.FuncTimer().Stop()
 
-	query := ds.NewQuery(dsconst.FLAKY_RANGES).Filter("Open =", true).Filter("BotName =", botname)
+	query := ds.NewQuery(ds.FLAKY_RANGES).Filter("Open =", true).Filter("BotName =", botname)
 	slice_stored := []*timeRangeStored{}
 	keys, err := ds.DS.GetAll(ctx, query, &slice_stored)
 	if len(slice_stored) == 1 {
@@ -128,7 +127,7 @@ func (fb *FlakyBuilder) closeFlaky(ctx context.Context, botname string) error {
 // allOpenFlakyBots returns all bots that currently have an open flaky range.
 func (fb *FlakyBuilder) allOpenFlakyBots(ctx context.Context) (util.StringSet, error) {
 	ret := util.StringSet{}
-	query := ds.NewQuery(dsconst.FLAKY_RANGES).Filter("Open =", true)
+	query := ds.NewQuery(ds.FLAKY_RANGES).Filter("Open =", true)
 	it := ds.DS.Run(ctx, query)
 	row := &timeRangeStored{}
 	for {
@@ -191,7 +190,7 @@ func (fb *FlakyBuilder) Build(ctx context.Context, since time.Duration, now time
 
 	// Find all the timeRangeStored's that are within the given time range.
 	timeSince := now.Add(-1 * since)
-	query := ds.NewQuery(dsconst.FLAKY_RANGES).Filter("End >=", timeSince).Order("End")
+	query := ds.NewQuery(ds.FLAKY_RANGES).Filter("End >=", timeSince).Order("End")
 	it := ds.DS.Run(ctx, query)
 	row := &timeRangeStored{}
 	for {

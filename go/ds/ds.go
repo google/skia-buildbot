@@ -12,6 +12,34 @@ import (
 
 type Kind string
 
+// Below are all the Kinds used in all applications. New Kinds should be listed
+// here, and they should all have unique values, because when defining indexes
+// for Cloud Datastore the index config is per project, not pre-namespace.
+const (
+	// Predict
+	FAILURES     Kind = "Failures"
+	FLAKY_RANGES Kind = "FlakyRanges"
+
+	// Perf
+	SHORTCUT   Kind = "Shortcut"
+	ACTIVITY   Kind = "Activity"
+	REGRESSION Kind = "Regression"
+	ALERT      Kind = "Alert"
+
+	// Gold
+	ISSUE             Kind = "Issue"
+	TRYJOB            Kind = "TryJob"
+	TRYJOB_RESULT     Kind = "TryJobResult"
+	TRYJOB_EXP_CHANGE Kind = "TryJobExpChange"
+	TEST_DIGEST_EXP   Kind = "TestDigestExp"
+
+	// Android Compile
+	COMPILE_TASK Kind = "CompileTask"
+
+	// Leasing
+	TASK Kind = "Task"
+)
+
 var (
 	// DS is the Cloud Datastore client. Valid after Init() has been called.
 	DS *datastore.Client

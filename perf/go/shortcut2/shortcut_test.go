@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/perf/go/dsconst"
 )
 
 func TestShortcut(t *testing.T) {
 	testutils.MediumTest(t)
-	cleanup := testutil.InitDatastore(t, dsconst.SHORTCUT)
+	cleanup := testutil.InitDatastore(t, ds.SHORTCUT)
 
 	defer cleanup()
 

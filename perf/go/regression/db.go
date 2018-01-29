@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/db"
-	"go.skia.org/infra/perf/go/dsconst"
 	"google.golang.org/api/iterator"
 )
 
@@ -45,7 +44,7 @@ type DSRegression struct {
 
 // load_ds loads Regressions stored for the given commit from Cloud Datastore.
 func (s *Store) load_ds(tx *datastore.Transaction, cid *cid.CommitDetail) (*Regressions, error) {
-	key := ds.NewKey(dsconst.REGRESSION)
+	key := ds.NewKey(ds.REGRESSION)
 	key.Name = cid.ID()
 	dsRegression := &DSRegression{}
 	if err := tx.Get(key, dsRegression); err != nil {
@@ -72,7 +71,7 @@ func (s *Store) store_ds(tx *datastore.Transaction, cid *cid.CommitDetail, r *Re
 		Triaged: r.Triaged(),
 		TS:      cid.Timestamp,
 	}
-	key := ds.NewKey(dsconst.REGRESSION)
+	key := ds.NewKey(ds.REGRESSION)
 	key.Name = cid.ID()
 	_, err = tx.Put(key, dsRegression)
 	if err != nil {
@@ -83,7 +82,7 @@ func (s *Store) store_ds(tx *datastore.Transaction, cid *cid.CommitDetail, r *Re
 
 // Untriaged returns the number of untriaged regressions.
 func (s *Store) Untriaged() (int, error) {
-	q := ds.NewQuery(dsconst.REGRESSION).Filter("Triaged =", false).KeysOnly()
+	q := ds.NewQuery(ds.REGRESSION).Filter("Triaged =", false).KeysOnly()
 	it := ds.DS.Run(context.TODO(), q)
 	count := 0
 	for {
@@ -132,9 +131,9 @@ func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) 
 // or for all time if subset is UNTRIAGED_SUBSET.
 func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions, error) {
 	ret := map[string]*Regressions{}
-	q := ds.NewQuery(dsconst.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
+	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
 	if subset == UNTRIAGED_SUBSET {
-		q = ds.NewQuery(dsconst.REGRESSION).Filter("Triaged =", false)
+		q = ds.NewQuery(ds.REGRESSION).Filter("Triaged =", false)
 	}
 	it := ds.DS.Run(context.TODO(), q)
 	for {

@@ -11,12 +11,12 @@ import (
 	swarmingv1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	httpmock "gopkg.in/jarcoal/httpmock.v1"
 
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/predict/go/dsconst"
 )
 
 var (
@@ -99,7 +99,7 @@ func TestStore(t *testing.T) {
 	httpmock.RegisterResponder("GET", "https://skia-review.googlesource.com/changes/82041/revisions/1/files/",
 		httpmock.NewStringResponder(200, `)]}' {"somefile.txt":{}}`))
 
-	cleanup := testutil.InitDatastore(t, dsconst.FAILURES)
+	cleanup := testutil.InitDatastore(t, ds.FAILURES)
 	defer cleanup()
 
 	ctx := context.Background()

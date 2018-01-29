@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/predict/go/dsconst"
 )
 
 func TestTimeRange(t *testing.T) {
@@ -53,7 +53,7 @@ const BOTNAME = "Test-Chromecast-GCC-Chorizo-CPU-Cortex_A7-arm-Release-All"
 func TestFlakyReadWrite(t *testing.T) {
 	testutils.MediumTest(t)
 
-	cleanup := testutil.InitDatastore(t, dsconst.FLAKY_RANGES)
+	cleanup := testutil.InitDatastore(t, ds.FLAKY_RANGES)
 	defer cleanup()
 
 	provider := func() (map[string]time.Time, error) { return nil, nil }
@@ -108,7 +108,7 @@ func TestFlakyReadWrite(t *testing.T) {
 func TestBuilder(t *testing.T) {
 	testutils.MediumTest(t)
 
-	cleanup := testutil.InitDatastore(t, dsconst.FLAKY_RANGES)
+	cleanup := testutil.InitDatastore(t, ds.FLAKY_RANGES)
 	defer cleanup()
 
 	now := time.Now().UTC()
