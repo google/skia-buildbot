@@ -375,7 +375,8 @@
       triggerTriage: function (status) {
         this.set('$.triageControls.value', status);
         var detail = new gold.TriageQuery(this.$.triageControls.dataset.test,
-                                          this.$.triageControls.dataset.digest);
+                                          this.$.triageControls.dataset.digest,
+                                          status, this.issue);
         this.fire('triage', detail);
       },
 
