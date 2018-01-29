@@ -3,12 +3,11 @@ VULCANIZE1=true
 # The list of files we want to go into core.js, which is concat'd and
 # minified. These files should be either present in the project, brought
 # into third_party/bower_compoents via bower, or in node_modules.
+BOWER_DIR=third_party/bower_components
 CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
           third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-          ../res/js/common.js
-
-BOWER_DIR=third_party/bower_components
-
+          ../res/js/common.js \
+          $(BOWER_DIR)/d3/d3.js
 
 include ../go/depot_tools/depot_tools.mk
 include ../go/skiaversion/skiaversion.mk

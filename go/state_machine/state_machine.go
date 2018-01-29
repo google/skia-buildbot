@@ -6,13 +6,17 @@ package state_machine
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 	"sync"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -220,4 +224,70 @@ func (sm *StateMachine) GetTransitionName(dest string) (string, error) {
 		return "", fmt.Errorf("No transition defined from state %q to state %q", sm.current, dest)
 	}
 	return fName, nil
+}
+
+// DumpGraphviz writes the state machine in Graphviz format to the given
+// io.Writer.
+func (s *StateMachine) DumpGraphviz(w io.Writer) error {
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+
+	if _, err := w.Write([]byte("digraph state_machine {\n")); err != nil {
+		return err
+	}
+	states := make(map[string]bool, len(s.transitions))
+	for from, toMap := range s.transitions {
+		states[from] = true
+		for to, _ := range toMap {
+			states[to] = true
+		}
+	}
+	stateList := make([]string, 0, len(states))
+	for state, _ := range states {
+		stateList = append(stateList, state)
+	}
+	sort.Strings(stateList)
+	stateIds := make(map[string]int, len(stateList))
+	stateStyle := "filled"
+	stateColor := "palegreen"
+	for idx, state := range stateList {
+		stateIds[state] = idx
+		if _, err := w.Write([]byte(fmt.Sprintf("_%d [label=%q style=%q color=%q];\n", idx, state, stateStyle, stateColor))); err != nil {
+			return err
+		}
+	}
+
+	for from, toMap := range s.transitions {
+		for to, fName := range toMap {
+			if _, err := w.Write([]byte(fmt.Sprintf("_%d -> _%d [label=%q];\n", stateIds[from], stateIds[to], fName))); err != nil {
+				return err
+			}
+		}
+	}
+	if _, err := w.Write([]byte("}\n")); err != nil {
+		return err
+	}
+	return nil
+}
+
+// DumpGraphvizToFile writes the state machine to the file in Graphviz format.
+func (s *StateMachine) DumpGraphvizToFile(file string) error {
+	f, err := os.Create(file)
+	if err != nil {
+		return err
+	}
+	defer util.Close(f)
+	return s.DumpGraphviz(f)
+}
+
+// DumpJSON writes the state machine in JSON format.
+func (s *StateMachine) DumpJSON() error {
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+	b, err := json.MarshalIndent(s.transitions, "", "  ")
+	if err != nil {
+		return err
+	}
+	sklog.Infof("\n%s", string(b))
+	return nil
 }

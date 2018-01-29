@@ -474,3 +474,11 @@ func (s *AutoRollStateMachine) NextTransitionSequence(ctx context.Context) error
 func (s *AutoRollStateMachine) Current() string {
 	return s.s.Current()
 }
+
+func (s *AutoRollStateMachine) DumpGraphvizToFile(file string) error {
+	return s.s.DumpGraphvizToFile(file)
+}
+
+func (s *AutoRollStateMachine) DumpJSON() error {
+	return s.s.DumpJSON()
+}

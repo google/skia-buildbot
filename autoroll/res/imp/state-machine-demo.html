@@ -1,0 +1,98 @@
+<html>
+<head>
+  <title>state-machine demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=5.0, initial-scale=1, user-scalable=yes">
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="bower_components/d3/d3.js"></script>  
+  <script src="/res/common/js/common.js"></script>
+
+  <link rel="import" href="bower_components/polymer/polymer.html">
+  <link rel="import" href="state-machine.html">
+  
+</head>
+<body>
+  <h1>state-machine demo</h1>
+
+  <state-machine id="stateMachine"></state-machine>
+  <script type="text/javascript">
+    /*$$$("#stateMachine").setData({
+      "a": {
+        "a": "aa",
+        "b": "ab",
+        "c": "ac",
+        "d": "ad",
+      },
+      "b": {
+        "a": "ba",
+      },
+      "c": {
+        "b": "cb",
+      },
+    });*/
+    $$$("#stateMachine").setData({
+  "active": {
+    "active": "update roll",
+    "dry run active": "switch roll to dry run",
+    "failure": "no-op",
+    "stopped": "close roll (stopped)",
+    "success": "no-op"
+  },
+  "dry run active": {
+    "active": "switch roll to normal",
+    "dry run active": "update roll",
+    "dry run failure": "no-op",
+    "dry run success": "no-op",
+    "stopped": "close roll (stopped)"
+  },
+  "dry run failure": {
+    "dry run idle": "close roll (dry run failed)"
+  },
+  "dry run idle": {
+    "dry run active": "upload dry run",
+    "dry run idle": "update repos",
+    "dry run throttled": "no-op",
+    "idle": "no-op",
+    "stopped": "no-op"
+  },
+  "dry run success": {
+    "dry run idle": "close roll (dry run outdated)",
+    "dry run success; leaving open": "no-op"
+  },
+  "dry run success; leaving open": {
+    "active": "switch roll to normal",
+    "dry run idle": "close roll (dry run outdated)",
+    "dry run success; leaving open": "update repos",
+    "stopped": "close roll (stopped)"
+  },
+  "dry run throttled": {
+    "dry run idle": "no-op",
+    "dry run throttled": "waiting (throttled)"
+  },
+  "failure": {
+    "idle": "close roll (failed)"
+  },
+  "idle": {
+    "active": "upload roll",
+    "dry run idle": "no-op",
+    "idle": "update repos",
+    "stopped": "no-op",
+    "throttled": "no-op"
+  },
+  "stopped": {
+    "dry run idle": "no-op",
+    "idle": "no-op",
+    "stopped": "no-op"
+  },
+  "success": {
+    "idle": "wait for roll to land"
+  },
+  "throttled": {
+    "idle": "no-op",
+    "throttled": "waiting (throttled)"
+  }
+});
+  </script>
+</body>
+</html>
