@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d62bbdd5_6f8608be",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-29T19:35:29Z",
+      "side": 1,
+      "message": "I\u0027m differentiating between owners (ie. members of our team who are responsible for fixing the instance) and contacts, who are the customers served by the instance.  I didn\u0027t think to use metadata for this, as I\u0027m not sure it\u0027s the right place for it.  Honestly, I think we could move the owners list into the gce.Instance struct and have the VM creation script set the metadata (if we even need it) automatically.",
+      "parentUuid": "49c60908_ca98c35f",
+      "revId": "60c811958c4f0e0a0d396afd25de7a49eed57695",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b9ce38ec_1a5636b8",
         "filename": "autoroll/vm.go",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "60c811958c4f0e0a0d396afd25de7a49eed57695",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e38587fc_19f62513",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-29T19:35:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9ce38ec_1a5636b8",
+      "revId": "60c811958c4f0e0a0d396afd25de7a49eed57695",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
