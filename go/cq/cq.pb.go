@@ -10,7 +10,6 @@ It is generated from these files:
 
 It has these top-level messages:
 	Config
-	Rietveld
 	Gerrit
 	Verifiers
 */
@@ -33,7 +32,7 @@ type Config struct {
 	Version *int32 `protobuf:"varint,1,opt,name=version" json:"version,omitempty"`
 	// Required. Name of the CQ. May only contain characters [a-zA-Z0-9_]. It is
 	// used for various purposes, including, but not limited to match the project
-	// name for CLs on Rietveld, name of the project in the status app, internal
+	// name for CLs on Gerrit, name of the project in the status app, internal
 	// name for logging etc. CQ name should not be confused with the project name
 	// in LUCI as there may be multiple CQs per project.
 	CqName *string `protobuf:"bytes,2,opt,name=cq_name" json:"cq_name,omitempty"`
@@ -51,8 +50,6 @@ type Config struct {
 	// Defines whether a CQ is used in production. Allows to disable CQ for a
 	// given branch. Default is true.
 	InProduction *bool `protobuf:"varint,8,opt,name=in_production" json:"in_production,omitempty"`
-	// Configuration options for Rietveld code review.
-	Rietveld *Rietveld `protobuf:"bytes,9,opt,name=rietveld" json:"rietveld,omitempty"`
 	// Configuration options for Gerrit code review.
 	Gerrit *Gerrit `protobuf:"bytes,15,opt,name=gerrit" json:"gerrit,omitempty"`
 	// This can be used to override the Git repository URL used to checkout and
@@ -133,13 +130,6 @@ func (m *Config) GetInProduction() bool {
 	return false
 }
 
-func (m *Config) GetRietveld() *Rietveld {
-	if m != nil {
-		return m.Rietveld
-	}
-	return nil
-}
-
 func (m *Config) GetGerrit() *Gerrit {
 	if m != nil {
 		return m.Gerrit
@@ -175,34 +165,7 @@ func (m *Config) GetDrainingStartTime() string {
 	return ""
 }
 
-type Rietveld struct {
-	// Required. URL of the codereview site.
-	Url *string `protobuf:"bytes,1,opt,name=url" json:"url,omitempty"`
-	// DO NOT USE. Kept here for validator error messages.
-	ProjectBases     []string `protobuf:"bytes,2,rep,name=project_bases" json:"project_bases,omitempty"`
-	XXX_unrecognized []byte   `json:"-"`
-}
-
-func (m *Rietveld) Reset()         { *m = Rietveld{} }
-func (m *Rietveld) String() string { return proto.CompactTextString(m) }
-func (*Rietveld) ProtoMessage()    {}
-
-func (m *Rietveld) GetUrl() string {
-	if m != nil && m.Url != nil {
-		return *m.Url
-	}
-	return ""
-}
-
-func (m *Rietveld) GetProjectBases() []string {
-	if m != nil {
-		return m.ProjectBases
-	}
-	return nil
-}
-
-// Unlike Rietveld, Gerrit doesn't need a separate url.
-// Instead, the git_repo_url must be specified on the Gerrit instance,
+// For Gerrit the git_repo_url must be specified on the Gerrit instance,
 // and CQ will deduce Gerrit url from it.
 //
 // For example, if https://chromium.googlesource.com/infra/infra.git is your
@@ -255,11 +218,6 @@ func (m *Gerrit) GetDryRunSetsCqVerifiedLabel() bool {
 // describes types of verifiers that should be applied to each CL and their
 // parameters.
 type Verifiers struct {
-	// [Rietveld only] This verifier is used to ensure that an LGTM was posted to
-	// the code review site from a valid project committer. It also validates
-	// ability of non-committers to trigger CQ, which for Gerrit is done by
-	// GerritCQAbilityVerifier.
-	ReviewerLgtm *Verifiers_ReviewerLgtmVerifier `protobuf:"bytes,1,opt,name=reviewer_lgtm" json:"reviewer_lgtm,omitempty"`
 	// [Gerrit only] GerritCQAbilityVerifier ensures that a user who triggered
 	// this CQ attempt has actually rights to do so based on 3 factors:
 	//  * membership of the user in committers & dryrunners group,
@@ -283,13 +241,6 @@ type Verifiers struct {
 func (m *Verifiers) Reset()         { *m = Verifiers{} }
 func (m *Verifiers) String() string { return proto.CompactTextString(m) }
 func (*Verifiers) ProtoMessage()    {}
-
-func (m *Verifiers) GetReviewerLgtm() *Verifiers_ReviewerLgtmVerifier {
-	if m != nil {
-		return m.ReviewerLgtm
-	}
-	return nil
-}
 
 func (m *Verifiers) GetGerritCqAbility() *Verifiers_GerritCQAbilityVerifier {
 	if m != nil {
