@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49c60908_ca98c35f",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-29T19:18:04Z",
+      "side": 1,
+      "message": "We use vm.Metadata[\"owner_primary\"] and vm.Metadata[\"owner_secondary\"] for the owners. Are we not using something similar here because metadata.GetWithDefault does not work locally?",
+      "revId": "60c811958c4f0e0a0d396afd25de7a49eed57695",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9ce38ec_1a5636b8",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-29T19:18:04Z",
+      "side": 1,
+      "message": "Might as well also add rmistry@google.com here (and in the 2 Android rollers below).",
+      "revId": "60c811958c4f0e0a0d396afd25de7a49eed57695",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
