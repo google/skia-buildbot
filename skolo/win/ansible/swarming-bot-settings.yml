@@ -1,0 +1,24 @@
+---
+# Disable Windows Update, Windows Defender, and disk indexing.
+- hosts: all
+  tasks:
+  - name: Disable Windows Update
+    win_service:
+      name: wuauserv
+      start_mode: disabled
+      state: stopped
+  # Unlike Windows Server, Windows Defender can not be uninstalled on Windows 10. Windows also
+  # tends to re-enable it if it's disabled. Instead we exclude the entire drive from scanning and
+  # disable specific features. Docs here:
+  # https://docs.microsoft.com/en-us/powershell/module/defender/Set-MpPreference?view=win10-ps
+  - name: Disable Windows Defender
+    win_shell: "Set-MpPreference -ExclusionPath C:\\ -DisableBehaviorMonitoring $True
+      -DisableBlockAtFirstSeen $True -DisableIOAVProtection $True
+      -DisableIntrusionPreventionSystem $True -DisableRealtimeMonitoring $True
+      -MAPSReporting Disabled -PUAProtection Disabled"
+  - name: Disable disk indexing
+    win_service:
+      name: WSearch
+      start_mode: disabled
+      state: stopped
+
