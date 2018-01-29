@@ -81,11 +81,7 @@ func main() {
 	ctx := context.Background()
 
 	// Get the version of the repo.
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatalf("Unable to retrieve version: %s", err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	// Set the resource directory if it's empty.
 	if *resourcesDir == "" {

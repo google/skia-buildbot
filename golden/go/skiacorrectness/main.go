@@ -122,11 +122,7 @@ func main() {
 
 	ctx := context.Background()
 
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatalf("Unable to retrieve version: %s", err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	// Enable the memory profiler if memProfile was set.
 	// TODO(stephana): This should be moved to a HTTP endpoint that

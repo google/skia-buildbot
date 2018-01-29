@@ -52,11 +52,7 @@ func main() {
 		//common.CloudLoggingOpt(),
 	)
 
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	// TODO(borenet): Load these from a file?
 	var pm projectMetadataMap = map[string]string{

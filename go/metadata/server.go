@@ -172,8 +172,7 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tok *Se
 
 	// The service account token path does not quite follow the pattern of
 	// the other two metadata types.
-	path := fmt.Sprintf(METADATA_URL_PREFIX_TMPL, LEVEL_INSTANCE) + "/service-accounts/default/token"
-	r.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc(TOKEN_PATH, func(w http.ResponseWriter, r *http.Request) {
 		t, err := tok.Get()
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to obtain key.")
@@ -184,5 +183,4 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tok *Se
 			return
 		}
 	})
-	sklog.Infof("service-account: %s", path)
 }

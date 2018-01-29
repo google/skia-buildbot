@@ -58,11 +58,7 @@ func main() {
 	common.InitWithMust(appName, logOpts...)
 
 	// Get the version of the repo.
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatalf("Unable to retrieve version: %s", err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	// Get the client to be used to access GCS.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")

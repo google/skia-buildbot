@@ -582,11 +582,7 @@ func main() {
 
 	reloadTemplates()
 
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
