@@ -45,6 +45,7 @@
     "skia-tracedb": {
       "AppNames": [
         "pulld",
+        "git-cookie-authdaemon",
         "traceserverd",
       ],
     },

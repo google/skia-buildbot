@@ -335,6 +335,11 @@ func main() {
 		sklog.Fatal(err)
 	}
 	gitcookiesPath := path.Join(user.HomeDir, ".gitcookies")
+	if !*local {
+		// The rollers use the gitcookie created by gcompute-tools/git-cookie-authdaemon.
+		gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
+	}
+
 	androidInternalGerritUrl := *gerritUrl
 	var emailer *email.GMail
 	if *useMetadata {
@@ -370,11 +375,6 @@ func main() {
 	if *gerritUrl != "" {
 		gUrl := *gerritUrl
 		if *rollIntoAndroid {
-			if !*local {
-				// Android roller uses the gitcookie created by gcompute-tools/git-cookie-authdaemon.
-				// TODO(rmistry): Turn this on via the GCE setup script so that it exists right when the instance comes up?
-				gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
-			}
 			gUrl = androidInternalGerritUrl
 		} else {
 			if strings.Contains(*parentRepo, "skia") {

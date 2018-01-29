@@ -9,6 +9,7 @@
     "skia-status-internal": {
       "AppNames": [
         "status-internal",
+        "git-cookie-authdaemon",
         "pulld",
       ],
     },

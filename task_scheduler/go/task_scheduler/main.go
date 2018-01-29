@@ -626,6 +626,10 @@ func main() {
 		sklog.Fatal(err)
 	}
 	gitcookiesPath := path.Join(user.HomeDir, ".gitcookies")
+	if !*local {
+		// The schedulers use the gitcookie created by gcompute-tools/git-cookie-authdaemon.
+		gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
+	}
 	gerrit, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, gitcookiesPath, nil)
 	if err != nil {
 		sklog.Fatal(err)

@@ -15,14 +15,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-)
-
-const (
-	GS_URL_GITCOOKIES_TMPL         = "gs://skia-buildbots/artifacts/server/.gitcookies_%s"
-	GS_URL_GITCONFIG               = "gs://skia-buildbots/artifacts/server/.gitconfig"
-	GS_URL_NETRC_READONLY          = "gs://skia-buildbots/artifacts/server/.netrc_git-fetch-readonly"
-	GS_URL_NETRC_READONLY_INTERNAL = "gs://skia-buildbots/artifacts/server/.netrc_git-fetch-readonly-internal"
 )
 
 var (
@@ -49,18 +41,6 @@ func Server20170928(name string) *gce.Instance {
 			SizeGb:    300,
 			Type:      gce.DISK_TYPE_PERSISTENT_STANDARD,
 		}},
-		// Include read-only git creds on all servers.
-		GSDownloads: []*gce.GSDownload{
-			&gce.GSDownload{
-				Source: GS_URL_GITCONFIG,
-				Dest:   "~/.gitconfig",
-			},
-			&gce.GSDownload{
-				Source: GS_URL_NETRC_READONLY,
-				Dest:   "~/.netrc",
-				Mode:   "600",
-			},
-		},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_16,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
@@ -68,6 +48,7 @@ func Server20170928(name string) *gce.Instance {
 		Os:                gce.OS_LINUX,
 		Scopes: []string{
 			auth.SCOPE_FULL_CONTROL,
+			auth.SCOPE_GERRIT,
 			auth.SCOPE_PUBSUB,
 			auth.SCOPE_USERINFO_EMAIL,
 			auth.SCOPE_USERINFO_PROFILE,
@@ -76,38 +57,6 @@ func Server20170928(name string) *gce.Instance {
 		Tags:           []string{"http-server", "https-server"},
 		User:           gce.USER_DEFAULT,
 	}
-}
-
-// Set configuration for servers which need read-only access to internal Git
-// repos.
-func SetGitCredsReadOnlyInternal(vm *gce.Instance) *gce.Instance {
-	newGSDownloads := make([]*gce.GSDownload, 0, len(vm.GSDownloads)+2)
-	for _, gsd := range vm.GSDownloads {
-		if !util.In(gsd.Dest, []string{"~/.gitcookies", "~/.netrc"}) {
-			newGSDownloads = append(newGSDownloads, gsd)
-		}
-	}
-	vm.GSDownloads = append(newGSDownloads, &gce.GSDownload{
-		Source: GS_URL_NETRC_READONLY_INTERNAL,
-		Dest:   "~/.netrc",
-		Mode:   "600",
-	})
-	return vm
-}
-
-// Set configuration for servers who commit to git.
-func SetGitCredsReadWrite(vm *gce.Instance, gitUser string) *gce.Instance {
-	newGSDownloads := make([]*gce.GSDownload, 0, len(vm.GSDownloads)+2)
-	for _, gsd := range vm.GSDownloads {
-		if !util.In(gsd.Dest, []string{"~/.gitcookies", "~/.netrc"}) {
-			newGSDownloads = append(newGSDownloads, gsd)
-		}
-	}
-	vm.GSDownloads = append(newGSDownloads, &gce.GSDownload{
-		Source: fmt.Sprintf(GS_URL_GITCOOKIES_TMPL, gitUser),
-		Dest:   "~/.gitcookies",
-	})
-	return vm
 }
 
 // Main takes a map of string -> gce.Instance to initialize in the given zone.
