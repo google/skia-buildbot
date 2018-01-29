@@ -158,18 +158,18 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 	f := FuzzFlag(0)
 	// Check for SKAbort message
 	if strings.Contains(data.Asan, "fatal error") {
-		f |= ASANCrashed
 		f |= SKAbortHit
 		if data.StackTrace.IsEmpty() {
 			data.StackTrace = extractSkAbortTrace(data.Asan)
 		}
+		return f
 	}
 	if strings.Contains(data.StdErr, "fatal error") {
-		f |= ClangCrashed
 		f |= SKAbortHit
 		if data.StackTrace.IsEmpty() {
 			data.StackTrace = extractSkAbortTrace(data.StdErr)
 		}
+		return f
 	}
 	// If no sk abort message and no evidence of crashes, we either terminated gracefully or
 	// timed out.

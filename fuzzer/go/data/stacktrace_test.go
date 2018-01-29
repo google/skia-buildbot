@@ -435,8 +435,8 @@ func TestParseGCSPackage_SKAbort(t *testing.T) {
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := SKAbortHit | ASANCrashed | ClangCrashed
-	expectedReleaseFlags := SKAbortHit | ASANCrashed | ClangCrashed
+	expectedDebugFlags := SKAbortHit
+	expectedReleaseFlags := SKAbortHit
 	if result.Debug.Flags != expectedDebugFlags {
 		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
 	}
@@ -513,7 +513,7 @@ func TestParseGCSPackage_ClangDumpedNoSymbols(t *testing.T) {
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := ASANCrashed | SKAbortHit
+	expectedDebugFlags := SKAbortHit
 	expectedReleaseFlags := ClangCrashed
 	if result.Debug.Flags != expectedDebugFlags {
 		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
