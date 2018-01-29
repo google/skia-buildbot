@@ -6,6 +6,7 @@ package analysis
 
 import (
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -32,7 +33,33 @@ type Results struct {
 // Flake is a struct representing a particular instance of a flake,
 // illustrated by a sequence of tasks.
 type Flake struct {
+	Bugs  []int64
+	Id    string
 	Tasks []*db.Task
+}
+
+// assignId sets an ID on the Flake.
+func assignId(f *Flake) error {
+	ids := make([]string, 0, len(f.Tasks))
+	for _, t := range f.Tasks {
+		ids = append(ids, t.Id)
+	}
+	id, err := util.MD5SSlice(ids)
+	if err != nil {
+		return err
+	}
+	f.Id = id
+	return nil
+}
+
+// assignIds runs assignId on each of the given Flakes.
+func assignIds(flakes []*Flake) error {
+	for _, f := range flakes {
+		if err := assignId(f); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Analyze loads tasks from the given time period, finds various types of
@@ -70,6 +97,16 @@ func Analyze(d db.TaskReader, start, end time.Time, repos repograph.Map) (map[st
 			inf := InfraFailures(tasks)
 			may := MaybeFlaky(tasks, start, end, repos[repoUrl])
 			if len(def) > 0 || len(inf) > 0 || len(may) > 0 {
+				// Assign IDs to flakes.
+				if err := assignIds(def); err != nil {
+					return nil, err
+				}
+				if err := assignIds(inf); err != nil {
+					return nil, err
+				}
+				if err := assignIds(may); err != nil {
+					return nil, err
+				}
 				m[taskSpec] = &Results{
 					DefinitelyFlaky: def,
 					InfraFailures:   inf,
@@ -276,6 +313,7 @@ func MaybeFlaky(tasks []*db.Task, start, end time.Time, repo *repograph.Graph) [
 		// Add the flake to the results.
 		flake := make([]*db.Task, len(seq))
 		copy(flake, seq)
+		sort.Sort(db.TaskSlice(flake))
 		rv = append(rv, &Flake{
 			Tasks: flake,
 		})
