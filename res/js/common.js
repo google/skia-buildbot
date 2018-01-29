@@ -164,6 +164,8 @@ this.sk = this.sk || {};
 
       // Handle network errors
       req.onerror = function() {
+        var theReq = req;
+        debugger;
         reject({
             response: Error("Network Error")
           });
@@ -176,7 +178,7 @@ this.sk = this.sk || {};
 
   // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
   sk.get = function(url, withCredentials) {
-    return sk.request('GET', url, null, withCredentials);
+    return sk.request('GET', url, null, null, withCredentials);
   }
 
 
