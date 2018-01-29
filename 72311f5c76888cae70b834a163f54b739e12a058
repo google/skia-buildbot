@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9f86bd4_0a5276f6",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
+        "patchSetId": 10
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-29T20:16:23Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 246,
+        "startChar": 26,
+        "endLine": 246,
+        "endChar": 29
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6e2c06a_cddac9fd",
+        "filename": "golden/go/search/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-29T20:16:23Z",
+      "side": 1,
+      "message": "sklog.FmtErrorf() on this?",
+      "range": {
+        "startLine": 41,
+        "startChar": 9,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "964c92c8_db4dc000",
+        "filename": "golden/go/search/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-29T20:16:23Z",
+      "side": 1,
+      "message": "Why is it no-op?  Because it\u0027s the identity?  i.e. this is the 0 initial value?  Maybe add a comment that this is the \"0 value\" function",
+      "range": {
+        "startLine": 91,
+        "startChar": 32,
+        "endLine": 91,
+        "endChar": 44
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bbc3155_41f14da4",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-29T20:16:23Z",
+      "side": 1,
+      "message": "Is there a bug to track when this would be possible or is it just a TODO?",
+      "range": {
+        "startLine": 98,
+        "startChar": 46,
+        "endLine": 98,
+        "endChar": 47
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb888c29_338bf3ab",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 875,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-29T20:16:23Z",
+      "side": 1,
+      "message": "Do we need to do this with an encoder or can we use json.Marshal()?  Same question for line 889",
+      "range": {
+        "startLine": 875,
+        "startChar": 1,
+        "endLine": 875,
+        "endChar": 4
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
