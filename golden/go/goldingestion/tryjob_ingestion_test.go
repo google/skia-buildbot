@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/ingestion"
 
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/golden/go/dsconst"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
@@ -29,11 +28,11 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	testutils.LargeTest(t)
 
 	cleanup := testutil.InitDatastore(t,
-		dsconst.ISSUE,
-		dsconst.TRYJOB,
-		dsconst.TRYJOB_RESULT,
-		dsconst.TRYJOB_EXP_CHANGE,
-		dsconst.TEST_DIGEST_EXP)
+		ds.ISSUE,
+		ds.TRYJOB,
+		ds.TRYJOB_RESULT,
+		ds.TRYJOB_EXP_CHANGE,
+		ds.TEST_DIGEST_EXP)
 	defer cleanup()
 
 	issueUpdated, err := time.Parse("2006-01-02 15:04:05 MST", "2017-12-07 14:54:05 EST")

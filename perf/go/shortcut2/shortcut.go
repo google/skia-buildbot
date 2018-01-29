@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/perf/go/dsconst"
 )
 
 type Shortcut struct {
@@ -23,7 +22,7 @@ func Insert(r io.Reader) (string, error) {
 	if err := json.NewDecoder(r).Decode(shortcut); err != nil {
 		return "", fmt.Errorf("Unable to read shortcut body: %s", err)
 	}
-	key := ds.NewKey(dsconst.SHORTCUT)
+	key := ds.NewKey(ds.SHORTCUT)
 	var err error
 	key, err = ds.DS.Put(context.TODO(), key, shortcut)
 	if err != nil {
@@ -39,7 +38,7 @@ func Get(id string) (*Shortcut, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error invalid id: %s", id)
 	}
-	key := ds.NewKey(dsconst.SHORTCUT)
+	key := ds.NewKey(ds.SHORTCUT)
 	key.ID = i
 	if err := ds.DS.Get(context.TODO(), key, ret); err != nil {
 		return nil, fmt.Errorf("Error retrieving shortcut from db: %s", err)
@@ -52,7 +51,7 @@ func Write(id string, s *Shortcut) error {
 	if err != nil {
 		return fmt.Errorf("Error invalid id: %s", id)
 	}
-	key := ds.NewKey(dsconst.SHORTCUT)
+	key := ds.NewKey(ds.SHORTCUT)
 	key.ID = i
 	_, err = ds.DS.Put(context.Background(), key, s)
 	return err

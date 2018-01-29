@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/predict/go/dsconst"
 	"google.golang.org/api/iterator"
 )
 
@@ -159,7 +158,7 @@ func (f *FailureStore) Update(ctx context.Context, since time.Duration) error {
 			sklog.Infof("Filtered: %s", sf.BotName)
 			continue
 		}
-		key := ds.NewKey(dsconst.FAILURES)
+		key := ds.NewKey(ds.FAILURES)
 		key.Name = sf.Name()
 		if _, err := ds.DS.Put(ctx, key, sf); err != nil {
 			return fmt.Errorf("Failed to write StoredFailure to Datastore: %s", err)
@@ -171,7 +170,7 @@ func (f *FailureStore) Update(ctx context.Context, since time.Duration) error {
 // List returns all StoredFailures in the given time range.
 func (f *FailureStore) List(ctx context.Context, begin, end time.Time) ([]*StoredFailure, error) {
 	ret := []*StoredFailure{}
-	q := ds.NewQuery(dsconst.FAILURES).
+	q := ds.NewQuery(ds.FAILURES).
 		Filter("TS >=", begin).
 		Filter("TS <", end).
 		Order("TS")

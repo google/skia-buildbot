@@ -14,7 +14,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/dsconst"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
@@ -95,7 +94,7 @@ func NewCloudTryjobStore(client *datastore.Client, eventBus eventbus.EventBus) (
 
 // ListIssues implements the TryjobStore interface.
 func (c *cloudTryjobStore) ListIssues() ([]*Issue, int, error) {
-	query := ds.NewQuery(dsconst.ISSUE).KeysOnly()
+	query := ds.NewQuery(ds.ISSUE).KeysOnly()
 	keys, err := c.client.GetAll(context.Background(), query, nil)
 	if err != nil {
 		return nil, 0, err
@@ -279,7 +278,7 @@ func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.Tes
 	}
 
 	var changeKey *datastore.Key
-	if changeKey, err = c.client.Put(ctx, ds.NewKey(dsconst.TRYJOB_EXP_CHANGE), expChange); err != nil {
+	if changeKey, err = c.client.Put(ctx, ds.NewKey(ds.TRYJOB_EXP_CHANGE), expChange); err != nil {
 		return err
 	}
 
@@ -308,7 +307,7 @@ func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.Tes
 
 	tdeKeys := make([]*datastore.Key, len(testChanges), len(testChanges))
 	for idx := range testChanges {
-		key := ds.NewKey(dsconst.TEST_DIGEST_EXP)
+		key := ds.NewKey(ds.TEST_DIGEST_EXP)
 		key.Parent = changeKey
 		tdeKeys[idx] = key
 	}
@@ -450,7 +449,7 @@ func (c *cloudTryjobStore) getResultsForTryjobs(tryjobKeys []*datastore.Key, key
 	for idx, key := range tryjobKeys {
 		func(idx int, key *datastore.Key) {
 			egroup.Go(func() error {
-				query := ds.NewQuery(dsconst.TRYJOB_RESULT).Ancestor(key)
+				query := ds.NewQuery(ds.TRYJOB_RESULT).Ancestor(key)
 				if keysOnly {
 					query = query.KeysOnly()
 				}
@@ -517,7 +516,7 @@ func (c *cloudTryjobStore) deleteExpectationsForIssue(issueID int64) error {
 // Both are only considered if they are larger than 0. keysOnly indicates that we
 // want keys only.
 func (c *cloudTryjobStore) getExpChangesForIssue(issueID int64, offset, size int, keysOnly bool) ([]*datastore.Key, []*ExpChange, error) {
-	q := ds.NewQuery(dsconst.TRYJOB_EXP_CHANGE).
+	q := ds.NewQuery(ds.TRYJOB_EXP_CHANGE).
 		Filter("IssueID =", issueID).
 		Filter("OK =", true).
 		Order("TimeStamp")
@@ -541,7 +540,7 @@ func (c *cloudTryjobStore) getExpChangesForIssue(issueID int64, offset, size int
 
 // getTestDigstExpectations gets all expectations for the given change.
 func (c *cloudTryjobStore) getTestDigestExps(changeKey *datastore.Key, keysOnly bool) ([]*datastore.Key, []*TestDigestExp, error) {
-	q := ds.NewQuery(dsconst.TEST_DIGEST_EXP).Ancestor(changeKey)
+	q := ds.NewQuery(ds.TEST_DIGEST_EXP).Ancestor(changeKey)
 	if keysOnly {
 		q = q.KeysOnly()
 	}
@@ -570,7 +569,7 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 	for idx, patchsetID := range patchsetIDs {
 		func(idx int, patchsetID int64) {
 			egroup.Go(func() error {
-				query := ds.NewQuery(dsconst.TRYJOB).
+				query := ds.NewQuery(ds.TRYJOB).
 					Filter("IssueID =", issueID)
 				if patchsetID > 0 {
 					query = query.Filter("PatchsetID =", patchsetID)
@@ -660,21 +659,21 @@ func (c *cloudTryjobStore) getEntity(key *datastore.Key, target interface{}, tx 
 
 // getIssueKey returns a datastore key for the given issue id.
 func (c *cloudTryjobStore) getIssueKey(id int64) *datastore.Key {
-	ret := ds.NewKey(dsconst.ISSUE)
+	ret := ds.NewKey(ds.ISSUE)
 	ret.ID = id
 	return ret
 }
 
 // getTryjobKey returns a datastore key for the given buildbucketID.
 func (c *cloudTryjobStore) getTryjobKey(buildBucketID int64) *datastore.Key {
-	ret := ds.NewKey(dsconst.TRYJOB)
+	ret := ds.NewKey(ds.TRYJOB)
 	ret.ID = buildBucketID
 	return ret
 }
 
 // getTryjobResultKey returns a key for the given tryjobResult.
 func (c *cloudTryjobStore) getTryjobResultKey(tryjobKey *datastore.Key) *datastore.Key {
-	ret := ds.NewKey(dsconst.TRYJOB_RESULT)
+	ret := ds.NewKey(ds.TRYJOB_RESULT)
 	ret.Parent = tryjobKey
 	return ret
 }

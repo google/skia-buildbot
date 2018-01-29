@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/perf/go/dsconst"
 )
 
 func TestDS(t *testing.T) {
 	testutils.MediumTest(t)
-	cleanup := testutil.InitDatastore(t, dsconst.ALERT)
+	cleanup := testutil.InitDatastore(t, ds.ALERT)
 
 	defer cleanup()
 

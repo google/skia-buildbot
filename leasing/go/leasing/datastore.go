@@ -12,21 +12,17 @@ import (
 	"go.skia.org/infra/go/ds"
 )
 
-const (
-	TASK ds.Kind = "Task"
-)
-
 func DatastoreInit(project string, ns string) error {
 	return ds.Init(project, ns)
 }
 
 func GetRunningDSTasks() *datastore.Iterator {
-	q := ds.NewQuery(TASK).EventualConsistency().Filter("Done =", false)
+	q := ds.NewQuery(ds.TASK).EventualConsistency().Filter("Done =", false)
 	return ds.DS.Run(context.TODO(), q)
 }
 
 func GetAllDSTasks(filterUser string) *datastore.Iterator {
-	q := ds.NewQuery(TASK).EventualConsistency()
+	q := ds.NewQuery(ds.TASK).EventualConsistency()
 	if filterUser != "" {
 		q = q.Filter("Requester =", filterUser)
 	}
@@ -34,11 +30,11 @@ func GetAllDSTasks(filterUser string) *datastore.Iterator {
 }
 
 func GetNewDSKey() *datastore.Key {
-	return ds.NewKey(TASK)
+	return ds.NewKey(ds.TASK)
 }
 
 func GetDSTask(taskID int64) (*datastore.Key, *Task, error) {
-	key := ds.NewKey(TASK)
+	key := ds.NewKey(ds.TASK)
 	key.ID = taskID
 
 	task := &Task{}

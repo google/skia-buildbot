@@ -12,7 +12,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/dsconst"
 	"google.golang.org/api/iterator"
 )
 
@@ -31,7 +30,7 @@ func (s *Store) Save(cfg *Config) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("Failed to save invalid Config: %s", err)
 	}
-	key := ds.NewKey(dsconst.ALERT)
+	key := ds.NewKey(ds.ALERT)
 	if cfg.ID != INVALID_ID {
 		key.ID = int64(cfg.ID)
 	}
@@ -42,7 +41,7 @@ func (s *Store) Save(cfg *Config) error {
 }
 
 func (s *Store) Delete(id int) error {
-	key := ds.NewKey(dsconst.ALERT)
+	key := ds.NewKey(ds.ALERT)
 	key.ID = int64(id)
 
 	_, err := ds.DS.RunInTransaction(context.TODO(), func(tx *datastore.Transaction) error {
@@ -68,7 +67,7 @@ func (p ConfigSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 func (s *Store) List(includeDeleted bool) ([]*Config, error) {
 	ret := []*Config{}
-	q := ds.NewQuery(dsconst.ALERT)
+	q := ds.NewQuery(ds.ALERT)
 	if !includeDeleted {
 		q = q.Filter("State =", int(ACTIVE))
 	}
