@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "b3ff3c77_9e82f67f",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-29T19:39:26Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d62bbdd5_6f8608be",
+      "revId": "60c811958c4f0e0a0d396afd25de7a49eed57695",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b9ce38ec_1a5636b8",
         "filename": "autoroll/vm.go",
         "patchSetId": 1
