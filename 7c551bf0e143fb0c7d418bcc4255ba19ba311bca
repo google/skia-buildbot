@@ -178,6 +178,30 @@
     },
     {
       "key": {
+        "uuid": "bc172ee4_22f5350c",
+        "filename": "skolo/go/swarming_token/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-29T15:49:00Z",
+      "side": 1,
+      "message": "Ok, SG, I forgot the 10 minute delay.\n\n(The rest of this comment is just me spamming thoughts and not necessarily meant as a request to change this CL.)\n\nRegarding monitoring: I think our existing monitoring for quarantined/dead bots should alert us when there is a problem, right?\n\nFor cron vs. systemd, I\u0027m not sure I see much difference in terms of monitoring. At this point I\u0027m more familiar with systemd than with cron, so I would know where to look if things went wrong. The one caveat is that cron will blindly continue to run something that continuously fails while systemd will stop trying after a few attempts. (I think the cron approach is preferable in this case.)\n\nFor Scheduled Tasks vs. Service on Windows, my experience is that scheduled tasks are a bit difficult to debug (although that\u0027s probably mostly because logging of scheduled tasks is off by default). OTOH, I have no idea how to set up a service.",
+      "parentUuid": "d684ed85_f49e3bfd",
+      "range": {
+        "startLine": 17,
+        "startChar": 24,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8368f879_fe7c1fb3",
         "filename": "skolo/go/swarming_token/main.go",
         "patchSetId": 4
@@ -225,6 +249,30 @@
     },
     {
       "key": {
+        "uuid": "42ef2685_6c853880",
+        "filename": "skolo/go/swarming_token/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-29T15:49:00Z",
+      "side": 1,
+      "message": "Hmm, I see. I don\u0027t have any good suggestions, but my best suggestion is C:\\swarming_config",
+      "parentUuid": "ce70e785_55de52a5",
+      "range": {
+        "startLine": 22,
+        "startChar": 19,
+        "endLine": 22,
+        "endChar": 31
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25d904c2_23fb2b0b",
         "filename": "skolo/go/swarming_token/main.go",
         "patchSetId": 4
@@ -260,6 +308,30 @@
       "side": 1,
       "message": "I added skiaversion support, so we\u0027ll see the commit hash and date in the logs.  I guess we could do something more, like add the binary to ~/refresh_swarming_token_binaries/${hash} and then use a symlink in ~/refresh_swarming_token.  That seems finicky though; I\u0027d rather spend the time figuring out how to get pulld working on the bots.",
       "parentUuid": "25d904c2_23fb2b0b",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 13
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b547bfe1_f82a3229",
+        "filename": "skolo/go/swarming_token/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-29T15:49:00Z",
+      "side": 1,
+      "message": "I assumed Stephan was talking about where these are stored in GCS.",
+      "parentUuid": "2efd0258_c75ab9e9",
       "range": {
         "startLine": 25,
         "startChar": 0,
@@ -387,6 +459,30 @@
       "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f39d6eb_3fbff52f",
+        "filename": "tools/go_build_all_platforms.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-29T15:49:00Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "52e5b707_f633864a",
+      "range": {
+        "startLine": 35,
+        "startChar": 29,
+        "endLine": 35,
+        "endChar": 39
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

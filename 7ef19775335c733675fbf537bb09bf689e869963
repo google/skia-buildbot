@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0cda02e1_58267657",
+        "filename": "skolo/go/refresh_swarming_token/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-29T15:49:00Z",
+      "side": 1,
+      "message": "nit: If this pattern is common, maybe make a function skiaversion.Log()",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 0
+      },
+      "revId": "7ef19775335c733675fbf537bb09bf689e869963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
