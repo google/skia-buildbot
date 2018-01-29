@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/ctseval"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
@@ -57,6 +58,8 @@ var (
 	authWhiteList       = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 	cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
+	ctsBucket           = flag.String("cts_bucket", "skia-firebase-test-lab", "GCS bucket where CTS results are stored.")
+	ctsPath             = flag.String("cts_path", "testruns", "CTS path prefix in the CTS bucket.")
 	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
@@ -353,6 +356,11 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
+
+	ctsEvaluator, err = ctseval.NewCTSEvalator(*ctsBucket, *ctsPath, *storageDir, client, time.Minute, 20, ixr, storages)
+	if err != nil {
+		sklog.Fatalf("Failed to create CTSEvaluator: %s", err)
+	}
 	mainTimer.Stop()
 
 	router := mux.NewRouter()
@@ -398,6 +406,12 @@ func main() {
 		router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
 		router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
 	}
+
+	// CTS result and knowledge handlers.
+	router.HandleFunc("/json/ctsresult", jsonCTSListHandler).Methods("GET")
+	router.HandleFunc("/json/ctsresult/{id}", jsonCTSRunHandler).Methods("GET")
+	router.HandleFunc("/json/ctsresult/{id}/{dev}", jsonCTSDeviceHandler).Methods("GET")
+	router.HandleFunc("/json/knowledge", jsonTestKnowledgeHandler).Methods("GET")
 
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"
