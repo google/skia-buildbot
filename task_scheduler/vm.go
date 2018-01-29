@@ -29,12 +29,14 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 func TaskSchedulerProd() *gce.Instance {
 	vm := TaskSchedulerBase("skia-task-scheduler", "35.202.175.145" /* Whitelisted in swarming, isolate and buildbucket servers */)
 	vm.DataDisks[0].SizeGb = 500
+	vm.ServiceAccount = "task-scheduler@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func TaskSchedulerInternal() *gce.Instance {
 	vm := TaskSchedulerBase("skia-task-scheduler-internal", "35.184.167.88" /* Whitelisted in swarming, isolate and buildbucket servers */)
-	return server.SetGitCredsReadOnlyInternal(vm)
+	vm.ServiceAccount = "task-scheduler-internal@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func main() {
