@@ -26,12 +26,7 @@ func main() {
 
 	// Global init to initialize logging and parse arguments.
 	common.Init()
-
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatalf("Unable to retrieve version: %s", err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	if *promptPassword {
 		if err := dbConf.PromptForPassword(); err != nil {

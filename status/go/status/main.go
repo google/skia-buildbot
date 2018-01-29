@@ -649,11 +649,7 @@ func main() {
 		common.CloudLoggingOpt(),
 	)
 
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatalf("Unable to get Skia version: %s", err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	Init()
 	if *testing {
@@ -666,6 +662,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create remote Tasks DB.
+	var err error
 	if *testing {
 		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"))
 		if err != nil {

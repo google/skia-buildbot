@@ -250,11 +250,7 @@ func main() {
 	}
 
 	common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	Init()
 	serverURL := "https://" + *host

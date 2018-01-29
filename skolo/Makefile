@@ -1,3 +1,5 @@
+include ../go/skiaversion/skiaversion.mk
+
 .PHONY: all
 all: hotspare backup cloudlogger trooper_tools
 
@@ -110,4 +112,8 @@ get_oauth2_token_push: get_oauth2_token_release
 	pushcli "get-oauth2-token" "jumphost-linux-01"
 	pushcli "get-oauth2-token" "jumphost-rpi-01"
 	pushcli "get-oauth2-token" "jumphost-win-02"
+
+.PHONY: refresh_swarming_token_upload
+refresh_swarming_token_upload: skiaversion
+	../tools/go_build_and_upload_all_platforms.sh ./go/refresh_swarming_token
 

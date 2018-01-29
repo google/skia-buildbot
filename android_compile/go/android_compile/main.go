@@ -246,12 +246,7 @@ func main() {
 		)
 	}
 	defer common.Defer()
-
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	reloadTemplates()
 	serverURL = "https://" + *host
@@ -282,6 +277,9 @@ func main() {
 	// of run(s).
 	ctx := context.Background()
 	_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
+	if err != nil {
+		sklog.Fatalf("Failed to retrieve compile tasks and keys: %s", err)
+	}
 	for _, taskAndKey := range runningTasksAndKeys {
 		sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
 		triggerCompileTask(ctx, taskAndKey.task, taskAndKey.key)

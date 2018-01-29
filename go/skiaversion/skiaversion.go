@@ -31,6 +31,15 @@ func GetVersion() (*Version, error) {
 	return nil, fmt.Errorf("No version was set at compile time! Did you forget to run \"make skiaversion\"?")
 }
 
+// MustLogVersion logs the version info and panics if it is not found.
+func MustLogVersion() {
+	v, err := GetVersion()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+}
+
 // JsonHandler is a pre-built handler for HTTP requests which returns version
 // information in JSON format.
 func JsonHandler(w http.ResponseWriter, r *http.Request) {

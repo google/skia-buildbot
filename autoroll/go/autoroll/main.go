@@ -294,12 +294,7 @@ func main() {
 	defer common.Defer()
 
 	Init()
-
-	v, err := skiaversion.GetVersion()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Infof("Version %s, built at %s", v.Commit, v.Date)
+	skiaversion.MustLogVersion()
 
 	if *rollIntoGoogle3 {
 		if *cqExtraTrybots != "" {
