@@ -32,6 +32,14 @@
 
       setParamSet(params) - Sets the parameters of the enclosed query-dialog-sk element
           and enables the controls accordingly.
+
+      setCommitInfo(commitinfo) - Where commitinfo is an array of objects of the form:
+
+        {
+          author: "foo@example.org"
+          commit_time: 1428574804
+          hash: "d9f8862ab6bed4195cbfe5dda48693e1062b01e2"
+        }
   -->
 <link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
@@ -63,6 +71,10 @@
         width: 8em;
       }
 
+      .buttonContainer.verticalTopControl {
+        margin-top: 2em;
+      }
+
       .horizontal.currSelection {
         margin-left: 1em;
         margin-right: 3em;
@@ -86,7 +98,7 @@
                         title="Filter Traces"><iron-icon icon="image:tune"></iron-icon></paper-button>
         </div>
         <!-- TODO(stephana): Enable filter button when backend is ready -->
-        <div class="buttonContainer" hidden$="{{!beta}}">
+        <div class$="{{_tcClass(orientation)}} buttonContainer">
           <paper-button id="filterButton" class$="topControl" raised disabled="[[disabled]]"
                         title="Metrics Filter"><iron-icon icon="icons:filter-list"></iron-icon>
           </paper-button>
@@ -153,6 +165,10 @@
         setParamSet: function(params) {
           this.$.queryDialog.queryEle.setParamSet(params);
           this.$.filterDialog.setParamSet(params);
+        },
+
+        setCommitInfo: function(commits) {
+          this.$.filterDialog.setCommitInfo(commits);
         },
 
         _handleQueryEdit: function(ev) {
