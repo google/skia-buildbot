@@ -22,7 +22,9 @@ if [ ! -d "/b/s" ]; then
   mkdir /b/s
   cd /b/s
   echo "Bootstrapping $swarming, expect a reboot"
-  python -c "import urllib; exec urllib.urlopen('$swarming/bootstrap').read()"
+  token_url="http://metadata/computeMetadata/v1/instance/service-accounts/default/token"
+  token="$(curl --header "Metadata-Flavor: Google" $token_url)"
+  python -c "import urllib; exec urllib.urlopen('$swarming/bootstrap?tok=$token').read()"
 else
   echo "Starting swarming"
   /usr/bin/python /b/s/swarming_bot.zip start_bot &
