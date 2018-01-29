@@ -151,8 +151,8 @@ func (t *Tryjob) newer(r interface{}) bool {
 // TryjobResult stores results. It is stored in the database as a child of
 // a Tryjob entity.
 type TryjobResult struct {
-	TestName string
-	Digest   string
+	TestName string              `datastore:"noindex"`
+	Digest   string              `datastore:"noindex"`
 	Params   paramtools.ParamSet `datastore:"-"`
 }
 
@@ -173,6 +173,7 @@ func (t *TryjobResult) Save() ([]datastore.Property, error) {
 	for param, value := range t.Params {
 		ret[idx].Name = tjrParamPrefix + param
 		ret[idx].Value = strToInterfaceSlice(value)
+		ret[idx].NoIndex = true
 		idx += 1
 	}
 	ret = append(ret, props...)
