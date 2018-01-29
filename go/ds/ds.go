@@ -40,6 +40,23 @@ const (
 	TASK Kind = "Task"
 )
 
+// Namespaces that are used in production, and thus might be backed up.
+const (
+	// Perf
+	PERF_NS                = "perf"
+	PERF_ANDROID_NS        = "perf-android"
+	PERF_ANDROID_MASTER_NS = "perf-androidmaster"
+
+	// Gold
+	GOLD_SKIA_PROD_NS = "gold-skia-prod"
+
+	// Android Compile
+	ANDROID_COMPILE_NS = "android-compile"
+
+	// Leasing
+	LEASING_SERVER_NS = "leasing-server"
+)
+
 var (
 	// DS is the Cloud Datastore client. Valid after Init() has been called.
 	DS *datastore.Client
