@@ -24,3 +24,9 @@ Examples:
     gold-pdfium
     gold-localhost-stephana
 
+Indexes
+-------
+
+Composite Indexes for all applications are defined in `ds/index.yaml`. Keeping
+the indexes in a single location makes it possible to run
+[gcloud datastore cleanup-indexes](https://cloud.google.com/sdk/gcloud/reference/datastore/cleanup-indexes).
