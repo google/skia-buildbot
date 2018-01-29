@@ -33,7 +33,7 @@ func NewRepo(ctx context.Context, repoUrl, workdir string) (*Repo, error) {
 func (r *Repo) Update(ctx context.Context) error {
 	cmd := &exec.Command{
 		Name:    "git",
-		Args:    []string{"remote", "update", "--prune"},
+		Args:    []string{"fetch", "--force", "--all", "--prune"},
 		Dir:     r.Dir(),
 		Timeout: time.Minute,
 	}
@@ -41,7 +41,7 @@ func (r *Repo) Update(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to update Repo: %s; output:\n%s", err, out)
 	}
-	sklog.Debugf("DEBUG: output of 'git remote update':\n%s", out)
+	sklog.Debugf("DEBUG: output of 'git fetch':\n%s", out)
 	return nil
 }
 
