@@ -6,4 +6,7 @@ push: default
 	go install -v ../push/go/pushcli
 	pushcli datastore-backup skia-monitoring
 
-.PHONY: default push
+indexes:
+	gcloud datastore create-indexes ./index.yaml
+
+.PHONY: default push indexes
