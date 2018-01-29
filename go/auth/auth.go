@@ -1,12 +1,15 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sync"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/httputils"
@@ -345,4 +348,153 @@ func ValidateBearerToken(token string) (*oauth2_api.Tokeninfo, error) {
 		return nil, fmt.Errorf("could not make oauth2 api client: %s", err)
 	}
 	return c.Tokeninfo().AccessToken(token).Do()
+}
+
+// NewFileBasedTokenClient returns an http.Client which uses a token from a
+// local file. Assumes that some other process is writing the token to this
+// location.
+func NewFileBasedTokenClient(filepath string, transport http.RoundTripper) (*http.Client, error) {
+	if transport == nil {
+		transport = httputils.NewBackOffTransport()
+	}
+	tokenSource, err := NewFileBasedTokenSource(filepath)
+	if err != nil {
+		return nil, err
+	}
+	return httputils.AddMetricsToClient(&http.Client{
+		Transport: &oauth2.Transport{
+			Source: tokenSource,
+			Base:   transport,
+		},
+		Timeout: httputils.REQUEST_TIMEOUT,
+	}), nil
+}
+
+// validateToken returns an error if the given token is not valid.
+func validateToken(tok *oauth2.Token) error {
+	if util.TimeIsZero(tok.Expiry) {
+		return fmt.Errorf("Token has no expiration!")
+	}
+	if time.Now().After(tok.Expiry) {
+		// This case is covered by tok.Valid(), but we want to provide a
+		// better error message.
+		return fmt.Errorf("Token is expired!")
+	}
+	if !tok.Valid() {
+		return fmt.Errorf("Token is invalid!")
+	}
+	return nil
+}
+
+// NewFileBasedTokenSource creates a new oauth2.TokenSource which reads its
+// token from a file on a periodic basis. Assumes that some other process is
+// writing the token to this location.
+func NewFileBasedTokenSource(filepath string) (oauth2.TokenSource, error) {
+	t := &fileBasedTokenSource{
+		filename: filepath,
+	}
+	if err := t.update(); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+// fileBasedTokenSource is a TokenSource which reads its token from a file.
+type fileBasedTokenSource struct {
+	filename string
+	tok      *oauth2.Token
+	mtx      sync.Mutex
+}
+
+// update the fileBasedTokenSource from its file.
+func (t *fileBasedTokenSource) update() error {
+	// Read the token from the file.
+	contents, err := ioutil.ReadFile(t.filename)
+	if err != nil {
+		return err
+	}
+	tok := new(oauth2.Token)
+	if err := json.NewDecoder(bytes.NewReader(contents)).Decode(tok); err != nil {
+		return err
+	}
+
+	// Validate the token.
+	if err := validateToken(tok); err != nil {
+		return err
+	}
+
+	// Update the stored token.
+	t.tok = tok
+	return nil
+}
+
+// Token returns the access token.
+func (t *fileBasedTokenSource) Token() (*oauth2.Token, error) {
+	t.mtx.Lock()
+	t.mtx.Unlock()
+	if !t.tok.Valid() || time.Now().Sub(t.tok.Expiry) < 5*time.Minute {
+		if err := t.update(); err != nil {
+			return nil, err
+		}
+	}
+	return t.tok, nil
+}
+
+// NewMetadataTokenClient returns an http.Client which uses a token from a
+// local file. Assumes that some other process is writing the token to this
+// location.
+func NewMetadataTokenClient(transport http.RoundTripper) (*http.Client, error) {
+	if transport == nil {
+		transport = httputils.NewBackOffTransport()
+	}
+	tokenSource, err := NewMetadataTokenSource()
+	if err != nil {
+		return nil, err
+	}
+	return httputils.AddMetricsToClient(&http.Client{
+		Transport: &oauth2.Transport{
+			Source: tokenSource,
+			Base:   transport,
+		},
+		Timeout: httputils.REQUEST_TIMEOUT,
+	}), nil
+}
+
+// NewMetadataTokenSource creates a new oauth2.TokenSource which obtains tokens
+// from the metadata server.
+func NewMetadataTokenSource() (oauth2.TokenSource, error) {
+	t := &metadataTokenSource{}
+	if err := t.update(); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+// metadataTokenSource is a TokenSource which obtains its tokens from metadata.
+type metadataTokenSource struct {
+	tok *oauth2.Token
+	mtx sync.Mutex
+}
+
+// update retrieves a new value for the token from metadata. Assumes the caller
+// holds a lock.
+func (t *metadataTokenSource) update() error {
+	tok, err := metadata.GetToken()
+	if err != nil {
+		return err
+	}
+	t.tok = tok
+	return nil
+}
+
+// Token returns the access token.
+func (t *metadataTokenSource) Token() (*oauth2.Token, error) {
+	t.mtx.Lock()
+	t.mtx.Unlock()
+	if !t.tok.Valid() || time.Now().Sub(t.tok.Expiry) < 5*time.Minute {
+		if err := t.update(); err != nil {
+			return nil, err
+		}
+	}
+	return t.tok, nil
 }

@@ -1,13 +1,17 @@
 package metadata
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
 )
 
 // GCE project level metadata keys.
@@ -54,6 +58,10 @@ const (
 	// for the level ("instance" or "project") and the metadata key.
 	METADATA_URL = "http://metadata" + METADATA_SUB_URL_TMPL
 
+	// METADATA_TOKEN_URL is the URL used to retrieve OAuth2
+	// tokens for a service account.
+	METADATA_TOKEN_URL = "http://metadata/computeMetadata/v1/instance/service-accounts/default/token"
+
 	// WEBHOOK_REQUEST_SALT is used to authenticate webhook requests. The value stored in
 	// Metadata is base64-encoded.
 	// Value created 2015-08-10 with
@@ -76,13 +84,9 @@ const (
 	HEADER_MD_FLAVOR_VAL = "Google"
 )
 
-// get retrieves the named value from the Metadata server. See
-// https://developers.google.com/compute/docs/metadata
-//
-// level should be either "instance" or "project" for the kind of
-// metadata to retrieve.
-func get(name string, level string) (string, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf(METADATA_URL, level, name), nil)
+// getUrl retrieves metadata from the given URL.
+func getUrl(url string) (string, error) {
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("metadata.Get() failed to build request: %s", err)
 	}
@@ -90,7 +94,7 @@ func get(name string, level string) (string, error) {
 	req.Header.Add(HEADER_MD_FLAVOR_KEY, HEADER_MD_FLAVOR_VAL)
 	resp, err := c.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("metadata.Get() failed to make HTTP request for %s: %s", name, err)
+		return "", fmt.Errorf("metadata.Get() failed to make HTTP request for %s: %s", url, err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("HTTP response has status %d", resp.StatusCode)
@@ -98,9 +102,18 @@ func get(name string, level string) (string, error) {
 	defer util.Close(resp.Body)
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("Failed to read %s from metadata server: %s", name, err)
+		return "", fmt.Errorf("Failed to read %s from metadata server: %s", url, err)
 	}
 	return string(value), nil
+}
+
+// get retrieves the named value from the Metadata server. See
+// https://developers.google.com/compute/docs/metadata
+//
+// level should be either "instance" or "project" for the kind of
+// metadata to retrieve.
+func get(name string, level string) (string, error) {
+	return getUrl(fmt.Sprintf(METADATA_URL, level, name))
 }
 
 // Get retrieves the named value from the instance Metadata server. See
@@ -149,6 +162,27 @@ func Must(s string, err error) string {
 		sklog.Fatalf("Failed to read metadata: %s.", err)
 	}
 	return s
+}
+
+// GetToken retreives an OAuth2 token for the instance's service account from
+// metadata.
+func GetToken() (*oauth2.Token, error) {
+	body, err := getUrl(METADATA_TOKEN_URL)
+	if err != nil {
+		return nil, err
+	}
+	var token struct {
+		*oauth2.Token
+		ExpiresIn int `json:"expires_in"`
+	}
+	if err := json.NewDecoder(bytes.NewReader([]byte(body))).Decode(&token); err != nil {
+		return nil, nil
+	}
+	if token.ExpiresIn != 0 {
+		// Sometimes this is specified instead of token.Expiry.
+		token.Expiry = time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)
+	}
+	return token.Token, nil
 }
 
 // NSQDTestServerAddr returns the address of a test NSQD server used for testing. If
