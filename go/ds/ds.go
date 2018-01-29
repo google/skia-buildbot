@@ -15,6 +15,8 @@ type Kind string
 // Below are all the Kinds used in all applications. New Kinds should be listed
 // here, and they should all have unique values, because when defining indexes
 // for Cloud Datastore the index config is per project, not pre-namespace.
+// Remember to add them to KindsToBackup if they are to be backed up, and push
+// a new version of /ds/go/datastore_backup.
 const (
 	// Predict
 	FAILURES     Kind = "Failures"
@@ -38,6 +40,36 @@ const (
 
 	// Leasing
 	TASK Kind = "Task"
+)
+
+// Namespaces that are used in production, and thus might be backed up.
+const (
+	// Perf
+	PERF_NS                = "perf"
+	PERF_ANDROID_NS        = "perf-android"
+	PERF_ANDROID_MASTER_NS = "perf-androidmaster"
+
+	// Gold
+	GOLD_SKIA_PROD_NS = "gold-skia-prod"
+
+	// Android Compile
+	ANDROID_COMPILE_NS = "android-compile"
+
+	// Leasing
+	LEASING_SERVER_NS = "leasing-server"
+)
+
+var (
+	// KindsToBackup is a map from namespace to the list of Kinds to backup.
+	// If this value is changed then remember to push a new version of /ds/go/datastore_backup.
+	KindsToBackup = map[string][]Kind{
+		PERF_NS:                []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
+		PERF_ANDROID_NS:        []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
+		PERF_ANDROID_MASTER_NS: []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
+		GOLD_SKIA_PROD_NS:      []Kind{ISSUE, TRYJOB, TRYJOB_RESULT, TRYJOB_EXP_CHANGE, TEST_DIGEST_EXP},
+		ANDROID_COMPILE_NS:     []Kind{COMPILE_TASK},
+		LEASING_SERVER_NS:      []Kind{TASK},
+	}
 )
 
 var (
