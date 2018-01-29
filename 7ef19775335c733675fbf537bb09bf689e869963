@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e312e264_4fc9690b",
+        "filename": "skolo/go/refresh_swarming_token/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-29T17:49:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0cda02e1_58267657",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 0
+      },
+      "revId": "7ef19775335c733675fbf537bb09bf689e869963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1240b0f5_0ab06eb8",
         "filename": "skolo/raspberry-pi/setup-swarming.sh",
         "patchSetId": 5
@@ -36,6 +60,24 @@
       "writtenOn": "2018-01-29T15:57:45Z",
       "side": 1,
       "message": "Some of this (folder making, executable copying, etc) should be in finalize_image.yml  \n\nThe only stuff that goes in this file (setup-swarming.sh) is the stuff that cannot be easily automated by Ansible.  (e.g. things that need to be actually run inside the chroot)",
+      "revId": "7ef19775335c733675fbf537bb09bf689e869963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71145bf8_c847780b",
+        "filename": "skolo/raspberry-pi/setup-swarming.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-29T17:49:18Z",
+      "side": 1,
+      "message": "I\u0027ll just remove this for now and write a separate CL(s) for setting up Swarming on all of our bots.",
+      "parentUuid": "1240b0f5_0ab06eb8",
       "revId": "7ef19775335c733675fbf537bb09bf689e869963",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true

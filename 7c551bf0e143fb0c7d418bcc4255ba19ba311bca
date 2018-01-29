@@ -202,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "339e3a9c_d29b7c57",
+        "filename": "skolo/go/swarming_token/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-29T17:49:18Z",
+      "side": 1,
+      "message": "Yeah, we\u0027ll notice when the bots disappear.  It\u0027s unclear whether bots might disconnect *during* a task, which would be a problem.  I\u0027d prefer to get an alert early, before the token expires.\n\nI went with cron since it\u0027s more universally available on our machines.  IIUC we can use it on all of our Linux machines as well as Mac.  I think some of our Linux machines are too old to even use systemd.  FTR we can also use cron to set up a command to run at boot, so if we wanted to change this to a long-running service, that would work too.\n\nI don\u0027t know anything at all about Windows.",
+      "parentUuid": "bc172ee4_22f5350c",
+      "range": {
+        "startLine": 17,
+        "startChar": 24,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8368f879_fe7c1fb3",
         "filename": "skolo/go/swarming_token/main.go",
         "patchSetId": 4
@@ -332,6 +356,30 @@
       "side": 1,
       "message": "I assumed Stephan was talking about where these are stored in GCS.",
       "parentUuid": "2efd0258_c75ab9e9",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 13
+      },
+      "revId": "7c551bf0e143fb0c7d418bcc4255ba19ba311bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "951f9ade_94953289",
+        "filename": "skolo/go/swarming_token/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-29T17:49:18Z",
+      "side": 1,
+      "message": "Ah, okay. Yeah, ideally we\u0027d key this by commit hash and do something extra when the checkout is dirty (or enforce that it\u0027s at least committed locally like the build_release scripts do).  Does that need to happen before this lands?",
+      "parentUuid": "b547bfe1_f82a3229",
       "range": {
         "startLine": 25,
         "startChar": 0,
