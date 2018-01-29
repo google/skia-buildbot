@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "06ecb339_89647d8f",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-29T15:55:07Z",
+      "side": 1,
+      "message": "Should we add a KindsToBackup slice here (and maybe a NamespacesToBackup as well) that datastore_backup/main.go can use?\nI mention this because if somebody adds new Kinds/Namespaces here it may not be obvious that they need to add it in datastore_backup/main.go.\nOther way is to add a comment saying if you want to backup then add Kinds/Namespaces to datastore_backup/main.go as well.",
+      "revId": "0f2cf86ee90811a641fc9bea8671a5541c7b96c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
