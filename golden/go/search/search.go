@@ -2,23 +2,30 @@
 package search
 
 import (
+	"context"
 	"fmt"
+	"math"
 	"net/url"
 	"sort"
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
+
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digesttools"
+	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/goldingestion"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
+	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -105,16 +112,8 @@ const (
 	GROUP_TEST_MAX_COUNT = "count"
 )
 
-// Query is the query that Search understands.
-type Query struct {
-	// Diff metric to use.
-	Metric string   `json:"metric"`
-	Sort   string   `json:"sort"`
-	Match  []string `json:"match"`
-
-	// Blaming
-	BlameGroupID string `json:"blame"`
-
+// TileQuery defines all the query fields available
+type TileQuery struct {
 	// Image classification
 	Pos            bool `json:"pos"`
 	Neg            bool `json:"neg"`
@@ -125,16 +124,49 @@ type Query struct {
 	// URL encoded query string
 	QueryStr string     `json:"query"`
 	Query    url.Values `json:"-"`
+}
 
-	// URL encoded query string to select the right hand side of comparisons.
+// excludeClassification returns true if the given label/status for a digest
+// should be excluded based on the values in the query.
+func (q *TileQuery) excludeClassification(cl types.Label) bool {
+	return ((cl == types.NEGATIVE) && !q.Neg) ||
+		((cl == types.POSITIVE) && !q.Pos) ||
+		((cl == types.UNTRIAGED) && !q.Unt)
+}
+
+// Query is the query that Search understands.
+type Query struct {
+	// Diff metric to use.
+	Metric string   `json:"metric"`
+	Sort   string   `json:"sort"`
+	Match  []string `json:"match"`
+
+	// Blaming
+	BlameGroupID string `json:"blame"`
+
+	// Fields to select the left hand side of the comparison.
+	TileQuery
+
+	// Fields select the right hand side of the comparisons. They are consolidated
+	// into rhsQuery by the parse routines.
 	RQueryStr string     `json:"rquery"`
 	RQuery    url.Values `json:"-"`
 
+	RPos            bool `json:"rpos"`
+	RNeg            bool `json:"rneg"`
+	RHead           bool `json:"rhead"`
+	RUnt            bool `json:"runt"`
+	RIncludeIgnores bool `json:"rinclude"`
+
+	// rhsQuery is populated when the query is parsed and determines which digests
+	// are on the right-hand-side of the comparison. It maps to search selectors above.
+	rhsQuery *TileQuery
+
 	// Trybot support.
-	Issue         int64   `json:"issue,string"`
-	PatchsetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
-	Patchsets     []int64 `json:"-"`
-	IncludeMaster bool    `json:"master"` // Include digests also contained in master when searching code review issues.
+	Issue         string   `json:"issue"`
+	PatchsetsStr  string   `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets     []string `json:"-"`
+	IncludeMaster bool     `json:"master"` // Include digests also contained in master when searching Rietveld issues.
 
 	// Filtering.
 	FCommitBegin string  `json:"fbegin"`     // Start commit
@@ -165,15 +197,33 @@ type SearchResponse struct {
 // IssueResponse contains specific query responses when we search for a trybot issue. Currently
 // it extends trybot.IssueDetails.
 type IssueResponse struct {
-	QueryPatchsets []int64
+	*trybot.IssueDetails
+	QueryPatchsets []string
 }
 
-// excludeClassification returns true if the given label/status for a digest
-// should be excluded based on the values in the query.
-func (q *Query) excludeClassification(cl types.Label) bool {
-	return ((cl == types.NEGATIVE) && !q.Neg) ||
-		((cl == types.POSITIVE) && !q.Pos) ||
-		((cl == types.UNTRIAGED) && !q.Unt)
+// intermediate is the intermediate representation of the results coming from Search.
+//
+// To avoid filtering through the tile more than once we first take a pass
+// through the tile and collect all info for the current Query, then we
+// transform each intermediate into a Digest.
+type intermediate struct {
+	Test   string
+	Digest string
+	Traces map[string]tiling.Trace
+}
+
+func (i *intermediate) addTrace(id string, tr tiling.Trace) {
+	i.Traces[id] = tr
+}
+
+func newIntermediate(test, digest, id string, tr tiling.Trace) *intermediate {
+	ret := &intermediate{
+		Test:   test,
+		Digest: digest,
+		Traces: map[string]tiling.Trace{},
+	}
+	ret.addTrace(id, tr)
+	return ret
 }
 
 // DigestSlice is a utility type for sorting slices of Digest by their max diff.
@@ -182,6 +232,330 @@ type DigestSlice []*Digest
 func (p DigestSlice) Len() int           { return len(p) }
 func (p DigestSlice) Less(i, j int) bool { return p[i].Diff.Diff > p[j].Diff.Diff }
 func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// Search returns a slice of Digests that match the input query, and the total number of Digests
+// that matched the query. It also returns a slice of Commits that were used in the calculations.
+func Search(ctx context.Context, q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*SearchResponse, error) {
+	tile := idx.GetTile(q.IncludeIgnores)
+
+	e, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
+	}
+
+	var ret []*Digest
+	var issueResponse *IssueResponse = nil
+	var commits []*tiling.Commit = nil
+	if q.Issue != "" {
+		ret, issueResponse, err = searchByIssue(ctx, q.Issue, q, e, q.Query, storages, idx)
+	} else {
+		ret, commits, err = searchTile(q, e, q.Query, storages, tile, idx)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Sort(DigestSlice(ret))
+	fullLength := int32(len(ret))
+	if fullLength > q.Limit {
+		ret = ret[0:q.Limit]
+	}
+
+	return &SearchResponse{
+		Digests:       ret,
+		Total:         fullLength,
+		Commits:       commits,
+		IssueResponse: issueResponse,
+	}, nil
+}
+
+func searchByIssue(ctx context.Context, issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, idx *indexer.SearchIndex) ([]*Digest, *IssueResponse, error) {
+	issue, tile, err := storages.TrybotResults.GetIssue(ctx, issueID, q.Patchsets)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if issue == nil {
+		return nil, nil, fmt.Errorf("Issue not found.")
+	}
+
+	// Get a matcher for the ignore rules if we filter ignores.
+	var ignoreMatcher ignore.RuleMatcher = nil
+	if !q.IncludeIgnores {
+		ignoreMatcher, err = storages.IgnoreStore.BuildRuleMatcher()
+		if err != nil {
+			return nil, nil, fmt.Errorf("Unable to build rules matcher: %s", err)
+		}
+	}
+
+	// Set up a rule to match the query.
+	var queryRule ignore.QueryRule = nil
+	if len(parsedQuery) > 0 {
+		queryRule = ignore.NewQueryRule(parsedQuery)
+	}
+
+	pidMap := util.NewStringSet(issue.TargetPatchsets)
+
+	// TODO(stephana): Sort out how digests from trybots relate to ignored and
+	// followed digests. Are we ok with ignored digests being triaged "by accident"
+	// when triaging trybot results?
+	talliesByTestWithIgnores := idx.TalliesByTest(true)
+	talliesByTest := idx.TalliesByTest(false)
+	digestMap := map[string]*Digest{}
+
+	for idx, cid := range issue.CommitIDs {
+		_, pid := goldingestion.ExtractIssueInfo(cid.CommitID, storages.RietveldAPI, storages.GerritAPI)
+		if !pidMap[pid] {
+			continue
+		}
+
+		for _, trace := range tile.Traces {
+			gTrace := trace.(*types.GoldenTrace)
+			digest := gTrace.Values[idx]
+
+			if digest == types.MISSING_DIGEST {
+				continue
+			}
+
+			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+			params := gTrace.Params_
+
+			// 	If we have seen this before process it.
+			key := testName + ":" + digest
+			if found, ok := digestMap[key]; ok {
+				util.AddParamsToParamSet(found.ParamSet, params)
+				continue
+			}
+
+			// Should this trace be ignored.
+			if ignoreMatcher != nil {
+				if _, ok := ignoreMatcher(params); ok {
+					continue
+				}
+			}
+
+			// Does it match a given query.
+			if (queryRule == nil) || queryRule.IsMatch(params) {
+				if !q.IncludeMaster {
+					if _, ok := talliesByTestWithIgnores[testName][digest]; ok {
+						continue
+					}
+				}
+
+				if cl := exp.Classification(testName, digest); !q.excludeClassification(cl) {
+					digestMap[key] = &Digest{
+						Test:     testName,
+						Digest:   digest,
+						ParamSet: util.AddParamsToParamSet(make(map[string][]string, len(params)), params),
+						Status:   cl.String(),
+					}
+				}
+			}
+		}
+	}
+
+	ret := make([]*Digest, 0, len(digestMap))
+	allDigests := make([]string, len(digestMap))
+	emptyTraces := &Traces{}
+	for _, digestEntry := range digestMap {
+		digestEntry.Diff = buildDiff(digestEntry.Test, digestEntry.Digest, exp, nil, talliesByTest, storages.DiffStore, idx, q.IncludeIgnores)
+		digestEntry.Traces = emptyTraces
+		ret = append(ret, digestEntry)
+		allDigests = append(allDigests, digestEntry.Digest)
+	}
+	// This has priority PRIORITY_NOW because this is used in a HTTP request where
+	// the requester expects the images to be be available.
+	storages.DiffStore.WarmDigests(diff.PRIORITY_NOW, allDigests, false)
+
+	issueResponse := &IssueResponse{
+		IssueDetails:   issue,
+		QueryPatchsets: issue.TargetPatchsets,
+	}
+
+	return ret, issueResponse, nil
+}
+
+// searchTile queries across a tile.
+func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tile *tiling.Tile, idx *indexer.SearchIndex) ([]*Digest, []*tiling.Commit, error) {
+	// TODO Use CommitRange to create a trimmed tile.
+
+	traceTally := idx.TalliesByTrace(q.IncludeIgnores)
+	lastCommitIndex := tile.LastCommitIndex()
+
+	// Loop over the tile and pull out all the digests that match
+	// the query, collecting the matching traces as you go. Build
+	// up a set of intermediate's that can then be used to calculate
+	// Digest's.
+
+	// map [test:digest] *intermediate
+	inter := map[string]*intermediate{}
+	for id, trace := range tile.Traces {
+		if tiling.Matches(trace, parsedQuery) {
+			tr := trace.(*types.GoldenTrace)
+			test := tr.Params()[types.PRIMARY_KEY_FIELD]
+			// Get all the digests
+			digests := digestsFromTrace(id, tr, q.Head, lastCommitIndex, traceTally)
+			for _, digest := range digests {
+				cl := e.Classification(test, digest)
+				if q.excludeClassification(cl) {
+					continue
+				}
+
+				// Fix blamer to make this easier.
+				if q.BlameGroupID != "" {
+					if cl == types.UNTRIAGED {
+						b := idx.GetBlame(test, digest, tile.Commits)
+						if q.BlameGroupID != blameGroupID(b, tile.Commits) {
+							continue
+						}
+					} else {
+						continue
+					}
+				}
+				key := fmt.Sprintf("%s:%s", test, digest)
+				if i, ok := inter[key]; !ok {
+					inter[key] = newIntermediate(test, digest, id, tr)
+				} else {
+					i.addTrace(id, tr)
+				}
+			}
+		}
+	}
+	// Now loop over all the intermediates and build a Digest for each one.
+	ret := make([]*Digest, 0, len(inter))
+	for key, i := range inter {
+		parts := strings.Split(key, ":")
+		ret = append(ret, digestFromIntermediate(parts[0], parts[1], i, e, tile, idx, storages.DiffStore, q.IncludeIgnores))
+	}
+	return ret, tile.Commits, nil
+}
+
+func digestFromIntermediate(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, idx *indexer.SearchIndex, diffStore diff.DiffStore, includeIgnores bool) *Digest {
+	traceTally := idx.TalliesByTrace(true)
+	ret := &Digest{
+		Test:     test,
+		Digest:   digest,
+		Status:   e.Classification(test, digest).String(),
+		ParamSet: idx.GetParamsetSummary(test, digest, includeIgnores),
+		Traces:   buildTraces(test, digest, inter.Traces, e, tile, traceTally),
+		Diff:     buildDiff(test, digest, e, tile, idx.TalliesByTest(true), diffStore, idx, includeIgnores),
+	}
+	return ret
+}
+
+// buildDiff creates a Diff for the given intermediate.
+func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Tile, testTally map[string]tally.Tally, diffStore diff.DiffStore, idx *indexer.SearchIndex, includeIgnores bool) *Diff {
+	ret := &Diff{
+		Diff: math.MaxFloat32,
+		Pos:  nil,
+		Neg:  nil,
+	}
+
+	if tile != nil {
+		ret.Blame = idx.GetBlame(test, digest, tile.Commits)
+	}
+
+	t := testTally[test]
+	if t == nil {
+		t = tally.Tally{}
+	}
+
+	var diffVal float32 = 0
+	if closest := digesttools.ClosestDigest(test, digest, e, t, diffStore, types.POSITIVE); closest.Digest != "" {
+		ret.Pos = &DiffDigest{
+			Closest: closest,
+		}
+		ret.Pos.ParamSet = idx.GetParamsetSummary(test, ret.Pos.Closest.Digest, includeIgnores)
+		diffVal = closest.Diff
+	}
+
+	if closest := digesttools.ClosestDigest(test, digest, e, t, diffStore, types.NEGATIVE); closest.Digest != "" {
+		ret.Neg = &DiffDigest{
+			Closest: closest,
+		}
+		ret.Neg.ParamSet = idx.GetParamsetSummary(test, ret.Neg.Closest.Digest, includeIgnores)
+		if (ret.Pos == nil) || (closest.Diff < diffVal) {
+			diffVal = closest.Diff
+		}
+	}
+
+	ret.Diff = diffVal
+	return ret
+}
+
+// buildTraces returns a Trace for the given intermediate.
+func buildTraces(test, digest string, traces map[string]tiling.Trace, e *expstorage.Expectations, tile *tiling.Tile, traceTally map[string]tally.Tally) *Traces {
+	traceNames := make([]string, 0, len(traces))
+	for id := range traces {
+		traceNames = append(traceNames, id)
+	}
+
+	ret := &Traces{
+		TileSize: len(tile.Commits),
+		Traces:   []Trace{},
+		Digests:  []DigestStatus{},
+	}
+
+	sort.Strings(traceNames)
+
+	last := tile.LastCommitIndex()
+	y := 0
+	if len(traceNames) > 0 {
+		ret.Digests = append(ret.Digests, DigestStatus{
+			Digest: digest,
+			Status: e.Classification(test, digest).String(),
+		})
+	}
+	for _, id := range traceNames {
+		t, ok := traceTally[id]
+		if !ok {
+			continue
+		}
+		if count, ok := t[digest]; !ok || count == 0 {
+			continue
+		}
+		trace := traces[id].(*types.GoldenTrace)
+		p := Trace{
+			Data:   []Point{},
+			ID:     id,
+			Params: trace.Params(),
+		}
+		for i := last; i >= 0; i-- {
+			if trace.IsMissing(i) {
+				continue
+			}
+			// s is the status of the digest, it is either 0 for a match, or [1-8] if not.
+			s := 0
+			if trace.Values[i] != digest {
+				if index := digestIndex(trace.Values[i], ret.Digests); index != -1 {
+					s = index
+				} else {
+					if len(ret.Digests) < 9 {
+						d := trace.Values[i]
+						ret.Digests = append(ret.Digests, DigestStatus{
+							Digest: d,
+							Status: e.Classification(test, d).String(),
+						})
+						s = len(ret.Digests) - 1
+					} else {
+						s = 8
+					}
+				}
+			}
+			p.Data = append(p.Data, Point{
+				X: i,
+				Y: y,
+				S: s,
+			})
+		}
+		sort.Sort(PointSlice(p.Data))
+		ret.Traces = append(ret.Traces, p)
+		y += 1
+	}
+
+	return ret
+}
 
 // digestIndex returns the index of the digest d in digestInfo, or -1 if not found.
 func digestIndex(d string, digestInfo []DigestStatus) int {
@@ -237,6 +611,13 @@ func digestsFromTrace(id string, tr *types.GoldenTrace, head bool, lastCommitInd
 	return digests.Keys()
 }
 
+// PointSlice is a utility type for sorting Points by their X value.
+type PointSlice []Point
+
+func (p PointSlice) Len() int           { return len(p) }
+func (p PointSlice) Less(i, j int) bool { return p[i].X < p[j].X }
+func (p PointSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // TODO(stephana): Replace digesttools.Closest here and above with an overall
 // consolidated structure to measure the distance between two digests.
 
@@ -279,6 +660,52 @@ func CompareDigests(test, left, right string, storages *storage.Storage, idx *in
 			ParamSet:    idx.GetParamsetSummary(test, right, true),
 			DiffMetrics: diffResult[right].(*diff.DiffMetrics),
 		},
+	}, nil
+}
+
+// DigestDetails contains details about a digest.
+type DigestDetails struct {
+	Digest  *Digest          `json:"digest"`
+	Commits []*tiling.Commit `json:"commits"`
+}
+
+// GetDigestDetails returns details about a digest as an instance of DigestDetails.
+func GetDigestDetails(test, digest string, storages *storage.Storage, idx *indexer.SearchIndex) (*DigestDetails, error) {
+	tile := idx.GetTile(true)
+
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	traces := map[string]tiling.Trace{}
+	for traceId, trace := range tile.Traces {
+		if trace.Params()[types.PRIMARY_KEY_FIELD] != test {
+			continue
+		}
+		gTrace := trace.(*types.GoldenTrace)
+		for _, val := range gTrace.Values {
+			if val == digest {
+				traces[traceId] = trace
+			}
+		}
+	}
+
+	// TODO(stephana): Revisit whether we should get these with the ignored
+	// traces or not, once we get rid of buildTraces and buildDiff.
+	talliesByTrace := idx.TalliesByTrace(true)
+	talliesByTest := idx.TalliesByTest(true)
+
+	return &DigestDetails{
+		Digest: &Digest{
+			Test:     test,
+			Digest:   digest,
+			Status:   exp.Classification(test, digest).String(),
+			ParamSet: idx.GetParamsetSummary(test, digest, true),
+			Traces:   buildTraces(test, digest, traces, exp, tile, talliesByTrace),
+			Diff:     buildDiff(test, digest, exp, nil, talliesByTest, storages.DiffStore, idx, true),
+		},
+		Commits: tile.Commits,
 	}, nil
 }
 
@@ -476,12 +903,7 @@ func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchInde
 		}
 	}
 
-	exp, err := storages.ExpectationsStore.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := iterTile(query, addFn, nil, ExpSlice{exp}, idx); err != nil {
+	if err := iterTile(&query.TileQuery, query.BlameGroupID, addFn, nil, storages, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -580,12 +1002,7 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 		}
 	}
 
-	exp, err := storages.ExpectationsStore.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := iterTile(query, addFn, acceptFn, ExpSlice{exp}, idx); err != nil {
+	if err := iterTile(&query.TileQuery, query.BlameGroupID, addFn, acceptFn, storages, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil

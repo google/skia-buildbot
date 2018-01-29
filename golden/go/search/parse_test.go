@@ -28,21 +28,25 @@ func TestParseCTQuery(t *testing.T) {
 	testutils.SmallTest(t)
 	testQuery := CTQuery{
 		RowQuery: &Query{
-			Pos:            true,
-			Neg:            false,
-			Head:           true,
-			Unt:            true,
-			IncludeIgnores: true,
-			QueryStr:       "source_type=gm&param=value",
-			Limit:          20,
+			TileQuery: TileQuery{
+				Pos:            true,
+				Neg:            false,
+				Head:           true,
+				Unt:            true,
+				IncludeIgnores: true,
+				QueryStr:       "source_type=gm&param=value",
+			},
+			Limit: 20,
 		},
 		ColumnQuery: &Query{
-			Pos:            true,
-			Neg:            false,
-			Head:           true,
-			Unt:            true,
-			IncludeIgnores: true,
-			QueryStr:       "source_type=gm&param=value",
+			TileQuery: TileQuery{
+				Pos:            true,
+				Neg:            false,
+				Head:           true,
+				Unt:            true,
+				IncludeIgnores: true,
+				QueryStr:       "source_type=gm&param=value",
+			},
 		},
 
 		Match: []string{"gamma_correct"},

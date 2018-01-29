@@ -20,7 +20,7 @@
 
       orientation - Orientation of the controls. Values: 'horizontal', 'vertical'
       disabled - Boolean to indicate whether to disable all the controls.
-      beta - Boolean to enable beta-level functions.
+      filtering - Boolean to show the filter sub-dialog for query results.
 
     Events:
       'state-change' - Fired when the state of the query changes and
@@ -86,18 +86,22 @@
                         title="Filter Traces"><iron-icon icon="image:tune"></iron-icon></paper-button>
         </div>
         <!-- TODO(stephana): Enable filter button when backend is ready -->
-        <div class="buttonContainer" hidden$="{{!beta}}">
-          <paper-button id="filterButton" class$="topControl" raised disabled="[[disabled]]"
-                        title="Metrics Filter"><iron-icon icon="icons:filter-list"></iron-icon>
-          </paper-button>
-        </div>
+        <template is="dom-if" if="[[filtering]]">
+          <div class="buttonContainer" hidden$="[[!filtering]]">
+            <paper-button id="filterButton" class$="topControl" raised disabled="[[disabled]]"
+                          title="Metrics Filter"><iron-icon icon="icons:filter-list"></iron-icon>
+            </paper-button>
+          </div>
+        </template>
         <div class$="[[orientation]] currSelection">
           [[_splitAmp(state.query, orientation)]]
         </div>
       </div>
 
       <query-dialog-sk id="queryDialog" trigger="searchButton"></query-dialog-sk>
-      <filter-dialog-sk id="filterDialog" trigger="filterButton"></filter-dialog-sk>
+      <template is="dom-if" if="[[filtering]]">
+        <filter-dialog-sk id="filterDialog" trigger="filterButton"></filter-dialog-sk>
+      </template>
   </template>
 
   <script>
@@ -119,7 +123,7 @@
             value: false
           },
 
-          beta: {
+          filtering: {
             type: Boolean,
             value: false
           }
@@ -131,9 +135,13 @@
 
         ready: function() {
           this.listen(this.$.searchButton, 'tap', '_handleSearchButton');
-          this.listen(this.$.filterButton, 'tap', '_handleFilterButton');
           this.listen(this.$.queryDialog, 'edit', '_handleQueryEdit');
-          this.listen(this.$.filterDialog, 'edit', '_handleFilterEdit');
+          if (this.filtering) {
+            this.async(function() {
+              this.listen(this.$$('#filterButton'), 'tap', '_handleFilterButton');
+              this.listen(this.$$('#filterDialog'), 'edit', '_handleFilterEdit');
+            }, 1000);
+          }
 
           // If the corpus changes make sure we do cleanup work.
           this.async(function() {
@@ -147,12 +155,21 @@
         setState: function(state, fireEvent) {
           this._noFire = !fireEvent;
           this.set('state', sk.object.shallowCopy(state));
-          this.$.filterDialog.setValue(this.state);
+
+          if (this.filtering) {
+            this.async(function() {
+              this.$$('#filterDialog').setValue(this.state);
+             });
+          }
         },
 
         setParamSet: function(params) {
           this.$.queryDialog.queryEle.setParamSet(params);
-          this.$.filterDialog.setParamSet(params);
+          if (this.filtering) {
+            this.async(function() {
+              this.$$('#filterDialog').setParamSet(params);
+            }, 1000);
+          }
         },
 
         _handleQueryEdit: function(ev) {
@@ -174,7 +191,7 @@
 
         _handleFilterButton: function(ev) {
           ev.stopPropagation();
-          this.$.filterDialog.open(this.state.filter);
+          this.$$('#filterDialog').open(this.state.filter);
         },
 
         _handleCorpusChange: function(ev) {

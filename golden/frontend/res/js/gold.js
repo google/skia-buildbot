@@ -65,13 +65,24 @@ var gold = gold || {};
     // The fields of query are not fixed but change over time. This requires
     // to encode/decode a query in a separate step when encoding/decoding
     // this entire object.
-    query:'',
-    rquery: '',
+
+    // Left hand side query fields.
     head: true,
     include: false,
     pos: false,
     neg: false,
     unt: true,
+    query:'',
+
+    // Right hand side query fields.
+    rhead: false,
+    rinclude: false,
+    rpos: true,
+    rneg: true,
+    runt: false,
+    rquery: '',
+
+    // Blame contains a blameID.
     blame: '',
     limit: 50,
     offset: 0,

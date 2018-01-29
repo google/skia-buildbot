@@ -4,6 +4,7 @@ package search
 import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -26,7 +27,12 @@ type AddFn func(test, digest, traceID string, trace *types.GoldenTrace, acceptRe
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *indexer.SearchIndex) error {
+func iterTile(query *TileQuery, qBlameGroupID string, addFn AddFn, acceptFn AcceptFn, storages *storage.Storage, idx *indexer.SearchIndex) error {
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		return err
+	}
+
 	tile := idx.GetTile(query.IncludeIgnores)
 
 	if acceptFn == nil {
@@ -62,10 +68,10 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 				}
 
 				// Fix blamer to make this easier.
-				if query.BlameGroupID != "" {
+				if qBlameGroupID != "" {
 					if cl == types.UNTRIAGED {
 						b := idx.GetBlame(test, digest, tile.Commits)
-						if query.BlameGroupID != blameGroupID(b, tile.Commits) {
+						if qBlameGroupID != blameGroupID(b, tile.Commits) {
 							continue
 						}
 					} else {

@@ -1,8 +1,11 @@
 package search
 
 import (
+	"fmt"
 	"sort"
 	"sync"
+
+	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
@@ -10,9 +13,9 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -66,17 +69,10 @@ type SRDiffDigest struct {
 // Search(...) function of SearchAPI and intended to be
 // returned as JSON in an HTTP response.
 type NewSearchResponse struct {
-	Digests []*SRDigest          `json:"digests"`
-	Offset  int                  `json:"offset"`
-	Size    int                  `json:"size"`
-	Commits []*tiling.Commit     `json:"commits"`
-	Issue   *IssueSearchResponse `json:"issue"`
-}
-
-// IssueSearchResponse contains the information about the code review issue.
-type IssueSearchResponse struct {
-	*tryjobstore.IssueDetails
-	QueryPatchsets []int64 `json:"queryPatchsets"`
+	Digests []*SRDigest      `json:"digests"`
+	Offset  int              `json:"offset"`
+	Size    int              `json:"size"`
+	Commits []*tiling.Commit `json:"commits"`
 }
 
 // DigestDetails contains details about a digest.
@@ -107,42 +103,58 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	// for the majority of queries.
 	getRefDiffs := !q.NoDiff
 
-	isTryjobSearch := q.Issue > 0
-
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
-	exp, err := s.getExpectationsFromQuery(q)
+	exp, err := s.storages.ExpectationsStore.Get()
 	if err != nil {
 		return nil, err
 	}
 	idx := s.ixr.GetIndex()
 
-	var inter srInterMap = nil
-	var issueResp *IssueSearchResponse = nil
+	// Run getting the left hand side and right hand side in parallel.
+	var inter map[string]map[string]*srIntermediate = nil
+	var ret []*SRDigest = nil
+	var rhsByTest = map[string]util.StringSet{}
 
-	// Find the digests (left hand side) we are interested in.
-	if isTryjobSearch {
-		// Search the tryjob results for the issue at hand.
-		issueResp = &IssueSearchResponse{}
-		inter, issueResp.IssueDetails, issueResp.QueryPatchsets, err = s.queryIssue(q, idx, exp)
-	} else {
-		// Iterate through the tile and get an intermediate
+	// Get the left hand side of the diff => the digests we are interested in.
+	var egroup errgroup.Group
+	egroup.Go(func() error {
+		// Unconditional query stage. Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
-		inter, err = s.filterTile(q, exp, idx)
+		var err error
+		inter, err = s.filterTile(q, idx)
+		if err != nil {
+			return fmt.Errorf("Error iterating over tile: %s", err)
+		}
+
+		// Convert the intermediate representation to the list of digests that we
+		// are going to return to the client.
+		ret = s.getDigestRecs(inter, exp)
+		return nil
+	})
+
+	// Get the right hand side candidates only if want to get reference diffs and
+	// if a right hand side query was defined.
+	if getRefDiffs && q.rhsQuery != nil {
+		egroup.Go(func() error {
+			var err error
+			rhsByTest, err = s.filterDigestByTest(q.rhsQuery, idx)
+			return err
+		})
 	}
-	if err != nil {
+	if err := egroup.Wait(); err != nil {
 		return nil, err
 	}
 
-	// Convert the intermediate representation to the list of digests that we
-	// are going to return to the client.
-	ret := s.getDigestRecs(inter, exp)
+	// displayRet captures the portion of the result that is displayed.
+	displayRet := ret
+	offset := 0
 
 	// Get reference diffs unless it was specifically disabled.
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		s.getReferenceDiffs(ret, q.Metric, q.Match, q.IncludeIgnores, exp, idx)
+		s.getReferenceDiffs(ret, q.Metric, q.Match, q.IncludeIgnores, rhsByTest, exp, idx)
 		if err != nil {
 			return nil, err
 		}
@@ -150,14 +162,14 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 		// Post-diff stage: Apply all filters that are relevant once we have
 		// diff values for the digests.
 		ret = s.afterDiffResultFilter(ret, q)
-	}
 
-	// Sort the digests and fill the ones that are going to be displayed with
-	// additional data. Note we are returning all digests found, so we can do
-	// bulk triage, but only the digests that are going to be shown are padded
-	// with additional information.
-	displayRet, offset := s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
-	s.addParamsAndTraces(displayRet, inter, exp, idx)
+		// Sort the digests and fill the ones that are going to be displayed with
+		// additional data. Note we are returning all digests found, so we can do
+		// bulk triage, but only the digests that are going to be shown are padded
+		// with additional information.
+		displayRet, offset = s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
+		s.addParamsAndTraces(displayRet, inter, exp, idx)
+	}
 
 	// Return all digests with the selected offset within the result set.
 	return &NewSearchResponse{
@@ -165,21 +177,22 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 		Offset:  offset,
 		Size:    len(displayRet),
 		Commits: idx.GetTile(false).Commits,
-		Issue:   issueResp,
 	}, nil
 }
 
 // GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
 func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, error) {
+	sklog.Infof("\n\nGOT: %s   %s\n\n", test, digest)
+
 	idx := s.ixr.GetIndex()
 	tile := idx.GetTile(true)
 
-	exp, err := s.getExpectationsFromQuery(nil)
+	exp, err := s.storages.ExpectationsStore.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	oneInter := newSrIntermediate(test, digest, "", nil, nil)
+	oneInter := newSrIntermediate(test, digest, "", nil)
 	for traceId, trace := range tile.Traces {
 		if trace.Params()[types.PRIMARY_KEY_FIELD] != test {
 			continue
@@ -187,7 +200,7 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 		gTrace := trace.(*types.GoldenTrace)
 		for _, val := range gTrace.Values {
 			if val == digest {
-				oneInter.add(traceId, trace, nil)
+				oneInter.Add(traceId, trace)
 				break
 			}
 		}
@@ -203,9 +216,9 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	}
 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
-	inter := srInterMap{test: {digest: oneInter}}
+	inter := map[string]map[string]*srIntermediate{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	s.getReferenceDiffs(ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, exp, idx)
+	s.getReferenceDiffs(ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, nil, exp, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -221,101 +234,37 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	}, nil
 }
 
-// getExpectationsFromQuery returns a slice of expectations that should be
-// used in the given query. It will add the issue expectations if this is
-// querying tryjob results. If query is nil the expectations of the master
-// tile are returned.
-func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
-	ret := make(ExpSlice, 0, 2)
-
-	if (q != nil) && (q.Issue > 0) {
-		tjExp, err := s.storages.TryjobStore.GetExpectations(q.Issue)
-		if err != nil {
-			return nil, sklog.FmtErrorf("Unable to load expectations from tryjobstore: %s", err)
-		}
-		ret = append(ret, tjExp)
-	}
-
-	exp, err := s.storages.ExpectationsStore.Get()
-	if err != nil {
-		return nil, sklog.FmtErrorf("Unable to load expectations for master: %s", err)
-	}
-	ret = append(ret, exp)
-	return ret, nil
+// srIntermediate is the intermediate representation of a single digest
+// found by the search. It is used to avoid multiple passes through the tile
+// by accumulating the parameters that generated a specific digest and by
+// capturing the traces.
+type srIntermediate struct {
+	test   string
+	digest string
+	traces map[string]*types.GoldenTrace
+	params paramtools.ParamSet
 }
 
-// query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
-	// Get the issue.
-	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true, q.Patchsets)
-	if err != nil {
-		return nil, nil, nil, err
+// newSrIntermediate creates a new srIntermediate for a digest and adds
+// the given trace to it.
+func newSrIntermediate(test, digest, traceID string, trace tiling.Trace) *srIntermediate {
+	ret := &srIntermediate{
+		test:   test,
+		digest: digest,
+		params: paramtools.ParamSet{},
+		traces: map[string]*types.GoldenTrace{},
 	}
-
-	if issue == nil {
-		return nil, nil, nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
+	if (traceID != "") && (trace != nil) {
+		ret.Add(traceID, trace)
 	}
+	return ret
+}
 
-	// Determine the patchsets we need to retrieve.
-	queryPatchsets := q.Patchsets
-	if queryPatchsets == nil {
-		queryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
-		for _, psd := range issue.PatchsetDetails {
-			queryPatchsets = append(queryPatchsets, psd.ID)
-		}
-	}
-
-	// Get the results
-	_, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, queryPatchsets, true)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	// Filter the ignored results by setting the results to nil.
-	if !q.IncludeIgnores {
-		ignoreMatcher := idx.GetIgnoreMatcher()
-		for _, oneTryjob := range tjResults {
-			for idx, trj := range oneTryjob {
-				if ignoreMatcher.MatchAny(trj.Params) {
-					oneTryjob[idx] = nil
-				}
-			}
-		}
-	}
-
-	// Adjust the add function to exclude digests already in the master branch
-	ret := srInterMap{}
-	addFn := ret.add
-	if !q.IncludeMaster {
-		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
-		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
-			// Check if the tile contains a known digests.
-			if dMap, ok := talliesByTest[test]; ok {
-				if _, ok = dMap[digest]; !ok {
-					ret.add(test, digest, traceID, trace, params)
-				}
-			}
-		}
-	}
-
-	// Iterate over the remaining results.
-	pq := paramtools.ParamSet(q.Query)
-	for _, tryjobResults := range tjResults {
-		for _, tjr := range tryjobResults {
-			if tjr != nil {
-				// Filter by query.
-				if pq.Matches(tjr.Params) {
-					// Filter by classification.
-					cl := exp.Classification(tjr.TestName, tjr.Digest)
-					if !q.excludeClassification(cl) {
-						addFn(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
-					}
-				}
-			}
-		}
-	}
-
-	return ret, issue, queryPatchsets, nil
+// Add adds a new trace to an existing intermediate value for a digest
+// found in search.
+func (s *srIntermediate) Add(traceID string, trace tiling.Trace) {
+	s.traces[traceID] = trace.(*types.GoldenTrace)
+	s.params.AddParams(trace.Params())
 }
 
 // TODO(stephana): The filterTile function should be merged with the
@@ -323,7 +272,7 @@ func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice)
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
-func (s *SearchAPI) filterTile(q *Query, exp ExpSlice, idx *indexer.SearchIndex) (srInterMap, error) {
+func (s *SearchAPI) filterTile(q *Query, idx *indexer.SearchIndex) (map[string]map[string]*srIntermediate, error) {
 	var acceptFn AcceptFn = nil
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IncludeIgnores)
@@ -339,21 +288,31 @@ func (s *SearchAPI) filterTile(q *Query, exp ExpSlice, idx *indexer.SearchIndex)
 	}
 
 	// Add digest/trace to the result.
-	ret := srInterMap{}
+	ret := map[string]map[string]*srIntermediate{}
 	addFn := func(test, digest, traceID string, trace *types.GoldenTrace, acceptRet interface{}) {
-		ret.add(test, digest, traceID, trace, nil)
+		if testMap, ok := ret[test]; !ok {
+			ret[test] = map[string]*srIntermediate{digest: newSrIntermediate(test, digest, traceID, trace)}
+		} else if entry, ok := testMap[digest]; !ok {
+			testMap[digest] = newSrIntermediate(test, digest, traceID, trace)
+		} else {
+			entry.Add(traceID, trace)
+		}
 	}
 
-	if err := iterTile(q, addFn, acceptFn, exp, idx); err != nil {
+	if err := iterTile(&q.TileQuery, q.BlameGroupID, addFn, acceptFn, s.storages, idx); err != nil {
 		return nil, err
 	}
 
 	return ret, nil
 }
 
+func (s *SearchAPI) filterDigestByTest(q *TileQuery, idx *indexer.SearchIndex) (map[string]util.StringSet, error) {
+	return nil, nil
+}
+
 // getDigestRecs takes the intermediate results and converts them to the list
 // of records that will be returned to the client.
-func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
+func (s *SearchAPI) getDigestRecs(inter map[string]map[string]*srIntermediate, exp *expstorage.Expectations) []*SRDigest {
 	// Get the total number of digests we have at this point.
 	nDigests := 0
 	for _, digestInfo := range inter {
@@ -366,7 +325,7 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 			retDigests = append(retDigests, &SRDigest{
 				Test:     interValue.test,
 				Digest:   interValue.digest,
-				Status:   exps.Classification(interValue.test, interValue.digest).String(),
+				Status:   exp.Classification(interValue.test, interValue.digest).String(),
 				ParamSet: interValue.params,
 			})
 		}
@@ -376,13 +335,13 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(resultDigests []*SRDigest, metric string, match []string, includeIgnores bool, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) getReferenceDiffs(resultDigests []*SRDigest, metric string, match []string, includeIgnores bool, rhsByTest map[string]util.StringSet, exp *expstorage.Expectations, idx *indexer.SearchIndex) {
 	refDiffer := NewRefDiffer(exp, s.storages.DiffStore, idx)
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(retDigest *SRDigest) {
-			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores)
+			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores, rhsByTest[retDigest.Test])
 			retDigest.ClosestRef = closestRef
 			retDigest.RefDiffs = refDiffs
 
@@ -458,7 +417,7 @@ func (s *SearchAPI) sortAndLimitDigests(q *Query, digestInfo []*SRDigest, offset
 // to draw them, i.e. the information what digest/image appears at what commit and
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
-func (s *SearchAPI) addParamsAndTraces(digestInfo []*SRDigest, inter srInterMap, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) addParamsAndTraces(digestInfo []*SRDigest, inter map[string]map[string]*srIntermediate, exp *expstorage.Expectations, idx *indexer.SearchIndex) {
 	tile := idx.GetTile(false)
 	last := tile.LastCommitIndex()
 	for _, di := range digestInfo {
@@ -471,7 +430,7 @@ func (s *SearchAPI) addParamsAndTraces(digestInfo []*SRDigest, inter srInterMap,
 
 // getDrawableTraces returns an instance of Traces which allows to draw the
 // traces for the given test/digest.
-func (s *SearchAPI) getDrawableTraces(test, digest string, last int, exp ExpSlice, traces map[string]*types.GoldenTrace) *Traces {
+func (s *SearchAPI) getDrawableTraces(test, digest string, last int, exp *expstorage.Expectations, traces map[string]*types.GoldenTrace) *Traces {
 	// Get the information necessary to draw the traces.
 	traceIDs := make([]string, 0, len(traces))
 	for traceID := range traces {
