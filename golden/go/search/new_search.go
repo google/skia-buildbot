@@ -580,3 +580,34 @@ func newSRDigestSlice(metric string, slice []*SRDigest) *srDigestSlice {
 func (s *srDigestSlice) Len() int           { return len(s.slice) }
 func (s *srDigestSlice) Less(i, j int) bool { return s.lessFn(s.slice[i], s.slice[j]) }
 func (s *srDigestSlice) Swap(i, j int)      { s.slice[i], s.slice[j] = s.slice[j], s.slice[i] }
+
+type FilterResult struct {
+	Digest string
+	Label  types.Label
+}
+
+// Filter return the digests that match the query but does no comparisons.
+func (s *SearchAPI) Filters(q *Query) (map[string][]*FilterResult, error) {
+
+	exp, err := s.getExpectationsFromQuery(q)
+	if err != nil {
+		return nil, err
+	}
+	idx := s.ixr.GetIndex()
+
+	// Get all digests that map the query.
+	inter, err := s.filterTile(q, exp, idx)
+	ret := make(map[string][]*FilterResult, len(inter))
+	for testName, digests := range inter {
+		fResult := make([]*FilterResult, 0, len(digests))
+		for digest := range digests {
+			fResult = append(fResult, &FilterResult{
+				Digest: digest,
+				Label:  exp.Classification(testName, digest),
+			})
+		}
+		ret[testName] = fResult
+	}
+
+	return ret, nil
+}

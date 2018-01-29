@@ -1,0 +1,39 @@
+<html>
+<head>
+  <title>ctsdetails-page-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="../../node_modules/native-promise-only/npo.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="bower_components/page/page.js"></script>
+  <script src="bower_components/d3/d3.js"></script>
+  <script src="../common/js/common.js"></script>
+  <script src="../js/gold.js"></script>
+  <script src="bower_components/sinonjs/sinon.js"></script>
+  <script src="cts_testdata.js"></script>
+  <script>
+    var server = sinon.fakeServer.create();
+    server.autoRespond = true;
+    server.autoRespondAfter = 1000;
+
+    server.respondWith("GET", /\/json\/ctsresult\/*/, function(request) {
+      debugger;
+      request.respond(200, {"Content-Type":"application/json"},
+        JSON.stringify(testdata.ctsResultDetails));
+    });
+
+  </script>
+
+  <link rel="import" href="ctsdetails-page-sk.html">
+
+</head>
+<body>
+  <h2>ctsdetails-page-sk demo</h2>
+  <ctsdetails-page-sk></ctsdetails-page-sk>
+  <script type="text/javascript" charset="utf-8">
+      var ctx = {  params:  { id: 'testrun-1504793111030' } };
+      $$$('ctsdetails-page-sk').pageSelected(ctx);
+  </script>
+</body>
+</html>
