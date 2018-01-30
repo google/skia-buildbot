@@ -45,6 +45,30 @@
       "revId": "8533f57b79168be1bfd7eb2c10f4e8dfa82d1d4f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97f1e594_2beacbcf",
+        "filename": "go/cq/cq.pb.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-30T17:55:52Z",
+      "side": 1,
+      "message": "The changes to this file should be reverted.",
+      "parentUuid": "54b86a0a_339ed9b5",
+      "range": {
+        "startLine": 3,
+        "startChar": 3,
+        "endLine": 3,
+        "endChar": 15
+      },
+      "revId": "8533f57b79168be1bfd7eb2c10f4e8dfa82d1d4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
