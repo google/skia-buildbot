@@ -6,8 +6,10 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/datastore"
-	"go.skia.org/infra/go/auth"
 	"google.golang.org/api/option"
+
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/sklog"
 )
 
 type Kind string
@@ -86,6 +88,10 @@ var (
 // ns      - The datastore namespace to store data into.
 // opt     - Options to pass to the client.
 func InitWithOpt(project string, ns string, opts ...option.ClientOption) error {
+	if ns == "" {
+		return sklog.FmtErrorf("Datastore namespace cannot be empty.")
+	}
+
 	Namespace = ns
 	var err error
 	DS, err = datastore.NewClient(context.Background(), project, opts...)
