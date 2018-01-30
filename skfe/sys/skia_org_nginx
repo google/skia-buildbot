@@ -390,6 +390,14 @@ server {
         proxy_pass http://skia-proxy:8000;
         proxy_set_header Host "android-compile-8002-proxy.skia.org";
     }
+    location /_/register {
+        proxy_pass http://android-compile:8002/_/register;
+        proxy_set_header Host $host;
+    }
+    location /get_task_status {
+        proxy_pass http://android-compile:8002/get_task_status;
+        proxy_set_header Host $host;
+    }
 }
 server {
     listen      80;
