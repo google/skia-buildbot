@@ -117,7 +117,7 @@ In the root of the object these fields are required:
   for trybot runs).
 
 * issue: Only relevant for trybot runs (before a code change is commited). It
-  refers to the Rietveld issue that contains the change list being tested.
+  refers to the Gerrit issue that contains the change list being tested.
 
 * patchset: Only relevant for trybot runs. It refers to the patchset within the
   issue that was used for this test run.

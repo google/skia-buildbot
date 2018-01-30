@@ -54,20 +54,17 @@ type Error struct {
 }
 
 type Properties struct {
-	AttemptStartTs   float64          `json:"attempt_start_ts,omitempty"`
-	Category         string           `json:"category,omitempty"`
-	Gerrit           string           `json:"patch_gerrit_url,omitempty"`
-	GerritIssue      jsonutils.Number `json:"patch_issue,omitempty"`
-	GerritPatchset   string           `json:"patch_ref,omitempty"`
-	Master           string           `json:"master,omitempty"`
-	PatchProject     string           `json:"patch_project,omitempty"`
-	PatchStorage     string           `json:"patch_storage,omitempty"`
-	Reason           string           `json:"reason,omitempty"`
-	Revision         string           `json:"revision,omitempty"`
-	Rietveld         string           `json:"rietveld,omitempty"`
-	RietveldIssue    jsonutils.Number `json:"issue,omitempty"`
-	RietveldPatchset jsonutils.Number `json:"patchset,omitempty"`
-	TryJobRepo       string           `json:"try_job_repo,omitempty"`
+	AttemptStartTs float64          `json:"attempt_start_ts,omitempty"`
+	Category       string           `json:"category,omitempty"`
+	Gerrit         string           `json:"patch_gerrit_url,omitempty"`
+	GerritIssue    jsonutils.Number `json:"patch_issue,omitempty"`
+	GerritPatchset string           `json:"patch_ref,omitempty"`
+	Master         string           `json:"master,omitempty"`
+	PatchProject   string           `json:"patch_project,omitempty"`
+	PatchStorage   string           `json:"patch_storage,omitempty"`
+	Reason         string           `json:"reason,omitempty"`
+	Revision       string           `json:"revision,omitempty"`
+	TryJobRepo     string           `json:"try_job_repo,omitempty"`
 }
 
 type Parameters struct {

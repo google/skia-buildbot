@@ -13,16 +13,11 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/constants"
-)
-
-const (
-	CODE_REVIEW_URL = "https://codereview.chromium.org"
 )
 
 var (
@@ -76,39 +71,6 @@ type CommitDetail struct {
 	Timestamp int64  `json:"ts"`
 }
 
-// FromIssue returns a CommitID for the given Rietveld issue and patchset.
-func FromIssue(review *rietveld.Rietveld, issueStr, patchsetStr string) (*CommitID, error) {
-	patchset, err := strconv.ParseInt(patchsetStr, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse trybot patch id: %s", err)
-	}
-	issueID, err := strconv.ParseInt(issueStr, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse trybot issue id: %s", err)
-	}
-
-	issue, err := review.GetIssueProperties(issueID, false)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get issue details %d: %s", issueID, err)
-	}
-	// Look through the Patchsets and find a matching one.
-	var offset int = -1
-	for i, pid := range issue.Patchsets {
-		if pid == patchset {
-			offset = i
-			break
-		}
-	}
-	if offset == -1 {
-		return nil, fmt.Errorf("Failed to find patchset %d in review %d", patchset, issueID)
-	}
-
-	return &CommitID{
-		Offset: offset,
-		Source: fmt.Sprintf("%s/%s", CODE_REVIEW_URL, issueStr),
-	}, nil
-}
-
 // FromHash returns a CommitID for the given git hash.
 func FromHash(ctx context.Context, vcs vcsinfo.VCS, hash string) (*CommitID, error) {
 	commit, err := vcs.Details(ctx, hash, true)
@@ -140,7 +102,6 @@ type cacheEntry struct {
 // CommitIDLookup allows getting CommitDetails from CommitIDs.
 type CommitIDLookup struct {
 	git *gitinfo.GitInfo
-	rv  *rietveld.Rietveld
 
 	// mutex protects access to cache.
 	mutex sync.Mutex
@@ -214,10 +175,9 @@ func (c *CommitIDLookup) warmCache(ctx context.Context) {
 	}
 }
 
-func New(ctx context.Context, git *gitinfo.GitInfo, rv *rietveld.Rietveld, gitRepoURL string) *CommitIDLookup {
+func New(ctx context.Context, git *gitinfo.GitInfo, gitRepoURL string) *CommitIDLookup {
 	cidl := &CommitIDLookup{
 		git:        git,
-		rv:         rv,
 		cache:      map[int]*cacheEntry{},
 		gitRepoURL: gitRepoURL,
 	}
@@ -230,36 +190,7 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 	now := time.Now()
 	ret := make([]*CommitDetail, len(cids), len(cids))
 	for i, cid := range cids {
-		if strings.HasPrefix(cid.Source, CODE_REVIEW_URL) {
-			parts := strings.Split(cid.Source, "/")
-			if len(parts) != 4 {
-				return nil, fmt.Errorf("Not a valid source id: %q", cid.Source)
-			}
-			issueStr := parts[len(parts)-1]
-			issueID, err := strconv.ParseInt(issueStr, 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("Not a valid issue id %q: %s", issueStr, err)
-			}
-			issue, err := c.rv.GetIssueProperties(issueID, false)
-			if err != nil {
-				return nil, fmt.Errorf("Failed to load issue %d: %s", issueID, err)
-			}
-			if cid.Offset < 0 || cid.Offset > len(issue.Patchsets) {
-				return nil, fmt.Errorf("Failed to find patch with offset %d", cid.Offset)
-			}
-			patchsetID := issue.Patchsets[cid.Offset]
-			patchset, err := c.rv.GetPatchset(issueID, patchsetID)
-			if err != nil {
-				return nil, fmt.Errorf("Failed to load patchset with id %d: %s", patchsetID, err)
-			}
-			ret[i] = &CommitDetail{
-				CommitID:  *cid,
-				Author:    issue.Owner,
-				Message:   fmt.Sprintf("Iss: %d Patch: %d - %s", issueID, patchsetID, issue.Description),
-				URL:       cid.Source,
-				Timestamp: patchset.Created.Unix(),
-			}
-		} else if cid.Source == "master" {
+		if cid.Source == "master" {
 			c.mutex.Lock()
 			entry, ok := c.cache[cid.Offset]
 			c.mutex.Unlock()
