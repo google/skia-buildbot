@@ -336,17 +336,6 @@ regression value, than the new cluster values will be written into the
 
 ~~~~~~~
 
-Trybot
-------
-
-Results from Trybots are loaded via the ingester on a much faster schedule,
-every minute by default, and are stored in the MySQL database keyed by the
-Rietveld issue number. Note that this means only tries associated with a
-Rietveld will be usable by Skiaperf, which is a conscious decision.
-
-The actual try data will be stored as the JSON serialized Go struct that stores
-all the measured values, types.TryBotResults.
-
 Trace IDs
 ---------
 
