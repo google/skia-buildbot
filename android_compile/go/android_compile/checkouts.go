@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -166,12 +167,16 @@ func updateCheckout(ctx context.Context, checkoutPath string) error {
 		repoToolPath := path.Join(user.HomeDir, "bin", "repo")
 		// Run repo init and sync commands.
 		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "init", "-u", ANDROID_MANIFEST_URL, "-g", "all,-notdefault,-darwin", "-b", "master"); err != nil {
-			return fmt.Errorf("Failed to init the repo at %s: %s", checkoutBase, err)
+			errMsg := fmt.Sprintf("Failed to init the repo at %s: %s", checkoutBase, err)
+			sklog.Errorln(errMsg)
+			return errors.New(errMsg)
 		}
 		// Sync the current branch, only fetch projects fixed to sha1 if revision
 		// does not exist locally, and delete refs that no longer exist on server.
 		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j32", "--optimized-fetch", "--prune"); err != nil {
-			return fmt.Errorf("Failed to sync the repo at %s: %s", checkoutBase, err)
+			errMsg := fmt.Sprintf("Failed to sync the repo at %s: %s", checkoutBase, err)
+			sklog.Errorln(errMsg)
+			return errors.New(errMsg)
 		}
 
 		return nil
@@ -213,6 +218,9 @@ func deleteTryBranch(ctx context.Context, skiaCheckout *git.Checkout) error {
 }
 
 func resetSkiaCheckout(ctx context.Context, skiaCheckout *git.Checkout, resetCommit string) error {
+	if _, err := skiaCheckout.Git(ctx, "rebase", "--abort"); err != nil {
+		// Do nothing. There was no incomplete rebase.
+	}
 	if _, err := skiaCheckout.Git(ctx, "clean", "-d", "-f"); err != nil {
 		return err
 	}
