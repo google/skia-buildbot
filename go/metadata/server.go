@@ -178,6 +178,7 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tok *Se
 			httputils.ReportError(w, r, err, "Failed to obtain key.")
 			return
 		}
+		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(t); err != nil {
 			httputils.ReportError(w, r, err, "Failed to write response.")
 			return
