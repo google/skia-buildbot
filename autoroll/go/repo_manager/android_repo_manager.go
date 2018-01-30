@@ -40,10 +40,8 @@ var (
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
-	repoUrl                 string
-	repoToolPath            string
-	gitCookieAuthDaemonPath string
-	authDaemonRunning       bool
+	repoUrl      string
+	repoToolPath string
 }
 
 func newAndroidRepoManager(ctx context.Context, workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy NextRollStrategy, preUploadStepNames []string, serverURL string) (RepoManager, error) {
@@ -52,7 +50,6 @@ func newAndroidRepoManager(ctx context.Context, workdir, parentBranch, childPath
 		return nil, err
 	}
 	repoToolPath := path.Join(user.HomeDir, "bin", "repo")
-	gitCookieAuthDaemonPath := path.Join(user.HomeDir, "gcompute-tools", "git-cookie-authdaemon")
 	wd := path.Join(workdir, "android_repo")
 	childDir := path.Join(wd, childPath)
 	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
@@ -76,10 +73,8 @@ func newAndroidRepoManager(ctx context.Context, workdir, parentBranch, childPath
 			workdir:        wd,
 			g:              g,
 		},
-		repoUrl:                 g.GetRepoUrl(),
-		repoToolPath:            repoToolPath,
-		gitCookieAuthDaemonPath: gitCookieAuthDaemonPath,
-		authDaemonRunning:       false,
+		repoUrl:      g.GetRepoUrl(),
+		repoToolPath: repoToolPath,
 	}
 
 	// TODO(borenet): This update can be extremely expensive. Consider
@@ -92,17 +87,6 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 	// Sync the projects.
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
-
-	if !r.authDaemonRunning {
-		go func() {
-			r.authDaemonRunning = true
-			// Authenticate before trying to update repo.
-			if _, err := exec.RunCwd(ctx, r.childDir, r.gitCookieAuthDaemonPath); err != nil {
-				util.LogErr(err)
-			}
-			r.authDaemonRunning = false
-		}()
-	}
 
 	// Create the working directory if needed.
 	if _, err := os.Stat(r.workdir); err != nil {
