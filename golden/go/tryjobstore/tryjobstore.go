@@ -86,6 +86,10 @@ type cloudTryjobStore struct {
 
 // NewCloudTryjobStore creates a new instance of TryjobStore based on cloud datastore.
 func NewCloudTryjobStore(client *datastore.Client, eventBus eventbus.EventBus) (TryjobStore, error) {
+	if client == nil {
+		return nil, sklog.FmtErrorf("Received nil for datastore client.")
+	}
+
 	return &cloudTryjobStore{
 		client:   client,
 		eventBus: eventBus,
