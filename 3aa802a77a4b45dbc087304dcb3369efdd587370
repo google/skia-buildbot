@@ -16,6 +16,24 @@
       "revId": "3aa802a77a4b45dbc087304dcb3369efdd587370",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f2ea384_0d12c83f",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-30T20:19:13Z",
+      "side": 1,
+      "message": "The problem with that if you have two different ingesters that use the datastore, they would overwrite the singleton datastore client. \nWe could fix that with a mutex, but they could still instantiate the client with different configurations. \nWe either can: \n\n- that the app creates the client\n- get rid of the singleton and each ingester creates a client by \n  calling a different function in ds, i.e.:  ds.NewClient(.....)",
+      "parentUuid": "ba2e45d9_db4882f3",
+      "revId": "3aa802a77a4b45dbc087304dcb3369efdd587370",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
