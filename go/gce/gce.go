@@ -403,6 +403,9 @@ type Instance struct {
 	// Information about the boot disk. Required.
 	BootDisk *Disk
 
+	// Email addresses of interested parties. Optional.
+	Contacts []string
+
 	// Information about an extra data disk. Optional.
 	DataDisks []*Disk
 

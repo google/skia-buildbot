@@ -24,6 +24,7 @@ var (
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
+	listContacts   = flag.Bool("list-contacts", false, "List contacts for each instance and exit.")
 	workdir        = flag.String("workdir", ".", "Working directory.")
 )
 
@@ -65,6 +66,16 @@ func Server20170928(name string) *gce.Instance {
 func Main(zone string, instances map[string]*gce.Instance) {
 	common.Init()
 	defer common.LogPanic()
+
+	if *listContacts {
+		for instance, vm := range instances {
+			fmt.Println(instance + ":")
+			for _, contact := range vm.Contacts {
+				fmt.Println("\t" + contact)
+			}
+		}
+		return
+	}
 
 	vm, ok := instances[*instance]
 	if !ok {
