@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2ca2a6d4_3ef73568",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
+        "patchSetId": 10
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-30T15:06:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9f86bd4_0a5276f6",
+      "range": {
+        "startLine": 246,
+        "startChar": 26,
+        "endLine": 246,
+        "endChar": 29
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6e2c06a_cddac9fd",
         "filename": "golden/go/search/common.go",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-29T20:16:23Z",
       "side": 1,
       "message": "sklog.FmtErrorf() on this?",
+      "range": {
+        "startLine": 41,
+        "startChar": 9,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e9175ba_75d8d8f8",
+        "filename": "golden/go/search/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-30T15:06:41Z",
+      "side": 1,
+      "message": "getTraceViewFn is intended to be verbose in its error messages, an intermediate error message will not add much value here.",
+      "parentUuid": "f6e2c06a_cddac9fd",
       "range": {
         "startLine": 41,
         "startChar": 9,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "64fd0b6c_e94f1eed",
+        "filename": "golden/go/search/common.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-30T15:06:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "964c92c8_db4dc000",
+      "range": {
+        "startLine": 91,
+        "startChar": 32,
+        "endLine": 91,
+        "endChar": 44
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2bbc3155_41f14da4",
         "filename": "golden/go/search/new_search_test.go",
         "patchSetId": 10
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9f52d029_1ad1a52d",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-30T15:06:41Z",
+      "side": 1,
+      "message": "Done\nAdded TODO, will add more test code for the search package shortly.",
+      "parentUuid": "2bbc3155_41f14da4",
+      "range": {
+        "startLine": 98,
+        "startChar": 46,
+        "endLine": 98,
+        "endChar": 47
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cb888c29_338bf3ab",
         "filename": "golden/go/skiacorrectness/handlers.go",
         "patchSetId": 10
@@ -105,6 +201,30 @@
       "writtenOn": "2018-01-29T20:16:23Z",
       "side": 1,
       "message": "Do we need to do this with an encoder or can we use json.Marshal()?  Same question for line 889",
+      "range": {
+        "startLine": 875,
+        "startChar": 1,
+        "endLine": 875,
+        "endChar": 4
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0011a53_9404a79f",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 875,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-30T15:06:41Z",
+      "side": 1,
+      "message": "IMO using an encoder is almost always preferable since it encodes a stream. This can result in less buffering/memory usage.",
+      "parentUuid": "cb888c29_338bf3ab",
       "range": {
         "startLine": 875,
         "startChar": 1,
