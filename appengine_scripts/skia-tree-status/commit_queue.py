@@ -100,50 +100,6 @@ class TryServerEvent(VerificationEvent):
         cls.name, packet['builder'], packet['job_name'])
 
 
-class TryJobRietveldEvent(VerificationEvent):
-  """Same thing as TryServerEvent. Should probably be kept in sync with
-  TryServerEvent.
-
-  It comes from commit-queue/verification/try_job_on_rietveld.py.
-  """
-  name = 'try job rietveld'
-  build = db.IntegerProperty()
-  builder = db.StringProperty()
-  clobber = db.BooleanProperty()
-  job_name = db.StringProperty()
-  # TODO(maruel): Transition all revision properties to string, since it could
-  # be a hash for git commits.
-  revision = db.StringProperty()
-  url = db.StringProperty()
-
-  @property
-  def as_html(self):
-    if self.build is not None:
-      out = '<a href="%s">"%s" on %s, build #%s</a>' % (
-          cgi.escape(self.url),
-          cgi.escape(self.job_name),
-          cgi.escape(self.builder),
-          cgi.escape(str(self.build)))
-      if (self.result is not None and
-          0 <= self.result < len(TRY_SERVER_MAP[self.result])):
-        out = '%s - result: %s' % (out, TRY_SERVER_MAP[self.result])
-      return out
-    else:
-      # TODO(maruel): Load the json
-      # ('http://build.chromium.org/p/tryserver.chromium/json/builders/%s/'
-      #  'pendingBuilds') % self.builder and display the rank.
-      return '"%s" on %s (pending)' % (
-          cgi.escape(self.job_name),
-          cgi.escape(self.builder))
-
-  @classmethod
-  def to_key(cls, packet):
-    if not packet.get('builder') or not packet.get('job_name'):
-      return None
-    return '<%s-%s-%s>' % (
-        cls.name, packet['builder'], packet['job_name'])
-
-
 class PresubmitEvent(VerificationEvent):
   name = 'presubmit'
   duration = db.FloatProperty()
