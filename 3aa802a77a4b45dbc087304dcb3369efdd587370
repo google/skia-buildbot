@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba2e45d9_db4882f3",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-01-30T19:56:19Z",
+      "side": 1,
+      "message": "I did the init of the datastore in the ingester:\n\n   https://skia-review.googlesource.com/c/buildbot/+/99663/16/golden/go/goldingestion/dsingestion.go#32",
+      "revId": "3aa802a77a4b45dbc087304dcb3369efdd587370",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
