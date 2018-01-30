@@ -96,6 +96,11 @@ const (
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
+var (
+	// disableIssueQueries controls whether this instance can query tryjob results.
+	disableIssueQueries = false
+)
+
 func main() {
 	defer common.LogPanic()
 	var err error
@@ -310,11 +315,12 @@ func main() {
 		GStorageClient:    gsClient,
 	}
 
-	// Load the whitelist if there is one.
+	// Load the whitelist if there is one and disable querying for issues.
 	if *pubWhiteList != "" {
 		if err := storages.LoadWhiteList(*pubWhiteList); err != nil {
 			sklog.Fatalf("Empty or invalid white list file. A non-empty white list must be provided if force_login=false.")
 		}
+		disableIssueQueries = true
 	}
 
 	// Check if this is public instance. If so make sure there is a white list.
