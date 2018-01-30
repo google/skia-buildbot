@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "db71a7f6_f8f2264b",
+        "filename": "autoroll/go/repo_manager/testutils/testutils.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-30T15:30:56Z",
+      "side": 1,
+      "message": "Is this true?",
+      "range": {
+        "startLine": 185,
+        "startChar": 4,
+        "endLine": 185,
+        "endChar": 46
+      },
+      "revId": "8533f57b79168be1bfd7eb2c10f4e8dfa82d1d4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "54b86a0a_339ed9b5",
         "filename": "go/cq/cq.pb.go",
         "patchSetId": 4
