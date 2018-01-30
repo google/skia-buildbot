@@ -16,6 +16,14 @@
   Methods:
     selectHash - Forces the selection of the given hash.
 
+    setCommitInfo(commitinfo) - Where commitinfo is an array of objects of the form:
+
+      {
+        author: "foo@example.org"
+        commit_time: 1428574804
+        hash: "d9f8862ab6bed4195cbfe5dda48693e1062b01e2"
+      }
+
   Mailboxes:
     commits - The sk.Mailbox name to listen for the data to populate
       the element. The mailbox data needs to be a serialized slice
@@ -80,6 +88,10 @@
 
     selectHash: function(hash) {
       this.$.panel.selectHash(hash);
+    },
+
+    setCommitInfo: function(commits) {
+      this.$.panel.setCommitInfo(commits);
     },
 
     _selectTap: function() {

@@ -870,14 +870,22 @@ func makeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Req
 
 // jsonParamsHandler returns the union of all parameters.
 func jsonParamsHandler(w http.ResponseWriter, r *http.Request) {
+	tile := ixr.GetIndex().GetTile(true)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tile.ParamSet); err != nil {
+		sklog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+// jsonParamsHandler returns the most current commits.
+func jsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	tilePair, err := storages.GetLastTileTrimmed()
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load tile")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(tilePair.Tile.ParamSet); err != nil {
+	if err := json.NewEncoder(w).Encode(tilePair.Tile.Commits); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }

@@ -2,6 +2,8 @@
 package search
 
 import (
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/types"
@@ -15,7 +17,7 @@ import (
 // result might require an expensive computation and we want to avoid repeating
 // that computation in the 'add' step. So we can return it here and it will
 // be passed into the instance of AddFn.
-type AcceptFn func(trace *types.GoldenTrace, digests []string) (bool, interface{})
+type AcceptFn func(params paramtools.Params, digests []string) (bool, interface{})
 
 // AddFn is the callback function used by iterTile to add a digest and it's
 // trace to the result. acceptResult is the same value returned by the AcceptFn.
@@ -30,31 +32,33 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 	tile := idx.GetTile(query.IncludeIgnores)
 
 	if acceptFn == nil {
-		acceptFn = func(tr *types.GoldenTrace, digests []string) (bool, interface{}) { return true, nil }
+		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) { return true, nil }
 	}
 
 	traceTally := idx.TalliesByTrace(query.IncludeIgnores)
-	lastCommitIndex := tile.LastCommitIndex()
+	lastTraceIdx, traceView, err := getTraceViewFn(tile, query.FCommitBegin, query.FCommitEnd)
+	if err != nil {
+		return err
+	}
 
 	// Iterate through the tile.
 	for id, trace := range tile.Traces {
 		// Check if the query matches.
 		if tiling.Matches(trace, query.Query) {
-			tr := trace.(*types.GoldenTrace)
-			digests := digestsFromTrace(id, tr, query.Head, lastCommitIndex, traceTally)
+			fullTr := trace.(*types.GoldenTrace)
+			params := fullTr.Params_
+			reducedTr := traceView(fullTr)
+			digests := digestsFromTrace(id, reducedTr, query.Head, lastTraceIdx, traceTally)
 
 			// If there is an acceptFn defined then check whether
 			// we should include this trace.
-			var acceptRet interface{} = nil
-			var ok bool
-			if acceptFn != nil {
-				if ok, acceptRet = acceptFn(tr, digests); !ok {
-					continue
-				}
+			ok, acceptRet := acceptFn(params, digests)
+			if !ok {
+				continue
 			}
 
 			// Iterate over the digess and filter them.
-			test := tr.Params()[types.PRIMARY_KEY_FIELD]
+			test := params[types.PRIMARY_KEY_FIELD]
 			for _, digest := range digests {
 				cl := exp.Classification(test, digest)
 				if query.excludeClassification(cl) {
@@ -73,10 +77,54 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 					}
 				}
 
-				// Add the digest to the results.
-				addFn(test, digest, id, tr, acceptRet)
+				// Add the digest to the results
+				addFn(test, digest, id, fullTr, acceptRet)
 			}
 		}
 	}
 	return nil
+}
+
+// traceViewFn returns a view of a trace that contains a subset of values but the same params.
+type traceViewFn func(*types.GoldenTrace) *types.GoldenTrace
+
+// traceViewIdentity is a no-op traceViewFn that returns the exact trace that it
+// receives. This is used when no commit range is provided in the query.
+func traceViewIdentity(tr *types.GoldenTrace) *types.GoldenTrace {
+	return tr
+}
+
+// getTraceViewFn returns a traceViewFn for the given Git hashes as well as the
+// index of the last value in the resulting traces.
+// If startHash occurs after endHash in the tile, an error is returned.
+func getTraceViewFn(tile *tiling.Tile, startHash, endHash string) (int, traceViewFn, error) {
+	if startHash == "" && endHash == "" {
+		return tile.LastCommitIndex(), traceViewIdentity, nil
+	}
+
+	// Find the indices to slice the values of the trace.
+	startIdx, _ := tiling.FindCommit(tile.Commits, startHash)
+	endIdx, _ := tiling.FindCommit(tile.Commits, endHash)
+	if (startIdx == -1) && (endIdx == -1) {
+		return tile.LastCommitIndex(), traceViewIdentity, nil
+	} else if startIdx == -1 {
+		startIdx = 0
+	} else {
+		endIdx = tile.LastCommitIndex()
+	}
+
+	// Increment the last index for the slice operation in the function below.
+	endIdx++
+	if startIdx >= endIdx {
+		return 0, nil, sklog.FmtErrorf("Start commit occurs later than end commit.")
+	}
+
+	ret := func(trace *types.GoldenTrace) *types.GoldenTrace {
+		return &types.GoldenTrace{
+			Values:  trace.Values[startIdx:endIdx],
+			Params_: trace.Params_,
+		}
+	}
+
+	return (endIdx - startIdx) - 1, ret, nil
 }
