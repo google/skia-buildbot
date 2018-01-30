@@ -24,12 +24,18 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 
 func Skia() *gce.Instance {
 	vm := AutoRollBase("skia-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"borenet@google.com",
+	}
 	vm.ServiceAccount = "skia-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func SkiaInternal() *gce.Instance {
 	vm := AutoRollBase("skia-internal-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"borenet@google.com",
+	}
 	vm.ServiceAccount = "skia-internal-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
@@ -39,54 +45,82 @@ func SkiaInternal() *gce.Instance {
 
 func AngleSkia() *gce.Instance {
 	vm := AutoRollBase("angle-skia-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"jmadill@google.com",
+	}
 	vm.ServiceAccount = "angle-skia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func AngleChromium() *gce.Instance {
 	vm := AutoRollBase("angle-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"jmadill@google.com",
+	}
 	vm.ServiceAccount = "angle-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func Catapult() *gce.Instance {
 	vm := AutoRollBase("catapult-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"sullivan@google.com",
+	}
 	vm.ServiceAccount = "catapult-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func DepotTools_Chromium() *gce.Instance {
 	vm := AutoRollBase("depot-tools-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"agable@google.com",
+	}
 	vm.ServiceAccount = "depot-tools-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func NaCl() *gce.Instance {
 	vm := AutoRollBase("nacl-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"mseaborn@google.com",
+	}
 	vm.ServiceAccount = "nacl-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func PDFium() *gce.Instance {
 	vm := AutoRollBase("pdfium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"dsinclair@google.com",
+	}
 	vm.ServiceAccount = "pdfium-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func Fuchsia() *gce.Instance {
 	vm := AutoRollBase("fuchsia-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"brianosman@google.com",
+		"rmistry@google.com",
+	}
 	vm.ServiceAccount = "skia-fuchsia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func SrcInternal_Chromium() *gce.Instance {
 	vm := AutoRollBase("src-internal-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"mmoss@google.com",
+	}
 	vm.ServiceAccount = "src-internal-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
 func WebRTC_Chromium() *gce.Instance {
 	vm := AutoRollBase("webrtc-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"comms-engprod-sto@google.com",
+	}
 	vm.ServiceAccount = "webrtc-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
@@ -103,16 +137,29 @@ func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
 }
 
 func AndroidMaster() *gce.Instance {
-	return AddAndroidConfigs(AutoRollBase("android-master-autoroll", "130.211.199.63" /* Needs whitelisted static IP */))
+	vm := AutoRollBase("android-master-autoroll", "130.211.199.63" /* Needs whitelisted static IP */)
+	vm.Contacts = []string{
+		"djsollen@google.com",
+		"rmistry@google.com",
+	}
+	return AddAndroidConfigs(vm)
 }
 
 func AndroidO() *gce.Instance {
-	return AddAndroidConfigs(AutoRollBase("android-o-autoroll", "104.198.73.244" /* Needs whitelisted static IP */))
+	vm := AutoRollBase("android-o-autoroll", "104.198.73.244" /* Needs whitelisted static IP */)
+	vm.Contacts = []string{
+		"djsollen@google.com",
+		"rmistry@google.com",
+	}
+	return AddAndroidConfigs(vm)
 }
 
 func Google3() *gce.Instance {
 	// Not using AutoRollBase because this server does not need auth.SCOPE_GERRIT.
 	vm := server.Server20170928("google3-autoroll")
+	vm.Contacts = []string{
+		"benjaminwagner@google.com",
+	}
 	vm.DataDisks[0].SizeGb = 64
 	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
