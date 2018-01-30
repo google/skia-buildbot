@@ -46,6 +46,30 @@
       "revId": "bc1b253906ba69f024c28a04f9acffccb72c8bbc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "67abd9e9_99b16311",
+        "filename": "skolo/win/ansible/skolo-settings.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-30T15:35:53Z",
+      "side": 1,
+      "message": "LWDTM\n\n(WD -\u003e Well Documented)",
+      "parentUuid": "71c4b662_1196daa6",
+      "range": {
+        "startLine": 17,
+        "startChar": 10,
+        "endLine": 17,
+        "endChar": 38
+      },
+      "revId": "bc1b253906ba69f024c28a04f9acffccb72c8bbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
