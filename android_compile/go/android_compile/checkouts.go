@@ -10,9 +10,13 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
+	// Below is a port of the exponential backoff implementation from
+	// google-http-java-client.
+	"github.com/cenkalti/backoff"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/android_skia_checkout"
@@ -37,12 +41,41 @@ const (
 	TRY_BRANCH_NAME = "try_branch"
 
 	COMPILE_TASK_LOGS_BUCKET = "android-compile-logs"
+
+	// Exponential backoff values used to retry the syncing of the checkout.
+	INITIAL_INTERVAL     = 10 * time.Second
+	RANDOMIZATION_FACTOR = 0.5
+	BACKOFF_MULTIPLIER   = 2
+	MAX_INTERVAL         = 3 * time.Minute
+	MAX_ELAPSED_TIME     = 5 * time.Minute
+	// The below example uses above values to demonstrate what a series of
+	// retries would look like. retry_interval is 10 seconds,
+	// randomization_factor is 0.5, multiplier is 2 and the max_interval is 5
+	// minutes. For 5 tries the sequence will be (values in seconds) and
+	// assuming we go over the max_elapsed_time on the 5th try:
+	//
+	//  attempt#      retry_interval      randomized_interval
+	//  1              10                 [5,   15]
+	//  2              20                 [10,  30]
+	//  3              40                 [20,  60]
+	//  4              60                 [30,  90]
+	//  5             120                 [60, 180]
 )
 
 var (
 	availableCheckoutsChan chan string
 
 	bucketHandle *storage.BucketHandle
+
+	// Create exponential backoff config.
+	backOffClient = &backoff.ExponentialBackOff{
+		InitialInterval:     INITIAL_INTERVAL,
+		RandomizationFactor: RANDOMIZATION_FACTOR,
+		Multiplier:          BACKOFF_MULTIPLIER,
+		MaxInterval:         MAX_INTERVAL,
+		MaxElapsedTime:      MAX_ELAPSED_TIME,
+		Clock:               backoff.SystemClock,
+	}
 )
 
 func CheckoutsInit(numCheckouts int, workdir string) error {
@@ -115,30 +148,36 @@ func updateCheckoutsInParallel(checkouts []string) error {
 }
 
 // updateCheckout updates the Android checkout using the repo tool in the
-// specified checkout.
+// specified checkout. Errors are retried with exponential backoff using the
+// values in constants.
 func updateCheckout(ctx context.Context, checkoutPath string) error {
-	checkoutBase := path.Base(checkoutPath)
-	sklog.Infof("Started updating %s", checkoutBase)
-	// Create metric and send it to a timer.
-	syncTimesMetric := metrics2.GetFloat64Metric(fmt.Sprintf("android_sync_time_%s", checkoutBase))
-	defer timer.NewWithMetric(fmt.Sprintf("Time taken to update %s:", checkoutBase), syncTimesMetric).Stop()
 
-	user, err := user.Current()
-	if err != nil {
-		return err
-	}
-	repoToolPath := path.Join(user.HomeDir, "bin", "repo")
-	// Run repo init and sync commands.
-	if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "init", "-u", ANDROID_MANIFEST_URL, "-g", "all,-notdefault,-darwin", "-b", "master"); err != nil {
-		return fmt.Errorf("Failed to init the repo at %s: %s", checkoutBase, err)
-	}
-	// Sync the current branch, only fetch projects fixed to sha1 if revision
-	// does not exist locally, and delete refs that no longer exist on server.
-	if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j32", "--optimized-fetch", "--prune"); err != nil {
-		return fmt.Errorf("Failed to sync the repo at %s: %s", checkoutBase, err)
+	updateFunc := func() error {
+		checkoutBase := path.Base(checkoutPath)
+		sklog.Infof("Started updating %s", checkoutBase)
+		// Create metric and send it to a timer.
+		syncTimesMetric := metrics2.GetFloat64Metric(fmt.Sprintf("android_sync_time_%s", checkoutBase))
+		defer timer.NewWithMetric(fmt.Sprintf("Time taken to update %s:", checkoutBase), syncTimesMetric).Stop()
+
+		user, err := user.Current()
+		if err != nil {
+			return err
+		}
+		repoToolPath := path.Join(user.HomeDir, "bin", "repo")
+		// Run repo init and sync commands.
+		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "init", "-u", ANDROID_MANIFEST_URL, "-g", "all,-notdefault,-darwin", "-b", "master"); err != nil {
+			return fmt.Errorf("Failed to init the repo at %s: %s", checkoutBase, err)
+		}
+		// Sync the current branch, only fetch projects fixed to sha1 if revision
+		// does not exist locally, and delete refs that no longer exist on server.
+		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j32", "--optimized-fetch", "--prune"); err != nil {
+			return fmt.Errorf("Failed to sync the repo at %s: %s", checkoutBase, err)
+		}
+
+		return nil
 	}
 
-	return nil
+	return backoff.Retry(updateFunc, backOffClient)
 }
 
 // applyPatch applies a patch from the specified issue and patchset to the
