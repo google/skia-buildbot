@@ -32,19 +32,5 @@
 				},
 			],
 		},
-		// Nanobench Trybot ingester
-		"nano-trybot": {
-			"RunEvery": "1m",
-			"NCommits": 10,
-			"MinDays": 2,
-			"StatusDir": "/mnt/pd0/skiaperf/trybot_ingest_status",
-			"MetricName": "nano-trybot-ingest",
-			"Sources": [
-				{
-					"Bucket": "skia-perf",
-					"Dir": "trybot/nano-json-v1",
-				},
-			],
-		}
 	}
 }

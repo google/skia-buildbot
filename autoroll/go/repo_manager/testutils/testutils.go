@@ -182,7 +182,7 @@ func (r *MockRepoManager) mockChildCommit(hash string) {
 // RollerWillUpload sets up expectations for the roller to upload a CL. Returns
 // a gerrit.ChangeInfo representing the new, in-progress DEPS roll.
 func (r *MockRepoManager) RollerWillUpload(issueNum int64, from, to string, dryRun bool) *gerrit.ChangeInfo {
-	// Rietveld API only has millisecond precision.
+	// Gerrit API only has millisecond precision.
 	now := time.Now().UTC().Round(time.Millisecond)
 	description := fmt.Sprintf(`Roll src/third_party/skia/ %s..%s (42 commits).
 

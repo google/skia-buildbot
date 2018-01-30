@@ -39,7 +39,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
@@ -230,8 +229,7 @@ func Init() {
 	}
 
 	initIngestion(ctx)
-	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
-	cidl = cid.New(ctx, git, rietveldAPI, *gitRepoURL)
+	cidl = cid.New(ctx, git, *gitRepoURL)
 
 	alerts.DefaultSparse = *defaultSparse
 
