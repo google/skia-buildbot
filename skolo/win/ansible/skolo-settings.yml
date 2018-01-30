@@ -1,0 +1,68 @@
+---
+# Adjust time, power management, and auto-login settings.
+- hosts: all
+  tasks:
+  - name: Set time zone to EST
+    win_timezone:
+      timezone: Eastern Standard Time
+  - name: Ensure Windows time service is started
+    # Omitting this task causes the w32tm command below to fail with "The service has not been
+    # started." I'm not sure why the w32time service is not started automatically -- maybe it only
+    # starts after login?
+    win_service:
+      name: w32time
+      state: started
+  - name: Set NTP server
+    # This assumes default router setup per
+    # https://docs.google.com/document/d/1yFoVSqFgIHZgUZmLt7FeydyeOEYULmYGXsJlyqP6GQ4/edit#heading=h.c3io3a4viw51
+    # Doc for w32tm is here: https://technet.microsoft.com/en-us/library/bb491016.aspx
+    win_command: w32tm /config /update /manualpeerlist:192.168.1.1 /syncfromflags:MANUAL
+  - name: Restart Windows time service to pick up new config
+    win_service:
+      name: w32time
+      state: restarted
+  - name: Force NTP resync
+    win_command: w32tm /resync /rediscover
+  - name: Create Temp
+    win_file:
+      path: c:\Temp
+      state: directory
+  - name: Copy skolo.pow to host
+    # The skolo.pow file was created by configuring a machine as desired, then:
+    # > powercfg -list
+    # ... Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (High performance) * ...
+    # > powercfg -changename 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+    #     Skolo "High performance and never sleep."
+    # > powercfg -export skolo.pow 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+    win_copy:
+      src: "{{ win_package_src }}/skolo.pow"
+      dest: c:\Temp\skolo.pow
+  - name: Import Skolo power settings
+    win_command: powercfg -import c:\Temp\skolo.pow
+    register: powercfg_out
+  - name: Activate Skolo power settings
+    win_command: "powercfg -setactive {{ powercfg_out.stdout |
+      regex_replace('^.*GUID: ([-0-9a-f]+)$', '\\1') }}"
+  - name: Cleanup skolo.pow
+    win_file:
+      path: c:\Temp\skolo.pow
+      state: absent
+  # https://support.microsoft.com/en-us/kb/324737
+  - name: Enable auto-login
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+      name: AutoAdminLogon
+      data: "1"
+      type: string
+  - name: Set auto-login user name
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+      name: DefaultUserName
+      data: "{{ ansible_user }}"
+      type: string
+  - name: Set auto-login password
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+      name: DefaultPassword
+      data: "{{ ansible_password }}"
+      type: string
