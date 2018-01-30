@@ -70,6 +70,7 @@ type Issue struct {
 type IssueDetails struct {
 	*Issue
 	PatchsetDetails []*PatchsetDetail `json:"patchsets"`
+	Commited        bool
 	clean           bool
 }
 
