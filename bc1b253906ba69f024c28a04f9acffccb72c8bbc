@@ -22,6 +22,30 @@
       "revId": "bc1b253906ba69f024c28a04f9acffccb72c8bbc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71c4b662_1196daa6",
+        "filename": "skolo/win/ansible/skolo-settings.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-30T15:34:16Z",
+      "side": 1,
+      "message": "LMK if this is OK.",
+      "parentUuid": "0c3b945b_8cc2fefd",
+      "range": {
+        "startLine": 17,
+        "startChar": 10,
+        "endLine": 17,
+        "endChar": 38
+      },
+      "revId": "bc1b253906ba69f024c28a04f9acffccb72c8bbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
