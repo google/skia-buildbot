@@ -2,8 +2,6 @@
 # Use 'make help' for a list of commands.
 
 # A Makefile is used here to be consistent with some other AppEngine frameworks.
-# For example Rietveld, which is where this file is derived from:
-# https://code.google.com/p/rietveld/source/browse/Makefile
 
 # Helper code to detect SDK location
 define DETECT_SDK

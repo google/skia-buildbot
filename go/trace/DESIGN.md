@@ -60,7 +60,6 @@ Assumptions
 ===========
 
 1. We will use queries to the interface to build in-memory Tiles.
-2. We can extract a timestamp from Rietveld for each patch.
 
 Design
 ======
@@ -125,8 +124,8 @@ The above interface depends on the CommitID struct, which is:
     // a real commit into the repo, or an event like running a trybot.
     type CommitID struct {
       Timestamp time.Time
-      ID        string // Normally a git hash, but could also be Rietveld patch id.
-      Source    string // The branch name, e.g. "master", or the Rietveld issue id.
+      ID        string // Normally a git hash.
+      Source    string // The branch name, e.g. "master".
     }
 
 And Entry, which is:
@@ -240,31 +239,18 @@ Here is how the single TileFromCommits can be used to satisfy all the above requ
 
       TileFromCommits(commits)
 
-2. Build a Tile for a trybot.
-  * Find the Rietveld issue id and created time of each patchset. Use the
-    patchset ids and created timestamps to create a slice of CommitID's to use
-    in:
-
-      TileFromCommits(commits)
-
-3. Build a Tile for a single trybot result vs a specific commit.
-  * Find the Rietveld issue id and created time of the patchset. Find the
-    commitid of the target commit:
-
-      TileFromCommits([]*CommitID{trybot, commit})
-
-4. Build a Tile for all commits to master in a given time range. (Be able to go back in time for either Gold or Perf).
+2. Build a Tile for all commits to master in a given time range. (Be able to go back in time for either Gold or Perf).
   * Given the time range, build CommitIDs from gitinfo, then call:
 
       TileFromCommits(commits)
 
-5. Build a Tile for all commits to all branches in a given time range. (Show how all branches compare against main).
+3. Build a Tile for all commits to all branches in a given time range. (Show how all branches compare against main).
   * Given the time range, call List, then TileFromCommits:
 
       commits, err := List(beginTimestamp, endTimestamp)
       TileFromCommits(commits)
 
-6. Build a Tile for all commits to main and a given branch for a given time range. (See how a single branch compares to main).
+4. Build a Tile for all commits to main and a given branch for a given time range. (See how a single branch compares to main).
   * Find the ~Nth commit via gitinfo. Then call List, filter the results, then call TileFromCommits.
 
       commits, err := List(beginTimestamp, endTimestamp)

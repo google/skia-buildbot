@@ -7,13 +7,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
 
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -31,8 +29,6 @@ var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
 	NewDEPSRepoManager func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool, []string, string) (RepoManager, error) = newDEPSRepoManager
-
-	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
 
 // issueJson is the structure of "git cl issue --json"

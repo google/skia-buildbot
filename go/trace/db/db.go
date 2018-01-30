@@ -19,8 +19,8 @@ import (
 // a real commit into the repo, or an event like running a trybot.
 type CommitID struct {
 	Timestamp int64  `json:"ts"`
-	ID        string `json:"id"`     // Normally a git hash, but could also be Rietveld patch id.
-	Source    string `json:"source"` // The branch name, e.g. "master", or the Reitveld issue id.
+	ID        string `json:"id"`     // The git hash
+	Source    string `json:"source"` // The branch name, e.g. "master"
 }
 
 func (c CommitID) String() string {

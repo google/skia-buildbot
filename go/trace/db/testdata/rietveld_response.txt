@@ -1,5 +1,0 @@
-{"offer_cq":true,"all_required_reviewers_approved":true,"cq_dry_run":false,"description":"no
-merge conflicts here.\n\nBUG=skia:","created":"2015-11-30
-20:18:11.944140","cc":["reviews@skia.org"],"reviewers":[],"owner_email":"jcgregorio@google.com","patchsets":[1],"modified":"2015-11-30
-20:22:10.924600","private":false,"base_url":"https://skia.googlesource.com/skia@master","project":"skia","target_ref":"refs/heads/master","closed":false,"issue":1490543002,"owner":"jcgregorio","commit":false,"cq_dry_run_last_triggered_by":"","required_reviewers":[],"subject":"no
-merge conflicts here."}

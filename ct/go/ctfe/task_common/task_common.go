@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -36,9 +35,6 @@ const (
 
 	// Maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
-
-	// Used to identify Rietveld CLs.
-	RIETVELD_URL = "codereview.chromium.org"
 )
 
 var (
@@ -567,7 +563,6 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var rietveldURLRegexp = regexp.MustCompile("^(https?://codereview\\.chromium\\.org)/(\\d{3,})/?$")
 var gerritURLRegexp = regexp.MustCompile("^(https?://(?:[a-z]+)-review\\.googlesource\\.com)/c/(?:.+/)?(\\d{3,})/?$")
 
 type clDetail struct {
@@ -577,72 +572,6 @@ type clDetail struct {
 	Project       string `json:"project"`
 	Patchsets     []int  `json:"patchsets"`
 	CodereviewURL string
-}
-
-func getRietveldCLDetail(clURLString string) (clDetail, error) {
-	if clURLString == "" {
-		return clDetail{}, fmt.Errorf("No CL specified")
-	}
-
-	matches := rietveldURLRegexp.FindStringSubmatch(clURLString)
-	if len(matches) < 3 || matches[1] == "" || matches[2] == "" {
-		// Don't return error, since user could still be typing.
-		return clDetail{}, nil
-	}
-	crURL := matches[1]
-	clString := matches[2]
-	detailJsonUrl := "https://codereview.chromium.org/api/" + clString
-	sklog.Infof("Reading CL detail from %s", detailJsonUrl)
-	detailResp, err := httpClient.Get(detailJsonUrl)
-	if err != nil {
-		return clDetail{}, fmt.Errorf("Unable to retrieve CL detail: %v", err)
-	}
-	defer skutil.Close(detailResp.Body)
-	if detailResp.StatusCode == 404 {
-		// Don't return error, since user could still be typing.
-		return clDetail{}, nil
-	}
-	if detailResp.StatusCode != 200 {
-		return clDetail{}, fmt.Errorf("Unable to retrieve CL detail; status code %d", detailResp.StatusCode)
-	}
-	detail := clDetail{}
-	if err = json.NewDecoder(detailResp.Body).Decode(&detail); err != nil {
-		return clDetail{}, fmt.Errorf("Unable to JSON decode CL detail: %s", err)
-	}
-	detail.CodereviewURL = fmt.Sprintf("%s/%d/#ps%d", crURL, detail.Issue, detail.Patchsets[len(detail.Patchsets)-1])
-	return detail, nil
-}
-
-func getRietveldCLPatch(detail clDetail, patchsetID int) (string, error) {
-	if len(detail.Patchsets) == 0 {
-		return "", fmt.Errorf("CL has no patchsets")
-	}
-	if patchsetID <= 0 {
-		// If no valid patchsetID has been specified then use the last patchset.
-		patchsetID = detail.Patchsets[len(detail.Patchsets)-1]
-	}
-	patchUrl := fmt.Sprintf("https://codereview.chromium.org/download/issue%d_%d.diff", detail.Issue, patchsetID)
-	sklog.Infof("Downloading CL patch from %s", patchUrl)
-	patchResp, err := httpClient.Get(patchUrl)
-	if err != nil {
-		return "", fmt.Errorf("Unable to retrieve CL patch: %v", err)
-	}
-	defer skutil.Close(patchResp.Body)
-	if patchResp.StatusCode != 200 {
-		return "", fmt.Errorf("Unable to retrieve CL patch; status code %d", patchResp.StatusCode)
-	}
-	if int64(patchResp.ContentLength) > db.LONG_TEXT_MAX_LENGTH {
-		return "", fmt.Errorf("Patch is too large; length is %d bytes.", patchResp.ContentLength)
-	}
-	patchBytes, err := ioutil.ReadAll(patchResp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Unable to retrieve CL patch: %v", err)
-	}
-	// Double-check length in case ContentLength was -1.
-	if int64(len(patchBytes)) > db.LONG_TEXT_MAX_LENGTH {
-		return "", fmt.Errorf("Patch is too large; length is %d bytes.", len(patchBytes))
-	}
-	return string(patchBytes), nil
 }
 
 func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
@@ -683,76 +612,56 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	var detail clDetail
 	var patch string
 	var err error
-	if strings.Contains(clURLString, RIETVELD_URL) {
-		detail, err = getRietveldCLDetail(clURLString)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to get CL details")
-			return
+	// See if it is a Gerrit URL.
+	matches := gerritURLRegexp.FindStringSubmatch(clURLString)
+	if len(matches) < 3 || matches[1] == "" || matches[2] == "" {
+		// Return successful empty response, since the user could still be typing.
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
+			httputils.ReportError(w, r, err, "Failed to encode JSON")
 		}
-		if detail.Issue == 0 {
-			// Return successful empty response, since the user could still be typing.
-			if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
-				httputils.ReportError(w, r, err, "Failed to encode JSON")
-			}
-			return
-		}
-		patch, err = getRietveldCLPatch(detail, 0)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to get CL patch")
-			return
-		}
-	} else {
-		// If it is not Rietveld then assume it is Gerrit.
-		matches := gerritURLRegexp.FindStringSubmatch(clURLString)
-		if len(matches) < 3 || matches[1] == "" || matches[2] == "" {
-			// Return successful empty response, since the user could still be typing.
-			if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
-				httputils.ReportError(w, r, err, "Failed to encode JSON")
-			}
-			return
-		}
-		crURL := matches[1]
-		clString := matches[2]
-		g, err := gerrit.NewGerrit(crURL, "", httpClient)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to talk to Gerrit")
-			return
-		}
-		cl, err := strconv.ParseInt(clString, 10, 32)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Invalid Gerrit CL number")
-			return
-		}
-		change, err := g.GetIssueProperties(cl)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to get issue properties from Gerrit")
-			return
-		}
+		return
+	}
+	crURL := matches[1]
+	clString := matches[2]
+	g, err := gerrit.NewGerrit(crURL, "", httpClient)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to talk to Gerrit")
+		return
+	}
+	cl, err := strconv.ParseInt(clString, 10, 32)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid Gerrit CL number")
+		return
+	}
+	change, err := g.GetIssueProperties(cl)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get issue properties from Gerrit")
+		return
+	}
 
-		// Check to see if the change has any open dependencies.
-		activeDep, err := g.HasOpenDependency(cl, len(change.Patchsets))
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to get related changes from Gerrit")
-			return
-		}
-		if activeDep {
-			httputils.ReportError(w, r, err, fmt.Sprintf("This CL has an open dependency. Please squash your changes into a single CL."))
-			return
-		}
+	// Check to see if the change has any open dependencies.
+	activeDep, err := g.HasOpenDependency(cl, len(change.Patchsets))
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get related changes from Gerrit")
+		return
+	}
+	if activeDep {
+		httputils.ReportError(w, r, err, fmt.Sprintf("This CL has an open dependency. Please squash your changes into a single CL."))
+		return
+	}
 
-		latestPatchsetID := strconv.Itoa(len(change.Patchsets))
-		detail = clDetail{
-			Issue:         cl,
-			Subject:       change.Subject,
-			Modified:      change.UpdatedString,
-			Project:       change.Project,
-			CodereviewURL: fmt.Sprintf("%s/c/%d/%s", crURL, cl, latestPatchsetID),
-		}
-		patch, err = g.GetPatch(cl, latestPatchsetID)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to download patch from Gerrit")
-			return
-		}
+	latestPatchsetID := strconv.Itoa(len(change.Patchsets))
+	detail = clDetail{
+		Issue:         cl,
+		Subject:       change.Subject,
+		Modified:      change.UpdatedString,
+		Project:       change.Project,
+		CodereviewURL: fmt.Sprintf("%s/c/%d/%s", crURL, cl, latestPatchsetID),
+	}
+	patch, err = g.GetPatch(cl, latestPatchsetID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to download patch from Gerrit")
+		return
 	}
 
 	clData, err := gatherCLData(detail, patch)

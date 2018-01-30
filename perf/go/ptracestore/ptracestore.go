@@ -60,7 +60,7 @@ type KeyMatches func(key string) bool
 
 // PTraceStore is an interface for storing Perf data.
 //
-// PTraceStore doesn't know anything about git hashes or Rietveld issue IDs,
+// PTraceStore doesn't know anything about git hashes or code review issue IDs,
 // that will be handled at a level above this.
 //
 // TODO(jcgregorio) How to list all the Sources?

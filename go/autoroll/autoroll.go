@@ -23,7 +23,6 @@ const (
 	AUTOROLL_STATUS_URL = "https://autoroll.skia.org/json/status"
 	POLLER_ROLLS_LIMIT  = 10
 	RECENT_ROLLS_LIMIT  = 200
-	RIETVELD_URL        = "https://codereview.chromium.org"
 
 	ROLL_RESULT_DRY_RUN_SUCCESS     = "dry run succeeded"
 	ROLL_RESULT_DRY_RUN_FAILURE     = "dry run failed"
