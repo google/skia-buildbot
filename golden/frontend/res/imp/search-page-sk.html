@@ -225,8 +225,10 @@
         this._initState(ctx, this._getDefaultStateWithCorpus());
         this.$.searchControls.setState(this._state);
 
-        // _loadParamset will also trigger loading the data.
+        // load the commits, parameters and data.
+        this._loadCommits();
         this._loadParamset();
+        this._load();
       },
 
       pageDeselected: function() {
@@ -333,6 +335,8 @@
       },
 
       _load: function() {
+        this.$.activityBar.startSpinner("Loading ...");
+
         var q = window.location.search;
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           // Split out the digests that are being displayed and keep a copy
@@ -362,24 +366,17 @@
         return Object.keys(unique);
       },
 
+      _loadCommits: function() {
+        sk.get("/json/commits").then(JSON.parse).then(function (json) {
+          this.$.searchControls.setCommitInfo(json);
+          this._commits = json;
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
       _loadParamset: function() {
-        this.$.activityBar.startSpinner("Loading ...");
-
-        // If we already have a paramset then trigger load right away.
-        // TODO(stephana): Improve this so that we load the paramset with the
-        // data.
-        var loadTriggered = false;
-        if (this._paramSet) {
-          this._load();
-          loadTriggered = true;
-        }
-
         sk.get("/json/paramset").then(JSON.parse).then(function (json) {
           this.$.searchControls.setParamSet(json);
           this._paramSet = json;
-          if (!loadTriggered) {
-            this._load();
-          }
         }.bind(this)).catch(sk.errorMessage);
       },
 

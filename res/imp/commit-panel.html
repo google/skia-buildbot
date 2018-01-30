@@ -157,8 +157,21 @@
       },
 
       selectHash: function(hash) {
+        // Clear the selection.
+        this.selector.selected = null;
+
+        // If the commits have been set then use them to find the hash. This
+        // avoids timing issues if the commit-sk elements haven't rendered yet.
+        if (this._commitinfo && (this._commitinfo.length > 0)) {
+          var idx = this._commitinfo.findIndex(function(c) { return c.hash === hash; });
+          if (idx >= 0) {
+            this.selector.select(idx);
+          }
+          return;
+        }
+
         $$('commit-sk', this).forEach(function(ele) {
-          if (ele.dataset.hash == hash) {
+          if (ele.dataset.hash === hash) {
             this.selector.select(this.selector.indexOf(ele));
           }
         }.bind(this));

@@ -47,17 +47,22 @@
               fgrouptest: "",
               match: ["name", "gamma_correct"],
               fref: false,
+              fbegin: 'e1fce93f36d7b73df9942135dc5a342b629e6b3a',
+              fend: '4528c867c4ba65fdf5cfd6de35ea4c36a16c73f6',
             };
+            this._currSelection = filter;
             this.$.filterDialog.setParamSet(testdata.paramSet);
-            this.$.filterDialog.setValue(filter);
+            this.$.filterDialog.setCommitInfo(testdata.commits);
             this.listen(this.$.filterDialog, 'edit', '_handleEditEvent');
           },
 
           _handleClick: function() {
+            this.$.filterDialog.setValue(this._currSelection);
             this.$.filterDialog.open(this._selection);
           },
 
           _handleEditEvent: function(ev) {
+            this._currSelection = ev.detail;
             this._selection=sk.query.fromObject(ev.detail);
           }
         });

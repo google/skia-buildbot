@@ -327,8 +327,8 @@ func (s *SearchAPI) filterTile(q *Query, exp ExpSlice, idx *indexer.SearchIndex)
 	var acceptFn AcceptFn = nil
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IncludeIgnores)
-		acceptFn = func(trace *types.GoldenTrace, digests []string) (bool, interface{}) {
-			testName := trace.Params_[types.PRIMARY_KEY_FIELD]
+		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) {
+			testName := params[types.PRIMARY_KEY_FIELD]
 			for _, d := range digests {
 				if maxDigestsByTest[testName][d] {
 					return true, nil

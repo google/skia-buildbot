@@ -94,7 +94,7 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 				baseLine.add(result.TestName, result.Digest)
 			}
 
-			c := tiling.FindCommit(commits, tryjob.MasterCommit)
+			_, c := tiling.FindCommit(commits, tryjob.MasterCommit)
 			startCommit = minCommit(startCommit, c)
 			endCommit = maxCommit(endCommit, c)
 		}

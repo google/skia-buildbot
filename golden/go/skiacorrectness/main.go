@@ -374,6 +374,7 @@ func main() {
 	router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
 	router.HandleFunc("/json/list", jsonListTestsHandler).Methods("GET")
 	router.HandleFunc("/json/paramset", jsonParamsHandler).Methods("GET")
+	router.HandleFunc("/json/commits", jsonCommitsHandler).Methods("GET")
 	router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
 	router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
 	router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
