@@ -181,6 +181,31 @@ func (d *DMResults) getTraceDBEntries() (map[string]*tracedb.Entry, error) {
 	return ret, nil
 }
 
+// getEntries returns the Entry's to be stored.
+func (d *DMResults) getEntries() (map[string]*types.ParsedIngestionEntry, error) {
+	ret := make(map[string]*types.ParsedIngestionEntry, len(d.Results))
+	for _, result := range d.Results {
+		traceId, params := d.idAndParams(result)
+		if d.ignoreResult(params) {
+			continue
+		}
+
+		ret[traceId] = &types.ParsedIngestionEntry{
+			Keys:    result.Key,
+			Options: result.Options,
+			Digest:  result.Digest,
+			TraceID: traceId,
+		}
+	}
+
+	// If all results were ignored then we return an error.
+	if len(ret) == 0 {
+		return nil, fmt.Errorf("No valid results in file %s.", d.name)
+	}
+
+	return ret, nil
+}
+
 // ignoreResult returns true if the result with the given parameters should be
 // ignored.
 func (d *DMResults) ignoreResult(params map[string]string) bool {
