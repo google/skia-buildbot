@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c3b945b_8cc2fefd",
+        "filename": "skolo/win/ansible/skolo-settings.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-30T14:30:30Z",
+      "side": 1,
+      "message": "Why do we have to start and then restart it?",
+      "range": {
+        "startLine": 17,
+        "startChar": 10,
+        "endLine": 17,
+        "endChar": 38
+      },
+      "revId": "bc1b253906ba69f024c28a04f9acffccb72c8bbc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
