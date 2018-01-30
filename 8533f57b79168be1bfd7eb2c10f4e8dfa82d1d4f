@@ -69,6 +69,30 @@
       "revId": "8533f57b79168be1bfd7eb2c10f4e8dfa82d1d4f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9948f166_6f3cbd78",
+        "filename": "go/cq/cq.pb.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-01-30T19:23:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97f1e594_2beacbcf",
+      "range": {
+        "startLine": 3,
+        "startChar": 3,
+        "endLine": 3,
+        "endChar": 15
+      },
+      "revId": "8533f57b79168be1bfd7eb2c10f4e8dfa82d1d4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
