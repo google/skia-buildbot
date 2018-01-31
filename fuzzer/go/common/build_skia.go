@@ -43,9 +43,17 @@ func BuildASANHarness(ctx context.Context, buildType buildskia.ReleaseType, isCl
 // copied somewhere else) and any error.
 func BuildFuzzingHarness(ctx context.Context, buildType buildskia.ReleaseType, isClean bool) (string, error) {
 	sklog.Infof("Building %s fuzzing harness, or fetching from cache", buildType)
+
 	buildArgs := []string{
-		fmt.Sprintf("cc=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast")),
-		fmt.Sprintf("cxx=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast++")),
+		fmt.Sprintf("cc=%q", filepath.Join(config.Generator.AflRoot, "afl-clang")),
+		fmt.Sprintf("cxx=%q", filepath.Join(config.Generator.AflRoot, "afl-clang++")),
+	}
+	if fileutil.FileExists(filepath.Join(config.Generator.AflRoot, "afl-clang-fast")) &&
+		fileutil.FileExists(filepath.Join(config.Generator.AflRoot, "afl-clang-fast++")) {
+		buildArgs = []string{
+			fmt.Sprintf("cc=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast")),
+			fmt.Sprintf("cxx=%q", filepath.Join(config.Generator.AflRoot, "afl-clang-fast++")),
+		}
 	}
 
 	return buildOrGetCachedHarness(ctx, "afl-instrumented", buildType, isClean, buildArgs)

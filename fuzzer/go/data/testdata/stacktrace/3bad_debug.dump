@@ -32,7 +32,7 @@ Register dump:
  XMM14: 00000000000000000000000000000000 XMM15: 00000000000000000000000000000000
 
 Backtrace:
-/tmp/skia/out/Debug/../../src/codec/SkMasks.cpp:54(_ZL17convert_to_8_dumpjj)[0x6399b6]
+/tmp/skia/out/Debug/../../src/codec/SkMasks.cpp:55(_ZL17convert_to_8_dumpjj)[0x6399b6]
 /tmp/skia/out/Debug/../../src/codec/SkMasks.cpp:63(_ZL8get_compjjjj)[0x639581]
 /tmp/skia/out/Debug/../../src/codec/SkMasks.cpp:72(_ZNK7SkMasks6getRedEj)[0x639547]
 /tmp/skia/out/Debug/../../src/codec/SkMaskSwizzler.cpp:93(_ZL28swizzle_mask24_to_n32_opaquePvPKhiP7SkMasksjj)[0x638b20]

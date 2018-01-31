@@ -46,14 +46,14 @@
       last-response="{{_fuzzDetails}}">
     </iron-ajax>
 
-    <template is="dom-repeat" items="[[_filteredFileDetails]]" as="file" sort="_byCount">
+    <template is="dom-repeat" items="[[_filteredFileDetails]]" as="file" sort="_byCount" filter="_excludeEmpty">
       <fuzzer-collapse-file-sk file="{{file}}"
           category="[[category]]"
           expand="[[_shouldExpand()]]">
       </fuzzer-collapse-file-sk>
     </template>
     <template is="dom-if" if="[[_isEmpty]]">
-      <div>No results found (or server is still loading). Try refreshing this page later.</div>
+      <div>No results found (or server is still loading). Try refreshing this page later or adjusting your filters.</div>
     </template>
 
   </template>
@@ -110,6 +110,10 @@
         return b.count - a.count;
       },
 
+      _excludeEmpty: function(a) {
+        return a.count;
+      },
+
       _empty: function(a) {
         return !a || !a.length;
       },
@@ -136,18 +140,21 @@
                 if (architecture.length > 0 && architecture.indexOf(report.architecture) === -1) {
                   return false;
                 }
-                if (sk.sharesElement(exclude, report.debugFlags) ||
-                    sk.sharesElement(exclude, report.releaseFlags)) {
-                  return false;
+                for (let flags of Object.values(report.flags)) {
+                  if (sk.sharesElement(exclude, flags)) {
+                    return false;
+                  }
                 }
                 if (include.length === 0) {
                   return true;
                 }
-                if (!sk.sharesElement(include, report.debugFlags) &&
-                    !sk.sharesElement(include, report.releaseFlags)) {
-                  return false;
+                let sharedSomething = false;
+                for (let flags of Object.values(report.flags)) {
+                  if (sk.sharesElement(include, flags)) {
+                    sharedSomething = true;
+                  }
                 }
-                return true;
+                return sharedSomething;
               });
               line.count = line.reports.length;
               funcCount += line.count;

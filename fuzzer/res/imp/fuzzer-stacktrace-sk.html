@@ -121,7 +121,7 @@
       },
 
       _getStackFrames: function(trace, expanded) {
-        if (!trace.frames) {
+        if (!trace || !trace.frames) {
           return [];
         }
         if (expanded || trace.frames.length < 8) {

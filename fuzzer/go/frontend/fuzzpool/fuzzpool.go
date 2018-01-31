@@ -48,7 +48,7 @@ func NewForTests(r []data.FuzzReport) *FuzzPool {
 func (p *FuzzPool) AddFuzzReport(r data.FuzzReport) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	r.FileName, r.FunctionName, r.LineNumber = extractStacktraceInfo(r.DebugStackTrace, r.ReleaseStackTrace)
+	r.FileName, r.FunctionName, r.LineNumber = extractStacktraceInfo(r.Stacktraces)
 	p.staging = p.staging.Append(r)
 }
 
@@ -146,23 +146,23 @@ func cloneReports(r data.SortedFuzzReports) data.SortedFuzzReports {
 	return clone
 }
 
+var STACKTRACE_ORDER = []string{"ASAN_RELEASE", "CLANG_RELEASE", "ASAN_DEBUG", "CLANG_DEBUG"}
+
 // extractStacktraceInfo returns the file name, function name and line number that
 // a report with the given debug and release stacktrace should be sorted by.
 // this tries to read the release stacktrace first, falling back to the debug stacktrace,
 // failling back to Unknown.
-func extractStacktraceInfo(debug, release data.StackTrace) (reportFileName, reportFunctionName string, reportLineNumber int) {
+func extractStacktraceInfo(traces map[string]data.StackTrace) (reportFileName, reportFunctionName string, reportLineNumber int) {
 	reportFileName = common.UNKNOWN_FILE
 	reportFunctionName = common.UNKNOWN_FUNCTION
 	reportLineNumber = common.UNKNOWN_LINE
 
-	stacktrace := release
-	if stacktrace.IsEmpty() {
-		stacktrace = debug
-	}
-	if !stacktrace.IsEmpty() {
-		frame := stacktrace.Frames[0]
-		reportFileName = frame.PackageName + frame.FileName
-		reportFunctionName, reportLineNumber = frame.FunctionName, frame.LineNumber
+	for _, c := range STACKTRACE_ORDER {
+		st := traces[c]
+		if !st.IsEmpty() {
+			frame := st.Frames[0]
+			return frame.PackageName + frame.FileName, frame.FunctionName, frame.LineNumber
+		}
 	}
 	return
 }
