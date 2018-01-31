@@ -105,6 +105,7 @@ func setup(t *testing.T) (context.Context, *TryJobIntegrator, *git_testutils.Git
 
 	rm, err := repograph.NewMap(ctx, []string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
 	assert.NoError(t, err)
+	assert.NoError(t, rm.Update(ctx))
 
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)

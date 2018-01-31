@@ -955,6 +955,7 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	defer testutils.RemoveAll(t, workdir)
 	repo, err := repograph.NewGraph(ctx, g.Dir(), workdir)
 	assert.NoError(t, err)
+	assert.NoError(t, repo.Update(ctx))
 
 	grt := GitRepoGetRevisionTimestamp(repograph.Map{
 		"a.git": repo,
