@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb48b727_250d29f3",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T19:44:39Z",
+      "side": 1,
+      "message": "Note that webook relies on the requests being encrypted to prevent replay attacks. If it\u0027s possible that an attacker could see the request, you should include a timestamp in the request body and validate that it\u0027s within ~5min of the current time.",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 205,
+        "endChar": 49
+      },
+      "revId": "9789737738e14d8b29754e8619b8149f67532416",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b6d765b3_4722012d",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T19:44:39Z",
+      "side": 1,
+      "message": "nit: Why not use Must*?",
+      "range": {
+        "startLine": 266,
+        "startChar": 0,
+        "endLine": 268,
+        "endChar": 3
+      },
+      "revId": "9789737738e14d8b29754e8619b8149f67532416",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
