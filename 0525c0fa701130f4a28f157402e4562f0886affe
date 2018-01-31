@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "378385ff_074307eb",
+        "filename": "skolo/win/ansible/bootstrap-swarming.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-31T17:44:46Z",
+      "side": 1,
+      "message": "This *might* need to be:\n\n{{ swarming_server }}/bootstrap?bot_id\u003d{{ hostname }}\n\nBut I\u0027m not sure.  Have you tested this with chromium-swarm-dev?",
+      "range": {
+        "startLine": 27,
+        "startChar": 16,
+        "endLine": 27,
+        "endChar": 47
+      },
+      "revId": "0525c0fa701130f4a28f157402e4562f0886affe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
