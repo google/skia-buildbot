@@ -33,7 +33,6 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
-	assert.NoError(t, repos.Update(ctx))
 
 	initialTask := &db.Task{
 		Created:    time.Now(),

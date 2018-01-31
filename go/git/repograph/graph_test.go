@@ -31,6 +31,7 @@ func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph,
 
 	repo, err := NewGraph(ctx, g.Dir(), tmp)
 	assert.NoError(t, err)
+	assert.NoError(t, repo.Update(ctx))
 
 	c1 := repo.Get("master")
 	assert.NotNil(t, c1)
@@ -104,6 +105,7 @@ func TestGraph(t *testing.T) {
 	defer testutils.RemoveAll(t, tmp2)
 	repo2, err := NewGraph(ctx, g.Dir(), tmp2)
 	assert.NoError(t, err)
+	assert.NoError(t, repo2.Update(ctx))
 	testutils.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
 	m2 := repo2.Get("master")
@@ -120,6 +122,7 @@ func TestSerialize(t *testing.T) {
 
 	repo2, err := NewGraph(ctx, g.Dir(), path.Dir(repo.repo.Dir()))
 	assert.NoError(t, err)
+	assert.NoError(t, repo2.Update(ctx))
 
 	testutils.AssertDeepEqual(t, repo, repo2)
 }
@@ -346,68 +349,4 @@ func TestUpdateHistoryChanged(t *testing.T) {
 		assert.NotEqual(t, c, c3)
 		return true, nil
 	}))
-}
-
-func TestGetNewCommits(t *testing.T) {
-	testutils.LargeTest(t)
-	ctx, g, repo, commits, cleanup := gitSetup(t)
-	defer cleanup()
-
-	// No supplied branch heads, all commits are new.
-	newCommits, err := repo.GetNewCommits(nil)
-	assert.NoError(t, err)
-	assert.Equal(t, len(newCommits), len(commits))
-
-	// No new commits.
-	branchHeads := repo.BranchHeads()
-	newCommits, err = repo.GetNewCommits(branchHeads)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(newCommits))
-	branchHeads = repo.BranchHeads()
-
-	// Add a few commits, ensure that they get picked up.
-	g.CheckoutBranch(ctx, "master")
-	f := "myfile"
-	new1 := g.CommitGen(ctx, f)
-	new2 := g.CommitGen(ctx, f)
-	assert.NoError(t, repo.Update(ctx))
-	newCommits, err = repo.GetNewCommits(branchHeads)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(newCommits))
-	assert.Equal(t, new1, newCommits[1].Hash)
-	assert.Equal(t, new2, newCommits[0].Hash)
-	branchHeads = repo.BranchHeads()
-
-	// Add commits on both branches, ensure that they get picked up.
-	new1 = g.CommitGen(ctx, f)
-	g.CheckoutBranch(ctx, "branch2")
-	new2 = g.CommitGen(ctx, "file2")
-	assert.NoError(t, repo.Update(ctx))
-	newCommits, err = repo.GetNewCommits(branchHeads)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(newCommits))
-	if newCommits[0].Hash == new1 {
-		assert.Equal(t, new2, newCommits[1].Hash)
-	} else {
-		assert.Equal(t, new1, newCommits[1].Hash)
-		assert.Equal(t, new2, newCommits[0].Hash)
-	}
-	branchHeads = repo.BranchHeads()
-
-	// Add a new branch. Make sure that we don't get duplicate commits.
-	g.CheckoutBranch(ctx, "master")
-	g.CreateBranchTrackBranch(ctx, "branch3", "master")
-	assert.NoError(t, repo.Update(ctx))
-	newCommits, err = repo.GetNewCommits(branchHeads)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(newCommits))
-	assert.Equal(t, 3, len(repo.BranchHeads()))
-
-	// Make sure we get no duplicates if the branch heads aren't the same.
-	g.Reset(ctx, "--hard", "master^")
-	assert.NoError(t, repo.Update(ctx))
-	newCommits, err = repo.GetNewCommits(branchHeads)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(newCommits))
-	assert.Equal(t, 3, len(repo.BranchHeads()))
 }
