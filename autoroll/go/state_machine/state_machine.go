@@ -49,6 +49,8 @@ const (
 	F_CLOSE_DRY_RUN_FAILED   = "close roll (dry run failed)"
 	F_CLOSE_DRY_RUN_OUTDATED = "close roll (dry run outdated)"
 	F_WAIT_FOR_LAND          = "wait for roll to land"
+	F_RETRY_FAILED_NORMAL    = "retry failed roll"
+	F_RETRY_FAILED_DRY_RUN   = "retry failed dry run"
 
 	// Maximum number of no-op transitions to perform at once. This is an
 	// arbitrary limit just to keep us from performing an unbounded number
@@ -83,6 +85,12 @@ type RollCLImpl interface {
 
 	// Return true iff the dry run succeeded.
 	IsDryRunSuccess() bool
+
+	// Retry the CQ in the case of a failure.
+	RetryCQ(context.Context) error
+
+	// Retry a dry run in the case of a failure.
+	RetryDryRun(context.Context) error
 
 	// The revision this roll is rolling to.
 	RollingTo() string
@@ -223,6 +231,20 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 		}
 		return nil
 	})
+	b.F(F_RETRY_FAILED_NORMAL, func(ctx context.Context) error {
+		sklog.Infof("Roll failed but no new commits; retrying CQ.")
+		// TODO(borenet): The CQ will fail forever in the case of a
+		// merge conflict; we should really patch in the CL, rebase and
+		// upload again.
+		return s.a.GetActiveRoll().RetryCQ(ctx)
+	})
+	b.F(F_RETRY_FAILED_DRY_RUN, func(ctx context.Context) error {
+		sklog.Infof("Dry run failed but no new commits; retrying CQ.")
+		// TODO(borenet): The CQ will fail forever in the case of a
+		// merge conflict; we should really patch in the CL, rebase and
+		// upload again.
+		return s.a.GetActiveRoll().RetryDryRun(ctx)
+	})
 
 	// States and transitions.
 
@@ -244,6 +266,7 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 	b.T(S_NORMAL_ACTIVE, S_STOPPED, F_CLOSE_STOPPED)
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_IDLE, F_WAIT_FOR_LAND)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_IDLE, F_CLOSE_FAILED)
+	b.T(S_NORMAL_FAILURE, S_NORMAL_ACTIVE, F_RETRY_FAILED_NORMAL)
 	b.T(S_NORMAL_THROTTLED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_NORMAL_THROTTLED, S_NORMAL_THROTTLED, F_UPDATE_REPOS)
 
@@ -265,6 +288,7 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_STOPPED, F_CLOSE_STOPPED)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
+	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_ACTIVE, F_RETRY_FAILED_DRY_RUN)
 	b.T(S_DRY_RUN_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_THROTTLED, S_DRY_RUN_THROTTLED, F_UPDATE_REPOS)
 
@@ -336,6 +360,10 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 	case S_NORMAL_SUCCESS:
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_FAILURE:
+		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
+			// Rather than upload the same CL again, just re-run the CQ.
+			return S_NORMAL_ACTIVE, nil
+		}
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_THROTTLED:
 		if s.c.Get() < s.tc.AttemptCount {
@@ -403,6 +431,10 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_FAILURE:
+		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
+			// Rather than upload the same CL again, just re-run the CQ.
+			return S_DRY_RUN_ACTIVE, nil
+		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_THROTTLED:
 		if s.c.Get() < s.tc.AttemptCount {

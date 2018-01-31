@@ -151,6 +151,20 @@ func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 }
 
 // See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) RetryCQ(ctx context.Context) error {
+	return r.withModify(ctx, "retry the CQ", func() error {
+		return r.g.SendToCQ(r.ci, "CQ failed but there are no new commits. Retrying...")
+	})
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
+	return r.withModify(ctx, "retry the CQ (dry run)", func() error {
+		return r.g.SendToDryRun(r.ci, "Dry run failed but there are no new commits. Retrying...")
+	})
+}
+
+// See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Update(ctx context.Context) error {
 	ci, issue, err := r.retrieveRoll(ctx, r.issue.Issue)
 	if err != nil {

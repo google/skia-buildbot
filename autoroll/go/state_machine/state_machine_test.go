@@ -2,6 +2,7 @@ package state_machine
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -107,6 +108,20 @@ func (r *TestRollCLImpl) SwitchToDryRun(ctx context.Context) error {
 // See documentation for RollCLImpl.
 func (r *TestRollCLImpl) SwitchToNormal(ctx context.Context) error {
 	r.isDryRun = false
+	return nil
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) RetryDryRun(ctx context.Context) error {
+	r.isDryRun = true
+	r.dryRunResult = ""
+	return nil
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) RetryCQ(ctx context.Context) error {
+	r.isDryRun = false
+	r.normalResult = ""
 	return nil
 }
 
@@ -302,20 +317,36 @@ func TestNormal(t *testing.T) {
 	r.SetNextRollRev("HEAD+2")
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 
-	// This one failed. Ensure that we upload another.
+	// This one failed, but there's no new commit. Ensure that we retry
+	// the active CL.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
 	roll.SetFailed()
 	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	uploaded := r.GetActiveRoll()
+	assert.Equal(t, roll, uploaded)
+
+	// Failed again, and now there's a new commit. Ensure that we close
+	// the active CL and upload another.
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.AssertNotDryRun()
+	roll.SetFailed()
+	r.SetNextRollRev("HEAD+3")
+	checkNextState(t, sm, S_NORMAL_FAILURE)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	uploaded = r.GetActiveRoll()
+	assert.NotEqual(t, roll, uploaded)
+
+	// Roll succeeded.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
 	roll.SetSucceeded()
 	r.SetCurrentRev(r.GetNextRollRev())
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
-	r.SetRolledPast("HEAD+2", true)
+	r.SetRolledPast("HEAD+3", true)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 }
 
@@ -352,14 +383,28 @@ func TestDryRun(t *testing.T) {
 	roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_SUCCESS)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 
-	// This one failed. Assert that we closed the CL, upload another.
+	// This one failed, but there's no new commit. Ensure that we retry
+	// the active CL.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertDryRun()
 	roll.SetDryRunFailed()
 	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	uploaded := r.GetActiveRoll()
+	assert.Equal(t, roll, uploaded)
+
+	// Failed again, and now there's a new commit. Assert that we closed
+	// the CL and upload another.
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.AssertDryRun()
+	roll.SetDryRunFailed()
+	r.SetNextRollRev("HEAD+3")
+	checkNextState(t, sm, S_DRY_RUN_FAILURE)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	uploaded = r.GetActiveRoll()
+	assert.NotEqual(t, roll, uploaded)
 }
 
 func TestNormalToDryRun(t *testing.T) {
@@ -430,10 +475,13 @@ func testThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
 	checkState(t, sm, S_NORMAL_IDLE)
 	r.SetMode(ctx, mode)
 	assert.NoError(t, sm.NextTransition(ctx))
-	r.SetNextRollRev("HEAD+1")
+	n := 1
+	r.SetNextRollRev(fmt.Sprintf("HEAD+%d", n))
 	for i := int64(0); i < sm.tc.AttemptCount; i++ {
 		assert.NoError(t, sm.NextTransition(ctx))
 		roll := r.GetActiveRoll().(*TestRollCLImpl)
+		n++
+		r.SetNextRollRev(fmt.Sprintf("HEAD+%d", n))
 		if mode == modes.MODE_DRY_RUN {
 			roll.SetDryRunFailed()
 		} else {
@@ -517,6 +565,7 @@ func TestPersistence(t *testing.T) {
 	roll.SetFailed()
 	checkNextState(t, sm, S_NORMAL_FAILURE)
 	check()
+	r.SetNextRollRev("HEAD+2")
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	check()
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
