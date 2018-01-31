@@ -196,6 +196,7 @@ func triggerCompileTask(ctx context.Context, task *CompileTask, datastoreKey *da
 			sklog.Errorf("Error when compiling task with ID %d: %s", datastoreKey.ID, err)
 		}
 		task.Done = true
+		task.Completed = time.Now()
 		if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
 			sklog.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 		}

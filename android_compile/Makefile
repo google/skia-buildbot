@@ -17,7 +17,7 @@ debug_android_compile: clean_webtools debug_core_js debug_elements_html skiavers
 	go install -v ./go/...
 
 .PHONY: android_compile
-android_compile: elements_html
+android_compile: clean_webtools elements_html
 	go install -v ./go/...
 
 .PHONY: android_compile_release

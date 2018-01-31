@@ -23,7 +23,8 @@ type CompileTask struct {
 
 	Checkout string `json:"checkout"`
 
-	Created time.Time `json:"created"`
+	Created   time.Time `json:"created"`
+	Completed time.Time `json:"completed"`
 
 	WithPatchSucceeded bool `json:"withpatch_success"`
 	NoPatchSucceeded   bool `json:"nopatch_success"`
