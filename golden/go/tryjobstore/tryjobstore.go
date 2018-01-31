@@ -39,6 +39,8 @@ type TryjobStore interface {
 	// exist in the database it will be created.
 	UpdateIssue(details *IssueDetails) error
 
+	CommitIssueExp(issueID int64, writeFn func() error) error
+
 	// DeleteIssue deletes the given issue and related information.
 	DeleteIssue(issueID int64) error
 
@@ -149,6 +151,37 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatch
 // UpdateIssue implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateIssue(details *IssueDetails) error {
 	return c.updateIfNewer(c.getIssueKey(details.ID), details)
+}
+
+func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) error {
+	// setCommittedFn is the exee
+	setCommittedFn := func(tx *datastore.Transaction) error {
+		issue := &IssueDetails{}
+		key := c.getIssueKey(issueID)
+		ok, err := c.getEntity(key, issue, nil)
+		if err != nil {
+			return sklog.FmtErrorf("Error in getEntity for %s: %s", key, err)
+		}
+
+		if !ok {
+			return sklog.FmtErrorf("Unable to find issue %d.", issueID)
+		}
+
+		// If this is already committed then we are done.
+		if issue.Commited {
+			return nil
+		}
+
+		// Execute the commit function to commit the actual expectations.
+		if err := commitFn(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	_, err := c.client.RunInTransaction(context.Background(), setCommittedFn)
+	return err
 }
 
 // DeleteIssue implements the TryjobStore interface.
