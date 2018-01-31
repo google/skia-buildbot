@@ -36,6 +36,9 @@ packages:
 testgo:
 	go test ./go/... -short
 
+dst:
+	go test -v ./go/dstilestore/...
+
 .PHONY: bench
 bench:
 	go test ./go/... -bench=. -run=NONE
