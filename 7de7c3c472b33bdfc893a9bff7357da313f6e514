@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7abb5c1_94ac070d",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-31T20:48:07Z",
+      "side": 1,
+      "message": "I just (re?)learned through testing that it\u0027s possible to have a merge which does not add a commit:\n\nCreate branch B based on branch A.  Create a commit on branch B.  Checkout branch A and \"git merge B\".  Because there are no new commits on A, branch A\u0027s HEAD just changes to point to the new commit on B, and no merge commit is created.  Therefore, I think I need to bring back the tracking of old and new branch heads in order to catch this case.",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 20
+      },
+      "revId": "7de7c3c472b33bdfc893a9bff7357da313f6e514",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
