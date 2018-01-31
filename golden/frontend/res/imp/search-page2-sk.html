@@ -35,7 +35,7 @@
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <link rel="import" href="activity-sk.html">
-<link rel=import href="detail-list-sk.html">
+<link rel=import href="detail-list2-sk.html">
 <link rel=import href="digest-details-sk.html">
 <link rel=import href="search-controls-sk.html">
 <link rel=import href="trybot-controls-sk.html">
@@ -148,19 +148,8 @@
           No digests match your query.
         </div>
         <div hidden$="[[_emptyResult(data)]]">
-          <detail-list-sk id="detailList">
-            <template is="dom-repeat" items="[[data.digests]]">
-              <digest-details-sk
-                      id$="[[_entryId(item)]]"
-                      mode="list"
-                      triage
-                      details="[[item]]"
-                      commits="[[data.commits]]"
-                      metric="[[_state.metric]]"
-                      issue="[[data.issue.id]]">
-              </digest-details-sk>
-            </template>
-          </detail-list-sk>
+           <detail-list2-sk id="detailList" data="[[data]]">
+          </detail-list2-sk>
         </div>
       </div>
     </div>
