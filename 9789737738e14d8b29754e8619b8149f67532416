@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "d11ae796_87fb5000",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-31T20:03:30Z",
+      "side": 1,
+      "message": "\u003e For idempotent POST requests, it doesn\u0027t matter. This is a non-idempotent POST request and a GET request.\n\u003e \n\u003e Also, we should always be using HTTPS, in which case it\u0027s OK.\n\nThis does use HTTPS. The nginx config redirects all HTTP traffic here to HTTPS.",
+      "parentUuid": "363cd76b_431141aa",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 205,
+        "endChar": 49
+      },
+      "revId": "9789737738e14d8b29754e8619b8149f67532416",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b6d765b3_4722012d",
         "filename": "android_compile/go/android_compile/main.go",
         "patchSetId": 1
