@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9be1eb6a_a887692f",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "If you\u0027re worried, just document that when this returns an error the next call should pass reset\u003dtrue. We already do that.",
+      "parentUuid": "660658ae_711b8108",
+      "range": {
+        "startLine": 45,
+        "startChar": 3,
+        "endLine": 45,
+        "endChar": 45
+      },
+      "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "745a804e_dd6c86a5",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -139,6 +163,30 @@
       "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e438b074_a86ca5d9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1137,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "745a804e_dd6c86a5",
+      "range": {
+        "startLine": 1137,
+        "startChar": 24,
+        "endLine": 1137,
+        "endChar": 37
+      },
+      "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

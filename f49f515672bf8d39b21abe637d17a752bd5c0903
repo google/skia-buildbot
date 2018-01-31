@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c523062_6281c5a4",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 0,
+      "message": "We should test UpdateAndReturnNewCommits. Ideally include a case like in skia:7560.",
+      "revId": "f49f515672bf8d39b21abe637d17a752bd5c0903",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

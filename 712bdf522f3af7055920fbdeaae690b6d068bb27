@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae0240e_9700a034",
+        "filename": "flakiness/go/flakiness/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "nit: ctx",
+      "range": {
+        "startLine": 49,
+        "startChar": 32,
+        "endLine": 49,
+        "endChar": 52
+      },
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fba6be20_e2c0d24b",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 239,
+        "startChar": 52,
+        "endLine": 239,
+        "endChar": 56
+      },
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b45890a_cf541579",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "I like it! Maybe add a comment to explain.",
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a73af559_39091aad",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "nit: s/Graph/Map/g",
+      "range": {
+        "startLine": 468,
+        "startChar": 0,
+        "endLine": 469,
+        "endChar": 66
+      },
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40bfc0c5_e38cf91b",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1020,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "(Not really related to this CL, but...) I\u0027m surprised by the \"If the file does not exist\" behavior. Maybe rename \"MaybeReadGobFile\"?",
+      "range": {
+        "startLine": 1020,
+        "startChar": 5,
+        "endLine": 1020,
+        "endChar": 16
+      },
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "332d3573_78dc481c",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "nit: It makes me nervous to use this with a shared repograph.Map. I don\u0027t see any other place that calls Update on this object, but I can easily imagine someone might add a call to Update without realizing it will cause problems.",
+      "range": {
+        "startLine": 35,
+        "startChar": 36,
+        "endLine": 35,
+        "endChar": 61
+      },
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "002fa2df_6ec86c1d",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 67
+      },
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28b183f3_2326e477",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "nit: used in only one place (assuming branchHeads is unused)",
+      "range": {
+        "startLine": 42,
+        "startChar": 2,
+        "endLine": 42,
+        "endChar": 26
+      },
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab4b68bb_644348af",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:29:17Z",
+      "side": 1,
+      "message": "(Not related to this CL, but...) Maybe include repoUrl in error message.",
+      "range": {
+        "startLine": 47,
+        "startChar": 81,
+        "endLine": 47,
+        "endChar": 88
+      },
+      "revId": "712bdf522f3af7055920fbdeaae690b6d068bb27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
