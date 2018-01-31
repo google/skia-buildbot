@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a21d33f9_e9b753f4",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T18:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ecd78a6_b6d78782",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 10,
+        "endChar": 16
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e99cfb02_44a5f6f5",
         "filename": "skolo/linux/debian9-preseed.cfg",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69482339_54f147ec",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T18:13:59Z",
+      "side": 1,
+      "message": "Ack. I had it that way before, but I changed it because:\n - It makes it more obvious that there are two sections here (otherwise iPXE would be hard to notice)\n - I think preseeding is much more useful for iPXE than for USB.",
+      "parentUuid": "e99cfb02_44a5f6f5",
+      "range": {
+        "startLine": 21,
+        "startChar": 2,
+        "endLine": 21,
+        "endChar": 12
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "8c54251a_39676241",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T18:13:59Z",
+      "side": 1,
+      "message": "Documented the reason for this. Also, IMO, the risk of messing up the sudoers file is fairly low.",
+      "parentUuid": "3ef6ba9f_04eb4a4b",
+      "range": {
+        "startLine": 99,
+        "startChar": 2,
+        "endLine": 99,
+        "endChar": 33
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b8d0ecff_fece7fe5",
         "filename": "skolo/linux/debian9-preseed.cfg",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2018-01-31T13:51:58Z",
       "side": 1,
       "message": "Where does this SSH key come from?",
+      "range": {
+        "startLine": 200,
+        "startChar": 16,
+        "endLine": 200,
+        "endChar": 26
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2e2e80e_c3628d40",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T18:13:59Z",
+      "side": 1,
+      "message": "So, I was a tiny bit worried that putting the chrome-bot public key here could leak something I shouldn\u0027t leak, so I generated a new key pair. I\u0027m not sure where to put the private key -- maybe GCS?\n\nOTOH, I\u0027m probably just being paranoid. It should be fine to put the chrome-bot public key in our public repo.",
+      "parentUuid": "b8d0ecff_fece7fe5",
       "range": {
         "startLine": 200,
         "startChar": 16,
