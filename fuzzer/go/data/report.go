@@ -1,6 +1,10 @@
 package data
 
-import "sort"
+import (
+	"sort"
+
+	"go.skia.org/infra/fuzzer/go/common"
+)
 
 type FuzzReport struct {
 	// These are set by fuzzpool on ingestion.
@@ -8,10 +12,8 @@ type FuzzReport struct {
 	FunctionName string `json:"functionName"`
 	LineNumber   int    `json:"lineNumber"`
 
-	DebugStackTrace   StackTrace `json:"debugStackTrace"`
-	ReleaseStackTrace StackTrace `json:"releaseStackTrace"`
-	DebugFlags        []string   `json:"debugFlags"`
-	ReleaseFlags      []string   `json:"releaseFlags"`
+	Stacktraces map[string]StackTrace `json:"stacktraces"`
+	Flags       map[string][]string   `json:"flags"`
 
 	FuzzName         string `json:"fuzzName"`
 	FuzzCategory     string `json:"category"`
@@ -22,15 +24,21 @@ type FuzzReport struct {
 // ParseReport creates a report given the raw materials passed in.
 func ParseReport(g GCSPackage) FuzzReport {
 	result := ParseGCSPackage(g)
+
+	stacktraces := map[string]StackTrace{}
+	flags := map[string][]string{}
+	for _, t := range common.ANALYSIS_TYPES {
+		stacktraces[t] = result.Configs[t].StackTrace
+		flags[t] = result.Configs[t].Flags.ToHumanReadableFlags()
+	}
+
 	return FuzzReport{
-		DebugStackTrace:   result.Debug.StackTrace,
-		ReleaseStackTrace: result.Release.StackTrace,
-		DebugFlags:        result.Debug.Flags.ToHumanReadableFlags(),
-		ReleaseFlags:      result.Release.Flags.ToHumanReadableFlags(),
-		FuzzName:          g.Name,
-		FuzzCategory:      g.FuzzCategory,
-		FuzzArchitecture:  g.FuzzArchitecture,
-		IsGrey:            result.IsGrey(),
+		Stacktraces:      stacktraces,
+		Flags:            flags,
+		FuzzName:         g.Name,
+		FuzzCategory:     g.FuzzCategory,
+		FuzzArchitecture: g.FuzzArchitecture,
+		IsGrey:           result.IsGrey(),
 	}
 }
 

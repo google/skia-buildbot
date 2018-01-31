@@ -1,7 +1,7 @@
 =================================================================
 ==46153==ERROR: AddressSanitizer: global-buffer-overflow on address 0x000001177628 at pc 0x000000a65431 bp 0x7fff7545f890 sp 0x7fff7545f888
 READ of size 1 at 0x000001177628 thread T0
-    #0 0x9de9a2 in convert_to_8(unsigned int, unsigned int) /tmp/skia/out/Release/../../src/codec/SkMasks.cpp:54:16
+    #0 0x9de9a2 in convert_to_8(unsigned int, unsigned int) /tmp/skia/out/Release/../../src/codec/SkMasks.cpp:55:16
     #1 0x9ddb51 in swizzle_mask32_to_n32_opaque(void*, unsigned char const*, int, SkMasks*, unsigned int, unsigned int) /tmp/skia/out/Release/../../src/codec/SkMaskSwizzler.cpp:163:23
     #2 0x9d82d6 in SkBmpMaskCodec::decodeRows(SkImageInfo const&, void*, unsigned long, SkCodec::Options const&) /tmp/skia/out/Release/../../src/codec/SkBmpMaskCodec.cpp:103:9
     #3 0x9d805a in SkBmpMaskCodec::onGetPixels(SkImageInfo const&, void*, unsigned long, SkCodec::Options const&, unsigned int*, int*, int*) /tmp/skia/out/Release/../../src/codec/SkBmpMaskCodec.cpp:53:16

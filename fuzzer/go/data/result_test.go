@@ -10,17 +10,15 @@ import (
 
 func TestIsGrey(t *testing.T) {
 	testutils.SmallTest(t)
-	assert.True(t, isGrey(0, 0))
-	assert.True(t, isGrey(TerminatedGracefully, TerminatedGracefully))
-	assert.True(t, isGrey(TerminatedGracefully, TimedOut))
-	assert.True(t, isGrey(TimedOut, TerminatedGracefully))
-	assert.True(t, isGrey(TimedOut, TimedOut))
-	assert.True(t, isGrey(TimedOut|TerminatedGracefully, TimedOut|TerminatedGracefully))
-	assert.True(t, isGrey(TerminatedGracefully, BadAlloc))
+	assert.True(t, isGrey(0))
+	assert.True(t, isGrey(TerminatedGracefully))
+	assert.True(t, isGrey(TimedOut))
+	assert.True(t, isGrey(TimedOut|TerminatedGracefully))
+	assert.True(t, isGrey(BadAlloc))
 
-	assert.False(t, isGrey(SKAbortHit, TimedOut))
-	assert.False(t, isGrey(TerminatedGracefully, AssertionViolated))
-	assert.False(t, isGrey(ClangCrashed, ClangCrashed))
+	assert.False(t, isGrey(SKAbortHit))
+	assert.False(t, isGrey(AssertionViolated))
+	assert.False(t, isGrey(ClangCrashed))
 }
 
 func TestToHumanReadableFlags(t *testing.T) {

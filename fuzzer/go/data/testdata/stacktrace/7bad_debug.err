@@ -1,2 +1,2 @@
 Decoding
-../../src/core/SkPictureData.cpp:360: fatal error: ""nullptr == fOpData""
+../../src/core/SkPictureData.cpp:362: fatal error: ""nullptr == fOpData""
