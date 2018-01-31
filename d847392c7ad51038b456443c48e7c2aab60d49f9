@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ecd78a6_b6d78782",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-31T13:51:58Z",
+      "side": 1,
+      "message": "What is d-i preseeding?  This whole process?",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 10,
+        "endChar": 16
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e99cfb02_44a5f6f5",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-31T13:51:58Z",
+      "side": 1,
+      "message": "nit: put USB stick directions (the one you tried) first",
+      "range": {
+        "startLine": 21,
+        "startChar": 2,
+        "endLine": 21,
+        "endChar": 12
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ef6ba9f_04eb4a4b",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-31T13:51:58Z",
+      "side": 1,
+      "message": "May not want to do this - I did this for the RPIs, and then messed up the sudoers file and was stuck.  I had to remake the image from scratch.  Probably low risk, but worth considering",
+      "range": {
+        "startLine": 99,
+        "startChar": 2,
+        "endLine": 99,
+        "endChar": 33
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8d0ecff_fece7fe5",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-31T13:51:58Z",
+      "side": 1,
+      "message": "Where does this SSH key come from?",
+      "range": {
+        "startLine": 200,
+        "startChar": 16,
+        "endLine": 200,
+        "endChar": 26
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
