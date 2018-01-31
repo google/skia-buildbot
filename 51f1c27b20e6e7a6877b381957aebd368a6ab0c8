@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5d249475_c3a0a432",
+        "filename": "go/webhook/webhook.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T19:34:48Z",
+      "side": 1,
+      "message": "If there aren\u0027t many callers, maybe just remove and use the explicit ones.",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 81,
+        "endChar": 1
+      },
+      "revId": "51f1c27b20e6e7a6877b381957aebd368a6ab0c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
