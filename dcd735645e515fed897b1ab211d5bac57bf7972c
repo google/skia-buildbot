@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9d07d2b1_bfa25fde",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-31T15:29:23Z",
+      "side": 1,
+      "message": "I did this in PS2.  I think it\u0027s better.",
+      "parentUuid": "3487b264_dee5d009",
+      "range": {
+        "startLine": 235,
+        "startChar": 20,
+        "endLine": 235,
+        "endChar": 80
+      },
+      "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8f5522d4_dca3c909",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-31T14:24:53Z",
       "side": 1,
       "message": "If any of this fails, we could miss commits.",
+      "range": {
+        "startLine": 310,
+        "startChar": 0,
+        "endLine": 325,
+        "endChar": 2
+      },
+      "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a348681_58e4a4ff",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-31T15:29:23Z",
+      "side": 1,
+      "message": "I think I mitigated this in PS2.",
+      "parentUuid": "8f5522d4_dca3c909",
       "range": {
         "startLine": 310,
         "startChar": 0,
