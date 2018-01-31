@@ -22,6 +22,30 @@
       "revId": "0525c0fa701130f4a28f157402e4562f0886affe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "418aa346_27e805e0",
+        "filename": "skolo/win/ansible/bootstrap-swarming.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T17:47:56Z",
+      "side": 1,
+      "message": "Oh, right, I forgot that discussion. I\u0027ll need to submit a config change for chromium-swarm-dev first.",
+      "parentUuid": "378385ff_074307eb",
+      "range": {
+        "startLine": 27,
+        "startChar": 16,
+        "endLine": 27,
+        "endChar": 47
+      },
+      "revId": "0525c0fa701130f4a28f157402e4562f0886affe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
