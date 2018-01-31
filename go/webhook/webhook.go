@@ -47,10 +47,10 @@ func setRequestSaltFromBase64(saltBase64 []byte) error {
 	return nil
 }
 
-// InitRequestSaltFromMetadata reads requestSalt from project metadata and returns any error
-// encountered. Should be called once at startup.
-func InitRequestSaltFromMetadata() error {
-	saltBase64, err := metadata.ProjectGet(metadata.WEBHOOK_REQUEST_SALT)
+// InitRequestSaltFromSpecifiedMetadata reads requestSalt from the specified project metadata
+// and returns any error encountered. Should be called once at startup.
+func InitRequestSaltFromSpecifiedMetadata(metadataKey string) error {
+	saltBase64, err := metadata.ProjectGet(metadataKey)
 	if err != nil {
 		return err
 	}
@@ -60,12 +60,24 @@ func InitRequestSaltFromMetadata() error {
 	return nil
 }
 
-// MustInitRequestSaltFromMetadata reads requestSalt from project metadata. Exits the program on
-// error. Should be called once at startup.
-func MustInitRequestSaltFromMetadata() {
-	if err := InitRequestSaltFromMetadata(); err != nil {
+// MustInitRequestSaltFromSpecifiedMetadata reads requestSalt from the specified project
+// metadata. Exits the program on error. Should be called once at startup.
+func MustInitRequestSaltFromSpecifiedMetadata(metadataKey string) {
+	if err := InitRequestSaltFromSpecifiedMetadata(metadataKey); err != nil {
 		sklog.Fatal(err)
 	}
+}
+
+// InitRequestSaltFromMetadata reads requestSalt from the default project metadata and
+// returns any error encountered. Should be called once at startup.
+func InitRequestSaltFromMetadata() error {
+	return InitRequestSaltFromSpecifiedMetadata(metadata.WEBHOOK_REQUEST_SALT)
+}
+
+// MustInitRequestSaltFromMetadata reads requestSalt from the default project metadata.
+// Exits the program on error. Should be called once at startup.
+func MustInitRequestSaltFromMetadata() {
+	MustInitRequestSaltFromSpecifiedMetadata(metadata.WEBHOOK_REQUEST_SALT)
 }
 
 // InitRequestSaltFromFile reads requestSalt from the given file and returns any error encountered.
