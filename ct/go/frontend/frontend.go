@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	skutil "go.skia.org/infra/go/util"
@@ -46,7 +47,7 @@ var httpClient = httputils.NewTimeoutClient()
 
 // Initializes *Webapp URLs above and sets up authentication credentials for UpdateWebappTaskV2.
 func MustInit() {
-	webhook.MustInitRequestSaltFromMetadata()
+	webhook.MustInitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT)
 	initUrls(WEBAPP_ROOT_V2)
 }
 
