@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3487b264_dee5d009",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-31T14:24:53Z",
+      "side": 1,
+      "message": "This could be slow and wasteful if there are a lot of new commits (eg. for a new Graph), and most of the callers don\u0027t need it.  I\u0027m thinking about changing this to\n\nupdate(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {...}\n\nAnd adding these wrappers:\n\nUpdate(ctx context.Context) error {...}\nUpdateAndReturnNewCommits(ctx context.Context) ([]*vcsinfo.LongCommit, error) {...}\n\nWDYT?",
+      "range": {
+        "startLine": 235,
+        "startChar": 20,
+        "endLine": 235,
+        "endChar": 80
+      },
+      "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f5522d4_dca3c909",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-31T14:24:53Z",
+      "side": 1,
+      "message": "If any of this fails, we could miss commits.",
+      "range": {
+        "startLine": 310,
+        "startChar": 0,
+        "endLine": 325,
+        "endChar": 2
+      },
+      "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "660658ae_711b8108",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-31T14:24:53Z",
+      "side": 1,
+      "message": "If we get an error here, we could miss commits.",
+      "range": {
+        "startLine": 45,
+        "startChar": 3,
+        "endLine": 45,
+        "endChar": 45
+      },
+      "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "745a804e_dd6c86a5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-01-31T14:24:53Z",
+      "side": 1,
+      "message": "My first version of this CL included changing this function to use the list of new commits in gatherNewJobs, allowing us to totally remove JobCache.ScheduledJobsForCommit().  However, it turns out that this could be problematic.  The server runs repos.Update() at startup, which could cause us to miss a commit.  If something fails in gatherNewJobs before the new jobs are inserted into the DB, we could miss a commit there too.  It would require some complicated handling to make it work, so I left it alone for now.",
+      "range": {
+        "startLine": 1137,
+        "startChar": 24,
+        "endLine": 1137,
+        "endChar": 37
+      },
+      "revId": "dcd735645e515fed897b1ab211d5bac57bf7972c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
