@@ -141,7 +141,7 @@
 
       _dataChange: function() {
         this._index = 0;
-        if (this.data.digests.length === 0) {
+        if (!this.data || !this.data.digests || this.data.digests.length === 0) {
           return
         }
         this.set('_item', this.data.digests[0]);
@@ -273,7 +273,10 @@
       },
 
       _isLast: function(index) {
-        return index === this.data.digests.length-1;
+        if (this.data.digests) {
+          return index === this.data.digests.length-1;
+        }
+        return true;
       },
 
     });
