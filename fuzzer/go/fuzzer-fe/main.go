@@ -132,12 +132,19 @@ func reloadTemplates() {
 
 func main() {
 	defer common.LogPanic()
-	// Calls flag.Parse()
-	common.InitWithMust(
-		"fuzzer-fe",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	flag.Parse()
+	if *local {
+		common.InitWithMust(
+			"fuzzer-fe-local",
+		)
+	} else {
+		common.InitWithMust(
+			"fuzzer-fe",
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingOpt(),
+		)
+	}
+
 	ctx := context.Background()
 
 	if err := writeFlagsToConfig(); err != nil {
