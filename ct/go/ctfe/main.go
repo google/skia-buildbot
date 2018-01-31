@@ -36,6 +36,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/webhook"
@@ -272,7 +273,7 @@ func main() {
 	if *local {
 		webhook.InitRequestSaltForTesting()
 	} else {
-		webhook.MustInitRequestSaltFromMetadata()
+		webhook.MustInitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT)
 	}
 
 	sklog.Info("CloneOrUpdate complete")

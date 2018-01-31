@@ -47,23 +47,23 @@ func setRequestSaltFromBase64(saltBase64 []byte) error {
 	return nil
 }
 
-// InitRequestSaltFromMetadata reads requestSalt from project metadata and returns any error
-// encountered. Should be called once at startup.
-func InitRequestSaltFromMetadata() error {
-	saltBase64, err := metadata.ProjectGet(metadata.WEBHOOK_REQUEST_SALT)
+// InitRequestSaltFromMetadata reads requestSalt from the specified project metadata
+// and returns any error encountered. Should be called once at startup.
+func InitRequestSaltFromMetadata(metadataKey string) error {
+	saltBase64, err := metadata.ProjectGet(metadataKey)
 	if err != nil {
 		return err
 	}
 	if err := setRequestSaltFromBase64([]byte(saltBase64)); err != nil {
-		return fmt.Errorf("Could not decode salt from %s: %s", metadata.WEBHOOK_REQUEST_SALT, err)
+		return fmt.Errorf("Could not decode salt from %s: %s", metadataKey, err)
 	}
 	return nil
 }
 
-// MustInitRequestSaltFromMetadata reads requestSalt from project metadata. Exits the program on
-// error. Should be called once at startup.
-func MustInitRequestSaltFromMetadata() {
-	if err := InitRequestSaltFromMetadata(); err != nil {
+// MustInitRequestSaltFromMetadata reads requestSalt from the specified project
+// metadata. Exits the program on error. Should be called once at startup.
+func MustInitRequestSaltFromMetadata(metadataKey string) {
+	if err := InitRequestSaltFromMetadata(metadataKey); err != nil {
 		sklog.Fatal(err)
 	}
 }
