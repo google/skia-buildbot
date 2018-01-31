@@ -234,6 +234,30 @@
       "revId": "72311f5c76888cae70b834a163f54b739e12a058",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "037c8df8_f3fbe0cb",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 875,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-01-31T16:01:11Z",
+      "side": 1,
+      "message": "Do you have a benchmark/article to show that?  I\u0027d be curious to see the differences.",
+      "parentUuid": "d0011a53_9404a79f",
+      "range": {
+        "startLine": 875,
+        "startChar": 1,
+        "endLine": 875,
+        "endChar": 4
+      },
+      "revId": "72311f5c76888cae70b834a163f54b739e12a058",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
