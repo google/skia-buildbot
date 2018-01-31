@@ -224,7 +224,8 @@ func TestAddedTaskSpecs(t *testing.T) {
 		Revision: c6,
 	}
 
-	assert.NoError(t, repos.Update(ctx))
+	_, err = repos.Update(ctx)
+	assert.NoError(t, err)
 	addedTaskSpecs, err = cache.GetAddedTaskSpecsForRepoStates(ctx, []db.RepoState{rs1, rs2, rs3, rs4, rs5, rs6})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(addedTaskSpecs[rs1]))

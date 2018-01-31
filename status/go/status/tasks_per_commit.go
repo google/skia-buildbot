@@ -106,7 +106,7 @@ func (c *tasksPerCommitCache) Get(ctx context.Context, rs db.RepoState) (int, er
 
 // update pulls down new commits and evicts old entries from the cache.
 func (c *tasksPerCommitCache) update(ctx context.Context) error {
-	if err := c.repos.Update(ctx); err != nil {
+	if _, err := c.repos.Update(ctx); err != nil {
 		return err
 	}
 	c.mtx.Lock()

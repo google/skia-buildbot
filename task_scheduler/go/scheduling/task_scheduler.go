@@ -1309,7 +1309,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 func (s *TaskScheduler) updateRepos(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 	for _, r := range s.repos {
-		if err := r.Update(ctx); err != nil {
+		if _, err := r.Update(ctx); err != nil {
 			return err
 		}
 	}

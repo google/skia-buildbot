@@ -105,7 +105,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := repos.Update(ctx); err != nil {
+	if _, err := repos.Update(ctx); err != nil {
 		sklog.Fatal(err)
 	}
 

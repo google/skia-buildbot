@@ -170,7 +170,7 @@ func New(ctx context.Context, repo *git.Repo) (*Graph, error) {
 	} else if !os.IsNotExist(err) {
 		return nil, fmt.Errorf("Failed to read cache file: %s", err)
 	}
-	if err := rv.Update(ctx); err != nil {
+	if _, err := rv.Update(ctx); err != nil {
 		return nil, err
 	}
 	return rv, nil
@@ -232,25 +232,26 @@ func (r *Graph) addCommit(ctx context.Context, hash string) error {
 }
 
 // Update syncs the local copy of the repo and loads new commits/branches into
-// the Graph object.
-func (r *Graph) Update(ctx context.Context) error {
+// the Graph object. Returns a slice of any new commits, in no particular order.
+func (r *Graph) Update(ctx context.Context) ([]*vcsinfo.LongCommit, error) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
 	// Update the local copy.
 	sklog.Infof("Updating repograph.Graph...")
 	if err := r.repo.Update(ctx); err != nil {
-		return fmt.Errorf("Failed to update repograph.Graph: %s", err)
+		return nil, fmt.Errorf("Failed to update repograph.Graph: %s", err)
 	}
 
 	// Obtain the list of branches.
 	sklog.Info("  Getting branches...")
 	branches, err := r.repo.Branches(ctx)
 	if err != nil {
-		return fmt.Errorf("Failed to get branches for repograph.Graph: %s", err)
+		return nil, fmt.Errorf("Failed to get branches for repograph.Graph: %s", err)
 	}
 
 	// Load new commits from the repo.
+	newCommits := []*vcsinfo.LongCommit{}
 	sklog.Infof("  Loading commits...")
 	for _, b := range branches {
 		// Shortcut: If we already have the head of this branch, don't
@@ -267,12 +268,12 @@ func (r *Graph) Update(ctx context.Context) error {
 			if old.Name == b.Name {
 				anc, err := r.repo.IsAncestor(ctx, old.Head, b.Head)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				if anc {
 					commits, err = r.repo.RevList(ctx, "--topo-order", fmt.Sprintf("%s..%s", old.Head, b.Head))
 					if err != nil {
-						return err
+						return nil, err
 					}
 					newBranch = false
 				}
@@ -286,7 +287,7 @@ func (r *Graph) Update(ctx context.Context) error {
 			sklog.Infof("  Branch %s is new or its history has changed; loading all commits.", b.Name)
 			commits, err = r.repo.RevList(ctx, "--topo-order", b.Head)
 			if err != nil {
-				return fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
+				return nil, fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
 			}
 		}
 		for i := len(commits) - 1; i >= 0; i-- {
@@ -298,8 +299,9 @@ func (r *Graph) Update(ctx context.Context) error {
 				continue
 			}
 			if err := r.addCommit(ctx, hash); err != nil {
-				return err
+				return nil, err
 			}
+			newCommits = append(newCommits, r.commitsData[r.commits[hash]].LongCommit)
 		}
 	}
 	r.branches = branches
@@ -309,20 +311,20 @@ func (r *Graph) Update(ctx context.Context) error {
 	cacheFile := path.Join(r.repo.Dir(), CACHE_FILE)
 	f, err := os.Create(cacheFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := gob.NewEncoder(f).Encode(gobGraph{
 		Commits:     r.commits,
 		CommitsData: r.commitsData,
 	}); err != nil {
 		defer util.Close(f)
-		return err
+		return nil, err
 	}
 	if err := f.Close(); err != nil {
-		return err
+		return nil, err
 	}
 	sklog.Infof("  Done. Graph has %d commits.", len(r.commits))
-	return nil
+	return newCommits, nil
 }
 
 // Branches returns the list of known branches in the repo.
@@ -347,84 +349,6 @@ func (r *Graph) BranchHeads() []*gitinfo.GitBranch {
 		})
 	}
 	return branchHeads
-}
-
-// GetNewCommits returns the new commits in the repo, given a previous set of
-// branch heads.
-func (r *Graph) GetNewCommits(previousBranchHeads []*gitinfo.GitBranch) ([]*vcsinfo.LongCommit, error) {
-	// We're going to trace all branches back in time until we get to a
-	// commit that the caller has already seen. As an optimization, we just
-	// trace each branch from the new HEAD back to the old HEAD. Note that
-	// this does NOT work if there are any newly-created branches, since
-	// we'll end up returning the entire history of that branch, including
-	// any commits shared with existing branches. To avoid returning
-	// already-seen commits, we take a slow path for new branches in which
-	// we check to see whether every commit on the new branch is part of an
-	// existing branch. We will see a similar problem if history is ever
-	// changed such that the old HEAD is not an ancestor of the new HEAD.
-	// For now we just hope that doesn't happen, since it should be a last
-	// resort.
-
-	// Separate the previously-existing branch heads from the new.
-	previousBranchNames := make(map[string]bool, len(previousBranchHeads))
-	for _, bh := range previousBranchHeads {
-		previousBranchNames[bh.Name] = true
-	}
-	currentBranchHeads := r.BranchHeads()
-	updatedPreviousBranchHeads := make([]*gitinfo.GitBranch, 0, len(previousBranchNames))
-	newBranchHeads := make([]*gitinfo.GitBranch, 0, len(currentBranchHeads)-len(previousBranchNames))
-	for _, bh := range currentBranchHeads {
-		if _, ok := previousBranchNames[bh.Name]; !ok {
-			newBranchHeads = append(newBranchHeads, bh)
-		} else {
-			updatedPreviousBranchHeads = append(updatedPreviousBranchHeads, bh)
-		}
-	}
-
-	// Mark the old branch HEADs as visited.
-	visited := make(map[string]bool, len(previousBranchHeads))
-	for _, branch := range previousBranchHeads {
-		visited[branch.Head] = true
-	}
-
-	// Find new commits for the branches the caller has already seen.
-	newCommits := []*vcsinfo.LongCommit{}
-	for _, bh := range updatedPreviousBranchHeads {
-		if err := r.Get(bh.Head).Recurse(func(c *Commit) (bool, error) {
-			if visited[c.Hash] {
-				return false, nil
-			}
-			newCommits = append(newCommits, c.LongCommit)
-			visited[c.Hash] = true
-			return true, nil
-		}); err != nil {
-			return nil, err
-		}
-	}
-
-	// Find new commits on any branches the caller has not yet seen, double
-	// checking each commit to make sure it's not already an ancestor of
-	// another branch.
-	for _, bh := range newBranchHeads {
-		if err := r.Get(bh.Head).Recurse(func(c *Commit) (bool, error) {
-			// Shortcut.
-			if visited[c.Hash] {
-				return false, nil
-			}
-			// SLOW! Check whether this commit exists on any other branch.
-			for _, oldBranch := range updatedPreviousBranchHeads {
-				if r.Get(oldBranch.Head).HasAncestor(c.Hash) {
-					return false, nil
-				}
-			}
-			newCommits = append(newCommits, c.LongCommit)
-			visited[c.Hash] = true
-			return true, nil
-		}); err != nil {
-			return nil, err
-		}
-	}
-	return newCommits, nil
 }
 
 // Get returns a Commit object for the given ref, if such a commit exists. This
@@ -542,14 +466,18 @@ func NewMap(ctx context.Context, repos []string, workdir string) (Map, error) {
 	return rv, nil
 }
 
-// Update updates all Graphs in the Map.
-func (m Map) Update(ctx context.Context) error {
-	for _, g := range m {
-		if err := g.Update(ctx); err != nil {
-			return err
+// Update updates all Graphs in the Map. Returns a map of repo URLs to slices of
+// new commits in each of the repos.
+func (m Map) Update(ctx context.Context) (map[string][]*vcsinfo.LongCommit, error) {
+	newCommits := make(map[string][]*vcsinfo.LongCommit, len(m))
+	for repoUrl, g := range m {
+		commits, err := g.Update(ctx)
+		if err != nil {
+			return nil, err
 		}
+		newCommits[repoUrl] = commits
 	}
-	return nil
+	return newCommits, nil
 }
 
 // FindCommit returns the Commit object, repo URL, and Graph object for the

@@ -14,9 +14,8 @@ import (
 
 // commitsCache is a struct used for tracking newly-landed commits.
 type commitsCache struct {
-	mtx            sync.Mutex
-	oldBranchHeads map[string][]*gitinfo.GitBranch
-	repos          repograph.Map
+	mtx   sync.Mutex
+	repos repograph.Map
 }
 
 // newCommitsCache returns a commitsCache instance.
@@ -33,30 +32,25 @@ func (c *commitsCache) Update(ctx context.Context, w *window.Window, reset bool,
 	defer metrics2.FuncTimer().Stop()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	if err := c.repos.Update(ctx); err != nil {
+	newCommitsAllRepos, err := c.repos.Update(ctx)
+	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to update repos: %s", err)
 	}
 	branchHeads := make(map[string][]*gitinfo.GitBranch, len(c.repos))
-	rvCommits := make(map[string][]*vcsinfo.LongCommit, len(c.repos))
 	rvBranchHeads := make(map[string][]*gitinfo.GitBranch, len(c.repos))
 	for repoUrl, repo := range c.repos {
 		bh := repo.BranchHeads()
 		branchHeads[repoUrl] = bh
-		var newCommits []*vcsinfo.LongCommit
-		var err error
 		if reset {
-			newCommits, err = repo.GetLastNCommits(n)
-		} else {
-			newCommits, err = repo.GetNewCommits(c.oldBranchHeads[repoUrl])
+			newCommits, err := repo.GetLastNCommits(n)
+			if err != nil {
+				return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to obtain commits: %s", err)
+			}
+			newCommitsAllRepos[repoUrl] = newCommits
 		}
-		if err != nil {
-			return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to obtain commits: %s", err)
-		}
-		if reset || len(newCommits) > 0 {
-			rvCommits[repoUrl] = newCommits
+		if reset || len(newCommitsAllRepos[repoUrl]) > 0 {
 			rvBranchHeads[repoUrl] = bh
 		}
 	}
-	c.oldBranchHeads = branchHeads
-	return rvBranchHeads, rvCommits, nil
+	return rvBranchHeads, newCommitsAllRepos, nil
 }

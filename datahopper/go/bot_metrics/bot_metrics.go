@@ -194,7 +194,7 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
 func cycle(ctx context.Context, taskDb db.RemoteDB, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
-	if err := repos.Update(ctx); err != nil {
+	if _, err := repos.Update(ctx); err != nil {
 		return err
 	}
 

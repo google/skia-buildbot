@@ -1028,7 +1028,8 @@ func TestComputeBlamelist(t *testing.T) {
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 	test := func(tc *testCase) {
 		// Update the repo.
-		assert.NoError(t, repo.Update(ctx))
+		_, err := repo.Update(ctx)
+		assert.NoError(t, err)
 		// Self-check: make sure we don't pass in empty commit hashes.
 		for _, h := range tc.Expected {
 			assert.NotEqual(t, h, "")
