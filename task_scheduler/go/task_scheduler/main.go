@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -714,7 +715,7 @@ func main() {
 	if *local {
 		webhook.InitRequestSaltForTesting()
 	} else {
-		webhook.MustInitRequestSaltFromMetadata()
+		webhook.MustInitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT)
 	}
 
 	go runServer(serverURL)

@@ -342,7 +342,7 @@ func main() {
 	androidInternalGerritUrl := *gerritUrl
 	var emailer *email.GMail
 	if *useMetadata {
-		if err := webhook.InitRequestSaltFromMetadata(); err != nil {
+		if err := webhook.InitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT); err != nil {
 			sklog.Fatal(err)
 		}
 
