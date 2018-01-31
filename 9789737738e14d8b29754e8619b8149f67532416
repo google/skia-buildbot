@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "35666f2b_7253d043",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-31T19:57:52Z",
+      "side": 1,
+      "message": "I\u0027ll look into this. We do not do this in other places: ctfe, task_scheduler, google3 ?\n(I was looking for code I could \"borrow\" from other callers)",
+      "parentUuid": "cb48b727_250d29f3",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 205,
+        "endChar": 49
+      },
+      "revId": "9789737738e14d8b29754e8619b8149f67532416",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b6d765b3_4722012d",
         "filename": "android_compile/go/android_compile/main.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "9789737738e14d8b29754e8619b8149f67532416",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3e26951_a1b9a06d",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-01-31T19:57:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b6d765b3_4722012d",
+      "range": {
+        "startLine": 266,
+        "startChar": 0,
+        "endLine": 268,
+        "endChar": 3
+      },
+      "revId": "9789737738e14d8b29754e8619b8149f67532416",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
