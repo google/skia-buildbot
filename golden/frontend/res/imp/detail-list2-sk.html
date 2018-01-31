@@ -273,7 +273,10 @@
       },
 
       _isLast: function(index) {
-        return index === this.data.digests.length-1;
+        if (this.data.digests) {
+          return index === this.data.digests.length-1;
+        }
+        return true;
       },
 
     });
