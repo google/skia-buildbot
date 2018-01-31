@@ -22,6 +22,30 @@
       "revId": "7de7c3c472b33bdfc893a9bff7357da313f6e514",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73f24744_35974f87",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-01-31T21:05:18Z",
+      "side": 1,
+      "message": "😭",
+      "parentUuid": "f7abb5c1_94ac070d",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 20
+      },
+      "revId": "7de7c3c472b33bdfc893a9bff7357da313f6e514",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
