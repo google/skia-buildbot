@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/webhook"
 )
 
 const (
@@ -38,10 +39,11 @@ const (
 
 var (
 	// Flags
-	host         = flag.String("host", "localhost", "HTTP service host")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	httpPort     = flag.String("http_port", ":8002", "HTTP service port (e.g., ':8002')")
-	tasksPort    = flag.String("tasks_port", ":8008", "Port used to register and query status of tasks (e.g., ':8008')")
+	host     = flag.String("host", "localhost", "HTTP service host")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	httpPort = flag.String("http_port", ":8002", "HTTP service port (e.g., ':8002')")
+	// TODO(rmistry): Change to 8008.
+	tasksPort    = flag.String("tasks_port", ":8002", "Port used to register and query status of tasks (e.g., ':8008')")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	workdir      = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find compile.sh, templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
@@ -136,6 +138,11 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerRunHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Authentication failure")
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 
 	// Either hash or (issue & patchset) must be specified.
@@ -207,6 +214,10 @@ func runServer() {
 	httpRouter.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	httpRouter.HandleFunc("/", indexHandler)
+	//// TODO(rmistry): Change to POST after testing is done.
+	httpRouter.HandleFunc(REGISTER_RUN_POST_URI, registerRunHandler).Methods("POST")
+	httpRouter.HandleFunc(GET_TASK_STATUS_URI, statusHandler)
+
 	httpRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
 	httpRouter.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	httpRouter.HandleFunc("/login/", loginHandler)
@@ -215,17 +226,30 @@ func runServer() {
 	http.Handle("/", httputils.LoggingGzipRequestResponse(httpRouter))
 	sklog.AddLogsRedirect(httpRouter)
 	sklog.Infof("Ready to serve on %s", serverURL)
-	go func() {
-		sklog.Fatal(http.ListenAndServe(*httpPort, nil))
-	}()
+	sklog.Fatal(http.ListenAndServe(*httpPort, nil))
 
-	tasksRouter := mux.NewRouter()
-	// TODO(rmistry): Change to POST after testing is done.
-	tasksRouter.HandleFunc(REGISTER_RUN_POST_URI, registerRunHandler).Methods("GET")
-	tasksRouter.HandleFunc(GET_TASK_STATUS_URI, statusHandler)
-	sklog.Infof("Handling registering and querying tasks on %s", *tasksPort)
-	sklog.Fatal(http.ListenAndServe(*tasksPort, tasksRouter))
+	//httpRouter := mux.NewRouter()
+	//httpRouter.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
+	//httpRouter.HandleFunc("/", indexHandler)
+	//httpRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
+	//httpRouter.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
+	//httpRouter.HandleFunc("/login/", loginHandler)
+	//httpRouter.HandleFunc("/logout/", login.LogoutHandler)
+	//httpRouter.HandleFunc("/loginstatus/", login.StatusHandler)
+	//http.Handle("/", httputils.LoggingGzipRequestResponse(httpRouter))
+	//sklog.AddLogsRedirect(httpRouter)
+	//sklog.Infof("Ready to serve on %s", serverURL)
+	//go func() {
+	//	sklog.Fatal(http.ListenAndServe(*httpPort, nil))
+	//}()
+
+	//tasksRouter := mux.NewRouter()
+	//// TODO(rmistry): Change to POST after testing is done.
+	//tasksRouter.HandleFunc(REGISTER_RUN_POST_URI, registerRunHandler).Methods("GET")
+	//tasksRouter.HandleFunc(GET_TASK_STATUS_URI, statusHandler)
+	//sklog.Infof("Handling registering and querying tasks on %s", *tasksPort)
+	//sklog.Fatal(http.ListenAndServe(*tasksPort, tasksRouter))
 }
 
 func main() {
@@ -271,6 +295,16 @@ func main() {
 	if err := CheckoutsInit(*numCheckouts, *workdir); err != nil {
 		sklog.Fatalf("Failed to init checkouts: %s", err)
 	}
+
+	// Initialize webhooks.
+	webhook.InitRequestSaltForTesting()
+	//if *local {
+	//	webhook.InitRequestSaltForTesting()
+	//} else {
+	//	if err := webhook.InitRequestSaltFromMetadata(); err != nil {
+	//		sklog.Fatalf("Failed to init webhooks: %s", err)
+	//	}
+	//}
 
 	// Find and reschedule all CompileTasks that are in "running" state. Any
 	// "running" CompileTasks means that the server was restarted in the middle
