@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/go/util"
 )
@@ -37,12 +38,21 @@ func (d *localDeduplicator) SetRevision(r string) {
 }
 
 func (d *localDeduplicator) IsUnique(report data.FuzzReport) bool {
+	allEmpty := true
+	for _, st := range report.Stacktraces {
+		allEmpty = allEmpty && st.IsEmpty()
+	}
 	// Empty stacktraces should be manually deduplicated.
-	if report.DebugStackTrace.IsEmpty() && report.ReleaseStackTrace.IsEmpty() {
+	if allEmpty {
 		return true
 	}
+
+	anyOther := false
+	for _, flags := range report.Flags {
+		anyOther = anyOther || util.In("Other", flags)
+	}
 	// Other flags should also be looked at manually.
-	if util.In("Other", report.DebugFlags) || util.In("Other", report.ReleaseFlags) {
+	if anyOther {
 		return true
 	}
 	d.mutex.Lock()
@@ -56,9 +66,12 @@ func (d *localDeduplicator) IsUnique(report data.FuzzReport) bool {
 }
 
 func key(r data.FuzzReport) string {
-	ds := trim(r.DebugStackTrace)
-	rs := trim(r.ReleaseStackTrace)
-	return fmt.Sprintf("C:%s,A:%s,F:%q,F:%q,S:%s,S:%s", r.FuzzCategory, r.FuzzArchitecture, r.DebugFlags, r.ReleaseFlags, ds.String(), rs.String())
+	s := fmt.Sprintf("C:%s,A:%s", r.FuzzCategory, r.FuzzArchitecture)
+	for _, c := range common.ANALYSIS_TYPES {
+		st := trim(r.Stacktraces[c])
+		s += fmt.Sprintf("F:%q,S:%s", r.Flags[c], st.String())
+	}
+	return s
 }
 
 // trim returns a copy of the given stacktrace, with the line numbers removed and all but the

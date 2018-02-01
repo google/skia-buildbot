@@ -24,10 +24,10 @@
         Reports are objects and have the following attributes:
         - name: String, The name of the binary, likely an md5 hash
         - type: String, The type of the binary
-        - debugFlags: Array of String, Flags associated with the debug run (e.g. FailedGracefully)
-        - releaseFlags: Array of String, Flags associated with the release run (e.g. ASANCrashed)
-        - debugStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
-        - releaseStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
+        - flags: map of String -> Array<String>, Flags associated with a given config
+            (e.g. TerminatedGracefully)
+        - stacktraces map of String -> Object, Stacktrace associated with config
+            (see fuzzer-stacktrace-sk.html for schema)
         - category: String.
     detailsBase: String, the base url for details (should include file and function name)
     expand: Boolean, if this element should be auto expanded.
@@ -93,43 +93,43 @@
       <li>
         <details-sk open="[[expand]]">
           <summary-sk>
-            <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
-          -- {{details.count}} crash-causing fuzzes
+            <a href$="[[_getDetailsLink(detailsBase, details)]]">Line [[details.lineNumber]]</a>
+          -- [[details.count]] crash-causing fuzzes
           </summary-sk>
           <div class="panel-container horizontal layout wrap start">
-            <template is="dom-repeat" items="{{reports}}" as="report">
+            <template is="dom-repeat" items="[[reports]]" as="report">
               <div class="panel">
                 <div class="title">
                 File:
-                <a href$="{{_getDownloadLink(report)}}">{{report.fuzzName}}</a>
+                <a href$="[[_getDownloadLink(report)]]">[[report.fuzzName]]</a>
                 &nbsp;
-                <a href$="{{_getPermaLink(report)}}"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
+                <a href$="[[_getPermaLink(report)]]"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
                 &nbsp;
-                <a href$="{{_getNewBugLink(report)}}" target="_blank"><iron-icon icon="icons:bug-report" title="file a bug about this fuzz"></iron-icon></a>
+                <a href$="[[_getNewBugLink(report)]]" target="_blank"><iron-icon icon="icons:bug-report" title="file a bug about this fuzz"></iron-icon></a>
                 </div>
                 <div class="raw">
-                  <a href$="{{_getMetaLink(report,'debug','asan')}}">debug_asan</a>
-                  <a href$="{{_getMetaLink(report,'release','asan')}}">release_asan</a>
-                  <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
-                  <a href$="{{_getMetaLink(report,'release','err')}}">release_err</a>
-                  <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
-                  <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
+                  <a href$="[[_getMetaLink(report,'debug','asan')]]">debug_asan</a>
+                  <a href$="[[_getMetaLink(report,'release','asan')]]">release_asan</a>
+                  <a href$="[[_getMetaLink(report,'debug','err')]]">debug_err</a>
+                  <a href$="[[_getMetaLink(report,'release','err')]]">release_err</a>
+                  <a href$="[[_getMetaLink(report,'debug','dump')]]">debug_dump</a>
+                  <a href$="[[_getMetaLink(report,'release','dump')]]">release_dump</a>
                 </div>
-                <div class="flags">{{_getFlags(report)}}</div>
+                <div class="flags">[[_getFlags(report)]]</div>
                 <div><b>OS/Architecture:</b> [[report.architecture]]</div>
                 <h4>Debug Stack Trace</h4>
-                <fuzzer-stacktrace-sk trace="{{report.debugStackTrace}}"></fuzzer-stacktrace-sk>
+                <fuzzer-stacktrace-sk trace="[[_stacktrace(report, 'ASAN_DEBUG', 'CLANG_DEBUG')]]"></fuzzer-stacktrace-sk>
                 <h4>Release Stack Trace</h4>
-                <fuzzer-stacktrace-sk trace="{{report.releaseStackTrace}}"></fuzzer-stacktrace-sk>
+                <fuzzer-stacktrace-sk trace="[[_stacktrace(report, 'ASAN_RELEASE', 'CLANG_RELEASE')]]"></fuzzer-stacktrace-sk>
               </div>
             </template>
             <div class="show-more-less-bar horizontal layout">
-              <paper-button disabled$="{{!hasFewer}}" on-click="showFewer">Show Fewer</paper-button>
+              <paper-button disabled$="[[!hasFewer]]" on-click="showFewer">Show Fewer</paper-button>
               <span class="status horizontal layout flex">
-                <span class="center">Showing {{toShow}}/
-                  {{details.count}}</span>
+                <span class="center">Showing [[toShow]]/
+                  [[details.count]]</span>
               </span>
-              <paper-button disabled$="{{!hasMore}}" on-click="showMore">Show More</paper-button>
+              <paper-button disabled$="[[!hasMore]]" on-click="showMore">Show More</paper-button>
             </div>
           </div>
         </details-sk>
@@ -137,6 +137,8 @@
     </div>
   </template>
   <script>
+  (function(){
+    var FLAG_ORDER=["ASAN_DEBUG", "CLANG_DEBUG", "ASAN_RELEASE", "CLANG_RELEASE"];
   Polymer({
     is: 'fuzzer-collapse-details-sk',
 
@@ -192,14 +194,12 @@
     },
 
     _getFlags: function(report) {
-      if (!report.debugFlags) {
-        report.debugFlags = ["<none>"];
+      let s = "";
+      for (let c of FLAG_ORDER) {
+        let flags = report.flags[c] || ["<none>"];
+        s += `${c} -> (${flags.join(" | ")}) `;
       }
-      if (!report.releaseFlags) {
-        report.releaseFlags = ["<none>"];
-      }
-      return "[Debug] " + report.debugFlags.join(" | ") + "  [Release] " +
-              report.releaseFlags.join(" | ");
+      return s;
     },
 
     showMore: function() {
@@ -249,6 +249,14 @@
     _getNewBugLink: function(report) {
       return "/newBug?name=" + report.fuzzName + "&category="+report.category;
     },
+
+    _stacktrace: function(report, stackA, stackB) {
+      if (report.stacktraces[stackA].frames) {
+        return report.stacktraces[stackA];
+      }
+      return report.stacktraces[stackB];
+    }
   });
+  })()
   </script>
 </dom-module>

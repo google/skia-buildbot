@@ -12,8 +12,7 @@ import (
 
 // Represents the metadata about a crash, hopefully easing debugging.
 type FuzzResult struct {
-	Debug   BuildData
-	Release BuildData
+	Configs map[string]BuildData // maps config name (e.g. DEBUG_ASAN) -> BuildData
 }
 
 // BuildData represents the results of parsing a given skia build's output.
@@ -25,9 +24,8 @@ type BuildData struct {
 
 // OutputFiles are the files output by the analysis
 type OutputFiles struct {
-	Asan   string
-	Dump   string
-	StdErr string
+	Key     string            // An optional key, typically used for the analysis config name
+	Content map[string]string // maps file name/descriptor -> content
 }
 
 // GCSPackage is a struct containing all the pieces of a fuzz that exist in Google Storage.
@@ -35,8 +33,9 @@ type GCSPackage struct {
 	Name             string
 	FuzzCategory     string
 	FuzzArchitecture string
-	Debug            OutputFiles
-	Release          OutputFiles
+	// maps config (e.g. DEBUG_ASAN) to output files created by running that fuzz through the
+	// config (e.g. stdout and stderr)
+	Files map[string]OutputFiles
 }
 
 // A bit mask representing what happened when a fuzz ran against Skia.
@@ -101,11 +100,16 @@ func (f FuzzFlag) String() string {
 
 // IsGrey returns true if the fuzz should be considered grey, that is, is not a real crash.
 func (r *FuzzResult) IsGrey() bool {
-	return isGrey(r.Debug.Flags, r.Release.Flags)
+	for _, c := range r.Configs {
+		if !isGrey(c.Flags) {
+			return false
+		}
+	}
+	return true
 }
 
 // isGrey returns true if the fuzz should be considered grey, that is, is not a real crash.
-func isGrey(debugFlags, releaseFlags FuzzFlag) bool {
+func isGrey(flags FuzzFlag) bool {
 	// If the only flags are in the _GREY_FLAGS slice, then we should ignore this.
 	// TODO(kjlubick): Possibly change this to be a full-blown, user-editable blacklist
 	// as in skbug.com/5191
@@ -113,91 +117,81 @@ func isGrey(debugFlags, releaseFlags FuzzFlag) bool {
 	// then XOR it with the grey flags to get a bitmask that removes the
 	// grey flags from the debug/release flags
 	badFlags := (2<<uint(len(_FLAG_NAMES)) - 1) ^ _GREY_FLAGS
-	return debugFlags&badFlags == 0 && releaseFlags&badFlags == 0
+	return flags&badFlags == 0
 }
 
 // ParseGCSPackage parses the results of analysis of a fuzz and creates a FuzzResult with it.
 // This includes parsing the stacktraces and computing the flags about the fuzz.
 func ParseGCSPackage(g GCSPackage) FuzzResult {
 	result := FuzzResult{}
-	result.Debug.Asan = g.Debug.Asan
-	result.Debug.Dump = g.Debug.Dump
-	result.Debug.StdErr = g.Debug.StdErr
-	result.Debug.StackTrace = getStackTrace(g.Debug.Asan, g.Debug.Dump)
-	result.Release.Asan = g.Release.Asan
-	result.Release.Dump = g.Release.Dump
-	result.Release.StdErr = g.Release.StdErr
-	result.Release.StackTrace = getStackTrace(g.Release.Asan, g.Release.Dump)
-	result.computeFlags(g.FuzzCategory)
+	result.Configs = map[string]BuildData{}
+	for _, c := range common.ANALYSIS_TYPES {
+		s := StackTrace{}
+		if strings.Contains(c, "ASAN") {
+			s = parseASANStackTrace(g.Files[c].Content["stderr"])
+			if s.IsEmpty() {
+				s = parseASANSummary(g.Files[c].Content["stderr"])
+			}
+		} else if strings.Contains(c, "CLANG") {
+			s = parseCatchsegvStackTrace(g.Files[c].Content["stdout"])
+		}
+		cfg := BuildData{
+			OutputFiles: g.Files[c],
+			StackTrace:  s,
+		}
+		cfg.Flags = parseAll(g.FuzzCategory, &cfg)
+
+		result.Configs[c] = cfg
+	}
 
 	return result
-}
-
-// getStackTrace creates a StackTrace output from one of the two dumps given.  It first tries to
-// use the AddressSanitizer dump, with the Clang dump as a fallback.
-func getStackTrace(asan, dump string) StackTrace {
-	if asanCrashed(asan) {
-		s := parseASANStackTrace(asan)
-		if s.IsEmpty() {
-			s = parseASANSummary(asan)
-		}
-		return s
-	}
-	return parseCatchsegvStackTrace(dump)
-}
-
-// computeFlags parses the raw data to set both the Debug and Release flags.
-func (r *FuzzResult) computeFlags(category string) {
-	r.Debug.Flags = parseAll(category, &r.Debug)
-	r.Release.Flags = parseAll(category, &r.Release)
 }
 
 // parseAll looks at the three input files and parses the results, based on the category.  The
 // category allows for specialized flags, like SKPICTURE_DuringRendering.
 func parseAll(category string, data *BuildData) FuzzFlag {
-	f := FuzzFlag(0)
+	// SkDebugf (the main source of printing) writes to stderr
+	stderr := data.Content["stderr"]
+	// stdout is generally blank, except if catchsegv (used for Clang builds) catches a crash
+	stdout := data.Content["stdout"]
+
 	// Check for SKAbort message
-	if strings.Contains(data.Asan, "fatal error") {
-		f |= SKAbortHit
+	if strings.Contains(stderr, "fatal error") {
 		if data.StackTrace.IsEmpty() {
-			data.StackTrace = extractSkAbortTrace(data.Asan)
+			data.StackTrace = extractSkAbortTrace(stderr)
 		}
-		return f
+		return SKAbortHit
 	}
-	if strings.Contains(data.StdErr, "fatal error") {
-		f |= SKAbortHit
-		if data.StackTrace.IsEmpty() {
-			data.StackTrace = extractSkAbortTrace(data.StdErr)
-		}
-		return f
-	}
-	// If no sk abort message and no evidence of crashes, we either terminated gracefully or
-	// timed out.
-	if f == 0 && !asanCrashed(data.Asan) && !clangDumped(data.Dump) {
-		if (strings.Contains(data.Asan, "[terminated]") && strings.Contains(data.StdErr, "[terminated]")) ||
-			(strings.Contains(data.Asan, "Signal boring") && strings.Contains(data.StdErr, "Signal boring")) {
+	if strings.Contains(data.Key, "ASAN") && !asanCrashed(stderr) {
+		if strings.Contains(stderr, "[terminated]") || strings.Contains(stderr, "Signal boring") {
 			return TerminatedGracefully
-		}
-		f := FuzzFlag(0)
-		if strings.Contains(data.Asan, "AddressSanitizer failed to allocate") {
-			f |= BadAlloc
-		}
-		if strings.Contains(data.StdErr, "std::bad_alloc") {
-			f |= BadAlloc
-		}
-		if f != 0 {
-			return f
 		}
 		return TimedOut
 	}
 
-	// Look for clues from the various dumps.
-	f |= parseAsan(category, data.Asan)
-	f |= parseCatchsegv(category, data.Dump, data.StdErr)
+	if strings.Contains(data.Key, "CLANG") && !clangDumped(stdout) {
+		if strings.Contains(stderr, "[terminated]") || strings.Contains(stderr, "Signal boring") {
+			return TerminatedGracefully
+		}
+		if strings.Contains(stderr, "std::bad_alloc") {
+			return BadAlloc
+		}
+		return TimedOut
+	}
+
+	// We know there was a crash
+	f := FuzzFlag(0)
+	if strings.Contains(data.Key, "ASAN") {
+		f |= parseAsan(category, stderr)
+	} else if strings.Contains(data.Key, "CLANG") {
+		f |= parseCatchsegv(category, stdout, stderr)
+	}
+
 	if f == 0 {
 		// I don't know what this means (yet).
 		return Other
 	}
+
 	if data.StackTrace.IsEmpty() {
 		f |= NoStackTrace
 	}
@@ -210,9 +204,6 @@ func parseAsan(category, asan string) FuzzFlag {
 	f := FuzzFlag(0)
 	if strings.Contains(asan, "AddressSanitizer failed to allocate") {
 		return BadAlloc
-	}
-	if !asanCrashed(asan) {
-		return f
 	}
 	f |= ASANCrashed
 	if strings.Contains(asan, "failed assertion") {
@@ -252,9 +243,6 @@ func asanCrashed(asan string) bool {
 // This includes things like
 func parseCatchsegv(category, dump, err string) FuzzFlag {
 	f := FuzzFlag(0)
-	if strings.Contains(err, "std::bad_alloc") {
-		return BadAlloc
-	}
 	if !clangDumped(dump) && strings.Contains(err, "[terminated]") {
 		return f
 	}

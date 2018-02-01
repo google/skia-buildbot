@@ -119,15 +119,33 @@ func download(s *storage.Client, toDownload <-chan fuzzPackage, reports chan<- d
 			Name:             job.FuzzName,
 			FuzzCategory:     job.FuzzCategory,
 			FuzzArchitecture: job.FuzzArchitecture,
-			Debug: data.OutputFiles{
-				Asan:   emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugASANName)),
-				Dump:   emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugDumpName)),
-				StdErr: emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugErrName)),
-			},
-			Release: data.OutputFiles{
-				Asan:   emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseASANName)),
-				Dump:   emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseDumpName)),
-				StdErr: emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseErrName)),
+			Files: map[string]data.OutputFiles{
+				"ASAN_DEBUG": {
+					Key: "ASAN_DEBUG",
+					Content: map[string]string{
+						"stderr": emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugASANName)),
+					},
+				},
+				"CLANG_DEBUG": {
+					Key: "CLANG_DEBUG",
+					Content: map[string]string{
+						"stdout": emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugDumpName)),
+						"stderr": emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.DebugErrName)),
+					},
+				},
+				"ASAN_RELEASE": {
+					Key: "ASAN_RELEASE",
+					Content: map[string]string{
+						"stderr": emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseASANName)),
+					},
+				},
+				"CLANG_RELEASE": {
+					Key: "CLANG_RELEASE",
+					Content: map[string]string{
+						"stdout": emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseDumpName)),
+						"stderr": emptyStringOnError(gcs.FileContentsFromGCS(s, config.GCS.Bucket, job.ReleaseErrName)),
+					},
+				},
 			},
 		}
 

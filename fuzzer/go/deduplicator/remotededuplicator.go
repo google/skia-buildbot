@@ -41,19 +41,28 @@ func (d *remoteDeduplicator) SetRevision(r string) {
 var FILE_WRITE_OPTS = gcs.FileWriteOptions{ContentEncoding: "text/plain"}
 
 func (d *remoteDeduplicator) IsUnique(report data.FuzzReport) bool {
+	allEmpty := true
+	for _, st := range report.Stacktraces {
+		allEmpty = allEmpty && st.IsEmpty()
+	}
 	// Empty stacktraces should be manually deduplicated.
-	if report.DebugStackTrace.IsEmpty() && report.ReleaseStackTrace.IsEmpty() {
+	if allEmpty {
 		return true
 	}
+
+	anyOther := false
+	for _, flags := range report.Flags {
+		anyOther = anyOther || util.In("Other", flags)
+	}
 	// Other flags should also be looked at manually.
-	if util.In("Other", report.DebugFlags) || util.In("Other", report.ReleaseFlags) {
+	if anyOther {
 		return true
 	}
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	k := hash(key(report))
-	gcsPath := fmt.Sprintf("%s/%s/%s/traces/%s", report.FuzzCategory, d.revision, report.FuzzArchitecture, k)
 
+	gcsPath := fmt.Sprintf("%s/%s/%s/traces/%s", report.FuzzCategory, d.revision, report.FuzzArchitecture, k)
 	if d.seen[gcsPath] {
 		sklog.Debugf("%s has already been seen", gcsPath)
 		return false

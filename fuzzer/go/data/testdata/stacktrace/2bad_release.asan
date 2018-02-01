@@ -3,7 +3,7 @@ Rendering
 =================================================================
 ==66109==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x60d00000d000 at pc 0x0000007f17a3 bp 0x7fffbad7bde0 sp 0x7fffbad7bdd8
 READ of size 4 at 0x60d00000d000 thread T0
-    #0 0x7f17a2 in SkReader32::readInt_asan() /tmp/skia/out/Release/../../src/core/SkReader32.h:57:25
+    #0 0x7f17a2 in SkReader32::readInt() /tmp/skia/out/Release/../../src/core/SkReader32.h:57:25
     #1 0x7efb0d in SkPicturePlayback::handleOp(SkReader32*, DrawType, unsigned int, SkCanvas*, SkMatrix const&) /tmp/skia/out/Release/../../src/core/SkPicturePlayback.cpp:151:31
     #2 0x7ef5ee in SkPicturePlayback::draw(SkCanvas*, SkPicture::AbortCallback*) /tmp/skia/out/Release/../../src/core/SkPicturePlayback.cpp:111:9
     #3 0x7e63b8 in SkPicture::Forwardport(SkPictInfo const&, SkPictureData const*) /tmp/skia/out/Release/../../src/core/SkPicture.cpp:137:5

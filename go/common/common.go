@@ -185,3 +185,9 @@ func (m *MultiString) Set(value string) error {
 	}
 	return nil
 }
+
+// Reset() removes all flags seen so far. If flag.Parse() is called twice, everything
+// gets duplicated, so this prevents duplication.
+func (m *MultiString) Reset() {
+	*m = nil
+}

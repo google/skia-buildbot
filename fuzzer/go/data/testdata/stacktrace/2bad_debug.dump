@@ -32,7 +32,7 @@ Register dump:
  XMM14: 00000000000000000000000000ff0000 XMM15: 00000000000000000000000000ff0000
 
 Backtrace:
-/tmp/skia/out/Debug/../../src/core/SkReader32.h:87 (discriminator 4)(_ZN10SkReader329skip_dumpEm)[0x4a07c1]
+/tmp/skia/out/Debug/../../src/core/SkReader32.h:87 (discriminator 4)(_ZN10SkReader324skipEm)[0x4a07c1]
 /tmp/skia/out/Debug/../../src/core/SkReader32.h:93(_ZN10SkReader325skipTI6SkRectEERKT_v)[0x4a0a79]
 /tmp/skia/out/Debug/../../src/core/SkPicturePlayback.cpp:150(_ZN17SkPicturePlayback8handleOpEP10SkReader328DrawTypejP8SkCanvasRK8SkMatrix)[0x49e965]
 /tmp/skia/out/Debug/../../src/core/SkPicturePlayback.cpp:102(_ZN17SkPicturePlayback4drawEP8SkCanvasPN9SkPicture13AbortCallbackE)[0x49e5ec]

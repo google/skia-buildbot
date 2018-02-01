@@ -3,7 +3,7 @@ Decoding
 ASAN:SIGSEGV
 =================================================================
 ==65785==ERROR: AddressSanitizer: SEGV on unknown address 0x0000977537dd (pc 0x000000815b20 bp 0x7ffca882b460 sp 0x7ffca882b440 T0)
-    #0 0x815b1f in SkReader32::skip_asan(unsigned long) /tmp/skia/out/Debug/../../src/core/SkReader32.h:87:9
+    #0 0x815b1f in SkReader32::skip(unsigned long) /tmp/skia/out/Debug/../../src/core/SkReader32.h:87:9
     #1 0x815dad in SkRect const& SkReader32::skipT<SkRect>() /tmp/skia/out/Debug/../../src/core/SkReader32.h:93:27
     #2 0x813ae3 in SkPicturePlayback::handleOp(SkReader32*, DrawType, unsigned int, SkCanvas*, SkMatrix const&) /tmp/skia/out/Debug/../../src/core/SkPicturePlayback.cpp:150:34
     #3 0x8134bf in SkPicturePlayback::draw(SkCanvas*, SkPicture::AbortCallback*) /tmp/skia/out/Debug/../../src/core/SkPicturePlayback.cpp:111:9

@@ -29,6 +29,9 @@ var segvStackTraceLine = regexp.MustCompile(`(?:\.\./)+(?P<package>(?:\w+/)+)(?P
 // Occasionally, unsymbolized outputs sneak through.  We give it a best effort to parse.
 var segvStackTraceLineUnsymbolized = regexp.MustCompile(`\(_(?P<symbol>Z.*)\)`)
 
+// Sometimes, we crash in assembly code that doesn't have a file attached.
+var segvAssemblyStackTraceLine = regexp.MustCompile(`\:\?\((?P<function>.+)\)\[`)
+
 // parseCatchsegvStackTrace takes the contents of a dump file of a catchsegv run, and returns the
 // parsed stacktrace
 func parseCatchsegvStackTrace(contents string) StackTrace {
@@ -58,6 +61,10 @@ func parseCatchsegvStackTrace(contents string) StackTrace {
 		} else if match := segvStackTraceLineUnsymbolized.FindStringSubmatch(line); match != nil {
 			newFrame := FullStackFrame(common.UNSYMBOLIZED_RESULT, common.UNSYMBOLIZED_RESULT, catchsegvFunctionName(match[1]), -1)
 			frames = append(frames, newFrame)
+		} else if match := segvAssemblyStackTraceLine.FindStringSubmatch(line); match != nil {
+			// match[1] is the function name.
+			newFrame := FullStackFrame("", common.ASSEMBLY_CODE_FILE, match[1], common.UNKNOWN_LINE)
+			frames = append(frames, newFrame)
 		}
 	}
 	return StackTrace{Frames: frames}
@@ -85,6 +92,10 @@ func catchsegvFunctionName(s string) string {
 		length := util.SafeAtoi(match[2])
 		// ZNK? is 2-3 chars, so slice (num letters + num digits + number of spaces) chars off
 		// the beginning.
+		if len(match[1])+len(match[2])+length >= len(s) {
+			// This is a malformed stacktrace, somehow
+			return common.UNKNOWN_FUNCTION
+		}
 		s = s[len(match[1])+len(match[2])+length:]
 		f := ""
 		// We look at the beginning of our trimmed string for numbers.
@@ -97,6 +108,10 @@ func catchsegvFunctionName(s string) string {
 			}
 			length = util.SafeAtoi(match[1])
 			start := len(match[1])
+			if start >= len(s) || start+length >= len(s) {
+				// This is a malformed stacktrace, somehow
+				return common.UNKNOWN_FUNCTION
+			}
 			f += s[start : start+length]
 			s = s[start+length:]
 		}
@@ -106,12 +121,20 @@ func catchsegvFunctionName(s string) string {
 		length := util.SafeAtoi(match[1])
 		// ZL is 2 chars, so advance 2 spaces + how many digits there are
 		start := 2 + len(match[1])
+		if start >= len(s) || start+length >= len(s) {
+			// This is a malformed stacktrace, somehow
+			return common.UNKNOWN_FUNCTION
+		}
 		return s[start : start+length]
 	}
 	if match := nonstaticStart.FindStringSubmatch(s); match != nil {
 		length := util.SafeAtoi(match[1])
 		// Z is 1 char, so advance 1 space + how many digits there are
 		start := 1 + len(match[1])
+		if start >= len(s) || start+length >= len(s) {
+			// This is a malformed stacktrace, somehow
+			return common.UNKNOWN_FUNCTION
+		}
 		return s[start : start+length]
 	}
 	return common.UNKNOWN_FUNCTION

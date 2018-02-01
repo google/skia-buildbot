@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/fuzzer/go/issues"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
+	"go.skia.org/infra/fuzzer/go/tests"
 	"go.skia.org/infra/fuzzer/go/version_watcher"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -59,12 +60,13 @@ var (
 	statusPeriod         = flag.Duration("status_period", 60*time.Second, `The time period used to report the status of the aggregation/analysis/upload queue. `)
 	analysisTimeout      = flag.Duration("analysis_timeout", 5*time.Second, `The maximum time an analysis should run.`)
 
-	watchAFL        = flag.Bool("watch_afl", false, "(debug only) If the afl master's output should be piped to stdout.")
-	skipGeneration  = flag.Bool("skip_generation", false, "(debug only) If the generation step should be disabled.")
-	forceReanalysis = flag.Bool("force_reanalysis", false, "(debug only) If the fuzzes should be downloaded, re-analyzed, (deleted from GCS), and reuploaded.")
-	verboseBuilds   = flag.Bool("verbose_builds", false, "If output from ninja and gyp should be printed to stdout.")
-	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	watchAFL         = flag.Bool("watch_afl", false, "(debug only) If the afl master's output should be piped to stdout.")
+	skipGeneration   = flag.Bool("skip_generation", false, "(debug only) If the generation step should be disabled.")
+	forceReanalysis  = flag.Bool("force_reanalysis", false, "(debug only) If the fuzzes should be downloaded, re-analyzed, (deleted from GCS), and reuploaded.")
+	verboseBuilds    = flag.Bool("verbose_builds", false, "If output from ninja and gyp should be printed to stdout.")
+	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	overrideHostname = flag.String("override_hostname", "", "Hostname to be used if running locally")
+	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
 var (
@@ -75,12 +77,29 @@ var (
 
 func main() {
 	defer common.LogPanic()
-	// Calls flag.Parse()
-	common.InitWithMust(
-		"fuzzer-be",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	flag.Parse()
+	// Reset this because flag.Parse() will be called again with common.Init*
+	fuzzesToRun.Reset()
+	if *local {
+		if *overrideHostname != "" {
+			mc := tests.NewMockCommonImpl()
+			mc.On("Hostname").Return(*overrideHostname)
+			fcommon.SetMockCommon(mc)
+			common.InitWithMust(
+				*overrideHostname,
+			)
+		} else {
+			common.InitWithMust(
+				"fuzzer-be-local",
+			)
+		}
+	} else {
+		common.InitWithMust(
+			"fuzzer-be",
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingOpt(),
+		)
+	}
 	ctx := context.Background()
 
 	if err := writeFlagsToConfig(); err != nil {

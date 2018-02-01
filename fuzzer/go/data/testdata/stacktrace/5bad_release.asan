@@ -3,7 +3,7 @@ Decoding
 ASAN:SIGSEGV
 =================================================================
 ==75658==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x0000007ea4d9 bp 0x7fff192cbe70 sp 0x7fff192cbca0 T0)
-    #0 0x7ea4d8 in SkPictureData::parseStreamTag(SkStream*, unsigned int, unsigned int, bool (*)(void const*, unsigned long, SkBitmap*), SkTypefacePlayback*) /tmp/skia/out/Release/../../src/core/SkPictureData.cpp:377:17
+    #0 0x7ea4d8 in SkPictureData::parseStreamTag(SkStream*, unsigned int, unsigned int, bool (*)(void const*, unsigned long, SkBitmap*), SkTypefacePlayback*) /tmp/skia/out/Release/../../src/core/SkPictureData.cpp:378:17
     #1 0x7eb040 in SkPictureData::parseStream(SkStream*, bool (*)(void const*, unsigned long, SkBitmap*), SkTypefacePlayback*) /tmp/skia/out/Release/../../src/core/SkPictureData.cpp:589:14
     #2 0x7eaf7d in SkPictureData::CreateFromStream(SkStream*, SkPictInfo const&, bool (*)(void const*, unsigned long, SkBitmap*), SkTypefacePlayback*) /tmp/skia/out/Release/../../src/core/SkPictureData.cpp:562:10
     #3 0x7e6530 in SkPicture::CreateFromStream(SkStream*, bool (*)(void const*, unsigned long, SkBitmap*), SkTypefacePlayback*) /tmp/skia/out/Release/../../src/core/SkPicture.cpp:153:13

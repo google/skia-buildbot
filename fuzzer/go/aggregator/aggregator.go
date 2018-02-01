@@ -91,6 +91,8 @@ var (
 	CLANG_RELEASE = common.TEST_HARNESS_NAME + "_clang_release"
 	ASAN_DEBUG    = common.TEST_HARNESS_NAME + "_asan_debug"
 	ASAN_RELEASE  = common.TEST_HARNESS_NAME + "_asan_release"
+
+	ANALYSIS_EXECUTABLE_LIST = []string{ASAN_RELEASE, ASAN_DEBUG, CLANG_RELEASE, CLANG_DEBUG}
 )
 
 // analysisPackage is a struct containing all the pieces of a fuzz needed to analyse it.
@@ -460,24 +462,19 @@ func (agg *Aggregator) analysisHelper(ctx context.Context, executableDir string,
 func setupAnalysis(workingDirPath string) error {
 	// Delete all previous executables to get a clean start
 	if err := os.RemoveAll(workingDirPath); err != nil && !os.IsNotExist(err) {
-		return err
+		return sklog.FmtErrorf("Could not clean out analysis directory %s: %s", workingDirPath, err)
 	}
 	if err := os.MkdirAll(workingDirPath, 0755); err != nil {
-		return err
+		return sklog.FmtErrorf("Could not making analysis directory %s: %s", workingDirPath, err)
 	}
 
 	// make a copy of the 4 executables that were made in buildAnalysisBinaries()
-	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.WorkingPath, CLANG_DEBUG), filepath.Join(workingDirPath, CLANG_DEBUG)); err != nil {
-		return err
-	}
-	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.WorkingPath, CLANG_RELEASE), filepath.Join(workingDirPath, CLANG_RELEASE)); err != nil {
-		return err
-	}
-	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.WorkingPath, ASAN_DEBUG), filepath.Join(workingDirPath, ASAN_DEBUG)); err != nil {
-		return err
-	}
-	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.WorkingPath, ASAN_RELEASE), filepath.Join(workingDirPath, ASAN_RELEASE)); err != nil {
-		return err
+	for _, exe := range ANALYSIS_EXECUTABLE_LIST {
+		built_exe := filepath.Join(config.Aggregator.WorkingPath, exe)
+		dst := filepath.Join(workingDirPath, exe)
+		if err := fileutil.CopyExecutable(built_exe, dst); err != nil {
+			return sklog.FmtErrorf("Could not copy executable %s to %s: %s", built_exe, dst, err)
+		}
 	}
 	return nil
 }
@@ -490,6 +487,7 @@ func analyze(ctx context.Context, workingDirPath, filename, category string) (up
 			Name:             filename,
 			FuzzCategory:     category,
 			FuzzArchitecture: config.Generator.Architecture,
+			Files:            map[string]data.OutputFiles{},
 		},
 		FuzzType: BAD_FUZZ,
 		FilePath: filepath.Join(config.Aggregator.FuzzPath, filename),
@@ -499,25 +497,45 @@ func analyze(ctx context.Context, workingDirPath, filename, category string) (up
 	if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_DEBUG, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
-		upload.Data.Debug.Dump = dump
-		upload.Data.Debug.StdErr = stderr
+		upload.Data.Files["CLANG_DEBUG"] = data.OutputFiles{
+			Key: "CLANG_DEBUG",
+			Content: map[string]string{
+				"stdout": dump,
+				"stderr": stderr,
+			},
+		}
 	}
 	if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_RELEASE, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
-		upload.Data.Release.Dump = dump
-		upload.Data.Release.StdErr = stderr
+		upload.Data.Files["CLANG_RELEASE"] = data.OutputFiles{
+			Key: "CLANG_RELEASE",
+			Content: map[string]string{
+				"stdout": dump,
+				"stderr": stderr,
+			},
+		}
 	}
 	// AddressSanitizer only outputs to stderr
 	if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_DEBUG, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
-		upload.Data.Debug.Asan = stderr
+		upload.Data.Files["ASAN_DEBUG"] = data.OutputFiles{
+			Key: "ASAN_DEBUG",
+			Content: map[string]string{
+				"stderr": stderr,
+			},
+		}
 	}
 	if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_RELEASE, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
-		upload.Data.Release.Asan = stderr
+		upload.Data.Files["ASAN_RELEASE"] = data.OutputFiles{
+			Key: "ASAN_RELEASE",
+			Content: map[string]string{
+				"stderr": stderr,
+			},
+		}
 	}
 	if r := data.ParseGCSPackage(upload.Data); r.IsGrey() {
 		upload.FuzzType = GREY_FUZZ
@@ -633,7 +651,7 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 // upload breaks apart the uploadPackage into its constituant parts and uploads them to GCS using
 // some helper methods.
 func (agg *Aggregator) upload(p uploadPackage) error {
-	sklog.Infof("uploading %s with file %s and analysis bytes %d;%d;%d|%d;%d;%d", p.Data.Name, p.FilePath, len(p.Data.Debug.Asan), len(p.Data.Debug.Dump), len(p.Data.Debug.StdErr), len(p.Data.Release.Asan), len(p.Data.Release.Dump), len(p.Data.Release.StdErr))
+	sklog.Infof("uploading %s with file %s", p.Data.Name, p.FilePath)
 	if p.FuzzType == GREY_FUZZ {
 		agg.greyNames = append(agg.greyNames, p.Data.Name)
 	} else {
@@ -643,22 +661,22 @@ func (agg *Aggregator) upload(p uploadPackage) error {
 	if err := agg.uploadBinaryFromDisk(p, p.Data.Name, p.FilePath); err != nil {
 		return err
 	}
-	if err := agg.uploadString(p, p.Data.Name+"_debug.asan", p.Data.Debug.Asan); err != nil {
+	if err := agg.uploadString(p, p.Data.Name+"_debug.asan", p.Data.Files["ASAN_DEBUG"].Content["stderr"]); err != nil {
 		return err
 	}
-	if err := agg.uploadString(p, p.Data.Name+"_debug.dump", p.Data.Debug.Dump); err != nil {
+	if err := agg.uploadString(p, p.Data.Name+"_debug.dump", p.Data.Files["CLANG_DEBUG"].Content["stdout"]); err != nil {
 		return err
 	}
-	if err := agg.uploadString(p, p.Data.Name+"_debug.err", p.Data.Debug.StdErr); err != nil {
+	if err := agg.uploadString(p, p.Data.Name+"_debug.err", p.Data.Files["CLANG_DEBUG"].Content["stderr"]); err != nil {
 		return err
 	}
-	if err := agg.uploadString(p, p.Data.Name+"_release.asan", p.Data.Release.Asan); err != nil {
+	if err := agg.uploadString(p, p.Data.Name+"_release.asan", p.Data.Files["ASAN_RELEASE"].Content["stderr"]); err != nil {
 		return err
 	}
-	if err := agg.uploadString(p, p.Data.Name+"_release.dump", p.Data.Release.Dump); err != nil {
+	if err := agg.uploadString(p, p.Data.Name+"_release.dump", p.Data.Files["CLANG_RELEASE"].Content["stdout"]); err != nil {
 		return err
 	}
-	return agg.uploadString(p, p.Data.Name+"_release.err", p.Data.Release.StdErr)
+	return agg.uploadString(p, p.Data.Name+"_release.err", p.Data.Files["CLANG_RELEASE"].Content["stderr"])
 }
 
 // uploadBinaryFromDisk uploads a binary file on disk to GCS, returning an error if anything

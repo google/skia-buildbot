@@ -3,7 +3,6 @@ package data
 import (
 	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
 
 	"go.skia.org/infra/fuzzer/go/common"
@@ -26,10 +25,12 @@ func TestParseReleaseDump(t *testing.T) {
 			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStream", 580),
 			FullStackFrame("src/core/", "SkPicture.cpp", "CreateFromStream", 153),
 			FullStackFrame("fuzzer_cache/src/", "parseskp.cpp", "tool_main", 41),
+			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_start", -1),
 		},
 	}
 	if !reflect.DeepEqual(expected, trace) {
 		t.Errorf("Expected %#v\nbut was %#v", expected, trace)
+		t.Errorf("Expected \n%s\nbut was \n%s", expected.String(), trace.String())
 	}
 }
 
@@ -57,11 +58,13 @@ func TestParseDebugDump(t *testing.T) {
 			FullStackFrame("src/core/", "SkPicture.cpp", "CreateFromStream", 153),
 			FullStackFrame("src/core/", "SkPicture.cpp", "CreateFromStream", 142),
 			FullStackFrame("fuzzer_cache/src/", "parseskp.cpp", "tool_main", 41),
+			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_start", -1),
 		},
 	}
 
 	if !reflect.DeepEqual(expected, trace) {
 		t.Errorf("Expected %#v\nbut was %#v", expected, trace)
+		t.Errorf("Expected \n%s\nbut was \n%s", expected.String(), trace.String())
 	}
 }
 
@@ -80,6 +83,7 @@ func TestParsingEdgeCases(t *testing.T) {
 			FullStackFrame("src/core/", "SkReader32.h", "eof", 38),
 			FullStackFrame("src/core/", "SkTaskGroup.cpp", "ThreadPool::Wait", 88),
 			FullStackFrame("fuzz/", "fuzz.cpp", "fuzz_img", 110),
+			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_start", -1),
 		},
 	}
 
@@ -152,506 +156,679 @@ func stacktrace(file string) string {
 	return filepath.Join("stacktrace", file)
 }
 
+var NO_STACKTRACES = map[string]string{"CLANG_DEBUG": "", "CLANG_RELEASE": "", "ASAN_DEBUG": "", "ASAN_RELEASE": ""}
+
+func assertExpectations(t *testing.T, result FuzzResult, ef map[string]FuzzFlag, est map[string]string) {
+	for c, expectedFlags := range ef {
+		if flags := result.Configs[c].Flags; flags != expectedFlags {
+			t.Errorf("Parsed %s flags were wrong.  Expected %s, but was %s", c, expectedFlags.String(), flags.String())
+		}
+	}
+	for c, expectedTopTrace := range est {
+		if st := result.Configs[c].StackTrace; expectedTopTrace == "" {
+			if !st.IsEmpty() {
+				t.Errorf("Config %s should not have had empty stacktrace for %s: st", c, st.String())
+			}
+		} else if st.IsEmpty() {
+			t.Errorf("Empty stacktrace found in config %s, where one should not have been: %#v", c, st)
+		} else if st.Frames[0].String() != expectedTopTrace {
+			t.Errorf("parsed stacktrace for config %s is wrong %s \n %s", c, expectedTopTrace, st.String())
+		}
+	}
+}
+
 func TestParseGCSPackage_Grey(t *testing.T) {
 	testutils.SmallTest(t)
 	// Everything was successful or partially successful
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("0grey_debug.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("0grey_debug.err")),
-		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("0grey_release.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("0grey_release.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("0grey_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("0grey_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("0grey_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("0grey_release.err")),
+				},
+			},
 		},
 		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := TerminatedGracefully
-	expectedReleaseFlags := TerminatedGracefully
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   TerminatedGracefully,
+		"CLANG_RELEASE": TerminatedGracefully,
+		"ASAN_DEBUG":    TerminatedGracefully,
+		"ASAN_RELEASE":  TerminatedGracefully,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
-	}
-	if !result.Debug.StackTrace.IsEmpty() {
-		t.Errorf("Should have had empty debug stacktrace, but was %s", result.Debug.StackTrace.String())
-	}
-	if !result.Release.StackTrace.IsEmpty() {
-		t.Errorf("Should have had empty release stacktrace, but was %s", result.Release.StackTrace.String())
-	}
+	assertExpectations(t, result, expectations, nil)
 }
-
-// For the following tests, I added the suffix _asan and _dump to the top stacktrace line in the
-// raw files, so we can tell where the stacktrace is being parsed from easily, if there are two
-// possibilities. The analysis should try to reason about the AddressSanitizer output, with a
-// fallback to the catchsegv debug/err output.
 
 func TestParseGCSPackage_GlobalStackOverflow(t *testing.T) {
 	testutils.SmallTest(t)
 	// Both debug/release crashed with a stackoverflow.
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("1bad_debug.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("1grey_debug.err")),
-		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("1bad_release.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("1grey_release.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("1bad_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("1grey_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("1bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("1grey_release.err")),
+				},
+			},
 		},
 		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := ASANCrashed | ASAN_GlobalBufferOverflow
-	expectedReleaseFlags := ASANCrashed | ASAN_GlobalBufferOverflow
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   TerminatedGracefully,
+		"CLANG_RELEASE": TerminatedGracefully,
+		"ASAN_DEBUG":    ASANCrashed | ASAN_GlobalBufferOverflow,
+		"ASAN_RELEASE":  ASANCrashed | ASAN_GlobalBufferOverflow,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "",
+		"CLANG_RELEASE": "",
+		"ASAN_DEBUG":    "src/codec/SkMasks.cpp:54 convert_to_8",
+		"ASAN_RELEASE":  "src/codec/SkMasks.cpp:55 convert_to_8",
 	}
-	// There was no catchsegv dump, so only one possibility for stacktrace for both of these.
-	if result.Debug.StackTrace.IsEmpty() {
-		t.Errorf("Should not have had empty debug stacktrace")
-	}
-	if result.Release.StackTrace.IsEmpty() {
-		t.Errorf("Should not have had empty release stacktrace")
-	}
+	assertExpectations(t, result, expectations, topTrace)
 }
 
 func TestParseGCSPackage_AssertDuringRendering(t *testing.T) {
 	testutils.SmallTest(t)
-	// Debug assert hit.  Release heap buffer overflow
+	// Debug assert hit.  Release heap buffer overflow in only ASAN
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("2bad_debug.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("2bad_debug.dump")),
-			StdErr: testutils.MustReadFile(stacktrace("2bad_debug.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("2bad_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("2bad_debug.dump")),
+					"stderr": testutils.MustReadFile(stacktrace("2bad_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("2bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("2grey_release.err")),
+				},
+			},
 		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("2bad_release.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("2grey_release.err")),
-		},
-		FuzzCategory:     "skpicture",
+		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := ASANCrashed | ClangCrashed | AssertionViolated
-	expectedReleaseFlags := ASANCrashed | ASAN_HeapBufferOverflow
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   AssertionViolated | ClangCrashed,
+		"CLANG_RELEASE": TerminatedGracefully,
+		"ASAN_DEBUG":    ASANCrashed | AssertionViolated,
+		"ASAN_RELEASE":  ASANCrashed | ASAN_HeapBufferOverflow,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "src/core/SkReader32.h:87 skip",
+		"CLANG_RELEASE": "",
+		"ASAN_DEBUG":    "src/core/SkReader32.h:87 SkReader32::skip",
+		"ASAN_RELEASE":  "src/core/SkReader32.h:57 SkReader32::readInt",
 	}
-	stack := result.Debug.StackTrace
-	if stack.IsEmpty() {
-		t.Errorf("Should not have had empty debug stacktrace")
-	} else {
-		if !strings.HasSuffix(stack.Frames[0].FunctionName, "_asan") {
-			t.Errorf("Should have parsed stacktrace from asan: \n%s", stack.String())
-		}
-	}
-	// There was no catchsegv dump, so only one possibility for stacktrace.
-	if result.Release.StackTrace.IsEmpty() {
-		t.Errorf("Should not have had empty release stacktrace")
-	}
+
+	assertExpectations(t, result, expectations, topTrace)
 }
 
 func TestParseGCSPackage_UseAfterFree(t *testing.T) {
 	testutils.SmallTest(t)
 	// Debug ClangCrashed.  Release heap use after free.
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("3grey_debug.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("3bad_debug.dump")),
-			StdErr: "",
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("3grey_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("3bad_debug.dump")),
+					"stderr": "",
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("3bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("3bad_release.dump")),
+					"stderr": "",
+				},
+			},
 		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("3bad_release.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("3bad_release.dump")),
-			StdErr: "",
-		},
-		FuzzCategory:     "skpicture",
+		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := ClangCrashed
-	expectedReleaseFlags := ASANCrashed | ClangCrashed | ASAN_HeapUseAfterFree
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   ClangCrashed,
+		"CLANG_RELEASE": ClangCrashed,
+		"ASAN_DEBUG":    TerminatedGracefully,
+		"ASAN_RELEASE":  ASANCrashed | ASAN_HeapUseAfterFree,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "src/codec/SkMasks.cpp:55 convert_to_8_dump",
+		"CLANG_RELEASE": "src/codec/SkMasks.cpp:54 convert_to_8_dump",
+		"ASAN_DEBUG":    "",
+		"ASAN_RELEASE":  "src/codec/SkMasks.cpp:54 convert_to_8_asan",
 	}
-	stack := result.Debug.StackTrace
-	// There was no asan dump, so only one possibility for stacktrace.
-	if stack.IsEmpty() {
-		t.Errorf("Should not have had empty debug stacktrace")
-	}
-	stack = result.Release.StackTrace
-	if stack.IsEmpty() {
-		t.Errorf("Should not have had empty release stacktrace")
-	} else {
-		if !strings.HasSuffix(stack.Frames[0].FunctionName, "_asan") {
-			t.Errorf("Should have parsed stacktrace from asan: \n%s", stack.String())
-		}
-	}
+
+	assertExpectations(t, result, expectations, topTrace)
 }
 
 func TestParseGCSPackage_TimeOut(t *testing.T) {
 	testutils.SmallTest(t)
 	// Everything timed out on analysis
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("4bad_debug.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("4bad_debug.err")),
-		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("4bad_release.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("4bad_release.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("4bad_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("4bad_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("4bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("4bad_release.err")),
+				},
+			},
 		},
 		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := TimedOut
-	expectedReleaseFlags := TimedOut
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   TimedOut,
+		"CLANG_RELEASE": TimedOut,
+		"ASAN_DEBUG":    TimedOut,
+		"ASAN_RELEASE":  TimedOut,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
-	}
-	if !result.Debug.StackTrace.IsEmpty() {
-		t.Errorf("Should have had empty debug stacktrace, but was %s", result.Debug.StackTrace.String())
-	}
-	if !result.Release.StackTrace.IsEmpty() {
-		t.Errorf("Should have had empty release stacktrace, but was %s", result.Release.StackTrace.String())
-	}
+
+	assertExpectations(t, result, expectations, NO_STACKTRACES)
 }
 
 func TestParseGCSPackage_BadAlloc(t *testing.T) {
 	testutils.SmallTest(t)
 	// Everything was a bad:alloc
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("5bad_debug.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("5bad_debug.err")),
-		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("5bad_release.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("5bad_release.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("5bad_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("5bad_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("5bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("5bad_release.err")),
+				},
+			},
 		},
 		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := BadAlloc
-	expectedReleaseFlags := BadAlloc
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   BadAlloc,
+		"CLANG_RELEASE": BadAlloc,
+		"ASAN_DEBUG":    BadAlloc,
+		"ASAN_RELEASE":  BadAlloc,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "",
+		"CLANG_RELEASE": "",
+		"ASAN_DEBUG":    "src/core/SkPictureData.cpp:377 SkPictureData::parseStreamTag",
+		"ASAN_RELEASE":  "src/core/SkPictureData.cpp:378 SkPictureData::parseStreamTag",
 	}
-	if result.Debug.StackTrace.IsEmpty() {
-		t.Errorf("Should not have had empty debug stacktrace")
-	}
-	if result.Release.StackTrace.IsEmpty() {
-		t.Errorf("Should not have had empty release stacktrace")
-	}
+
+	assertExpectations(t, result, expectations, topTrace)
 }
 
 func TestParseGCSPackage_EmptyStacktrace(t *testing.T) {
 	testutils.SmallTest(t)
 	// According to AddressSanitizer, both crashed while trying to report a bug.
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("6bad_debug.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("6bad_debug.dump")),
-			StdErr: testutils.MustReadFile(stacktrace("6bad_debug.err")),
-		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("6bad_release.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("6bad_release.dump")),
-			StdErr: testutils.MustReadFile(stacktrace("6bad_release.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("6bad_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("6bad_debug.dump")),
+					"stderr": testutils.MustReadFile(stacktrace("6bad_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("6bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("6bad_release.dump")),
+					"stderr": testutils.MustReadFile(stacktrace("6bad_release.err")),
+				},
+			},
 		},
 		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := NoStackTrace | ASANCrashed | ClangCrashed
-	expectedReleaseFlags := NoStackTrace | ASANCrashed | ClangCrashed
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   NoStackTrace | ClangCrashed,
+		"CLANG_RELEASE": NoStackTrace | ClangCrashed,
+		"ASAN_DEBUG":    NoStackTrace | ASANCrashed,
+		"ASAN_RELEASE":  NoStackTrace | ASANCrashed,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
-	}
-	if !result.Debug.StackTrace.IsEmpty() {
-		t.Errorf("Should have had empty debug stacktrace")
-	}
-	if !result.Release.StackTrace.IsEmpty() {
-		t.Errorf("Should have had empty release stacktrace")
-	}
+
+	assertExpectations(t, result, expectations, NO_STACKTRACES)
 }
 
 func TestParseGCSPackage_SKAbort(t *testing.T) {
 	testutils.SmallTest(t)
-	// Both hit SK_ABORT somewhere.
+	// According to AddressSanitizer, both crashed while trying to report a bug.
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("7bad_debug.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("7bad_debug.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("7bad_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("7bad_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("7bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("7bad_release.err")),
+				},
+			},
 		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("7bad_release.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("7bad_release.err")),
-		},
-		FuzzCategory:     "skpicture",
+		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := SKAbortHit
-	expectedReleaseFlags := SKAbortHit
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   SKAbortHit,
+		"CLANG_RELEASE": SKAbortHit,
+		"ASAN_DEBUG":    SKAbortHit,
+		"ASAN_RELEASE":  SKAbortHit,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
-	}
-	if len(result.Debug.StackTrace.Frames) != 1 {
-		t.Fatalf("Should have filled in top frame of trace")
-	}
-	expected := FullStackFrame("src/core/", "SkPictureData.cpp", common.UNKNOWN_FUNCTION, 360)
-	if frame := result.Debug.StackTrace.Frames[0]; frame.LineNumber != expected.LineNumber || frame.FunctionName != expected.FunctionName || frame.FileName != expected.FileName || frame.PackageName != expected.PackageName {
-		t.Errorf("Top frame was wrong.  Expected: %#v, but was %#v", expected, frame)
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "src/core/SkPictureData.cpp:362 UNKNOWN",
+		"CLANG_RELEASE": "src/core/SkPictureData.cpp:364 UNKNOWN",
+		"ASAN_DEBUG":    "src/core/SkPictureData.cpp:361 UNKNOWN",
+		"ASAN_RELEASE":  "src/core/SkPictureData.cpp:363 UNKNOWN",
 	}
 
-	if len(result.Release.StackTrace.Frames) != 1 {
-		t.Errorf("Should not have had empty release stacktrace")
-	}
-	if frame := result.Release.StackTrace.Frames[0]; frame.LineNumber != expected.LineNumber || frame.FunctionName != expected.FunctionName || frame.FileName != expected.FileName || frame.PackageName != expected.PackageName {
-		t.Errorf("Top frame was wrong.  Expected: %#v, but was %#v", expected, frame)
-	}
+	assertExpectations(t, result, expectations, topTrace)
 }
 
 func TestParseGCSPackage_SKBoring(t *testing.T) {
 	testutils.SmallTest(t)
-	// Both triggered SkBoring.
+	// Everything triggered SkBoring.
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("8grey_debug.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("8grey_debug.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("8grey_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("8grey_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("8grey_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("8grey_release.err")),
+				},
+			},
 		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("8grey_release.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("8grey_release.err")),
-		},
-		FuzzCategory:     "skpicture",
+		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := TerminatedGracefully
-	expectedReleaseFlags := TerminatedGracefully
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   TerminatedGracefully,
+		"CLANG_RELEASE": TerminatedGracefully,
+		"ASAN_DEBUG":    TerminatedGracefully,
+		"ASAN_RELEASE":  TerminatedGracefully,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
-	}
-	if !result.Debug.StackTrace.IsEmpty() {
-		t.Errorf("Should have had empty debug stacktrace")
-	}
-	if !result.Release.StackTrace.IsEmpty() {
-		t.Errorf("Should have had empty release stacktrace")
-	}
+	assertExpectations(t, result, expectations, NO_STACKTRACES)
 }
 
 func TestParseGCSPackage_ClangDumpedNoSymbols(t *testing.T) {
 	testutils.SmallTest(t)
 	// Release dumped for Clang only, and there were no symbols. Also, only Clang hit the assert.
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("9bad_debug.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("9bad_debug.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("9bad_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("9bad_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("9bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("9bad_release.dump")),
+					"stderr": testutils.MustReadFile(stacktrace("9bad_release.err")),
+				},
+			},
 		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("9bad_release.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("9bad_release.dump")),
-			StdErr: testutils.MustReadFile(stacktrace("9bad_release.err")),
-		},
-		FuzzCategory:     "api_gradient",
+		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := SKAbortHit
-	expectedReleaseFlags := ClangCrashed
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   TerminatedGracefully,
+		"CLANG_RELEASE": ClangCrashed,
+		"ASAN_DEBUG":    SKAbortHit,
+		"ASAN_RELEASE":  TerminatedGracefully,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "",
+		"CLANG_RELEASE": "UNSYMBOLIZEDUNSYMBOLIZED:-1 LinearGradientContext::shade4_dx_clamp",
+		"ASAN_DEBUG":    "src/effects/gradients/SkLinearGradient.cpp:496 UNKNOWN",
+		"ASAN_RELEASE":  "",
 	}
-	if result.Debug.StackTrace.IsEmpty() {
-		t.Errorf("Should not have had empty debug stacktrace")
-	}
-	if result.Release.StackTrace.IsEmpty() {
-		t.Errorf("Should not have had empty release stacktrace")
-	}
-	frame := result.Release.StackTrace.Frames[0]
-	if frame.FunctionName != "LinearGradientContext::shade4_dx_clamp" {
-		t.Errorf("Should have parsed unsymbolized stacktrace: \n%s", frame.String())
-	}
-	if frame.PackageName != common.UNSYMBOLIZED_RESULT {
-		t.Errorf("Should have parsed unsymbolized stacktrace: \n%s", frame.String())
-	}
+	assertExpectations(t, result, expectations, topTrace)
 }
 
 func TestParseGCSPackage_BadAllocNoCrash(t *testing.T) {
 	testutils.SmallTest(t)
-	// Both triggered bad alloc, just with no explicit crash. We don't have a full
-	// stacktrace, but we can at least get the most recent line.
+	// Bad alloc, but no stack trace, only the last frame.
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("10debug.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("10debug.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("10debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("10debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("10release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("10release.err")),
+				},
+			},
 		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("10release.asan")),
-			Dump:   "",
-			StdErr: testutils.MustReadFile(stacktrace("10release.err")),
-		},
-		FuzzCategory:     "skpicture",
+		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := BadAlloc
-	expectedReleaseFlags := BadAlloc
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   BadAlloc,
+		"CLANG_RELEASE": BadAlloc,
+		"ASAN_DEBUG":    BadAlloc,
+		"ASAN_RELEASE":  BadAlloc,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "",
+		"CLANG_RELEASE": "",
+		"ASAN_DEBUG":    "src/core/SkPictureData.cpp:392 UNKNOWN",
+		"ASAN_RELEASE":  "src/core/SkPictureData.cpp:377 SkPictureData::parseStreamTag",
 	}
-	expectedDebug := StackTrace{
-		Frames: []StackTraceFrame{
-			FullStackFrame("src/core/", "SkPictureData.cpp", common.UNKNOWN_FUNCTION, 392),
-		},
-	}
-	if !reflect.DeepEqual(expectedDebug, result.Debug.StackTrace) {
-		t.Errorf("Expected Debug to be %#v\nbut was %#v", expectedDebug, result.Debug.StackTrace)
-	}
-	expectedRelease := StackTrace{
-		Frames: []StackTraceFrame{
-			FullStackFrame("src/core/", "SkPictureData.cpp", "SkPictureData::parseStreamTag", 377),
-		},
-	}
-	if !reflect.DeepEqual(expectedRelease, result.Release.StackTrace) {
-		t.Errorf("Expected Release to be %#v\nbut was %#v", expectedRelease, result.Release.StackTrace)
-	}
+	assertExpectations(t, result, expectations, topTrace)
 }
 
 func TestParseGCSPackage_AssemblyCrash(t *testing.T) {
 	testutils.SmallTest(t)
 	// The crash was in a line of assembly code, which lacks file information
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("11bad_debug.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("11bad_debug.dump")),
-			StdErr: testutils.MustReadFile(stacktrace("11bad_debug.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("11bad_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("11bad_debug.dump")),
+					"stderr": testutils.MustReadFile(stacktrace("11bad_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("11bad_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("11bad_release.dump")),
+					"stderr": testutils.MustReadFile(stacktrace("11bad_release.err")),
+				},
+			},
 		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("11bad_release.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("11bad_release.dump")),
-			StdErr: testutils.MustReadFile(stacktrace("11bad_release.err")),
-		},
-		FuzzCategory:     "skpicture",
+		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := ClangCrashed | ASANCrashed
-	expectedReleaseFlags := ClangCrashed | ASANCrashed
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   ClangCrashed,
+		"CLANG_RELEASE": ClangCrashed,
+		"ASAN_DEBUG":    ASANCrashed,
+		"ASAN_RELEASE":  ASANCrashed,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "[assembly code]:-1 _sk_evenly_spaced_gradient_sse2",
+		"CLANG_RELEASE": "[assembly code]:-1 _sk_evenly_spaced_gradient_sse2",
+		"ASAN_DEBUG":    "[assembly code]:-1 _sk_evenly_spaced_gradient_sse2",
+		"ASAN_RELEASE":  "[assembly code]:-1 _sk_evenly_spaced_gradient_sse2",
 	}
-	expectedDebug := StackTrace{
-		Frames: []StackTraceFrame{
-			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_sk_evenly_spaced_gradient_sse2", common.UNKNOWN_LINE),
-		},
-	}
-	if !reflect.DeepEqual(expectedDebug, result.Debug.StackTrace) {
-		t.Errorf("Expected Debug to be %#v\nbut was %#v", expectedDebug, result.Debug.StackTrace)
-	}
-	expectedRelease := StackTrace{
-		Frames: []StackTraceFrame{
-			FullStackFrame("", common.ASSEMBLY_CODE_FILE, "_sk_evenly_spaced_gradient_sse2", common.UNKNOWN_LINE),
-		},
-	}
-	if !reflect.DeepEqual(expectedRelease, result.Release.StackTrace) {
-		t.Errorf("Expected Release to be %#v\nbut was %#v", expectedRelease, result.Release.StackTrace)
-	}
+	assertExpectations(t, result, expectations, topTrace)
 }
 
-func TestParseGCSPackage_StderrNoCrash(t *testing.T) {
+func TestParseGCSPackage_StdoutButNoCrash(t *testing.T) {
 	testutils.SmallTest(t)
-	// The crash was in a line of assembly code, which lacks file information
+	// There is stuff in dump, but it isn't a crash, so don't say it is
 	g := GCSPackage{
-		Debug: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("12grey_debug.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("12grey_debug.dump")),
-			StdErr: testutils.MustReadFile(stacktrace("12grey_debug.err")),
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("12grey_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("12grey_debug.dump")),
+					"stderr": testutils.MustReadFile(stacktrace("12grey_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("12grey_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": testutils.MustReadFile(stacktrace("12grey_release.dump")),
+					"stderr": testutils.MustReadFile(stacktrace("12grey_release.err")),
+				},
+			},
 		},
-		Release: OutputFiles{
-			Asan:   testutils.MustReadFile(stacktrace("12grey_release.asan")),
-			Dump:   testutils.MustReadFile(stacktrace("12grey_release.dump")),
-			StdErr: testutils.MustReadFile(stacktrace("12grey_release.err")),
-		},
-		FuzzCategory:     "skpicture",
+		FuzzCategory:     "skcodec",
 		FuzzArchitecture: "mock_arm8",
 	}
 
 	result := ParseGCSPackage(g)
-	expectedDebugFlags := TerminatedGracefully
-	expectedReleaseFlags := TerminatedGracefully
-	if result.Debug.Flags != expectedDebugFlags {
-		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   TerminatedGracefully,
+		"CLANG_RELEASE": TerminatedGracefully,
+		"ASAN_DEBUG":    TerminatedGracefully,
+		"ASAN_RELEASE":  TerminatedGracefully,
 	}
-	if result.Release.Flags != expectedReleaseFlags {
-		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	assertExpectations(t, result, expectations, NO_STACKTRACES)
+	if result.IsGrey() != true {
+		t.Errorf("Should have been categorized as grey!")
 	}
 }
