@@ -76,6 +76,13 @@
         "pulld",
       ],
     },
+    "skcms-skia-autoroll": {
+      "AppNames": [
+        "skcms-skia-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "skia-autoroll": {
       "AppNames": [
         "skia-autorolld",
