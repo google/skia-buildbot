@@ -111,7 +111,7 @@ func (p *Processor) init() error {
 	// Initialize the Processor.
 	p.file = path.Join(p.Workdir, p.Name)
 	p.processedUpTo = p.BeginningOfTime
-	return util.ReadGobFile(p.file, &p.processedUpTo)
+	return util.MaybeReadGobFile(p.file, &p.processedUpTo)
 }
 
 // Start initiates processing on a periodic timer. If the Processor has not run

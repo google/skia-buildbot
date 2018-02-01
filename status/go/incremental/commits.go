@@ -3,6 +3,7 @@ package incremental
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sync"
 
 	"go.skia.org/infra/go/git/gitinfo"
@@ -14,8 +15,9 @@ import (
 
 // commitsCache is a struct used for tracking newly-landed commits.
 type commitsCache struct {
-	mtx            sync.Mutex
-	oldBranchHeads map[string][]*gitinfo.GitBranch
+	mtx sync.Mutex
+	// map[repo URL][branch name]*gitinfo.GitBranch
+	oldBranchHeads map[string]map[string]*gitinfo.GitBranch
 	repos          repograph.Map
 }
 
@@ -28,35 +30,50 @@ func newCommitsCache(repos repograph.Map) *commitsCache {
 
 // Return any new commits for each repo, or the last N if reset is true. Branch
 // heads will be provided for a given repo only if there are new commits for
-// that repo, or if reset is true.
+// that repo, or if reset is true. The returned commits may be in any order and
+// are not sorted by timestamp.
 func (c *commitsCache) Update(ctx context.Context, w *window.Window, reset bool, n int) (map[string][]*gitinfo.GitBranch, map[string][]*vcsinfo.LongCommit, error) {
 	defer metrics2.FuncTimer().Stop()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	if err := c.repos.Update(ctx); err != nil {
+
+	newCommitsAllRepos, err := c.repos.UpdateAndReturnNewCommits(ctx)
+	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to update repos: %s", err)
 	}
-	branchHeads := make(map[string][]*gitinfo.GitBranch, len(c.repos))
+	updatedBranchHeads := make(map[string]map[string]*gitinfo.GitBranch, len(c.repos))
 	rvCommits := make(map[string][]*vcsinfo.LongCommit, len(c.repos))
 	rvBranchHeads := make(map[string][]*gitinfo.GitBranch, len(c.repos))
 	for repoUrl, repo := range c.repos {
+		// Update the branch heads for this repo.
 		bh := repo.BranchHeads()
-		branchHeads[repoUrl] = bh
-		var newCommits []*vcsinfo.LongCommit
-		var err error
+		bhMap := make(map[string]*gitinfo.GitBranch, len(bh))
+		for _, h := range bh {
+			bhMap[h.Name] = h
+		}
+		updatedBranchHeads[repoUrl] = bhMap
+
+		newCommits := newCommitsAllRepos[repoUrl]
+
+		// If reset is specified, we don't care about changes; we return
+		// all commits in range.
 		if reset {
+			var err error
 			newCommits, err = repo.GetLastNCommits(n)
-		} else {
-			newCommits, err = repo.GetNewCommits(c.oldBranchHeads[repoUrl])
+			if err != nil {
+				return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to obtain commits from %s: %s", repoUrl, err)
+			}
 		}
-		if err != nil {
-			return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to obtain commits: %s", err)
-		}
+		// Add any new commits to the return value. The branch heads get
+		// updated if there are any new commits OR if the branch heads
+		// have changed (eg. in the case of a reset or empty merge).
 		if reset || len(newCommits) > 0 {
 			rvCommits[repoUrl] = newCommits
 			rvBranchHeads[repoUrl] = bh
+		} else if !reflect.DeepEqual(c.oldBranchHeads[repoUrl], bhMap) {
+			rvBranchHeads[repoUrl] = bh
 		}
 	}
-	c.oldBranchHeads = branchHeads
+	c.oldBranchHeads = updatedBranchHeads
 	return rvBranchHeads, rvCommits, nil
 }

@@ -254,6 +254,7 @@ func main() {
 	// Create the task scheduler.
 	repo, err := repograph.NewGraph(ctx, repoName, workdir)
 	assertNoError(err)
+	assertNoError(repo.Update(ctx))
 	head, err := repo.Repo().RevParse(ctx, "HEAD")
 	assertNoError(err)
 
