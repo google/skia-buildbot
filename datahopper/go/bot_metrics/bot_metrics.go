@@ -400,6 +400,9 @@ func Start(dbUrl, workdir string, ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to sync repograph: %s", err)
 	}
+	if err := repos.Update(ctx); err != nil {
+		return err
+	}
 
 	depotTools, err := depot_tools.Sync(ctx, workdir)
 	if err != nil {
