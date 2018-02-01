@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8a59e747_4cd1664b",
+        "filename": "golden/frontend/res/imp/dots-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-01T21:06:01Z",
+      "side": 1,
+      "message": "Yes, like STROKE_COLORS, but with a small change.",
+      "parentUuid": "4c5200f2_596554c7",
+      "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8da53a77_384bcc1f",
         "filename": "golden/frontend/res/imp/dots-sk.html",
         "patchSetId": 4
@@ -39,6 +57,30 @@
       "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "827342ed_be0bfbb1",
+        "filename": "golden/frontend/res/imp/dots-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-01T21:06:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8da53a77_384bcc1f",
+      "range": {
+        "startLine": 199,
+        "startChar": 35,
+        "endLine": 199,
+        "endChar": 37
+      },
+      "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "29dc2526_1cc75abf",
+        "filename": "golden/frontend/res/imp/dots-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-01T21:06:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3e96b14_2533fca8",
+      "range": {
+        "startLine": 276,
+        "startChar": 17,
+        "endLine": 276,
+        "endChar": 20
+      },
+      "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "91a9eb39_82a0b35f",
         "filename": "golden/frontend/res/imp/dots-sk.html",
         "patchSetId": 4
@@ -85,6 +151,30 @@
       "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9fef1fc_79016208",
+        "filename": "golden/frontend/res/imp/dots-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-01T21:06:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91a9eb39_82a0b35f",
+      "range": {
+        "startLine": 277,
+        "startChar": 34,
+        "endLine": 277,
+        "endChar": 36
+      },
+      "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
