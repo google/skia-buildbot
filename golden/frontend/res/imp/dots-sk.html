@@ -109,17 +109,27 @@
         '#FFFFFF',
         '#FFFFFF',
       ];
+      const HIGHLIGHT_COLORS = [
+        '#FFFFFF',
+        '#1B9E77',
+        '#D95F02',
+        '#7570B3',
+        '#E7298A',
+        '#66A61E',
+        '#E6AB02',
+        '#A6761D',
+        '#999999',
+      ];
 
-      const HIGHLIGHT_COLOR = '#E7298A';
       const LINE_COLOR = '#999999'
 
       // Maps each dots-sk _id to the element itself. Members are only
       // present if they have a pending mousemove update.
-      var pendingMouseMoves = {};
+      let pendingMouseMoves = {};
 
       // Periodically process all pending mousemoves.
       window.setInterval(() => {
-        for (var key in pendingMouseMoves) {
+        for (let key in pendingMouseMoves) {
           pendingMouseMoves[key]._updatePendingMouseMove();
         }
         pendingMouseMoves = {};
@@ -184,17 +194,16 @@
         // Draws the circles for a single trace.
         _drawTrace: function(data, traceIndex) {
           data.forEach((d, dataIndex) => {
-              this._ctx.beginPath();
-              if (this._hoverIndex == traceIndex || this._highlightIndex == dataIndex) {
-                this._ctx.strokeStyle = HIGHLIGHT_COLOR;
-                this._ctx.fillStyle = HIGHLIGHT_COLOR ;
-              } else {
-                this._ctx.strokeStyle = STROKE_COLORS[d.s];
-                this._ctx.fillStyle = FILL_COLORS[d.s];
-              }
-              this._ctx.arc(xFn(d.x), yFn(d.y), DOT_RADIUS, 0, Math.PI*2);
-              this._ctx.fill();
-              this._ctx.stroke();
+            this._ctx.beginPath();
+            this._ctx.strokeStyle = STROKE_COLORS[d.s];
+            if (this._hoverIndex === traceIndex || this._highlightIndex === dataIndex) {
+              this._ctx.fillStyle = HIGHLIGHT_COLORS[d.s];
+            } else {
+              this._ctx.fillStyle = FILL_COLORS[d.s];
+            }
+            this._ctx.arc(xFn(d.x), yFn(d.y), DOT_RADIUS, 0, Math.PI*2);
+            this._ctx.fill();
+            this._ctx.stroke();
           });
         },
 
@@ -248,17 +257,30 @@
           }
           let rect = this._toDotSpace(this._lastMouseMove);
           this._lastMouseMove = null;
-          if (this._hoverIndex == rect.y) {
-            return
+          // If the focus has moved to a different trace then draw the two changing traces.
+          if (this._hoverIndex !== rect.y) {
+            let oldIndex = this._hoverIndex;
+            this._hoverIndex = rect.y;
+            if (this._hoverIndex >= 0 && this._hoverIndex < this._value.traces.length) {
+              this.fire('hover', this._value.traces[this._hoverIndex].label);
+            }
+            // Just update the dots of the traces that have changed.
+            this._overDrawTrace(oldIndex);
+            this._overDrawTrace(this._hoverIndex);
           }
-          let oldIndex = this._hoverIndex;
-          this._hoverIndex = rect.y;
-          if (this._hoverIndex >= 0 && this._hoverIndex < this._value.traces.length) {
-            this.fire('hover', this._value.traces[this._hoverIndex].label);
+
+          // Set the cursor to a pointer if you are hovering over a dot.
+          let found = false;
+          let trace = this._value.traces[rect.y];
+          if (trace) {
+            for (let i=trace.data.length-1; i>=0; i--) {
+              if (trace.data[i].x === rect.x) {
+                found = true;
+                break;
+              }
+            }
           }
-          // Just update the dots of the traces that have changed.
-          this._overDrawTrace(oldIndex);
-          this._overDrawTrace(this._hoverIndex);
+          this.style.cursor = (found) ? 'pointer' : 'auto';
         },
 
         // When a dot is clicked on produce the show-commits event with all
@@ -269,8 +291,8 @@
           let firstCommit = 0;
           let trace = this._value.traces[rect.y];
           let found = false;
-          for (var i=trace.data.length-1; i>=0; i--) {
-            if (trace.data[i].x == rect.x) {
+          for (let i=trace.data.length-1; i>=0; i--) {
+            if (trace.data[i].x === rect.x) {
               found = true;
               if (i > 0) {
                 firstCommit = trace.data[i-1].x+1;
