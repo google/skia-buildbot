@@ -1005,15 +1005,28 @@ func WithGzipWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
 	return
 }
 
-// ReadGobFile reads data from the given file into the given data structure.
-// If the file does not exist, no error is returned and no data is written.
-func ReadGobFile(file string, data interface{}) error {
+// WithReadFile opens the given file for reading and runs the given function.
+func WithReadFile(file string, fn func(f io.Reader) error) error {
 	f, err := os.Open(file)
-	if err == nil {
-		if err := gob.NewDecoder(f).Decode(data); err != nil {
-			return err
-		}
-	} else if !os.IsNotExist(err) {
+	if err != nil {
+		return err
+	}
+	defer Close(f)
+	return fn(f)
+}
+
+// ReadGobFile reads data from the given file into the given data structure.
+func ReadGobFile(file string, data interface{}) error {
+	return WithReadFile(file, func(f io.Reader) error {
+		return gob.NewDecoder(f).Decode(data)
+	})
+}
+
+// MaybeReadGobFile reads data from the given file into the given data
+// structure. If the file does not exist, no error is returned and no data is
+// written.
+func MaybeReadGobFile(file string, data interface{}) error {
+	if err := ReadGobFile(file, data); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	return nil

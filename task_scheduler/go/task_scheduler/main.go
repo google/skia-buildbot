@@ -648,9 +648,6 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := repos.Update(ctx); err != nil {
-		sklog.Fatal(err)
-	}
 
 	// Initialize Swarming client.
 	var swarm swarming.ApiClient

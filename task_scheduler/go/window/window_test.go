@@ -56,6 +56,7 @@ func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string
 	assert.NoError(t, err)
 	repo, err := repograph.NewGraph(ctx, gb.Dir(), tmp)
 	assert.NoError(t, err)
+	assert.NoError(t, repo.Update(ctx))
 	return gb.Dir(), repo, commits, func() {
 		gb.Cleanup()
 		testutils.RemoveAll(t, tmp)

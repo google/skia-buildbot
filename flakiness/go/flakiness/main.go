@@ -40,13 +40,17 @@ func main() {
 	defer common.LogPanic()
 
 	// Setup.
+	ctx := context.Background()
 	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	repos, err := repograph.NewMap(context.Background(), common.PUBLIC_REPOS, *workdir)
+	repos, err := repograph.NewMap(ctx, common.PUBLIC_REPOS, *workdir)
 	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := repos.Update(ctx); err != nil {
 		sklog.Fatal(err)
 	}
 

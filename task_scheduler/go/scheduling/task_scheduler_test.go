@@ -194,6 +194,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	urlMock := mockhttpclient.NewURLMock()
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
+	assert.NoError(t, repos.Update(ctx))
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}
@@ -1019,6 +1020,7 @@ func TestComputeBlamelist(t *testing.T) {
 
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
+	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, tmp, 1)
@@ -1955,6 +1957,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	swarmingClient := swarming_testutils.NewTestClient()
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, workdir)
 	assert.NoError(t, err)
+	assert.NoError(t, repos.Update(ctx))
 	projectRepoMapping := map[string]string{
 		"skia": gb.RepoUrl(),
 	}

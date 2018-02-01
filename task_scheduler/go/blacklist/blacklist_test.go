@@ -241,6 +241,7 @@ func TestValidation(t *testing.T) {
 	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
+	assert.NoError(t, repos.Update(ctx))
 
 	// Test.
 	tests := []struct {
@@ -375,6 +376,7 @@ func TestCommitRange(t *testing.T) {
 	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
+	assert.NoError(t, repos.Update(ctx))
 	f := path.Join(tmp, "blacklist.json")
 	b, err := FromFile(f)
 	assert.NoError(t, err)

@@ -86,6 +86,7 @@ func TestTaskSpecs(t *testing.T) {
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
+	assert.NoError(t, repos.Update(ctx))
 
 	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
@@ -147,6 +148,7 @@ func TestAddedTaskSpecs(t *testing.T) {
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
+	assert.NoError(t, repos.Update(ctx))
 
 	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
@@ -258,6 +260,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
 	}
+	assert.NoError(t, repos.Update(ctx))
 	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
@@ -623,6 +626,7 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
+	assert.NoError(t, repos.Update(ctx))
 
 	c, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
