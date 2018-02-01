@@ -29,9 +29,6 @@ func assertCommits(t *testing.T, gb *git_testutils.GitBuilder, actual map[string
 		actualMap[c.Hash] = true
 	}
 	expectMap := util.NewStringSet(expect)
-	for _, c := range expect {
-		expectMap[c] = true
-	}
 	testutils.AssertDeepEqual(t, expectMap, actualMap)
 }
 
