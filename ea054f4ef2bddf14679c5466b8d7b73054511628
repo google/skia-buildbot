@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c5200f2_596554c7",
+        "filename": "golden/frontend/res/imp/dots-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-01T20:57:40Z",
+      "side": 1,
+      "message": "These are from our favorite list of accessible colors?",
+      "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8da53a77_384bcc1f",
+        "filename": "golden/frontend/res/imp/dots-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-01T20:57:40Z",
+      "side": 1,
+      "message": "Drive-by-nit, \u003d\u003d\u003d on this line",
+      "range": {
+        "startLine": 199,
+        "startChar": 35,
+        "endLine": 199,
+        "endChar": 37
+      },
+      "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3e96b14_2533fca8",
+        "filename": "golden/frontend/res/imp/dots-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-01T20:57:40Z",
+      "side": 1,
+      "message": "let, just to be consistent",
+      "range": {
+        "startLine": 276,
+        "startChar": 17,
+        "endLine": 276,
+        "endChar": 20
+      },
+      "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91a9eb39_82a0b35f",
+        "filename": "golden/frontend/res/imp/dots-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-01T20:57:40Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 277,
+        "startChar": 34,
+        "endLine": 277,
+        "endChar": 36
+      },
+      "revId": "ea054f4ef2bddf14679c5466b8d7b73054511628",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
