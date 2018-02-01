@@ -79,6 +79,15 @@ func DepotTools_Chromium() *gce.Instance {
 	return vm
 }
 
+func IosInternal_Chromium() *gce.Instance {
+	vm := AutoRollBase("ios-internal-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"sdefresne@google.com",
+	}
+	vm.ServiceAccount = "ios-internal-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func NaCl() *gce.Instance {
 	vm := AutoRollBase("nacl-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -170,18 +179,19 @@ func Google3() *gce.Instance {
 
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"skia":                  Skia(),
-		"skia-internal":         SkiaInternal(),
+		"android-master":        AndroidMaster(),
+		"android-o":             AndroidO(),
 		"angle-chromium":        AngleChromium(),
 		"angle-skia":            AngleSkia(),
 		"catapult":              Catapult(),
 		"depot-tools-chromium":  DepotTools_Chromium(),
+		"fuchsia":               Fuchsia(),
 		"google3":               Google3(),
+		"ios-internal-chromium": IosInternal_Chromium(),
 		"nacl":                  NaCl(),
 		"pdfium":                PDFium(),
-		"fuchsia":               Fuchsia(),
-		"android-master":        AndroidMaster(),
-		"android-o":             AndroidO(),
+		"skia":                  Skia(),
+		"skia-internal":         SkiaInternal(),
 		"src-internal-chromium": SrcInternal_Chromium(),
 		"webrtc-chromium":       WebRTC_Chromium(),
 	})

@@ -1,19 +1,5 @@
 {
   "Servers": {
-    "skia-autoroll": {
-      "AppNames": [
-        "skia-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "skia-internal-autoroll": {
-      "AppNames": [
-        "skia-internal-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
     "android-master-autoroll": {
       "AppNames": [
         "android-master-autorolld",
@@ -42,12 +28,6 @@
         "pulld",
       ],
     },
-    "google3-autoroll": {
-      "AppNames": [
-        "google3-autorolld",
-        "pulld",
-      ],
-    },
     "catapult-autoroll": {
       "AppNames": [
         "catapult-autorolld",
@@ -58,6 +38,26 @@
     "depot-tools-chromium-autoroll": {
       "AppNames": [
         "depot-tools-chromium-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
+    "fuchsia-autoroll": {
+      "AppNames": [
+        "fuchsia-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
+    "google3-autoroll": {
+      "AppNames": [
+        "google3-autorolld",
+        "pulld",
+      ],
+    },
+    "ios-internal-chromium-autoroll": {
+      "AppNames": [
+        "ios-internal-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -76,9 +76,16 @@
         "pulld",
       ],
     },
-    "fuchsia-autoroll": {
+    "skia-autoroll": {
       "AppNames": [
-        "fuchsia-autorolld",
+        "skia-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
+    "skia-internal-autoroll": {
+      "AppNames": [
+        "skia-internal-autorolld",
         "git-cookie-authdaemon",
         "pulld",
       ],
