@@ -30,6 +30,7 @@ func setupHelper(t *testing.T, setup func(context.Context, *git_testutils.GitBui
 	}
 	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), wd)
 	assert.NoError(t, err)
+	assert.NoError(t, repo.Update(ctx))
 	return repo, cleanup
 }
 
