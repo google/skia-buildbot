@@ -70,6 +70,30 @@
       "revId": "7de7c3c472b33bdfc893a9bff7357da313f6e514",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b83e562_df1420c7",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-01T12:13:53Z",
+      "side": 1,
+      "message": "Yep, just that the assumption that \"no new commits\" \u003d\u003d \"no changes\" is not correct.",
+      "parentUuid": "ca4d1883_7c85e4cb",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 20
+      },
+      "revId": "7de7c3c472b33bdfc893a9bff7357da313f6e514",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
