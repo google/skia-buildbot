@@ -224,6 +224,10 @@ var fuzzers = map[string]FuzzerInfo{
 // FUZZ_CATEGORIES is an alphabetized list of known fuzz categories.
 var FUZZ_CATEGORIES = []string{}
 
+var ANALYSIS_TYPES = []string{"ASAN_RELEASE", "ASAN_DEBUG", "CLANG_RELEASE", "CLANG_DEBUG"}
+
+var STACKTRACE_ORDER = []string{"ASAN_RELEASE", "CLANG_RELEASE", "ASAN_DEBUG", "CLANG_DEBUG"}
+
 func init() {
 	commonImpl = &defaultImpl{}
 	for k := range fuzzers {
