@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6b4e96c4_c11e2754",
+        "filename": "fuzzer/go/aggregator/aggregator.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-01T20:19:36Z",
+      "side": 1,
+      "message": "Yeah.. I\u0027ll punt on that until I add one - maybe I\u0027ll have a better idea of what to consolidate.",
+      "parentUuid": "f2be4223_51efd405",
+      "revId": "9b7f33f9f0a83ad3e5f417d8a55cf84b0212ab6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6aa28c6f_8193d6ed",
         "filename": "fuzzer/go/data/result.go",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2018-02-01T19:34:23Z",
       "side": 1,
       "message": "map[common.ANALYSIS_TYPE]someParserFunc?",
+      "revId": "9b7f33f9f0a83ad3e5f417d8a55cf84b0212ab6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c357e23b_6735f816",
+        "filename": "fuzzer/go/data/result.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-01T20:19:36Z",
+      "side": 1,
+      "message": "Yeah, I think something like that will be what I do, in a follow up cl",
+      "parentUuid": "6aa28c6f_8193d6ed",
       "revId": "9b7f33f9f0a83ad3e5f417d8a55cf84b0212ab6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -50,6 +86,24 @@
       "revId": "9b7f33f9f0a83ad3e5f417d8a55cf84b0212ab6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "906f8c66_eddf3bd5",
+        "filename": "fuzzer/go/frontend/fuzzpool/fuzzpool.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-01T20:19:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83525c0c_60454c8b",
+      "revId": "9b7f33f9f0a83ad3e5f417d8a55cf84b0212ab6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
