@@ -118,6 +118,30 @@
       "revId": "7de7c3c472b33bdfc893a9bff7357da313f6e514",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "add333e6_74fa8c4f",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-01T15:05:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1fc0ca0c_ffc1cf9d",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 20
+      },
+      "revId": "7de7c3c472b33bdfc893a9bff7357da313f6e514",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

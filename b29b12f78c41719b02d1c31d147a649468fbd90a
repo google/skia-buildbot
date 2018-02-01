@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f5c7df5e_eb9e2cec",
+        "filename": "status/go/incremental/commits.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-01T15:05:06Z",
+      "side": 1,
+      "message": "nit: \"// map[repo URL][branch name]*gitinfo.GitBranch\"",
+      "revId": "b29b12f78c41719b02d1c31d147a649468fbd90a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d056a89b_e730fcfc",
+        "filename": "status/go/incremental/commits_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-01T15:05:06Z",
+      "side": 1,
+      "message": "nit: prefer require",
+      "range": {
+        "startLine": 8,
+        "startChar": 1,
+        "endLine": 8,
+        "endChar": 37
+      },
+      "revId": "b29b12f78c41719b02d1c31d147a649468fbd90a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09d8a7d9_f91fe7ce",
+        "filename": "status/go/incremental/commits_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-01T15:05:06Z",
+      "side": 1,
+      "message": "nit: defer gb.Cleanup()",
+      "range": {
+        "startLine": 21,
+        "startChar": 1,
+        "endLine": 21,
+        "endChar": 3
+      },
+      "revId": "b29b12f78c41719b02d1c31d147a649468fbd90a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a61f964_36d7d894",
+        "filename": "status/go/incremental/commits_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-01T15:05:06Z",
+      "side": 1,
+      "message": "nit: This test might be easier to read with a couple helper functions, e.g.:\nassertCommits(t, []string{c1, c2}, commits[gb.RepoUrl())\nassertBranches(t, map[string]string{\n  \"master\": c2,\n  \"branch2\": c2,\n}, branches[gb.RepoUrl()])",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 81,
+        "endChar": 2
+      },
+      "revId": "b29b12f78c41719b02d1c31d147a649468fbd90a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
