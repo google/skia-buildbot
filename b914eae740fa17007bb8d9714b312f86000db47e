@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e8b5a2f4_eb73f78e",
+        "filename": "status/go/incremental/commits_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-01T17:47:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cfec5add_63046a8f",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 2
+      },
+      "revId": "b914eae740fa17007bb8d9714b312f86000db47e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d622355e_b5b4d1e4",
         "filename": "status/go/incremental/commits_test.go",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2018-02-01T17:14:52Z",
       "side": 1,
       "message": "nit: Should this comment be below?",
+      "range": {
+        "startLine": 141,
+        "startChar": 28,
+        "endLine": 141,
+        "endChar": 70
+      },
+      "revId": "b914eae740fa17007bb8d9714b312f86000db47e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a232c562_99913777",
+        "filename": "status/go/incremental/commits_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-01T17:47:15Z",
+      "side": 1,
+      "message": "No, this checks to ensure that the merge commit is not empty, as it was in the previous case.  I changed the comment.",
+      "parentUuid": "d622355e_b5b4d1e4",
       "range": {
         "startLine": 141,
         "startChar": 28,
