@@ -690,6 +690,9 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create repo map: %s", err)
 	}
+	if err := repos.Update(ctx); err != nil {
+		sklog.Fatal(err)
+	}
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
