@@ -25,13 +25,13 @@
       openHelpDialog - opens the help dialog for key bindings.
 -->
 
-<link rel="import" href="digest-details-sk.html">
+<link rel="import" href="digest-details2-sk.html">
 <link rel="import" href="zoom-dialog-sk.html">
 <link rel="import" href="help-dialog-sk.html">
 
 <dom-module id="detail-list2-sk">
   <style type="text/css" media="screen">
-    digest-details-sk {
+    digest-details2-sk {
       display: block;
       box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
       margin-top: 1em;
@@ -64,14 +64,14 @@
       <span id=indexStatus>Digest: [[_plusone(_index)]]/[[data.size]]</span>
     </div>
 
-    <digest-details-sk
+    <digest-details2-sk
       id="digestdetails"
       mode="list"
       triage
       details="[[_item]]"
       commits="[[data.commits]]"
       issue="[[data.issue.id]]">
-    </digest-details-sk>
+    </digest-details2-sk>
 
     <!-- zoom dialog -->
     <zoom-dialog-sk id="detailsZoomDialog"></zoom-dialog-sk>
