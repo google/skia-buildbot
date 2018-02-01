@@ -13,7 +13,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"go.skia.org/infra/go/metadata"
+	//"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -32,7 +32,12 @@ var requestSalt []byte = nil
 // $ AUTH="$(echo -n "${DATA}notverysecret" | sha512sum | xxd -r -p - | base64 -w 0)"
 // $ curl -v -H "X-Webhook-Auth-Hash: $AUTH" -d "$DATA" http://localhost:8000/endpoint
 func InitRequestSaltForTesting() {
-	requestSalt = []byte("notverysecret")
+	setRequestSaltFromBase64([]byte("QeSpvhT35Owna+VQ5P6E1lLuM7+iVcsUaQllmByph9x5Wq1lJdgt38V379eRukxGuTpCtOaCOvQtrkV7gXG7OA=="))
+	fmt.Println("I WOULD BE USING THIS SALT IN PRODUCTION")
+	fmt.Println(string(requestSalt))
+	//requestSalt = []byte("QeSpvhT35Owna+VQ5P6E1lLuM7+iVcsUaQllmByph9x5Wq1lJdgt38V379eRukxGuTpCtOaCOvQtrkV7gXG7OA==")
+	//fmt.Println("I AM USING THIS SALT NOW")
+	//fmt.Println(string(requestSalt))
 }
 
 func setRequestSaltFromBase64(saltBase64 []byte) error {
@@ -50,13 +55,16 @@ func setRequestSaltFromBase64(saltBase64 []byte) error {
 // InitRequestSaltFromMetadata reads requestSalt from the specified project metadata
 // and returns any error encountered. Should be called once at startup.
 func InitRequestSaltFromMetadata(metadataKey string) error {
-	saltBase64, err := metadata.ProjectGet(metadataKey)
-	if err != nil {
-		return err
-	}
+	//saltBase64, err := metadata.ProjectGet(metadataKey)
+	//if err != nil {
+	//	return err
+	//}
+	saltBase64 := "QeSpvhT35Owna+VQ5P6E1lLuM7+iVcsUaQllmByph9x5Wq1lJdgt38V379eRukxGuTpCtOaCOvQtrkV7gXG7OA=="
 	if err := setRequestSaltFromBase64([]byte(saltBase64)); err != nil {
 		return fmt.Errorf("Could not decode salt from %s: %s", metadataKey, err)
 	}
+	fmt.Println("Using this salt:")
+	fmt.Println(string(requestSalt))
 	return nil
 }
 
@@ -139,5 +147,5 @@ func AuthenticateRequest(r *http.Request) ([]byte, error) {
 	if headerHashBase64 == dataHashBase64 {
 		return data, nil
 	}
-	return data, fmt.Errorf("Authentication header %s: %s did not match.", REQUEST_AUTH_HASH_HEADER, headerHashBase64)
+	return data, fmt.Errorf("Authentication header %s: %s did not match %s.", REQUEST_AUTH_HASH_HEADER, headerHashBase64, dataHashBase64)
 }

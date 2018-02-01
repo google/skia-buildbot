@@ -262,7 +262,8 @@ func main() {
 
 	// Initialize webhooks.
 	if *local {
-		webhook.InitRequestSaltForTesting()
+		// webhook.InitRequestSaltForTesting()
+		webhook.MustInitRequestSaltFromMetadata("ac_webhook_request_salt")
 	} else {
 		webhook.MustInitRequestSaltFromMetadata("ac_webhook_request_salt")
 	}
