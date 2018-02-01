@@ -11,7 +11,7 @@ ExecStart=/usr/local/bin/autoroll \
     --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=skcms \
-    --childPath=third_party/externals/skcms \
+    --childPath=skia/third_party/externals/skcms \
     --parent_name=Skia \
     --parent_repo=https://skia.googlesource.com/skia.git \
     --parent_waterfall=https://status.skia.org \
