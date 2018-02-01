@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "abd77397_5df900c6",
+        "filename": "autoroll/sys/skcms-skia-autorolld.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5010
+      },
+      "writtenOn": "2018-02-01T16:56:46Z",
+      "side": 1,
+      "message": "this is fine, but to date we\u0027ve just written skcms.",
+      "range": {
+        "startLine": 13,
+        "startChar": 16,
+        "endLine": 13,
+        "endChar": 21
+      },
+      "revId": "f92fe375a6d6959ad0e3cd6ca0e8fda06ddafe80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
