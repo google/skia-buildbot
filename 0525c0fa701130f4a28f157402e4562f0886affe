@@ -46,6 +46,30 @@
       "revId": "0525c0fa701130f4a28f157402e4562f0886affe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0042de63_aded1ae2",
+        "filename": "skolo/win/ansible/bootstrap-swarming.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-01T18:19:34Z",
+      "side": 1,
+      "message": "It seems to work.\n\nThere might be an issue with install location, but I suspect it\u0027s unrelated. I\u0027ll follow up with another fix if not.",
+      "parentUuid": "418aa346_27e805e0",
+      "range": {
+        "startLine": 27,
+        "startChar": 16,
+        "endLine": 27,
+        "endChar": 47
+      },
+      "revId": "0525c0fa701130f4a28f157402e4562f0886affe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
