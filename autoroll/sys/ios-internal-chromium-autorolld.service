@@ -1,0 +1,28 @@
+[Unit]
+Description=AutoRoll Bot
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --use_metadata=true \
+    --host=ios-internal-chromium-roll.skia.org \
+    --parent_name=Chromium \
+    --parent_waterfall=https://build.chromium.org \
+    --logtostderr \
+    --no_log \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --childName=ios_internal \
+    --childPath=src/ios_internal \
+    --deps_custom_var checkout_ios_internal=True \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=https://build.chromium.org/deprecated/chromium/sheriff_ios_europe.js \
+    --sheriff=https://build.chromium.org/deprecated/chromium/sheriff_ios_us.js
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
