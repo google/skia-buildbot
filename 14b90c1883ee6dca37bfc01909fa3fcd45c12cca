@@ -22,6 +22,30 @@
       "revId": "14b90c1883ee6dca37bfc01909fa3fcd45c12cca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6746526_d489827b",
+        "filename": "ap/elements/toast-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:55:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "adf91cfe_1cf8eb31",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 49
+      },
+      "revId": "14b90c1883ee6dca37bfc01909fa3fcd45c12cca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
