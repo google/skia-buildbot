@@ -1,0 +1,20 @@
+collapse-sk {
+  display: block;
+}
+
+collapse-sk[closed] {
+  animation: collapse-sk-close 0.3s forwards;
+}
+
+@keyframes collapse-sk-close {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    display: none;
+    opacity: 0;
+  }
+}
