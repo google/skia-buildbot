@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "be0fb238_87e6595d",
+        "filename": "ap/elements/buttons.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "This is just styling for the native button element, which doesn\u0027t change to cursor:pointer on hover.",
+      "parentUuid": "7fb47b06_e5f74abe",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b9d7dc30_df3ed65b",
         "filename": "ap/elements/checkbox-sk.js",
         "patchSetId": 5
@@ -33,6 +51,24 @@
       "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6978108_65160869",
+        "filename": "ap/elements/checkbox-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b9d7dc30_df3ed65b",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +118,54 @@
     },
     {
       "key": {
+        "uuid": "65ef44b4_62a188fa",
+        "filename": "ap/elements/checkbox-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Ah, that should have been \u0027change-sk\u0027, which is an analogue of the \u0027change\u0027 event.",
+      "parentUuid": "e820a174_25822ed3",
+      "range": {
+        "startLine": 65,
+        "startChar": 42,
+        "endLine": 65,
+        "endChar": 53
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "233cdf64_4cbf2775",
+        "filename": "ap/elements/checkbox-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles",
+      "parentUuid": "50ceb7a9_d8bb402c",
+      "range": {
+        "startLine": 65,
+        "startChar": 59,
+        "endLine": 65,
+        "endChar": 73
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0f48d7e5_1e09eb38",
         "filename": "ap/elements/checkbox-sk.js",
         "patchSetId": 5
@@ -102,6 +186,30 @@
       "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1709d08_a29b6a4f",
+        "filename": "ap/elements/checkbox-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f48d7e5_1e09eb38",
+      "range": {
+        "startLine": 81,
+        "startChar": 17,
+        "endLine": 81,
+        "endChar": 34
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "7df15665_c21aa11e",
+        "filename": "ap/elements/collapse-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "The autoprefixer is invoked in the webpack.config.",
+      "parentUuid": "e56b10c3_d01ab3b3",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f2094b56_04480663",
         "filename": "ap/elements/core.js",
         "patchSetId": 5
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "445c477a_11275d15",
+        "filename": "ap/elements/core.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2094b56_04480663",
+      "range": {
+        "startLine": 3,
+        "startChar": 9,
+        "endLine": 3,
+        "endChar": 33
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f2e26f13_4e297ea2",
         "filename": "ap/elements/icon-sk.js",
         "patchSetId": 5
@@ -162,6 +318,30 @@
       "writtenOn": "2018-02-02T15:47:06Z",
       "side": 1,
       "message": "How were these paths made?  Would it be worth documenting it?",
+      "range": {
+        "startLine": 19,
+        "startChar": 34,
+        "endLine": 19,
+        "endChar": 76
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40f0f6fc_92187237",
+        "filename": "ap/elements/icon-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "That will be covered by the TODO, which is to scrape them from the Polymer library.",
+      "parentUuid": "f2e26f13_4e297ea2",
       "range": {
         "startLine": 19,
         "startChar": 34,
@@ -191,6 +371,24 @@
     },
     {
       "key": {
+        "uuid": "a4beaffe_41c5d5d6",
+        "filename": "ap/elements/radio-checkbox-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fceca7fc_7679d246",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "17a9d827_74412ff2",
         "filename": "ap/elements/radio-checkbox-sk.css",
         "patchSetId": 5
@@ -202,6 +400,24 @@
       "writtenOn": "2018-02-02T15:47:06Z",
       "side": 1,
       "message": "cursor:pointer?",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1929d104_5824fd11",
+        "filename": "ap/elements/radio-checkbox-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Native checkboxes don\u0027t change the cursor.",
+      "parentUuid": "17a9d827_74412ff2",
       "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -231,6 +447,30 @@
     },
     {
       "key": {
+        "uuid": "372b8776_e6eaa107",
+        "filename": "ap/elements/radio-group-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d90d13b_90099f20",
+      "range": {
+        "startLine": 94,
+        "startChar": 2,
+        "endLine": 94,
+        "endChar": 16
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6b650116_e2da0dce",
         "filename": "ap/elements/radio-group-sk.js",
         "patchSetId": 5
@@ -254,6 +494,30 @@
     },
     {
       "key": {
+        "uuid": "ea08ab9c_5a0ef707",
+        "filename": "ap/elements/radio-group-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b650116_e2da0dce",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 23
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b502346c_789c6d0a",
         "filename": "ap/elements/tabs-sk.js",
         "patchSetId": 5
@@ -271,6 +535,24 @@
     },
     {
       "key": {
+        "uuid": "402dd7ec_2f453895",
+        "filename": "ap/elements/tabs-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "handleEvent is only called for events that we register for, which is just \u0027click\u0027 on line 16.",
+      "parentUuid": "b502346c_789c6d0a",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7e3ad6cb_d1996ab9",
         "filename": "ap/elements/tabs-sk.js",
         "patchSetId": 5
@@ -285,6 +567,24 @@
       "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd1b96a9_d486a1f8",
+        "filename": "ap/elements/tabs-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "7e3ad6cb_d1996ab9",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -334,6 +634,30 @@
     },
     {
       "key": {
+        "uuid": "92a73717_8019a40b",
+        "filename": "ap/elements/tabs-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "84c8d65b_2925b1e2",
+      "range": {
+        "startLine": 62,
+        "startChar": 27,
+        "endLine": 62,
+        "endChar": 56
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ab0da4da_b78c53f6",
         "filename": "ap/elements/toast-sk.js",
         "patchSetId": 5
@@ -354,6 +678,30 @@
       "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6f67e2f_02524498",
+        "filename": "ap/elements/toast-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ab0da4da_b78c53f6",
+      "range": {
+        "startLine": 6,
+        "startChar": 18,
+        "endLine": 6,
+        "endChar": 27
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -380,6 +728,30 @@
     },
     {
       "key": {
+        "uuid": "f4ac3d19_a5d72257",
+        "filename": "ap/elements/toast-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb157572_29f073e7",
+      "range": {
+        "startLine": 31,
+        "startChar": 8,
+        "endLine": 31,
+        "endChar": 19
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d03a45c5_22a8a4fc",
         "filename": "ap/elements/upgrade-property.js",
         "patchSetId": 5
@@ -397,6 +769,24 @@
     },
     {
       "key": {
+        "uuid": "b2c8c648_f6a6e581",
+        "filename": "ap/elements/upgrade-property.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d03a45c5_22a8a4fc",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e936e916_c63b71de",
         "filename": "ap/pages/users.html",
         "patchSetId": 5
@@ -411,6 +801,24 @@
       "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "037fab8f_8cfe1370",
+        "filename": "ap/pages/users.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-02T19:32:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e936e916_c63b71de",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
