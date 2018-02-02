@@ -1,0 +1,19 @@
+dialog-sk {
+  display: none;
+  background: white;
+  position: fixed;
+  top: 50%;
+  max-height: 80%;
+  max-height: calc(96vh - 32px);
+  margin: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px;
+  box-shadow: 2px 2px 4px grey;
+  overflow-y: auto;
+  border: solid 1px lightgray;
+}
+
+dialog-sk[shown] {
+  display: block;
+}

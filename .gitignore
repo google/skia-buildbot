@@ -89,3 +89,5 @@ prometheus/tmp
 prober/allprobers.json5
 # Push
 push/allskiapush.json5
+# AP
+dist

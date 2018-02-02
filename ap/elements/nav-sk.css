@@ -1,0 +1,23 @@
+nav-links-sk {
+  position: absolute;
+  z-index: 200;
+  background: white;
+  border: solid 1px lightgrey;
+  margin-left: 16px;
+  display: block;
+}
+
+nav-links-sk[closed] {
+  display: none;
+}
+
+nav-links-sk a {
+  display: block;
+  padding: 12px;
+  color: #1f78b4;
+  fill: #1f78b4;
+}
+
+nav-links-sk a:hover {
+  background: lightgrey;
+}
