@@ -1,0 +1,36 @@
+tabs-sk > button {
+  margin: 0;
+  padding: 6px 12px;
+  box-shadow: none;
+  border-radius: 0;
+  border: none;
+  color: #555;
+  fill: #555;
+  background-color: #A6CEE3;
+  border-bottom: solid 4px #1f78b4;
+}
+
+tabs-sk > button.selected {
+  background: #1f78b4;
+  border: none;
+  box-shadow: none;
+  color: white;
+  fill: white;
+}
+
+tabs-panel-sk {
+  display: block;
+  border: solid 4px #1f78b4;
+  margin: 0;
+  padding: 16px;
+  margin-top: -4px;
+  border-radius: 4px;
+}
+
+tabs-panel-sk > div {
+  display: none;
+}
+
+tabs-panel-sk > div.selected {
+  display: block;
+}
