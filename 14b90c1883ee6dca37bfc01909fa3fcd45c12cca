@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adf91cfe_1cf8eb31",
+        "filename": "ap/elements/toast-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T19:43:41Z",
+      "side": 1,
+      "message": "!this._timer",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 49
+      },
+      "revId": "14b90c1883ee6dca37bfc01909fa3fcd45c12cca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
