@@ -620,6 +620,8 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       _mouseUp: function() {
+        // In M64 we don't get clicks, so also trigger on mouseup.
+        this._click();
         var r = this._svg.select(".selectionrect")[0][0];
         if (!r) {
           return
