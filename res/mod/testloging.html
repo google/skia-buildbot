@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=egde,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <script type="text/javascript" charset="utf-8">
+    var Login = fetch('/loginstatus/').then(res => {
+      if (res.ok) {
+        return res.json()
+      }
+      throw new Error('Problem reading /loginstatus/:' + res.statusText);
+    });
+
+     Login.then(console.log).catch(window.alert);
+  </script>
+</body>
+</html>
