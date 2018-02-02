@@ -1,0 +1,416 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7fb47b06_e5f74abe",
+        "filename": "ap/elements/buttons.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "cursor:pointer except for button:disabled?",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9d7dc30_df3ed65b",
+        "filename": "ap/elements/checkbox-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "In the future, I think we should have a comment block similar to the polymer ones we have:\n\n- Example usage (html)\n\n- Other things to know (e.g. space bar toggles this when highlighted)\n\n- input attributes/properties\n\n- output attributes/properties (or just one attributes block)\n\n- public functions\n\n- public events (if that\u0027s still a thing)",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e820a174_25822ed3",
+        "filename": "ap/elements/checkbox-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "selected means \"interacted with\"/\"toggled\"?",
+      "range": {
+        "startLine": 65,
+        "startChar": 42,
+        "endLine": 65,
+        "endChar": 53
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50ceb7a9_d8bb402c",
+        "filename": "ap/elements/checkbox-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "What does this do?  make it go up and out of this element?",
+      "range": {
+        "startLine": 65,
+        "startChar": 59,
+        "endLine": 65,
+        "endChar": 73
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f48d7e5_1e09eb38",
+        "filename": "ap/elements/checkbox-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "Why not isTrue \u003d !!newValue",
+      "range": {
+        "startLine": 81,
+        "startChar": 17,
+        "endLine": 81,
+        "endChar": 34
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e56b10c3_d01ab3b3",
+        "filename": "ap/elements/collapse-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "Do we still use the autoprefix thing to prefix this and other more experimental things?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2094b56_04480663",
+        "filename": "ap/elements/core.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "Add a comment reminding the reader that querySelectorAll returns NodeList and we prefer arrays",
+      "range": {
+        "startLine": 3,
+        "startChar": 9,
+        "endLine": 3,
+        "endChar": 33
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2e26f13_4e297ea2",
+        "filename": "ap/elements/icon-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "How were these paths made?  Would it be worth documenting it?",
+      "range": {
+        "startLine": 19,
+        "startChar": 34,
+        "endLine": 19,
+        "endChar": 76
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fceca7fc_7679d246",
+        "filename": "ap/elements/radio-checkbox-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "Add top level comment, just to be explicit - Shared styles for radio-sk and checkbox-sk",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17a9d827_74412ff2",
+        "filename": "ap/elements/radio-checkbox-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "cursor:pointer?",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d90d13b_90099f20",
+        "filename": "ap/elements/radio-group-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "I\u0027m not sure what this function is doing - add a comment?",
+      "range": {
+        "startLine": 94,
+        "startChar": 2,
+        "endLine": 94,
+        "endChar": 16
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b650116_e2da0dce",
+        "filename": "ap/elements/radio-group-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "!all.length, same on line 103",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 23
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b502346c_789c6d0a",
+        "filename": "ap/elements/tabs-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "Would this prevent all events from leaving the tabs-sk?  e.g. a custom event from one of the tab-panel?",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e3ad6cb_d1996ab9",
+        "filename": "ap/elements/tabs-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be conditioned on a click/tap event?",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5dfdeb22_11fdc37f",
+        "filename": "ap/elements/tabs-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "Huh, I was not aware of this attribute",
+      "range": {
+        "startLine": 47,
+        "startChar": 13,
+        "endLine": 47,
+        "endChar": 31
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "84c8d65b_2925b1e2",
+        "filename": "ap/elements/tabs-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "why not this.hasAttribute(\u0027selected\u0027)?",
+      "range": {
+        "startLine": 62,
+        "startChar": 27,
+        "endLine": 62,
+        "endChar": 56
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab0da4da_b78c53f6",
+        "filename": "ap/elements/toast-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "I think I prefer null here, instead of undefined.  I like null for intentional nothingness and undefined for unintentional/default nothingness.",
+      "range": {
+        "startLine": 6,
+        "startChar": 18,
+        "endLine": 6,
+        "endChar": 27
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb157572_29f073e7",
+        "filename": "ap/elements/toast-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "I think just !this._timer would be fine here",
+      "range": {
+        "startLine": 31,
+        "startChar": 8,
+        "endLine": 31,
+        "endChar": 19
+      },
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d03a45c5_22a8a4fc",
+        "filename": "ap/elements/upgrade-property.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "I don\u0027t understand what this is doing?  Add a comment to explain?",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e936e916_c63b71de",
+        "filename": "ap/pages/users.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-02T15:47:06Z",
+      "side": 1,
+      "message": "nit: why is this called users.html?  Wouldn\u0027t demo.html be better?",
+      "revId": "d0f237ac89f28c4fd46b5f30e18fa0ff66137e50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
