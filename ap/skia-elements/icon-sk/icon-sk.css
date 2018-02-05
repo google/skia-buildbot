@@ -1,0 +1,8 @@
+svg.icon-sk-svg {
+  position: relative;
+  vertical-align: middle;
+  pointer-events: none;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+}

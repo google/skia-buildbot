@@ -1,1 +1,1 @@
-import '../elements/spinner-sk-webpack.js'
+import 'skia-elements/spinner-sk'
