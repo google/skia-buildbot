@@ -13,6 +13,9 @@ module.exports = {
     filename: '[name]-bundle.js?[chunkhash]',
     publicPath: '/',
   },
+  resolve: {
+    modules: [path.resolve(__dirname), "node_modules"],
+  },
   module: {
     rules: [
       {
