@@ -147,7 +147,7 @@ func (c *CapacityClient) computeBotConfigs(ctx context.Context, durations map[st
 			}
 		}
 		if err != nil {
-			sklog.Warningf("Could not find taskspec for %s", taskName)
+			sklog.Warningf("Could not find taskspec for %s: %s (taskSpec %#v)", taskName, err, taskSpec)
 			continue
 		}
 		dims := taskSpec.Dimensions
