@@ -1,4 +1,4 @@
-import { $$ } from './core.js'
+import { $$ } from '../core'
 
 class RadioGroupElement extends HTMLElement {
   constructor() {

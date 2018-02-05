@@ -1,0 +1,40 @@
+checkbox-sk {
+  display: inline-block;
+  border: 4px solid #1F78B4;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 4px;
+}
+
+checkbox-sk:focus {
+  outline: dotted thick #1F78B4;
+  outline-offset: 1px;
+}
+
+checkbox-sk:hover {
+  background: #eee;
+}
+
+checkbox-sk[checked]:hover {
+  background: #777;
+}
+
+checkbox-sk[checked] {
+  background: #1F78B4;
+}
+
+checkbox-sk[hidden] {
+  display: none;
+}
+
+checkbox-sk[disabled] {
+  border: 4px solid #ddd;
+  background: white;
+}
+
+checkbox-sk[disabled][checked] {
+  border: 4px solid #ddd;
+  background: #ddd;
+  color: #ddd;
+}

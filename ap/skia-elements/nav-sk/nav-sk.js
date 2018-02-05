@@ -1,6 +1,6 @@
-import './icon-sk-webpack.js';
-import './buttons-webpack.js';
-import { upgradeProperty } from './upgrade-property.js'
+import '../icon-sk';
+import '../buttons';
+import { upgradeProperty } from '../upgrade-property'
 
 const navButtonSk = document.createElement('template');
 navButtonSk.innerHTML = `<button><icon-menu-sk></icon-menu-sk></button>`;

@@ -1,5 +1,5 @@
-import { $$ } from './core.js';
-import { upgradeProperty } from './upgrade-property.js';
+import { $$ } from '../core';
+import { upgradeProperty } from '../upgrade-property';
 
 // TODO(jcgregorio) Currently only sets the selected attribute on the next
 // sibling if the next sibling is a 'tabs-panel-sk'. We should also have

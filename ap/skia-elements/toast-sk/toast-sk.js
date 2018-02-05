@@ -1,4 +1,4 @@
-import { upgradeProperty } from './upgrade-property.js'
+import { upgradeProperty } from '../upgrade-property'
 
 window.customElements.define('toast-sk', class extends HTMLElement {
   constructor() {
