@@ -46,7 +46,7 @@ window.customElements.define('select-sk', class extends HTMLElement {
 
   get selection() { return this._selection; }
   set selection(val) {
-    this._selection = val;
+    this._selection = +val;
     this._rationalize();
   }
 
