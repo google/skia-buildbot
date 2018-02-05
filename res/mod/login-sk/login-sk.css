@@ -1,0 +1,19 @@
+@media (max-width: 500px) {
+  login-sk .email {
+    display: none;
+  }
+}
+
+login-sk {
+  display: inline-block;
+}
+
+login-sk .logInOut {
+  margin-left: 10px;
+}
+
+login-sk .email,
+login-sk .logInOut {
+  font-size: 15px;
+  color: #eee;
+}
