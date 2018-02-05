@@ -107,9 +107,12 @@ func getTraceViewFn(tile *tiling.Tile, startHash, endHash string) (int, traceVie
 	endIdx, _ := tiling.FindCommit(tile.Commits, endHash)
 	if (startIdx == -1) && (endIdx == -1) {
 		return tile.LastCommitIndex(), traceViewIdentity, nil
-	} else if startIdx == -1 {
+	}
+
+	// If either was not found set it to the beginning/end.
+	if startIdx == -1 {
 		startIdx = 0
-	} else {
+	} else if endIdx == -1 {
 		endIdx = tile.LastCommitIndex()
 	}
 
