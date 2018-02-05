@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b43b341a_770ddada",
+        "filename": "res/mod/demo/demo.html",
+        "patchSetId": 22
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "You may consider using sinon.js to simulate the backend XHR responses for the demo.",
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd4d140a_7e2219ab",
+        "filename": "res/mod/errorMessage.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "Let\u0027s drop the backwards compatibility responsibility on the rewrite if we can - one way to do it.",
+      "range": {
+        "startLine": 6,
+        "startChar": 37,
+        "endLine": 6,
+        "endChar": 64
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18ddb0f3_f3c0345a",
+        "filename": "res/mod/errorMessage.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "var detail \u003d {\n    message: message,\n    duration: duration,\n}",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 12,
+        "endChar": 3
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28809e22_f41910cf",
+        "filename": "res/mod/login-sk/login-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "!status.Email should be fine here - if it\u0027s not, add a comment.",
+      "range": {
+        "startLine": 23,
+        "startChar": 10,
+        "endLine": 23,
+        "endChar": 22
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edae2e99_1f94c76c",
+        "filename": "res/mod/login.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "https://developer.mozilla.org/en-US/docs/Web/API/Body/json indicates this is a promise - should we do a .catch() here before returning it?",
+      "range": {
+        "startLine": 13,
+        "startChar": 11,
+        "endLine": 13,
+        "endChar": 21
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "413633be_430a0c44",
+        "filename": "res/mod/select-sk/select-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "by?",
+      "range": {
+        "startLine": 26,
+        "startChar": 34,
+        "endLine": 26,
+        "endChar": 36
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd543334_d09943a8",
+        "filename": "res/mod/select-sk/select-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d here and other places",
+      "range": {
+        "startLine": 58,
+        "startChar": 28,
+        "endLine": 58,
+        "endChar": 30
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ec55de0_befd2fe2",
+        "filename": "res/mod/select-sk/select-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "\"let\" in for loops (see below too)",
+      "range": {
+        "startLine": 59,
+        "startChar": 13,
+        "endLine": 59,
+        "endChar": 16
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89469a87_4ba8be80",
+        "filename": "res/mod/select-sk/select-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T18:41:48Z",
+      "side": 1,
+      "message": "indentation",
+      "range": {
+        "startLine": 81,
+        "startChar": 0,
+        "endLine": 81,
+        "endChar": 6
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
