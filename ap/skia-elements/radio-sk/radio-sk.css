@@ -1,0 +1,53 @@
+/* Shared styles for radio-sk and checkbox-sk.  */
+radio-sk,
+checkbox-sk {
+  display: inline-block;
+  border: 4px solid #1F78B4;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 4px;
+}
+
+radio-sk {
+  border-radius: 50%;
+}
+
+radio-sk:focus,
+checkbox-sk:focus {
+  outline: dotted thick #1F78B4;
+  outline-offset: 1px;
+}
+
+radio-sk:hover,
+checkbox-sk:hover {
+  background: #eee;
+}
+
+radio-sk[checked]:hover,
+checkbox-sk[checked]:hover {
+  background: #777;
+}
+
+radio-sk[checked],
+checkbox-sk[checked] {
+  background: #1F78B4;
+}
+
+radio-sk[hidden],
+checkbox-sk[hidden] {
+  display: none;
+}
+
+radio-sk[disabled],
+checkbox-sk[disabled] {
+  border: 4px solid #ddd;
+  background: white;
+}
+
+radio-sk[disabled][checked],
+checkbox-sk[disabled][checked] {
+  border: 4px solid #ddd;
+  background: #ddd;
+  color: #ddd;
+}
