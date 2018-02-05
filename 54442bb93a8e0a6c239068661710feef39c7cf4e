@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2fb03e89_0c1e33be",
+        "filename": "golden/go/search/common_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T19:48:51Z",
+      "side": 1,
+      "message": "Add a comment why an error should be expected?",
+      "range": {
+        "startLine": 36,
+        "startChar": 56,
+        "endLine": 36,
+        "endChar": 61
+      },
+      "revId": "54442bb93a8e0a6c239068661710feef39c7cf4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba1804fe_a2835a82",
+        "filename": "golden/go/search/common_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T19:48:51Z",
+      "side": 1,
+      "message": "idea: since this is used outside this file, maybe put it in a testutils package?  If the package is too heavy weight, at least put it in a utils_test.go file in this package?",
+      "range": {
+        "startLine": 63,
+        "startChar": 5,
+        "endLine": 63,
+        "endChar": 25
+      },
+      "revId": "54442bb93a8e0a6c239068661710feef39c7cf4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1d64fcb_986ee689",
+        "filename": "golden/go/search/common_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T19:48:51Z",
+      "side": 1,
+      "message": "I\u0027m generally not a huge fan of randomization in tests as it can lead to \"flaky\" tests - is there a way to print out info so if there is a crash/failure, we can at least recreate the crash/failure reliably?",
+      "range": {
+        "startLine": 96,
+        "startChar": 52,
+        "endLine": 96,
+        "endChar": 61
+      },
+      "revId": "54442bb93a8e0a6c239068661710feef39c7cf4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90d30477_cd92c98f",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T19:48:51Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be *testing.T ?",
+      "range": {
+        "startLine": 71,
+        "startChar": 18,
+        "endLine": 71,
+        "endChar": 33
+      },
+      "revId": "54442bb93a8e0a6c239068661710feef39c7cf4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5924bde_e87b1b83",
+        "filename": "golden/go/search/new_search_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-05T19:48:51Z",
+      "side": 1,
+      "message": "leftover?",
+      "range": {
+        "startLine": 80,
+        "startChar": 2,
+        "endLine": 80,
+        "endChar": 8
+      },
+      "revId": "54442bb93a8e0a6c239068661710feef39c7cf4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
