@@ -12,21 +12,25 @@ import (
 	"runtime/pprof"
 	"time"
 
+	"google.golang.org/api/option"
+	storage "google.golang.org/api/storage/v1"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	_ "go.skia.org/infra/golden/go/goldingestion"
 	_ "go.skia.org/infra/golden/go/pdfingestion"
-	storage "google.golang.org/api/storage/v1"
 )
 
 // Command line flags.
 var (
 	configFilename     = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
+	dsNamespace        = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
@@ -58,6 +62,16 @@ func main() {
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, storage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
+	}
+
+	// Initialize the datastore client.
+	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, storage.CloudPlatformScope)
+	if err != nil {
+		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
+	}
+
+	if err := ds.InitWithOpt(common.PROJECT_ID, *dsNamespace, option.WithTokenSource(tokenSrc)); err != nil {
+		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
 	// Start the ingesters.
