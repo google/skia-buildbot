@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3f4b619_bef1a7f4",
+        "filename": "push2/res/mod/push-selection-sk/push-selection-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T21:19:32Z",
+      "side": 1,
+      "message": "I am looking into using SASS which may be able to reduce the repetition of push-selection-sk throughout the file.",
+      "revId": "82d9e8f99165c4f4796e81c9d9d2fe33a33fea3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e03c992c_9db9d080",
+        "filename": "push2/res/mod/webpack.config.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T21:19:32Z",
+      "side": 1,
+      "message": "I need to find a way to stop copying around a lot of this webpack boilerplate, particularly for demo pages.",
+      "revId": "82d9e8f99165c4f4796e81c9d9d2fe33a33fea3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b39af63_3cbf681c",
+        "filename": "res/mod/human.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T21:19:32Z",
+      "side": 1,
+      "message": "A later CL will port over the tests for this file.",
+      "revId": "1d2696ee3902e4a3563a10d4f256c55c05e1687e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
