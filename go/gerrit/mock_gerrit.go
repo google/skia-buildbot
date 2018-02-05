@@ -23,8 +23,8 @@ func (g *MockedGerrit) GetUserEmail() (string, error) {
 func (g *MockedGerrit) GetRepoUrl() string {
 	return ""
 }
-func (g *MockedGerrit) ExtractIssue(issueURL string) (string, bool) {
-	return "", false
+func (g *MockedGerrit) ExtractIssueFromCommit(commitMsg string) (int64, error) {
+	return 0, nil
 }
 func (g *MockedGerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 	return &ChangeInfo{Issue: issue}, nil

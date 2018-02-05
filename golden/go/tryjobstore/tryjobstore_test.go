@@ -1,6 +1,7 @@
 package tryjobstore
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"testing"
@@ -33,10 +34,21 @@ func TestCloudTryjobStore(t *testing.T) {
 }
 
 func testTryjobStore(t *testing.T, store TryjobStore) {
-	// Add a two tryjobs and add them to the store.
+	// Add the issue and two tryjobs to the store.
 	issueID := int64(99)
 	patchsetID := int64(1099)
 	buildBucketID := int64(30099)
+
+	issue := &IssueDetails{
+		Issue: &Issue{
+			ID:      issueID,
+			Subject: "Test issue",
+			Owner:   "jdoe@example.com",
+			Updated: time.Now(),
+			Status:  "",
+		},
+	}
+	assert.NoError(t, store.UpdateIssue(issue))
 
 	// Note: Cloud datastore only stores up to microseconds correctly, so if we
 	// kept the time down to nanoseconds the test would fail. So we drop everything
@@ -82,6 +94,15 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	assert.Equal(t, tryjob_1, found)
 	assert.NoError(t, store.UpdateTryjob(issueID, tryjob_2))
 
+	time.Sleep(10 * time.Second)
+	foundIssue, err := store.GetIssue(issueID, true, nil)
+	assert.NoError(t, err)
+	foundTryjobs := []*Tryjob{}
+	for _, ps := range foundIssue.PatchsetDetails {
+		foundTryjobs = append(foundTryjobs, ps.Tryjobs...)
+	}
+	assert.Equal(t, []*Tryjob{tryjob_1, tryjob_2}, foundTryjobs)
+
 	// Generate instances of results
 	allTryjobs := []*Tryjob{tryjob_1, tryjob_2}
 	tryjobResults := make([][]*TryjobResult, len(allTryjobs), len(allTryjobs))
@@ -91,7 +112,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 
 		for i := 0; i < 5; i++ {
 			digestStr := fmt.Sprintf("%010d", digestStart+int64(i))
-			testName := fmt.Sprintf("%d", i%5)
+			testName := fmt.Sprintf("test-%d", i%5)
 			results = append(results, &TryjobResult{
 				Digest:   "digest-" + digestStr,
 				TestName: testName,
@@ -105,6 +126,8 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		assert.NoError(t, store.UpdateTryjobResult(tj, results))
 		tryjobResults[idx] = results
 	}
+
+	time.Sleep(5 * time.Second)
 
 	foundTJs, foundTJResults, err := store.GetTryjobResults(issueID, []int64{patchsetID, patchsetID_2}, false)
 	assert.NoError(t, err)
@@ -164,4 +187,22 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	untriagedExp, err := store.GetExpectations(issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, foundExp, untriagedExp)
+
+	// Test commiting where the commit fails.
+	assert.Error(t, store.CommitIssueExp(issueID, func() error {
+		return errors.New("Write failed")
+	}))
+	foundIssue, err = store.GetIssue(issueID, false, nil)
+	assert.NoError(t, err)
+	assert.False(t, foundIssue.Commited)
+
+	// Test commiting the changes.
+	assert.NoError(t, store.CommitIssueExp(issueID, func() error {
+		// Assume that writing the master baseline works.
+		return nil
+	}))
+
+	foundIssue, err = store.GetIssue(issueID, false, nil)
+	assert.NoError(t, err)
+	assert.True(t, foundIssue.Commited)
 }
