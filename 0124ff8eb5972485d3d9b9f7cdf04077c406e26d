@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3b661a58_b0156b79",
+        "filename": "res/mod/demo/demo.html",
+        "patchSetId": 22
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b43b341a_770ddada",
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bd4d140a_7e2219ab",
         "filename": "res/mod/errorMessage.js",
         "patchSetId": 22
@@ -39,6 +57,30 @@
       "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "102c78cf_f4d30fae",
+        "filename": "res/mod/errorMessage.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd4d140a_7e2219ab",
+      "range": {
+        "startLine": 6,
+        "startChar": 37,
+        "endLine": 6,
+        "endChar": 64
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "f752a89a_3c67fb59",
+        "filename": "res/mod/errorMessage.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18ddb0f3_f3c0345a",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 12,
+        "endChar": 3
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28809e22_f41910cf",
         "filename": "res/mod/login-sk/login-sk.js",
         "patchSetId": 22
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "4655d8fe_7c7f0826",
+        "filename": "res/mod/login-sk/login-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28809e22_f41910cf",
+      "range": {
+        "startLine": 23,
+        "startChar": 10,
+        "endLine": 23,
+        "endChar": 22
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "edae2e99_1f94c76c",
         "filename": "res/mod/login.js",
         "patchSetId": 22
@@ -99,6 +189,30 @@
       "writtenOn": "2018-02-05T18:41:48Z",
       "side": 1,
       "message": "https://developer.mozilla.org/en-US/docs/Web/API/Body/json indicates this is a promise - should we do a .catch() here before returning it?",
+      "range": {
+        "startLine": 13,
+        "startChar": 11,
+        "endLine": 13,
+        "endChar": 21
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a22590b6_cdba3918",
+        "filename": "res/mod/login.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "A promise is exactly what we want to return, which is what login() is documented to return. The caller of login() should be the one adding the .catch() statement.",
+      "parentUuid": "edae2e99_1f94c76c",
       "range": {
         "startLine": 13,
         "startChar": 11,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "49ea5f59_77069599",
+        "filename": "res/mod/select-sk/select-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "413633be_430a0c44",
+      "range": {
+        "startLine": 26,
+        "startChar": 34,
+        "endLine": 26,
+        "endChar": 36
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd543334_d09943a8",
         "filename": "res/mod/select-sk/select-sk.js",
         "patchSetId": 22
@@ -154,6 +292,30 @@
       "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e72e534_89643d15",
+        "filename": "res/mod/select-sk/select-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd543334_d09943a8",
+      "range": {
+        "startLine": 58,
+        "startChar": 28,
+        "endLine": 58,
+        "endChar": 30
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "3c5b6f40_71f5bf67",
+        "filename": "res/mod/select-sk/select-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ec55de0_befd2fe2",
+      "range": {
+        "startLine": 59,
+        "startChar": 13,
+        "endLine": 59,
+        "endChar": 16
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "89469a87_4ba8be80",
         "filename": "res/mod/select-sk/select-sk.js",
         "patchSetId": 22
@@ -200,6 +386,30 @@
       "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee0be854_38dfd7a9",
+        "filename": "res/mod/select-sk/select-sk.js",
+        "patchSetId": 22
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-05T20:36:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "89469a87_4ba8be80",
+      "range": {
+        "startLine": 81,
+        "startChar": 0,
+        "endLine": 81,
+        "endChar": 6
+      },
+      "revId": "0124ff8eb5972485d3d9b9f7cdf04077c406e26d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
