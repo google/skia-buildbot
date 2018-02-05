@@ -7,6 +7,7 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/stage_gold_ingestion \
     --config_filename=/etc/stage_gold_ingestion/config.json5 \
+    --ds_namespace=gold-skia-stage \
     --logtostderr \
     --prom_port=:20005
 Restart=always

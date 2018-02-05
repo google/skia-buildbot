@@ -27,7 +27,6 @@ import (
 // ExtraParams.
 const (
 	CONFIG_GERRIT_CODE_REVIEW_URL     = "GerritCodeReviewURL"
-	CONFIG_TRYJOB_NAMESPACE           = "TryjobDatastoreNameSpace"
 	CONFIG_SERVICE_ACCOUNT_FILE       = "ServiceAccountFile"
 	CONFIG_BUILD_BUCKET_URL           = "BuildBucketURL"
 	CONFIG_BUILD_BUCKET_NAME          = "BuildBucketName"
@@ -67,11 +66,6 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	timeWindow, err := parseDuration(config.ExtraParams[CONFIG_BUILD_BUCKET_TIME_WINDOW], bbstate.DefaultTimeWindow)
 	if err != nil {
 		return nil, err
-	}
-
-	tryjobNamespace, ok := config.ExtraParams[CONFIG_TRYJOB_NAMESPACE]
-	if !ok || (tryjobNamespace == "") {
-		return nil, fmt.Errorf("Missing cloud datastore namespace for tryjob data.")
 	}
 
 	buildBucketURL := config.ExtraParams[CONFIG_BUILD_BUCKET_URL]

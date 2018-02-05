@@ -39,7 +39,6 @@
     //   ],
     //   ExtraParams: {
     //     GerritCodeReviewURL: "https://pdfium-review.googlesource.com",
-    //     TryjobDatastoreNameSpace: "gold-pdfium",
     //     BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
     //     BuildBucketName: "master.tryserver.client.pdfium",
     //     BuildBucketPollInterval: "10m",

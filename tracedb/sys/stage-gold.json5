@@ -18,7 +18,6 @@
       ],
       ExtraParams: {
         GerritCodeReviewURL: "https://skia-review.googlesource.com",
-        TryjobDatastoreNameSpace: "gold-skia-stage",
         BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
         BuildBucketName: "skia.primary",
         BuildBucketPollInterval: "10m",
