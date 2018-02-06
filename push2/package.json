@@ -1,0 +1,9 @@
+{
+  "name": "push2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "lit-html": "^0.9.0"
+  }
+}
