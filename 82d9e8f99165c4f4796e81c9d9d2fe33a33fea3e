@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "f3d3059f_368ba064",
+        "filename": "push2/res/mod/push-selection-sk/push-selection-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-06T13:32:06Z",
+      "side": 1,
+      "message": "Just so I\u0027m clear, the push-selection-sk acts like the shadow dom in that encapsulates the styling?  Are we interested in using actual shadow dom + polyfills?",
+      "parentUuid": "a3f4b619_bef1a7f4",
+      "revId": "82d9e8f99165c4f4796e81c9d9d2fe33a33fea3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e03c992c_9db9d080",
         "filename": "push2/res/mod/webpack.config.js",
         "patchSetId": 5
