@@ -4,10 +4,6 @@
   "description": "Common Skia modules.",
   "main": "index.js",
   "license": "MIT",
-  "scripts": {
-    "build": "webpack",
-    "serve": "webpack-dev-server --content-base ./dist --watch"
-  },
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
