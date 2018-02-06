@@ -63,7 +63,14 @@
     <app-sk class="fit" header_height="60px">
       <img header id="logo" src="/res/img/skia_fuzz.png">
       <fuzzer-status-sk rtoolbar></fuzzer-status-sk>
-      <fuzzer-menu-sk navigation></fuzzer-menu-sk>
+      <fuzzer-menu-sk navigation>
+        <h2>Priority Legend</h2>
+        <ul>
+          <li><b>High Priority</b> = ASAN/MSAN crashes (e.g. buffer overflow)</li>
+          <li><b>Medium Priority</b> = other crashes (e.g. segfault)</li>
+          <li><b>Low Priority</b> = SkAsserts and everything else</li>
+        </ul>
+      </fuzzer-menu-sk>
 
       <fuzzer-summary-sk></fuzzer-summary-sk>
     </app-sk>

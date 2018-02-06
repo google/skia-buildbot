@@ -298,13 +298,18 @@ func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 
-	var cat = struct {
-		Category string
+	c := mux.Vars(r)["category"]
+	context := struct {
+		Category      string
+		HumanCategory string
+		ReproString   string
 	}{
-		Category: mux.Vars(r)["category"],
+		Category:      c,
+		HumanCategory: fcommon.PrettifyCategory(c),
+		ReproString:   fcommon.ReplicationArgs(c),
 	}
 
-	if err := detailsTemplate.Execute(w, cat); err != nil {
+	if err := detailsTemplate.Execute(w, context); err != nil {
 		sklog.Errorf("Failed to expand template: %v", err)
 	}
 }
@@ -327,13 +332,11 @@ func rollHandler(w http.ResponseWriter, r *http.Request) {
 type countSummary struct {
 	Category        string `json:"category"`
 	CategoryDisplay string `json:"categoryDisplay"`
-	TotalBad        int    `json:"totalBadCount"`
-	TotalGrey       int    `json:"totalGreyCount"`
-	// "This" means "newly introduced/fixed in this revision"
-	ThisBad        int    `json:"thisBadCount"`
-	ThisRegression int    `json:"thisRegressionCount"`
-	Status         string `json:"status"`
-	Groomer        string `json:"groomer"`
+	HighPriority    int    `json:"highPriorityCount"`
+	MedPriority     int    `json:"mediumPriorityCount"`
+	LowPriority     int    `json:"lowPriorityCount"`
+	Status          string `json:"status"`
+	Groomer         string `json:"groomer"`
 }
 
 // summaryJSONHandler returns a countSummary, representing the results for all fuzzers.
@@ -355,18 +358,16 @@ func getSummary() []countSummary {
 			Category:        cat,
 		}
 		c := syncer.FuzzCount{
-			TotalBad:       -1,
-			TotalGrey:      -1,
-			ThisBad:        -1,
-			ThisRegression: -1,
+			HighPriority: -1,
+			MedPriority:  -1,
+			LowPriority:  -1,
 		}
 		if fuzzSyncer != nil {
 			c = fuzzSyncer.LastCount(cat)
 		}
-		o.TotalBad = c.TotalBad
-		o.ThisBad = c.ThisBad
-		o.TotalGrey = c.TotalGrey
-		o.ThisRegression = c.ThisRegression
+		o.HighPriority = c.HighPriority
+		o.MedPriority = c.MedPriority
+		o.LowPriority = c.LowPriority
 		o.Status = fcommon.Status(cat)
 		o.Groomer = fcommon.Groomer(cat)
 		counts = append(counts, o)
@@ -445,12 +446,12 @@ func decodeBase64(s string) (string, error) {
 func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 
-	name := v["name"]
+	hash := v["name"]
 	if fuzzPool == nil {
 		httputils.ReportError(w, r, nil, "Fuzzes not loaded yet")
 		return
 	}
-	fuzz, err := fuzzPool.FindFuzzDetailForFuzz(name)
+	fuzz, err := fuzzPool.FindFuzzDetailForFuzz(hash)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz not found")
 		return
@@ -466,10 +467,11 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", name)
+	humanName := fcommon.CategoryReminder(fuzz.FuzzCategory)
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`filename="%s-%s"`, humanName, hash))
 	n, err := w.Write(contents)
 	if err != nil || n != len(contents) {
-		sklog.Errorf("Could only serve %d bytes of fuzz %s, not %d: %s", n, name, len(contents), err)
+		sklog.Errorf("Could only serve %d bytes of fuzz %s, not %d: %s", n, hash, len(contents), err)
 		return
 	}
 }
