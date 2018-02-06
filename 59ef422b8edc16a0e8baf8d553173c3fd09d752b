@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ff1841b_3a9c1429",
+        "filename": "fuzzer/go/fuzzer-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-06T19:32:43Z",
+      "side": 1,
+      "message": "nit: I usually call this \u0027context\u0027.",
+      "revId": "59ef422b8edc16a0e8baf8d553173c3fd09d752b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
