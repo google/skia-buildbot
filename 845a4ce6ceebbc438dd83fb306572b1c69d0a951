@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8050e3f7_a56ccdbd",
+        "filename": "skolo/sys/powercycle-rpi-01.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-06T14:39:15Z",
+      "side": 1,
+      "message": "This can be i too",
+      "range": {
+        "startLine": 37,
+        "startChar": 17,
+        "endLine": 37,
+        "endChar": 18
+      },
+      "revId": "845a4ce6ceebbc438dd83fb306572b1c69d0a951",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
