@@ -13,6 +13,13 @@
 // This config adds aliases for the 'skia-elements' and 'common' libraries,
 // so they will always be available at those prefixes. See 'demo/demo.js'.
 //
+// The alias also works for SCSS imports, but just remember to prepend a '~'
+// to the @import filename so webpack knows it should resolve the name. That
+// is, to import the colors.scss file from your local scss file just add:
+//
+//    @import '~common/colors'
+//
+//
 // You do not need to add any of the plugins or loaders used here to your
 // local package.json, on the other hand, if you add new loaders or plugins
 // in your local project then you should 'yarn add' them to your local
@@ -71,7 +78,12 @@ module.exports.commonBuilder = function(dirname) {
                   },
                 },
               },
-              'sass-loader', // Since SCSS is a superset of CSS we can always apply this loader.
+              {
+                loader: 'sass-loader', // Since SCSS is a superset of CSS we can always apply this loader.
+                options: {
+                  includePaths: [__dirname],
+                }
+              }
             ],
           })
         },
