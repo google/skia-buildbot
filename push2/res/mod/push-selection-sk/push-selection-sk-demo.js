@@ -1,1 +1,1 @@
-import 'push-selection-sk'
+import './index.js'

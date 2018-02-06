@@ -1,5 +1,5 @@
-import { errorMessage } from 'errorMessage';
-import { login } from 'login';
+import { errorMessage } from 'common/errorMessage';
+import { login } from 'common/login';
 
 //  The <login-sk> custom element.
 //
