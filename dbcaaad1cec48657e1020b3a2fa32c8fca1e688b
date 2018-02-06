@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "556a73a6_fc235ae6",
+        "filename": "res/mod/webpack.demo-finder.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-06T19:24:10Z",
+      "side": 1,
+      "message": "Changed to !!demoHTML.",
+      "parentUuid": "3f5d079a_36b7edaa",
+      "range": {
+        "startLine": 47,
+        "startChar": 12,
+        "endLine": 47,
+        "endChar": 26
+      },
+      "revId": "dbcaaad1cec48657e1020b3a2fa32c8fca1e688b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "45b76842_a2736b99",
         "filename": "res/mod/webpack.demo-finder.js",
         "patchSetId": 12
@@ -45,6 +69,30 @@
       "revId": "dbcaaad1cec48657e1020b3a2fa32c8fca1e688b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cef3278c_46d908c0",
+        "filename": "res/mod/webpack.demo-finder.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-06T19:24:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "45b76842_a2736b99",
+      "range": {
+        "startLine": 69,
+        "startChar": 3,
+        "endLine": 69,
+        "endChar": 5
+      },
+      "revId": "dbcaaad1cec48657e1020b3a2fa32c8fca1e688b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
