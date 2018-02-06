@@ -15,8 +15,12 @@
   This is a top level element.
 
   Properties:
-    category: String, the category to request info about.  This will be set by
+    category: String, the category to request info about. This will be set by
         server side template evaluation.
+    human_category: String, the human readable category information. This will
+        be set by server side template evaluation.
+    repro_string: String, a part of the string needed to reproduce the fuzz.
+        This will be set by server side template evaluation.
 
   Methods:
     None.
@@ -56,6 +60,9 @@
         bottom: 0;
         left: 0;
       }
+      h2, h4 {
+        padding-left: 4px;
+      }
     </style>
     <app-sk class="fit" drawer_width="250px">
       <img header id="logo" src="/res/img/skia_fuzz.png">
@@ -68,7 +75,8 @@
         </fuzzer-filter-sk>
       </fuzzer-menu-sk>
 
-      <h2>Fuzz Details</h2>
+      <h2>Fuzz Details for [[human_category]]</h2>
+      <h4>out/Build/fuzz [[repro_string]] -b ~/Downloads/[fuzz]</h4>
 
       <fuzzer-info-sk
           category="[[category]]"
@@ -84,6 +92,12 @@
 
       properties: {
         category: {
+          type: String
+        },
+        human_category: {
+          type: String
+        },
+        repro_string: {
           type: String
         }
       },

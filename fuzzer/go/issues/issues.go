@@ -35,6 +35,7 @@ type newBug struct {
 	PrettyCategory string
 	Description    string
 	Name           string
+	Hash           string
 	Revision       string
 	Params         string
 }
@@ -55,8 +56,8 @@ prior to building.
 # tracking metadata below:
 fuzz_category: {{.Category}}
 fuzz_commit: {{.Revision}}
-related_fuzz: https://fuzzer.skia.org/category/{{.Category}}/name/{{.Name}}
-fuzz_download: https://fuzzer.skia.org/fuzz/{{.Name}}
+related_fuzz: https://fuzzer.skia.org/category/{{.Category}}/name/{{.Hash}}
+fuzz_download: https://fuzzer.skia.org/fuzz/{{.Hash}}
 `))
 
 func (im *IssuesManager) CreateBadBugIssue(p IssueReportingPackage, desc string) error {
@@ -115,7 +116,8 @@ func issueMessage(p IssueReportingPackage, desc string) (string, error) {
 		Category:       p.Category,
 		PrettyCategory: common.PrettifyCategory(p.Category),
 		Description:    desc,
-		Name:           p.FuzzName,
+		Name:           common.CategoryReminder(p.Category) + "-" + p.FuzzName,
+		Hash:           p.FuzzName,
 		Params:         common.ReplicationArgs(p.Category),
 		Revision:       p.CommitRevision,
 	}
