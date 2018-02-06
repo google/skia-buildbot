@@ -81,9 +81,10 @@ type Aggregator struct {
 }
 
 const (
-	BAD_FUZZ        = "bad"
-	GREY_FUZZ       = "grey"
-	EMPTY_THRESHOLD = 5
+	BAD_FUZZ               = "bad"
+	GREY_FUZZ              = "grey"
+	EMPTY_THRESHOLD        = 5
+	RETRIES_FOR_BAD_FUZZES = 3
 )
 
 var (
@@ -494,9 +495,10 @@ func analyze(ctx context.Context, workingDirPath, filename, category string) (up
 		Category: category,
 	}
 
-	if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_DEBUG, upload.FilePath, category); err != nil {
-		return upload, err
-	} else {
+	attempts := 0
+	for {
+		attempts++
+		dump, stderr := performAnalysis(ctx, workingDirPath, CLANG_DEBUG, upload.FilePath, category)
 		upload.Data.Files["CLANG_DEBUG"] = data.OutputFiles{
 			Key: "CLANG_DEBUG",
 			Content: map[string]string{
@@ -504,10 +506,7 @@ func analyze(ctx context.Context, workingDirPath, filename, category string) (up
 				"stderr": stderr,
 			},
 		}
-	}
-	if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_RELEASE, upload.FilePath, category); err != nil {
-		return upload, err
-	} else {
+		dump, stderr = performAnalysis(ctx, workingDirPath, CLANG_RELEASE, upload.FilePath, category)
 		upload.Data.Files["CLANG_RELEASE"] = data.OutputFiles{
 			Key: "CLANG_RELEASE",
 			Content: map[string]string{
@@ -515,30 +514,30 @@ func analyze(ctx context.Context, workingDirPath, filename, category string) (up
 				"stderr": stderr,
 			},
 		}
-	}
-	// AddressSanitizer only outputs to stderr
-	if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_DEBUG, upload.FilePath, category); err != nil {
-		return upload, err
-	} else {
+		// AddressSanitizer only outputs to stderr
+		_, stderr = performAnalysis(ctx, workingDirPath, ASAN_DEBUG, upload.FilePath, category)
 		upload.Data.Files["ASAN_DEBUG"] = data.OutputFiles{
 			Key: "ASAN_DEBUG",
 			Content: map[string]string{
 				"stderr": stderr,
 			},
 		}
-	}
-	if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_RELEASE, upload.FilePath, category); err != nil {
-		return upload, err
-	} else {
+		_, stderr = performAnalysis(ctx, workingDirPath, ASAN_RELEASE, upload.FilePath, category)
 		upload.Data.Files["ASAN_RELEASE"] = data.OutputFiles{
 			Key: "ASAN_RELEASE",
 			Content: map[string]string{
 				"stderr": stderr,
 			},
 		}
-	}
-	if r := data.ParseGCSPackage(upload.Data); r.IsGrey() {
-		upload.FuzzType = GREY_FUZZ
+		if r := data.ParseGCSPackage(upload.Data); r.IsGrey() {
+			upload.FuzzType = GREY_FUZZ
+			break
+		}
+		// We know the fuzz is bad - re-analyze to avoid fuzzes that may have flaked bad
+		// but are hard to reproduce.
+		if attempts >= RETRIES_FOR_BAD_FUZZES {
+			break
+		}
 	}
 	return upload, nil
 }
@@ -546,7 +545,7 @@ func analyze(ctx context.Context, workingDirPath, filename, category string) (up
 // performAnalysis executes a command from the working dir specified using
 // AnalysisArgs for a given fuzz category. The crash dumps (which
 // come via standard out) and standard errors are recorded as strings.
-func performAnalysis(ctx context.Context, workingDirPath, executableName, pathToFile, category string) (string, string, error) {
+func performAnalysis(ctx context.Context, workingDirPath, executableName, pathToFile, category string) (string, string) {
 	var dump bytes.Buffer
 	var stdErr bytes.Buffer
 
@@ -567,9 +566,9 @@ func performAnalysis(ctx context.Context, workingDirPath, executableName, pathTo
 
 	//errors are fine/expected from this, as we are dealing with bad fuzzes
 	if err := exec.Run(ctx, cmd); err != nil {
-		return dump.String(), stdErr.String(), nil
+		return dump.String(), stdErr.String()
 	}
-	return dump.String(), stdErr.String(), nil
+	return dump.String(), stdErr.String()
 }
 
 // calcuateHash calculates the sha1 hash of a file, given its path.  It returns both the hash as a
