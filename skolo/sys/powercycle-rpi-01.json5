@@ -11,7 +11,7 @@
         "skia-rpi-053-device": 5,
         "skia-rpi-054-device": 6,
         "skia-rpi-055-device": 7,
-        "test-device": 8
+        "skia-rpi-i-127-device": 8
       }
     }
   },
@@ -33,8 +33,8 @@
         "skia-rpi-124": 7,
         "skia-rpi-125": 6,
         "skia-rpi-126": 5,
-        "skia-rpi-127": 4,
-        "skia-rpi-128": 3,
+        "skia-rpi-i-127": 4,
+        "skia-rpi-i-128": 3,
         "skia-rpi-130": 22,
         "skia-rpi-131": 23,
         "skia-rpi-132": 24
