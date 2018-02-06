@@ -32,9 +32,9 @@ const (
 
 	// Gold
 	ISSUE             Kind = "Issue"
-	TRYJOB            Kind = "TryJob"
-	TRYJOB_RESULT     Kind = "TryJobResult"
-	TRYJOB_EXP_CHANGE Kind = "TryJobExpChange"
+	TRYJOB            Kind = "Tryjob"
+	TRYJOB_RESULT     Kind = "TryjobResult"
+	TRYJOB_EXP_CHANGE Kind = "TryjobExpChange"
 	TEST_DIGEST_EXP   Kind = "TestDigestExp"
 
 	// Android Compile
