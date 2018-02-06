@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4a97dea8_f70aeb43",
+        "filename": "push2/res/mod/push-selection-sk/push-selection-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-06T14:41:47Z",
+      "side": 1,
+      "message": "If you don\u0027t have the html in front then just the literal string will be escaped and placed as text on the page, i.e. \"\u0026lt;icon-warning-sk ...\".",
+      "parentUuid": "d458b202_a8c2fd21",
+      "range": {
+        "startLine": 20,
+        "startChar": 31,
+        "endLine": 20,
+        "endChar": 36
+      },
+      "revId": "76e2d6b14aa64079dc08f7f387c4e1cfd3172ea7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7b5f3e0b_2051c2b3",
         "filename": "push2/res/mod/push-selection-sk/push-selection-sk.js",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "76e2d6b14aa64079dc08f7f387c4e1cfd3172ea7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9775841e_effc7d18",
+        "filename": "push2/res/mod/push-selection-sk/push-selection-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-06T14:41:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7b5f3e0b_2051c2b3",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 4
+      },
+      "revId": "76e2d6b14aa64079dc08f7f387c4e1cfd3172ea7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
