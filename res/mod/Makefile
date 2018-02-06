@@ -1,5 +1,5 @@
 default:
-	npm run build
+	npx webpack
 
 serve:
-	npm run serve
+	npx webpack-dev-server --content-base ./dist --watch
