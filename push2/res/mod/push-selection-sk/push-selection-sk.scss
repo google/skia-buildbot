@@ -1,0 +1,49 @@
+@import '~common/colors';
+
+push-selection-sk {
+  display: block;
+
+  .pushSelection {
+    display: flex;
+    padding: 0.4em 0.2em;
+    cursor: pointer;
+  }
+
+  .pushSelection[selected]:hover,
+  .pushSelection:hover {
+    background: lightgray;
+  }
+
+  .pushSelection icon-check-sk {
+    visibility: hidden;
+  }
+
+  .pushSelection[selected] icon-check-sk {
+    visibility: visible;
+  }
+
+  .pushSelection[selected] {
+    background: white;
+  }
+
+  a {
+    color: $blue;
+  }
+
+  .userid {
+    color: $purple;
+  }
+
+  .built {
+    color: $orange;
+  }
+
+  pre {
+    margin: 0 0.2em;
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
