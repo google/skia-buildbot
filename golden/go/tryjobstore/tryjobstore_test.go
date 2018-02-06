@@ -1,13 +1,18 @@
 package tryjobstore
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"os/user"
 	"sort"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"google.golang.org/api/option"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
@@ -18,13 +23,24 @@ import (
 func TestCloudTryjobStore(t *testing.T) {
 	testutils.LargeTest(t)
 
-	cleanup := testutil.InitDatastore(t,
-		ds.ISSUE,
-		ds.TRYJOB,
-		ds.TRYJOB_RESULT,
-		ds.TRYJOB_EXP_CHANGE,
-		ds.TEST_DIGEST_EXP)
-	defer cleanup()
+	// If a service account file is in the environment then connect to the real datastore.
+	serviceAccountFile := os.Getenv("DS_SERVICE_ACCOUNT_FILE")
+	if serviceAccountFile != "" {
+		// Construct a namespace based on the user.
+		currUser, err := user.Current()
+		assert.NoError(t, err)
+		nameSpace := fmt.Sprintf("gold-localhost-%s-testing", currUser.Username)
+		assert.NoError(t, ds.InitWithOpt(common.PROJECT_ID, nameSpace, option.WithServiceAccountFile(serviceAccountFile)))
+	} else {
+		// Otherwise try and connect to a locally running emulator.
+		cleanup := testutil.InitDatastore(t,
+			ds.ISSUE,
+			ds.TRYJOB,
+			ds.TRYJOB_RESULT,
+			ds.TRYJOB_EXP_CHANGE,
+			ds.TEST_DIGEST_EXP)
+		defer cleanup()
+	}
 
 	store, err := NewCloudTryjobStore(ds.DS, nil)
 	assert.NoError(t, err)
@@ -33,7 +49,7 @@ func TestCloudTryjobStore(t *testing.T) {
 }
 
 func testTryjobStore(t *testing.T, store TryjobStore) {
-	// Add a two tryjobs and add them to the store.
+	// Add the issue and two tryjobs to the store.
 	issueID := int64(99)
 	patchsetID := int64(1099)
 	buildBucketID := int64(30099)
@@ -68,7 +84,22 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	defer func() {
 		assert.NoError(t, store.DeleteIssue(issueID))
 	}()
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
+
+	issue := &IssueDetails{
+		Issue: &Issue{
+			ID:      issueID,
+			Subject: "Test issue",
+			Owner:   "jdoe@example.com",
+			Updated: time.Now(),
+			Status:  "",
+		},
+		PatchsetDetails: []*PatchsetDetail{
+			{ID: patchsetID},
+			{ID: patchsetID_2},
+		},
+	}
+	assert.NoError(t, store.UpdateIssue(issue))
 
 	expChangeKeys, _, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID, -1, -1, true)
 	assert.NoError(t, err)
@@ -82,6 +113,16 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	assert.Equal(t, tryjob_1, found)
 	assert.NoError(t, store.UpdateTryjob(issueID, tryjob_2))
 
+	time.Sleep(5 * time.Second)
+	foundIssue, err := store.GetIssue(issueID, true, nil)
+	assert.NoError(t, err)
+	assert.NotNil(t, foundIssue)
+	foundTryjobs := []*Tryjob{}
+	for _, ps := range foundIssue.PatchsetDetails {
+		foundTryjobs = append(foundTryjobs, ps.Tryjobs...)
+	}
+	assert.Equal(t, []*Tryjob{tryjob_1, tryjob_2}, foundTryjobs)
+
 	// Generate instances of results
 	allTryjobs := []*Tryjob{tryjob_1, tryjob_2}
 	tryjobResults := make([][]*TryjobResult, len(allTryjobs), len(allTryjobs))
@@ -91,7 +132,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 
 		for i := 0; i < 5; i++ {
 			digestStr := fmt.Sprintf("%010d", digestStart+int64(i))
-			testName := fmt.Sprintf("%d", i%5)
+			testName := fmt.Sprintf("test-%d", i%5)
 			results = append(results, &TryjobResult{
 				Digest:   "digest-" + digestStr,
 				TestName: testName,
@@ -105,6 +146,8 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		assert.NoError(t, store.UpdateTryjobResult(tj, results))
 		tryjobResults[idx] = results
 	}
+
+	time.Sleep(5 * time.Second)
 
 	foundTJs, foundTJResults, err := store.GetTryjobResults(issueID, []int64{patchsetID, patchsetID_2}, false)
 	assert.NoError(t, err)
@@ -142,7 +185,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		time.Sleep(2 * time.Second)
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(30 * time.Second)
 	foundExp, err := store.GetExpectations(issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, allChanges, foundExp)
@@ -160,8 +203,26 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	}
 
 	assert.NoError(t, store.AddChange(issueID, foundExp.Tests, userName))
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 	untriagedExp, err := store.GetExpectations(issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, foundExp, untriagedExp)
+
+	// Test commiting where the commit fails.
+	assert.Error(t, store.CommitIssueExp(issueID, func() error {
+		return errors.New("Write failed")
+	}))
+	foundIssue, err = store.GetIssue(issueID, false, nil)
+	assert.NoError(t, err)
+	assert.False(t, foundIssue.Commited)
+
+	// Test commiting the changes.
+	assert.NoError(t, store.CommitIssueExp(issueID, func() error {
+		// Assume that writing the master baseline works.
+		return nil
+	}))
+
+	foundIssue, err = store.GetIssue(issueID, false, nil)
+	assert.NoError(t, err)
+	assert.True(t, foundIssue.Commited)
 }

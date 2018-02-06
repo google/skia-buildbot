@@ -39,6 +39,11 @@ type TryjobStore interface {
 	// exist in the database it will be created.
 	UpdateIssue(details *IssueDetails) error
 
+	// CommitIssueExp commits the expecations of the given issue. The writeFn
+	// is expected to make the changes to the master baseline. An issue is
+	// marked as commited if the writeFn runs without error.
+	CommitIssueExp(issueID int64, writeFn func() error) error
+
 	// DeleteIssue deletes the given issue and related information.
 	DeleteIssue(issueID int64) error
 
@@ -152,7 +157,40 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatch
 
 // UpdateIssue implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateIssue(details *IssueDetails) error {
-	return c.updateIfNewer(c.getIssueKey(details.ID), details)
+	return c.updateIfNewer(c.getIssueKey(details.ID), details, nil, false)
+}
+
+// CommitIssueExp implements the TryjobStore interface.
+func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) error {
+	// setCommittedFn is the exee
+	setCommittedFn := func(tx *datastore.Transaction) error {
+		issue := &IssueDetails{}
+		key := c.getIssueKey(issueID)
+		ok, err := c.getEntity(key, issue, nil)
+		if err != nil {
+			return sklog.FmtErrorf("Error in getEntity for %s: %s", key, err)
+		}
+
+		if !ok {
+			return sklog.FmtErrorf("Unable to find issue %d.", issueID)
+		}
+
+		// If this is already committed then we are done.
+		if issue.Commited {
+			return nil
+		}
+
+		// Execute the commit function to commit the actual expectations.
+		if err := commitFn(); err != nil {
+			return err
+		}
+
+		issue.Commited = true
+		return c.updateIfNewer(key, issue, tx, true)
+	}
+
+	_, err := c.client.RunInTransaction(context.Background(), setCommittedFn)
+	return err
 }
 
 // DeleteIssue implements the TryjobStore interface.
@@ -196,7 +234,7 @@ func (c *cloudTryjobStore) GetTryjob(issueID, buildBucketID int64) (*Tryjob, err
 
 // UpdateTryjob implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateTryjob(issueID int64, tryjob *Tryjob) error {
-	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID), tryjob)
+	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID), tryjob, nil, false)
 }
 
 // GetTryjobResults implements the TryjobStore interface.
@@ -617,8 +655,11 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 }
 
 // updateIfNewer inserts the given item at the given key if the item is newer than what's in
-// the database. Based on the return value of the newer function.
-func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface) error {
+// the database. Based on the return value of the newer function. The update happens in a
+// transaction.
+// If tx is not nil the given transaction will be used. If force it true the item
+// will always be updated.
+func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface, tx *datastore.Transaction, force bool) error {
 	// Update the issue if the provided one is newer.
 	updateFn := func(tx *datastore.Transaction) error {
 		curr := reflect.New(reflect.TypeOf(item).Elem()).Interface()
@@ -627,18 +668,21 @@ func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface
 			return err
 		}
 
-		if ok && !item.newer(curr) {
+		if ok && !force && !item.newer(curr) {
 			return nil
 		}
 
-		if _, err := tx.Put(key, item); err != nil {
-			return err
-		}
-		return nil
+		_, err = tx.Put(key, item)
+		return err
 	}
 
 	// Run the transaction.
-	_, err := c.client.RunInTransaction(context.Background(), updateFn)
+	var err error
+	if tx == nil {
+		_, err = c.client.RunInTransaction(context.Background(), updateFn)
+	} else {
+		err = updateFn(tx)
+	}
 	return err
 }
 
