@@ -81,9 +81,10 @@ type Aggregator struct {
 }
 
 const (
-	BAD_FUZZ        = "bad"
-	GREY_FUZZ       = "grey"
-	EMPTY_THRESHOLD = 5
+	BAD_FUZZ               = "bad"
+	GREY_FUZZ              = "grey"
+	EMPTY_THRESHOLD        = 5
+	RETRIES_FOR_BAD_FUZZES = 3
 )
 
 var (
@@ -494,51 +495,61 @@ func analyze(ctx context.Context, workingDirPath, filename, category string) (up
 		Category: category,
 	}
 
-	if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_DEBUG, upload.FilePath, category); err != nil {
-		return upload, err
-	} else {
-		upload.Data.Files["CLANG_DEBUG"] = data.OutputFiles{
-			Key: "CLANG_DEBUG",
-			Content: map[string]string{
-				"stdout": dump,
-				"stderr": stderr,
-			},
+	attempts := 0
+	for {
+		attempts++
+		if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_DEBUG, upload.FilePath, category); err != nil {
+			return upload, err
+		} else {
+			upload.Data.Files["CLANG_DEBUG"] = data.OutputFiles{
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": dump,
+					"stderr": stderr,
+				},
+			}
 		}
-	}
-	if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_RELEASE, upload.FilePath, category); err != nil {
-		return upload, err
-	} else {
-		upload.Data.Files["CLANG_RELEASE"] = data.OutputFiles{
-			Key: "CLANG_RELEASE",
-			Content: map[string]string{
-				"stdout": dump,
-				"stderr": stderr,
-			},
+		if dump, stderr, err := performAnalysis(ctx, workingDirPath, CLANG_RELEASE, upload.FilePath, category); err != nil {
+			return upload, err
+		} else {
+			upload.Data.Files["CLANG_RELEASE"] = data.OutputFiles{
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": dump,
+					"stderr": stderr,
+				},
+			}
 		}
-	}
-	// AddressSanitizer only outputs to stderr
-	if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_DEBUG, upload.FilePath, category); err != nil {
-		return upload, err
-	} else {
-		upload.Data.Files["ASAN_DEBUG"] = data.OutputFiles{
-			Key: "ASAN_DEBUG",
-			Content: map[string]string{
-				"stderr": stderr,
-			},
+		// AddressSanitizer only outputs to stderr
+		if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_DEBUG, upload.FilePath, category); err != nil {
+			return upload, err
+		} else {
+			upload.Data.Files["ASAN_DEBUG"] = data.OutputFiles{
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": stderr,
+				},
+			}
 		}
-	}
-	if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_RELEASE, upload.FilePath, category); err != nil {
-		return upload, err
-	} else {
-		upload.Data.Files["ASAN_RELEASE"] = data.OutputFiles{
-			Key: "ASAN_RELEASE",
-			Content: map[string]string{
-				"stderr": stderr,
-			},
+		if _, stderr, err := performAnalysis(ctx, workingDirPath, ASAN_RELEASE, upload.FilePath, category); err != nil {
+			return upload, err
+		} else {
+			upload.Data.Files["ASAN_RELEASE"] = data.OutputFiles{
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": stderr,
+				},
+			}
 		}
-	}
-	if r := data.ParseGCSPackage(upload.Data); r.IsGrey() {
-		upload.FuzzType = GREY_FUZZ
+		if r := data.ParseGCSPackage(upload.Data); r.IsGrey() {
+			upload.FuzzType = GREY_FUZZ
+			break
+		}
+		// We know the fuzz is bad - re-analyze to avoid fuzzes that may have flaked bad
+		// but are hard to reproduce.
+		if attempts >= RETRIES_FOR_BAD_FUZZES {
+			break
+		}
 	}
 	return upload, nil
 }
