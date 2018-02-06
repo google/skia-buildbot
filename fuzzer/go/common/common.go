@@ -174,7 +174,7 @@ var fuzzers = map[string]FuzzerInfo{
 	"region_set_path": {
 		PrettyName:          "SkRegion set_path",
 		Status:              EXPERIMENTAL_FUZZER,
-		Groomer:             "herb",
+		Groomer:             "reed",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "region_set_path", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
@@ -226,6 +226,7 @@ var FUZZ_CATEGORIES = []string{}
 
 var ANALYSIS_TYPES = []string{"ASAN_RELEASE", "ASAN_DEBUG", "CLANG_RELEASE", "CLANG_DEBUG"}
 
+// TODO(kjlubick): Is it necessary to have two separate lists?
 var STACKTRACE_ORDER = []string{"ASAN_RELEASE", "CLANG_RELEASE", "ASAN_DEBUG", "CLANG_DEBUG"}
 
 func init() {
@@ -263,6 +264,23 @@ func ReplicationArgs(category string) string {
 		return FUZZER_NOT_FOUND
 	}
 	return strings.Join(f.ArgsAfterExecutable, " ")
+}
+
+// CategoryReminder returns a short string to remind a human what fuzz category
+// a fuzz belongs to.  For example "skcodec_scale" -> "image_scale" and
+// "pdf_canvas" -> "api-PDFCanvas"
+func CategoryReminder(category string) string {
+	f, found := fuzzers[category]
+	if !found {
+		sklog.Errorf("Unknown category %s", category)
+		return FUZZER_NOT_FOUND
+	}
+	// assume ['--type', type, {'--name', api_name}]
+	cr := f.ArgsAfterExecutable[1]
+	if cr == "api" {
+		cr += "-" + f.ArgsAfterExecutable[3]
+	}
+	return cr
 }
 
 // HasCategory returns if a given string corresponds to a known fuzzer category.
