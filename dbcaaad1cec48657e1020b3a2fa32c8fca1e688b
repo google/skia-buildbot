@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f5d079a_36b7edaa",
+        "filename": "res/mod/webpack.demo-finder.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-06T19:05:26Z",
+      "side": 1,
+      "message": "!demoHTML, here, line 53 and twice on line 59",
+      "range": {
+        "startLine": 47,
+        "startChar": 12,
+        "endLine": 47,
+        "endChar": 26
+      },
+      "revId": "dbcaaad1cec48657e1020b3a2fa32c8fca1e688b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45b76842_a2736b99",
+        "filename": "res/mod/webpack.demo-finder.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-06T19:05:26Z",
+      "side": 1,
+      "message": "Log something if false?  Perhaps with the expected configuration, or what was found, what was missing?",
+      "range": {
+        "startLine": 69,
+        "startChar": 3,
+        "endLine": 69,
+        "endChar": 5
+      },
+      "revId": "dbcaaad1cec48657e1020b3a2fa32c8fca1e688b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
