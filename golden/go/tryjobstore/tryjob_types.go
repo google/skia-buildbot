@@ -70,6 +70,7 @@ type Issue struct {
 type IssueDetails struct {
 	*Issue
 	PatchsetDetails []*PatchsetDetail `json:"patchsets"`
+	Commited        bool
 	clean           bool
 }
 
@@ -151,8 +152,8 @@ func (t *Tryjob) newer(r interface{}) bool {
 // TryjobResult stores results. It is stored in the database as a child of
 // a Tryjob entity.
 type TryjobResult struct {
-	TestName string              `datastore:"noindex"`
-	Digest   string              `datastore:"noindex"`
+	TestName string              `datastore:"TestName,noindex"`
+	Digest   string              `datastore:"Digest,noindex"`
 	Params   paramtools.ParamSet `datastore:"-"`
 }
 
