@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "e7dafcef_8c1565a6",
+        "filename": "push2/res/mod/push-selection-sk/push-selection-sk.css",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-06T14:27:52Z",
+      "side": 1,
+      "message": "Shadow DOM seems to cause more problems than it\u0027s worth, because at least with v0 custom elements, unless the element author added hooks, you could never change its styling. I don\u0027t know if the rules for how style flows have changed in v1.\n\nWe can always revisit later, but I\u0027d prefer to avoid it for now.",
+      "parentUuid": "f3d3059f_368ba064",
+      "revId": "82d9e8f99165c4f4796e81c9d9d2fe33a33fea3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e03c992c_9db9d080",
         "filename": "push2/res/mod/webpack.config.js",
         "patchSetId": 5
