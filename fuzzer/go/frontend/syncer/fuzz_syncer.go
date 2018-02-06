@@ -31,12 +31,25 @@ type FuzzSyncer struct {
 
 // FuzzCount is a struct that holds the counts of fuzzes across all architectures.
 type FuzzCount struct {
-	TotalBad  int `json:"totalBadCount"`
-	TotalGrey int `json:"totalGreyCount"`
-	// "This" means "newly introduced/fixed in this revision"
-	ThisBad        int `json:"thisBadCount"`
-	ThisRegression int `json:"thisRegressionCount"`
+	HighPriority int `json:"highPriorityCount"`
+	MedPriority  int `json:"mediumPriorityCount"`
+	LowPriority  int `json:"lowPriorityCount"`
 }
+
+var HIGH_PRIORITY_FLAGS = util.NewStringSet([]string{
+	"ASAN_global-buffer-overflow",
+	"ASAN_heap-buffer-overflow",
+	"ASAN_stack-buffer-overflow",
+	"ASAN_heap-use-after-free",
+})
+
+var MEDIUM_PRIORITY_FLAGS = util.NewStringSet([]string{
+	"ClangCrashed",
+	"ASANCrashed",
+	"Other",
+})
+
+// LOW_PRIORITY is everything else
 
 // NewFuzzSyncer creates a FuzzSyncer and returns it.
 func New(s *storage.Client) *FuzzSyncer {
@@ -68,45 +81,60 @@ func (f *FuzzSyncer) Start() {
 
 // Refresh updates the LastCount with fresh data.  Any errors are logged.
 func (f *FuzzSyncer) Refresh() {
-	sklog.Info("Counting bad and grey fuzzes")
+	sklog.Info("Counting fuzzes (high, medium, low severity)")
 	currRevision := config.Common.SkiaVersion.Hash
-	prevRevision, err := f.getMostRecentOldRevision()
-	if err != nil {
-		sklog.Infof("Problem getting most recent old version: %s", err)
-		return
-	}
-	f.countMutex.Lock()
-	defer f.countMutex.Unlock()
+
 	allBadFuzzes := util.NewStringSet()
 
 	for _, cat := range common.FUZZ_CATEGORIES {
-		lastCount := FuzzCount{}
-
-		previousGreyNames := util.NewStringSet()
-		previousBadNames := util.NewStringSet()
-		currentGreyNames := util.NewStringSet()
 		currentBadNames := util.NewStringSet()
 		for _, a := range common.ARCHITECTURES {
-			// Previous fuzzes and current grey fuzzes can be drawn from the cache, if they aren't there.
-			previousGreyNames = previousGreyNames.Union(f.getOrLookUpFuzzNames("grey", cat, a, prevRevision))
-			previousBadNames = previousBadNames.Union(f.getOrLookUpFuzzNames("bad", cat, a, prevRevision))
-			currentGreyNames = currentGreyNames.Union(f.getOrLookUpFuzzNames("grey", cat, a, currRevision))
 			// always fetch current counts
 			currentBadNames = currentBadNames.Union(f.getFuzzNames("bad", cat, a, currRevision))
 		}
 
-		lastCount.TotalBad = len(currentBadNames)
-		lastCount.TotalGrey = len(currentGreyNames)
-		lastCount.ThisBad = len(currentBadNames.Complement(previousBadNames).Complement(previousGreyNames))
-		lastCount.ThisRegression = len(previousGreyNames.Intersect(currentBadNames))
 		allBadFuzzes = allBadFuzzes.Union(currentBadNames)
-
-		f.lastCount[cat] = lastCount
 	}
 
-	if err = f.updateLoadedBinaryFuzzes(allBadFuzzes.Keys()); err != nil {
+	if err := f.updateLoadedBinaryFuzzes(allBadFuzzes.Keys()); err != nil {
 		sklog.Errorf("Problem updating loaded binary fuzzes: %s", err)
 	}
+
+	if f.gcsLoader == nil || f.gcsLoader.Pool == nil {
+		sklog.Infof("Skipping summary updates because pool not ready")
+		return
+	}
+	f.countMutex.Lock()
+	defer f.countMutex.Unlock()
+	counts := map[string]FuzzCount{}
+	for _, f := range f.gcsLoader.Pool.Reports() {
+		if f.IsGrey {
+			continue
+		}
+		c, ok := counts[f.FuzzCategory]
+		if !ok {
+			c = FuzzCount{}
+		}
+		hi, med := false, false
+		for _, flags := range f.Flags {
+			xf := util.NewStringSet(flags)
+			if len(HIGH_PRIORITY_FLAGS.Intersect(xf)) > 0 {
+				hi = true
+			} else if len(MEDIUM_PRIORITY_FLAGS.Intersect(xf)) > 0 {
+				med = true
+			}
+		}
+
+		if hi {
+			c.HighPriority++
+		} else if med {
+			c.MedPriority++
+		} else {
+			c.LowPriority++
+		}
+		counts[f.FuzzCategory] = c
+	}
+	f.lastCount = counts
 }
 
 // getMostRecentOldRevision finds the most recently updated revision used.
@@ -134,8 +162,8 @@ func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 // itself to avoid staleness (for example, after a version update).
 func (f *FuzzSyncer) getOrLookUpFuzzNames(fuzzType, category, architecture, revision string) util.StringSet {
 	key := strings.Join([]string{fuzzType, category, architecture, revision}, "|")
-	// 5% of the time, we purge the cache
-	cachePurge := rand.Float32() > 0.95
+	// 1% of the time, we purge the cache
+	cachePurge := rand.Float32() > 0.99
 	if cachePurge {
 		sklog.Info("Purging the cached fuzz names")
 		f.fuzzNameCache = make(map[string]util.StringSet)
