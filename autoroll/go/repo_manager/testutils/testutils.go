@@ -38,7 +38,7 @@ func NewRepoManager(t *testing.T, rollIntoAndroid bool) *MockRepoManager {
 
 // MockRepoManagers fakes out the New*RepoManager functions.
 func MockDEPSRepoManager(t *testing.T) {
-	repo_manager.NewDEPSRepoManager = func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, repo_manager.NextRollStrategy, []string, bool, []string, string) (repo_manager.RepoManager, error) {
+	repo_manager.NewDEPSRepoManager = func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, repo_manager.NextRollStrategy, []string, bool, string, string) (repo_manager.RepoManager, error) {
 		return NewRepoManager(t, false), nil
 	}
 	repo_manager.NewAndroidRepoManager = func(context.Context, string, string, string, string, gerrit.GerritInterface, repo_manager.NextRollStrategy, []string, string) (repo_manager.RepoManager, error) {

@@ -110,7 +110,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	g := setupFakeGerrit(t, wd)
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -140,6 +140,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	// User, name only.
 	assert.Equal(t, mockUser, rm.User())
 }
+
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	testutils.LargeTest(t)
 
@@ -149,7 +150,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	s, err := GetNextRollStrategy(strategy, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -186,7 +187,7 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, nil, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
 	assert.NoError(t, err)
 
 	ran := false
@@ -215,7 +216,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
 
-		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, includeLog, nil, "fake.server.com")
+		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, includeLog, "", "fake.server.com")
 		assert.NoError(t, err)
 
 		// Create a roll.
@@ -237,8 +238,8 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 	test(false)
 }
 
-// Verify that we properly utilize DEPS custom vars.
-func TestDEPSRepoManagerCustomVars(t *testing.T) {
+// Verify that we properly utilize a gclient spec.
+func TestDEPSRepoManagerGclientSpec(t *testing.T) {
 	testutils.LargeTest(t)
 
 	ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
@@ -247,33 +248,40 @@ func TestDEPSRepoManagerCustomVars(t *testing.T) {
 	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
 	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	customVars := []string{
-		"a=b",
-		"c=d",
-	}
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, customVars, "fake.server.com")
+	gclientSpec := fmt.Sprintf(`
+solutions=[{
+  "name": "%s",
+  "url": "%s",
+  "deps_file": "DEPS",
+  "managed": True,
+  "custom_deps": {},
+  "custom_vars": {
+    "a": "b",
+    "c": "d",
+  },
+}];
+cache_dir=None
+`, path.Base(parent.RepoUrl()), parent.RepoUrl())
+	// Remove newlines.
+	gclientSpec = strings.Replace(gclientSpec, "\n", "", -1)
+
+	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, gclientSpec, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll.
 	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 
-	// Ensure that --no-log is present or not, according to includeLog.
-	found1 := false
-	found2 := false
+	// Ensure that we pass the spec into "gclient config".
+	found := false
 	for _, c := range mockRun.Commands() {
 		if c.Name == "python" && strings.Contains(c.Args[0], "gclient.py") && c.Args[1] == "config" {
-			for idx, arg := range c.Args {
-				if arg == "--custom-var" {
-					if c.Args[idx+1] == customVars[0] {
-						found1 = true
-					} else if c.Args[idx+1] == customVars[1] {
-						found2 = true
-					}
+			for _, arg := range c.Args {
+				if arg == "--spec="+gclientSpec {
+					found = true
 				}
 			}
 		}
 	}
-	assert.True(t, found1)
-	assert.True(t, found2)
+	assert.True(t, found)
 }

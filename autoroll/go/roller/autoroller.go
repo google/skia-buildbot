@@ -128,8 +128,8 @@ func NewAndroidAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller,
 }
 
 // NewDEPSAutoRoller returns an AutoRoller instance which rolls using DEPS.
-func NewDEPSAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool, depsCustomVars []string) (*AutoRoller, error) {
-	rm, err := repo_manager.NewDEPSRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, includeLog, depsCustomVars, c.ServerURL)
+func NewDEPSAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool, gclientSpec string) (*AutoRoller, error) {
+	rm, err := repo_manager.NewDEPSRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, includeLog, gclientSpec, c.ServerURL)
 	if err != nil {
 		return nil, err
 	}

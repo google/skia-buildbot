@@ -143,11 +143,11 @@ func (r *commonRepoManager) CommitsNotRolled() int {
 // depot_tools to manage checkouts.
 type depotToolsRepoManager struct {
 	*commonRepoManager
-	depsCustomVars []string
-	depot_tools    string
-	gclient        string
-	parentDir      string
-	parentRepo     string
+	depot_tools string
+	gclient     string
+	gclientSpec string
+	parentDir   string
+	parentRepo  string
 }
 
 // GetEnvForDepotTools returns the environment used for depot_tools commands.
@@ -200,9 +200,11 @@ func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 		}
 	}
 
-	args := []string{r.gclient, "config", r.parentRepo}
-	for _, v := range r.depsCustomVars {
-		args = append(args, "--custom-var", v)
+	args := []string{r.gclient, "config"}
+	if r.gclientSpec != "" {
+		args = append(args, fmt.Sprintf("--spec=%s", r.gclientSpec))
+	} else {
+		args = append(args, r.parentRepo)
 	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,

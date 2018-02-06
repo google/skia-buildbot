@@ -59,7 +59,7 @@ var (
 	childName       = flag.String("childName", "Skia", "Name of the project to roll.")
 	childPath       = flag.String("childPath", "src/third_party/skia", "Path within parent repo of the project to roll.")
 	cqExtraTrybots  = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
-	depsCustomVars  = common.NewMultiStringFlag("deps_custom_var", nil, "Custom vars to pass to gclient, in the form \"key=value\"")
+	gclientSpec     = flag.String("gclient_spec", "", "Override the default gclient spec with this string.")
 	gerritUrl       = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
 	host            = flag.String("host", "localhost", "HTTP service host")
 	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -457,7 +457,7 @@ func main() {
 	} else if *useManifest {
 		arb, err = roller.NewManifestAutoRoller(ctx, cfg)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(ctx, cfg, !*noLog, *depsCustomVars)
+		arb, err = roller.NewDEPSAutoRoller(ctx, cfg, !*noLog, *gclientSpec)
 	}
 	if err != nil {
 		sklog.Fatal(err)
