@@ -1,11 +1,11 @@
 default:
-	npm run build
+	npx webpack
 
 release:
-	npm run release
+	npx webpack --config webpack.prod.js --define process.env.NODE_ENV=production
 
 serve:
-	npm run serve
+	npx webpack-dev-server --content-base ./dist --watch
 
 publish:
 	npm publish

@@ -4,10 +4,6 @@
   "description": "Skia Push modules.",
   "main": "index.js",
   "license": "MIT",
-  "scripts": {
-    "build": "webpack",
-    "serve": "webpack-dev-server --content-base ./dist --watch"
-  },
   "devDependencies": {
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.7.1",

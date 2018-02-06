@@ -4,12 +4,6 @@
   "private": false,
   "description": "A set of light-weight custom elements with a uniform style.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
-    "release": "webpack --config webpack.prod.js --define process.env.NODE_ENV=production",
-    "serve": "webpack-dev-server --content-base ./dist --watch"
-  },
   "author": "",
   "license": "Apache 2.0",
   "devDependencies": {
