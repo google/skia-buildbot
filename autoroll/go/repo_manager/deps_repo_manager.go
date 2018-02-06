@@ -10,11 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -28,7 +27,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool, []string, string) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool, string, string) (RepoManager, error) = newDEPSRepoManager
 )
 
 // issueJson is the structure of "git cl issue --json"
@@ -46,7 +45,7 @@ type depsRepoManager struct {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool, depsCustomVars []string, serverURL string) (RepoManager, error) {
+func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool, gclientSpec, serverURL string) (RepoManager, error) {
 	gclient := path.Join(depot_tools, GCLIENT)
 	rollDep := path.Join(depot_tools, ROLL_DEP)
 
@@ -85,11 +84,11 @@ func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, 
 				user:           user,
 				workdir:        wd,
 			},
-			depot_tools:    depot_tools,
-			depsCustomVars: depsCustomVars,
-			gclient:        gclient,
-			parentDir:      parentDir,
-			parentRepo:     parentRepo,
+			depot_tools: depot_tools,
+			gclient:     gclient,
+			gclientSpec: gclientSpec,
+			parentDir:   parentDir,
+			parentRepo:  parentRepo,
 		},
 		includeLog: includeLog,
 		rollDep:    rollDep,

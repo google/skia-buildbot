@@ -15,7 +15,7 @@ ExecStart=/usr/local/bin/autoroll \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=src-internal \
     --childPath=src-internal \
-    --deps_custom_var checkout_src_internal=True \
+    --gclient_spec='solutions=[{"name":"src","url":"https://chromium.googlesource.com/chromium/src.git","deps_file":"DEPS","managed":True,"custom_deps":{},"custom_vars":{'checkout_src_internal':True}}];cache_dir = None' \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=mmoss@chromium.org
 Restart=always

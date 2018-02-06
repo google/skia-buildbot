@@ -15,8 +15,7 @@ ExecStart=/usr/local/bin/autoroll \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=ios_internal \
     --childPath=src/ios_internal \
-    --deps_custom_var checkout_ios=True \
-    --deps_custom_var checkout_google_internal=True \
+    --gclient_spec='solutions=[{"name":"src","url":"https://chromium.googlesource.com/chromium/src.git","deps_file":"DEPS","managed":True,"custom_deps":{},"custom_vars":{"checkout_ios":True,"checkout_google_internal":True}}];cache_dir=None' \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=https://build.chromium.org/deprecated/chromium/sheriff_ios_europe.js \
     --sheriff=https://build.chromium.org/deprecated/chromium/sheriff_ios_us.js
