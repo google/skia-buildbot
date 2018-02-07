@@ -91,3 +91,5 @@ prober/allprobers.json5
 push/allskiapush.json5
 # AP
 dist
+# /res/mod
+res/mod/demo-index.html

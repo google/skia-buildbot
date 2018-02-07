@@ -58,6 +58,9 @@ module.exports.commonBuilder = function(dirname) {
       // directory.
       modules: [path.resolve(__dirname, 'node_modules'), 'node_modules'],
     },
+    watchOptions: {
+      ignored: '/tmp/demo-index.html',
+    },
     module: {
       rules: [
         {

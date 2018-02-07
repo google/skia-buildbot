@@ -1,5 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { lstatSync, readdirSync } = require('fs')
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const { lstatSync, readdirSync, writeFileSync } = require('fs')
 const { basename, join, resolve } = require('path')
 
 /* Exports a function that will look at all subdirectories of 'dir',
@@ -36,6 +37,7 @@ module.exports.demoFinder = function(dir, webpack_config) {
   // Find all the dirs below 'dir'.
   const isDir = filename => lstatSync(filename).isDirectory()
   const dirs = readdirSync(dir).map(name => join(dir, name)).filter(isDir);
+  let foundDemos = [];
 
   dirs.forEach(d => {
     // Look for both a *-demo.js and *-demo.html file in the directory.
@@ -58,6 +60,7 @@ module.exports.demoFinder = function(dir, webpack_config) {
     });
     if (!!demoJS && !!demoHTML) {
       let name = basename(d);
+      foundDemos.push(name + '.html');
       webpack_config.entry[name] = join(d, demoJS);
       webpack_config.plugins.push(
         new HtmlWebpackPlugin({
@@ -68,6 +71,19 @@ module.exports.demoFinder = function(dir, webpack_config) {
       );
     } else if (!!demoJS || !!demoHTML) {
       console.log("WARNING: An element needs both a *-demo.js and a *-demo.html file.");
+    }
+    if (foundDemos) {
+      foundDemos.sort();
+      let links = foundDemos.map(name => `<li><a href="${name}">${name}</a></li>`).join('\n');
+      writeFileSync('/tmp/demo-index.html', `<html><body><ul>${links}</ul></body></html>`);
+      webpack_config.plugins.push(
+         new CopyWebpackPlugin([
+            {
+              from: '/tmp/demo-index.html',
+              to: 'demo.html',
+            },
+         ])
+      );
     }
   });
 
