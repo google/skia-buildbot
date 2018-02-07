@@ -110,6 +110,9 @@ func TestGetPatch(t *testing.T) {
 
 	patch, err := api.GetPatch(2370, "current")
 	assert.NoError(t, err)
+
+	// Note: The trailing spaces and newlines were added this way
+	// because editor plug-ins remove white spaces from the raw string.
 	expected := `
 
 diff --git a/whitespace.txt b/whitespace.txt
@@ -118,11 +121,8 @@ index c0f0a49..d5733b3 100644
 +++ b/whitespace.txt
 @@ -1,4 +1,5 @@
  testing
-+
-  
- 
- 
-`
++` + "\n  \n \n \n"
+
 	assert.Equal(t, expected, patch)
 }
 
@@ -287,24 +287,6 @@ func TestAbandon(t *testing.T) {
 	assert.Error(t, err, "Got status 409 Conflict (409)")
 }
 
-func TestUrlAndExtractIssue(t *testing.T) {
-	testutils.SmallTest(t)
-	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
-	assert.NoError(t, err)
-	assert.Equal(t, GERRIT_SKIA_URL, api.Url(0))
-	url1 := api.Url(1234)
-	assert.Equal(t, fmt.Sprintf("%s/c/%d", GERRIT_SKIA_URL, 1234), url1)
-	found, ok := api.ExtractIssue(url1)
-	assert.True(t, ok)
-	assert.Equal(t, "1234", found)
-	found, ok = api.ExtractIssue(fmt.Sprintf("%s/%d", GERRIT_SKIA_URL, 1234))
-	assert.Equal(t, "", found)
-	assert.False(t, ok)
-	found, ok = api.ExtractIssue("random string")
-	assert.Equal(t, "", found)
-	assert.False(t, ok)
-}
-
 func TestFiles(t *testing.T) {
 	testutils.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -349,5 +331,26 @@ func TestFiles(t *testing.T) {
 	assert.Contains(t, files, "tools/gpu/vk/GrVulkanDefines.h")
 
 	files, err = api.Files(12345678, "alert()")
+	assert.Error(t, err)
+}
+
+func TestExtractIssueFromCommit(t *testing.T) {
+	testutils.SmallTest(t)
+	cmtMsg := `
+   	Author: John Doe <jdoe@example.com>
+		Date:   Mon Feb 5 10:51:20 2018 -0500
+
+    Some change
+
+    Change-Id: I26c4fd0e1414ab2385e8590cd729bc70c66ef37e
+    Reviewed-on: https://skia-review.googlesource.com/549319
+    Commit-Queue: John Doe <jdoe@example.com>
+	`
+	api, err := NewGerrit(GERRIT_SKIA_URL, "", nil)
+	assert.NoError(t, err)
+	issueID, err := api.ExtractIssueFromCommit(cmtMsg)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(549319), issueID)
+	_, err = api.ExtractIssueFromCommit("")
 	assert.Error(t, err)
 }

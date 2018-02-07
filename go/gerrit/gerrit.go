@@ -1,6 +1,7 @@
 package gerrit
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -67,6 +68,9 @@ const (
 	PRESUBMIT_VERIFIED_LABEL_ACCEPTED = 1
 
 	URL_TMPL_CHANGE = "/changes/%d/detail?o=ALL_REVISIONS"
+
+	// extractReg is the regular expression used by ExtractIssueFromCommit.
+	extractRegTmpl = `^\s*Reviewed-on:\s*%s/([0-9]+)\s*$`
 )
 
 // ChangeInfo contains information about a Gerrit issue.
@@ -142,7 +146,7 @@ type GerritInterface interface {
 	Url(int64) string
 	GetUserEmail() (string, error)
 	GetRepoUrl() string
-	ExtractIssue(string) (string, bool)
+	ExtractIssueFromCommit(string) (int64, error)
 	GetIssueProperties(int64) (*ChangeInfo, error)
 	GetPatch(int64, string) (string, error)
 	SetReview(*ChangeInfo, string, map[string]interface{}) error
@@ -167,6 +171,7 @@ type Gerrit struct {
 	gitCookiesPath       string
 	url                  string
 	useAuthenticatedGets bool
+	extractRegEx         *regexp.Regexp
 }
 
 // NewGerrit returns a new Gerrit instance. If gitCookiesPath is empty the
@@ -174,6 +179,13 @@ type Gerrit struct {
 // anonymous users.
 func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
 	url = strings.TrimRight(url, "/")
+
+	regExStr := fmt.Sprintf(extractRegTmpl, url)
+	extractRegEx, err := regexp.Compile(regExStr)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Unable to compile regular expression '%s'. Error: %s", regExStr, err)
+	}
+
 	if client == nil {
 		client = httputils.NewTimeoutClient()
 	}
@@ -182,6 +194,7 @@ func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error)
 		client:            client,
 		buildbucketClient: buildbucket.NewClient(client),
 		gitCookiesPath:    gitCookiesPath,
+		extractRegEx:      extractRegEx,
 	}, nil
 }
 
@@ -270,22 +283,27 @@ func (g *Gerrit) GetRepoUrl() string {
 	return strings.Replace(g.url, "-review", "", 1)
 }
 
-// extractReg is the regular expression used by ExtractIssue.
-var extractReg = regexp.MustCompile("^/c/([0-9]+)$")
+// ExtractIssueFromCommit returns the issue id by parsing the commit message of
+// a landed commit. It expects the commit message to contain one line in this format:
+//
+//     Reviewed-on: https://skia-review.googlesource.com/999999
+//
+// where the digits at the end are the issue id.
+func (g *Gerrit) ExtractIssueFromCommit(commitMsg string) (int64, error) {
+	scanner := bufio.NewScanner(bytes.NewBuffer([]byte(commitMsg)))
+	for scanner.Scan() {
+		line := scanner.Text()
+		result := g.extractRegEx.FindStringSubmatch(line)
+		if len(result) == 2 {
+			ret, err := strconv.ParseInt(result[1], 10, 64)
+			if err != nil {
+				return 0, sklog.FmtErrorf("Unable to parse issue id '%s'. Got error: %s", err)
+			}
 
-// ExtractIssue returns the issue id as a string given the issue URL.
-// The second return value is true if the issueURL matches the current Gerrit
-// instance. If it is false the first return value should be ignored.
-func (g *Gerrit) ExtractIssue(issueURL string) (string, bool) {
-	if !strings.HasPrefix(issueURL, g.url) {
-		return "", false
+			return ret, nil
+		}
 	}
-
-	match := extractReg.FindStringSubmatch(strings.TrimRight(issueURL[len(g.url):], "/"))
-	if len(match) != 2 {
-		return "", false
-	}
-	return match[1], true
+	return 0, sklog.FmtErrorf("Unable to extract issue id from commit message.")
 }
 
 // Fix up a ChangeInfo object, received via the Gerrit API, to contain all of
