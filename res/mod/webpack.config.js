@@ -1,14 +1,4 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { commonBuilder } = require('./webpack.common.js');
+const { demoFinder } = require('./webpack.demo-finder.js')
 
-let common = commonBuilder(__dirname);
-common.entry.demo = './demo/demo.js';
-common.output.library = 'Demo';
-common.plugins.push(
-  new HtmlWebpackPlugin({
-    filename: 'index.html',
-    template: './demo/demo.html',
-  }),
-);
-
-module.exports = common;
+module.exports = demoFinder(__dirname, commonBuilder(__dirname));
