@@ -6,7 +6,7 @@ common.entry.demo = './demo/demo.js';
 common.output.library = 'Demo';
 common.plugins.push(
   new HtmlWebpackPlugin({
-    filename: 'demo.html',
+    filename: 'index.html',
     template: './demo/demo.html',
   }),
 );

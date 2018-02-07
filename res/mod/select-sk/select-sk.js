@@ -54,15 +54,18 @@ window.customElements.define('select-sk', class extends HTMLElement {
     let oldIndex = this._selection;
     // Look up the DOM path until we find an element that is a child of
     // 'this', and set _selection based on that.
-    e.path.forEach(ele => {
-      if (ele.parentElement === this) {
-        for (let i = 0; i < this.children.length; i++) {
-          if (this.children[i] === ele) {
-            this._selection = i;
-          }
+    let target = e.target;
+    while (target && target.parentElement !== this) {
+      target = target.parentElement;
+    }
+    if (target && target.parentElement === this) {
+      for (let i = 0; i < this.children.length; i++) {
+        if (this.children[i] === target) {
+          this._selection = i;
+          break;
         }
       }
-    });
+    }
     this._rationalize();
     if (oldIndex != this._selection) {
       this.dispatchEvent(new CustomEvent('selection-changed', {

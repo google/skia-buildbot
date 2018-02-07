@@ -6,7 +6,7 @@ Importing
 =========
 
 Code from this library should imported under the 'skia-elements' name.
-See `pages/demo.js` as an example.
+See `pages/index.js` as an example.
 
 If not loaded via npm/yarn then the `ap` directory will need to be
 added in your `webpack.config.js` under [resolve.modules](https://webpack.js.org/configuration/resolve/#resolve-modules),
