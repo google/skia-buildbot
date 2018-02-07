@@ -88,16 +88,20 @@
             <template is="dom-if" if="[[task.osType]]">
               <br/>
               Dimensions: [[ displayDimensions(task) ]]
-            <template is="dom-if" if="[[task.taskIdForIsolates]]">
-              <br/>
-              Task For Isolates: <a href="[[ getSwarmingTaskLink(task.taskIdForIsolates, task.swarmingServer) ]]" target="_blank">Link</a>
-            </template>
-            <template is="dom-if" if="[[task.setupDebugger]]">
-              <br/>
-              Debugger setup: [[task.setupDebugger]]
+              <template is="dom-if" if="[[task.botId]]">
+                <br/>
+                Bot Id: <a href="[[ getBotLink(task.botId, task.swarmingServer) ]]" target="_blank">[[task.botId]]</a>
+              </template>
+              <template is="dom-if" if="[[task.taskIdForIsolates]]">
+                <br/>
+                Task For Isolates: <a href="[[ getSwarmingTaskLink(task.taskIdForIsolates, task.swarmingServer) ]]" target="_blank">Link</a>
+              </template>
+              <template is="dom-if" if="[[task.setupDebugger]]">
+                <br/>
+                Debugger setup: [[task.setupDebugger]]
+              </template>
             </template>
           </td>
-            </template>
           </td>
           <td>
 	    Task Log:
@@ -191,6 +195,10 @@
         ret += " - " + leasing.alias.android(task.deviceType) + leasing.alias.getAKAStr(task.deviceType);
       }
       return ret;
+    },
+
+    getBotLink: function(botId, swarmingServer) {
+      return "https://" + swarmingServer + "/bot?id="+ botId;
     },
 
     getSwarmingTaskLink: function(taskId, swarmingServer) {
