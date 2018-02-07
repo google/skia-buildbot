@@ -91,7 +91,7 @@ window.customElements.define('push-selection-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this, this.choices, this.chosen), this);
+    render(template(this), this);
   }
 
   get choices() { return this._choices; }
