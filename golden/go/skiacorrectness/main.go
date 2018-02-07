@@ -313,6 +313,7 @@ func main() {
 		TryjobStore:       tryjobStore,
 		GerritAPI:         gerritAPI,
 		GStorageClient:    gsClient,
+		Git:               git,
 	}
 
 	// Load the whitelist if there is one and disable querying for issues.
