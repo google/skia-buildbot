@@ -18,11 +18,15 @@ debug_leasing: clean_webtools debug_core_js debug_elements_html skiaversion
 	go install -v ./go/...
 
 .PHONY: leasing
-leasing: elements_html
+leasing: clean_webtools elements_html
 	go install -v ./go/...
 
 .PHONY: leasing_release
 leasing_release: leasing
 	./build_release "`git log -n1 --format=%s`"
+
+.PHONY: leasing_push
+leasing_push: leasing
 	go install -v ../push/go/pushcli
+	./build_release "`git log -n1 --format=%s`"
 	pushcli leasingd skia-leasing
