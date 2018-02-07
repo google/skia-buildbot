@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
@@ -8,9 +9,11 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
+	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -38,12 +41,11 @@ type Storage struct {
 	TryjobStore       tryjobstore.TryjobStore
 	GerritAPI         *gerrit.Gerrit
 	GStorageClient    *GStorageClient
+	Git               *gitinfo.GitInfo
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
 	NCommits int
-
-	quiteListQuery paramtools.ParamSet
 
 	// Internal variables used to cache trimmed tiles.
 	lastTrimmedTile        *tiling.Tile
@@ -226,6 +228,9 @@ func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
 		}, nil
 	}
 
+	// check if all the expectations of all commits have been added to the tile.
+	s.checkCommitableIssues(tile)
+
 	// Get the tile without the ignored traces.
 	retIgnoredTile, ignoreRules, err := FilterIgnored(tile, s.IgnoreStore)
 	if err != nil {
@@ -330,4 +335,37 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 	ret.ParamSet = paramSet
 	sklog.Infof("Whitelisted %d of %d traces.", len(ret.Traces), len(tile.Traces))
 	return ret
+}
+
+// checkCommitableIssues checks all commits of the current tile whether
+// the associated expectations have been added to the baseline of the master.
+func (s *Storage) checkCommitableIssues(tile *tiling.Tile) {
+	go func() {
+		var egroup errgroup.Group
+
+		for _, commit := range tile.Commits[:tile.LastCommitIndex()+1] {
+			func(commit *tiling.Commit) {
+				egroup.Go(func() error {
+					longCommit, err := s.Git.Details(context.Background(), commit.Hash, true)
+					if err != nil {
+						return sklog.FmtErrorf("Error retrieving details for commit %s. Got error: %s", commit.Hash, err)
+					}
+
+					issueID, err := s.GerritAPI.ExtractIssueFromCommit(longCommit.Body)
+					if err != nil {
+						return sklog.FmtErrorf("Unable to extract gerrit issue from commit %s. Got error: %s", commit.Hash, err)
+					}
+
+					if err := baseline.CommitIssueBaseline(issueID, longCommit.Author, s.TryjobStore, s.ExpectationsStore); err != nil {
+						return sklog.FmtErrorf("Error retrieving details for commit %s. Got error: %s", commit.Hash, err)
+					}
+					return nil
+				})
+			}(commit)
+		}
+
+		if err := egroup.Wait(); err != nil {
+			sklog.Errorf("Error trying issue commits: %s", err)
+		}
+	}()
 }
