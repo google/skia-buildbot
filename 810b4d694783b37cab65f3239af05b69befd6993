@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a87cb505_113b6f97",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-07T17:48:58Z",
+      "side": 1,
+      "message": "I\u0027m not sure if we are supposed to link to *.googleplex in commit messages.  For Swarming, M-A told me to just include the screenshots in the Review Request, so they were still there, just not in the commit message.",
+      "revId": "810b4d694783b37cab65f3239af05b69befd6993",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9304191a_103e1727",
+        "filename": "res/mod/systemd-unit-status-sk/systemd-unit-status-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-07T17:48:58Z",
+      "side": 1,
+      "message": "Isn\u0027t this a polymer thing?  Do we still need to do it for lit-html?",
+      "range": {
+        "startLine": 9,
+        "startChar": 24,
+        "endLine": 9,
+        "endChar": 26
+      },
+      "revId": "810b4d694783b37cab65f3239af05b69befd6993",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
