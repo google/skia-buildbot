@@ -151,6 +151,19 @@ func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller
 	return newAutoRoller(ctx, retrieveRoll, rm, c)
 }
 
+// NewChromiumAFDOAutoRoller returns an AutoRoller instance which rolls Android
+// AFDO profile versions into Chromium.
+func NewChromiumAFDOAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
+	rm, err := repo_manager.NewAFDORepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.DepotTools, c.Gerrit, c.ServerURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
+		return newGerritRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
+	}
+	return newAutoRoller(ctx, retrieveRoll, rm, c)
+}
+
 // isSyncError returns true iff the error looks like a sync error.
 func isSyncError(err error) bool {
 	// TODO(borenet): Remove extra logging.

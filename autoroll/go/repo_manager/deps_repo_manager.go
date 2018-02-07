@@ -122,7 +122,7 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Find the number of not-rolled child repo commits.
-	notRolled, err := dr.GetCommitsNotRolled(ctx, lastRollRev)
+	notRolled, err := dr.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}

@@ -34,11 +34,9 @@ be CC'd on the roll, and stop the roller if necessary.
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
-	ChildRevList(context.Context, ...string) ([]string, error)
 	CommitsNotRolled() int
 	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
 	FullChildHash(context.Context, string) (string, error)
-	GetCommitsNotRolled(context.Context, string) (int, error)
 	LastRollRev() string
 	NextRollRev() string
 	PreUploadSteps() []PreUploadStep
@@ -66,13 +64,6 @@ type commonRepoManager struct {
 	strategy         NextRollStrategy
 	user             string
 	workdir          string
-}
-
-// ChildRevList returns a slice of commit hashes from the child repo.
-func (r *commonRepoManager) ChildRevList(ctx context.Context, args ...string) ([]string, error) {
-	r.repoMtx.RLock()
-	defer r.repoMtx.RUnlock()
-	return r.childRepo.RevList(ctx, args...)
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
@@ -225,7 +216,7 @@ func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 	return nil
 }
 
-func (r *depotToolsRepoManager) GetCommitsNotRolled(ctx context.Context, lastRollRev string) (int, error) {
+func (r *depotToolsRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) (int, error) {
 	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
 	if err != nil {
 		return -1, err

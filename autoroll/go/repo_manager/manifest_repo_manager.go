@@ -109,7 +109,7 @@ func (mr *manifestRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Find the number of not-rolled child repo commits.
-	notRolled, err := mr.GetCommitsNotRolled(ctx, lastRollRev)
+	notRolled, err := mr.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}

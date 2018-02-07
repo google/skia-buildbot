@@ -72,6 +72,7 @@ var (
 	preUploadSteps  = common.NewMultiStringFlag("pre_upload_step", nil, "Named steps to run before uploading roll CLs. Pre-upload steps and their names are available in https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go")
 	promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir    = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	rollAFDO        = flag.Bool("roll_afdo", false, "Roll Android AFDO profiles into Chromium.")
 	rollIntoAndroid = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
 	rollIntoGoogle3 = flag.Bool("roll_into_google3", false, "Roll into Google3; do not do a Gerrit roll.")
 	sheriff         = common.NewMultiStringFlag("sheriff", nil, "Email address to CC on rolls, or URL from which to obtain such an email address.")
@@ -456,6 +457,8 @@ func main() {
 		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, *childBranch)
 	} else if *useManifest {
 		arb, err = roller.NewManifestAutoRoller(ctx, cfg)
+	} else if *rollAFDO {
+		arb, err = roller.NewChromiumAFDOAutoRoller(ctx, cfg)
 	} else {
 		arb, err = roller.NewDEPSAutoRoller(ctx, cfg, !*noLog, *gclientSpec)
 	}
