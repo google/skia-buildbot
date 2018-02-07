@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4c52ce2e_ea94c969",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-02-07T15:03:52Z",
+      "side": 1,
+      "message": "That\u0027s not possible here because the regex depends on the url. But I made it return an error. \nThe Gerrit instance is usually created at the beginning of a program and it will fail if the \nthe regex doesn\u0027t compile.",
+      "parentUuid": "3c7a1f58_83826c34",
+      "range": {
+        "startLine": 182,
+        "startChar": 17,
+        "endLine": 182,
+        "endChar": 35
+      },
+      "revId": "0de50a5a22450f44a61a40c4e5fbf0bdd038c81d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b14aeb16_42a85dc6",
         "filename": "go/gerrit/gerrit_test.go",
         "patchSetId": 14
@@ -39,6 +63,24 @@
       "revId": "0de50a5a22450f44a61a40c4e5fbf0bdd038c81d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "727b394a_5599de45",
+        "filename": "go/gerrit/gerrit_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-02-07T15:03:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b14aeb16_42a85dc6",
+      "revId": "0de50a5a22450f44a61a40c4e5fbf0bdd038c81d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -62,6 +104,30 @@
       "revId": "0de50a5a22450f44a61a40c4e5fbf0bdd038c81d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "271cbdb7_8174f949",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-02-07T15:03:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99397e1b_b37dc702",
+      "range": {
+        "startLine": 360,
+        "startChar": 6,
+        "endLine": 360,
+        "endChar": 11
+      },
+      "revId": "0de50a5a22450f44a61a40c4e5fbf0bdd038c81d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
