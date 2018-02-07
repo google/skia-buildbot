@@ -115,13 +115,14 @@ func StrategySingle(branch string) NextRollStrategy {
 // urlStrategy is a NextRollStrategy which rolls to a revision specified by a web
 // server.
 type urlStrategy struct {
-	parse func(string) (string, error)
-	url   string
+	client *http.Client
+	parse  func(string) (string, error)
+	url    string
 }
 
 // See documentation for NextRollStrategy interface.
 func (s *urlStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, _ string) (string, error) {
-	resp, err := http.Get(s.url)
+	resp, err := s.client.Get(s.url)
 	if err != nil {
 		return "", err
 	}
@@ -135,17 +136,18 @@ func (s *urlStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, _ str
 
 // StrategyURL returns a NextRollStrategy which rolls to a revision specified by a web
 // server.
-func StrategyURL(url string, parseFn func(string) (string, error)) NextRollStrategy {
+func StrategyURL(client *http.Client, url string, parseFn func(string) (string, error)) NextRollStrategy {
 	return &urlStrategy{
-		parse: parseFn,
-		url:   url,
+		client: client,
+		parse:  parseFn,
+		url:    url,
 	}
 }
 
 // StrategyLKGR returns a NextRollStrategy which rolls to a Last Known Good Revision,
 // which is obtainable from a web server.
 func StrategyLKGR(url string) NextRollStrategy {
-	return StrategyURL(url, func(body string) (string, error) {
+	return StrategyURL(nil, url, func(body string) (string, error) {
 		return strings.TrimSpace(body), nil
 	})
 }

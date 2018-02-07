@@ -133,7 +133,7 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Find the number of not-rolled child repo commits.
-	notRolled, err := r.GetCommitsNotRolled(ctx, lastRollRev)
+	notRolled, err := r.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
@@ -462,7 +462,7 @@ func (r *androidRepoManager) User() string {
 	return r.user
 }
 
-func (r *androidRepoManager) GetCommitsNotRolled(ctx context.Context, lastRollRev string) (int, error) {
+func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) (int, error) {
 	output, err := r.childRepo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
 	if err != nil {
 		return -1, err
