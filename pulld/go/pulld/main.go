@@ -251,6 +251,7 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 		var err error
 		for _, unit := range units {
 			unit.Props, err = dbc.GetUnitTypeProperties(unit.Status.Name, "Service")
+			// !!! Props are huge, only pass along the value(s) we use.
 			if err != nil {
 				sklog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
 			}
