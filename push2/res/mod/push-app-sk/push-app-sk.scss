@@ -1,0 +1,32 @@
+@import '~common/colors';
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  margin: 0;
+  padding: 0.6em;
+  color: white;
+  background: $blue;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+header h1 {
+  font-size: 110%;
+}
+
+header login-sk {
+  font-size: 110%;
+  display: block;
+  margin: 0.67em;
+}
+
+.controls spinner-sk {
+  margin-bottom: -0.8em;
+  width: 20px;
+  height: 20px;
+}
