@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "aa568eb3_3c97b29f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-07T18:41:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a87cb505_113b6f97",
+      "revId": "810b4d694783b37cab65f3239af05b69befd6993",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9304191a_103e1727",
         "filename": "res/mod/systemd-unit-status-sk/systemd-unit-status-sk.js",
         "patchSetId": 6
@@ -30,6 +48,30 @@
       "writtenOn": "2018-02-07T17:48:58Z",
       "side": 1,
       "message": "Isn\u0027t this a polymer thing?  Do we still need to do it for lit-html?",
+      "range": {
+        "startLine": 9,
+        "startChar": 24,
+        "endLine": 9,
+        "endChar": 26
+      },
+      "revId": "810b4d694783b37cab65f3239af05b69befd6993",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d507f4eb_46adecc8",
+        "filename": "res/mod/systemd-unit-status-sk/systemd-unit-status-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-07T18:41:18Z",
+      "side": 1,
+      "message": "When using lit-extended, the $\u003d sets the attribute value, the \u003d sets the property, and ?\u003d sets a boolean attribute.\n\nWhen using lit the \u003d only sets the attribute, there is no way to set a property.\n\nWe should always use lit-extended to avoid confusion.",
+      "parentUuid": "9304191a_103e1727",
       "range": {
         "startLine": 9,
         "startChar": 24,
