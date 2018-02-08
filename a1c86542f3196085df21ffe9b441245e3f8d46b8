@@ -22,6 +22,30 @@
       "revId": "a1c86542f3196085df21ffe9b441245e3f8d46b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d799174_fd679619",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T19:57:21Z",
+      "side": 1,
+      "message": "That\u0027s true.  The other throttle values are not exposed on the UI either.  Those are actually worse, since at least with this one the roller will close the CL and move on when a new commit lands in the child repo.",
+      "parentUuid": "f918cf4d_b2897217",
+      "range": {
+        "startLine": 165,
+        "startChar": 96,
+        "endLine": 165,
+        "endChar": 105
+      },
+      "revId": "a1c86542f3196085df21ffe9b441245e3f8d46b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
