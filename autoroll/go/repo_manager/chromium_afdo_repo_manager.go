@@ -32,20 +32,17 @@ import (
 
 const (
 	AFDO_GS_BUCKET = "chromeos-prebuilt"
-	AFDO_GS_PATH   = "afdo-job/llvm"
+	AFDO_GS_PATH   = "afdo-job/llvm/"
 
 	AFDO_VERSION_LENGTH               = 3
 	AFDO_VERSION_REGEX_EXPECT_MATCHES = AFDO_VERSION_LENGTH + 1
 
 	AFDO_COMMIT_MSG_TMPL = `Roll AFDO from %s to %s
 
-Updating from %s
-
 This CL may cause a small binary size increase, roughly proportional
-to how long it\'s been since our last AFDO profile roll. For larger
+to how long it's been since our last AFDO profile roll. For larger
 increases (around or exceeding 100KB), please file a bug against
 gbiv@chromium.org. Additional context: https://crbug.com/805539
-
 ` + COMMIT_MSG_FOOTER_TMPL
 )
 
@@ -144,10 +141,11 @@ func (s *afdoStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, _ st
 	// Find the available AFDO versions, sorted newest to oldest, and store.
 	available := []string{}
 	if err := s.gcs.AllFilesInDirectory(ctx, AFDO_GS_PATH, func(item *storage.ObjectAttrs) {
-		if _, err := parseAFDOVersion(item.Name); err == nil {
-			available = append(available, item.Name)
+		name := strings.TrimPrefix(item.Name, AFDO_GS_PATH)
+		if _, err := parseAFDOVersion(name); err == nil {
+			available = append(available, name)
 		} else if err == errInvalidVersion {
-			sklog.Warningf("Found AFDO file with improperly formatted name: %s", item.Name)
+			sklog.Warningf("Found AFDO file with improperly formatted name: %s", name)
 		} else {
 			sklog.Error(err)
 		}
@@ -258,7 +256,7 @@ func (rm *afdoRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Commit.
-	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, afdoShortVersion(from), afdoShortVersion(to), from, rm.serverURL)
+	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, afdoShortVersion(from), afdoShortVersion(to), rm.serverURL)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
 		Env:  rm.GetEnvForDepotTools(),
@@ -343,7 +341,7 @@ func (rm *afdoRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	lastRollRev := string(lastRollRevBytes)
+	lastRollRev := strings.TrimSpace(string(lastRollRevBytes))
 
 	// Get the next roll rev.
 	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, nil, "")
