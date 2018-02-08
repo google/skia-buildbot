@@ -42,6 +42,48 @@
     },
     {
       "key": {
+        "uuid": "b6da9724_be69c5d5",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T15:49:52Z",
+      "side": 1,
+      "message": "I added more to the description of both flags.  Let me know if that is sufficient.",
+      "parentUuid": "6d3003a6_eba87463",
+      "range": {
+        "startLine": 66,
+        "startChar": 65,
+        "endLine": 66,
+        "endChar": 117
+      },
+      "revId": "eccf99ca375565eab9956c471d2a8e9e50af012e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d210d5e8_e19dd38e",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T15:49:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "40594630_8683a60d",
+      "revId": "eccf99ca375565eab9956c471d2a8e9e50af012e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10a8a3a3_5a5b489d",
         "filename": "autoroll/go/autoroll/main.go",
         "patchSetId": 3
@@ -53,6 +95,24 @@
       "writtenOn": "2018-02-08T15:40:43Z",
       "side": 1,
       "message": "28 flags now..",
+      "revId": "eccf99ca375565eab9956c471d2a8e9e50af012e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02a2810b_2a9c3306",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T15:49:52Z",
+      "side": 1,
+      "message": "Yeah, we should probably switch to a config file soon.  I\u0027m slightly unmotivated because that requires some thought, and the flags being grouped into the systemd service file makes the flags themselves much like a config file.",
+      "parentUuid": "10a8a3a3_5a5b489d",
       "revId": "eccf99ca375565eab9956c471d2a8e9e50af012e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
