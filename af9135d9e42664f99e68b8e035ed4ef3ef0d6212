@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0b74d846_93684a3b",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T14:03:02Z",
+      "side": 1,
+      "message": "optional: rollAFDOIntoChromium (just to be consistent with the below rollIntoAndroid / rollIntoGoogle3 and also makes it more descriptive).",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 9
+      },
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed7a188a_a308d8fd",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T14:03:02Z",
+      "side": 1,
+      "message": "What about the other things we normally include in roller descriptions like \n\nThe AutoRoll server is located here: ...\nDocumentation for the AutoRoller is here: ....",
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1172a57_458d1ae3",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T14:03:02Z",
+      "side": 1,
+      "message": "Trying to figure out why this uses depotToolsRepoManager and not commonRepoManager.\nDo you use depot_tools/gclient anywhere?\nIf not then it might be more accurate to use commonRepoManager and add in parentDir and parentRepo (which I think you need).",
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b270984_05439aee",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T14:03:02Z",
+      "side": 1,
+      "message": "Manifest rollers use a tag before \"Roll\" :\nhttps://fuchsia-review.googlesource.com/c/topaz/+/121295\n\nso this will likely break it.",
+      "range": {
+        "startLine": 46,
+        "startChar": 38,
+        "endLine": 46,
+        "endChar": 39
+      },
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d345eff_c38266ad",
+        "filename": "go/autoroll/autoroll_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T14:03:02Z",
+      "side": 1,
+      "message": "Would be useful to add something like:\n\"[manifest] Roll skia 1f1bb9c0b..4150eea6c (1 commits)\"\nas well to make sure we do not break fuchsia roller.",
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
