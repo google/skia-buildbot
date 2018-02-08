@@ -5,6 +5,7 @@ import 'common/error-toast-sk'
 import 'common/systemd-unit-status-sk'
 import { errorMessage } from 'common/errorMessage'
 import { fromObject } from 'common/query'
+import { jsonOrThrow } from 'common/jsonOrThrow'
 
 const listUnits = (ele) =>  ele._units.map(
   unit => html`<systemd-unit-status-sk machine$="${ele._hostname}" value=${unit}></systemd-unit-status-sk>`
@@ -23,16 +24,6 @@ const template = (ele) => html`
   <error-toast-sk></error-toast-sk>
 </footer>
 `;
-
-// Helper function when making fetch() request.
-//
-// TODO(jcgregorio) Factor out into 'common' lib.
-const jsonOrThrow = (resp) => {
-  if (resp.ok) {
-    return resp.json();
-  }
-  throw 'Bad network response.';
-}
 
 // The <pulld-app-sk> custom element declaration.
 //
