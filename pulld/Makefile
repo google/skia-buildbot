@@ -1,18 +1,19 @@
-# The list of files we want to go into core.js, which is concat'd and
-# minified. These files should be either present in the project, brought
-# into third_party/bower_compoents via bower, or in node_modules.
-CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-	third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-	../res/js/common.js
+default:
+	go install -v ./go/pulld
+	npx webpack
 
-BOWER_DIR=third_party/bower_components
-
-VULCANIZE1=true
-
-default: core_js elements_html
+prod:
+	NODE_ENV=production npx webpack
 	go install -v ./go/pulld
 
+serve:
+	npx webpack-dev-server --content-base ./dist --watch
+
+watch:
+	npx webpack --watch
+
 release: default
+	NODE_ENV=production npx webpack
 	./build_release "$(MESSAGE)"
 
 release_not_gce: default
@@ -30,9 +31,3 @@ release_arm: default
 push_everywhere:
 	cd ../push; make build
 	pushcli --alsologtostderr --config_filename=../push/allskiapush.json5 pulld "*"
-
-
-.PHONY: debug
-debug: clean_webtools debug_core_js debug_elements_html
-
-include ../webtools/webtools.mk
