@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/push/go/trigger"
+	"go.skia.org/infra/push/go/types"
 	compute "google.golang.org/api/compute/v1"
 	storage "google.golang.org/api/storage/v1"
 )
@@ -226,13 +227,12 @@ func getStatus(server string) []*systemd.UnitStatus {
 	}
 	dec := json.NewDecoder(resp.Body)
 
-	ret := []*systemd.UnitStatus{}
+	var ret types.ListResponse
 	if err := dec.Decode(&ret); err != nil {
 		sklog.Infof("Failed to decode: %s", err)
 		return nil
 	}
-	sklog.Infof("%s - %#v", server, ret)
-	return ret
+	return ret.Units
 }
 
 // serviceStatus returns a map[string]*systemd.UnitStatus, with one entry for each service running on each
