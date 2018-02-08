@@ -16,6 +16,64 @@
       "revId": "bb534f19ef0f02e725aedd80fba21461b19ff7ce",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa5455e3_a1dd5010",
+        "filename": "push2/pages/index.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-08T14:07:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "dda034c4_a2f813e7",
+      "revId": "bb534f19ef0f02e725aedd80fba21461b19ff7ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8623275f_7d9bc380",
+        "filename": "res/mod/webpack.common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-08T14:07:11Z",
+      "side": 1,
+      "message": "Could this be replaced with a helper method or parameter to commonBuilder? Or would that not work for apps with multiple pages?",
+      "range": {
+        "startLine": 28,
+        "startChar": 10,
+        "endLine": 28,
+        "endChar": 29
+      },
+      "revId": "bb534f19ef0f02e725aedd80fba21461b19ff7ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfaab812_d2045f4e",
+        "filename": "res/mod/webpack.common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-08T14:07:11Z",
+      "side": 1,
+      "message": "let common \u003d",
+      "revId": "bb534f19ef0f02e725aedd80fba21461b19ff7ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
