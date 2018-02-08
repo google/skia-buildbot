@@ -1,6 +1,7 @@
 {
    "autoroll": {
      "urls": [
+       "http://afdo-chromium-autoroll:8000",
        "http://android-master-autoroll:8000",
        "http://android-o-autoroll:8000",
        "http://google3-autoroll:8000",
@@ -26,6 +27,7 @@
    "autoroll_json": {
      "urls": [
        "http://skia-internal-autoroll:8000/json/status",
+       "https://afdo-chromium-roll.skia.org/json/status",
        "https://android-master-roll.skia.org/json/status",
        "https://android-o-roll.skia.org/json/status",
        "https://angle-chromium-roll.skia.org/json/status",
