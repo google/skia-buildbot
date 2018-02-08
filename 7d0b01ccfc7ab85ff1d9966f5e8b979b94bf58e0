@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25b0d8e4_d9c37aed",
+        "filename": "autoroll/sys/skcms-skia-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5010
+      },
+      "writtenOn": "2018-02-08T15:22:45Z",
+      "side": 1,
+      "message": "Can we drop this to 3 or 4?  It\u0027d be nice for the day\u0027s CLs to roll while we\u0027re still in the office, or at least awake.",
+      "revId": "7d0b01ccfc7ab85ff1d9966f5e8b979b94bf58e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
