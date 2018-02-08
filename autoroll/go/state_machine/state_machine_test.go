@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 
@@ -292,8 +293,14 @@ func setup(t *testing.T) (*AutoRollStateMachine, *TestAutoRollerImpl, func()) {
 }
 
 func TestNormal(t *testing.T) {
-	sm, r, cleanup := setup(t)
-	defer cleanup()
+	testutils.MediumTest(t)
+	r := NewTestAutoRollerImpl(t)
+	workdir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
+	sm, err := New(r, workdir, nil)
+	assert.NoError(t, err)
+	ctx := context.Background()
 
 	checkState(t, sm, S_NORMAL_IDLE)
 
@@ -325,11 +332,32 @@ func TestNormal(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 
 	// This one failed, but there's no new commit. Ensure that we retry
-	// the active CL.
+	// the active CL after a wait.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
 	roll.SetFailed()
 	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	// Should stay throttled.
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	// We still have to respect mode changes.
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.AssertDryRun()
+	r.SetMode(ctx, modes.MODE_RUNNING)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll.SetFailed()
+	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	// Hack the timer to fake that the throttling has expired, then ensure
+	// that we retry the CQ.
+	counterFile := path.Join(workdir, "fail_counter")
+	assert.NoError(t, os.Remove(counterFile))
+	counter, err := util.NewPersistentAutoDecrementCounter(counterFile, time.Minute)
+	assert.NoError(t, err)
+	sm.failCounter = counter
+	sklog.Infof("Failed: %d", sm.failCounter.Get())
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	uploaded := r.GetActiveRoll()
 	assert.Equal(t, roll, uploaded)
@@ -358,9 +386,13 @@ func TestNormal(t *testing.T) {
 }
 
 func TestDryRun(t *testing.T) {
-	sm, r, cleanup := setup(t)
-	defer cleanup()
-
+	testutils.MediumTest(t)
+	r := NewTestAutoRollerImpl(t)
+	workdir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
+	sm, err := New(r, workdir, nil)
+	assert.NoError(t, err)
 	ctx := context.Background()
 
 	// Switch to dry run.
@@ -391,11 +423,32 @@ func TestDryRun(t *testing.T) {
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 
 	// This one failed, but there's no new commit. Ensure that we retry
-	// the active CL.
+	// the active CL after a wait.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
-	roll.AssertDryRun()
-	roll.SetDryRunFailed()
+	roll.AssertNotDryRun()
+	roll.SetFailed()
 	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	// Should stay throttled.
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	// We still have to respect mode changes.
+	r.SetMode(ctx, modes.MODE_RUNNING)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.AssertNotDryRun()
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll.SetFailed()
+	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	// Hack the timer to fake that the throttling has expired, then ensure
+	// that we retry the CQ.
+	counterFile := path.Join(workdir, "fail_counter")
+	assert.NoError(t, os.Remove(counterFile))
+	counter, err := util.NewPersistentAutoDecrementCounter(counterFile, time.Minute)
+	assert.NoError(t, err)
+	sm.failCounter = counter
+	sklog.Infof("Failed: %d", sm.failCounter.Get())
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	uploaded := r.GetActiveRoll()
 	assert.Equal(t, roll, uploaded)
@@ -472,9 +525,9 @@ func testSafetyThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
 	r := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
 	sm, err := New(r, workdir, tc)
 	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
 
 	ctx := context.Background()
 
