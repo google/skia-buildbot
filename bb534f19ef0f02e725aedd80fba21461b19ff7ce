@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dda034c4_a2f813e7",
+        "filename": "push2/pages/index.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-08T13:58:54Z",
+      "side": 1,
+      "message": "Placeholder element.",
+      "revId": "bb534f19ef0f02e725aedd80fba21461b19ff7ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
