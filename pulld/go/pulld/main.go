@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/push/go/types"
 )
 
 var (
@@ -237,11 +238,6 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 	return units, nil
 }
 
-type ListResponse struct {
-	Hostname string                `json:"hostname"`
-	Units    []*systemd.UnitStatus `json:"units"`
-}
-
 // listHandler returns the list of units.
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	units, err := listUnits()
@@ -249,7 +245,7 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to list units.")
 		return
 	}
-	resp := &ListResponse{
+	resp := &types.ListResponse{
 		Hostname: hostname,
 		Units:    units,
 	}
