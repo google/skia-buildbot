@@ -16,6 +16,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.opencensus.io/exporter/stackdriver"
+	"go.opencensus.io/trace"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -195,6 +197,18 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
 	}
+
+	// Set up tracing.
+	sdOptions := stackdriver.Options{
+		ProjectID:     common.PROJECT_ID,
+		ClientOptions: []option.ClientOption{option.WithTokenSource(tokenSource)},
+	}
+	sdExporter, err := stackdriver.NewExporter(sdOptions)
+	if err != nil {
+		sklog.Fatalf("Error creating stackdriver exporter: %s", err)
+	}
+	trace.RegisterExporter(sdExporter)
+	trace.SetDefaultSampler(trace.AlwaysSample())
 
 	// If the addresses for a remote DiffStore were given, then set it up
 	// otherwise create an embedded DiffStore instance.
