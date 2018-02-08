@@ -356,7 +356,7 @@ func cycle(ctx context.Context, taskDb db.RemoteDB, repos repograph.Map, tcc *sp
 	if err := writeTs(workdir, now); err != nil {
 		return fmt.Errorf("Failed to write timestamp file: %s", err)
 	}
-	return nil
+	return tcc.Cleanup(-COMMIT_TASK_WINDOW)
 }
 
 // readTs returns the last successful run timestamp which was cached in a file.
