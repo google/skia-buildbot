@@ -60,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "a999854f_01d8ce75",
+        "filename": "res/mod/webpack.common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-08T14:12:19Z",
+      "side": 1,
+      "message": "If we agree on a common structure we could certainly add a helper function like we did for demo pages that automates this away.",
+      "parentUuid": "8623275f_7d9bc380",
+      "range": {
+        "startLine": 28,
+        "startChar": 10,
+        "endLine": 28,
+        "endChar": 29
+      },
+      "revId": "bb534f19ef0f02e725aedd80fba21461b19ff7ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bfaab812_d2045f4e",
         "filename": "res/mod/webpack.common.js",
         "patchSetId": 2
@@ -74,6 +98,24 @@
       "revId": "bb534f19ef0f02e725aedd80fba21461b19ff7ce",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ba1c83b_bcc9b2f4",
+        "filename": "res/mod/webpack.common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-08T14:12:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bfaab812_d2045f4e",
+      "revId": "bb534f19ef0f02e725aedd80fba21461b19ff7ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
