@@ -16,6 +16,24 @@
       "revId": "7d0b01ccfc7ab85ff1d9966f5e8b979b94bf58e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2bf9672_ae0a991d",
+        "filename": "autoroll/sys/skcms-skia-autorolld.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T15:31:50Z",
+      "side": 1,
+      "message": "Sure, done.",
+      "parentUuid": "25b0d8e4_d9c37aed",
+      "revId": "7d0b01ccfc7ab85ff1d9966f5e8b979b94bf58e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
