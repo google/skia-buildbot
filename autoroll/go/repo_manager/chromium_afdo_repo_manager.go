@@ -223,7 +223,7 @@ func newAfdoRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, 
 		},
 		afdoVersionFile: path.Join(parentDir, AFDO_VERSION_FILE_PATH),
 	}
-	return rv, nil
+	return rv, rv.Update(ctx)
 }
 
 // See documentation for RepoManager interface.

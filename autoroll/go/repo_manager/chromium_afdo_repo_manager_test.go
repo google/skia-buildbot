@@ -177,7 +177,6 @@ func TestAFDORepoManager(t *testing.T) {
 	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, []string{afdoRevBase})
 	rm, err := NewAFDORepoManager(ctx, wd, gb.RepoUrl(), "master", depot_tools.GetDepotTools(t, ctx), g, "fake.server.com", urlmock.Client())
 	assert.NoError(t, err)
-	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, mockUser, rm.User())
 	assert.Equal(t, afdoRevBase, rm.LastRollRev())
 	assert.Equal(t, afdoRevBase, rm.NextRollRev())

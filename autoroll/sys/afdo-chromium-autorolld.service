@@ -14,7 +14,7 @@ ExecStart=/usr/local/bin/autoroll \
     --workdir=/mnt/pd0/autoroll_workdir \
     --resources_dir=/usr/local/share/autoroll/ \
     --sheriff=gbiv@chromium.org \
-    --roll_afdo
+    --roll_afdo_into_chromium
 Restart=always
 User=default
 Group=default
