@@ -67,13 +67,8 @@ func (p UnitStatusSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func loadResouces() {
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
 	}
-	indexTemplate = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
-		filepath.Join(*resourcesDir, "templates", "index.html"),
-		filepath.Join(*resourcesDir, "templates", "titlebar.html"),
-		filepath.Join(*resourcesDir, "templates", "header.html"),
-	))
 }
 
 // ChangeResult is the serialized JSON response from changeHandler.
@@ -242,6 +237,11 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 	return units, nil
 }
 
+type ListResponse struct {
+	Hostname string                `json:"hostname"`
+	Units    []*systemd.UnitStatus `json:"units"`
+}
+
 // listHandler returns the list of units.
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	units, err := listUnits()
@@ -249,38 +249,13 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to list units.")
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(units); err != nil {
-		sklog.Errorf("Failed to write or encode output: %s", err)
+	resp := &ListResponse{
+		Hostname: hostname,
+		Units:    units,
 	}
-}
-
-// IndexBody is the context for evaluating the index.html template.
-type IndexBody struct {
-	Hostname string
-	Units    []*systemd.UnitStatus
-}
-
-// mainHandler handles the GET of the main page.
-func mainHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		if *local {
-			loadResouces()
-		}
-		units, err := listUnits()
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to list units.")
-			return
-		}
-		context := &IndexBody{
-			Hostname: hostname,
-			Units:    units,
-		}
-		w.Header().Set("Content-Type", "text/html")
-		if err := indexTemplate.ExecuteTemplate(w, "index.html", context); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
-		}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -306,10 +281,9 @@ func main() {
 	rebootMonitoringInit()
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	r.HandleFunc("/", mainHandler).Methods("GET")
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
 	r.HandleFunc("/_/change", changeHandler).Methods("POST")
+	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))

@@ -4,12 +4,12 @@ import { html, render } from 'lit-html/lib/lit-extended'
 import { diffDate } from 'common/human'
 
 const template = (ele) => html`
-  <div class=service>${ele.value.status.Name}</div>
-  <div class=uptime>${diffDate(+ele.value.props.ExecMainStartTimestamp/1000)}</div>
-  <div class=state class$="${ele.value.status.SubState + ' state'}">${ele.value.status.SubState}</div>
   <button raised data-action="start"   data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Start  </button>
   <button raised data-action="stop"    data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Stop   </button>
   <button raised data-action="restart" data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Restart</button>
+  <div class=uptime>${diffDate(ele.value.props ? +ele.value.props.ExecMainStartTimestamp/1000 : 'n/a')}</div>
+  <div class=state class$="${ele.value.status.SubState + ' state'}">${ele.value.status.SubState}</div>
+  <div class=service>${ele.value.status.Name}</div>
 `;
 
 // systemd-unit-status-sk
