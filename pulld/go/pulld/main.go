@@ -40,6 +40,10 @@ var (
 	PROCESS_ENDING_UNITS = []string{"reboot.target", "pulld.service"}
 )
 
+const (
+	EXEC_MAIN_START_TS_PROP = "ExecMainStartTimestamp"
+)
+
 // flags
 var (
 	bucketName            = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
@@ -218,42 +222,21 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 			})
 		}
 	} else {
-		if *local {
-			// If running locally the above will fail because we aren't on systemd
-			// yet, so return some dummy data.
-			units = []*systemd.UnitStatus{
-				{
-					Status: &dbus.UnitStatus{
-						Name:     "test.service",
-						SubState: "running",
-					},
-					Props: map[string]interface{}{
-						"ExecMainStartTimestamp": time.Now().Add(-5*time.Minute).Unix() * 1000000,
-					},
-				},
-				{
-					Status: &dbus.UnitStatus{
-						Name:     "something.service",
-						SubState: "halted",
-					},
-					Props: map[string]interface{}{
-						"ExecMainStartTimestamp": time.Now().Add(-2*time.Hour).Unix() * 1000000,
-					},
-				},
-			}
-		} else {
-			return nil, fmt.Errorf("Failed to list units: %s", err)
-		}
+		return nil, fmt.Errorf("Failed to list units: %s", err)
 	}
 	if !*local {
 		units = filterUnits(units)
-		// Now fill in the Props for each unit.
-		var err error
-		for _, unit := range units {
-			unit.Props, err = dbc.GetUnitTypeProperties(unit.Status.Name, "Service")
-			if err != nil {
-				sklog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
-			}
+	}
+	// Now fill in the Props for each unit.
+	for _, unit := range units {
+		props, err := dbc.GetUnitTypeProperties(unit.Status.Name, "Service")
+		if err != nil {
+			sklog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
+			continue
+		}
+		// Props are huge, only pass along the value(s) we use.
+		unit.Props = map[string]interface{}{
+			EXEC_MAIN_START_TS_PROP: props[EXEC_MAIN_START_TS_PROP],
 		}
 	}
 	return units, nil
