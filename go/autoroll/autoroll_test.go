@@ -84,3 +84,22 @@ func TestTrybotResults(t *testing.T) {
 	assert.True(t, roll.AllTrybotsFinished())
 	assert.True(t, roll.AllTrybotsSucceeded())
 }
+
+func TestRollRev(t *testing.T) {
+	testutils.SmallTest(t)
+
+	assert.True(t, ROLL_REV_REGEX.MatchString("Roll skia/third_party/externals/skcms/ 839318c8b..0e960c612 (1 commit)"))
+	assert.True(t, ROLL_REV_REGEX.MatchString("Roll src/third_party/skia/ 2a223358e..ace53c313 (6 commits)"))
+	assert.True(t, ROLL_REV_REGEX.MatchString("Roll src/third_party/skia/ 2a223358e..ace53c313 (6 commits)."))
+	assert.True(t, ROLL_REV_REGEX.MatchString("Roll src/third_party/skia/ 2a223358e..ace53c313"))
+	assert.True(t, ROLL_REV_REGEX.MatchString("Roll AFDO from 66.0.3336.3_rc-r1 to 66.0.3337.3_rc-r1"))
+	assert.True(t, ROLL_REV_REGEX.MatchString("[manifest] Roll skia 1f1bb9c0b..4150eea6c (1 commits)"))
+	a, b, err := RollRev("Roll skia/third_party/externals/skcms/ 839318c8b..0e960c612 (1 commit)", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "839318c8b", a)
+	assert.Equal(t, "0e960c612", b)
+	a, b, err = RollRev("Roll AFDO from 66.0.3336.3_rc-r1 to 66.0.3337.3_rc-r1", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "66.0.3336.3_rc-r1", a)
+	assert.Equal(t, "66.0.3337.3_rc-r1", b)
+}
