@@ -69,7 +69,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MinifyPlugin = require("babel-minify-webpack-plugin");
 
 module.exports.commonBuilder = function(dirname) {
-  common = {
+  let common = {
     entry: {
       // Users of webpack.common must fill in the entry point(s).
     },
