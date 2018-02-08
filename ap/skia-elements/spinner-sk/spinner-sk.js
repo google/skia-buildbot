@@ -1,4 +1,4 @@
-import { upgradeProperty } from '../upgrade-property'
+import { upgradeProperty } from '../dom'
 
 window.customElements.define('spinner-sk', class extends HTMLElement {
   connectedCallback() {

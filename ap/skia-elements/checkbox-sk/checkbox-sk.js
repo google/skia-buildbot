@@ -1,4 +1,4 @@
-import { upgradeProperty } from '../upgrade-property'
+import { upgradeProperty } from '../dom'
 
 export class CheckboxElement extends HTMLElement {
   static get _role() { return 'checkbox'; }

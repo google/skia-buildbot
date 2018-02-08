@@ -1,6 +1,6 @@
 import '../icon-sk';
 import '../buttons';
-import { upgradeProperty } from '../upgrade-property'
+import { upgradeProperty } from '../dom'
 
 const navButtonSk = document.createElement('template');
 navButtonSk.innerHTML = `<button><icon-menu-sk></icon-menu-sk></button>`;

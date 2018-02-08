@@ -1,5 +1,4 @@
-import { $$ } from '../core';
-import { upgradeProperty } from '../upgrade-property';
+import { $$, upgradeProperty } from '../dom';
 
 // TODO(jcgregorio) Currently only sets the selected attribute on the next
 // sibling if the next sibling is a 'tabs-panel-sk'. We should also have

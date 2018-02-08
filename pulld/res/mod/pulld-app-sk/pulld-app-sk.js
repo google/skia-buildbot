@@ -1,4 +1,4 @@
-import { upgradeProperty } from 'skia-elements/upgrade-property'
+import { upgradeProperty } from 'skia-elements/dom'
 import { html, render } from 'lit-html/lib/lit-extended'
 
 import 'common/error-toast-sk'

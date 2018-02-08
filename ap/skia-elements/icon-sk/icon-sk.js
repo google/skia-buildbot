@@ -1,4 +1,4 @@
-import { $$ } from '../core'
+import { $$ } from '../dom'
 
 const iconSkTemplate = document.createElement('template');
 iconSkTemplate.innerHTML = `<svg class="icon-sk-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false">

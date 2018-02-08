@@ -1,4 +1,4 @@
-import { upgradeProperty } from 'skia-elements/upgrade-property'
+import { upgradeProperty } from 'skia-elements/dom'
 
 // select-sk is a selection element that allows any kind of children.
 //
