@@ -104,7 +104,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		expChanges <- e.(map[string]types.TestClassification)
 	})
 
-	tileStream := s.storages.GetTileStreamNow(2 * time.Minute)
+	tileStream := s.storages.GetTileStreamNow(60 * time.Minute)
 
 	lastTilePair := <-tileStream
 	if err := s.calcStatus(lastTilePair.Tile); err != nil {
