@@ -668,7 +668,6 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get CL data")
 		return
-	}
 	if err = json.NewEncoder(w).Encode(clData); err != nil {
 		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return

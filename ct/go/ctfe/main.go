@@ -250,7 +250,8 @@ func main() {
 		}
 	}
 
-	common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	common.InitWithMust("ctfe")
+	// common.InitWithMust("ctfe", common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 	skiaversion.MustLogVersion()
 
 	Init()
@@ -263,7 +264,8 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	ctutil.MailInit(filepath.Join(usr.HomeDir, "email.data"))
+	//ctutil.MailInit(filepath.Join(usr.HomeDir, "email.data"))
+	fmt.Println(usr.HomeDir)
 
 	redirectURL := serverURL + ctfeutil.OAUTH2_CALLBACK_PATH
 	if err := login.Init(redirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " ")); err != nil {
