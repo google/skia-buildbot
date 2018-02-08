@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd2867f3_4c2132a2",
+        "filename": "res/mod/query.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-08T17:27:49Z",
+      "side": 1,
+      "message": "Tests for this also be to added in a later CL.",
+      "revId": "0f67a0cc72e866b4ddfa7f3f3edd9b4bdaf64dc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
