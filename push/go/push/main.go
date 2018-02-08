@@ -211,6 +211,11 @@ type PushNewPackage struct {
 	Server string `json:"server"`
 }
 
+type ListResponse struct {
+	Hostname string                `json:"hostname"`
+	Units    []*systemd.UnitStatus `json:"units"`
+}
+
 // getStatus returns a populated []*systemd.UnitStatus for the given server, one for each
 // push managed service, and nil if the information wasn't able to be retrieved.
 func getStatus(server string) []*systemd.UnitStatus {
@@ -226,13 +231,12 @@ func getStatus(server string) []*systemd.UnitStatus {
 	}
 	dec := json.NewDecoder(resp.Body)
 
-	ret := []*systemd.UnitStatus{}
+	var ret ListResponse
 	if err := dec.Decode(&ret); err != nil {
 		sklog.Infof("Failed to decode: %s", err)
 		return nil
 	}
-	sklog.Infof("%s - %#v", server, ret)
-	return ret
+	return ret.Units
 }
 
 // serviceStatus returns a map[string]*systemd.UnitStatus, with one entry for each service running on each
