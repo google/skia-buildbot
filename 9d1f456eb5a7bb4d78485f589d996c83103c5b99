@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d51bf82_13f9830e",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 661,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-08T18:33:31Z",
+      "side": 1,
+      "message": "Is this in a div or is it in the error popup? If the latter, maybe put the workaround in the text, since it might be difficult to get to the bug from the popup.",
+      "range": {
+        "startLine": 661,
+        "startChar": 48,
+        "endLine": 661,
+        "endChar": 137
+      },
+      "revId": "9d1f456eb5a7bb4d78485f589d996c83103c5b99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
