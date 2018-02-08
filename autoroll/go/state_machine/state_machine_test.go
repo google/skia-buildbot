@@ -158,6 +158,8 @@ type TestAutoRollerImpl struct {
 
 	getModeResult string
 
+	maxRollFrequency time.Duration
+
 	rolledPast map[string]bool
 
 	updateError error
@@ -257,6 +259,11 @@ func (r *TestAutoRollerImpl) UpdateRepos(ctx context.Context) error {
 // Set the error returned from Update.
 func (r *TestAutoRollerImpl) SetUpdateError(err error) {
 	r.updateError = err
+}
+
+// See documentation for AutoRollerImpl.
+func (r *TestAutoRollerImpl) GetMaxRollFrequency() time.Duration {
+	return r.maxRollFrequency
 }
 
 // Assert that the StateMachine is in the given state.
@@ -460,7 +467,7 @@ func TestStopped(t *testing.T) {
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 }
 
-func testThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
+func testSafetyThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
 	testutils.MediumTest(t)
 	r := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
@@ -496,9 +503,9 @@ func testThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
 		}
 	}
 	// Now we should be throttled.
-	throttled := S_NORMAL_THROTTLED
+	throttled := S_NORMAL_SAFETY_THROTTLED
 	if mode == modes.MODE_DRY_RUN {
-		throttled = S_DRY_RUN_THROTTLED
+		throttled = S_DRY_RUN_SAFETY_THROTTLED
 	}
 	checkNextState(t, sm, throttled)
 
@@ -524,16 +531,16 @@ func testThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
 	checkNextState(t, sm2, idle)
 }
 
-func TestThrottle(t *testing.T) {
-	testThrottle(t, modes.MODE_RUNNING, nil)
+func TestSafetyThrottle(t *testing.T) {
+	testSafetyThrottle(t, modes.MODE_RUNNING, nil)
 }
 
-func TestThrottleDryRun(t *testing.T) {
-	testThrottle(t, modes.MODE_DRY_RUN, nil)
+func TestSafetyThrottleDryRun(t *testing.T) {
+	testSafetyThrottle(t, modes.MODE_DRY_RUN, nil)
 }
 
-func TestThrottleNonDefault(t *testing.T) {
-	testThrottle(t, modes.MODE_RUNNING, &ThrottleConfig{
+func TestSafetyThrottleNonDefault(t *testing.T) {
+	testSafetyThrottle(t, modes.MODE_RUNNING, &ThrottleConfig{
 		AttemptCount: 15,
 		TimeWindow:   3 * time.Hour,
 	})
@@ -570,4 +577,36 @@ func TestPersistence(t *testing.T) {
 	check()
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	check()
+}
+
+func TestSuccessThrottle(t *testing.T) {
+	testutils.MediumTest(t)
+	r := NewTestAutoRollerImpl(t)
+	r.maxRollFrequency = 30 * time.Minute
+	workdir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	sm, err := New(r, workdir, nil)
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
+
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	r.SetNextRollRev("HEAD+1")
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll := r.GetActiveRoll().(*TestRollCLImpl)
+	roll.SetSucceeded()
+	checkNextState(t, sm, S_NORMAL_SUCCESS)
+	r.SetRolledPast("HEAD+1", true)
+
+	// We should've incremented the counter, which should put us in the
+	// SUCCESS_THROTTLED state.
+	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
+	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
+	// This would continue for the next 30 minutes... Instead, we'll hack
+	// the counter to pretend it timed out.
+	counterFile := path.Join(workdir, "success_counter")
+	assert.NoError(t, os.Remove(counterFile))
+	counter, err := util.NewPersistentAutoDecrementCounter(counterFile, time.Minute)
+	assert.NoError(t, err)
+	sm.successCounter = counter
+	checkNextState(t, sm, S_NORMAL_IDLE)
 }
