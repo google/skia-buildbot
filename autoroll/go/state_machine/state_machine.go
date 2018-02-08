@@ -28,12 +28,14 @@ const (
 	S_NORMAL_SUCCESS               = "success"
 	S_NORMAL_SUCCESS_THROTTLED     = "success throttled"
 	S_NORMAL_FAILURE               = "failure"
+	S_NORMAL_FAILURE_THROTTLED     = "failure throttled"
 	S_NORMAL_SAFETY_THROTTLED      = "safety throttled"
 	S_DRY_RUN_IDLE                 = "dry run idle"
 	S_DRY_RUN_ACTIVE               = "dry run active"
 	S_DRY_RUN_SUCCESS              = "dry run success"
 	S_DRY_RUN_SUCCESS_LEAVING_OPEN = "dry run success; leaving open"
 	S_DRY_RUN_FAILURE              = "dry run failure"
+	S_DRY_RUN_FAILURE_THROTTLED    = "dry run failure throttled"
 	S_DRY_RUN_SAFETY_THROTTLED     = "dry run safety throttled"
 	S_STOPPED                      = "stopped"
 
@@ -138,6 +140,7 @@ type AutoRollerImpl interface {
 type AutoRollStateMachine struct {
 	a              AutoRollerImpl
 	attemptCounter *util.PersistentAutoDecrementCounter
+	failCounter    *util.PersistentAutoDecrementCounter
 	s              *state_machine.StateMachine
 	successCounter *util.PersistentAutoDecrementCounter
 	tc             *ThrottleConfig
@@ -159,6 +162,10 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 	if err != nil {
 		return nil, err
 	}
+	failCounter, err := util.NewPersistentAutoDecrementCounter(path.Join(workdir, "fail_counter"), time.Hour)
+	if err != nil {
+		return nil, err
+	}
 	successCounter, err := util.NewPersistentAutoDecrementCounter(path.Join(workdir, "success_counter"), impl.GetMaxRollFrequency())
 	if err != nil {
 		return nil, err
@@ -166,6 +173,7 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 	s := &AutoRollStateMachine{
 		a:              impl,
 		attemptCounter: attemptCounter,
+		failCounter:    failCounter,
 		s:              nil, // Filled in later.
 		successCounter: successCounter,
 		tc:             tc,
@@ -277,8 +285,13 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_SUCCESS_THROTTLED, F_WAIT_FOR_LAND)
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_NORMAL_SUCCESS_THROTTLED, F_UPDATE_REPOS)
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_NORMAL_IDLE, F_NOOP)
+	b.T(S_NORMAL_SUCCESS_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_IDLE, F_CLOSE_FAILED)
-	b.T(S_NORMAL_FAILURE, S_NORMAL_ACTIVE, F_RETRY_FAILED_NORMAL)
+	b.T(S_NORMAL_FAILURE, S_NORMAL_FAILURE_THROTTLED, F_NOOP)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_FAILURE_THROTTLED, F_UPDATE_REPOS)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_ACTIVE, F_RETRY_FAILED_NORMAL)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_DRY_RUN_ACTIVE, F_SWITCH_TO_DRY_RUN)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_IDLE, F_CLOSE_FAILED)
 	b.T(S_NORMAL_SAFETY_THROTTLED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_NORMAL_SAFETY_THROTTLED, S_NORMAL_SAFETY_THROTTLED, F_UPDATE_REPOS)
 
@@ -300,7 +313,11 @@ func New(impl AutoRollerImpl, workdir string, tc *ThrottleConfig) (*AutoRollStat
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_STOPPED, F_CLOSE_STOPPED)
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
-	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_ACTIVE, F_RETRY_FAILED_DRY_RUN)
+	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_FAILURE_THROTTLED, F_NOOP)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE_THROTTLED, F_UPDATE_REPOS)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_ACTIVE, F_RETRY_FAILED_DRY_RUN)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_NORMAL_ACTIVE, F_SWITCH_TO_NORMAL)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_SAFETY_THROTTLED, F_UPDATE_REPOS)
 
@@ -383,11 +400,24 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		}
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_FAILURE:
+		if err := s.failCounter.Inc(); err != nil {
+			return "", err
+		}
 		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
-			// Rather than upload the same CL again, just re-run the CQ.
-			return S_NORMAL_ACTIVE, nil
+			// Rather than upload the same CL again, we'll try
+			// running the CQ again after a period of throttling.
+			return S_NORMAL_FAILURE_THROTTLED, nil
 		}
 		return S_NORMAL_IDLE, nil
+	case S_NORMAL_FAILURE_THROTTLED:
+		if s.a.GetNextRollRev() != s.a.GetActiveRoll().RollingTo() {
+			return S_NORMAL_IDLE, nil
+		} else if desiredMode == modes.MODE_DRY_RUN {
+			return S_DRY_RUN_ACTIVE, nil
+		} else if s.failCounter.Get() == 0 {
+			return S_NORMAL_ACTIVE, nil
+		}
+		return S_NORMAL_FAILURE_THROTTLED, nil
 	case S_NORMAL_SAFETY_THROTTLED:
 		if s.attemptCounter.Get() < s.tc.AttemptCount {
 			return S_NORMAL_IDLE, nil
@@ -454,11 +484,24 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_FAILURE:
+		if err := s.failCounter.Inc(); err != nil {
+			return "", err
+		}
 		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
-			// Rather than upload the same CL again, just re-run the CQ.
-			return S_DRY_RUN_ACTIVE, nil
+			// Rather than upload the same CL again, we'll try
+			// running the CQ again after a period of throttling.
+			return S_DRY_RUN_FAILURE_THROTTLED, nil
 		}
 		return S_DRY_RUN_IDLE, nil
+	case S_DRY_RUN_FAILURE_THROTTLED:
+		if s.a.GetNextRollRev() != s.a.GetActiveRoll().RollingTo() {
+			return S_DRY_RUN_IDLE, nil
+		} else if desiredMode == modes.MODE_RUNNING {
+			return S_NORMAL_ACTIVE, nil
+		} else if s.failCounter.Get() == 0 {
+			return S_DRY_RUN_ACTIVE, nil
+		}
+		return S_DRY_RUN_FAILURE_THROTTLED, nil
 	case S_DRY_RUN_SAFETY_THROTTLED:
 		if s.attemptCounter.Get() < s.tc.AttemptCount {
 			return S_DRY_RUN_IDLE, nil
