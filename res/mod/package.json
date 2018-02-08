@@ -7,7 +7,7 @@
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
-    "babel-minify-webpack-plugin": "^0.2.0",
+    "babel-minify-webpack-plugin": "^0.3.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-minify": "^0.2.0",
     "clean-webpack-plugin": "^0.1.16",
