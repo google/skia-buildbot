@@ -1,4 +1,4 @@
-import { upgradeProperty } from 'skia-elements/upgrade-property'
+import { upgradeProperty } from 'skia-elements/dom'
 import 'skia-elements/toast-sk'
 
 //  Listens for 'error-sk' events that bubble up to the document and displays them.

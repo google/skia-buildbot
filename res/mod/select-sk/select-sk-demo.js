@@ -1,6 +1,6 @@
 import './index.js'
 import 'skia-elements/buttons'
-import { $ } from 'skia-elements/core'
+import { $ } from 'skia-elements/dom'
 
 let select = $('select-sk');
 select.addEventListener('selection-changed', e => {

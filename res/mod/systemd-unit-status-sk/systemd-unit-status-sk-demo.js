@@ -1,5 +1,5 @@
 import './index.js'
-import { $ } from 'skia-elements/core'
+import { $ } from 'skia-elements/dom'
 
 let report = e => { $('event').textContent = JSON.stringify(e.detail, null, 2); }
 $('ele1').addEventListener('unit-action', report);
