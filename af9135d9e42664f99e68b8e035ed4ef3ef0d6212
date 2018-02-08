@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "49386a7b_d3f4922d",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T14:16:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b74d846_93684a3b",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 9
+      },
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed7a188a_a308d8fd",
         "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
         "patchSetId": 2
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "e162a7b2_d6da8d7b",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T14:16:19Z",
+      "side": 1,
+      "message": "Ah, good catch. Done.",
+      "parentUuid": "ed7a188a_a308d8fd",
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d1172a57_458d1ae3",
         "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
         "patchSetId": 2
@@ -53,6 +95,24 @@
       "writtenOn": "2018-02-08T14:03:02Z",
       "side": 1,
       "message": "Trying to figure out why this uses depotToolsRepoManager and not commonRepoManager.\nDo you use depot_tools/gclient anywhere?\nIf not then it might be more accurate to use commonRepoManager and add in parentDir and parentRepo (which I think you need).",
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98db8317_797ab098",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T14:16:19Z",
+      "side": 1,
+      "message": "depotToolsRepoManager provides createAndSyncParent and cleanParent functions which I didn\u0027t want to duplicate.  I guess I could use pure-git for this roller, it\u0027d be less syncing overall but I\u0027d have to duplicate those functions.",
+      "parentUuid": "d1172a57_458d1ae3",
       "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "3d3a8934_625d610f",
+        "filename": "go/autoroll/autoroll.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T14:16:19Z",
+      "side": 1,
+      "message": "Ah, okay.  Added support for a tag in the regex.",
+      "parentUuid": "3b270984_05439aee",
+      "range": {
+        "startLine": 46,
+        "startChar": 38,
+        "endLine": 46,
+        "endChar": 39
+      },
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5d345eff_c38266ad",
         "filename": "go/autoroll/autoroll_test.go",
         "patchSetId": 2
@@ -96,6 +180,24 @@
       "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07d612e6_c56fc029",
+        "filename": "go/autoroll/autoroll_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-08T14:16:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5d345eff_c38266ad",
+      "revId": "af9135d9e42664f99e68b8e035ed4ef3ef0d6212",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
