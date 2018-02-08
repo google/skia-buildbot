@@ -11,6 +11,7 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -252,4 +253,10 @@ func MarshalIndentJSON(t *testing.T, i interface{}) string {
 	b, err := json.MarshalIndent(i, "", "  ")
 	assert.NoError(t, err)
 	return string(b)
+}
+
+// AssertErrorContains asserts that the given error contains the given string.
+func AssertErrorContains(t *testing.T, err error, substr string) {
+	assert.NotNil(t, err)
+	assert.True(t, strings.Contains(err.Error(), substr))
 }

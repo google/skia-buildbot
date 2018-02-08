@@ -81,13 +81,6 @@ func (r *MockRepoManager) getUpdateCount() int {
 	return r.updateCount
 }
 
-// ChildRevList returns a list of hashes.
-func (r *MockRepoManager) ChildRevList(ctx context.Context, args ...string) ([]string, error) {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
-	return nil, fmt.Errorf("Not implemented")
-}
-
 // FullChildHash returns the full hash of the given short hash or ref in the
 // mocked child repo.
 func (r *MockRepoManager) FullChildHash(ctx context.Context, shortHash string) (string, error) {
@@ -265,8 +258,4 @@ func (r *MockRepoManager) PreUploadSteps() []repo_manager.PreUploadStep {
 
 func (r *MockRepoManager) CommitsNotRolled() int {
 	return -1
-}
-
-func (r *MockRepoManager) GetCommitsNotRolled(context.Context, string) (int, error) {
-	return -1, fmt.Errorf("Not implemented")
 }
