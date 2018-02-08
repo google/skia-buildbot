@@ -63,6 +63,7 @@ var (
 	gerritUrl            = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
 	host                 = flag.String("host", "localhost", "HTTP service host")
 	local                = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	maxRollFreq          = flag.String("max_roll_frequency", "0s", "Limit to one successful roll within this time period.")
 	noLog                = flag.Bool("no_log", false, "If true, roll CLs do not include a git log (DEPS rollers only).")
 	parentBranch         = flag.String("parent_branch", "master", "Branch of the parent repo we want to roll into.")
 	parentName           = flag.String("parent_name", "", "User friendly name of the parent repo.")
@@ -432,23 +433,28 @@ func main() {
 			TimeWindow:   parsed,
 		}
 	}
+	mrf, err := human.ParseDuration(*maxRollFreq)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 	cfg := roller.AutoRollerConfig{
-		ChildBranch:    *childBranch,
-		ChildName:      *childName,
-		ChildPath:      *childPath,
-		CqExtraTrybots: cqExtraTrybots,
-		DepotTools:     depotTools,
-		Emailer:        emailer,
-		Emails:         emails,
-		Gerrit:         g,
-		ParentBranch:   *parentBranch,
-		ParentName:     *parentName,
-		ParentRepo:     *parentRepo,
-		PreUploadSteps: *preUploadSteps,
-		ServerURL:      serverURL,
-		Strategy:       strat,
-		ThrottleConfig: tc,
-		Workdir:        *workdir,
+		ChildBranch:      *childBranch,
+		ChildName:        *childName,
+		ChildPath:        *childPath,
+		CqExtraTrybots:   cqExtraTrybots,
+		DepotTools:       depotTools,
+		Emailer:          emailer,
+		Emails:           emails,
+		Gerrit:           g,
+		MaxRollFrequency: mrf,
+		ParentBranch:     *parentBranch,
+		ParentName:       *parentName,
+		ParentRepo:       *parentRepo,
+		PreUploadSteps:   *preUploadSteps,
+		ServerURL:        serverURL,
+		Strategy:         strat,
+		ThrottleConfig:   tc,
+		Workdir:          *workdir,
 	}
 	if *rollIntoAndroid {
 		cfg.Strategy = repo_manager.StrategyRemoteHead(*childBranch)

@@ -30,46 +30,48 @@ const (
 
 // AutoRollerConfig contains configuration information for an AutoRoller.
 type AutoRollerConfig struct {
-	ChildName      string
-	ChildPath      string
-	CqExtraTrybots string
-	Emailer        *email.GMail // Can be nil, in which case no email will be sent.
-	Emails         []string
-	Gerrit         *gerrit.Gerrit
-	ParentName     string
-	ServerURL      string
-	ThrottleConfig *state_machine.ThrottleConfig
-	Workdir        string
-	ChildBranch    string
-	DepotTools     string
-	ParentBranch   string
-	ParentRepo     string
-	PreUploadSteps []string
-	Strategy       repo_manager.NextRollStrategy
+	ChildBranch      string
+	ChildName        string
+	ChildPath        string
+	CqExtraTrybots   string
+	DepotTools       string
+	Emailer          *email.GMail // Can be nil, in which case no email will be sent.
+	Emails           []string
+	Gerrit           *gerrit.Gerrit
+	MaxRollFrequency time.Duration
+	ParentBranch     string
+	ParentName       string
+	ParentRepo       string
+	PreUploadSteps   []string
+	ServerURL        string
+	Strategy         repo_manager.NextRollStrategy
+	ThrottleConfig   *state_machine.ThrottleConfig
+	Workdir          string
 }
 
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
-	childName       string
-	cqExtraTrybots  string
-	currentRoll     RollImpl
-	emailer         *email.GMail
-	emails          []string
-	emailsMtx       sync.RWMutex
-	gerrit          *gerrit.Gerrit
-	liveness        metrics2.Liveness
-	modeHistory     *modes.ModeHistory
-	parentName      string
-	recent          *recent_rolls.RecentRolls
-	retrieveRoll    func(context.Context, *AutoRoller, int64) (RollImpl, error)
-	rm              repo_manager.RepoManager
-	runningMtx      sync.Mutex
-	serverURL       string
-	sm              *state_machine.AutoRollStateMachine
-	status          *AutoRollStatusCache
-	statusMtx       sync.RWMutex
-	rollIntoAndroid bool
+	childName        string
+	cqExtraTrybots   string
+	currentRoll      RollImpl
+	emailer          *email.GMail
+	emails           []string
+	emailsMtx        sync.RWMutex
+	gerrit           *gerrit.Gerrit
+	liveness         metrics2.Liveness
+	maxRollFrequency time.Duration
+	modeHistory      *modes.ModeHistory
+	parentName       string
+	recent           *recent_rolls.RecentRolls
+	retrieveRoll     func(context.Context, *AutoRoller, int64) (RollImpl, error)
+	rm               repo_manager.RepoManager
+	runningMtx       sync.Mutex
+	serverURL        string
+	sm               *state_machine.AutoRollStateMachine
+	status           *AutoRollStatusCache
+	statusMtx        sync.RWMutex
+	rollIntoAndroid  bool
 }
 
 // newAutoRoller returns an AutoRoller instance.
@@ -85,19 +87,20 @@ func newAutoRoller(ctx context.Context, retrieveRoll func(context.Context, *Auto
 	}
 
 	arb := &AutoRoller{
-		childName:      c.ChildName,
-		cqExtraTrybots: c.CqExtraTrybots,
-		emailer:        c.Emailer,
-		emails:         c.Emails,
-		gerrit:         c.Gerrit,
-		liveness:       metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": c.ChildPath}),
-		modeHistory:    mh,
-		parentName:     c.ParentName,
-		recent:         recent,
-		retrieveRoll:   retrieveRoll,
-		rm:             rm,
-		serverURL:      c.ServerURL,
-		status:         &AutoRollStatusCache{},
+		childName:        c.ChildName,
+		cqExtraTrybots:   c.CqExtraTrybots,
+		emailer:          c.Emailer,
+		emails:           c.Emails,
+		gerrit:           c.Gerrit,
+		liveness:         metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": c.ChildPath}),
+		maxRollFrequency: c.MaxRollFrequency,
+		modeHistory:      mh,
+		parentName:       c.ParentName,
+		recent:           recent,
+		retrieveRoll:     retrieveRoll,
+		rm:               rm,
+		serverURL:        c.ServerURL,
+		status:           &AutoRollStatusCache{},
 	}
 	sm, err := state_machine.New(arb, c.Workdir, c.ThrottleConfig)
 	if err != nil {
@@ -248,6 +251,11 @@ func (r *AutoRoller) SetEmails(e []string) {
 	emails := make([]string, len(e))
 	copy(emails, e)
 	r.emails = emails
+}
+
+// See documentation for state_machine.AutoRollerImpl interface.
+func (r *AutoRoller) GetMaxRollFrequency() time.Duration {
+	return r.maxRollFrequency
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
