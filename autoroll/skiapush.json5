@@ -1,5 +1,12 @@
 {
   "Servers": {
+    "angle-chromium-autoroll": {
+      "AppNames": [
+        "afdo-chromium-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "android-master-autoroll": {
       "AppNames": [
         "android-master-autorolld",
