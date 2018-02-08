@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95dcbea6_ff2b8861",
+        "filename": "pulld/package.json",
+        "patchSetId": 12
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-08T17:39:57Z",
+      "side": 1,
+      "message": "Not a real website - maybe \"pulld daemon part of push.skia.org\"?",
+      "range": {
+        "startLine": 5,
+        "startChar": 18,
+        "endLine": 5,
+        "endChar": 31
+      },
+      "revId": "fe8db516af80a8af5204a642ed0f789e7c30c702",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
