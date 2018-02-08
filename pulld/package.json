@@ -1,17 +1,17 @@
 {
-  "name": "push",
-  "version": "0.1.0",
+  "name": "pulld",
+  "version": "0.2.0",
   "private": true,
-  "description": "skiapush.com",
+  "description": "pulld daemon component of push.skia.org",
   "main": "index.js",
   "scripts": {},
   "author": "",
   "license": "BSD",
-  "devDependencies": {
-    "bower": "~1.3.12",
-    "html-minifier": "~3.0.0",
-    "native-promise-only": "~0.7.6-a",
-    "uglify-js": "~2.4.23",
-    "vulcanize": "~1.5.1"
+  "devDependencies": {},
+  "dependencies": {
+    "html-webpack-plugin": "^2.30.1",
+    "lit-html": "^0.9.0",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.1"
   }
 }
