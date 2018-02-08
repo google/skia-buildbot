@@ -1,6 +1,6 @@
 {
   "Servers": {
-    "angle-chromium-autoroll": {
+    "afdo-chromium-autoroll": {
       "AppNames": [
         "afdo-chromium-autorolld",
         "git-cookie-authdaemon",
