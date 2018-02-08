@@ -650,7 +650,18 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check to see if the change has a binary file.
 	latestPatchsetID := strconv.Itoa(len(change.Patchsets))
+	isBinary, err := g.IsBinaryPatch(cl, latestPatchsetID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get list of files from Gerrit")
+		return
+	}
+	if isBinary {
+		httputils.ReportError(w, r, err, fmt.Sprintf("CT cannot get a full index for binary files via the Gerrit API. Details in skbug.com/7302."))
+		return
+	}
+
 	detail = clDetail{
 		Issue:         cl,
 		Subject:       change.Subject,
