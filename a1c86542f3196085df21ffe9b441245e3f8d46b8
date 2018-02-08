@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f918cf4d_b2897217",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T19:46:45Z",
+      "side": 1,
+      "message": "It will not be obvious to sheriffs/someone else when the roller is next going to retry because this value is not exposed.\nI don\u0027t know where to put this (and maybe some other) information. Maybe in the UI? All rollers could print out their configuration there.\n\nSomething to think about.",
+      "range": {
+        "startLine": 165,
+        "startChar": 96,
+        "endLine": 165,
+        "endChar": 105
+      },
+      "revId": "a1c86542f3196085df21ffe9b441245e3f8d46b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
