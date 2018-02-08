@@ -22,6 +22,30 @@
       "revId": "9d1f456eb5a7bb4d78485f589d996c83103c5b99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e1e9dff_97020503",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 661,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T18:47:41Z",
+      "side": 1,
+      "message": "It\u0027s in a div so it\u0027s copy paste-able.",
+      "parentUuid": "9d51bf82_13f9830e",
+      "range": {
+        "startLine": 661,
+        "startChar": 48,
+        "endLine": 661,
+        "endChar": 137
+      },
+      "revId": "9d1f456eb5a7bb4d78485f589d996c83103c5b99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
