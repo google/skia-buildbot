@@ -63,6 +63,7 @@ var (
 	gerritUrl            = flag.String("gerrit_url", gerrit.GERRIT_CHROMIUM_URL, "Gerrit URL the roller will be uploading issues to.")
 	host                 = flag.String("host", "localhost", "HTTP service host")
 	local                = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	maxRollFreq          = flag.String("max_roll_frequency", "0s", "Limit to one successful roll within this time period.")
 	noLog                = flag.Bool("no_log", false, "If true, roll CLs do not include a git log (DEPS rollers only).")
 	parentBranch         = flag.String("parent_branch", "master", "Branch of the parent repo we want to roll into.")
 	parentName           = flag.String("parent_name", "", "User friendly name of the parent repo.")
@@ -77,8 +78,8 @@ var (
 	rollIntoGoogle3      = flag.Bool("roll_into_google3", false, "Roll into Google3; do not do a Gerrit roll.")
 	sheriff              = common.NewMultiStringFlag("sheriff", nil, "Email address to CC on rolls, or URL from which to obtain such an email address.")
 	strategy             = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
-	throttleCount        = flag.Int64("throttle_count", 0, "Maximum number of attempts before throttling.")
-	throttleTime         = flag.String("throttle_time", "", "Time window for throttle attempts, eg. \"30m\" or \"1h10m\"")
+	throttleCount        = flag.Int64("safety_throttle_count", 0, "Maximum number of CL upload attempts before throttling, to prevent uploading CLs out of control.")
+	throttleTime         = flag.String("safety_throttle_time", "", "Time window for safety throttle attempts, eg. \"30m\" or \"1h10m\"")
 	useManifest          = flag.Bool("use_manifest", false, "Do a Manifest roll.")
 	useMetadata          = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir              = flag.String("workdir", ".", "Directory to use for scratch work.")
@@ -432,23 +433,28 @@ func main() {
 			TimeWindow:   parsed,
 		}
 	}
+	mrf, err := human.ParseDuration(*maxRollFreq)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 	cfg := roller.AutoRollerConfig{
-		ChildBranch:    *childBranch,
-		ChildName:      *childName,
-		ChildPath:      *childPath,
-		CqExtraTrybots: cqExtraTrybots,
-		DepotTools:     depotTools,
-		Emailer:        emailer,
-		Emails:         emails,
-		Gerrit:         g,
-		ParentBranch:   *parentBranch,
-		ParentName:     *parentName,
-		ParentRepo:     *parentRepo,
-		PreUploadSteps: *preUploadSteps,
-		ServerURL:      serverURL,
-		Strategy:       strat,
-		ThrottleConfig: tc,
-		Workdir:        *workdir,
+		ChildBranch:      *childBranch,
+		ChildName:        *childName,
+		ChildPath:        *childPath,
+		CqExtraTrybots:   cqExtraTrybots,
+		DepotTools:       depotTools,
+		Emailer:          emailer,
+		Emails:           emails,
+		Gerrit:           g,
+		MaxRollFrequency: mrf,
+		ParentBranch:     *parentBranch,
+		ParentName:       *parentName,
+		ParentRepo:       *parentRepo,
+		PreUploadSteps:   *preUploadSteps,
+		ServerURL:        serverURL,
+		Strategy:         strat,
+		ThrottleConfig:   tc,
+		Workdir:          *workdir,
 	}
 	if *rollIntoAndroid {
 		cfg.Strategy = repo_manager.StrategyRemoteHead(*childBranch)

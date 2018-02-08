@@ -12,6 +12,7 @@ ExecStart=/usr/local/bin/autoroll \
     --workdir=/mnt/pd0/autoroll_workdir \
     --childName=skcms \
     --childPath=skia/third_party/externals/skcms \
+    --max_roll_frequency=3h \
     --parent_name=Skia \
     --parent_repo=https://skia.googlesource.com/skia.git \
     --parent_waterfall=https://status.skia.org \
