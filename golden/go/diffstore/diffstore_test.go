@@ -196,7 +196,6 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 		foundDiffs[oneDigest] = found
 	}
 	ti.Stop()
-	memDiffStore.sync()
 	testDiffs(t, baseDir, memDiffStore, digests, digests, foundDiffs)
 
 	// Diff against an arbitrary GCS location.
@@ -212,6 +211,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 }
 
 func testDiffs(t *testing.T, baseDir string, diffStore *MemDiffStore, leftDigests, rightDigests []string, result map[string]map[string]interface{}) {
+	diffStore.sync()
 	for _, left := range leftDigests {
 		for _, right := range rightDigests {
 			if left != right {
