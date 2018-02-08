@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40594630_8683a60d",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T15:40:43Z",
+      "side": 1,
+      "message": "I used throttle_time in fuchsia roller to try to get similar behavior. It should be probably be updated to use this new flag. I think angle-chromium-roller does the same?",
+      "revId": "eccf99ca375565eab9956c471d2a8e9e50af012e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6d3003a6_eba87463",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T15:40:43Z",
+      "side": 1,
+      "message": "Might want to document somewhere what the difference between this and throttleTime is.",
+      "range": {
+        "startLine": 66,
+        "startChar": 65,
+        "endLine": 66,
+        "endChar": 117
+      },
+      "revId": "eccf99ca375565eab9956c471d2a8e9e50af012e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10a8a3a3_5a5b489d",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-08T15:40:43Z",
+      "side": 1,
+      "message": "28 flags now..",
+      "revId": "eccf99ca375565eab9956c471d2a8e9e50af012e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
