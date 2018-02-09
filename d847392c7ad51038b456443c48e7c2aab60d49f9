@@ -235,6 +235,30 @@
       "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "174b0bb1_1b250a44",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-09T18:45:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "de28ff4c_5d84a5db",
+      "range": {
+        "startLine": 200,
+        "startChar": 16,
+        "endLine": 200,
+        "endChar": 26
+      },
+      "revId": "d847392c7ad51038b456443c48e7c2aab60d49f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
