@@ -70,7 +70,7 @@ export function fromObject(o) {
         ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
       })
     } else if (typeof(o[key]) == 'object') {
-      ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(sk.query.fromObject(o[key])));
+      ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(fromObject(o[key])));
     } else {
       ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(o[key]));
     }
@@ -131,7 +131,7 @@ export function toObject(s, target) {
               r.push(value);
               ret[key] = r;
             } else {
-              ret[key] = sk.query.toObject(value, target[key]);
+              ret[key] = toObject(value, target[key]);
             }
             break;
           case 'string':
