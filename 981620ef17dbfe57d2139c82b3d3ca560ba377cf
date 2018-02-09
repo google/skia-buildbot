@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c05c75b_45a6441c",
+        "filename": "res/mod/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-09T20:58:09Z",
+      "side": 1,
+      "message": "continuous means, watch source files for change and if they do (e.g. on save), run the tests again?",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 10
+      },
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcf25a6a_b81d545e",
+        "filename": "res/mod/karma.conf.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-09T20:58:09Z",
+      "side": 1,
+      "message": "Add a few lines to README about how to regenerate this and when it should be regenerated?",
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97bab092_6223c2f7",
+        "filename": "res/mod/karma.conf.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-09T20:58:09Z",
+      "side": 1,
+      "message": "Let\u0027s also add Firefox",
+      "range": {
+        "startLine": 58,
+        "startChar": 15,
+        "endLine": 58,
+        "endChar": 23
+      },
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f52cf23_27cf5402",
+        "filename": "res/mod/tests/human.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-09T20:58:09Z",
+      "side": 1,
+      "message": "let everywhere",
+      "range": {
+        "startLine": 19,
+        "startChar": 11,
+        "endLine": 19,
+        "endChar": 14
+      },
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9666f48_89e72914",
+        "filename": "res/mod/tests/query.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-09T20:58:09Z",
+      "side": 1,
+      "message": "!\u003d\u003d",
+      "range": {
+        "startLine": 18,
+        "startChar": 82,
+        "endLine": 18,
+        "endChar": 84
+      },
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
