@@ -41,7 +41,7 @@ export function strDuration(seconds) {
   }
   if (seconds === 0) { return '  0s'; }
   let rv = "";
-  for (leti=0; i<TIME_DELTAS.length; i++) {
+  for (let i=0; i<TIME_DELTAS.length; i++) {
     if (TIME_DELTAS[i].delta <= seconds) {
       let s = Math.floor(seconds/TIME_DELTAS[i].delta)+TIME_DELTAS[i].units;
       while (s.length < 4) {
