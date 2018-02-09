@@ -303,6 +303,8 @@ func NewDbMetricWithClient(c metrics2.Client, d *bolt.DB, bucketNames []string, 
 // updates all sub-metrics with new data. Returns an error if the read
 // transaction fails or if a bucket is not found.
 func (m *DbMetric) Update() error {
+	defer metrics2.FuncTimer().Stop()
+
 	m.DbStatsMetric.Update(m.db.Stats())
 	return m.db.View(func(tx *bolt.Tx) error {
 		var err error
