@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "47c19de9_aedc57bf",
+        "filename": "res/mod/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-09T22:00:48Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "8c05c75b_45a6441c",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 10
+      },
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dcf25a6a_b81d545e",
         "filename": "res/mod/karma.conf.js",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2018-02-09T20:58:09Z",
       "side": 1,
       "message": "Add a few lines to README about how to regenerate this and when it should be regenerated?",
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "595139bb_05578e81",
+        "filename": "res/mod/karma.conf.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-09T22:00:48Z",
+      "side": 1,
+      "message": "It should never be regenerated. Removed lines to avoid confusion.",
+      "parentUuid": "dcf25a6a_b81d545e",
       "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "e5c124f7_7b6f337f",
+        "filename": "res/mod/karma.conf.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-09T22:00:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97bab092_6223c2f7",
+      "range": {
+        "startLine": 58,
+        "startChar": 15,
+        "endLine": 58,
+        "endChar": 23
+      },
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f52cf23_27cf5402",
         "filename": "res/mod/tests/human.js",
         "patchSetId": 3
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "8c15d015_2444fd9c",
+        "filename": "res/mod/tests/human.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-09T22:00:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f52cf23_27cf5402",
+      "range": {
+        "startLine": 19,
+        "startChar": 11,
+        "endLine": 19,
+        "endChar": 14
+      },
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e9666f48_89e72914",
         "filename": "res/mod/tests/query.js",
         "patchSetId": 3
@@ -108,6 +198,30 @@
       "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fde417f4_7e7c6c3e",
+        "filename": "res/mod/tests/query.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-09T22:00:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9666f48_89e72914",
+      "range": {
+        "startLine": 18,
+        "startChar": 82,
+        "endLine": 18,
+        "endChar": 84
+      },
+      "revId": "981620ef17dbfe57d2139c82b3d3ca560ba377cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
