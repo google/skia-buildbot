@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 
@@ -292,8 +293,17 @@ func setup(t *testing.T) (*AutoRollStateMachine, *TestAutoRollerImpl, func()) {
 }
 
 func TestNormal(t *testing.T) {
-	sm, r, cleanup := setup(t)
-	defer cleanup()
+	testutils.MediumTest(t)
+	r := NewTestAutoRollerImpl(t)
+	workdir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
+	sm, err := New(r, workdir, &ThrottleConfig{
+		AttemptCount: 15,
+		TimeWindow:   3 * time.Hour,
+	})
+	assert.NoError(t, err)
+	ctx := context.Background()
 
 	checkState(t, sm, S_NORMAL_IDLE)
 
@@ -325,11 +335,32 @@ func TestNormal(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 
 	// This one failed, but there's no new commit. Ensure that we retry
-	// the active CL.
+	// the active CL after a wait.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
 	roll.SetFailed()
 	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	// Should stay throttled.
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	// We still have to respect mode changes.
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.AssertDryRun()
+	r.SetMode(ctx, modes.MODE_RUNNING)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll.SetFailed()
+	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	// Hack the timer to fake that the throttling has expired, then ensure
+	// that we retry the CQ.
+	counterFile := path.Join(workdir, "fail_counter")
+	assert.NoError(t, os.Remove(counterFile))
+	counter, err := util.NewPersistentAutoDecrementCounter(counterFile, time.Minute)
+	assert.NoError(t, err)
+	sm.failCounter = counter
+	sklog.Infof("Failed: %d", sm.failCounter.Get())
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	uploaded := r.GetActiveRoll()
 	assert.Equal(t, roll, uploaded)
@@ -355,12 +386,31 @@ func TestNormal(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
 	r.SetRolledPast("HEAD+3", true)
 	checkNextState(t, sm, S_NORMAL_IDLE)
+
+	// Upload a new roll, which fails. Ensure that we can stop the roller
+	// from the throttled state.
+	r.SetNextRollRev("HEAD+4")
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.SetFailed()
+	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	r.SetMode(ctx, modes.MODE_STOPPED)
+	checkNextState(t, sm, S_STOPPED)
+	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
+	// We don't reopen the CL and go back to throttled state in this case.
+	r.SetMode(ctx, modes.MODE_RUNNING)
+	checkNextState(t, sm, S_NORMAL_IDLE)
 }
 
 func TestDryRun(t *testing.T) {
-	sm, r, cleanup := setup(t)
-	defer cleanup()
-
+	testutils.MediumTest(t)
+	r := NewTestAutoRollerImpl(t)
+	workdir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
+	sm, err := New(r, workdir, nil)
+	assert.NoError(t, err)
 	ctx := context.Background()
 
 	// Switch to dry run.
@@ -391,11 +441,32 @@ func TestDryRun(t *testing.T) {
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 
 	// This one failed, but there's no new commit. Ensure that we retry
-	// the active CL.
+	// the active CL after a wait.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertDryRun()
 	roll.SetDryRunFailed()
 	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	// Should stay throttled.
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	// We still have to respect mode changes.
+	r.SetMode(ctx, modes.MODE_RUNNING)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.AssertNotDryRun()
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll.SetFailed()
+	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	// Hack the timer to fake that the throttling has expired, then ensure
+	// that we retry the CQ.
+	counterFile := path.Join(workdir, "fail_counter")
+	assert.NoError(t, os.Remove(counterFile))
+	counter, err := util.NewPersistentAutoDecrementCounter(counterFile, time.Minute)
+	assert.NoError(t, err)
+	sm.failCounter = counter
+	sklog.Infof("Failed: %d", sm.failCounter.Get())
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	uploaded := r.GetActiveRoll()
 	assert.Equal(t, roll, uploaded)
@@ -412,6 +483,18 @@ func TestDryRun(t *testing.T) {
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	uploaded = r.GetActiveRoll()
 	assert.NotEqual(t, roll, uploaded)
+
+	// This one failed too. Ensure that we can stop the roller from the
+	// throttled state.
+	uploaded.(*TestRollCLImpl).SetDryRunFailed()
+	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	r.SetMode(ctx, modes.MODE_STOPPED)
+	checkNextState(t, sm, S_STOPPED)
+	roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
+	// We don't reopen the CL and go back to throttled state in this case.
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
 }
 
 func TestNormalToDryRun(t *testing.T) {
@@ -472,9 +555,9 @@ func testSafetyThrottle(t *testing.T, mode string, tc *ThrottleConfig) {
 	r := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
 	sm, err := New(r, workdir, tc)
 	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
 
 	ctx := context.Background()
 
@@ -588,6 +671,7 @@ func TestSuccessThrottle(t *testing.T) {
 	sm, err := New(r, workdir, nil)
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
+	ctx := context.Background()
 
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	r.SetNextRollRev("HEAD+1")
@@ -600,6 +684,19 @@ func TestSuccessThrottle(t *testing.T) {
 	// We should've incremented the counter, which should put us in the
 	// SUCCESS_THROTTLED state.
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
+	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
+	// We should still respect switches to dry run in this state.
+	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
+	// And when we switch back we should still be throttled.
+	r.SetMode(ctx, modes.MODE_RUNNING)
+	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
+	// Now, stop the roller, restart it, and ensure that we're still
+	// throttled.
+	r.SetMode(ctx, modes.MODE_STOPPED)
+	checkNextState(t, sm, S_STOPPED)
+	r.SetMode(ctx, modes.MODE_RUNNING)
+	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
 	// This would continue for the next 30 minutes... Instead, we'll hack
 	// the counter to pretend it timed out.
