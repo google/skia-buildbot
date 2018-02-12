@@ -303,8 +303,11 @@ func NewDbMetricWithClient(c metrics2.Client, d *bolt.DB, bucketNames []string, 
 // updates all sub-metrics with new data. Returns an error if the read
 // transaction fails or if a bucket is not found.
 func (m *DbMetric) Update() error {
+	defer metrics2.FuncTimer().Stop()
+
 	m.DbStatsMetric.Update(m.db.Stats())
 	return m.db.View(func(tx *bolt.Tx) error {
+		defer metrics2.NewTimer(metrics2.NAME_FUNC_TIMER, map[string]string{"package": "go.skia.org/infra/go/boltutil.(*DbMetric)", "func": "Update.viewInnerFn"}).Stop()
 		var err error
 		for name, metric := range m.BucketStatsMetrics {
 			b := tx.Bucket([]byte(name))
