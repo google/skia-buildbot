@@ -98,7 +98,7 @@ func predictHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, "Failed to parse change query parameter.")
 			return
 		}
-		files, err = gerritClient.Files(issue, r.FormValue("revisions"))
+		files, err = gerritClient.GetFileNames(issue, r.FormValue("revisions"))
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to retrieve file list from CL.")
 			return

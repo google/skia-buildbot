@@ -71,8 +71,16 @@ func (g *MockedGerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*bui
 	return nil, nil
 }
 
-func (g *MockedGerrit) Files(issue int64, patch string) ([]string, error) {
+func (g *MockedGerrit) Files(issue int64, patch string) (map[string]*FileInfo, error) {
 	return nil, nil
+}
+
+func (g *MockedGerrit) GetFileNames(issue int64, patch string) ([]string, error) {
+	return nil, nil
+}
+
+func (g *MockedGerrit) IsBinaryPatch(issue int64, patch string) (bool, error) {
+	return false, nil
 }
 
 // Make sure MockGerrit fulfills GerritInterface

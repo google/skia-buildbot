@@ -133,6 +133,16 @@ type LabelDetail struct {
 	Value int
 }
 
+type FileInfo struct {
+	Status        string `json:"status"`
+	Binary        bool   `json:"binary"`
+	OldPath       string `json:"old_path"`
+	LinesInserted int    `json:"lines_inserted"`
+	LinesDeleted  int    `json:"lines_deleted"`
+	SizeDelta     int    `json:"size_delta"`
+	Size          int    `json:"size"`
+}
+
 // Revision is the information associated with a patchset in Gerrit.
 type Revision struct {
 	ID            string    `json:"-"`
@@ -161,7 +171,9 @@ type GerritInterface interface {
 	SetTopic(string, int64) error
 	Search(int, ...*SearchTerm) ([]*ChangeInfo, error)
 	GetTrybotResults(int64, int64) ([]*buildbucket.Build, error)
-	Files(issue int64, patch string) ([]string, error)
+	Files(issue int64, patch string) (map[string]*FileInfo, error)
+	GetFileNames(issue int64, patch string) ([]string, error)
+	IsBinaryPatch(issue int64, patch string) (bool, error)
 }
 
 // Gerrit is an object used for iteracting with the issue tracker.
@@ -713,40 +725,51 @@ func (g *Gerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbuck
 
 var revisionRegex = regexp.MustCompile("^[a-z0-9]+$")
 
-// Files returns the list of files for the given issue at the given patch. If
-// patch is the empty string then the most recent patch is queried.
-func (g *Gerrit) Files(issue int64, patch string) ([]string, error) {
+// Files returns the files that were modified, added or deleted in a revision.
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#list-files
+func (g *Gerrit) Files(issue int64, patch string) (map[string]*FileInfo, error) {
 	if patch == "" {
 		patch = "current"
 	}
 	if !revisionRegex.MatchString(patch) {
 		return nil, fmt.Errorf("Invalid 'patch' value.")
 	}
+	url := fmt.Sprintf("/changes/%d/revisions/%s/files", issue, patch)
+	files := map[string]*FileInfo{}
+	if err := g.get(url, &files, ErrNotFound); err != nil {
+		return nil, fmt.Errorf("Failed to list files for issue %d: %v", issue, err)
+	}
+	return files, nil
+}
 
-	url := fmt.Sprintf("%s/changes/%d/revisions/%s/files/", g.url, issue, patch)
-	resp, err := g.client.Get(url)
+// GetFileNames returns the list of files for the given issue at the given patch. If
+// patch is the empty string then the most recent patch is queried.
+func (g *Gerrit) GetFileNames(issue int64, patch string) ([]string, error) {
+
+	files, err := g.Files(issue, patch)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get commit file list from Gerrit: %s", err)
+		return nil, err
 	}
-	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Could not read response body: %s", err)
-	}
-
-	// Strip off the XSS protection chars.
-	parts := strings.SplitN(string(body), "\n", 2)
-
-	// The Gerrit response is a map of filenames to extra info, we only need the filenames.
-	files := map[string]interface{}{}
-	if err := json.Unmarshal([]byte(parts[1]), &files); err != nil {
-		return nil, fmt.Errorf("Failed to get decode file list from Gerrit: %s", err)
-	}
+	// We only need the filenames.
 	ret := []string{}
 	for filename, _ := range files {
 		ret = append(ret, filename)
 	}
 	return ret, nil
+}
+
+// IsBinaryPatch returns true if the patch contains any binary files.
+func (g *Gerrit) IsBinaryPatch(issue int64, revision string) (bool, error) {
+	files, err := g.Files(issue, revision)
+	if err != nil {
+		return false, err
+	}
+	for _, fileInfo := range files {
+		if fileInfo.Binary {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // CodeReviewCache is an LRU cache for Gerrit Issues that polls in the background to determine if
