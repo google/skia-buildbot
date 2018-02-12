@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "871ee548_90ca750f",
+        "filename": "ap/skia-elements/checkbox-sk/checkbox-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-12T16:32:02Z",
+      "side": 1,
+      "message": "isTrue.  It shouldn\u0027t matter, but in case it does, best be consistent",
+      "range": {
+        "startLine": 43,
+        "startChar": 8,
+        "endLine": 43,
+        "endChar": 11
+      },
+      "revId": "d0809598585cd5294003fa036d4442ebd97b9963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d987baa1_2bced38a",
+        "filename": "ap/skia-elements/checkbox-sk/checkbox-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-12T16:32:02Z",
+      "side": 1,
+      "message": "if this is a purposeful !\u003d, then add a comment explaining that it is and why. newValue can never be false, right?  And empty string wouldn\u0027t mean false because \u003cdiv attr\u003d\"\"\u003e\u003c/div\u003e means attr -\u003e true/set?",
+      "range": {
+        "startLine": 67,
+        "startChar": 26,
+        "endLine": 67,
+        "endChar": 28
+      },
+      "revId": "d0809598585cd5294003fa036d4442ebd97b9963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
