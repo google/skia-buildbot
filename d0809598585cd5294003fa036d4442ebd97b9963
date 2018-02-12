@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7fa35656_45736e9d",
+        "filename": "ap/skia-elements/checkbox-sk/checkbox-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-12T16:37:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "871ee548_90ca750f",
+      "range": {
+        "startLine": 43,
+        "startChar": 8,
+        "endLine": 43,
+        "endChar": 11
+      },
+      "revId": "d0809598585cd5294003fa036d4442ebd97b9963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d987baa1_2bced38a",
         "filename": "ap/skia-elements/checkbox-sk/checkbox-sk.js",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "d0809598585cd5294003fa036d4442ebd97b9963",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "279b87e6_51c130c2",
+        "filename": "ap/skia-elements/checkbox-sk/checkbox-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-12T16:37:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d987baa1_2bced38a",
+      "range": {
+        "startLine": 67,
+        "startChar": 26,
+        "endLine": 67,
+        "endChar": 28
+      },
+      "revId": "d0809598585cd5294003fa036d4442ebd97b9963",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
