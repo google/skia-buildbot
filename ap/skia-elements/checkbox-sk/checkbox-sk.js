@@ -1,94 +1,88 @@
-import { upgradeProperty } from '../dom'
+import { upgradeProperty, $$ } from '../dom'
 
-export class CheckboxElement extends HTMLElement {
-  static get _role() { return 'checkbox'; }
+// The checkbox-sk and radio-sk elements contains a native 'input' element in
+// light DOM so that they can participate in a form element.
+export class CheckOrRadio extends HTMLElement {
+  get _role() { return 'checkbox'; }
 
   static get observedAttributes() {
-    return ['checked', 'disabled'];
+    return ['checked', 'disabled', 'name', 'label'];
   }
 
   connectedCallback() {
+    this.innerHTML = `<label><input type=${this._role}></input><span class=box></span><span class=label></span></label>`;
+    this._label = $$('.label', this)[0];
+    this._input = $$('input', this)[0];
     upgradeProperty(this, 'checked');
     upgradeProperty(this, 'disabled');
-    upgradeProperty(this, 'hidden');
-    if (!this.hasAttribute('role')) {
-      this.setAttribute('role', this.constructor._role);
-    }
-    if (!this.hasAttribute('tabindex')) {
-      this.setAttribute('tabindex', '0');
-    }
-    this.setAttribute('aria-checked', this.checked);
-    this.setAttribute('aria-disabled', this.disabled);
-    this.addEventListener('click', this);
-    this.addEventListener('keydown', this);
-  }
-
-  disconnectedCallback() {
-    this.removeEventListener('click', this);
-    this.removeEventListener('keydown', this);
+    upgradeProperty(this, 'name');
+    upgradeProperty(this, 'label');
+    this._input.checked = this.checked;
+    this._input.disabled = this.disabled;
+    this._input.setAttribute('name', this.getAttribute('name'));
+    this._label.textContent = this.getAttribute('label');
+    // TODO(jcgregorio) Do we capture and alter the 'input' and 'change' events generated
+    // by the input element so that the evt.target points to 'this'?
   }
 
   get checked() { return this.hasAttribute('checked'); }
   set checked(val) {
+    let isTrue = !!val;
+    this._input.checked = isTrue;
     if (val) {
       this.setAttribute('checked', '');
-      this.setAttribute('aria-checked', 'true');
     } else {
       this.removeAttribute('checked');
-      this.setAttribute('aria-checked', 'false');
     }
   }
 
   get disabled() { return this.hasAttribute('disabled'); }
   set disabled(val) {
-    if (val) {
+    let isTrue = !!val;
+    this._input.disabled = isTrue;
+    if (isTrue) {
       this.setAttribute('disabled', '');
-      this.setAttribute('aria-disabled', 'true');
     } else {
       this.removeAttribute('disabled');
-      this.setAttribute('aria-disabled', 'false');
     }
   }
 
-  get hidden() { return this.hasAttribute('hidden'); }
-  set hidden(val) {
-    if (val) {
-      this.setAttribute('hidden', '');
-    } else {
-      this.removeAttribute('hidden');
-    }
+  get name() { return this._input.getAttribute('name'); }
+  set name(val) {
+    this.setAttribute('name', val);
+    this._input.setAttribute('name', val);
   }
 
-  handleEvent(e) {
-    if (e.type === 'click' && !this.disabled) {
-      this.checked = !this.checked;
-      this.dispatchEvent(new CustomEvent('change-sk', { 'bubbles': true }));
-    } else if (e.type === 'keydown') {
-      if (event.altKey) {
-        return;
-      }
-      if (event.keyCode === 32 /* Space */) {
-        e.preventDefault();
-        if (!this.disabled) {
-          this.checked = !this.checked;
-          this.dispatchEvent(new CustomEvent('change-sk', { 'bubbles': true }));
-        }
-      }
-    }
+  get label() { return this._input.getAttribute('label'); }
+  set label(val) {
+    this.setAttribute('label', val);
+    this._input.setAttribute('label', val);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    let isTrue = !!newValue;
+    console.log(name, oldValue, newValue);
+    if (!this._input) {
+      return
+    }
+    // Strictly check for null since an empty string doesn't mean false
+    // for a boolean attribute.
+    let isTrue = newValue != null;
     switch (name) {
       case 'checked':
-        this.setAttribute('aria-checked', isTrue);
+        this._input.checked = isTrue;
         break;
       case 'disabled':
-        this.setAttribute('aria-disabled', isTrue);
+        this._input.disabled = isTrue;
+        break;
+      case 'name':
+        this._input.name = newValue;
+        break;
+      case 'label':
+        this._label.textContent = newValue;
         break;
     }
   }
 }
 
-window.customElements.define('checkbox-sk', CheckboxElement);
+window.customElements.define('checkbox-sk', CheckOrRadio);
 
