@@ -77,23 +77,17 @@
   </select>
 
   <h2 id="Checkboxes">Checkboxes</h2>
-  <checkbox-sk></checkbox-sk>
-  <checkbox-sk checked></checkbox-sk>
-  <checkbox-sk disabled checked></checkbox-sk>
-  <checkbox-sk disabled></checkbox-sk>
+  <checkbox-sk label="Unchecked" name=checkbox1></checkbox-sk>
+  <checkbox-sk label="Checked" name=checkbox2 checked></checkbox-sk>
+  <checkbox-sk label="Disabled Checked" disabled checked></checkbox-sk>
+  <checkbox-sk label="Disabled Unchecked" disabled></checkbox-sk>
 
-  <h2 id="Radio Buttons">Radio Buttons</h2>
-  <radio-sk></radio-sk>
-  <radio-sk checked></radio-sk>
-  <radio-sk disabled checked></radio-sk>
-  <radio-sk disabled></radio-sk>
-
-  <h2 id="Radio Group">Radio Group</h2>
-  <radio-group-sk>
-    <radio-sk></radio-sk>
-    <radio-sk></radio-sk>
-    <radio-sk></radio-sk>
-  </radio-group-sk>
+  <h2 id="Radio Buttons">Radio Buttons in a Radio Group</h2>
+  <radiogroup>
+    <radio-sk                  label="Unchecked"></radio-sk>
+    <radio-sk checked          label="Checked"></radio-sk>
+    <radio-sk disabled         label="Disabled Unchecked"></radio-sk>
+  </radiogroup>
 
   <h2 id="Toast">Toast</h2>
   <button id=toaster>Make toast.</button>

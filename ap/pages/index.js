@@ -7,7 +7,6 @@ import 'skia-elements/collapse-sk';
 import 'skia-elements/toast-sk';
 import 'skia-elements/checkbox-sk';
 import 'skia-elements/radio-sk';
-import 'skia-elements/radio-group-sk';
 import 'skia-elements/dialog-sk';
 import 'skia-elements/tabs-sk';
 import 'skia-elements/nav-sk';
