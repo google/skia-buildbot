@@ -160,6 +160,26 @@ func registerRunHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check to see if this task has already been requested and is currently
+	// running. If it is then return the existing ID without triggering a new
+	// task. This is done to avoid creating unnecessary duplicate tasks.
+	_, runningTasksAndKeys, err := GetCompileTasksAndKeys()
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to retrieve currently running compile tasks and keys: %s", err))
+		return
+	}
+	for _, runningTaskAndKey := range runningTasksAndKeys {
+		if (task.Hash != "" && task.Hash == runningTaskAndKey.task.Hash) ||
+			(task.Issue == runningTaskAndKey.task.Issue && task.PatchSet == runningTaskAndKey.task.PatchSet) {
+			if err := json.NewEncoder(w).Encode(map[string]interface{}{"taskID": runningTaskAndKey.key.ID}); err != nil {
+				httputils.ReportError(w, r, err, "Failed to encode JSON")
+				return
+			}
+			sklog.Infof("Got request for already running task [hash: %s, issue: %d, patchset: %d]. Returning existing ID: %d", task.Hash, task.Issue, task.PatchSet, runningTaskAndKey.key.ID)
+			return
+		}
+	}
+
 	key := GetNewDSKey()
 	task.Created = time.Now()
 	ctx := context.Background()
@@ -169,13 +189,9 @@ func registerRunHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Kick off the task.
+	// Kick off the task and return the task ID.
 	triggerCompileTask(ctx, &task, datastoreKey)
-
-	jsonResponse := map[string]interface{}{
-		"taskID": datastoreKey.ID,
-	}
-	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{"taskID": datastoreKey.ID}); err != nil {
 		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
