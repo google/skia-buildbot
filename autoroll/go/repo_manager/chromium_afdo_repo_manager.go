@@ -34,7 +34,7 @@ const (
 	AFDO_GS_BUCKET = "chromeos-prebuilt"
 	AFDO_GS_PATH   = "afdo-job/llvm/"
 
-	AFDO_VERSION_LENGTH               = 3
+	AFDO_VERSION_LENGTH               = 5
 	AFDO_VERSION_REGEX_EXPECT_MATCHES = AFDO_VERSION_LENGTH + 1
 
 	AFDO_COMMIT_MSG_TMPL = `Roll AFDO from %s to %s
@@ -52,7 +52,7 @@ var (
 	// Example name: chromeos-chrome-amd64-63.0.3239.57_rc-r1.afdo.bz2
 	AFDO_VERSION_REGEX = regexp.MustCompile(
 		"^chromeos-chrome-amd64-" + // Prefix
-			"\\d+\\.\\d+\\.(\\d+)\\.(\\d+)" + // Version
+			"(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)" + // Version
 			"_rc-r(\\d+)" + // Revision
 			"\\.afdo\\.bz2$") // Suffix
 
@@ -97,6 +97,8 @@ func afdoVersionGreater(a, b string) (bool, error) {
 	for i := 0; i < AFDO_VERSION_LENGTH; i++ {
 		if verA[i] > verB[i] {
 			return true, nil
+		} else if verA[i] < verB[i] {
+			return false, nil
 		}
 	}
 	return false, nil
