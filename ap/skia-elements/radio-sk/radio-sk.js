@@ -1,8 +1,11 @@
 // Note that we are importing just the class, not the whole element + CSS definition.
-import { CheckboxElement } from '../checkbox-sk/checkbox-sk.js';
+import { CheckOrRadio } from '../checkbox-sk/checkbox-sk.js';
 
-class RadioElement extends CheckboxElement {
-  static get _role() { return 'radio'; }
+class RadioElement extends CheckOrRadio {
+  get _role() { return 'radio'; }
 }
 
+// The radio-sk element contains a native 'input' element in light DOM
+// so that the radio button can participate in a form element,
+// and also participate in a native 'radiogroup' element.
 window.customElements.define('radio-sk', RadioElement);
