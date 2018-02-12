@@ -132,6 +132,27 @@ func TestAFDOVersionGreater(t *testing.T) {
 	test(afdoRevNext, afdoRevBase, true)
 	test(afdoRevPrev, afdoRevNext, false)
 	test(afdoRevNext, afdoRevPrev, true)
+
+	t2 := func(a, b [AFDO_VERSION_LENGTH]int, expect bool) {
+		tmpl := "chromeos-chrome-amd64-%d.%d.%d.%d_rc-r%d.afdo.bz2"
+		verA := fmt.Sprintf(tmpl, a[0], a[1], a[2], a[3], a[4])
+		verB := fmt.Sprintf(tmpl, b[0], b[1], b[2], b[3], b[4])
+		test(verA, verB, expect)
+	}
+
+	t2([AFDO_VERSION_LENGTH]int{66, 0, 3336, 3, 1}, [AFDO_VERSION_LENGTH]int{64, 0, 3282, 165, 1}, true)
+	t2([AFDO_VERSION_LENGTH]int{64, 0, 3282, 165, 1}, [AFDO_VERSION_LENGTH]int{66, 0, 3336, 3, 1}, false)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, false)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 4}, true)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 4}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, false)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 3, 5}, true)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 5, 3, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, false)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 2, 5, 5}, true)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 2, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, false)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 1, 5, 5, 5}, true)
+	t2([AFDO_VERSION_LENGTH]int{5, 1, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, false)
+	t2([AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{0, 5, 5, 5, 5}, true)
+	t2([AFDO_VERSION_LENGTH]int{0, 5, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, false)
 }
 
 func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path string, items []string) {
