@@ -32,10 +32,12 @@ push-selection-sk {
 
   .userid {
     color: $purple;
+    width: 6em;
   }
 
   .built {
     color: $orange;
+    width: 2em;
   }
 
   pre {
@@ -45,5 +47,10 @@ push-selection-sk {
   .buttons {
     display: flex;
     justify-content: flex-end;
+  }
+
+  select-sk {
+    overflow-y: auto;
+    height: 50vh;
   }
 }
