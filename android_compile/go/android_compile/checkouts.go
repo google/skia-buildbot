@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	sk_exec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -77,6 +78,8 @@ var (
 		MaxElapsedTime:      MAX_ELAPSED_TIME,
 		Clock:               backoff.SystemClock,
 	}
+
+	gerritClient *gerrit.Gerrit
 )
 
 func CheckoutsInit(numCheckouts int, workdir string) error {
@@ -99,11 +102,16 @@ func CheckoutsInit(numCheckouts int, workdir string) error {
 		return fmt.Errorf("Error when updating checkouts in parallel: %s", err)
 	}
 
-	// Get a handle to the Google Storage bucket that logs will be stored in.
 	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
+	// Create a Gerrit client.
+	gerritClient, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", client)
+	if err != nil {
+		return fmt.Errorf("Failed to create a Gerrit client: %s", err)
+	}
+	// Get a handle to the Google Storage bucket that logs will be stored in.
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return fmt.Errorf("Failed to create a Google Storage API client: %s", err)
@@ -242,7 +250,15 @@ func cleanSkiaCheckout(ctx context.Context, skiaCheckout *git.Checkout, checkout
 	return nil
 }
 
-func checkHeadFromMasterBranch(ctx context.Context, skiaCheckout *git.Checkout) (bool, error) {
+func checkPatchFromMasterBranch(issue int) (bool, error) {
+	changeInfo, err := gerritClient.GetIssueProperties(int64(issue))
+	if err != nil {
+		return false, fmt.Errorf("Could not get properties of Gerrit issue %d: %s", issue, err)
+	}
+	return changeInfo.Branch == "master", nil
+}
+
+func checkCommitFromMasterBranch(ctx context.Context, skiaCheckout *git.Checkout) (bool, error) {
 	// Check that current HEAD is from origin/master and not any other branch.
 	fromMaster, err := skiaCheckout.IsAncestor(ctx, "HEAD", "origin/master")
 	if err != nil {
@@ -365,7 +381,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 			return fmt.Errorf("Could not apply the patch with issue %d and patchset %d: %s", task.Issue, task.PatchSet, err)
 		}
 		// Check to see if patch is from origin/master.
-		fromMaster, err := checkHeadFromMasterBranch(ctx, skiaCheckout)
+		fromMaster, err := checkPatchFromMasterBranch(task.Issue)
 		if err != nil {
 			return fmt.Errorf("Could not check if commit is from origin/master: %s", err)
 		}
@@ -389,7 +405,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 			return fmt.Errorf("Failed to checkout Skia hash %s: %s", task.Hash, err)
 		}
 		// Check to see if hash is from origin/master.
-		fromMaster, err := checkHeadFromMasterBranch(ctx, skiaCheckout)
+		fromMaster, err := checkCommitFromMasterBranch(ctx, skiaCheckout)
 		if err != nil {
 			return fmt.Errorf("Could not check if commit is from origin/master: %s", err)
 		}
