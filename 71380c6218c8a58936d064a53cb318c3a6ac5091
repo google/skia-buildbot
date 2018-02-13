@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19d2eefb_59312a93",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:12:23Z",
+      "side": 1,
+      "message": "I think we should be consistent with double or single quotes.  The Google style guide says single quotes.\n\nOn second thought, change this into a template string?",
+      "range": {
+        "startLine": 44,
+        "startChar": 9,
+        "endLine": 44,
+        "endChar": 10
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ceb45cc_6bdf82a1",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:12:23Z",
+      "side": 1,
+      "message": "I might just be missing it - where do the icons get imported?  I think it might be imported indirectly from push-selection-sk, but I think we should adopt an \"Import what you use\" philosophy",
+      "range": {
+        "startLine": 58,
+        "startChar": 157,
+        "endLine": 58,
+        "endChar": 171
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95497787_c3e13710",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:12:23Z",
+      "side": 1,
+      "message": "!ele._search",
+      "range": {
+        "startLine": 72,
+        "startChar": 6,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28d1684d_7e0afd6d",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:12:23Z",
+      "side": 1,
+      "message": "import { jsonOrThrow } from \u0027common/jsonOrThrow\u0027 ?",
+      "range": {
+        "startLine": 106,
+        "startChar": 6,
+        "endLine": 106,
+        "endChar": 17
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66b699cf_a592276f",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:12:23Z",
+      "side": 1,
+      "message": "Yeah, I think we\u0027ll want to refactor this to not hide the # - I see this and my brain says \"This is Jquery, I KNOW THIS\" and that\u0027s a hard habit to break.",
+      "range": {
+        "startLine": 147,
+        "startChar": 27,
+        "endLine": 147,
+        "endChar": 30
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e99a5898_7d0901d2",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:12:23Z",
+      "side": 1,
+      "message": "!\u003d\u003d",
+      "range": {
+        "startLine": 159,
+        "startChar": 24,
+        "endLine": 159,
+        "endChar": 26
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ef144d8_5dd05513",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:12:23Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 164,
+        "startChar": 57,
+        "endLine": 164,
+        "endChar": 59
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52a174f3_65c94b79",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:12:23Z",
+      "side": 1,
+      "message": "Consider using a template string literal",
+      "range": {
+        "startLine": 196,
+        "startChar": 29,
+        "endLine": 196,
+        "endChar": 74
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
