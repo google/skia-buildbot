@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5baebb82_3af80b61",
+        "filename": "push/package.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T21:34:26Z",
+      "side": 1,
+      "message": "Why not push and version 2.0.0 ?",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 15
+      },
+      "revId": "8037ab45333d5c629cdf3c7e67cf51598a149eb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
