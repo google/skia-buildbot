@@ -49,7 +49,6 @@ const template = (ele) => html`<dialog-sk>
 window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
   constructor() {
     super();
-    this._promise = null;
     this._resolve = null;
     this._reject = null;
     this._message = '';
@@ -63,11 +62,10 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
     this._message = message;
     this._render();
     this.firstChild.show();
-    this._promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
     });
-    return this._promise;
   }
 
   _dismiss() {
@@ -85,4 +83,3 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
   }
 
 });
-
