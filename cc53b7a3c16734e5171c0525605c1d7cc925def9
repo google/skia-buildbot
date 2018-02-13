@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8744e371_980a7a85",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-13T15:52:01Z",
+      "side": 1,
+      "message": "Would much prefer this be IsMasterBranch.",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 35,
+        "endChar": 16
+      },
+      "revId": "cc53b7a3c16734e5171c0525605c1d7cc925def9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
