@@ -210,6 +210,30 @@
       "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2c45ee8c_86058095",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T17:53:37Z",
+      "side": 1,
+      "message": "Sorry, I guess what I meant was can\u0027t we delete this._promise?  I only see it used in open(), and it looks to me like it could be just return new Promise(...);\n\n(Is class variable a better term for what it is now?)",
+      "parentUuid": "df823df3_4368fc80",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 17
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
