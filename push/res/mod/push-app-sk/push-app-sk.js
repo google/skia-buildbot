@@ -134,12 +134,14 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
-    fetch('/_/state').then(jsonOrThrow).then(this._setState).catch(errorMessage);
-    this._updateStatus();
-    this._render();
-    this._spinner = $('spinner');
-    this._push_selection = $('push-selection');
-    this._chosenServer = '';
+    fetch('/_/state').then(jsonOrThrow).then(state => {
+      this._setState(state);
+      this._updateStatus();
+      this._render();
+      this._spinner = $('spinner');
+      this._push_selection = $('push-selection');
+      this._chosenServer = '';
+    }).catch(errorMessage);
   }
 
   _render() {
@@ -176,6 +178,7 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
       headers: {
         'content-type': 'application/json'
       },
+      credentials: 'include',
     }).then(jsonOrThrow).then(state => {
       this._spinner.active = false;
       this._setState(state);
@@ -200,7 +203,10 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
   // 'action', and 'machine' properties.
   _unitAction(detail) {
     this._spinner.active = true;
-    fetch('/_/change?' + fromObject(detail), { method: 'POST' }).then(jsonOrThrow).then(json => {
+    fetch('/_/change?' + fromObject(detail), {
+      method: 'POST',
+      credentials: 'include',
+    }).then(jsonOrThrow).then(json => {
       this._spinner.active = false;
       errorMessage(json.result);
     }).catch(err => {
