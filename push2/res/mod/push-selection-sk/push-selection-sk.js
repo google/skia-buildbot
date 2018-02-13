@@ -69,7 +69,7 @@ const template = (ele) => html`
 //
 //  Events:
 //    'package-change'
-//        A 'change-package' event is generated when the user selects a package to push.
+//        A 'package-change' event is generated when the user selects a package to push.
 //        The change event has the following attributes:
 //
 //          event.detail.name   - The full name of the package selected.
