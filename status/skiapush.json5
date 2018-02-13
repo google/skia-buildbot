@@ -2,21 +2,23 @@
   "Servers": {
     "skia-status": {
       "AppNames": [
-        "statusd",
+        "git-cookie-authdaemon",
         "pulld",
+        "statusd",
       ],
     },
     "skia-status-internal": {
       "AppNames": [
-        "status-internal",
         "git-cookie-authdaemon",
         "pulld",
+        "status-internal",
       ],
     },
     "skia-status-staging": {
       "AppNames": [
-        "statusd",
+        "git-cookie-authdaemon",
         "pulld",
+        "statusd",
       ],
     },
   }
