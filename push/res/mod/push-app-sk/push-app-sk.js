@@ -134,12 +134,14 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
-    fetch('/_/state').then(jsonOrThrow).then(this._setState).catch(errorMessage);
-    this._updateStatus();
-    this._render();
-    this._spinner = $('spinner');
-    this._push_selection = $('push-selection');
-    this._chosenServer = '';
+    fetch('/_/state').then(jsonOrThrow).then(state => {
+      this._setState(state);
+      this._updateStatus();
+      this._render();
+      this._spinner = $('spinner');
+      this._push_selection = $('push-selection');
+      this._chosenServer = '';
+    }).catch(errorMessage);
   }
 
   _render() {
