@@ -3,6 +3,7 @@ package search
 import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -27,6 +28,7 @@ type srIntermediate struct {
 	digest string
 	traces map[string]*types.GoldenTrace
 	params paramtools.ParamSet
+	diffs  map[string]*diff.DiffMetrics
 }
 
 // newSrIntermediate creates a new srIntermediate for a digest and adds
