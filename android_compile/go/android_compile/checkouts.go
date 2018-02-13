@@ -204,9 +204,6 @@ func applyPatch(ctx context.Context, skiaCheckout *git.Checkout, issue, patchset
 	if _, err := skiaCheckout.Git(ctx, "reset", "--hard", "FETCH_HEAD"); err != nil {
 		return fmt.Errorf("Failed to checkout FETCH_HEAD in %s: %s", skiaCheckout.Dir(), err)
 	}
-	if _, err := skiaCheckout.Git(ctx, "rebase"); err != nil {
-		return fmt.Errorf("Failed to rebase in %s: %s", skiaCheckout.Dir(), err)
-	}
 	return nil
 }
 
@@ -243,6 +240,15 @@ func cleanSkiaCheckout(ctx context.Context, skiaCheckout *git.Checkout, checkout
 		// Do nothing. The try branch does not exist yet which is ok.
 	}
 	return nil
+}
+
+func checkHeadFromMasterBranch(ctx context.Context, skiaCheckout *git.Checkout) (bool, error) {
+	// Check that current HEAD is from origin/master and not any other branch.
+	fromMaster, err := skiaCheckout.IsAncestor(ctx, "HEAD", "origin/master")
+	if err != nil {
+		return false, fmt.Errorf("Could not find ancestor in %s: %s", skiaCheckout.Dir(), err)
+	}
+	return fromMaster, nil
 }
 
 func prepareSkiaCheckoutForCompile(ctx context.Context, userConfigContent []byte, skiaCheckout *git.Checkout) error {
@@ -358,12 +364,42 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 		if err := applyPatch(ctx, skiaCheckout, task.Issue, task.PatchSet); err != nil {
 			return fmt.Errorf("Could not apply the patch with issue %d and patchset %d: %s", task.Issue, task.PatchSet, err)
 		}
+		// Check to see if patch is from origin/master.
+		fromMaster, err := checkHeadFromMasterBranch(ctx, skiaCheckout)
+		if err != nil {
+			return fmt.Errorf("Could not check if commit is from origin/master: %s", err)
+		}
+		task.IsMasterBranch = fromMaster
+		if !task.IsMasterBranch {
+			if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+				return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
+			}
+			sklog.Infof("Patch with issue %d and patchset %d is not on master branch.", task.Issue, task.PatchSet)
+			return nil
+		}
+		// Rebase the checkout after applying the patch.
+		if _, err := skiaCheckout.Git(ctx, "rebase"); err != nil {
+			return fmt.Errorf("Failed to rebase in %s: %s", skiaCheckout.Dir(), err)
+		}
 	} else {
 		// Checkout the specified Skia hash.
 		// TODO(rmistry): This has lots of problems, the non-trybot bot could fail if
 		// Android tree is red. Maybe non-trybot path should not be supported?
 		if _, err := skiaCheckout.Git(ctx, "checkout", task.Hash); err != nil {
 			return fmt.Errorf("Failed to checkout Skia hash %s: %s", task.Hash, err)
+		}
+		// Check to see if hash is from origin/master.
+		fromMaster, err := checkHeadFromMasterBranch(ctx, skiaCheckout)
+		if err != nil {
+			return fmt.Errorf("Could not check if commit is from origin/master: %s", err)
+		}
+		task.IsMasterBranch = fromMaster
+		if !task.IsMasterBranch {
+			if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+				return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
+			}
+			sklog.Infof("Hash %s is not on master branch.", task.Hash)
+			return nil
 		}
 	}
 
