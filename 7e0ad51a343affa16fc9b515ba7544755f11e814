@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b5913812_2c1a3de8",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T16:32:12Z",
+      "side": 1,
+      "message": "Yes, added comments.",
+      "parentUuid": "3403a600_c9ec703d",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 35
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c891deae_5b002549",
         "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
         "patchSetId": 1
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "1265475b_6e6baaef",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T16:32:12Z",
+      "side": 1,
+      "message": "The version of $ in dom does document.getElementById(). I didn\u0027t realize I\u0027d changed the semantics from $$ and $$$ in common.js, I should think about changing that.",
+      "parentUuid": "efad114a_ae0ba658",
+      "range": {
+        "startLine": 27,
+        "startChar": 13,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c6b9620b_2173708b",
         "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
         "patchSetId": 1
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "4e982ff5_7f0ee3bb",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T16:32:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c6b9620b_2173708b",
+      "range": {
+        "startLine": 28,
+        "startChar": 36,
+        "endLine": 28,
+        "endChar": 38
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "23640387_a4d8814c",
         "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
         "patchSetId": 1
@@ -114,6 +186,30 @@
       "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df823df3_4368fc80",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T16:32:12Z",
+      "side": 1,
+      "message": "Its only useful when returned from open(), so I don\u0027t see the need to make it a public property.",
+      "parentUuid": "23640387_a4d8814c",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 17
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
