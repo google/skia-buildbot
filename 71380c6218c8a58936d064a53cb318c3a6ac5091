@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7cc4430b_d6121d3b",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:25:58Z",
+      "side": 1,
+      "message": "lgtm - I seem to remember single vs double quotes biting me in Polymer world, something about JSON only wanting one and not the other... We\u0027ll address that if we see it again.",
+      "parentUuid": "54b5947f_53d73718",
+      "range": {
+        "startLine": 44,
+        "startChar": 9,
+        "endLine": 44,
+        "endChar": 10
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ceb45cc_6bdf82a1",
         "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
         "patchSetId": 23
@@ -93,6 +117,30 @@
       "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43488f52_66024ecc",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T18:25:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f83ccc93_901b2f43",
+      "range": {
+        "startLine": 58,
+        "startChar": 157,
+        "endLine": 58,
+        "endChar": 171
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
