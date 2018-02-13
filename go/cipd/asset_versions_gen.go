@@ -3,6 +3,6 @@
 package cipd
 
 var PKG_VERSIONS_FROM_ASSETS = map[string]string{
-	"go":     "3",
+	"go":     "4",
 	"protoc": "0",
 }
