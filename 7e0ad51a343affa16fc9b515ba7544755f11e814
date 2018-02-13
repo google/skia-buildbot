@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3403a600_c9ec703d",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T16:09:40Z",
+      "side": 1,
+      "message": "_message must be text only, I can\u0027t provide html because the lit-html library will escape everything?",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 35
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c891deae_5b002549",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T16:09:40Z",
+      "side": 1,
+      "message": "I really like this use of Promises",
+      "range": {
+        "startLine": 18,
+        "startChar": 77,
+        "endLine": 18,
+        "endChar": 94
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efad114a_ae0ba658",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T16:09:40Z",
+      "side": 1,
+      "message": "#confirm-dialog",
+      "range": {
+        "startLine": 27,
+        "startChar": 13,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6b9620b_2173708b",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T16:09:40Z",
+      "side": 1,
+      "message": "delete? (also on line 30)",
+      "range": {
+        "startLine": 28,
+        "startChar": 36,
+        "endLine": 28,
+        "endChar": 38
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23640387_a4d8814c",
+        "filename": "res/mod/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-13T16:09:40Z",
+      "side": 1,
+      "message": "Does this need to be a property on confirm-dialog-sk?  I don\u0027t see it be used anywhere outside of open.  If it does (for scoping purposes [???]) please add a comment explaining why.",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 17
+      },
+      "revId": "7e0ad51a343affa16fc9b515ba7544755f11e814",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
