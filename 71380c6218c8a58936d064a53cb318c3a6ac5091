@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "54b5947f_53d73718",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T18:23:20Z",
+      "side": 1,
+      "message": "much better!\nAlso fixed all the straggling double quotes.",
+      "parentUuid": "19d2eefb_59312a93",
+      "range": {
+        "startLine": 44,
+        "startChar": 9,
+        "endLine": 44,
+        "endChar": 10
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5ceb45cc_6bdf82a1",
         "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
         "patchSetId": 23
@@ -36,6 +60,30 @@
       "writtenOn": "2018-02-13T18:12:23Z",
       "side": 1,
       "message": "I might just be missing it - where do the icons get imported?  I think it might be imported indirectly from push-selection-sk, but I think we should adopt an \"Import what you use\" philosophy",
+      "range": {
+        "startLine": 58,
+        "startChar": 157,
+        "endLine": 58,
+        "endChar": 171
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f83ccc93_901b2f43",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T18:23:20Z",
+      "side": 1,
+      "message": "agreed with the philosophy, I missed because the import of push-selection-sk masked my miss.",
+      "parentUuid": "5ceb45cc_6bdf82a1",
       "range": {
         "startLine": 58,
         "startChar": 157,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c8981ee4_43e53c74",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T18:23:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95497787_c3e13710",
+      "range": {
+        "startLine": 72,
+        "startChar": 6,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28d1684d_7e0afd6d",
         "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
         "patchSetId": 23
@@ -91,6 +163,30 @@
       "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71d30954_b3609b94",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T18:23:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28d1684d_7e0afd6d",
+      "range": {
+        "startLine": 106,
+        "startChar": 6,
+        "endLine": 106,
+        "endChar": 17
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "2eb1710d_425e2f17",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T18:23:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e99a5898_7d0901d2",
+      "range": {
+        "startLine": 159,
+        "startChar": 24,
+        "endLine": 159,
+        "endChar": 26
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4ef144d8_5dd05513",
         "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
         "patchSetId": 23
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "88164467_a33a0801",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T18:23:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ef144d8_5dd05513",
+      "range": {
+        "startLine": 164,
+        "startChar": 57,
+        "endLine": 164,
+        "endChar": 59
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "52a174f3_65c94b79",
         "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
         "patchSetId": 23
@@ -183,6 +327,30 @@
       "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04ff0bcf_a1fa9d03",
+        "filename": "push2/res/mod/push-app-sk/push-app-sk.js",
+        "patchSetId": 23
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-13T18:23:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52a174f3_65c94b79",
+      "range": {
+        "startLine": 196,
+        "startChar": 29,
+        "endLine": 196,
+        "endChar": 74
+      },
+      "revId": "71380c6218c8a58936d064a53cb318c3a6ac5091",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
