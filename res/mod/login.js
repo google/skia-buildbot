@@ -8,7 +8,9 @@
 //   }
 //
 // The Email will be the empty string if the user is not logged in.
-export var login = fetch('/loginstatus/').then(res => {
+export var login = fetch('/loginstatus/', {
+  credentials: 'include',
+}).then(res => {
   if (res.ok) {
     return res.json()
   }
