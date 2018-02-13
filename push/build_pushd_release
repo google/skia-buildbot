@@ -10,13 +10,12 @@ set -x -e
 copy_release_files()
 {
 INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}/etc/systemd/system/${APPNAME}.service
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/push        ${ROOT}/usr/local/bin/${APPNAME}
 ${INSTALL} --mode=644 -T ./allskiapush.json5       ${ROOT}/etc/${APPNAME}/skiapush.json5
-${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
-${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
-${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/${APPNAME}/templates/header.html
-${INSTALL} --mode=644 -T ./templates/index.html    ${ROOT}/usr/local/share/${APPNAME}/templates/index.html
+${INSTALL_DIR} --mode=755                          ${ROOT}/usr/local/share/pushd/
+${INSTALL} --mode=644 ./dist/*                     ${ROOT}/usr/local/share/pushd/
 }
 
 source ../bash/release.sh

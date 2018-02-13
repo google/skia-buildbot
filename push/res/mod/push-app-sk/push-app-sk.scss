@@ -49,10 +49,15 @@ push-app-sk {
     display: flex;
     flex-flow: row wrap;
     align-items: center;
+    padding-bottom: 0.2em;
   }
 
   .applicationRow div {
     margin: 0 0.2em;
+  }
+
+  .appContainer > div:nth-child(odd) {
+    background: #eee;
   }
 
   .serviceName,

@@ -83,13 +83,6 @@ var (
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
-func loadTemplates() {
-	indexTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-}
-
 // NewTimeoutClient creates a new http.Client with both a dial timeout and a
 // request timeout.
 func NewFastTimeoutClient() *http.Client {
@@ -99,9 +92,8 @@ func NewFastTimeoutClient() *http.Client {
 func Init() {
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
 	}
-	loadTemplates()
 
 	var err error
 	config, err = packages.LoadPackageConfig(*configFilename)
@@ -476,19 +468,6 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// mainHandler handles the GET of the main page.
-func mainHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		loadTemplates()
-	}
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "text/html")
-		if err := indexTemplate.Execute(w, struct{}{}); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
-		}
-	}
-}
-
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -552,14 +531,13 @@ func main() {
 	go startDirtyMonitoring()
 	go startStatusUpdate()
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/change", changeHandler)
 	r.HandleFunc("/_/state", stateHandler)
 	r.HandleFunc("/_/status", statusHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))

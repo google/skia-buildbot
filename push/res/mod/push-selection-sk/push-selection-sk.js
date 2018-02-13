@@ -17,7 +17,7 @@ function shorten(s) {
 }
 
 function dirtyIndicator(choice) {
-    return choice.Dirty ? `` : html`<icon-warning-sk title="Uncommited changes when the package was built."></icon-warning-sk>`;
+    return choice.Dirty ? html`<icon-warning-sk title="Uncommited changes when the package was built."></icon-warning-sk>` : ``;
 }
 
 function listChoices(choices) {
