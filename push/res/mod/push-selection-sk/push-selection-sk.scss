@@ -46,4 +46,9 @@ push-selection-sk {
     display: flex;
     justify-content: flex-end;
   }
+
+  select-sk {
+    overflow-y: auto;
+    height: 50vh;
+  }
 }
