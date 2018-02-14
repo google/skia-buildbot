@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -22,6 +23,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/webhook"
@@ -58,6 +60,11 @@ var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
 
+	queueLengthMetric   = metrics2.GetCounter("android_compile_waiting_tasks", nil)
+	runningLengthMetric = metrics2.GetCounter("android_compile_running_tasks", nil)
+	// Mutex to control access to the above metrics.
+	lengthMetricsMutex = sync.Mutex{}
+
 	serverURL string
 )
 
@@ -77,6 +84,25 @@ func reloadTemplates() {
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
 	return
+}
+
+func moveToRunningMetric() {
+	lengthMetricsMutex.Lock()
+	defer lengthMetricsMutex.Unlock()
+	queueLengthMetric.Dec(1)
+	runningLengthMetric.Inc(1)
+}
+
+func decRunningMetric() {
+	lengthMetricsMutex.Lock()
+	defer lengthMetricsMutex.Unlock()
+	runningLengthMetric.Dec(1)
+}
+
+func incWaitingMetric() {
+	lengthMetricsMutex.Lock()
+	defer lengthMetricsMutex.Unlock()
+	queueLengthMetric.Inc(1)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -283,6 +309,10 @@ func main() {
 		webhook.MustInitRequestSaltFromMetadata("ac_webhook_request_salt")
 	}
 
+	// Reset metrics on server startup.
+	queueLengthMetric.Reset()
+	runningLengthMetric.Reset()
+
 	// Find and reschedule all CompileTasks that are in "running" state. Any
 	// "running" CompileTasks means that the server was restarted in the middle
 	// of run(s).
@@ -295,6 +325,13 @@ func main() {
 		sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
 		triggerCompileTask(ctx, taskAndKey.task, taskAndKey.key)
 	}
+
+	go func() {
+		for range time.Tick(10 * time.Second) {
+			fmt.Printf("Waiting queue is: %d", queueLengthMetric.Get())
+			fmt.Printf("Running queue is: %d", runningLengthMetric.Get())
+		}
+	}()
 
 	runServer()
 }
