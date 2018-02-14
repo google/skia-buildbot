@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "075790fe_d2ad466a",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-14T14:55:44Z",
+      "side": 0,
+      "message": "This is making it impossible to read through the logs.",
+      "range": {
+        "startLine": 172,
+        "startChar": 3,
+        "endLine": 172,
+        "endChar": 74
+      },
+      "revId": "e0ac49582e3d6e24082947be31def3d0249c7fd0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
