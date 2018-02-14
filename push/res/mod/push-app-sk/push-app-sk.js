@@ -10,6 +10,7 @@ import 'common/systemd-unit-status-sk'
 import { errorMessage } from 'common/errorMessage'
 import { fromObject } from 'common/query'
 import { jsonOrThrow } from 'common/jsonOrThrow'
+import { DomReady } from 'common/dom'
 
 import { html, render } from 'lit-html/lib/lit-extended'
 
@@ -93,7 +94,7 @@ const template = (ele) => html`
 <section class=controls>
   <button id=refresh on-click=${e => ele._refreshClick(e)}>Refresh Packages</button>
   <spinner-sk id=spinner></spinner-sk>
-  <label>Filter servers/apps: <input type=text on-input=${e => ele._filterInput(e)}></input></label>
+  <label>Filter servers/apps: <input type=text on-input=${e => ele._filterInput(e)} value='${ele._search}'></input></label>
 </section>
 <main on-unit-action=${e => ele._unitAction(e.detail)}>
   ${listServers(ele)}
@@ -143,6 +144,12 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
       this._updateStatus();
       this._render();
     }).catch(errorMessage);
+    DomReady.then(() => {
+      this._search = window.location.search.slice(1)
+      if (this._search) {
+        this._render();
+      }
+    });
   }
 
   _render() {
@@ -257,8 +264,8 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
 
   // Called when the user edits the filter text box.
   _filterInput(e) {
-    // TODO(jcgregorio) Sync to URL.
     this._search = e.target.value;
+    history.pushState(null, '', window.location.origin + window.location.pathname + '?' + this._search);
     this._render();
   }
 
