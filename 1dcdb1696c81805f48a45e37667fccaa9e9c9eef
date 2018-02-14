@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb513432_d49fc9ee",
+        "filename": "ap/skia-elements/tabs-sk/tabs-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-14T17:39:14Z",
+      "side": 1,
+      "message": "Drive-by single quotes comment",
+      "range": {
+        "startLine": 46,
+        "startChar": 44,
+        "endLine": 46,
+        "endChar": 45
+      },
+      "revId": "1dcdb1696c81805f48a45e37667fccaa9e9c9eef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
