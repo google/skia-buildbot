@@ -10,6 +10,8 @@ import 'common/systemd-unit-status-sk'
 import { errorMessage } from 'common/errorMessage'
 import { fromObject } from 'common/query'
 import { jsonOrThrow } from 'common/jsonOrThrow'
+import { DomReady } from 'common/dom'
+import { stateReflector } from 'common/stateReflector'
 
 import { html, render } from 'lit-html/lib/lit-extended'
 
@@ -70,11 +72,12 @@ const listApplications = (ele, server) => server.Installed.map(installed => html
 
 // Only display a server if it matches the current filter.
 const classMatchFilter = (ele, server) => {
+  let search = ele._query.state.search;
   // Short-circuit the most common case.
-  if (!ele._search ) {
+  if (!search) {
     return ''
   }
-  return (server.Name.includes(ele._search) || server.Installed.find(installed => prefixOf(installed).includes(ele._search))) ? '' : 'hidden';
+  return (server.Name.includes(search) || server.Installed.find(installed => prefixOf(installed).includes(search))) ? '' : 'hidden';
 };
 
 const listServers = (ele) => ele._state.servers.map(server => html`
@@ -93,7 +96,7 @@ const template = (ele) => html`
 <section class=controls>
   <button id=refresh on-click=${e => ele._refreshClick(e)}>Refresh Packages</button>
   <spinner-sk id=spinner></spinner-sk>
-  <label>Filter servers/apps: <input type=text on-input=${e => ele._filterInput(e)}></input></label>
+  <label>Filter servers/apps: <input type=text on-input=${e => ele._filterInput(e)} value='${ele._query.state.search}'></input></label>
 </section>
 <main on-unit-action=${e => ele._unitAction(e.detail)}>
   ${listServers(ele)}
@@ -131,6 +134,11 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
     };
     // The current value of the filter text box.
     this._search = '';
+    this._query = {
+      state: {
+        search: '',
+      }
+    }
   }
 
   connectedCallback() {
@@ -143,6 +151,7 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
       this._updateStatus();
       this._render();
     }).catch(errorMessage);
+    this._stateChangeCB = stateReflector(this._query, () => this._render())
   }
 
   _render() {
@@ -257,8 +266,8 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
 
   // Called when the user edits the filter text box.
   _filterInput(e) {
-    // TODO(jcgregorio) Sync to URL.
-    this._search = e.target.value;
+    this._query.state.search = e.target.value;
+    this._stateChangeCB();
     this._render();
   }
 
