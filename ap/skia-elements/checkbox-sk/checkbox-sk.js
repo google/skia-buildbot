@@ -1,7 +1,33 @@
 import { upgradeProperty, $$ } from '../dom'
 
-// The checkbox-sk and radio-sk elements contains a native 'input' element in
-// light DOM so that they can participate in a form element.
+// This is the implementation for both the checkbox-sk and radio-sk custom
+// element.
+//
+// The checkbox-sk and radio-sk elements each contains a native 'input'
+// element in light DOM so that they can participate in a form element.
+//
+//  Attributes:
+//    label - A string, with no markup, that is to be used as the label for
+//            the checkbox. If you wish to have a label with markup then set
+//            'label' to the empty string and create your own <label></label>
+//            element in the DOM with the 'for' attribute set to match the
+//            name of the checkbox-sk or radio-sk.
+//
+//    Each element also supports the following attributes exactly as the
+//    native checkbox element:
+//     - checked
+//     - disabled
+//     - name
+//
+//  Properties:
+//    All the above attributes are mirrored to the property of the same name.
+//
+//  Events:
+//    All the normal events of a native checkbox or radio button.
+//
+//  Methods:
+//    None
+//
 export class CheckOrRadio extends HTMLElement {
   get _role() { return 'checkbox'; }
 
@@ -85,4 +111,3 @@ export class CheckOrRadio extends HTMLElement {
 }
 
 window.customElements.define('checkbox-sk', CheckOrRadio);
-
