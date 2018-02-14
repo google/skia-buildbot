@@ -206,6 +206,7 @@ func triggerCompileTask(ctx context.Context, task *CompileTask, datastoreKey *da
 			task.InfraFailure = true
 			sklog.Errorf("Error when compiling task with ID %d: %s", datastoreKey.ID, err)
 		}
+		updateInfraFailureMetric(task.InfraFailure)
 		task.Done = true
 		task.Completed = time.Now()
 		if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
@@ -282,6 +283,9 @@ func main() {
 	} else {
 		webhook.MustInitRequestSaltFromMetadata("ac_webhook_request_salt")
 	}
+
+	// Reset metrics on server startup.
+	resetMetrics()
 
 	// Find and reschedule all CompileTasks that are in "running" state. Any
 	// "running" CompileTasks means that the server was restarted in the middle
