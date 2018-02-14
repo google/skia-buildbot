@@ -17,6 +17,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gerrit"
@@ -580,13 +581,14 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
+	defer common.Defer()
 
 	reloadTemplates()
 
 	skiaversion.MustLogVersion()
 
 	ctx, cancelFn := context.WithCancel(context.Background())
-	defer cancelFn()
+	cleanup.AtExit(cancelFn)
 
 	// Parse the time period.
 	period, err := human.ParseDuration(*timePeriod)
@@ -638,7 +640,9 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	defer util.Close(tsDb)
+	cleanup.AtExit(func() {
+		util.Close(tsDb)
+	})
 
 	// Git repos.
 	if *repoUrls == nil {
