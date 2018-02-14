@@ -22,7 +22,9 @@ func StatusBase(name string) *gce.Instance {
 }
 
 func StatusProd() *gce.Instance {
-	return StatusBase("skia-status")
+	vm := StatusBase("skia-status")
+	vm.ServiceAccount = "status@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func StatusInternal() *gce.Instance {
@@ -32,7 +34,9 @@ func StatusInternal() *gce.Instance {
 }
 
 func StatusStaging() *gce.Instance {
-	return StatusBase("skia-status-staging")
+	vm := StatusBase("skia-status-staging")
+	vm.ServiceAccount = "status@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
 }
 
 func main() {

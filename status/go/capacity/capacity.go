@@ -169,7 +169,6 @@ func (c *CapacityClient) computeBotConfigs(ctx context.Context, durations map[st
 		if len(taskRuns) != 0 {
 			avgDuration /= time.Duration(len(taskRuns))
 		}
-		sklog.Infof("Over %d runs, task %s took %s", len(taskRuns), taskName, avgDuration)
 		config.TaskAverageDurations = append(config.TaskAverageDurations, TaskDuration{
 			Name:            taskName,
 			AverageDuration: avgDuration,
