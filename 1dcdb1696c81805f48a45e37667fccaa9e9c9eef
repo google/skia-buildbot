@@ -22,6 +22,30 @@
       "revId": "1dcdb1696c81805f48a45e37667fccaa9e9c9eef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69142c6a_005dceca",
+        "filename": "ap/skia-elements/tabs-sk/tabs-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-14T17:41:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb513432_d49fc9ee",
+      "range": {
+        "startLine": 46,
+        "startChar": 44,
+        "endLine": 46,
+        "endChar": 45
+      },
+      "revId": "1dcdb1696c81805f48a45e37667fccaa9e9c9eef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
