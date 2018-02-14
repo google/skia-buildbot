@@ -1,12 +1,12 @@
 // This module contains functions for DOM manipulation.
 
-// $ returns the element that has the given id in the document.
-export var $ = (id, ele = document) => ele.getElementById(id);
-
-// $$ returns a real JS array of DOM elements that match the CSS query selector.
-export var $$ = (query, ele = document) => {
+// $ returns a real JS array of DOM elements that match the CSS query selector.
+export const $ = (query, ele = document) => {
   return Array.prototype.map.call(ele.querySelectorAll(query), (e) => e);
 };
+
+// $$ returns the first DOM element that matches the CSS query selector.
+export const $$ = (query, ele = document) => ele.querySelector(query);
 
 // Capture the value from the unupgraded instance and delete the property so
 // it does not shadow the custom element's own property setter.

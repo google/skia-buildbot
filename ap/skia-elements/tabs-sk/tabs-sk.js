@@ -1,4 +1,4 @@
-import { $$, upgradeProperty } from '../dom';
+import { $, upgradeProperty } from '../dom';
 
 // TODO(jcgregorio) Currently only sets the selected attribute on the next
 // sibling if the next sibling is a 'tabs-panel-sk'. We should also have
@@ -22,7 +22,7 @@ window.customElements.define('tabs-sk', class extends HTMLElement {
 
   handleEvent(e) {
     e.stopPropagation();
-    $$('button', this).forEach((ele, i) => {
+    $('button', this).forEach((ele, i) => {
       if (ele === e.target) {
         ele.classList.add('selected');
         this._trigger(i, true);
@@ -33,7 +33,7 @@ window.customElements.define('tabs-sk', class extends HTMLElement {
   }
 
   select(index, trigger) {
-    $$('button', this).forEach((ele, i) => {
+    $('button', this).forEach((ele, i) => {
       ele.classList.toggle('selected', i === index);
     });
     this._trigger(index, trigger);
@@ -43,8 +43,8 @@ window.customElements.define('tabs-sk', class extends HTMLElement {
     if (trigger) {
       this.dispatchEvent(new CustomEvent('tab-selected-sk', { bubbles: true, detail: { index: index }}));
     }
-    if (this.nextElementSibling.tagName === "TABS-PANEL-SK") {
-      this.nextElementSibling.setAttribute("selected", index);
+    if (this.nextElementSibling.tagName === 'TABS-PANEL-SK') {
+      this.nextElementSibling.setAttribute('selected', index);
     }
   }
 });

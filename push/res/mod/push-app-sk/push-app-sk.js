@@ -1,7 +1,7 @@
 import 'skia-elements/buttons'
 import 'skia-elements/icon-sk'
 import 'skia-elements/spinner-sk'
-import { $ } from 'skia-elements/dom'
+import { $$ } from 'skia-elements/dom'
 
 import 'common/confirm-dialog-sk'
 import 'common/error-toast-sk'
@@ -135,8 +135,8 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
 
   connectedCallback() {
     this._render();
-    this._spinner = $('spinner');
-    this._push_selection = $('push-selection');
+    this._spinner = $$('#spinner');
+    this._push_selection = $$('#push-selection');
     this._chosenServer = '';
     fetch('/_/state').then(jsonOrThrow).then(state => {
       this._setState(state);
@@ -191,7 +191,7 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
 
   _reboot(e) {
     let button = e.target;
-    $('confirm-dialog').open(`Proceed with rebooting ${ this.server }?`).then(() => {
+    $$('#confirm-dialog').open(`Proceed with rebooting ${ this.server }?`).then(() => {
       this._unitAction({
         machine: button.dataset.server,
         name: button.dataset.name,
