@@ -61,7 +61,7 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
   open(message) {
     this._message = message;
     this._render();
-    this.firstChild.show();
+    this.firstChild.shown = true;
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;

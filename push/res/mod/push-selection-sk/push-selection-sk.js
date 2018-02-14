@@ -116,11 +116,11 @@ window.customElements.define('push-selection-sk', class extends HTMLElement {
   }
 
   show() {
-    this.firstElementChild.show();
+    this.firstElementChild.shown = true;
   }
 
   hide() {
-    this.firstElementChild.hide();
+    this.firstElementChild.shown = false;
   }
 
 });

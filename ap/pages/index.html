@@ -106,9 +106,9 @@
   <h2>Dialog</h2>
   <dialog-sk id=dialog>
     <p>This is a dialog.</p>
-    <button onclick="this.parentElement.hide();">Close</button>
+    <button onclick="this.parentElement.shown = false;">Close</button>
   </dialog-sk>
-  <button onclick="document.getElementById('dialog').show()">Show</button>
+  <button onclick="document.getElementById('dialog').shown = true;">Show</button>
 
   <h2>Tabs</h2>
   <tabs-sk>
