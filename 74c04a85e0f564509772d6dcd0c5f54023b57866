@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "161b79ec_6e81a7da",
+        "filename": "res/mod/dom.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-14T17:31:51Z",
+      "side": 1,
+      "message": "!\u003d\u003d",
+      "range": {
+        "startLine": 3,
+        "startChar": 26,
+        "endLine": 3,
+        "endChar": 28
+      },
+      "revId": "74c04a85e0f564509772d6dcd0c5f54023b57866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e9ab879_0aa126f9",
+        "filename": "res/mod/stateReflector.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-14T17:31:51Z",
+      "side": 1,
+      "message": "single quotes",
+      "range": {
+        "startLine": 37,
+        "startChar": 28,
+        "endLine": 37,
+        "endChar": 30
+      },
+      "revId": "74c04a85e0f564509772d6dcd0c5f54023b57866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
