@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "0e48a17a_2de38bf0",
+        "filename": "res/mod/dom.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-14T17:39:39Z",
+      "side": 1,
+      "message": "Yes, \u0027skia-elements/dom\u0027 and \u0027common/dom\u0027. I\u0027m still thinking about the skia-elements/common split and how to handle it.",
+      "parentUuid": "099ad733_f4477323",
+      "revId": "74c04a85e0f564509772d6dcd0c5f54023b57866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "161b79ec_6e81a7da",
         "filename": "res/mod/dom.js",
         "patchSetId": 7
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "813d8964_02235fde",
+        "filename": "res/mod/dom.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-14T17:39:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "161b79ec_6e81a7da",
+      "range": {
+        "startLine": 3,
+        "startChar": 26,
+        "endLine": 3,
+        "endChar": 28
+      },
+      "revId": "74c04a85e0f564509772d6dcd0c5f54023b57866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e9ab879_0aa126f9",
         "filename": "res/mod/stateReflector.js",
         "patchSetId": 7
@@ -62,6 +104,30 @@
       "revId": "74c04a85e0f564509772d6dcd0c5f54023b57866",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60960597_c6a9b811",
+        "filename": "res/mod/stateReflector.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-14T17:39:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e9ab879_0aa126f9",
+      "range": {
+        "startLine": 37,
+        "startChar": 28,
+        "endLine": 37,
+        "endChar": 30
+      },
+      "revId": "74c04a85e0f564509772d6dcd0c5f54023b57866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
