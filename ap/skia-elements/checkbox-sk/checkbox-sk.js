@@ -11,8 +11,8 @@ export class CheckOrRadio extends HTMLElement {
 
   connectedCallback() {
     this.innerHTML = `<label><input type=${this._role}></input><span class=box></span><span class=label></span></label>`;
-    this._label = $$('.label', this)[0];
-    this._input = $$('input', this)[0];
+    this._label = $$('.label', this);
+    this._input = $$('input', this);
     upgradeProperty(this, 'checked');
     upgradeProperty(this, 'disabled');
     upgradeProperty(this, 'name');

@@ -8,7 +8,7 @@ iconSkTemplate.innerHTML = `<svg class="icon-sk-svg" viewBox="0 0 24 24" preserv
 class IconSk extends HTMLElement {
   connectedCallback() {
     let icon = iconSkTemplate.content.cloneNode(true);
-    $$('path', icon)[0].setAttribute('d', this.constructor._path);
+    $$('path', icon).setAttribute('d', this.constructor._path);
     this.appendChild(icon);
   }
 }

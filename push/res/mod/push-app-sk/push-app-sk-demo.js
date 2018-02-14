@@ -1,8 +1,8 @@
 import './index.js'
 
-import { $ } from 'skia-elements/dom';
+import { $$ } from 'skia-elements/dom';
 
-let ele = $('ele');
+let ele = $$('#ele');
 let state = {
   servers: [
     {
