@@ -1,10 +1,10 @@
 import './index.js'
-import { $ } from 'skia-elements/dom'
+import { $$ } from 'skia-elements/dom'
 
-let report = e => { $('event').textContent = JSON.stringify(e.detail, null, 2); }
-$('ele1').addEventListener('unit-action', report);
-$('ele2').addEventListener('unit-action', report);
-$('ele3').addEventListener('unit-action', report);
+let report = e => { $$('#event').textContent = JSON.stringify(e.detail, null, 2); }
+$$('#ele1').addEventListener('unit-action', report);
+$$('#ele2').addEventListener('unit-action', report);
+$$('#ele3').addEventListener('unit-action', report);
 
 let value = {
   "status": {
@@ -33,11 +33,11 @@ let value = {
   }
 };
 
-$('ele1').value = value;
+$$('#ele1').value = value;
 value = Object.assign({}, value);
 value.status.SubState = 'failed';
-$('ele2').value = value;
+$$('#ele2').value = value;
 value = Object.assign({}, value);
 value.status.SubState = 'dead';
-$('ele3').value = value;
+$$('#ele3').value = value;
 
