@@ -69,12 +69,12 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
   }
 
   _dismiss() {
-    this.firstChild.hide();
+    this.firstChild.shown = false;
     this._reject();
   }
 
   _confirm() {
-    this.firstChild.hide();
+    this.firstChild.shown = false;
     this._resolve();
   }
 
