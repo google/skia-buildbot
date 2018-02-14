@@ -324,8 +324,11 @@ func addToCheckoutsChannel(checkout string) {
 // with link to logs and whether the no patch run was successful.
 //
 func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datastore.Key, pathToCompileScript string) error {
+	incWaitingMetric()
 	// Blocking call to wait for an available checkout.
 	checkoutPath := <-availableCheckoutsChan
+	moveToRunningMetric()
+	defer decRunningMetric()
 	defer addToCheckoutsChannel(checkoutPath)
 
 	// Step 1: Find an available Android checkout and update the CompileTask
@@ -457,6 +460,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 		if err != nil {
 			return fmt.Errorf("Error when compiling checkout nopatch at %s: %s", checkoutPath, err)
 		}
+		updateAndroidTreeBrokenMetric(!noPatchSuccess)
 		task.NoPatchSucceeded = noPatchSuccess
 		task.NoPatchLog = gsNoPatchLink
 		if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
