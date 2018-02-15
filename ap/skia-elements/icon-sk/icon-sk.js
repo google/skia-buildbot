@@ -1,5 +1,26 @@
 import { $$ } from '../dom'
 
+// The following custom elements are just 24x24 svg icons.
+//
+//   <icon-menu-sk>
+//   <icon-link-sk>
+//   <icon-check-sk>
+//   <icon-warning-sk>
+//   <icon-create-sk>
+//   <icon-alarm-sk>
+//
+//  Attributes:
+//    None
+//
+//  Properties:
+//    None
+//
+//  Events:
+//    None
+//
+//  Methods:
+//    None
+//
 const iconSkTemplate = document.createElement('template');
 iconSkTemplate.innerHTML = `<svg class="icon-sk-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false">
   <g><path d=""></path></g>

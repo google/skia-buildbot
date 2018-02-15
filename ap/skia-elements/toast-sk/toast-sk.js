@@ -1,5 +1,26 @@
 import { upgradeProperty } from '../dom'
 
+// The <toast-sk> custom element declaration.
+//
+//   Notification toast that pops up from the bottom of the screen
+//   when shown.
+//
+//  Attributes:
+//    duration - The duration, in ms, to display the notification.
+//               Defaults to 5000. A value of 0 means to display
+//               forever.
+//
+//  Properties:
+//    duration - Mirrors the 'duration' attribute.
+//
+//  Events:
+//    None
+//
+//  Methods:
+//    show() - Displays the contents of the toast.
+//
+//    hide() - Hides the contents of the toast.
+//
 window.customElements.define('toast-sk', class extends HTMLElement {
   constructor() {
     super();
