@@ -1,18 +1,19 @@
-// dialog-sk is a custom elment that creates a dialog centered in the window.
+//  dialog-sk is a custom elment that creates a dialog centered in the window.
 //
-// Properties:
-//   shown - True if the dialog is showing, false if it is not. Reflected
-//           to/from the shown attribute.
+//  Properties:
+//    shown - True if the dialog is showing, false if it is not. Reflected
+//            to/from the shown attribute.
 //
-// Attributes:
-//   shown - A boolean attribute that is present when the dialog is shown.
-//           and absent when it is hidden.
+//  Attributes:
+//    shown - A boolean attribute that is present when the dialog is shown.
+//            and absent when it is hidden.
 //
-// Methods:
-//   None.
+//  Methods:
+//    None.
 //
-// Events:
-//   closed - This event is generated when the dialog is closed.
+//  Events:
+//    closed - This event is generated when the dialog is closed.
+//
 window.customElements.define('dialog-sk', class extends HTMLElement {
   static get observedAttributes() {
     return ['shown'];
