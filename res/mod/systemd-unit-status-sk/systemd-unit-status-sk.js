@@ -8,7 +8,7 @@ const template = (ele) => html`
   <button raised data-action="stop"    data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Stop   </button>
   <button raised data-action="restart" data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Restart</button>
   <div class=uptime>${diffDate(ele.value.props ? +ele.value.props.ExecMainStartTimestamp/1000 : 'n/a')}</div>
-  <div class=state class$="${ele.value.status.SubState + ' state'}">${ele.value.status.SubState}</div>
+  <div class$="${ele.value.status.SubState + ' state'}">${ele.value.status.SubState}</div>
   <div class=service>${ele.value.status.Name}</div>
 `;
 
