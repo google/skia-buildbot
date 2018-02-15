@@ -4,8 +4,8 @@
 button {
   min-width: 5.14em;
   background-color: #fff;
-  color: #1f78b4;
-  fill: #1f78b4;
+  color: #175A87;
+  fill: #175A87;
   text-align: center;
   text-transform: uppercase;
   outline: none;
@@ -22,20 +22,24 @@ button:hover {
   background: #eee;
 }
 
+button.action:hover {
+  background: #1E77B3;
+}
+
 button:focus {
   background-color: #ddd;
   transition: background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 button:active {
-  background-color: #999;
+  background-color: #757575;
   transition: background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 2px 2px 8px 0 rgba(0, 0, 0, 0.1);
 }
 
 button:disabled {
-  color: #999;
-  fill: #999;
+  color: #757575;
+  fill: #757575;
   background-color: #fff;
 }
 
@@ -47,14 +51,14 @@ button.action:active {
 button.action {
   color: white;
   fill: white;
-  background: #1f78b4;
+  background: #175A87;
   border: none;
 }
 
 button.action:disabled {
   color: white;
   fill: white;
-  background: #999;
+  background: #757575;
   border: none;
 }
 
