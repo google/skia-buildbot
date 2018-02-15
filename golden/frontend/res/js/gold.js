@@ -96,7 +96,10 @@ var gold = gold || {};
     fgrouptest: '',
 
     // Only include images that have a reference.
-    fref: false
+    fref: false,
+
+    // master indicates whether to include digests that are also in master.
+    master: false,
   };
 
   // Default values for the search query of the by-blame-page.
