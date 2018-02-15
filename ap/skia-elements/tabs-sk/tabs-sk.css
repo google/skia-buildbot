@@ -8,6 +8,7 @@ tabs-sk > button {
   fill: #555;
   background-color: #A6CEE3;
   border-bottom: solid 4px #1f78b4;
+
 }
 
 tabs-sk > button.selected {

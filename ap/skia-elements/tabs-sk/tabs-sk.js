@@ -3,10 +3,6 @@ import { $, upgradeProperty } from '../dom';
 // TODO(jcgregorio) Currently only sets the selected attribute on the next
 // sibling if the next sibling is a 'tabs-panel-sk'. We should also have
 // the ability to set the id of the 'tabs-panel-sk' we want to affect.
-//
-// TODO(jcgregorio) Enable keyboard nav and proper tabindex behavior ala
-// radio-group-sk, along with focus indicators.
-
 
 // The <tabs-sk> custom element declaration, used in conjunction
 // with <button>'s and the <tabs-panel-sk> element allows you to

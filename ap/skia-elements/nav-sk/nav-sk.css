@@ -1,14 +1,14 @@
 nav-links-sk {
+  display: none;
   position: absolute;
   z-index: 200;
   background: white;
   border: solid 1px lightgrey;
   margin-left: 16px;
-  display: block;
 }
 
-nav-links-sk[closed] {
-  display: none;
+nav-links-sk[shown] {
+  display: block;
 }
 
 nav-links-sk a {
