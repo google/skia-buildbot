@@ -8,4 +8,6 @@ class RadioElement extends CheckOrRadio {
 // The radio-sk element contains a native 'input' element in light DOM
 // so that the radio button can participate in a form element,
 // and also participate in a native 'radiogroup' element.
+//
+// See documentation for checkbox-sk.
 window.customElements.define('radio-sk', RadioElement);

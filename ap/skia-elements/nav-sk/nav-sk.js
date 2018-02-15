@@ -7,6 +7,31 @@ navButtonSk.innerHTML = `<button><icon-menu-sk></icon-menu-sk></button>`;
 
 // TODO(jcgregorio) Add support for 'ESC' key and clicking outside
 // the element to close the nav-links-sk.
+
+// The <nav-button-sk> custom element declaration.
+//
+// Allows for the creation of a pop-up menu. The actual menu is contained
+// in a sibling <nav-links-sk> element. For example:
+//
+//    <nav-button-sk></nav-button-sk>
+//    <nav-links-sk closed>
+//      <a href="">Main</a>
+//      <a href="">Triage</a>
+//      <a href="">Alerts</a>
+//    </nav-links-sk closed>
+//
+//  Attributes:
+//    None
+//
+//  Properties:
+//    None
+//
+//  Events:
+//    None
+//
+//  Methods:
+//    None
+//
 window.customElements.define('nav-button-sk', class extends HTMLElement {
   connectedCallback() {
     this.addEventListener('click', this);
@@ -25,6 +50,23 @@ window.customElements.define('nav-button-sk', class extends HTMLElement {
   }
 });
 
+// The <nav-links-sk> custom element declaration.
+//
+// See the documentation above for nav-button-sk.
+//
+//  Attributes:
+//    closed - A boolean attribute controlling if the list of links
+//             is displayed or not.
+//
+//  Properties:
+//    closed - Mirrors the 'closed' attribute.
+//
+//  Events:
+//    None
+//
+//  Methods:
+//    None
+//
 window.customElements.define('nav-links-sk', class extends HTMLElement {
   connectedCallback() {
     upgradeProperty(this, 'closed');

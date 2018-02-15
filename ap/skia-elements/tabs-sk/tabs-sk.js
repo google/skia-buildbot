@@ -6,6 +6,41 @@ import { $, upgradeProperty } from '../dom';
 //
 // TODO(jcgregorio) Enable keyboard nav and proper tabindex behavior ala
 // radio-group-sk, along with focus indicators.
+
+
+// The <tabs-sk> custom element declaration, used in conjunction
+// with <button>'s and the <tabs-panel-sk> element allows you to
+// create tabbed interfaces. The association between the buttons
+// and the tabs displayed in tabs-panel-sk is document order,
+// i.e. the first button shows the first panel, second button shows
+// second panel, etc.
+//
+//      <tabs-sk>
+//        <button class=selected>Query</button>
+//        <button>Results</button>
+//      </tabs-sk>
+//      <tabs-panel-sk>
+//        <div>
+//          This is the query tab.
+//        </div>
+//        <div>
+//          This is the results tab.
+//        </div>
+//      </tabs-panel-sk>
+//
+//  Attributes:
+//    None
+//
+//  Properties:
+//    None
+//
+//  Events:
+//    tab-selected-sk - Event sent when the user clicks on a tab. The events
+//        value of detail.index is the index of the selected tab.
+//
+//  Methods:
+//    select(n) - Forces the selection of the 'n'th panel.
+//
 window.customElements.define('tabs-sk', class extends HTMLElement {
   constructor() {
     super();
@@ -49,6 +84,20 @@ window.customElements.define('tabs-sk', class extends HTMLElement {
   }
 });
 
+// The <tabs-panel-sk> custom element declaration.
+//
+//  Attributes:
+//    selected - The index of the tab panel to display.
+//
+//  Properties:
+//    selected - Mirrors the 'selected' attribute.
+//
+//  Events:
+//    None
+//
+//  Methods:
+//    None
+//
 window.customElements.define('tabs-panel-sk', class extends HTMLElement {
   static get observedAttributes() {
     return ['selected'];
@@ -61,14 +110,14 @@ window.customElements.define('tabs-panel-sk', class extends HTMLElement {
   get selected() { return this.hasAttribute('selected'); }
   set selected(val) {
     this.setAttribute('selected', val);
-    this.select(val);
+    this._select(val);
   }
 
 	attributeChangedCallback(name, oldValue, newValue) {
-    this.select(+newValue);
+    this._select(+newValue);
 	}
 
-  select(index) {
+  _select(index) {
     for (let i=0; i<this.children.length; i++) {
       this.children[i].classList.toggle('selected', i === index);
     }
