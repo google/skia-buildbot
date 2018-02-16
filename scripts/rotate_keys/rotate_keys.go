@@ -41,6 +41,9 @@ var (
 		"win-02.skolo": []*serviceAccount{
 			chromiumSwarm,
 		},
+		"win-03.skolo": []*serviceAccount{
+			chromiumSwarm,
+		},
 	}
 )
 
