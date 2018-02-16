@@ -1,5 +1,6 @@
-import { upgradeProperty } from 'skia-elements/dom'
 import { html, render } from 'lit-html/lib/lit-extended'
+
+import { upgradeProperty } from 'skia-elements/upgradeProperty'
 
 import 'skia-elements/dialog-sk'
 import 'skia-elements/buttons'
