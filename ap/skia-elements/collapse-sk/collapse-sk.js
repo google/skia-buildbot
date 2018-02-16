@@ -1,4 +1,4 @@
-import { upgradeProperty } from '../dom'
+import { upgradeProperty } from '../upgradeProperty'
 
 // The <collapse-sk> custom element declaration.
 //

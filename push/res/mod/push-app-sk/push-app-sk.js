@@ -1,12 +1,12 @@
 import 'skia-elements/buttons'
 import 'skia-elements/icon-sk'
 import 'skia-elements/spinner-sk'
-import { $$ } from 'skia-elements/dom'
 
 import 'common/confirm-dialog-sk'
 import 'common/error-toast-sk'
 import 'common/login-sk'
 import 'common/systemd-unit-status-sk'
+import { $$ } from 'common/dom'
 import { errorMessage } from 'common/errorMessage'
 import { fromObject } from 'common/query'
 import { jsonOrThrow } from 'common/jsonOrThrow'

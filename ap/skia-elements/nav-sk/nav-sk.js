@@ -1,6 +1,6 @@
 import '../icon-sk';
 import '../buttons';
-import { upgradeProperty } from '../dom'
+import { upgradeProperty } from '../upgradeProperty'
 
 // The <nav-button-sk> custom element declaration.
 //

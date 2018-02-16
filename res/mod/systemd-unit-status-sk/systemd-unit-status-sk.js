@@ -1,5 +1,5 @@
 import 'skia-elements/buttons'
-import { upgradeProperty } from 'skia-elements/dom'
+import { upgradeProperty } from 'skia-elements/upgradeProperty'
 import { html, render } from 'lit-html/lib/lit-extended'
 import { diffDate } from 'common/human'
 
