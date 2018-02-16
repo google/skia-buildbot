@@ -286,3 +286,7 @@ scrape_configs:
         - 'localhost:12003'
         labels:
           federated: 'jumphost-win-02'
+      - targets:
+        - 'localhost:12004'
+        labels:
+          federated: 'jumphost-win-03'

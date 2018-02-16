@@ -24,6 +24,7 @@ ${INSTALL_DIR} --mode=755                                           ${ROOT}/etc/
 ${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rpi-01.json5   ${ROOT}/etc/powercycle/powercycle-rpi-01.json5
 ${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-linux-01.json5 ${ROOT}/etc/powercycle/powercycle-linux-01.json5
 ${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-win-02.json5   ${ROOT}/etc/powercycle/powercycle-win-02.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-win-03.json5   ${ROOT}/etc/powercycle/powercycle-win-03.json5
 }
 
 source ../bash/release.sh

@@ -47,6 +47,7 @@ router_backup_push_all: backup service_account
 	pushcli "router-backup" "jumphost-rpi-01"
 	pushcli "router-backup" "jumphost-linux-01"
 	pushcli "router-backup" "jumphost-win-02"
+	pushcli "router-backup" "jumphost-win-03"
 
 
 .PHONY: cloudlogger
@@ -66,7 +67,7 @@ trooper_tools:
 
 .PHONY: trooper_tools_release
 trooper_tools_release: trooper_tools service_account
-	./build_release_trooper_tools "`git log -n1 --format=%s`" "linux-01 rpi-01 win-02"
+	./build_release_trooper_tools "`git log -n1 --format=%s`" "linux-01 rpi-01 win-02 win-03"
 
 .PHONY: trooper_tools_push_all
 trooper_tools_push_all: trooper_tools_release
@@ -74,6 +75,7 @@ trooper_tools_push_all: trooper_tools_release
 	pushcli "trooper-tools-rpi-01"   "jumphost-rpi-01"
 	pushcli "trooper-tools-linux-01" "jumphost-linux-01"
 	pushcli "trooper-tools-win-02"   "jumphost-win-02"
+	pushcli "trooper-tools-win-03"   "jumphost-win-03"
 
 .PHONY: android_watchdog
 android_watchdog:
@@ -98,6 +100,7 @@ metadata_server_push: metadata_server_release
 	pushcli "metadata-server" "jumphost-linux-01"
 	pushcli "metadata-server" "jumphost-rpi-01"
 	pushcli "metadata-server" "jumphost-win-02"
+	pushcli "metadata-server" "jumphost-win-03"
 
 .PHONY: get_oauth2_token
 get_oauth2_token:
@@ -112,6 +115,7 @@ get_oauth2_token_push: get_oauth2_token_release
 	pushcli "get-oauth2-token" "jumphost-linux-01"
 	pushcli "get-oauth2-token" "jumphost-rpi-01"
 	pushcli "get-oauth2-token" "jumphost-win-02"
+	pushcli "get-oauth2-token" "jumphost-win-03"
 
 .PHONY: refresh_swarming_token_upload
 refresh_swarming_token_upload: skiaversion
