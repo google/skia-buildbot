@@ -1,4 +1,4 @@
-import { upgradeProperty } from '../dom'
+import { upgradeProperty } from '../upgradeProperty'
 
 // The <toast-sk> custom element declaration.
 //

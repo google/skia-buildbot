@@ -1,5 +1,3 @@
-import { $$ } from '../dom'
-
 // The following custom elements are just 24x24 svg icons.
 //
 //   <icon-menu-sk>
@@ -29,7 +27,7 @@ iconSkTemplate.innerHTML = `<svg class="icon-sk-svg" viewBox="0 0 24 24" preserv
 class IconSk extends HTMLElement {
   connectedCallback() {
     let icon = iconSkTemplate.content.cloneNode(true);
-    $$('path', icon).setAttribute('d', this.constructor._path);
+    icon.querySelector('path').setAttribute('d', this.constructor._path);
     this.appendChild(icon);
   }
 }

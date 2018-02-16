@@ -1,6 +1,8 @@
-import 'skia-elements/buttons'
-import { upgradeProperty } from 'skia-elements/dom'
 import { html, render } from 'lit-html/lib/lit-extended'
+
+import 'skia-elements/buttons'
+import { upgradeProperty } from 'skia-elements/upgradeProperty'
+
 import { diffDate } from 'common/human'
 
 const template = (ele) => html`

@@ -1,4 +1,4 @@
-import { upgradeProperty, $$ } from '../dom'
+import { upgradeProperty } from '../upgradeProperty'
 
 // This is the implementation for both the checkbox-sk and radio-sk custom
 // element.
@@ -37,8 +37,8 @@ export class CheckOrRadio extends HTMLElement {
 
   connectedCallback() {
     this.innerHTML = `<label><input type=${this._role}></input><span class=box></span><span class=label></span></label>`;
-    this._label = $$('.label', this);
-    this._input = $$('input', this);
+    this._label = this.querySelector('.label');
+    this._input = this.querySelector('input');
     upgradeProperty(this, 'checked');
     upgradeProperty(this, 'disabled');
     upgradeProperty(this, 'name');
