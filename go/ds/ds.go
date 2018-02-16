@@ -36,6 +36,9 @@ const (
 	TRYJOB_RESULT     Kind = "TryjobResult"
 	TRYJOB_EXP_CHANGE Kind = "TryjobExpChange"
 	TEST_DIGEST_EXP   Kind = "TestDigestExp"
+	DIGESTS_GOLD      Kind = "DigestsGold"
+	TRACE_GOLD        Kind = "TraceGold"
+	PARAMS_GOLD       Kind = "ParamsGold"
 
 	// Android Compile
 	COMPILE_TASK Kind = "CompileTask"
