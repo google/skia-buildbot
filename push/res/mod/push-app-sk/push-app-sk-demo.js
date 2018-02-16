@@ -1,6 +1,6 @@
 import './index.js'
 
-import { $$ } from 'skia-elements/dom';
+import { $$ } from 'common/dom';
 
 let ele = $$('#ele');
 let state = {
