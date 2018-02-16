@@ -54,7 +54,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(ctx context.Context, newRevision
 
 	// Reanalyze all previous found fuzzes and restart with new version
 	if err := v.reanalyze(ctx, oldRevision); err != nil {
-		sklog.Errorf("Problem reanalyzing and restarting aggregation pipeline: %s", err)
+		return fmt.Errorf("Problem reanalyzing and restarting aggregation pipeline: %s", err)
 	}
 
 	for _, g := range v.generators {
