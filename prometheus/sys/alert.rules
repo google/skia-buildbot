@@ -8,6 +8,15 @@ ALERT InstanceDown
     description = "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes.",
   }
 
+ALERT CrashLoop
+  IF max_over_time(liveness_uptime_s[6m]) < 60*3
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.instance }}",
+    description = "{{ $labels.instance }} of job {{ $labels.job }} is crashing on startup.",
+  }
+
 ALERT TooManyGoRoutines
   IF go_goroutines > 3000
   FOR 2m
