@@ -179,7 +179,18 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tok *Se
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(t); err != nil {
+		// Copied from
+		// https://github.com/golang/oauth2/blob/f6093e37b6cb4092101a298aba5d794eb570757f/google/google.go#L185
+		res := struct {
+			AccessToken  string `json:"access_token"`
+			ExpiresInSec int    `json:"expires_in"`
+			TokenType    string `json:"token_type"`
+		}{
+			AccessToken:  t.AccessToken,
+			ExpiresInSec: int(t.Expiry.Sub(time.Now()).Seconds()),
+			TokenType:    t.TokenType,
+		}
+		if err := json.NewEncoder(w).Encode(res); err != nil {
 			httputils.ReportError(w, r, err, "Failed to write response.")
 			return
 		}
