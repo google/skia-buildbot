@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d038810f_3ca85cab",
+        "filename": "skolo/win/ansible/skolo-credentials.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-16T23:06:20Z",
+      "side": 1,
+      "message": ":(",
+      "range": {
+        "startLine": 43,
+        "startChar": 12,
+        "endLine": 43,
+        "endChar": 35
+      },
+      "revId": "69ab84597f7d9ccc7c3c46b182245c552c82e263",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
