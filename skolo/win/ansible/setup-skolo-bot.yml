@@ -12,6 +12,7 @@
 # hopefully we will in the future.)
 - import_playbook: python.yml
 # Install drivers.
+- import_playbook: intel-graphics-driver-broadwell.yml
 - import_playbook: intel-graphics-driver-skylake.yml
 - import_playbook: nvidia-graphics-driver.yml
 # Prep for Swarming.
