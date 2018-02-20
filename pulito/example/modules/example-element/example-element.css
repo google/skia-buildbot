@@ -1,0 +1,25 @@
+example-element {
+  margin: 6px;
+  display: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border: 8px solid #A6CEE3;
+  border-left: 8px solid #1F78B4;
+  animation: example-element-spin 1.5s infinite linear;
+}
+
+example-element[active] {
+  display: inline-block;
+}
+
+@keyframes example-element-spin {
+  0% {
+    transform:
+    rotate(0deg);
+  }
+  100% {
+    transform:
+    rotate(360deg);
+  }
+}
