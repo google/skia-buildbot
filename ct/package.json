@@ -24,7 +24,7 @@
     "karma-safari-launcher": "~0.1.1",
     "mocha": "~1.20.1",
     "native-promise-only": "~0.7.6-a",
-    "uglify-js": "~2.4.15",
+    "uglify-js": "~>2.6.0",
     "vulcanize": "~1.5.1"
   }
 }
