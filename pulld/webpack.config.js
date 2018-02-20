@@ -1,14 +1,5 @@
-const { commonBuilder } = require('../res/mod/webpack.common.js');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { configBuilder } = require('pulito');
 
-let common = commonBuilder(__dirname);
-common.entry.index = './pages/index.js'
-common.plugins.push(
-  new HtmlWebpackPlugin({
-    filename: 'index.html',
-    template: './pages/index.html',
-    chunks: ['index'],
-  })
-);
+const { addCommon } = require('../common/webpack.common.js');
 
-module.exports = common
+module.exports = addCommon(configBuilder(__dirname));
