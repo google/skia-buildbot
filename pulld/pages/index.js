@@ -1,1 +1,1 @@
-import '../res/mod/pulld-app-sk'
+import '../modules/pulld-app-sk'

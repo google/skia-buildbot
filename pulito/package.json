@@ -1,0 +1,26 @@
+{
+  "name": "pulito",
+  "version": "2.0.1",
+  "description": "Conventions and structure for a Vanilla JS application with a supporting webpack config.",
+  "main": "webpack.common.js",
+  "license": "BSD",
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-minify-webpack-plugin": "^0.3.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-minify": "^0.2.0",
+    "clean-webpack-plugin": "^0.1.16",
+    "css-loader": "^0.28.6",
+    "extract-text-webpack-plugin": "^3.0.0",
+    "file-loader": "^0.11.2",
+    "html-loader": "^0.5.1",
+    "html-webpack-plugin": "^2.30.1",
+    "node-sass": "^4.7.2",
+    "postcss-loader": "^2.0.6",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.18.2",
+    "webpack": "^3.11.0",
+    "webpack-dev-server": "^2.11.1"
+  }
+}

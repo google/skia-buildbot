@@ -1,4 +1,4 @@
-import * as object from '../object.js'
+import * as object from '../modules/object.js'
 
 describe('object functions',
   function() {

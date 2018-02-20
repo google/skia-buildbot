@@ -9,7 +9,6 @@
 # recipe DEPS
 infra/bots/.recipe_deps
 # common code
-/common
 **/res/common
 # TAGS
 *TAGS
