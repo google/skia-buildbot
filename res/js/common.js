@@ -176,7 +176,7 @@ this.sk = this.sk || {};
 
   // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
   sk.get = function(url, withCredentials) {
-    return sk.request('GET', url, null, withCredentials);
+    return sk.request('GET', url, null, null, withCredentials);
   }
 
 
@@ -193,7 +193,7 @@ this.sk = this.sk || {};
   // Returns a Promise that uses XMLHttpRequest to make a DELETE request to the
   // given URL.
   sk.delete = function(url, body, withCredentials) {
-    return sk.request('DELETE', url, body, withCredentials);
+    return sk.request('DELETE', url, body, null, withCredentials);
   }
 
   // A Promise that resolves when DOMContentLoaded has fired.
