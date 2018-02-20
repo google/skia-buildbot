@@ -22,6 +22,30 @@
       "revId": "258dba0ec97ce3cf9b7001e785a3659b9c3b3960",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dc9579e_909d3e11",
+        "filename": "pulito/Makefile",
+        "patchSetId": 7
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-20T19:54:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ba7af0c_73ff1ca4",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 4
+      },
+      "revId": "258dba0ec97ce3cf9b7001e785a3659b9c3b3960",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
