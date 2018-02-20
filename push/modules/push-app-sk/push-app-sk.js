@@ -169,6 +169,7 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
     this._chosenServer = target.dataset.server;
     let choices = this._state.packages[target.dataset.app];
     let chosen = choices.findIndex(choice => choice.Name === target.dataset.name);
+    console.log(chosen);
     this._push_selection.choices = choices;
     this._push_selection.chosen = chosen;
     this._push_selection.show();
@@ -201,7 +202,7 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
 
   _reboot(e) {
     let button = e.target;
-    $$('#confirm-dialog').open(`Proceed with rebooting ${ this.server }?`).then(() => {
+    $$('#confirm-dialog').open(`Proceed with rebooting ${ button.dataset.server }?`).then(() => {
       this._unitAction({
         machine: button.dataset.server,
         name: button.dataset.name,
