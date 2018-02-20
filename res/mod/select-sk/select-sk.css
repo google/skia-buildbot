@@ -1,7 +1,0 @@
-select-sk {
-  display: block;
-}
-
-select-sk > [selected] {
-  background: lightgray;
-}
