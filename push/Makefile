@@ -1,6 +1,9 @@
 build: core
 	npx webpack
 
+serve:
+	npx webpack-dev-server --watch
+
 core:
 	yarn
 	go install -v ./go/push
