@@ -20,6 +20,15 @@ Pulito expects a project to be laid out in the following format:
        page2.html
        ...
 
+If your project follows the conventions then pulito provides a webpack config
+file that will build your application, both development and production profiles,
+and will build demo pages for custom elements if they are present.
+
+Disclaimer
+----------
+
+This is not an officially supported Google product.
+
 Skeleton
 --------
 
