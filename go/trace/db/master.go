@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TILE_REFRESH_DURATION = 5 * time.Minute
+	TILE_REFRESH_DURATION = 60 * time.Minute
 
 	NEW_TILE_AVAILABLE_EVENT = "new-tile-available-event"
 )
