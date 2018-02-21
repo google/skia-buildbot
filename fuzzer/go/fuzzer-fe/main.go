@@ -261,7 +261,7 @@ func runServer() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	r.HandleFunc("/json/fuzz-summary", summaryJSONHandler)
+	r.HandleFunc("/json/fuzz-summary", httputils.CorsCredentialsHandler(summaryJSONHandler, ".skia.org"))
 	r.HandleFunc("/json/details", detailsJSONHandler)
 	r.HandleFunc("/json/status", statusJSONHandler)
 	r.HandleFunc(`/fuzz/{name:[0-9a-f]+}`, fuzzHandler)

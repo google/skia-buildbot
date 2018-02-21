@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -297,6 +298,39 @@ func MakeResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Re
 func CorsHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
+		h(w, r)
+	}
+}
+
+// CorsCredentialsHandler is an HTTPS handler function which adds the necessary header
+// for a CORS request using credentials. This allows, for example, status.skia.org to
+// make a request to fuzzer.skia.org using the *.skia.org cookie that is shared
+// between them.
+//
+// To have the browser use the cookie, the withCredentials on the XMLHttpRequest
+// must be true, or the credentials option must be true when using fetch.
+// In addition to this client-side setting, the server must set
+// Access-Control-Allow-Credentials to be true.
+//
+// However, Access-Control-Allow-Origin (ACAO) cannot be the wildcard "*", or the browser
+// gets upset (https://stackoverflow.com/q/19743396) The ACAO must be exactly the origin
+// of the request (lists of origins aren't supported [1]). The best practice is to
+// write the ACAO header dynamically, based on the requesting Origin header, which is what
+// is done here, assuming the header ends with the passed in originSuffix (e.g. ".skia.org")
+//
+// [1] https://www.w3.org/TR/cors/#access-control-allow-origin-response-header
+//     "In practice the origin-list-or-null production is more constrained. Rather
+//      than allowing a space-separated list of origins, it is either a single origin
+//      or the string "null"."
+func CorsCredentialsHandler(h func(http.ResponseWriter, *http.Request), originSuffix string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if origin, ok := r.Header["Origin"]; ok {
+			if strings.HasSuffix(origin[0], originSuffix) {
+				w.Header().Add("Access-Control-Allow-Origin", origin[0])
+				w.Header().Add("Access-Control-Allow-Credentials", "true")
+			}
+		}
+
 		h(w, r)
 	}
 }
