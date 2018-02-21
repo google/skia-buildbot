@@ -201,7 +201,7 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
 
   _reboot(e) {
     let button = e.target;
-    $$('#confirm-dialog').open(`Proceed with rebooting ${ this.server }?`).then(() => {
+    $$('#confirm-dialog').open(`Proceed with rebooting ${ button.dataset.server }?`).then(() => {
       this._unitAction({
         machine: button.dataset.server,
         name: button.dataset.name,

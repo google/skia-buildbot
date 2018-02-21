@@ -107,6 +107,7 @@ window.customElements.define('push-selection-sk', class extends HTMLElement {
   }
 
   _selectionChanged(e) {
+    this._chosen = e.detail.selection;
     this.dispatchEvent(new CustomEvent('package-change', {
       detail: {
         name: this.choices[e.detail.selection].Name,
