@@ -73,7 +73,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"api_image_filter": {
 		PrettyName:          "API - SerializedImageFilter",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "robertphillips",
 		ExtraBugLabels:      []string{"Area-ImageFilter"},
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "SerializedImageFilter", "--bytes"},
@@ -89,7 +89,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"api_pathop": {
 		PrettyName:          "API - PathOp",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "caryclark",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "Pathop", "--bytes"},
@@ -149,7 +149,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"path_deserialize": {
 		PrettyName:          "SkPath deserialize",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "reed",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "path_deserialize", "--bytes"},
