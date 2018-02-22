@@ -44,6 +44,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/ingestion"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -171,6 +172,33 @@ func (d *DMResults) getTraceDBEntries() (map[string]*tracedb.Entry, error) {
 			Params: params,
 			Value:  []byte(result.Digest),
 		}
+	}
+
+	// If all results were ignored then we return an error.
+	if len(ret) == 0 {
+		return nil, fmt.Errorf("No valid results in file %s.", d.name)
+	}
+
+	return ret, nil
+}
+
+// getEntries returns the Entry's to be stored.
+func (d *DMResults) getEntries() ([]*types.ParsedIngestionEntry, error) {
+	ret := make([]*types.ParsedIngestionEntry, 0, len(d.Results))
+	for _, result := range d.Results {
+		traceId, params := d.idAndParams(result)
+		if d.ignoreResult(params) {
+			continue
+		}
+		keys := paramtools.Params(d.Key).Dup()
+		keys.Add(result.Key)
+
+		ret = append(ret, &types.ParsedIngestionEntry{
+			Keys:    keys,
+			Options: result.Options,
+			Digest:  result.Digest,
+			TraceID: traceId,
+		})
 	}
 
 	// If all results were ignored then we return an error.
