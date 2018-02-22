@@ -1,0 +1,29 @@
+---
+# Install Radeon Graphics Driver; applies only to group "radeon".
+- hosts: radeon
+  tasks:
+  - name: Create Temp
+    win_file:
+      path: c:\Temp
+      state: directory
+  # This zip was created by running the self-extracting exe, canceling the install, and zipping the
+  # extracted files.
+  - name: Copy the Radeon driver ZIP to the host
+    win_copy:
+      src: "{{ win_package_src }}/\
+        Radeon Graphics win10-64bit-radeon-software-adrenalin-edition-18.2.2-feb12.zip"
+      dest: c:\Temp\radeon_gfx.zip
+  - name: Extract the Radeon driver ZIP
+    win_unzip:
+      src: c:\Temp\radeon_gfx.zip
+      dest: C:\Temp\Radeon
+      delete_archive: yes
+  - name: Install Radeon Graphics Driver
+    # Silent install args based on info displayed for "Setup.exe /?".
+    # TODO(dogben): The graphics driver seems to install OK, but there are errors for other
+    # components. Need to investigate more.
+    win_command: C:\Temp\Radeon\Setup.exe -INSTALL
+  - name: Cleanup
+    win_file:
+      path: c:\Temp\Radeon
+      state: absent
