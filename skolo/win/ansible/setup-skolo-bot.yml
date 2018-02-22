@@ -13,6 +13,7 @@
 - import_playbook: intel-graphics-driver-broadwell.yml
 - import_playbook: intel-graphics-driver-skylake.yml
 - import_playbook: nvidia-graphics-driver.yml
+- import_playbook: radeon-graphics-driver.yml
 # Prep for Swarming.
 - import_playbook: skolo-credentials.yml
 # Start Swarming. Must be last, since the bot will start running tasks after this.
