@@ -15,11 +15,9 @@ ${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service               ${ROOT}/etc/
 
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}               ${ROOT}/usr/local/bin/${APPNAME}
 
-${INSTALL_DIR} --mode=755                                           ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL}     --mode=644    ./templates/*                          ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL}     --mode=644 -T ./res/img/favicon.ico                  ${ROOT}/usr/local/share/${APPNAME}/res/img/favicon.ico
-${INSTALL}     --mode=644 -T ./res/js/core.js                       ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
-${INSTALL}     --mode=644 -T ./res/vul/elements.html                ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
+${INSTALL_DIR} --mode=755                                           ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL}     --mode=644 ./dist/*                                  ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL}     --mode=644 -T ./res/img/favicon.ico                  ${ROOT}/usr/local/share/${APPNAME}/favicon.ico
 ${INSTALL_DIR} --mode=755                                           ${ROOT}/etc/powercycle/
 ${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rpi-01.json5   ${ROOT}/etc/powercycle/powercycle-rpi-01.json5
 ${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-linux-01.json5 ${ROOT}/etc/powercycle/powercycle-linux-01.json5

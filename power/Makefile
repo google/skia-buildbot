@@ -1,22 +1,23 @@
-#Use Vulcanize 1.0
-VULCANIZE1=true
-# The list of files we want to go into core.js, which is concat'd and
-# minified. These files should be either present in the project, brought
-# into third_party/bower_compoents via bower, or in node_modules.
-CORE_SOURCE_FILES = third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-          ../res/js/common.js
+build: core
+	npx webpack
 
-BOWER_DIR=third_party/bower_components
+serve:
+	npx webpack-dev-server --watch
 
-default: all
-
-all: clean_webtools core_js elements_html skiaversion power
-
-power:
+core:
+	yarn
 	go install -v ./go/power-controller
 
-power_release: all
+release_build: core
+	NODE_ENV=production npx webpack
+
+release: release_build
 	./power_release "`git log -n1 --format=%s`"
 
-include ../webtools/webtools.mk
-include ../go/skiaversion/skiaversion.mk
+push: release
+	pushcli power-controller skia-power-controller
+
+watch: core
+	npx webpack --watch
+
+.PHONY: build serve core release_build release push watch
