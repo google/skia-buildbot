@@ -226,7 +226,13 @@ func getSession(r *http.Request) (*Session, error) {
 		return nil, err
 	}
 	var s Session
-	sklog.Infof("Cookie is: %v\n", cookie)
+	if len(cookie) > 20 {
+		sklog.Infof("Cookie is: %v\n", cookie[0:20])
+	} else {
+		// This is likely empty string or invalid, so no need to ellide.
+		sklog.Infof("Cookie is: %v\n", cookie)
+	}
+
 	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &s); err != nil {
 		return nil, err
 	}
