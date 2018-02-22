@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a8c6f30_8d6c3aba",
+        "filename": "power/modules/power-index-sk/power-index-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-22T19:28:41Z",
+      "side": 1,
+      "message": "This gets called after the custom element gets the connectedCallback(), even if I move import ./index.js below here.",
+      "revId": "b3e41ac8a35dfdeeb2bede3bb5b2988ecb92bd55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
