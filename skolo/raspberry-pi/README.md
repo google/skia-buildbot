@@ -65,6 +65,9 @@ passwd root
 adduser chrome-bot
 # Use/Put the password in the password manager.
 
+# Use visudo to add the following rule for chrome-bot
+chrome-bot ALL=NOPASSWD: /sbin/shutdown -r now, /bin/umount *
+
 # Load some android public/private keys for python-adb to use into /home/chrome-bot/.android
 # Download from https://console.cloud.google.com/storage/browser/skia-buildbots/rpi_auth/?project=google.com:skia-buildbots
 # then use chown to make chrome-bot own them.
