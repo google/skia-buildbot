@@ -1,8 +1,6 @@
 ---
 # Do all the things to set up a Skolo bot. See win-02-hosts for an example command.
-# Fix boot order first so that the machine can be redeployed if the following steps fail.
-- import_playbook: fix-boot-order.yml
-# Enable auto-login next.
+# Enable auto-login.
 - import_playbook: skolo-settings.yml
 # Disable things that make installing software slow.
 - import_playbook: swarming-bot-settings.yml
