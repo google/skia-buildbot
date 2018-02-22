@@ -16,6 +16,91 @@
       "revId": "b3e41ac8a35dfdeeb2bede3bb5b2988ecb92bd55",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb6b1e4c_b1240bbb",
+        "filename": "power/modules/power-index-sk/power-index-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-22T19:59:24Z",
+      "side": 1,
+      "message": "Is the span really needed?",
+      "revId": "b3e41ac8a35dfdeeb2bede3bb5b2988ecb92bd55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01bddfd9_afa699b5",
+        "filename": "power/modules/power-index-sk/power-index-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-22T19:59:24Z",
+      "side": 1,
+      "message": "nit: quotes are needed on attr values that don\u0027t have spaces or special characters.",
+      "revId": "b3e41ac8a35dfdeeb2bede3bb5b2988ecb92bd55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ea2c285_ec15cd9c",
+        "filename": "power/modules/power-index-sk/power-index-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-22T19:59:24Z",
+      "side": 1,
+      "message": "Don\u0027t use setInterval, the requests can pile up if the server ever gets slow. Instead use setTimeout and have update() then re-enqueue itself with another setTimeout.\n\nThis will also simplify the code here.",
+      "revId": "b3e41ac8a35dfdeeb2bede3bb5b2988ecb92bd55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14f0ed55_b6b3c614",
+        "filename": "power/modules/power-index-sk/power-index-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-22T19:59:24Z",
+      "side": 1,
+      "message": "Consider using errorMessage and an error-toast-sk element.",
+      "revId": "b3e41ac8a35dfdeeb2bede3bb5b2988ecb92bd55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acb299bb_512d3b09",
+        "filename": "power/modules/power-index-sk/power-index-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-22T19:59:24Z",
+      "side": 1,
+      "message": "Use a color from common/colors, probably $purple.",
+      "revId": "b3e41ac8a35dfdeeb2bede3bb5b2988ecb92bd55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
