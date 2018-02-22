@@ -226,7 +226,13 @@ func getSession(r *http.Request) (*Session, error) {
 		return nil, err
 	}
 	var s Session
-	sklog.Infof("Cookie is: %v\n", cookie)
+	if cookie != nil && len(cookie.String()) > 20 {
+		sklog.Infof("Cookie is: %s", cookie.String()[:20])
+	} else {
+		// This is likely nil or invalid, so no need to elide.
+		sklog.Infof("Cookie is: %v", cookie)
+	}
+
 	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &s); err != nil {
 		return nil, err
 	}
@@ -341,7 +347,7 @@ func setSkIDCookieValue(w http.ResponseWriter, r *http.Request, value *Session) 
 //
 // to revoke any grants they make.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	sklog.Infof("LogoutHandler\n")
+	sklog.Infof("LogoutHandler")
 	setSkIDCookieValue(w, r, &Session{})
 	http.Redirect(w, r, r.FormValue("redirect"), 302)
 }
@@ -350,7 +356,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // the callback URL registered in the APIs Console. In this case
 // "/oauth2callback".
 func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
-	sklog.Infof("OAuth2CallbackHandler\n")
+	sklog.Infof("OAuth2CallbackHandler")
 	cookie, err := r.Cookie(SESSION_COOKIE_NAME)
 	if err != nil || cookie.Value == "" {
 		http.Error(w, "Invalid session state.", 500)
@@ -466,7 +472,7 @@ func inWhitelist(email string) bool {
 // }
 //
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
-	sklog.Infof("StatusHandler\n")
+	sklog.Infof("StatusHandler")
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	email, id := UserIdentifiers(r)
