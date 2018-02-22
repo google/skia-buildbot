@@ -17,6 +17,15 @@ ALERT CrashLoop
     description = "{{ $labels.instance }} of job {{ $labels.job }} is crashing on startup.",
   }
 
+ALERT ExcessiveLoad
+  IF max_over_time(load[6m]) > 200
+  FOR 5m
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.instance }}",
+    description = "{{ $labels.instance }} of job {{ $labels.job }} is experiencing excessive load.",
+  }
+
 ALERT TooManyGoRoutines
   IF go_goroutines > 3000
   FOR 2m
