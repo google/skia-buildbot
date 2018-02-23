@@ -8,6 +8,8 @@
 #   ansible_winrm_server_cert_validation: ignore
 #   win_package_src: /home/chrome-bot/ansible/win_package_src/
 #
+# Contents of win_package_src are on GCS at gs://skia-buildbots/skolo/win/win_package_src
+#
 # Example command:
 #   ansible-playbook -i win-02-hosts setup-skolo-bot.yml
 all:
@@ -16,10 +18,11 @@ all:
   children:
     # TODO(dogben): Would be nice to use PyWin32 to identify the GPU, then use group_by to run the
     # correct playbook.
-    skylake:
+    broadwell:
       hosts:
-        skia-e-win-205:
-        skia-e-win-207:
-    nvidia:
-      hosts:
-        skia-e-win-206
+        skia-e-win-240:
+        skia-e-win-241:
+        skia-e-win-242:
+        skia-e-win-243:
+        skia-e-win-244:
+        skia-e-win-245:
