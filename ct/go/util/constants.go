@@ -76,6 +76,7 @@ const (
 	BENCHMARK_SMOOTHNESS        = "smoothness_ct"
 	BENCHMARK_USECOUNTER        = "usecounter_ct"
 	BENCHMARK_LEAK_DETECTION    = "leak_detection.cluster_telemetry"
+	BENCHMARK_MEMORY            = "memory.cluster_telemetry"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -339,6 +340,7 @@ var (
 		BENCHMARK_USECOUNTER,
 		BENCHMARK_LEAK_DETECTION,
 		BENCHMARK_SMOOTHNESS,
+		BENCHMARK_MEMORY,
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
