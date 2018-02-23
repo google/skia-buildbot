@@ -6,12 +6,12 @@
     win_file:
       path: c:\Temp
       state: directory
-  # This zip was created by running the self-extracting exe, canceling the install, and zipping the
-  # extracted files.
+  # This zip was created by opening the self-extracting exe using Archive Manager on Debian and
+  # re-zipping the extracted files as a ZIP archive.
   - name: Copy the Radeon driver ZIP to the host
     win_copy:
       src: "{{ win_package_src }}/\
-        Radeon Graphics win10-64bit-radeon-software-adrenalin-edition-18.2.2-feb12.zip"
+        Radeon Graphics non-whql-win10-64bit-radeon-software-crimson-relive-17.5.2-may17.zip"
       dest: c:\Temp\radeon_gfx.zip
   - name: Extract the Radeon driver ZIP
     win_unzip:
