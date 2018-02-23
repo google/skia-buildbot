@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"html/template"
 	"net/http"
 	"path"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -82,43 +80,20 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	r.HandleFunc("/", getIndexHandler())
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/down_bots", downBotsHandler)
 	r.HandleFunc("/powercycled_bots", powercycledBotsHandler)
+	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	rootHandler := httputils.LoggingGzipRequestResponse(r)
 
 	http.Handle("/", rootHandler)
 	sklog.Infof("Ready to serve on http://127.0.0.1%s", *port)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
-}
-
-// getIndexHandler returns a handler that displays the index page, which has no
-// real templating. The client side JS will query for more information.
-func getIndexHandler() func(http.ResponseWriter, *http.Request) {
-	tempFiles := []string{
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	}
-
-	indexTemplate := template.Must(template.ParseFiles(tempFiles...))
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		if *local {
-			indexTemplate = template.Must(template.ParseFiles(tempFiles...))
-		}
-		w.Header().Set("Content-Type", "text/html")
-
-		if err := indexTemplate.Execute(w, nil); err != nil {
-			sklog.Errorf("Failed to expand template: %v", err)
-		}
-	}
 }
 
 type downBotsResponse struct {

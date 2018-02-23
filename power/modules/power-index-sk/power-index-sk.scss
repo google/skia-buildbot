@@ -1,0 +1,39 @@
+@import '~common/colors';
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+power-index-sk {
+  .content {
+    padding: 5px;
+  }
+
+  header {
+    margin: 0;
+    padding: 1em 0.5em;
+    color: white;
+    background: $purple;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-weight: bold;
+  }
+
+  table {
+    border-collapse: collapse;
+    margin-left: 5px;
+  }
+  td, th {
+    border: 1px solid #DDD;
+    padding: 5px;
+  }
+  th {
+    position: relative;
+  }
+
+  .code {
+    font-family: monospace;
+  }
+}
