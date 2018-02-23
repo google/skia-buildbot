@@ -1,0 +1,16 @@
+		"config": []string{"8888", "565", "gpu"},
+		"arch":   []string{"x86", "arm"},
+		"name": []string{
+			"AndroidCodec_01_original.jpg_SampleSize2",
+			"AndroidCodec_01_original.jpg_SampleSize4",
+			"AndroidCodec_01_original.jpg_SampleSize8",
+			"AndroidCodec_1.bmp_SampleSize2",
+			"AndroidCodec_1.bmp_SampleSize4",
+			"AndroidCodec_1.bmp_SampleSize8",
+			"AndroidCodec_122224874ic_lockscreen_emergencycall_pressed.png_SampleSize2",
+			"AndroidCodec_122224874ic_lockscreen_emergencycall_pressed.png_SampleSize4",
+			"AndroidCodec_122224874ic_lockscreen_emergencycall_pressed.png_SampleSize8",
+			"AndroidCodec_2014_dog.png_SampleSize2",
+			"AndroidCodec_2014_dog.png_SampleSize4",
+			"AndroidCodec_2014_dog.png_SampleSize8",
+
