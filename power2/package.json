@@ -1,0 +1,9 @@
+{
+  "name": "power-controller",
+  "version": "2.0.0",
+  "main": "pages/index.js",
+  "license": "",
+  "dependencies": {
+    "pulito": "^2.0.0"
+  }
+}
