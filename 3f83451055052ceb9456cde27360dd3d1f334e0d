@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cab6bf70_0694ad77",
+        "filename": "power/modules/power-index-sk/power-index-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-02-23T13:02:09Z",
+      "side": 1,
+      "message": "windows.setTimeout(() \u003d\u003e this.update()) \n\nIf you want to avoid the bind.",
+      "revId": "3f83451055052ceb9456cde27360dd3d1f334e0d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
