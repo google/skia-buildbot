@@ -2,6 +2,10 @@
 package paramtools
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/json"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -196,4 +200,71 @@ func (p ParamMatcher) MatchAny(params ParamSet) bool {
 		}
 	}
 	return false
+}
+
+type OrderedParamSet struct {
+	KeyOrder []string
+	ParamSet ParamSet
+}
+
+// Returns all the keys and their values that don't exist in the OrderedParamSet.
+func (o *OrderedParamSet) Check(p ParamSet) ParamSet {
+	ret := ParamSet{}
+	for k, newValues := range p {
+		if values, ok := o.ParamSet[k]; !ok {
+			ret[k] = newValues
+		} else {
+			for _, v := range newValues {
+				if !util.In(v, values) {
+					ret[k] = append(ret[k], v)
+				}
+			}
+		}
+	}
+	return ret
+}
+
+func (o *OrderedParamSet) Update(p ParamSet) {
+	// Add new keys to KeyOrder.
+	// Append new values if they don't exist.
+	for k, values := range p {
+		if !util.In(k, o.KeyOrder) {
+			o.KeyOrder = append(o.KeyOrder, k)
+			o.ParamSet[k] = []string{}
+		}
+		currentValues := o.ParamSet[k]
+		for _, v := range values {
+			if !util.In(v, currentValues) {
+				currentValues = append(currentValues, v)
+			}
+		}
+		o.ParamSet[k] = currentValues
+	}
+}
+
+func (o *OrderedParamSet) Encode() ([]byte, error) {
+	var b bytes.Buffer
+	gz := gzip.NewWriter(&b)
+	enc := json.NewEncoder(gz)
+	if err := enc.Encode(o); err != nil {
+		return nil, fmt.Errorf("Failed to encode: %s", err)
+	}
+	if err := gz.Close(); err != nil {
+		return nil, fmt.Errorf("Failed to gzip: %s", err)
+	}
+	return b.Bytes(), nil
+}
+
+func NewFromBytes(b []byte) (*OrderedParamSet, error) {
+	buf := bytes.NewBuffer(b)
+	gz, err := gzip.NewReader(buf)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create reader: %s", err)
+	}
+	dec := json.NewDecoder(gz)
+	p := &OrderedParamSet{}
+	if err := dec.Decode(&p); err != nil {
+		return nil, fmt.Errorf("Failed to decode: %s", err)
+	}
+	return p, nil
 }
