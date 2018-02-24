@@ -2,6 +2,11 @@
 package paramtools
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/binary"
+	"encoding/json"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -196,4 +201,136 @@ func (p ParamMatcher) MatchAny(params ParamSet) bool {
 		}
 	}
 	return false
+}
+
+type OrderedParamSet struct {
+	KeyOrder []string
+	ParamSet ParamSet
+}
+
+// Returns all the keys and their values that don't exist in the OrderedParamSet.
+func (o *OrderedParamSet) Check(p ParamSet) ParamSet {
+	ret := ParamSet{}
+	for k, newValues := range p {
+		if values, ok := o.ParamSet[k]; !ok {
+			ret[k] = newValues
+		} else {
+			for _, v := range newValues {
+				if !util.In(v, values) {
+					ret[k] = append(ret[k], v)
+				}
+			}
+		}
+	}
+	return ret
+}
+
+func (o *OrderedParamSet) Update(p ParamSet) {
+	// Add new keys to KeyOrder.
+	// Append new values if they don't exist.
+	for k, values := range p {
+		if !util.In(k, o.KeyOrder) {
+			o.KeyOrder = append(o.KeyOrder, k)
+			o.ParamSet[k] = []string{}
+		}
+		currentValues := o.ParamSet[k]
+		for _, v := range values {
+			if !util.In(v, currentValues) {
+				currentValues = append(currentValues, v)
+			}
+		}
+		o.ParamSet[k] = currentValues
+	}
+}
+
+func (o *OrderedParamSet) Encode() ([]byte, error) {
+	var b bytes.Buffer
+	gz := gzip.NewWriter(&b)
+	enc := json.NewEncoder(gz)
+	if err := enc.Encode(o); err != nil {
+		return nil, fmt.Errorf("Failed to encode: %s", err)
+	}
+	if err := gz.Close(); err != nil {
+		return nil, fmt.Errorf("Failed to gzip: %s", err)
+	}
+	return b.Bytes(), nil
+}
+
+func NewFromBytes(b []byte) (*OrderedParamSet, error) {
+	buf := bytes.NewBuffer(b)
+	gz, err := gzip.NewReader(buf)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create reader: %s", err)
+	}
+	dec := json.NewDecoder(gz)
+	p := &OrderedParamSet{}
+	if err := dec.Decode(&p); err != nil {
+		return nil, fmt.Errorf("Failed to decode: %s", err)
+	}
+	return p, nil
+}
+
+func (o *OrderedParamSet) ParamsEncoder() *ParamsEncoder {
+	ret := &ParamsEncoder{
+		keys:   map[string]int{},
+		values: make([]map[string]int, len(o.KeyOrder)),
+	}
+	for keyIndex, key := range o.KeyOrder {
+		ret.keys[key] = keyIndex
+		valueMap := map[string]int{}
+		for valueIndex, value := range o.ParamSet[key] {
+			valueMap[value] = valueIndex
+		}
+		ret.values[keyIndex] = valueMap
+	}
+	return ret
+}
+
+type ParamsEncoder struct {
+	keys   map[string]int
+	values []map[string]int
+}
+
+func (p *ParamsEncoder) Encode(params Params) ([]byte, error) {
+	ints := make([]int64, 0, len(params)*2)
+	for key, value := range params {
+		keyIndex, ok := p.keys[key]
+		if !ok {
+			return nil, fmt.Errorf("Unknown key.")
+		}
+		valueIndex, ok := p.values[keyIndex][value]
+		if !ok {
+			return nil, fmt.Errorf("Unknown value.")
+		}
+		ints = append(ints, int64(keyIndex), int64(valueIndex))
+	}
+	var buf bytes.Buffer
+	if err := binary.Write(&buf, binary.LittleEndian, ints); err != nil {
+		return nil, fmt.Errorf("Failed encoding: %s", err)
+	}
+	return buf.Bytes(), nil
+}
+
+func (o *OrderedParamSet) Decode(b []byte) (Params, error) {
+	buf := bytes.NewBuffer(b)
+	ints := []int64{}
+	if err := binary.Read(buf, binary.LittleEndian, &ints); err != nil {
+		return nil, fmt.Errorf("Failed to decode bytes: %s", err)
+	}
+	ret := Params{}
+	for i := 0; i < len(ints); i += 2 {
+		keyIndex := ints[i]
+		if keyIndex > int64(len(o.KeyOrder)) {
+			return nil, fmt.Errorf("Got invalid key index: %d", keyIndex)
+		}
+		key := o.KeyOrder[keyIndex]
+		values := o.ParamSet[key]
+		valueIndex := ints[i+1]
+		if valueIndex > int64(len(values)) {
+			return nil, fmt.Errorf("Got invalid value index for %s: %d", key, valueIndex)
+		}
+		value := values[valueIndex]
+		ret[key] = value
+	}
+	return ret, nil
 }
