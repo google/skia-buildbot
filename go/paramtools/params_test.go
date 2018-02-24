@@ -244,3 +244,50 @@ func TestMatching(t *testing.T) {
 	}
 	assert.True(t, ParamMatcher{testRule}.MatchAny(testVal))
 }
+
+func TestDSParamSet(t *testing.T) {
+	p := &OrderedParamSet{
+		KeyOrder: []string{"config", "name", "arch"},
+		ParamSet: ParamSet{
+			"config": []string{"8888", "565", "gpu"},
+			"arch":   []string{"x86", "arm"},
+			"name": []string{
+				"AndroidCodec_01_original.jpg_SampleSize2",
+				"AndroidCodec_01_original.jpg_SampleSize4",
+				"AndroidCodec_01_original.jpg_SampleSize8",
+				"AndroidCodec_1.bmp_SampleSize2",
+				"AndroidCodec_1.bmp_SampleSize4",
+				"AndroidCodec_1.bmp_SampleSize8",
+				"AndroidCodec_122224874ic_lockscreen_emergencycall_pressed.png_SampleSize2",
+				"AndroidCodec_122224874ic_lockscreen_emergencycall_pressed.png_SampleSize4",
+				"AndroidCodec_122224874ic_lockscreen_emergencycall_pressed.png_SampleSize8",
+				"AndroidCodec_2014_dog.png_SampleSize2",
+				"AndroidCodec_2014_dog.png_SampleSize4",
+				"AndroidCodec_2014_dog.png_SampleSize8",
+			},
+		},
+	}
+	b, err := p.Encode()
+	assert.NoError(t, err)
+	assert.Len(t, b, 239) // Raw text is >700 chars.
+	back, err := NewOrderedParamSetFromBytes(b)
+	assert.NoError(t, err)
+	assert.Equal(t, p, back)
+
+	p2 := ParamSet{
+		"config": []string{"8888", "gles"},
+		"arch":   []string{"riscv", "arm"},
+		"srgb":   []string{"true", "false"},
+	}
+	toAdd := p.Check(p2)
+	expected := ParamSet{
+		"config": []string{"gles"},
+		"arch":   []string{"riscv"},
+		"srgb":   []string{"true", "false"},
+	}
+	assert.Equal(t, expected, toAdd)
+	p.Update(toAdd)
+	assert.Equal(t, []string{"config", "name", "arch", "srgb"}, p.KeyOrder)
+	assert.Equal(t, []string{"true", "false"}, p.ParamSet["srgb"])
+	assert.Equal(t, []string{"8888", "565", "gpu", "gles"}, p.ParamSet["config"])
+}
