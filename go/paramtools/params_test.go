@@ -244,3 +244,84 @@ func TestMatching(t *testing.T) {
 	}
 	assert.True(t, ParamMatcher{testRule}.MatchAny(testVal))
 }
+
+func TestOrderedParamSet(t *testing.T) {
+	p := &OrderedParamSet{
+		KeyOrder: []string{"config", "name", "arch"},
+		ParamSet: ParamSet{
+			"config": []string{"8888", "565", "gpu"},
+			"arch":   []string{"x86", "arm"},
+			"name": []string{
+				"test00", "test01", "test02", "test03", "test04", "test05", "test06", "test07", "test08", "test09",
+				"test10", "test11", "test12", "test13", "test14", "test15", "test16", "test17", "test18", "test19",
+				"test20", "test21", "test22", "test23", "test24", "test25", "test26", "test27", "test28", "test29",
+				"test30", "test31", "test32", "test33", "test34", "test35", "test36", "test37", "test38", "test39",
+				"test40", "test41", "test42", "test43", "test44", "test45", "test46", "test47", "test48", "test49",
+				"test50", "test51", "test52", "test53", "test54", "test55", "test56", "test57", "test58", "test59",
+				"test60", "test61", "test62", "test63", "test64", "test65", "test66", "test67", "test68", "test69",
+			},
+		},
+	}
+	b, err := p.Encode()
+	assert.NoError(t, err)
+	assert.Len(t, b, 249) // Raw text is >700 chars.
+	back, err := NewOrderedParamSetFromBytes(b)
+	assert.NoError(t, err)
+	assert.Equal(t, p, back)
+
+	p2 := ParamSet{
+		"config": []string{"8888", "gles"},
+		"arch":   []string{"riscv", "arm"},
+		"srgb":   []string{"true", "false"},
+	}
+	toAdd := p.Check(p2)
+	expected := ParamSet{
+		"config": []string{"gles"},
+		"arch":   []string{"riscv"},
+		"srgb":   []string{"true", "false"},
+	}
+	assert.Equal(t, expected, toAdd)
+	p.Update(toAdd)
+	assert.Equal(t, []string{"config", "name", "arch", "srgb"}, p.KeyOrder)
+	assert.Equal(t, []string{"true", "false"}, p.ParamSet["srgb"])
+	assert.Equal(t, []string{"8888", "565", "gpu", "gles"}, p.ParamSet["config"])
+
+	params := Params{
+		"config": "8888",
+		"arch":   "x86",
+		"name":   "test01",
+	}
+	b, err = p.EncodeParams(params)
+	assert.NoError(t, err)
+	assert.Len(t, b, 6)
+	paramsDecoded, err := p.DecodeParams(b)
+	assert.NoError(t, err)
+	assert.Equal(t, params, paramsDecoded)
+
+	params = Params{
+		"config": "gles",
+		"arch":   "arm",
+		"name":   "test68",
+	}
+	b, err = p.EncodeParams(params)
+	assert.NoError(t, err)
+	assert.Len(t, b, 7)
+	paramsDecoded, err = p.DecodeParams(b)
+	assert.NoError(t, err)
+	assert.Equal(t, params, paramsDecoded)
+
+	params = Params{
+		"config": "some unknown value",
+	}
+	_, err = p.EncodeParams(params)
+	assert.Error(t, err)
+
+	_, err = p.DecodeParams([]byte{0x32})
+	assert.Error(t, err, "Should fail since this decode to an odd number of ints.")
+
+	_, err = p.DecodeParams([]byte{0x02, 0x01})
+	assert.Error(t, err, "Should fail since 0x01 decodes to -1.")
+
+	_, err = p.DecodeParams([]byte{0x01, 0x02})
+	assert.Error(t, err, "Should fail since 0x01 decodes to -1.")
+}
