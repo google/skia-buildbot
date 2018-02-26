@@ -37,7 +37,7 @@ func TestTaskNameSchema(t *testing.T) {
 			"configuration":    "Debug",
 			"test_filter":      "CT_DM_1m_SKPs",
 		},
-		"Upload-Test-Android-Clang-Nexus6p-GPU-Adreno430-arm64-Release-Android_Vulkan": {
+		"Upload-Test-Android-Clang-Nexus6p-GPU-Adreno430-arm64-Release-All-Android_Vulkan": {
 			"role":             "Upload",
 			"orig_role":        "Test",
 			"os":               "Android",
@@ -47,6 +47,7 @@ func TestTaskNameSchema(t *testing.T) {
 			"cpu_or_gpu_value": "Adreno430",
 			"arch":             "arm64",
 			"configuration":    "Release",
+			"test_filter":      "All",
 			"extra_config":     "Android_Vulkan",
 		},
 	}
