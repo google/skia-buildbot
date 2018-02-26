@@ -342,6 +342,53 @@ func SearchJobs(db JobReader, p *JobSearchParams) ([]*Job, error) {
 	return matchJobs(jobs, p), nil
 }
 
+// matchTasks returns Tasks which match the given search parameters.
+func matchTasks(tasks []*Task, p *TaskSearchParams) []*Task {
+	rv := []*Task{}
+	for _, t := range tasks {
+		// Compare all attributes which are provided.
+		if true &&
+			!p.TimeStart.After(t.Created) &&
+			t.Created.Before(p.TimeEnd) &&
+			searchStringEqual(p.Issue, t.Issue) &&
+			searchStringEqual(p.Patchset, t.Patchset) &&
+			searchStringEqual(p.Server, t.Server) &&
+			searchStringEqual(p.Repo, t.Repo) &&
+			searchStringEqual(p.Revision, t.Revision) &&
+			searchStringEqual(p.Name, t.Name) &&
+			searchStringEqual(string(p.Status), string(t.Status)) &&
+			searchStringEqual(p.ForcedJobId, t.ForcedJobId) {
+			rv = append(rv, t)
+		}
+	}
+	return rv
+}
+
+// TaskSearchParams are parameters on which Tasks may be searched. All fields
+// are optional; if a field is not provided, the search will return Tasks with
+// any value for that field. If either of TimeStart or TimeEnd is not provided,
+// the search defaults to the last 24 hours.
+type TaskSearchParams struct {
+	Status TaskStatus `json:"status"`
+	TaskKey
+	TimeStart time.Time `json:"time_start"`
+	TimeEnd   time.Time `json:"time_end"`
+}
+
+// SearchTasks returns Tasks in the given time range which match the given search
+// parameters.
+func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*Task, error) {
+	if util.TimeIsZero(p.TimeStart) || util.TimeIsZero(p.TimeEnd) {
+		p.TimeEnd = time.Now()
+		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
+	}
+	tasks, err := db.GetTasksFromDateRange(p.TimeStart, p.TimeEnd)
+	if err != nil {
+		return nil, err
+	}
+	return matchTasks(tasks, p), nil
+}
+
 // RemoteDB allows retrieving tasks and jobs and full access to comments.
 type RemoteDB interface {
 	TaskReader
