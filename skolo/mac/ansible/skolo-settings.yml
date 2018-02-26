@@ -1,0 +1,8 @@
+---
+# Adjust time, power management, and auto-login settings.
+- hosts: all
+  tasks:
+  - name: Setup caffeinated.
+    copy:
+      src: ../org.skia.caffeinated.plist
+      dest: /Library/LaunchAgents/
