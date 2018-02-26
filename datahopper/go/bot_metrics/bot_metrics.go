@@ -260,6 +260,11 @@ func cycle(ctx context.Context, taskDb db.RemoteDB, repos repograph.Map, tcc *sp
 
 			// For each commit covered by the task, record the lag time.
 			if err := c.Recurse(func(commit *repograph.Commit) (bool, error) {
+				// Prevent us from tracing through the entire commit history.
+				if commit.Timestamp.Before(now.Add(-COMMIT_TASK_WINDOW)) {
+					return false, nil
+				}
+
 				// Get the cached data for this commit.
 				cData, ok := repoData[commit]
 				if !ok {
