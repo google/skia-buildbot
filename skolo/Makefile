@@ -116,8 +116,3 @@ get_oauth2_token_push: get_oauth2_token_release
 	pushcli "get-oauth2-token" "jumphost-rpi-01"
 	pushcli "get-oauth2-token" "jumphost-win-02"
 	pushcli "get-oauth2-token" "jumphost-win-03"
-
-.PHONY: refresh_swarming_token_upload
-refresh_swarming_token_upload: skiaversion
-	../tools/go_build_and_upload_all_platforms.sh ./go/refresh_swarming_token
-
