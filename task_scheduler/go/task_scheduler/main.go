@@ -505,6 +505,25 @@ func jsonJobSearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// jsonTaskSearchHandler allows searching for Tasks based on various parameters.
+func jsonTaskSearchHandler(w http.ResponseWriter, r *http.Request) {
+	var params db.TaskSearchParams
+	if err := httputils.ParseFormValues(r, &params); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse request parameters.")
+		return
+	}
+	tasks, err := db.SearchTasks(tsDb, &params)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to search for tasks.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tasks); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		return
+	}
+}
+
 // jsonTaskCandidateSearchHandler allows for searching task candidates based on
 // their TaskKey.
 func jsonTaskCandidateSearchHandler(w http.ResponseWriter, r *http.Request) {
@@ -544,6 +563,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
 	r.HandleFunc("/json/task/{id}", jsonGetTaskHandler)
 	r.HandleFunc("/json/taskCandidates/search", jsonTaskCandidateSearchHandler)
+	r.HandleFunc("/json/tasks/search", jsonTaskSearchHandler)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
