@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "99279ee6_cb94b32a",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-26T19:37:30Z",
+      "side": 1,
+      "message": "nit: Tasks",
+      "range": {
+        "startLine": 345,
+        "startChar": 22,
+        "endLine": 345,
+        "endChar": 26
+      },
+      "revId": "ce96fe4840005d14d30fe87fed91bba8320194e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d8fadc3_85766932",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-26T19:37:30Z",
+      "side": 1,
+      "message": "nit: tasks",
+      "range": {
+        "startLine": 517,
+        "startChar": 57,
+        "endLine": 517,
+        "endChar": 61
+      },
+      "revId": "ce96fe4840005d14d30fe87fed91bba8320194e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
