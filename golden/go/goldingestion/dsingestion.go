@@ -5,58 +5,53 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
-	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/types"
-)
-
-const (
-	// Configuration option that identifies the address of the traceDB service.
-	CONFIG_TRACESERVICE = "TraceService"
-
-	// Configuration option for the secondary repository.
-	CONFIG_SECONDARY_REPO = "SecondaryRepoURL"
-
-	// Configuration option to define the regular expression to extract the
-	// commit from the secondary repo. The provided regular expression must
-	// contain exactly one group which maps to the commit in the DEPS file.
-	CONFIG_SECONDARY_REG_EX = "SecondaryRegEx"
+	"go.skia.org/infra/golden/go/dstilestore"
 )
 
 // Register the processor with the ingestion framework.
 func init() {
-	ingestion.Register(config.CONSTRUCTOR_GOLD, newGoldProcessor)
+	ingestion.Register(config.CONSTRUCTOR_DS_GOLD, newDSGoldProcessor)
 }
 
-// goldProcessor implements the ingestion.Processor interface for gold.
-type goldProcessor struct {
-	traceDB tracedb.DB
-	vcs     vcsinfo.VCS
+// goldDSProcessor implements the ingestion.Processor interface for gold.
+type goldDSProcessor struct {
+	vcs                vcsinfo.VCS
+	ctx                context.Context
+	client             *dstilestore.DSTileStore
+	numDigestsIngested metrics2.Counter
 }
-
-type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
 
 // implements the ingestion.Constructor signature.
-func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
-	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
-	if err != nil {
-		return nil, err
+func newDSGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
+	namespace, ok := config.ExtraParams["Namespace"]
+	if !ok {
+		return nil, fmt.Errorf("Namespace is a required ExtraParams in ingestion config.")
 	}
+	project, ok := config.ExtraParams["Project"]
+	if !ok {
+		return nil, fmt.Errorf("Project is a required ExtraParams in ingestion config.")
+	}
+	ds.Init(project, namespace)
 
-	ret := &goldProcessor{
-		traceDB: traceDB,
-		vcs:     vcs,
+	ret := &goldDSProcessor{
+		vcs:                vcs,
+		ctx:                context.Background(),
+		client:             dstilestore.NewDSTileStore(context.Background(), ds.DS),
+		numDigestsIngested: metrics2.GetCounter("num_digests_ingested", nil),
 	}
 	return ret, nil
 }
 
 // See ingestion.Processor interface.
-func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
+func (g *goldDSProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	dmResults, err := processDMResults(resultsFile)
 	if err != nil {
 		return err
@@ -81,38 +76,31 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	}
 
 	// Add the column to the trace db.
-	cid, err := g.getCommitID(commit, dmResults)
+	cindex, err := g.vcs.IndexOf(g.ctx, commit.Hash)
 	if err != nil {
 		return err
 	}
 
-	// Get the entries that should be added to the tracedb.
-	entries, err := dmResults.getTraceDBEntries()
+	// Get the entries that should be added to the datastore.
+	entries, err := dmResults.getEntries()
 	if err != nil {
 		return err
 	}
 
-	// Write the result to the tracedb.
-	err = g.traceDB.Add(cid, entries)
+	// Write the result to the datastore.
+	g.numDigestsIngested.Inc(int64(len(entries)))
+	sklog.Infof("Got %d entries in a single file: %s", len(entries), resultsFile.Name())
+	err = g.client.Add(cindex, entries)
 	return err
 }
 
 // See ingestion.Processor interface.
-func (g *goldProcessor) BatchFinished() error { return nil }
-
-// getCommitID extracts the commitID from the given commit and dm results.
-func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
-	return &tracedb.CommitID{
-		Timestamp: commit.Timestamp.Unix(),
-		ID:        commit.Hash,
-		Source:    "master",
-	}, nil
-}
+func (g *goldDSProcessor) BatchFinished() error { return nil }
 
 // getCanonicalCommitHash returns the commit hash in the primary repository. If the given
 // target hash is not in the primary repository it will try and find it in the secondary
 // repository which has the primary as a dependency.
-func (g *goldProcessor) getCanonicalCommitHash(ctx context.Context, targetHash string) (string, error) {
+func (g *goldDSProcessor) getCanonicalCommitHash(ctx context.Context, targetHash string) (string, error) {
 	// If it is not in the primary repo.
 	if !isCommit(ctx, g.vcs, targetHash) {
 		// Extract the commit.
@@ -133,4 +121,10 @@ func (g *goldProcessor) getCanonicalCommitHash(ctx context.Context, targetHash s
 		targetHash = foundCommit
 	}
 	return targetHash, nil
+}
+
+// isCommit returns true if the given commit is in vcs.
+func isCommit(ctx context.Context, vcs vcsinfo.VCS, commitHash string) bool {
+	ret, err := vcs.Details(ctx, commitHash, false)
+	return (err == nil) && (ret != nil)
 }
