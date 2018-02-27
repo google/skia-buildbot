@@ -89,6 +89,30 @@
     },
     {
       "key": {
+        "uuid": "d398f4f0_d1bce44e",
+        "filename": "skolo/mac/ansible/skolo-credentials.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-27T16:02:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2e4b11a_3f0dfe24",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 23
+      },
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2ce7e3e_734fba3d",
         "filename": "skolo/mac/ansible/skolo-settings.yml",
         "patchSetId": 5
@@ -103,6 +127,24 @@
       "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "330e30a0_4b4653a1",
+        "filename": "skolo/mac/ansible/skolo-settings.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-27T16:02:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e2ce7e3e_734fba3d",
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
