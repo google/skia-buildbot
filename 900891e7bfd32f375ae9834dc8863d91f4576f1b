@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6637e7e0_979177ff",
+        "filename": "skolo/mac/ansible/mac_hosts",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-27T19:55:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7c90ece7_a3f68239",
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f0c41744_7f0b5fc0",
         "filename": "skolo/mac/ansible/mac_hosts",
         "patchSetId": 5
@@ -78,6 +96,30 @@
       "side": 1,
       "message": "I\u0027ve used the extra-vars before - sgtm",
       "parentUuid": "f0c41744_7f0b5fc0",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 4
+      },
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e81eb9e_2302e53a",
+        "filename": "skolo/mac/ansible/mac_hosts",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-27T19:55:13Z",
+      "side": 1,
+      "message": "Okay, I added a wrapper script.  It turns out it\u0027s simpler to just list the IP address explicitly in the command.",
+      "parentUuid": "879b3b01_32f5cd4b",
       "range": {
         "startLine": 1,
         "startChar": 0,
