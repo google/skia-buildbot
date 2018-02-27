@@ -240,3 +240,6 @@ type TestDigestExp struct {
 type IssueExpChange struct {
 	IssueID int64 `json:"issueID"`
 }
+
+type TryjobsSummary struct {
+}
