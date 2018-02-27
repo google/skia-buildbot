@@ -11,7 +11,7 @@
 # Contents of win_package_src are on GCS at gs://skia-buildbots/skolo/win/win_package_src
 #
 # Example command:
-#   ansible-playbook -i win-02-hosts setup-skolo-bot.yml
+#   ansible-playbook -i win-03-hosts setup-skolo-bot.yml
 all:
   vars:
     swarming_server: https://chromium-swarm.appspot.com
@@ -20,28 +20,14 @@ all:
     # correct playbook.
     broadwell:
       hosts:
-        skia-e-win-240:
-        skia-e-win-241:
-        skia-e-win-242:
-        skia-e-win-243:
-        skia-e-win-244:
-        skia-e-win-245:
-    nvidia:
-      hosts:
-        skia-e-win-204:
-        skia-e-win-205:
-    radeon:
-      hosts:
-        skia-e-win-210:
-        skia-e-win-211:
-        skia-e-win-212:
+        skia-e-win-340:
+        skia-e-win-341:
+        skia-e-win-342:
+        skia-e-win-343:
+        skia-e-win-344:
+        skia-e-win-345:
     skylake:
       hosts:
-        skia-e-win-246:
-        skia-e-win-247:
-        skia-e-win-248:
-        skia-e-win-249:
-        skia-e-win-250:
-        skia-e-win-251:
-        skia-e-win-252:
-
+        skia-e-win-346:
+        skia-e-win-347:
+        skia-e-win-348:
