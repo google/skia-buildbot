@@ -1,5 +1,0 @@
-# Example command:
-#   ansible-playbook -i mac_hosts setup-skolo-bot.yml
-all:
-  vars:
-    swarming_server: https://chromium-swarm.appspot.com
