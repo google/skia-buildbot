@@ -7,38 +7,16 @@
       path: c:\Temp
       state: directory
   # The Intel driver uses the same product_id for multiple versions, so win_package doesn't work.
-  # TODO(dogben): The following is the "easy" way to install the driver; however, the
-  # self-extracting EXE is no longer available for download for version 15.45.14.4590, so I'm using
-  # the ZIP that I previously downloaded. Switch back to this method on the next upgrade and delete
-  # the "zip" steps below.
-  #- name: Copy the Intel Graphics Driver EXE to the host
-  #  win_copy:
-  #    src: "{{ win_package_src }}/Intel Graphics Skylake win64_15.60.2.4901.exe"
-  #    dest: c:\Temp\intel_gfx.exe
-  #- name: Install Intel Graphics Driver for Skylake and later
-  #  # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
-  #  # The "-overwrite" option allows downgrading the driver if a newer one is already installed for
-  #  # some reason (e.g. Windows Update).
-  #  win_command: c:\Temp\intel_gfx.exe -s -A -overwrite -s
-  #- name: Cleanup
-  #  win_file:
-  #    path: c:\Temp\intel_gfx.exe
-  #    state: absent
-  - name: Copy the Intel Graphics driver ZIP to the host
+  - name: Copy the Intel Graphics Driver EXE to the host
     win_copy:
-      src: "{{ win_package_src }}/Intel Graphics Skylake win64_154514.4590.zip"
-      dest: c:\Temp\intel_gfx.zip
-  - name: Extract the Intel Graphics driver ZIP
-    win_unzip:
-      src: c:\Temp\intel_gfx.zip
-      dest: C:\Temp\Intel
-      delete_archive: yes
+      src: "{{ win_package_src }}/Intel Graphics Skylake win64_15.60.2.4901.exe"
+      dest: c:\Temp\intel_gfx.exe
   - name: Install Intel Graphics Driver for Skylake and later
     # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
     # The "-overwrite" option allows downgrading the driver if a newer one is already installed for
     # some reason (e.g. Windows Update).
-    win_command: C:\Temp\Intel\Setup.exe -overwrite -s
+    win_command: c:\Temp\intel_gfx.exe -s -A -overwrite -s
   - name: Cleanup
     win_file:
-      path: c:\Temp\Intel
+      path: c:\Temp\intel_gfx.exe
       state: absent
