@@ -1,0 +1,8 @@
+---
+# Do all the things to set up a Skolo bot.
+# Machine settings.
+- import_playbook: skolo-settings.yml
+# Prep for Swarming.
+- import_playbook: skolo-credentials.yml
+# Start Swarming. Must be last, since the bot will start running tasks after this.
+- import_playbook: bootstrap-swarming.yml

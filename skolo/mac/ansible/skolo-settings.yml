@@ -1,0 +1,13 @@
+---
+# Adjust time, power management, and auto-login settings.
+- hosts: all
+  remote_user: chrome-bot
+  become_user: root
+  become: yes
+  become_method: sudo
+
+  tasks:
+  - name: Setup caffeinated.
+    copy:
+      src: ../org.skia.caffeinated.plist
+      dest: /Library/LaunchAgents/
