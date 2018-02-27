@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7c90ece7_a3f68239",
+        "filename": "skolo/mac/ansible/mac_hosts",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-27T15:20:40Z",
+      "side": 1,
+      "message": "nit: Might be useful to give an example command. (Not sure if that belongs here or in setup-skolo-bot.yml.)",
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f0c41744_7f0b5fc0",
         "filename": "skolo/mac/ansible/mac_hosts",
         "patchSetId": 5
@@ -19,6 +36,70 @@
         "endLine": 1,
         "endChar": 4
       },
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96694d62_163e0731",
+        "filename": "skolo/mac/ansible/mac_hosts",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-27T15:20:40Z",
+      "side": 1,
+      "message": "My first reaction is /shuggie. I don\u0027t mind taking 15 seconds to edit this file before running Ansible.\n\nIf you only ever expect to run this for a single machine rather than bootstrapping multiple at the same time, your suggestion sounds fine, maybe with a wrapper script or something.\n\nI believe Ansible supports pluggable modules for inventory, so that might be something to look into also.",
+      "parentUuid": "f0c41744_7f0b5fc0",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 4
+      },
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2e4b11a_3f0dfe24",
+        "filename": "skolo/mac/ansible/skolo-credentials.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-27T15:20:40Z",
+      "side": 1,
+      "message": "nit: I\u0027m pretty sure \"become_user: root\" and \"become_method: sudo\" are the defaults, and IMO being explicit here doesn\u0027t really add anything. Same in skolo-settings.yml.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 23
+      },
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2ce7e3e_734fba3d",
+        "filename": "skolo/mac/ansible/skolo-settings.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-27T15:20:40Z",
+      "side": 1,
+      "message": "nit: Comment is inaccurate.",
       "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
