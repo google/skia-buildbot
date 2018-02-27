@@ -1,0 +1,5 @@
+all:
+  vars:
+    swarming_server=https://chromium-swarm.appspot.com
+  hosts:
+    skia-e-mac-015:
