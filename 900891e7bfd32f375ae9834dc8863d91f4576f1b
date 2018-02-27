@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f0c41744_7f0b5fc0",
+        "filename": "skolo/mac/ansible/mac_hosts",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-02-27T14:41:26Z",
+      "side": 1,
+      "message": "This is bad.  How can we avoid maintaining static lists of machines?  This looks like a possibility: https://stackoverflow.com/a/18195217\n\nie.\n\n...\n- hosts: \u0027{{ target }}\u0027\n...\n\nAnd then:\n$ ansible-playbook ... --extra-vars \"target\u003d192.168.2.107\"\n\n\nWDYT?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 4
+      },
+      "revId": "900891e7bfd32f375ae9834dc8863d91f4576f1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
