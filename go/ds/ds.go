@@ -37,6 +37,12 @@ const (
 	TRYJOB_EXP_CHANGE Kind = "TryjobExpChange"
 	TEST_DIGEST_EXP   Kind = "TestDigestExp"
 
+	// Gold Datastore
+	PARAMSET_GOLD         Kind = "ParamSetGold"
+	DIGESTS_GOLD          Kind = "DigestsGold"
+	TRACE_GOLD            Kind = "TraceGold"
+	ORDERED_PARAMSET_GOLD Kind = "OrderedParamSetGold"
+
 	// Android Compile
 	COMPILE_TASK Kind = "CompileTask"
 
