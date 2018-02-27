@@ -74,6 +74,8 @@ type TryjobStore interface {
 
 	// QueryLog returns a list of expectation changes for the given issue.
 	QueryLog(issueID int64, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error)
+
+	GetIssueSummary(issueID int64) (*IssueSummary, error)
 }
 
 const (
@@ -442,6 +444,10 @@ func (c *cloudTryjobStore) QueryLog(issueID int64, offset, size int, details boo
 	}
 
 	return ret, len(allKeys), nil
+}
+
+func (c *cloudTryjobStore) GetIssueSummary(issueID int64) (*IssueSummary, error) {
+	return nil, nil
 }
 
 // deleteTryjobsForIssue deletes all tryjob information for the given issue.
