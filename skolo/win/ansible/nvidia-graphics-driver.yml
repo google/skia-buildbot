@@ -2,7 +2,7 @@
 # Install NVIDIA Graphics Driver; applies only to group "nvidia".
 - hosts: nvidia
   vars:
-    version: "388.13"
+    version: "391.01"
   tasks:
   - name: Create Temp
     win_file:
