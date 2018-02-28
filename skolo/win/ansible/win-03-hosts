@@ -26,8 +26,19 @@ all:
         skia-e-win-343:
         skia-e-win-344:
         skia-e-win-345:
+    nvidia:
+      hosts:
+        skia-e-win-304:
+    radeon:
+      hosts:
+        skia-e-win-310:
+        skia-e-win-311:
+        skia-e-win-312:
     skylake:
       hosts:
         skia-e-win-346:
         skia-e-win-347:
         skia-e-win-348:
+        skia-e-win-349:
+        skia-e-win-350:
+        skia-e-win-351:
