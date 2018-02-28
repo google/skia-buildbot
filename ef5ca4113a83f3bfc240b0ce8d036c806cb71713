@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "3f91e46c_000bf124",
+        "filename": "golden/go/search/search_types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-28T17:32:58Z",
+      "side": 1,
+      "message": "Makes sense, thanks for the explanation. Up to you if you want to add some comments next to totalImg, newImg, untriageImg.",
+      "parentUuid": "e6a1e1a2_b81dfeb8",
+      "revId": "ef5ca4113a83f3bfc240b0ce8d036c806cb71713",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73c73131_32a29e4f",
         "filename": "golden/go/skiacorrectness/handlers.go",
         "patchSetId": 8
