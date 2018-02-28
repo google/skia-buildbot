@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "660d72db_857bde28",
+        "filename": "golden/go/search/search_types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-28T14:45:38Z",
+      "side": 1,
+      "message": "untriageImg -\u003e untriagedImg (with a d)",
+      "range": {
+        "startLine": 96,
+        "startChar": 27,
+        "endLine": 96,
+        "endChar": 38
+      },
+      "revId": "ef5ca4113a83f3bfc240b0ce8d036c806cb71713",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddd96951_47c61abf",
+        "filename": "golden/go/search/search_types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-28T14:45:38Z",
+      "side": 1,
+      "message": "What is difference between newImg and untriageImg ?",
+      "revId": "ef5ca4113a83f3bfc240b0ce8d036c806cb71713",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73c73131_32a29e4f",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-02-28T14:45:38Z",
+      "side": 1,
+      "message": "TODO -\u003e TODO(stephana):",
+      "range": {
+        "startLine": 215,
+        "startChar": 4,
+        "endLine": 215,
+        "endChar": 8
+      },
+      "revId": "ef5ca4113a83f3bfc240b0ce8d036c806cb71713",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
