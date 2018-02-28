@@ -169,6 +169,53 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	}, nil
 }
 
+// Summary returns a high level summary of a Gerrit issue and the tryjobs
+// that have been run for it.
+func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
+	// TODO(stephana): Implement this function, which currently serves dummy
+	// data so we can implement the frontend and nail down the API.
+	ret := &IssueSummary{
+		ID:          issueID,
+		TimeStampMs: util.TimeStampMs(),
+		PatchSets: []*PatchsetSummary{
+			&PatchsetSummary{
+				PatchsetID:   1,
+				TotalJobs:    10,
+				FinishedJobs: 10,
+				TotalImg:     1520,
+				NewImg:       91,
+				UntriagedImg: 44,
+			},
+			&PatchsetSummary{
+				PatchsetID:   2,
+				TotalJobs:    8,
+				FinishedJobs: 8,
+				TotalImg:     884,
+				NewImg:       64,
+				UntriagedImg: 12,
+			},
+			&PatchsetSummary{
+				PatchsetID:   5,
+				TotalJobs:    8,
+				FinishedJobs: 8,
+				TotalImg:     553,
+				NewImg:       12,
+				UntriagedImg: 6,
+			},
+			&PatchsetSummary{
+				PatchsetID:   6,
+				TotalJobs:    8,
+				FinishedJobs: 4,
+				TotalImg:     1912,
+				NewImg:       8,
+				UntriagedImg: 0,
+			},
+		},
+	}
+
+	return ret, nil
+}
+
 // GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
 func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, error) {
 	idx := s.ixr.GetIndex()
