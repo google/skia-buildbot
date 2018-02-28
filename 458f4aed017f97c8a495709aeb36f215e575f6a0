@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a125582_1165b94e",
+        "filename": "skolo/win/ansible/radeon-graphics-driver.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-02-28T19:14:30Z",
+      "side": 1,
+      "message": "This is a little white lie, because I used Windows to repackage this ZIP, but for documentation I\u0027m going to leave it this way.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 52
+      },
+      "revId": "458f4aed017f97c8a495709aeb36f215e575f6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
