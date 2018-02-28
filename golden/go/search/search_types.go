@@ -78,3 +78,20 @@ func (sm srInterMap) numDigests() int {
 	}
 	return ret
 }
+
+// IssueSummary contains a highl level summary of a Gerrit issue.
+type IssueSummary struct {
+	ID          int64              `json:"id"`
+	TimeStampMs int64              `json:"timeStampMs"`
+	PatchSets   []*PatchsetSummary `json:"patchsets"`
+}
+
+// PatchsetSummary contains a high level summary of a Gerrit patchset.
+type PatchsetSummary struct {
+	PatchsetID   int64 `json:"patchsetID"`
+	TotalJobs    int   `json:"totalJobs"`
+	FinishedJobs int   `json:"finishedJobs"`
+	TotalImg     int   `json:"totalImg"`
+	NewImg       int   `json:"newImg"`
+	UntriagedImg int   `json:"untriagedImg"`
+}

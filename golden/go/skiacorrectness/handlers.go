@@ -209,6 +209,28 @@ type TestRollup struct {
 	SampleDigest string `json:"sample_digest"`
 }
 
+// jsonTryjobsSummaryHandler is the endpoint to get a summary of the tryjob
+// results for a Gerrit issue.
+func jsonTryjobsSummaryHandler(w http.ResponseWriter, r *http.Request) {
+	issueID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
+	if err != nil {
+		httputils.ReportError(w, r, err, "ID must be valid integer.")
+		return
+	}
+
+	if issueID <= 0 {
+		httputils.ReportError(w, r, fmt.Errorf("Issue id is <= 0"), "Valid issue ID required.")
+		return
+	}
+
+	resp, err := searchAPI.Summary(issueID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to retrieve tryjobs summary.")
+		return
+	}
+	sendJsonResponse(w, resp)
+}
+
 // jsonSearchHandler is the endpoint for all searches.
 func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	query, ok := parseSearchQuery(w, r)
