@@ -22,6 +22,30 @@
       "revId": "458f4aed017f97c8a495709aeb36f215e575f6a0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43d07007_fb6999d1",
+        "filename": "skolo/win/ansible/radeon-graphics-driver.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-02-28T19:16:00Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2a125582_1165b94e",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 52
+      },
+      "revId": "458f4aed017f97c8a495709aeb36f215e575f6a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
