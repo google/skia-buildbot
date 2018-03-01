@@ -28,9 +28,12 @@ all:
         skia-e-win-345:
     nvidia:
       hosts:
+        skia-e-win-301:
         skia-e-win-304:
+        skia-e-win-313:
     radeon:
       hosts:
+        skia-e-win-303:
         skia-e-win-310:
         skia-e-win-311:
         skia-e-win-312:
