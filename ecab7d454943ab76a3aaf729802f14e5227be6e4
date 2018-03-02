@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46aaabcc_a1c01a5b",
+        "filename": "skolo/linux/ansible/bootstrap-swarming.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-02T17:56:37Z",
+      "side": 1,
+      "message": "nit: If this is identical to the Mac version, would be nice to share. (It\u0027s a bit unfortunate that Win is also nearly identical but the module names are different. We could probably make a shared Linux/Win/Mac script without it being too ugly though.)",
+      "revId": "ecab7d454943ab76a3aaf729802f14e5227be6e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8e75e5e_04f8b51e",
+        "filename": "skolo/linux/ansible/skolo-credentials.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-02T17:56:37Z",
+      "side": 1,
+      "message": "nit: same as above.",
+      "revId": "ecab7d454943ab76a3aaf729802f14e5227be6e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e993b382_79dbbad1",
+        "filename": "skolo/linux/ansible/skolo-settings.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-02T17:56:37Z",
+      "side": 1,
+      "message": "nit: Should move this file too. Pretty sure \"j2\" is a Jinja2 template, which I\u0027m pretty sure we would only use as part of Ansible.",
+      "range": {
+        "startLine": 9,
+        "startChar": 25,
+        "endLine": 9,
+        "endChar": 38
+      },
+      "revId": "ecab7d454943ab76a3aaf729802f14e5227be6e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
