@@ -23,6 +23,7 @@ import (
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/russross/blackfriday"
 	"go.skia.org/infra/doc/go/docset"
+	"go.skia.org/infra/doc/go/ssi"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -171,6 +172,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		body := blackfriday.MarkdownCommon(b)
+		body = ssi.ProcessSSI(body)
 		if bodyOnly {
 			if _, err := w.Write(body); err != nil {
 				sklog.Errorf("Failed to write output: %s", err)
