@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8c714dbd_49617975",
+        "filename": "skolo/linux/ansible/bootstrap-swarming.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-02T18:11:47Z",
+      "side": 1,
+      "message": "Only the bootstrap_script_path differs (/Users vs /home).  The way to do this is probably to pass in an \"os\" variable and make bootstrap_script_path depend on that?  I have no idea how to do that in Ansible.",
+      "parentUuid": "46aaabcc_a1c01a5b",
+      "revId": "ecab7d454943ab76a3aaf729802f14e5227be6e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c8e75e5e_04f8b51e",
         "filename": "skolo/linux/ansible/skolo-credentials.yml",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2018-03-02T17:56:37Z",
       "side": 1,
       "message": "nit: same as above.",
+      "revId": "ecab7d454943ab76a3aaf729802f14e5227be6e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d77e0368_f9dde689",
+        "filename": "skolo/linux/ansible/skolo-credentials.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-02T18:11:47Z",
+      "side": 1,
+      "message": "Same path diff.  Probably want a \"home\" variable.",
+      "parentUuid": "c8e75e5e_04f8b51e",
       "revId": "ecab7d454943ab76a3aaf729802f14e5227be6e4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -56,6 +92,30 @@
       "revId": "ecab7d454943ab76a3aaf729802f14e5227be6e4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61dccfab_d6f74b38",
+        "filename": "skolo/linux/ansible/skolo-settings.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-02T18:11:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e993b382_79dbbad1",
+      "range": {
+        "startLine": 9,
+        "startChar": 25,
+        "endLine": 9,
+        "endChar": 38
+      },
+      "revId": "ecab7d454943ab76a3aaf729802f14e5227be6e4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
