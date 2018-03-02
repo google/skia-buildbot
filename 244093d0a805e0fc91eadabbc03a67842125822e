@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "acca3169_1974ce45",
+        "filename": "skolo/linux/ansible/setup_linux_bot.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-02T19:49:46Z",
+      "side": 1,
+      "message": "I\u0027m guessing this was for debugging?",
+      "range": {
+        "startLine": 9,
+        "startChar": 150,
+        "endLine": 9,
+        "endChar": 157
+      },
+      "revId": "244093d0a805e0fc91eadabbc03a67842125822e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
