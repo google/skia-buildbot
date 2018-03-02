@@ -72,7 +72,8 @@ If you add any critical TODOs while you're coding, file a blocking bug for the i
   `pushd`, run your build_release script, and push any out-of-date packages to
   your instance.
 - Add metrics endpoints to `prometheus/sys/prometheus.yml` for both the app
-  and `pulld` if this is a new server instance.
+  and `pulld` if this is a new server instance. Ensure your job_name matches the
+  first argument to `common.InitWithMust`.
 - Add configuration for your service's domain name to
   `skfe/sys/skia_org_nginx`. Commit the change, build a new `skfe` release, and
   push `skfe-config` to `skfe-1` and `-2`. Your service is now live on the

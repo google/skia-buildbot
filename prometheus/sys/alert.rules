@@ -5,7 +5,7 @@ ALERT InstanceDown
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     abbr = "{{ $labels.instance }}",
-    description = "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes.",
+    description = "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}",
   }
 
 ALERT CrashLoop
@@ -14,7 +14,7 @@ ALERT CrashLoop
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     abbr = "{{ $labels.instance }}",
-    description = "{{ $labels.instance }} of job {{ $labels.job }} is crashing on startup.",
+    description = "{{ $labels.instance }} of job {{ $labels.job }} is crashing on startup. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}",
   }
 
 ALERT ExcessiveLoad
@@ -23,7 +23,7 @@ ALERT ExcessiveLoad
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     abbr = "{{ $labels.instance }}",
-    description = "{{ $labels.instance }} of job {{ $labels.job }} is experiencing excessive load.",
+    description = "{{ $labels.instance }} of job {{ $labels.job }} is experiencing excessive load. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=200&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}",
   }
 
 ALERT TooManyGoRoutines
@@ -32,7 +32,7 @@ ALERT TooManyGoRoutines
   LABELS { category = "infra", severity = "warning"}
   ANNOTATIONS {
     summary = "Too many Go routines in {{ $labels.job }}",
-    description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}."
+    description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=400&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
   }
 
 ALERT ProbeFailure
@@ -150,7 +150,7 @@ ALERT CTFEErrorRate
 
 # Android Compile Server
 ALERT AndroidCompileTooManyWaitingTasks
-  IF android_compile_waiting_tasks{instance="android-compile:20000",job="androidcompile"} >= 5
+  IF android_compile_waiting_tasks{instance="android-compile:20000",job="android_compile"} >= 5
   FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
@@ -159,7 +159,7 @@ ALERT AndroidCompileTooManyWaitingTasks
   }
 
 ALERT AndroidCompileTreeBroken
-  IF android_compile_waiting_tasks{instance="android-compile:20000",job="androidcompile"} > 0
+  IF android_compile_waiting_tasks{instance="android-compile:20000",job="android_compile"} > 0
   FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
@@ -168,7 +168,7 @@ ALERT AndroidCompileTreeBroken
   }
 
 ALERT AndroidCompileInfraFailure
-  IF android_compile_infra_failure{instance="android-compile:20000",job="androidcompile"} > 0
+  IF android_compile_infra_failure{instance="android-compile:20000",job="android_compile"} > 0
   FOR 5m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
@@ -191,7 +191,7 @@ ALERT CQWatcherTrybotDuration
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     summary = "CQ trybot running for too long.",
-    description = "{{ $labels.trybot }} ran longer than 45 mins. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold"
+    description = "{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-cq-watcher&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fcq_watcher&filters=text:CQTrybotDurationError"
   }
 
 ALERT CQWatcherTrybotsCount
@@ -199,7 +199,7 @@ ALERT CQWatcherTrybotsCount
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     summary = "Too many CQ trybots triggered by CL.",
-    description = "There are more than 35 CQ trybots triggered by at least one CL. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered"
+    description = "There are more than 35 CQ trybots triggered by at least one CL. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered Direct link to logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-cq-watcher&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fcq_watcher&filters=text:CQCLsCountError"
   }
 
 # Perf
@@ -521,7 +521,7 @@ ALERT GoldIgnoreMonitoring
   }
 
 ALERT GoldErrorRate
-  IF rate(num_log_lines{level="ERROR",job="gold"}[2m]) > 1
+  IF rate(num_log_lines{level="ERROR",job=~"skiacorrectness-.*"}[2m]) > 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     description = "The error rate for Gold {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
@@ -542,7 +542,7 @@ ALERT GoldIngestionStalled
   }
 
 ALERT GoldIngestionErrorRate
-  IF rate(num_log_lines{level="ERROR",job="ingestion"}[2m]) > 1
+  IF rate(num_log_lines{level="ERROR",job=~".*_ingestion"}[2m]) > 1
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     description = "The error rate for Gold Ingestion {{ $labels.corpus }} is too high. See https://mon.skia.org/dashboard/db/gold-panel https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}",
@@ -665,7 +665,7 @@ ALERT RpiMaster
 # General.
 # TODO(borenet): Specific alerts for Swarming.
 ALERT HighExternalQPS
-  IF sum(rate(http_request_metrics{job!="ct-poller",job!="skiaperfd",host!="www.googleapis.com"}[30m])) by (host) > 15
+  IF sum(rate(http_request_metrics{job!="ct-poller",job!="skiaperf",host!="www.googleapis.com"}[30m])) by (host) > 15
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "QPS to {{ $labels.host }} is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
@@ -680,8 +680,8 @@ ALERT HighExternalQPSCTPoller
   }
 
 # Perf has a different threshold than the above due to high QPS to Google Storage.
-ALERT HighExternalQPSCTPoller
-  IF sum(rate(http_request_metrics{job="skiaperfd"}[30m])) by (host) > 30
+ALERT HighExternalQPSSkiaPerf
+  IF sum(rate(http_request_metrics{job="skiaperf"}[30m])) by (host) > 30
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "QPS to {{ $labels.host }} from skiaperfd is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
