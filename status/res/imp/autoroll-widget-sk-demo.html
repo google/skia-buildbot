@@ -16,7 +16,7 @@
           currentRollRev: "abc123",
           lastRollRev: "def456",
           mode: modes[i % modes.length],
-          numFailed: i,
+          numFailed: i % 4,
           numBehind: i++,
         }));
       });

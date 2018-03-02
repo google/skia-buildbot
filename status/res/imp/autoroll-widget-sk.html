@@ -97,10 +97,10 @@
         // each roller its own definition of "bad"?
         var badness = this.roller.numFailed / 2.0;
         var badnessBehind = this.roller.numBehind / 20.0;
-        if (badnessBehind > badness) {
+        if (this.roller.mode != "dry run" && badnessBehind > badness) {
           badness = badnessBehind;
         }
-        if (badness < 0.5) {
+        if (badness < 0.5 && this.roller.mode != "stopped") {
           this.class = "bg-success";
         } else if (badness < 1.0) {
           this.class = "bg-lightorange";
