@@ -12,13 +12,16 @@ rule_files:
   - "absent.rules"
 
 scrape_configs:
-  - job_name: 'androidcompile'
+  - job_name: 'android_compile'
     static_configs:
       - targets: ['android-compile:20000']
 
   - job_name: 'androidingest'
     static_configs:
       - targets: ['skia-android-ingest:20000']
+
+  - job_name: 'android-master-ingest'
+    static_configs:
       - targets: ['skia-android-ingest:20001']
 
   - job_name: 'autoroll'
@@ -57,7 +60,11 @@ scrape_configs:
     static_configs:
       - targets: ['skia-coverage:20000']
 
-  - job_name: 'ct-pixel-diff'
+  - job_name: 'cq_watcher'
+    static_configs:
+      - targets: ['skia-cq-watcher:20000']
+
+  - job_name: 'ct_pixel_diff'
     static_configs:
       - targets: ['skia-ct-pixel-diff:20000']
 
@@ -69,10 +76,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-ctfe:20000']
 
-  - job_name: 'cq_watcher'
-    static_configs:
-      - targets: ['skia-cq-watcher:20000']
-
   - job_name: 'debugger'
     static_configs:
       - targets: ['skia-debugger:20000']
@@ -81,9 +84,12 @@ scrape_configs:
     static_configs:
       - targets: ['skia-datahopper2:20000']
 
-  - job_name: 'diffserver'
+  - job_name: 'diffserver-prod'
     static_configs:
       - targets: ['skia-diffserver-prod:20000']
+
+  - job_name: 'diffserver-stage'
+    static_configs:
       - targets: ['skia-diffserver-stage:20000']
 
   - job_name: 'docserver'
@@ -104,24 +110,39 @@ scrape_configs:
     static_configs:
       - targets: ['skia-fuzzer-fe:20000']
 
-  - job_name: 'gold'
+  - job_name: 'skiacorrectness-pdfium'
     static_configs:
       - targets: ['skia-gold-pdfium:20001']
+
+  - job_name: 'skiacorrectness-prod'
+    static_configs:
       - targets: ['skia-gold-prod:20001']
+
+  - job_name: 'skiacorrectness-stage'
+    static_configs:
       - targets: ['skia-gold-stage:20001']
+
+  - job_name: 'skiacorrectness-public'
+    static_configs:
       - targets: ['skia-gold-public:20001']
 
-  - job_name: 'ingestion'
+  - job_name: 'chromevr_gold_ingestion'
+    static_configs:
+      - targets: ['skia-ingestion:20002']
+        labels:
+          corpus: chromevr_gold
+
+  - job_name: 'gold_ingestion'
     static_configs:
       - targets: ['skia-ingestion:20000']
         labels:
           corpus: gold
+
+  - job_name: 'pdfium_gold_ingestion'
+    static_configs:
       - targets: ['skia-ingestion:20001']
         labels:
           corpus: pdfium_gold
-      - targets: ['skia-ingestion:20002']
-        labels:
-          corpus: chromevr_gold
 
   - job_name: 'leasing'
     static_configs:
@@ -131,11 +152,11 @@ scrape_configs:
     static_configs:
       - targets: ['skia-monitoring:20001']
 
-  - job_name: 'proberd'
+  - job_name: 'probeserver'
     static_configs:
       - targets: ['skia-monitoring:20000']
 
-  - job_name: 'datastore-backup'
+  - job_name: 'datastore_backup'
     static_configs:
       - targets: ['skia-monitoring:20005']
 
@@ -147,7 +168,7 @@ scrape_configs:
     static_configs:
       - targets: ['skia-push:20000']
 
-  - job_name: 'skiaperfd'
+  - job_name: 'skiaperf'
     static_configs:
       - targets: ['skia-perf:20000']
       - targets: ['skia-android-perf:20000']
@@ -171,17 +192,23 @@ scrape_configs:
       - targets: ['skia-task-scheduler:20000']
       - targets: ['skia-task-scheduler-internal:20000']
 
-  - job_name: 'traceserver'
+  - job_name: 'chromevr_gold_traceserver'
+    static_configs:
+      - targets: ['skia-tracedb:20005']
+        labels:
+          corpus: chromevr_gold
+
+  - job_name: 'gold_traceserver'
+    static_configs:
+      - targets: ['skia-tracedb:20004']
+        labels:
+          corpus: gold
+
+  - job_name: 'pdfium_gold_traceserver'
     static_configs:
       - targets: ['skia-tracedb:20003']
         labels:
           corpus: pdfium_gold
-      - targets: ['skia-tracedb:20004']
-        labels:
-          corpus: gold
-      - targets: ['skia-tracedb:20005']
-        labels:
-          corpus: chromevr_gold
 
 # pulld for every server.
   - job_name: 'pulld'
@@ -244,15 +271,15 @@ scrape_configs:
     static_configs:
       - targets: ['skia-prom:8001']
 
-  - job_name: 'prom-proxy'
+  - job_name: 'proxy_with_auth'
     static_configs:
       - targets: ['skia-prom:20002']
 
-  - job_name: 'alert-proxy'
+  - job_name: 'alert_proxy_with_auth'
     static_configs:
       - targets: ['skia-prom:20003']
 
-  - job_name: 'webhook-proxy'
+  - job_name: 'webhook_proxy'
     static_configs:
       - targets: ['skia-prom:20004']
 
