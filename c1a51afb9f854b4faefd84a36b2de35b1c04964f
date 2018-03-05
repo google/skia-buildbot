@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46a5c34e_f9b31bb7",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "What\u0027s an example use case of this find/replace?",
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "086a5a2e_4ad9c54a",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "Why use this template and not https://golang.org/pkg/html/template/",
+      "range": {
+        "startLine": 29,
+        "startChar": 2,
+        "endLine": 29,
+        "endChar": 32
+      },
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c15fc2ca_18fe3acc",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "This may want to be \\s+ to be more explicit about the space separated-ness",
+      "range": {
+        "startLine": 44,
+        "startChar": 52,
+        "endLine": 44,
+        "endChar": 55
+      },
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60f8fafb_fb8fc7ac",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "Can you name these groups?  e.g. (?P\u003ctag_id\u003e[a-zA-Z+])  It helps with readability when there are 2+ groups",
+      "range": {
+        "startLine": 44,
+        "startChar": 41,
+        "endLine": 44,
+        "endChar": 42
+      },
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bccec77_db9d064e",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "repo",
+      "range": {
+        "startLine": 48,
+        "startChar": 10,
+        "endLine": 48,
+        "endChar": 15
+      },
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0a9645b_86669aec",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "Why use FindAllSubmatchIndex and not just FindAllSubmatch?  To me, it would simplify things greatly by not having to do body[foo:bar] all below.\n\nIf there is a good reason, can you document it in the code?\n\nAlso, would ReplaceAllStringFunc simplify this method?",
+      "range": {
+        "startLine": 63,
+        "startChar": 25,
+        "endLine": 63,
+        "endChar": 46
+      },
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2a593fa_16a2e5a1",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "function",
+      "range": {
+        "startLine": 79,
+        "startChar": 14,
+        "endLine": 79,
+        "endChar": 22
+      },
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d00e012_e0b6e1ae",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "nit - can some of these be consts?",
+      "range": {
+        "startLine": 139,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 3
+      },
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7cb968c_6ac0615e",
+        "filename": "doc/go/ssi/ssi.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-05T14:29:33Z",
+      "side": 1,
+      "message": "We may consider putting this idiom into a helper function called NormalizePath or something",
+      "range": {
+        "startLine": 179,
+        "startChar": 8,
+        "endLine": 179,
+        "endChar": 42
+      },
+      "revId": "c1a51afb9f854b4faefd84a36b2de35b1c04964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
