@@ -1,0 +1,73 @@
+---
+# debian9-preseed.cfg sets up a temporary password for chrome-bot. Here we log in using the
+# temporary password and reconfigure authentication. Specifically:
+#  - Set up authorized_keys for chrome-bot
+#  - Disable password-based authentication
+#  - Change password for chrome-bot
+# This playbook uses these vars:
+#  - temporary_password: string containing the temporary password for chrome-bot set up in
+#    debian9-preseed.cfg
+#  - authorized_keys: newline-separated list of SSH public keys to add to
+#    /home/chrome-bot/.ssh/authorized_keys
+#  - ansible_become_pass: used as chrome-bot's password
+- hosts: all
+  tasks:
+    - name: Check if authorized_keys works
+      ping:
+      ignore_errors: true
+      register: connection_ok
+    - when: connection_ok|failed
+      vars:
+        # This should override settings in inventory.
+        ansible_password: "{{ temporary_password }}"
+        ansible_become_password: "{{ temporary_password }}"
+      name: Set up key-based authentication
+      authorized_key:
+        user: chrome-bot
+        key: "{{ authorized_keys }}"
+        # We want to remove any existing keys.
+        exclusive: yes
+    - name: Reset connection to connect via authorized_keys
+      meta: reset_connection
+    - name: Test connection with key-based authentication
+      ping:
+
+    - name: Set chrome-bot password
+      user:
+        name: chrome-bot
+        password: "{{ ansible_become_pass | password_hash('sha512') }}"
+    - name: Test connection after setting chrome-bot password
+      command: whoami
+      become: yes
+      register: whoami_result
+    - when: whoami_result.stdout != "root"
+      fail:
+        msg: whoami with become returned {{ whoami_result.stdout }}
+
+    - name: Disable password-based authentication
+      # Only allow SSH access via authorized_keys. This makes it less likely that a single
+      # compromised Skolo bot can access the rest of the Skolo, particularly jumphosts. It's also
+      # generally more secure to use keys than passwords.
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        line: "PasswordAuthentication no"
+        state: present
+      become: yes
+      # Only execute the block below if the config changed.
+      notify: Restart SSH
+
+  handlers:
+    - name: Restart SSH
+      block:
+        - name: Restart sshd to pick up config change
+          service:
+            name: ssh
+            state: restarted
+          become: yes
+        - name: Reset connection after config change
+          # Note that restarting sshd does not affect existing connections.
+          meta: reset_connection
+        - name: Test connection after config change
+          ping:
+

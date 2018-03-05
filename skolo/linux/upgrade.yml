@@ -1,0 +1,27 @@
+---
+# Install all available upgrades
+- hosts: all
+  tasks:
+    - name: apt upgrade
+      become: yes
+      apt:
+        upgrade: dist
+        update_cache: yes
+        autoremove: yes
+    - name: Check if reboot required
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+    - debug:
+        msg: Reboot required? {{ reboot_required.stat.exists }}
+    - when: reboot_required.stat.exists
+      name: Reboot host after upgrade
+      block:
+        # https://stackoverflow.com/a/43148712
+        - name: Issue reboot command
+          shell: ( sleep 3 && /sbin/reboot & )
+          async: 0
+          poll: 0
+        - name: Wait for the server to reboot
+          wait_for_connection:
+            delay: 15
