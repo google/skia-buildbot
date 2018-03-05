@@ -6,7 +6,7 @@
   become_method: sudo
 
   vars:
-    interface_templ: "./interfaces.j2"
+    interface_templ: "interfaces.j2"
     expanded_interface: "/etc/network/interfaces"
 
   vars_prompt:
@@ -50,10 +50,10 @@
       user: name=chrome-bot generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
 
     - name: Get collectd config situated
-      copy: src=../common/collectd.conf dest=/etc/collectd/collectd.conf owner=root group=root mode=0644
+      copy: src=../../common/collectd.conf dest=/etc/collectd/collectd.conf owner=root group=root mode=0644
 
     - name: Fix nsswitch.conf
-      copy: src=./nsswitch.conf /etc/nsswitch.conf
+      copy: src=../nsswitch.conf dest=/etc/nsswitch.conf
 
     - name: Start collectd
       service: name=collectd state=restarted enabled=true

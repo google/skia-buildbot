@@ -3,7 +3,7 @@
 - hosts: all
   vars:
     swarming_path: /b/s
-    bootstrap_script_path: /Users/chrome-bot/bootstrap-swarming.py
+    bootstrap_script_path: "{{ home }}/bootstrap-swarming.py"
   tasks:
   - name: Check if host has already been bootstrapped
     stat:
