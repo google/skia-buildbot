@@ -22,6 +22,30 @@
       "revId": "244093d0a805e0fc91eadabbc03a67842125822e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93c08a85_58b2a125",
+        "filename": "skolo/linux/ansible/setup_linux_bot.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-05T14:41:06Z",
+      "side": 1,
+      "message": "Yes, removed.",
+      "parentUuid": "acca3169_1974ce45",
+      "range": {
+        "startLine": 9,
+        "startChar": 150,
+        "endLine": 9,
+        "endChar": 157
+      },
+      "revId": "244093d0a805e0fc91eadabbc03a67842125822e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
