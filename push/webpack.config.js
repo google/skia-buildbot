@@ -1,5 +1,5 @@
-const { configBuilder } = require('pulito');
+const { commonBuilder } = require('pulito');
 
 const { addCommon } = require('../common/webpack.common.js');
 
-module.exports = addCommon(configBuilder(__dirname));
+module.exports = addCommon(commonBuilder(__dirname));
