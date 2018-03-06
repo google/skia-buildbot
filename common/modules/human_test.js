@@ -1,4 +1,4 @@
-import * as human from '../modules/human.js'
+import * as human from './human.js'
 
 describe('The human functions',
   function() {
