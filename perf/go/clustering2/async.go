@@ -63,6 +63,7 @@ type ClusterAlgo string
 const (
 	KMEANS_ALGO  ClusterAlgo = "kmeans"  // Cluster traces using k-means clustering on their shapes.
 	STEPFIT_ALGO ClusterAlgo = "stepfit" // Look at each trace individually and determing if it steps up or down.
+	TAIL_ALGO    ClusterAlgo = "tail"	 // Whether a trace has a jumping tail (a step in the end)
 )
 
 var (
