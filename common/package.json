@@ -13,6 +13,7 @@
     "karma-firefox-launcher": "^1.1.0",
     "karma-mocha": "^1.3.0",
     "karma-sinon": "^1.0.5",
+    "karma-webpack": "^2.0.13",
     "lit-html": "^0.9.0",
     "mocha": "^5.0.0",
     "pulito": "^2.0.0",
