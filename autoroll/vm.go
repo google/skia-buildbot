@@ -79,6 +79,15 @@ func Catapult() *gce.Instance {
 	return vm
 }
 
+func Chromite_Chromium() *gce.Instance {
+	vm := AutoRollBase("chromite-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"bpastene@google.com",
+	}
+	vm.ServiceAccount = "chromite-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func DepotTools_Chromium() *gce.Instance {
 	vm := AutoRollBase("depot-tools-chromium-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -204,6 +213,7 @@ func main() {
 		"angle-chromium":        AngleChromium(),
 		"angle-skia":            AngleSkia(),
 		"catapult":              Catapult(),
+		"chromite-chromium":     Chromite_Chromium(),
 		"depot-tools-chromium":  DepotTools_Chromium(),
 		"fuchsia":               Fuchsia(),
 		"google3":               Google3(),
