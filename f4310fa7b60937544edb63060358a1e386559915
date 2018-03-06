@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c1e3b0d0_ec0d2dc0",
+        "filename": "common/karma.conf.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-06T16:02:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97f0a443_26c0ad90",
+      "range": {
+        "startLine": 64,
+        "startChar": 48,
+        "endLine": 64,
+        "endChar": 54
+      },
+      "revId": "f4310fa7b60937544edb63060358a1e386559915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "59a4ce2d_98940668",
         "filename": "common/modules/select-sk/select-sk_test.js",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2018-03-06T13:45:27Z",
       "side": 1,
       "message": "I think you need to add the done param and call done in your Promise resolution:\nhttps://mochajs.org/#asynchronous-code\n\nI\u0027ve had issues before where I thought the assertion in a promise was being properly handled, but it was not unless I passed in done.\n\nSame for line 144",
+      "range": {
+        "startLine": 105,
+        "startChar": 37,
+        "endLine": 105,
+        "endChar": 38
+      },
+      "revId": "f4310fa7b60937544edb63060358a1e386559915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a6565b6_bcacc4c1",
+        "filename": "common/modules/select-sk/select-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-06T16:02:38Z",
+      "side": 1,
+      "message": "The very next section in that document is \"Working With Promises\", which is what I\u0027ve done here.",
+      "parentUuid": "59a4ce2d_98940668",
       "range": {
         "startLine": 105,
         "startChar": 37,
