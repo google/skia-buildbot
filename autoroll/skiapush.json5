@@ -42,6 +42,13 @@
         "pulld",
       ],
     },
+    "chromite-chromium-autoroll": {
+      "AppNames": [
+        "chromite-chromium-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "depot-tools-chromium-autoroll": {
       "AppNames": [
         "depot-tools-chromium-autorolld",

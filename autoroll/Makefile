@@ -28,7 +28,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-release: autoroll afdo_chromium_release android_master_release android_o_release angle_skia_release angle_chromium_release catapult_release depot_tools_chromium_release google3_release ios_internal_chromium_release nacl_release pdfium_release fuchsia_release skcms_skia_release skia_release skia_internal_release src_internal_chromium_release webrtc_chromium_release
+release: autoroll afdo_chromium_release android_master_release android_o_release angle_skia_release angle_chromium_release catapult_release chromite_chromium_release depot_tools_chromium_release google3_release ios_internal_chromium_release nacl_release pdfium_release fuchsia_release skcms_skia_release skia_release skia_internal_release src_internal_chromium_release webrtc_chromium_release
 
 afdo_chromium_release: autoroll
 	./build_afdo_chromium_release "$(MESSAGE)"
@@ -47,6 +47,9 @@ angle_chromium_release: autoroll
 
 catapult_release: autoroll
 	./build_catapult_release "$(MESSAGE)"
+
+chromite_chromium_release: autoroll
+	./build_chromite_chromium_release "$(MESSAGE)"
 
 depot_tools_chromium_release: autoroll
 	./build_depot_tools_chromium_release "$(MESSAGE)"
