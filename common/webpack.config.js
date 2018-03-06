@@ -6,6 +6,6 @@ const { addCommon } = require('./webpack.common.js');
 
 let config = addCommon(configBuilder(__dirname));
 
-config.entry.tests = glob.sync('./tests/*.js');
+config.entry.tests = glob.sync('./modules/**/*_test.js');
 
 module.exports = config;

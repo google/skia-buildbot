@@ -20,6 +20,10 @@ import { upgradeProperty } from 'skia-elements/upgradeProperty'
 //          selection: 1,
 //        }
 //
+// The select-sk elements monitors for the addition and removal of child
+// elements and will update the 'selected' property as needed. Note that it
+// does not monitor the 'selected' attribute of child elements, and will not
+// update the 'selected' property if they are changed directly.
 window.customElements.define('select-sk', class extends HTMLElement {
   constructor() {
     super();
@@ -33,8 +37,6 @@ window.customElements.define('select-sk', class extends HTMLElement {
     this.addEventListener('click', this._click);
     this._obs.observe(this, {
       childList: true,
-      attributes: true,
-      attributeFilter: ["selected"],
     });
     this._bubbleUp();
   }
@@ -90,6 +92,7 @@ window.customElements.define('select-sk', class extends HTMLElement {
 
   // Loop over all immediate child elements and find the first one selected.
   _bubbleUp() {
+    this._selection = -1;
     for (let i = 0; i < this.children.length; i++) {
       if (this.children[i].hasAttribute('selected')) {
         this._selection = i;

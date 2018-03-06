@@ -1,4 +1,4 @@
-import * as query from '../modules/query.js'
+import * as query from './query.js'
 
 describe('Test query encoding and decoding functions.',
   function() {
