@@ -617,13 +617,22 @@ ALERT TaskSchedulerIncrementalBackupReset
   }
 
 ALERT TaskSchedulerDBFreePages
-  IF bolt_db{metric="FreePageCount",database="task_scheduler_db",instance!="skia-task-scheduler-internal:20000"} > 1000
+  IF avg_over_time(bolt_db{metric="FreePageCount",database="task_scheduler_db",instance!="skia-task-scheduler-internal:20000"}[30m]) > 1000
   FOR 1h
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     summary = "Task Scheduler DB excess free pages ({{ $labels.instance }})",
     description = "There are a large number of free pages in the Task Scheduler DB on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#db_too_many_free_pages"
   }
+
+ALERT DbMetricsLiveness
+  IF liveness_DbMetric_s/60 > 30
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "DbMetrics update is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to update boltutil.DbMetrics for the last 30 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
+  }
+
 
 ALERT NightlyTrigger
   IF liveness_periodic_trigger_s{trigger="nightly"}/60/60 > 25

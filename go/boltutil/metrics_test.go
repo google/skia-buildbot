@@ -49,6 +49,8 @@ func TestDbMetric(t *testing.T) {
 	m, err := NewDbMetricWithClient(client, boltdb, []string{"A", "B"}, map[string]string{"database": database})
 	assert.NoError(t, err)
 
+	assert.NoError(t, m.Update())
+
 	assert.NotZero(t, client.GetInt64Metric("bolt_tx", map[string]string{"metric": "WriteCount", "database": database}).Get())
 	assert.NotZero(t, client.GetInt64Metric("bolt_tx", map[string]string{"metric": "WriteNs", "database": database}).Get())
 	assert.Equal(t, int64(2), client.GetInt64Metric("bolt_bucket", map[string]string{"metric": "KeyCount", "database": database, "bucket_path": "A"}).Get())
