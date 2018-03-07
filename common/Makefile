@@ -26,3 +26,7 @@ continuous_desktop:
 	sleep 2
 	# Continuously run the tests each time they are modified.
 	npx karma start &
+
+docs:
+	npx jsdoc -c jsdoc.config.js `find modules -name "*.js"`
+
