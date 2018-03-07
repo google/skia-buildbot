@@ -294,6 +294,18 @@ func MakeResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Re
 	}
 }
 
+// MakeRenamingResourceHandler is an HTTP handler function designed for serving files.
+func MakeRenamingResourceHandler(resourcesDir string, renames map[string]string) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "max-age=300")
+		if newURL, ok := renames[r.URL.Path]; ok {
+			r.URL.Path = newURL
+		}
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
 // CorsHandler is an HTTP handler function which adds the necessary header for CORS.
 func CorsHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
