@@ -9,7 +9,7 @@ ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
     --host=angle-chromium-roll.skia.org \
     --logtostderr \
-    --max_roll_frequency=3h \
+    --max_roll_frequency=1h \
     --parent_name=Chromium \
     --parent_waterfall=https://build.chromium.org \
     --workdir=/mnt/pd0/autoroll_workdir \
