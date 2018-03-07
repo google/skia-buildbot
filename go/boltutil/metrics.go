@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DEFAULT_REPORT_FREQUENCY = time.Minute
+	DEFAULT_REPORT_FREQUENCY = time.Minute * 10
 )
 
 // TxStatsMetric contains sub-metrics for each field of the bolt.TxStats from
@@ -277,17 +277,14 @@ func NewDbMetricWithClient(c metrics2.Client, d *bolt.DB, bucketNames []string, 
 		// path to the sub-bucket from the root.
 		m.BucketStatsMetrics[name] = newBucketStatsMetric(c, append(tags, map[string]string{"bucket_path": name})...)
 	}
-	if err := m.Update(); err != nil {
-		return nil, err
-	}
-	m.Liveness.Reset()
 	go func() {
-		t := time.Tick(DEFAULT_REPORT_FREQUENCY)
+		t := time.NewTicker(DEFAULT_REPORT_FREQUENCY)
+		defer t.Stop()
 		for {
 			select {
 			case <-m.stop:
 				return
-			case <-t:
+			case <-t.C:
 				if err := m.Update(); err != nil {
 					sklog.Error(err)
 				} else {
