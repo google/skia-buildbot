@@ -22,8 +22,8 @@ ALERT ExcessiveLoad
   FOR 5m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "{{ $labels.instance }} of job {{ $labels.job }} is experiencing excessive load. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=200&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}",
+    abbr = "{{ $labels.host }}",
+    description = "{{ $labels.host }} is experiencing excessive {{ $labels.sub }} load. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=200&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.host }}"
   }
 
 ALERT TooManyGoRoutines
