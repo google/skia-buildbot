@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "14ac9e5b_6ed5419e",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-07T18:13:31Z",
+      "side": 1,
+      "message": "Please revert to console.cloud.",
+      "range": {
+        "startLine": 26,
+        "startChar": 102,
+        "endLine": 26,
+        "endChar": 116
+      },
+      "revId": "95e890552b93e212e8ea14d881f5893ea56344fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
