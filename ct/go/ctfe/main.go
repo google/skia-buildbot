@@ -7,8 +7,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
-	"net/http/httputil"
 	"os/user"
 	"path/filepath"
 	"runtime"
@@ -39,6 +39,7 @@ import (
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
+	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 )
 
@@ -109,8 +110,8 @@ func runServer(serverURL string) {
 	pending_tasks.AddHandlers(r)
 	task_common.AddHandlers(r)
 
-	// Handler for proxying to results stored in Google Storage.
-	r.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsProxyHandler)
+	// Handler for displaying results stored in Google Storage.
+	r.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsHandler)
 
 	// Common handlers used by different pages.
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
@@ -212,7 +213,7 @@ func repeatedTasksScheduler() {
 	}
 }
 
-func resultsProxyHandler(w http.ResponseWriter, r *http.Request) {
+func resultsHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Requesting: %s", r.RequestURI)
 	if login.LoggedInAs(r) == "" {
 		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
@@ -224,18 +225,25 @@ func resultsProxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	director := func(req *http.Request) {
-		req.URL.Scheme = "https"
-		req.Host = "storage.googleapis.com"
-		req.URL.Host = req.Host
-		req.URL.Path = strings.TrimLeft(req.URL.Path, ctfeutil.RESULTS_URI)
+	storageURL := fmt.Sprintf("https://storage.googleapis.com/%s", strings.TrimLeft(r.URL.Path, ctfeutil.RESULTS_URI))
+	resp, err := client.Get(storageURL)
+	if err != nil {
+		sklog.Errorf("resultsHandler: Unable to get data from %s: %s", storageURL, err)
+		httputils.ReportError(w, r, err, "Unable to get data from google storage")
+		return
 	}
-
-	reverseProxy := httputil.ReverseProxy{
-		Director:  director,
-		Transport: client.Transport,
+	defer skutil.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		sklog.Errorf("resultsHandler: %s returned %d", storageURL, resp.StatusCode)
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Google storage request returned %d", resp.StatusCode))
+		return
 	}
-	reverseProxy.ServeHTTP(w, r)
+	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		sklog.Errorf("Error when copying response from %s: %s", storageURL, err)
+		httputils.ReportError(w, r, err, "Error when copying response from google storage")
+		return
+	}
 }
 
 func main() {
