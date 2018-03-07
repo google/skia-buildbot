@@ -5,30 +5,30 @@ After=network-online.target
 
 [Service]
 Environment=DATA_DIR=/mnt/pd0/data  \
-  RESOURCE_DIR=/usr/local/share/skiacorrectness  \
+  RESOURCE_DIR=/usr/local/share/skiacorrectness/frontend
 
 ExecStart=/usr/local/bin/skiacorrectness-stage  \
-    --port=:8001  \
-    --logtostderr \
-    --trace_service=skia-tracedb:9090 \
-    --git_repo_dir=${DATA_DIR}/gold/skia \
-    --image_dir=${DATA_DIR}/imageStore  \
-    --storage_dir=${DATA_DIR}/datastore  \
-    --resources_dir=${RESOURCE_DIR}  \
+    --baseline_gs_path=skia-infra-gm/baselines/gold-stage \
+    --cache_size=20 \
     --db_host=173.194.106.53 \
     --db_name=skiacorrectness_stage  \
-    --redirect_url=https://gold-stage.skia.org/oauth2callback/  \
-    --n_commits=100   \
-    --cache_size=20 \
-    --resources_dir=/usr/local/share/skiacorrectness/frontend \
-    --prom_port=:20001 \
-    --baseline_gs_path=skia-infra-gm/baselines/gold-stage \
-    --hashes_gs_path=skia-infra-gm/hash_files/gold-stage-hashes.txt \
     --diff_server_grpc=skia-diffserver-stage:8000 \
     --diff_server_http=skia-diffserver-stage:8001 \
-    --force_login \
+    --ds_namespace=gold-skia-stage \
     --event_topic=testing-gold-stage-eventbus \
-    --ds_namespace=gold-skia-stage
+    --force_login \
+    --git_repo_dir=${DATA_DIR}/gold/skia \
+    --hashes_gs_path=skia-infra-gm/hash_files/gold-stage-hashes.txt \
+    --image_dir=${DATA_DIR}/imageStore  \
+    --internal_port=:19000 \
+    --logtostderr \
+    --n_commits=100   \
+    --port=:8001  \
+    --prom_port=:20001 \
+    --redirect_url=https://gold-stage.skia.org/oauth2callback/  \
+    --resources_dir=${RESOURCE_DIR} \
+    --storage_dir=${DATA_DIR}/datastore  \
+    --trace_service=skia-tracedb:9090
 
 Restart=always
 User=default
