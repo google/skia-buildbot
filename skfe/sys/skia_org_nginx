@@ -463,6 +463,32 @@ server {
     return 301 https://android-master-roll.skia.org$request_uri;
 }
 
+#####   android-next-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name android-next-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/android-next-roll.access.log;
+    error_log /var/log/nginx/android-next-roll.error.log error;
+
+    location / {
+        proxy_pass http://skia-proxy:8000;
+        proxy_set_header Host "android-next-autoroll-8000-proxy.skia.org";
+    }
+
+    location /json/status {
+        proxy_pass http://android-next-autoroll:8000/json/status;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name android-next-roll.skia.org;
+    return 301 https://android-next-roll.skia.org$request_uri;
+}
+
 #####   android-o-roll.skia.org   ###########################
 server {
     listen      443;

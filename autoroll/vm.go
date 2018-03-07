@@ -182,6 +182,15 @@ func AndroidMaster() *gce.Instance {
 	return AddAndroidConfigs(vm)
 }
 
+func AndroidNext() *gce.Instance {
+	vm := AutoRollBase("android-next-autoroll", "35.202.27.169" /* Needs whitelisted static IP */)
+	vm.Contacts = []string{
+		"djsollen@google.com",
+		"rmistry@google.com",
+	}
+	return AddAndroidConfigs(vm)
+}
+
 func AndroidO() *gce.Instance {
 	vm := AutoRollBase("android-o-autoroll", "104.198.73.244" /* Needs whitelisted static IP */)
 	vm.Contacts = []string{
@@ -209,6 +218,7 @@ func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"afdo-chromium":         AFDOChromium(),
 		"android-master":        AndroidMaster(),
+		"android-next":          AndroidNext(),
 		"android-o":             AndroidO(),
 		"angle-chromium":        AngleChromium(),
 		"angle-skia":            AngleSkia(),
