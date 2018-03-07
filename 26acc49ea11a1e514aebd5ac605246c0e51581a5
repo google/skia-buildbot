@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "546b1a52_1c830064",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-07T20:20:25Z",
+      "side": 1,
+      "message": "I believe the URL /coverage will work correctly, i.e. the MakeResourceHandler doesn\u0027t require the extension.",
+      "parentUuid": "fd8642d5_89241e2f",
+      "revId": "26acc49ea11a1e514aebd5ac605246c0e51581a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6c726997_c6a3c0bc",
         "filename": "coverage/modules/coverage-index-sk/coverage-index-demo.js",
         "patchSetId": 2
