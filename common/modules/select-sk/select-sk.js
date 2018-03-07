@@ -1,30 +1,40 @@
+/** @module common/select-sk */
 import { upgradeProperty } from 'skia-elements/upgradeProperty'
 
-// select-sk is a selection element that allows any kind of children.
-//
-// Properties:
-//   selection - The index of the item selected. Has a value of -1 if nothing
-//               is selected.
-//
-// Attributes:
-//   None
-//
-// Methods:
-//   None
-//
-// Events:
-//   selection-changed - Sent when an item is clicked and the selection is changed.
-//                       The detail of the event contains the child element index:
-//
-//        detail: {
-//          selection: 1,
-//        }
-//
-// The select-sk elements monitors for the addition and removal of child
-// elements and will update the 'selected' property as needed. Note that it
-// does not monitor the 'selected' attribute of child elements, and will not
-// update the 'selected' property if they are changed directly.
-window.customElements.define('select-sk', class extends HTMLElement {
+/**
+ * <code>select-sk</code> a selection element that allows any kind of children.
+ *
+ * <p>
+ *   Clicking on the children will cause them to be selected.
+ * </p>
+ *
+ * <p>
+ *   The select-sk elements monitors for the addition and removal of child
+ *   elements and will update the 'selected' property as needed. Note that it
+ *   does not monitor the 'selected' attribute of child elements, and will not
+ *   update the 'selected' property if they are changed directly.
+ * </p>
+ *
+ * @example
+ *
+ *   <select-sk>
+ *     <div></div>
+ *     <div></div>
+ *     <div selected></div>
+ *     <div></div>
+ *   </select-sk>
+ *
+ * @evt selection-change - Sent when an item is clicked and the selection is changed.
+ *   The detail of the event contains the child element index:
+ *
+ *   <pre>
+ *     detail: {
+ *       selection: 1,
+ *     }
+ *   </pre>
+ *
+ */
+class SelectSk extends HTMLElement {
   constructor() {
     super();
     // Keep _selection up to date by monitoring DOM changes.
@@ -46,6 +56,8 @@ window.customElements.define('select-sk', class extends HTMLElement {
     this._obs.disconnect();
   }
 
+  /** @prop {number} selection The index of the item selected. Has a value of -1 if nothing is selected.
+   */
   get selection() { return this._selection; }
   set selection(val) {
     this._selection = +val;
@@ -101,4 +113,6 @@ window.customElements.define('select-sk', class extends HTMLElement {
     }
     this._rationalize();
   }
-});
+}
+
+window.customElements.define('select-sk', SelectSk);
