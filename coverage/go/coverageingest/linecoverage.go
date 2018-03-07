@@ -168,7 +168,7 @@ var HTML_TEMPLATE_FILE = template.Must(template.New("page").Funcs(funcMap).Parse
 	<head>
 		<meta name="viewport" content="width=device-width,initial-scale=1">
 		<meta charset="UTF-8">
-		<link rel="stylesheet" type="text/css" href="/res/css/coverage-style.css">
+		<link rel="stylesheet" type="text/css" href="/coverage-style.css">
 	</head>
 	<body>
 		<h1 class="coverage-header">{{.JobName}}</h1>

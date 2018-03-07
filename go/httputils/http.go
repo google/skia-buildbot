@@ -294,6 +294,21 @@ func MakeResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Re
 	}
 }
 
+// MakeRenamingResourceHandler is an HTTP handler function designed for serving files.
+// It takes a map that can be used to alias a url. The primary usecase is to have the
+// url be distinct from the file that will show the content. e.g. /foo/bar can be represented
+// by my-custom-element.html in the passed in resourcesDir
+func MakeRenamingResourceHandler(resourcesDir string, aliases map[string]string) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "max-age=300")
+		if newURL, ok := aliases[r.URL.Path]; ok {
+			r.URL.Path = newURL
+		}
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
 // CorsHandler is an HTTP handler function which adds the necessary header for CORS.
 func CorsHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {

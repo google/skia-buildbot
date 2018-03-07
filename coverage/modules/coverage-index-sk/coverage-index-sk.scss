@@ -5,7 +5,10 @@ body {
   padding: 0;
 }
 
-power-index-sk {
+coverage-index-sk {
+
+  font-family: sans-serif;
+
   main {
     padding: 5px;
   }
@@ -21,19 +24,8 @@ power-index-sk {
     font-weight: bold;
   }
 
-  table {
-    border-collapse: collapse;
-    margin-left: 5px;
-  }
-  td, th {
-    border: 1px solid #DDD;
-    padding: 5px;
-  }
-  th {
-    position: relative;
-  }
-
-  .code {
-    font-family: monospace;
+  .combined {
+    font-weight: bold;
+    margin-bottom: 2px;
   }
 }
