@@ -272,6 +272,13 @@ server {
       proxy_set_header Host $host;
     }
 
+    # TODO(stephana): Resolve accessing Gold from Gerrit with authentication and
+    # remove this rewrite rule. Right now this for testing only.
+    location /json/tryjobs/ {
+        proxy_pass http://skia-gold-stage:19000;
+        proxy_set_header Host $host;
+    }
+
     location / {
         proxy_pass http://skia-gold-stage:8001;
         proxy_set_header Host $host;
