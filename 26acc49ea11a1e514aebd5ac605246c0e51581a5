@@ -16,6 +16,109 @@
       "revId": "26acc49ea11a1e514aebd5ac605246c0e51581a5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfe3a3d6_33a72901",
+        "filename": "coverage/go/coverage-server/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-07T19:43:53Z",
+      "side": 1,
+      "message": "Why not just call the source files\n\n/pages/coverage.html\n/pages/coverage.js\n\nand then you shouldn\u0027t need to worry about the rename?",
+      "parentUuid": "17d14f36_c3d1e5ff",
+      "revId": "26acc49ea11a1e514aebd5ac605246c0e51581a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c726997_c6a3c0bc",
+        "filename": "coverage/modules/coverage-index-sk/coverage-index-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-07T19:43:53Z",
+      "side": 1,
+      "message": "Blank line before.",
+      "revId": "26acc49ea11a1e514aebd5ac605246c0e51581a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de232ab2_aa6ac19f",
+        "filename": "coverage/modules/coverage-index-sk/coverage-index-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-07T19:43:53Z",
+      "side": 1,
+      "message": "Use \u003cmain\u003e instead of \u003cdiv\u003e.",
+      "revId": "26acc49ea11a1e514aebd5ac605246c0e51581a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64d48116_8d7093b1",
+        "filename": "coverage/modules/coverage-index-sk/coverage-index-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-07T19:43:53Z",
+      "side": 1,
+      "message": "I think we should get used to setTimeout(() \u003d\u003e this.update());\nsince it obviates the need for the bind.\n\nHere and below.",
+      "revId": "26acc49ea11a1e514aebd5ac605246c0e51581a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e20bcf2_cd077f74",
+        "filename": "coverage/modules/coverage-page-sk/coverage-page-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-07T19:43:53Z",
+      "side": 1,
+      "message": "Use the DomReady promises from common/dom:\n\nhttps://github.com/google/skia-buildbot/blob/master/common/modules/dom.js#L2",
+      "revId": "26acc49ea11a1e514aebd5ac605246c0e51581a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "687a4402_46b7d378",
+        "filename": "coverage/modules/coverage-page-sk/coverage-page-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-07T19:43:53Z",
+      "side": 1,
+      "message": "Use \u003cmain\u003e instead of \u003cdiv\u003e.",
+      "revId": "26acc49ea11a1e514aebd5ac605246c0e51581a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
