@@ -1,0 +1,32 @@
+@import '~common/colors';
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+coverage-page-sk {
+
+  font-family: sans-serif;
+
+  .content {
+    padding: 5px;
+  }
+
+  header {
+    margin: 0;
+    padding: 1em 0.5em;
+    color: white;
+    background: $purple;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-weight: bold;
+  }
+
+  .innerframe {
+    width: 99vw;
+    height: 87vh;
+  }
+
+}
