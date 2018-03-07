@@ -28,6 +28,7 @@ scrape_configs:
     static_configs:
       - targets: ['afdo-chromium-autoroll:20000']
       - targets: ['android-master-autoroll:20000']
+      - targets: ['android-next-autoroll:20000']
       - targets: ['android-o-autoroll:20000']
       - targets: ['angle-chromium-autoroll:20000']
       - targets: ['angle-skia-autoroll:20000']
@@ -216,6 +217,7 @@ scrape_configs:
     static_configs:
       - targets: ['afdo-chromium-autoroll:11000']
       - targets: ['android-master-autoroll:11000']
+      - targets: ['android-next-autoroll:11000']
       - targets: ['android-o-autoroll:11000']
       - targets: ['angle-chromium-autoroll:11000']
       - targets: ['angle-skia-autoroll:11000']

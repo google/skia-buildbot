@@ -14,6 +14,13 @@
         "pulld",
       ],
     },
+    "android-next-autoroll": {
+      "AppNames": [
+        "android-next-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "android-o-autoroll": {
       "AppNames": [
         "android-o-autorolld",
