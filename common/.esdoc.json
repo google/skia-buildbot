@@ -1,0 +1,19 @@
+{
+  "source": "./modules",
+  "destination": "./docs",
+  "excludes": [
+    "-demo.js$",
+    "_test.js$"
+  ],
+  "plugins": [
+    {"name": "esdoc-importpath-plugin",
+      "option": {
+        "stripPackageName": true,
+        "replaces": [
+          {"from": "modules", "to": "common"}
+        ]
+      }
+    },
+    {"name": "esdoc-standard-plugin"}
+  ]
+}
