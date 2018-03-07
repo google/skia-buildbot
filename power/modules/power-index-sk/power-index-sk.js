@@ -13,11 +13,11 @@ const UPDATE_INTERVAL_MS = 60000;
 const template = (ele) => html`
 <header>Power Controller</header>
 
-<div class=content>
+<main>
   <h1>Broken Bots (with powercycle support)</h1>
 
   ${downBotsTable(ele._bots, ele._hosts)}
-</div>
+</main>
 <footer>
   <error-toast-sk></error-toast-sk>
 </footer>`;
@@ -118,7 +118,7 @@ window.customElements.define('power-index-sk', class extends HTMLElement {
   connectedCallback() {
     this._render();
     // make a fetch ASAP, but not immediately (demo mock up may not be set up yet)
-    window.setTimeout(this.update.bind(this));
+    window.setTimeout(() => this.update());
   }
 
   update() {
@@ -139,11 +139,11 @@ window.customElements.define('power-index-sk', class extends HTMLElement {
         this._bots = json.list;
         this._hosts = Object.keys(byHost);
         this._render();
-        window.setTimeout(this.update.bind(this), UPDATE_INTERVAL_MS);
+        window.setTimeout(() => this.update(), UPDATE_INTERVAL_MS);
       })
       .catch((e) => {
         errorMessage(e);
-        window.setTimeout(this.update.bind(this), UPDATE_INTERVAL_MS);
+        window.setTimeout(() => this.update(), UPDATE_INTERVAL_MS);
       });
   }
 

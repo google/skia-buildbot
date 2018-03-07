@@ -14,20 +14,13 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/promalertsclient"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	skswarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/power/go/decider"
 	"go.skia.org/infra/power/go/gatherer"
 	"go.skia.org/infra/power/go/recorder"
-)
-
-const (
-	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
-	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
 var downBots gatherer.Gatherer = nil
@@ -42,9 +35,6 @@ var (
 	alertsEndpoint = flag.String("alerts_endpoint", "skia-prom:8001", "The Prometheus GCE name and port")
 
 	// OAUTH params
-	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
-	redirectURL   = flag.String("redirect_url", "https://power.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-
 	powercycleConfigs = common.NewMultiStringFlag("powercycle_config", nil, "JSON5 file with powercycle bot/device configuration. Same as used for powercycle.")
 	updatePeriod      = flag.Duration("update_period", time.Minute, "How often to update the list of down bots.")
 	authorizedEmails  = common.NewMultiStringFlag("authorized_email", nil, "Email addresses of users who are authorized to post to this web service.")
@@ -71,20 +61,8 @@ func main() {
 		sklog.Fatalf("Could not set up down bot gatherer: %s", err)
 	}
 
-	useRedirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		useRedirectURL = *redirectURL
-	}
-	if err := login.Init(useRedirectURL, *authWhiteList); err != nil {
-		sklog.Fatalf("Problem setting up server OAuth: %s", err)
-	}
-
 	r := mux.NewRouter()
 
-	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/down_bots", downBotsHandler)
 	r.HandleFunc("/powercycled_bots", powercycledBotsHandler)
 	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))

@@ -30,7 +30,7 @@ var HTML_TEMPLATE_SUMMARY = template.Must(template.New("summary").Parse(`<!DOCTY
 	<head>
 		<meta name="viewport" content="width=device-width,initial-scale=1">
 		<meta charset="UTF-8">
-		<link rel="stylesheet" type="text/css" href="/res/css/coverage-style.css">
+		<link rel="stylesheet" type="text/css" href="/coverage-style.css">
 	</head>
 	<body>
 		<h1 class="coverage-header">Coverage Summary</h1>
