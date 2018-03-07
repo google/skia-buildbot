@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e386982_4893ebfe",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-07T19:14:59Z",
+      "side": 1,
+      "message": "Shouldn\u0027t include user-specified data in error response due to XSS/XSRF attack. Maybe add r.URL and storageURL to err for additional context in logs.",
+      "range": {
+        "startLine": 231,
+        "startChar": 77,
+        "endLine": 231,
+        "endChar": 87
+      },
+      "revId": "749539f4f646301348ef6836b9c3624191c1fa55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce687be6_6b6683e1",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-07T19:14:59Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 236,
+        "startChar": 65,
+        "endLine": 236,
+        "endChar": 75
+      },
+      "revId": "749539f4f646301348ef6836b9c3624191c1fa55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "295ae4b0_cb775c80",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-07T19:14:59Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 241,
+        "startChar": 86,
+        "endLine": 241,
+        "endChar": 96
+      },
+      "revId": "749539f4f646301348ef6836b9c3624191c1fa55",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
