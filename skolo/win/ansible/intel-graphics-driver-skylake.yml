@@ -7,10 +7,8 @@
       path: c:\Temp
       state: directory
   # The Intel driver uses the same product_id for multiple versions, so win_package doesn't work.
-  # TODO(dogben): The following is the "easy" way to install the driver; however, the
-  # self-extracting EXE is no longer available for download for version 15.45.14.4590, so I'm using
-  # the ZIP that I previously downloaded. Switch back to this method on the next upgrade and delete
-  # the "zip" steps below.
+  # TODO(dogben): The following steps install the driver from Intel. We should switch back to this
+  # procedure once the buggy Intel drivers are fixed and delete the "pnputil" steps below.
   #- name: Copy the Intel Graphics Driver EXE to the host
   #  win_copy:
   #    src: "{{ win_package_src }}/Intel Graphics Skylake win64_15.60.2.4901.exe"
@@ -24,9 +22,13 @@
   #  win_file:
   #    path: c:\Temp\intel_gfx.exe
   #    state: absent
-  - name: Copy the Intel Graphics driver ZIP to the host
+  # From https://www.catalog.update.microsoft.com/Search.aspx?q=21.20.16.4839%20Creators%20Update,
+  # verified sha1sum, repackaged CAB as ZIP.
+  - name: Copy the Intel Graphics Driver ZIP to the host
     win_copy:
-      src: "{{ win_package_src }}/Intel Graphics Skylake win64_154514.4590.zip"
+      src: "{{ win_package_src }}/\
+        Intel Graphics Skylake Microsoft 21.20.16.4839 15.45.x.4839 \
+        54c76823-6fb3-4b65-82bf-a93a255411b1_0d6607400966a6b4ff0f606b44e92767a9c33766.zip"
       dest: c:\Temp\intel_gfx.zip
   - name: Extract the Intel Graphics driver ZIP
     win_unzip:
@@ -34,10 +36,8 @@
       dest: C:\Temp\Intel
       delete_archive: yes
   - name: Install Intel Graphics Driver for Skylake and later
-    # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
-    # The "-overwrite" option allows downgrading the driver if a newer one is already installed for
-    # some reason (e.g. Windows Update).
-    win_command: C:\Temp\Intel\Setup.exe -overwrite -s
+    # https://docs.microsoft.com/en-us/windows-hardware/drivers/devtest/pnputil
+    win_command: pnputil.exe /add-driver C:\Temp\Intel\*.inf /subdirs /install
   - name: Cleanup
     win_file:
       path: c:\Temp\Intel
