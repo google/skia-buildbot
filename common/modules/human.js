@@ -1,4 +1,7 @@
-// Utitities for working with human friendly I/O.
+/** @module common/human
+ *  @description Utitities for working with human friendly I/O.
+ */
+
 const TIME_DELTAS = [
   { units: "w", delta: 7*24*60*60 },
   { units: "d", delta:   24*60*60 },
@@ -7,13 +10,18 @@ const TIME_DELTAS = [
   { units: "s", delta:          1 },
 ];
 
-export var KB = 1024;
-export var MB = KB * 1024;
-export var GB = MB * 1024;
-export var TB = GB * 1024;
-export var PB = TB * 1024;
+/** @constant {number} */
+export const KB = 1024;
+/** @constant {number} */
+export const MB = KB * 1024;
+/** @constant {number} */
+export const GB = MB * 1024;
+/** @constant {number} */
+export const TB = GB * 1024;
+/** @constant {number} */
+export const PB = TB * 1024;
 
-let BYTES_DELTAS = [
+const BYTES_DELTAS = [
   { units: " PB", delta: PB},
   { units: " TB", delta: TB},
   { units: " GB", delta: GB},
@@ -22,6 +30,12 @@ let BYTES_DELTAS = [
   { units: " B",  delta:  1},
 ];
 
+/** Left pad a number with 0's.
+ *
+ * @param {number} num - The number to pad.
+ * @param {number} size - The number of digits to pad out to.
+ * @returns {string}
+ */
 export function pad(num, size) {
   let str = num + "";
   while (str.length < size) str = "0" + str;
@@ -30,10 +44,11 @@ export function pad(num, size) {
 
 /**
  * Returns a human-readable format of the given duration in seconds.
- *
  * For example, 'strDuration(123)' would return "2m 3s".
- *
  * Negative seconds is treated the same as positive seconds.
+ *
+ * @param {number} seconds - The duration.
+ * @returns {string}
  */
 export function strDuration(seconds) {
   if (seconds < 0) {
@@ -56,12 +71,15 @@ export function strDuration(seconds) {
 
 /**
  * Returns the difference between the current time and 's' as a string in a
- * human friendly format.
- * If 's' is a number it is assumed to contain the time in milliseconds
- * otherwise it is assumed to contain a time string.
+ * human friendly format. If 's' is a number it is assumed to contain the time
+ * in milliseconds otherwise it is assumed to contain a time string parsable
+ * by Date.parse().
  *
  * For example, a difference of 123 seconds between 's' and the current time
  * would return "2m".
+ *
+ * @param {Object} milliseconds - The time in milliseconds or a time string.
+ * @returns {string}
  */
 export function diffDate(s) {
   let ms = (typeof(s) === "number") ? s : Date.parse(s);
@@ -76,17 +94,42 @@ export function diffDate(s) {
  * Formats the amount of bytes in a human friendly format.
  * unit may be supplied to indicate b is not in bytes, but in something
  * like kilobytes (KB) or megabytes (MB)
-
- * For example, a 1234 bytes would be displayed as "1 KB".
+ *
+ * @example
+ * // returns "1 KB"
+ * bytes(1234)
+ * @example
+ * // returns "5 GB"
+ * bytes(5321, MB)
+ *
+ * @param {number} b - The number of bytes in units 'unit'.
+ * @param {number} unit - The number of bytes per unit.
+ * @returns {string}
  */
-export function bytes(b, unit) {
+export function bytes(b, unit = 1) {
   if (Number.isInteger(unit)) {
     b = b * unit;
   }
   return humanize(b, BYTES_DELTAS);
 }
 
-export function humanize(n, deltas) {
+/** localeTime formats the provided Date object in locale time and appends the timezone to the end.
+ *
+ * @param {Date} date
+ * @returns {string}
+ */
+export function localeTime(date) {
+  // caching timezone could be buggy, especially if times from a wide range
+  // of dates are used. The main concern would be crossing over Daylight
+  // Savings time and having some times be erroneously in EST instead of
+  // EDT, for example
+  let str = date.toString();
+  let timezone = str.substring(str.indexOf("("));
+  return date.toLocaleString() + " " + timezone;
+}
+
+
+function humanize(n, deltas) {
   for (let i=0; i<deltas.length-1; i++) {
     // If n would round to '60s', return '1m' instead.
     let nextDeltaRounded =
@@ -97,15 +140,4 @@ export function humanize(n, deltas) {
   }
   let i = deltas.length-1;
   return Math.round(n/deltas[i].delta)+deltas[i].units;
-}
-
-// localeTime formats the provided Date object in locale time and appends the timezone to the end.
-export function localeTime(date) {
-  // caching timezone could be buggy, especially if times from a wide range
-  // of dates are used. The main concern would be crossing over Daylight
-  // Savings time and having some times be erroneously in EST instead of
-  // EDT, for example
-  let str = date.toString();
-  let timezone = str.substring(str.indexOf("("));
-  return date.toLocaleString() + " " + timezone;
 }
