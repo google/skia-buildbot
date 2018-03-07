@@ -1,10 +1,20 @@
+/** @module common/object
+ *  @description Utility functions for dealing with Objects.
+ */
 import { fromObject } from './query.js'
 
-// Makes a deep copy of an object.
+/** @method deepCopy
+ *  @param {Object} object - The object to make a copy of.
+ *  @returns {Object}
+ */
 export const deepCopy = (o) => JSON.parse(JSON.stringify(o));
 
-// Returns true if a and b are equal, covers Boolean, Number, String and
-// Arrays and Objects.
+/** Returns true if a and b are equal, covers Boolean, Number, String and Arrays and Objects.
+ *
+ * @param {(number|boolean|string|Array|Object)} a
+ * @param {(number|boolean|string|Array|Object)} b
+ * @returns {boolean} True if the arguments are equal.
+ */
 export function equals(a, b) {
   if (typeof(a) != typeof(b)) {
     return false
@@ -22,11 +32,16 @@ export function equals(a, b) {
   }
 }
 
-// Returns an object with only values that are in o that are different
-// from d.
-//
-// Only works shallowly, i.e. only diffs on the attributes of
-// o and d, and only for the types that equals() supports.
+/** Returns an object with only values that are in o that are different from d.
+ *
+ * Only works shallowly, i.e. only diffs on the attributes of
+ * o and d, and only for the types that equals() supports.
+ *
+ * @param {Object} o
+ * @param {Object} d
+ * @returns {Object}
+ *
+ */
 export function getDelta(o, d) {
     let ret = {};
     Object.keys(o).forEach(function(key) {
@@ -37,7 +52,13 @@ export function getDelta(o, d) {
     return ret;
   };
 
-// Returns a copy of object o with values from delta if they exist.
+/** Returns a copy of object o with values from delta if they exist.
+ *
+ * @param {Object} delta - A delta object as returned from 'getDelta'.
+ * @param {Object} o
+ * @returns {Object}
+ *
+ */
 export function applyDelta(delta, o) {
   let ret = {};
   Object.keys(o).forEach(function(key) {
