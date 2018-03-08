@@ -1,17 +1,26 @@
-// Utilities for working with URL query strings.
+/** @module common/query
+ *  @descripiton Utilities for working with URL query strings.
+ */
 
-// fromParamSet encodes an object of the form:
-//
-// {
-//   a:["2", "4"],
-//   b:["3"]
-// }
-//
-// to a query string like:
-//
-// "a=2&a=4&b=3"
-//
-// This function handles URI encoding of both keys and values.
+/** fromParamSet encodes an object of the form:
+ * <pre>
+ * {
+ *   a:["2", "4"],
+ *   b:["3"]
+ * }
+ * </pre>
+ *
+ * to a query string like:
+ *
+ * <pre>
+ * "a=2&a=4&b=3"
+ * </pre>
+ *
+ * This function handles URI encoding of both keys and values.
+ *
+ * @param {Object} o The object to encode.
+ * @returns {string}
+ */
 export function fromParamSet(o) {
   if (!o) {
     return "";
@@ -26,19 +35,27 @@ export function fromParamSet(o) {
   return ret.join('&');
 }
 
-// toParamSet parses a query string into an object with
-// arrays of values for the values. I.e.
-//
-//   "a=2&b=3&a=4"
-//
-// decodes to
-//
-//   {
-//     a:["2", "4"],
-//     b:["3"],
-//   }
-//
-// This function handles URI decoding of both keys and values.
+/** toParamSet parses a query string into an object with
+ *  arrays of values for the values. I.e.
+ *
+ * <pre>
+ *   "a=2&b=3&a=4"
+ * </pre>
+ *
+ * decodes to
+ *
+ * <pre>
+ *   {
+ *     a:["2", "4"],
+ *     b:["3"],
+ *   }
+ * </pre>
+ *
+ * This function handles URI decoding of both keys and values.
+ *
+ * @param {string} s The query string to decode.
+ * @returns {Object}
+ */
 export function toParamSet(s) {
   s = s || '';
   var ret = {};
@@ -59,9 +76,13 @@ export function toParamSet(s) {
 }
 
 
-// fromObject takes an object and encodes it into a query string.
-//
-// The reverse of this function is toObject.
+/** fromObject takes an object and encodes it into a query string.
+ *
+ * The reverse of this function is toObject.
+ *
+ * @param {Object} o The object to encode.
+ * @return {string}
+ */
 export function fromObject(o) {
   var ret = [];
   Object.keys(o).sort().forEach(function(key) {
@@ -79,35 +100,49 @@ export function fromObject(o) {
 }
 
 
-// toObject decodes a query string into an object
-// using the 'target' as a source for hinting on the types
-// of the values.
-//
-//   "a=2&b=true"
-//
-// decodes to:
-//
-//   {
-//     a: 2,
-//     b: true,
-//   }
-//
-// When given a target of:
-//
-//   {
-//     a: 1.0,
-//     b: false,
-//   }
-//
-// Note that a target of {} would decode
-// the same query string into:
-//
-//   {
-//     a: "2",
-//     b: "true",
-//   }
-//
-// Only Number, String, Boolean, Object, and Array of String hints are supported.
+/** toObject decodes a query string into an object.
+ *
+ * Uses the 'target' as a source for hinting on the types of the values.
+ * For example:
+ *
+ * <pre>
+ *   "a=2&b=true"
+ * </pre>
+ *
+ * decodes to:
+ *
+ * <pre>
+ *   {
+ *     a: 2,
+ *     b: true,
+ *   }
+ * </pre>
+ *
+ * When given a target of:
+ *
+ * <pre>
+ *   {
+ *     a: 1.0,
+ *     b: false,
+ *   }
+ * </pre>
+ *
+ * Note that a target of {} would decode
+ * the same query string into:
+ *
+ * <pre>
+ *   {
+ *     a: "2",
+ *     b: "true",
+ *   }
+ * </pre>
+ *
+ * Only Number, String, Boolean, Object, and Array of String hints are supported.
+ *
+ * @param {string} s The query string.
+ * @param {Object} target The object that contains the type hints.
+ * @returns {Object}
+ */
 export function toObject(s, target) {
   var target = target || {};
   var ret = {};
@@ -148,11 +183,14 @@ export function toObject(s, target) {
   return ret;
 }
 
-// splitAmp returns the given query string as a newline
-// separated list of key value pairs. If sepator is not
-// provided newline will be used.
-export function splitAmp(queryStr, separator) {
-  separator = (separator) ? separator : '\n';
-  queryStr = queryStr || "";
+/** splitAmp returns the given query string as a newline
+*   separated list of key value pairs. If sepator is not
+*   provided newline will be used.
+*
+*   @param {string} [queryStr=''] A query string.
+*   @param {string} [separator='\n'] The separator to use when joining.
+*   @returns {string}
+*/
+export function splitAmp(queryStr = '', separator = '\n') {
   return queryStr.split('&').join(separator);
 };
