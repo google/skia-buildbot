@@ -247,7 +247,7 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	searchResponse, err := searchAPI.Search(query)
+	searchResponse, err := searchAPI.Search(r.Context(), query)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -258,6 +258,8 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 // jsonExportHandler is the endpoint to export the Gold knowledge base.
 // It has the same interface as the search endpoint.
 func jsonExportHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	query, ok := parseSearchQuery(w, r)
 	if !ok {
 		return
@@ -273,7 +275,7 @@ func jsonExportHandler(w http.ResponseWriter, r *http.Request) {
 	query.NoDiff = true
 
 	// Execute the search
-	searchResponse, err := searchAPI.Search(query)
+	searchResponse, err := searchAPI.Search(ctx, query)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -553,6 +555,8 @@ func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
 func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	// Extract the test name as we only allow clustering within a test.
 	q := search.Query{Limit: 50}
 	if err := search.ParseQuery(r, &q); err != nil {
@@ -566,7 +570,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idx := ixr.GetIndex()
-	searchResponse, err := searchAPI.Search(&q)
+	searchResponse, err := searchAPI.Search(ctx, &q)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
