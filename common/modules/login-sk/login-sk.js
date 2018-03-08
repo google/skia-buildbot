@@ -1,20 +1,16 @@
+/** @module common/login-sk */
 import { errorMessage } from 'common/errorMessage';
 import { login } from 'common/login';
 
-//  The <login-sk> custom element.
-//
-//  Use the Login promise to display the current login status and provides
-//  login/logout links. Reports errors via errorMessage.
-//
-//  Properties:
-//    None.
-//
-//  Methods:
-//    None.
-//
-//  Events:
-//    None. But error-sk will be sent from document on a network error.
-window.customElements.define('login-sk', class extends HTMLElement {
+/** <code>login-sk</code>
+ *
+ * <p>
+ * The <login-sk> custom element. Uses the Login promise to display the
+ * current login status and provides login/logout links. Reports errors via
+ * {@linkcode module:common/errorMessage}.
+ * </p>
+ */
+class LoginSk extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<span class=email>Loading...</span><a class=logInOut></a>`;
     login.then(status => {
@@ -29,4 +25,6 @@ window.customElements.define('login-sk', class extends HTMLElement {
       }
     }).catch(errorMessage);
   }
-});
+}
+
+window.customElements.define('login-sk', LoginSk);
