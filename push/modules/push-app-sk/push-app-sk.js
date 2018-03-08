@@ -106,23 +106,13 @@ const template = (ele) => html`
   <confirm-dialog-sk id='confirm-dialog'></confirm-dialog-sk>
 </footer>`;
 
-// The <push-app-sk> custom element declaration.
-//
-//  This is the main page for push.skia.org.
-//
-//  Attributes:
-//    None
-//
-//  Properties:
-//    None
-//
-//  Events:
-//    None
-//
-//  Methods:
-//    None
-//
-window.customElements.define('push-app-sk', class extends HTMLElement {
+/** <code>push-app-sk</code> custom element declaration.
+ *
+ * <p>
+ *   The main element for the push application.
+ * </p>
+ */
+class PushAppSk extends HTMLElement {
   constructor() {
     super();
     // Populated from push/main AllUI type.
@@ -272,4 +262,6 @@ window.customElements.define('push-app-sk', class extends HTMLElement {
     this._render();
   }
 
-});
+}
+
+window.customElements.define('push-app-sk', PushAppSk);
