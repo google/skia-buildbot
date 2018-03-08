@@ -30,6 +30,14 @@
     - name: Configuring collectd
       copy: src=collectd.conf dest={{nfs_mount_point}}/root/etc/collectd/collectd.conf owner=root group=root mode=0644
 
+    - name: Copy oauth2_access_token_config.json to swarming_config
+      copy:
+        src: ../common/oauth2_access_token_config.json
+        dest: {{nfs_mount_point}}/root/etc/swarming_config/
+        owner: root
+        group: root
+        mode: 0644
+
    # Some niceties
     - lineinfile: dest={{nfs_mount_point}}/root/etc/profile line="alias l='ls -CF'" state=present
     - lineinfile: dest={{nfs_mount_point}}/root/etc/profile line="alias la='ls -A'" state=present
