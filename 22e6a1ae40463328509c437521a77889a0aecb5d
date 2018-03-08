@@ -22,6 +22,30 @@
       "revId": "22e6a1ae40463328509c437521a77889a0aecb5d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e8c04fd_918453b1",
+        "filename": "skolo/raspberry-pi/finalize_image.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-08T15:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b86c4e74_8c76ef7e",
+      "range": {
+        "startLine": 36,
+        "startChar": 8,
+        "endLine": 36,
+        "endChar": 12
+      },
+      "revId": "22e6a1ae40463328509c437521a77889a0aecb5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
