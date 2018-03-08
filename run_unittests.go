@@ -63,9 +63,7 @@ var (
 
 	// Directories with these paths, relative to the checkout root, are
 	// skipped when searching for tests.
-	NO_CRAWL_REL_PATHS = []string{
-		"common",
-	}
+	NO_CRAWL_REL_PATHS = []string{}
 
 	POLYMER_PATHS = []string{
 		"res/imp",
@@ -416,6 +414,7 @@ func main() {
 			}
 		}
 		if strings.HasSuffix(basename, "_test.py") && !pythonTestBlacklist[basename] {
+			sklog.Infof("=========== make_test.py %s", p)
 			tests = append(tests, pythonTest(p))
 		}
 		return nil
@@ -424,6 +423,7 @@ func main() {
 	}
 
 	// Other tests.
+	tests = append(tests, cmdTest([]string{"make", "test"}, "common", "common js test", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"gofmt", "-s", "-d"}, ".", "go simplify (gofmt -s -w .)", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", testutils.MEDIUM_TEST))
