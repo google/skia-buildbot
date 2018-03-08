@@ -1,3 +1,4 @@
+/** @module common/systemd-unit-status-sk */
 import { html, render } from 'lit-html/lib/lit-extended'
 
 import 'skia-elements/buttons'
@@ -14,28 +15,22 @@ const template = (ele) => html`
   <div class=service>${ele.value.status.Name}</div>
 `;
 
-// systemd-unit-status-sk
-//
-// Properties:
-//   value - Object: Expected to be a systemd.UnitStatus.
-//
-// Attributes:
-//   machine - The name of the machine the service is running on.
-//
-// Methods:
-//   None
-//
-// Events:
-//
-//   unit-action - An event triggered when the user wants to perform an action
-//        on the service. The detail of the event has the form:
-//
-//        {
-//          machine: "skia-monitoring",
-//          name: "logserver.service",
-//          action: "start"
-//        }
-window.customElements.define('systemd-unit-status-sk', class extends HTMLElement {
+/** <code>systemd-unit-status-sk</code>
+ *
+ * @attr machine - The name of the machine the service is running on.
+ *
+ * @evt unit-action - An event triggered when the user wants to perform an action
+ *        on the service. The detail of the event has the form:
+ *
+ * <pre>
+ *  {
+ *    machine: "skia-monitoring",
+ *    name: "logserver.service",
+ *    action: "start"
+ *  }
+ * </pre>
+ */
+class SystemUnitStatusSk extends HTMLElement {
   constructor() {
     super();
     this._value = null;
@@ -46,6 +41,7 @@ window.customElements.define('systemd-unit-status-sk', class extends HTMLElement
     this._render(this);
   }
 
+  /** @prop {Object} value - Expected to be a systemd.UnitStatus. */
   get value() { return this._value; }
   set value(val) {
     this._value = val;
@@ -68,4 +64,6 @@ window.customElements.define('systemd-unit-status-sk', class extends HTMLElement
       bubbles: true}
     ));
   }
-});
+}
+
+window.customElements.define('systemd-unit-status-sk', SystemUnitStatusSk);
