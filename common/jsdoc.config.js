@@ -1,9 +1,1 @@
-'use strict';
-
-module.exports = {
-  plugins: ['./plugins/element'],
-  source: {
-    includePattern: "modules\\/.+\\.js$",
-    excludePattern: "(^|\\/|\\\\)_"
-  },
-};
+module.exports = require('./jsdoc.common.js');
