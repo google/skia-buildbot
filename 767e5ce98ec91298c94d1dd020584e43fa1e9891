@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2fc9ed75_04e3eea3",
+        "filename": "skolo/raspberry-pi/start_swarming",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T13:49:21Z",
+      "side": 1,
+      "message": "Of note",
+      "range": {
+        "startLine": 5,
+        "startChar": 2,
+        "endLine": 5,
+        "endChar": 50
+      },
+      "revId": "767e5ce98ec91298c94d1dd020584e43fa1e9891",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
