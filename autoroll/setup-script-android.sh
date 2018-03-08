@@ -2,6 +2,9 @@
 
 pushd /home/default
 
+# Install required packages.
+sudo apt-get -y install gcc make
+
 # Install repo tool if needed.
 if [[ ! -e bin/repo ]]; then
   sudo -u default mkdir bin
