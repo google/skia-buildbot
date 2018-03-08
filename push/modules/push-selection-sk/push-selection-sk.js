@@ -43,41 +43,23 @@ const template = (ele) => html`
   </div>
 </dialog-sk>`;
 
-// The <push-selection-sk> custom element declaration.
-//
-//  Presents a dialog of package choices and generates an event when the user has
-//  made a selection. It is a custom element used by <push-server-sk>.
-//
-//  Attributes:
-//    None
-//
-//  Properties:
-//    'choices'
-//        The list of packages that are available. Serialized Package from infra/go/packages/. For example:
-//
-//          {
-//            Name: 'pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-08T02:09:58Z:79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c.deb',
-//            Hash: '79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c',
-//            UserID: 'jcgregorio@jcgregorio.cnc.corp.google.com',
-//            Built: '2014-12-08T02:09:58Z',
-//            Dirty: true,
-//            Note: 'some reason for a push'
-//          },
-//
-//    'chosen'
-//        Number - The index of the chosen package.
-//
-//  Events:
-//    'package-change'
-//        A 'package-change' event is generated when the user selects a package to push.
-//        The change event has the following attributes:
-//
-//          event.detail.name   - The full name of the package selected.
-//
-//  Methods:
-//    show() - Shows the dialog.
-//    hide() - Hides the dialog.
-window.customElements.define('push-selection-sk', class extends HTMLElement {
+/** <code>push-selection-sk</code> custom element declaration.
+ *
+ * <p>
+ *  Presents a dialog of package choices and generates an event when the user has
+ *  made a selection. It is a custom element used by <push-server-sk>.
+ * </p>
+ *
+ * @evt package-change A 'package-change' event is generated when the user
+ *   selects a package to push. The event detail has the following shape:
+ *
+ * <pre>
+ * {
+ *   name: 'package name goes here', // The full name of the package selected.
+ * }
+ * </pre>
+ */
+class PushSelectionSk extends HTMLElement {
   constructor() {
     super()
     this._choices = [];
@@ -94,12 +76,26 @@ window.customElements.define('push-selection-sk', class extends HTMLElement {
     render(template(this), this);
   }
 
+  /** @prop {Array} The list of packages that are available. Serialized Package from infra/go/packages/. For example:
+   *
+   * <pre>
+   *   {
+   *     Name: 'pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-08T02:09:58Z:79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c.deb',
+   *     Hash: '79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c',
+   *     UserID: 'jcgregorio@jcgregorio.cnc.corp.google.com',
+   *     Built: '2014-12-08T02:09:58Z',
+   *     Dirty: true,
+   *     Note: 'some reason for a push'
+   *   },
+   * </pre>
+   */
   get choices() { return this._choices; }
   set choices(val) {
     this._choices = val;
     this._render();
   }
 
+  /** @prop {number} The index of the chosen package. */
   get chosen() { return this._chosen; }
   set chosen(val) {
     this._chosen = +val;
@@ -116,12 +112,16 @@ window.customElements.define('push-selection-sk', class extends HTMLElement {
     }));
   }
 
+  /** Show the dialog. */
   show() {
     this.firstElementChild.shown = true;
   }
 
+  /** Hide the dialog. */
   hide() {
     this.firstElementChild.shown = false;
   }
 
-});
+}
+
+window.customElements.define('push-selection-sk', PushSelectionSk);
