@@ -45,17 +45,18 @@ func main() {
 	// Parse the options, so we can configure logging.
 	flag.Parse()
 
-	// Set up the logging options.
-	logOpts := []common.Opt{
-		common.PrometheusOpt(promPort),
+	// Set up the options.
+	opts := []common.Opt{
+		common.MaxOpenFiles(1048576),   // Dramatically increase the number of open files for this process.
+		common.PrometheusOpt(promPort), // Enable Prometheus logging.
 	}
 
 	// Should we disable cloud logging.
 	if !*noCloudLog {
-		logOpts = append(logOpts, common.CloudLoggingOpt())
+		opts = append(opts, common.CloudLoggingOpt())
 	}
 	_, appName := filepath.Split(os.Args[0])
-	common.InitWithMust(appName, logOpts...)
+	common.InitWithMust(appName, opts...)
 
 	// Get the version of the repo.
 	skiaversion.MustLogVersion()

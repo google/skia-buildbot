@@ -1,9 +1,11 @@
 package search
 
 import (
+	"context"
 	"sort"
 	"sync"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -102,7 +104,10 @@ func NewSearchAPI(storages *storage.Storage, ixr *indexer.Indexer) (*SearchAPI, 
 
 // Search queries the current tile based on the parameters specified in
 // the instance of Query.
-func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
+func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "search/Search")
+	defer span.End()
+
 	// Keep track if we are including reference diffs. This is going to be true
 	// for the majority of queries.
 	getRefDiffs := !q.NoDiff
@@ -124,11 +129,11 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
 		issueResp = &IssueSearchResponse{}
-		inter, issueResp.IssueDetails, issueResp.QueryPatchsets, err = s.queryIssue(q, idx, exp)
+		inter, issueResp.IssueDetails, issueResp.QueryPatchsets, err = s.queryIssue(ctx, q, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
-		inter, err = s.filterTile(q, exp, idx)
+		inter, err = s.filterTile(ctx, q, exp, idx)
 	}
 	if err != nil {
 		return nil, err
@@ -142,22 +147,22 @@ func (s *SearchAPI) Search(q *Query) (*NewSearchResponse, error) {
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		s.getReferenceDiffs(ret, q.Metric, q.Match, q.IncludeIgnores, exp, idx)
+		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.IncludeIgnores, exp, idx)
 		if err != nil {
 			return nil, err
 		}
 
 		// Post-diff stage: Apply all filters that are relevant once we have
 		// diff values for the digests.
-		ret = s.afterDiffResultFilter(ret, q)
+		ret = s.afterDiffResultFilter(ctx, ret, q)
 	}
 
 	// Sort the digests and fill the ones that are going to be displayed with
 	// additional data. Note we are returning all digests found, so we can do
 	// bulk triage, but only the digests that are going to be shown are padded
 	// with additional information.
-	displayRet, offset := s.sortAndLimitDigests(q, ret, int(q.Offset), int(q.Limit))
-	s.addParamsAndTraces(displayRet, inter, exp, idx)
+	displayRet, offset := s.sortAndLimitDigests(ctx, q, ret, int(q.Offset), int(q.Limit))
+	s.addParamsAndTraces(ctx, displayRet, inter, exp, idx)
 
 	// Return all digests with the selected offset within the result set.
 	return &NewSearchResponse{
@@ -252,14 +257,14 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	s.getReferenceDiffs(ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, exp, idx)
+	s.getReferenceDiffs(nil, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, exp, idx)
 	if err != nil {
 		return nil, err
 	}
 
 	if hasTraces {
 		// Get the params and traces.
-		s.addParamsAndTraces(ret, inter, exp, idx)
+		s.addParamsAndTraces(nil, ret, inter, exp, idx)
 	}
 
 	return &SRDigestDetails{
@@ -292,7 +297,10 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
+func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
+	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
+	defer span.End()
+
 	// Get the issue.
 	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true, q.Patchsets)
 	if err != nil {
@@ -370,7 +378,10 @@ func (s *SearchAPI) queryIssue(q *Query, idx *indexer.SearchIndex, exp ExpSlice)
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
-func (s *SearchAPI) filterTile(q *Query, exp ExpSlice, idx *indexer.SearchIndex) (srInterMap, error) {
+func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx *indexer.SearchIndex) (srInterMap, error) {
+	ctx, span := trace.StartSpan(ctx, "search/filterTile")
+	defer span.End()
+
 	var acceptFn AcceptFn = nil
 	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IncludeIgnores)
@@ -423,7 +434,10 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(resultDigests []*SRDigest, metric string, match []string, includeIgnores bool, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, includeIgnores bool, exp ExpSlice, idx *indexer.SearchIndex) {
+	ctx, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
+	defer span.End()
+
 	refDiffer := NewRefDiffer(exp, s.storages.DiffStore, idx)
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
@@ -442,7 +456,10 @@ func (s *SearchAPI) getReferenceDiffs(resultDigests []*SRDigest, metric string, 
 }
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
-func (s *SearchAPI) afterDiffResultFilter(digestInfo []*SRDigest, q *Query) []*SRDigest {
+func (s *SearchAPI) afterDiffResultFilter(ctx context.Context, digestInfo []*SRDigest, q *Query) []*SRDigest {
+	ctx, span := trace.StartSpan(ctx, "search/afterDiffResultFilter")
+	defer span.End()
+
 	newDigestInfo := make([]*SRDigest, 0, len(digestInfo))
 	filterRGBADiff := (q.FRGBAMin > 0) || (q.FRGBAMax < 255)
 	filterDiffMax := (q.FDiffMax >= 0)
@@ -481,7 +498,10 @@ func (s *SearchAPI) afterDiffResultFilter(digestInfo []*SRDigest, q *Query) []*S
 // instance. It then paginates the digests according to the query and returns
 // the slice that should be shown on the page with its offset in the entire
 // result set.
-func (s *SearchAPI) sortAndLimitDigests(q *Query, digestInfo []*SRDigest, offset, limit int) ([]*SRDigest, int) {
+func (s *SearchAPI) sortAndLimitDigests(ctx context.Context, q *Query, digestInfo []*SRDigest, offset, limit int) ([]*SRDigest, int) {
+	ctx, span := trace.StartSpan(ctx, "search/sortAndLimitDigests")
+	defer span.End()
+
 	fullLength := len(digestInfo)
 	if offset >= fullLength {
 		return []*SRDigest{}, 0
@@ -505,7 +525,10 @@ func (s *SearchAPI) sortAndLimitDigests(q *Query, digestInfo []*SRDigest, offset
 // to draw them, i.e. the information what digest/image appears at what commit and
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
-func (s *SearchAPI) addParamsAndTraces(digestInfo []*SRDigest, inter srInterMap, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDigest, inter srInterMap, exp ExpSlice, idx *indexer.SearchIndex) {
+	ctx, span := trace.StartSpan(ctx, "search/addParamsAndTraces")
+	defer span.End()
+
 	tile := idx.GetTile(false)
 	last := tile.LastCommitIndex()
 	for _, di := range digestInfo {
