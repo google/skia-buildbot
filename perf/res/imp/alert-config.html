@@ -111,17 +111,17 @@
     <h4>Algorithm</h4>
     <algo-select-sk algo="{{config.algo}}"></algo-select-sk>
     <h4>K</h4>
-    <paper-input type=number min=0 value="{{config.k}}" label="The number of clusters. Only used in kmeans. 0 = use a server chosen value."></paper-input>
+    <paper-input type=number min=0 value="{{config.k}}" label="The number of clusters. Only used in kmeans. 0 = use a server chosen value. (For Tail algorithm, K is the jump percentage.)"></paper-input>
     <h4>Radius</h4>
-    <paper-input type=number min=0 value="{{config.radius}}" label="Number of commits on either side to consider. 0 = use a server chosen value."></paper-input>
-    <h4>Step Direction</h4>
+    <paper-input type=number min=0 value="{{config.radius}}" label="Number of commits on either side to consider. 0 = use a server chosen value. (For Tail algorithm, we only consider 2*Radius commits on the left side.)"></paper-input>
+    <h4>Step Direction (unused in Tail algorithm)</h4>
     <iron-selector attr-for-selected="value" selected="{{config.direction}}" fallback-selection=BOTH>
       <div value=BOTH>Either step up or step down trigger an alert.</div>
       <div value=UP>Step up triggers an alert.</div>
       <div value=DOWN>Step down triggers an alert.</div>
     </iron-selector>
     <h4>Threshold</h4>
-    <paper-input type=number min=1 max=500  value="{{config.interesting}}" label="Interesting Threshold for clusters to be interesting."></paper-input>
+    <paper-input type=number min=1 max=500  value="{{config.interesting}}" label="Interesting Threshold for clusters to be interesting. (Tail algorithm use this 1/Threshold as the min/max quantile.)"></paper-input>
     <h4>Minimum</h4>
     <paper-input type=number value="{{config.minimum_num}}"                label="Minimum number of interesting traces to trigger an alert."></paper-input>
     <h4>Sparse</h4>
