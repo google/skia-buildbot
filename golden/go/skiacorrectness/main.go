@@ -36,6 +36,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
@@ -194,6 +195,11 @@ func main() {
 	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
+	}
+
+	// Set up tracing.
+	if err := tracing.Init("gold", tokenSource, *local); err != nil {
+		sklog.Fatalf("Failure setting up tracing: %s", err)
 	}
 
 	// If the addresses for a remote DiffStore were given, then set it up
@@ -392,7 +398,7 @@ func main() {
 	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
 	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
-	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
+	router.HandleFunc(tracing.Trace("/json/search", jsonSearchHandler)).Methods("GET")
 	router.HandleFunc("/json/export", jsonExportHandler).Methods("GET")
 	router.HandleFunc("/json/tryjobs/{id}", jsonTryjobsSummaryHandler).Methods("GET")
 
