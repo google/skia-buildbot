@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94c14200_4cdb4207",
+        "filename": "go/common/with.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T17:57:40Z",
+      "side": 1,
+      "message": "\"[syscall] is locked down. Code outside the standard Go repository should be migrated to use the corresponding package in the golang.org/x/sys repository\"\n\nhttps://golang.org/pkg/syscall/\n\nNew package -\u003e https://godoc.org/golang.org/x/sys/unix#Setrlimit",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 10,
+        "endChar": 9
+      },
+      "revId": "b09ed4486b675fe23c99153486a31c962a6f7185",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
