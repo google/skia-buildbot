@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7c3ac7cf_e51f58fc",
+        "filename": "skolo/raspberry-pi/finalize_image.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-08T14:58:04Z",
+      "side": 1,
+      "message": "Copied from https://skia.googlesource.com/buildbot/+/master/skolo/common/ansible/skolo-credentials.yml#10",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 35
+      },
+      "revId": "bddc93990ff3c24979d0bb3e8de68d346bac5d7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
