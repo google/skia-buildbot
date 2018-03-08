@@ -22,6 +22,30 @@
       "revId": "48f2424c69737f016a42d08c297108f6bf8de5ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb41e002_3527e2ea",
+        "filename": "autoroll/build_android_next_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-03-08T13:03:55Z",
+      "side": 1,
+      "message": "That is true but wanted to be consistent with android-master-autorolld and android-o-autorolld.\nIf we ever roll anything else into android then that will definitely have to follow the xyz-android- convention.",
+      "parentUuid": "0e59c4ed_bcc1c774",
+      "range": {
+        "startLine": 3,
+        "startChar": 8,
+        "endLine": 3,
+        "endChar": 30
+      },
+      "revId": "48f2424c69737f016a42d08c297108f6bf8de5ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
