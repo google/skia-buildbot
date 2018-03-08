@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "219d8366_370dc5cb",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T20:53:30Z",
+      "side": 1,
+      "message": "Shouldn\u0027t TAIL_ALGO be added here?",
+      "revId": "588b2015a3042409c3aaaff743953ed6b886518d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e36df1f_cac729ef",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T20:53:30Z",
+      "side": 1,
+      "message": "Break into two separate assigns, one for \u0027from\u0027, another for \u0027to\u0027.",
+      "revId": "588b2015a3042409c3aaaff743953ed6b886518d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6eb96bfd_08b01cdf",
+        "filename": "perf/go/clustering2/async.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T20:53:30Z",
+      "side": 1,
+      "message": "Same here, break into two separate assignments.",
+      "revId": "588b2015a3042409c3aaaff743953ed6b886518d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d51e942_210c1801",
+        "filename": "perf/go/clustering2/clustering.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T20:53:30Z",
+      "side": 1,
+      "message": "Leftover debugging? If not, the message needs to be made clearer.\n\nHere and below.",
+      "revId": "588b2015a3042409c3aaaff743953ed6b886518d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
