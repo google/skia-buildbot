@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6ef2d040_b2685ccd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T15:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d604385_f3e4a3f2",
+      "range": {
+        "startLine": 10,
+        "startChar": 21,
+        "endLine": 10,
+        "endChar": 35
+      },
+      "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cceff572_f184c6a2",
         "filename": "common/modules/jsonOrThrow.js",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf90d21e_1adfa31e",
+        "filename": "common/modules/jsonOrThrow.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T15:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cceff572_f184c6a2",
+      "range": {
+        "startLine": 10,
+        "startChar": 8,
+        "endLine": 10,
+        "endChar": 9
+      },
+      "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "46020a04_2dcd1dc7",
+        "filename": "common/modules/login.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T15:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ef86453_f28fb4ed",
+      "range": {
+        "startLine": 10,
+        "startChar": 26,
+        "endLine": 10,
+        "endChar": 27
+      },
+      "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3461817f_b3cb73c6",
         "filename": "common/modules/object.js",
         "patchSetId": 4
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "94301ae3_f9f25443",
+        "filename": "common/modules/object.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T15:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3461817f_b3cb73c6",
+      "range": {
+        "startLine": 19,
+        "startChar": 16,
+        "endLine": 19,
+        "endChar": 18
+      },
+      "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "50f71916_e746a5ae",
         "filename": "common/modules/object.js",
         "patchSetId": 4
@@ -108,6 +204,24 @@
       "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79ef63b4_2a166383",
+        "filename": "common/modules/object.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T15:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50f71916_e746a5ae",
+      "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "1637f464_2198b086",
+        "filename": "common/modules/query.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T15:57:21Z",
+      "side": 1,
+      "message": "Ah, it doesn\u0027t pick it up for functions automatically, but I think it does for class members.",
+      "parentUuid": "e449e985_b7fb52f4",
+      "range": {
+        "startLine": 194,
+        "startChar": 25,
+        "endLine": 194,
+        "endChar": 38
+      },
+      "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3dd6e2b0_85c89364",
         "filename": "common/modules/stateReflector.js",
         "patchSetId": 4
@@ -154,6 +292,30 @@
       "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5566d0a7_1afc4e47",
+        "filename": "common/modules/stateReflector.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-08T15:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3dd6e2b0_85c89364",
+      "range": {
+        "startLine": 10,
+        "startChar": 43,
+        "endLine": 10,
+        "endChar": 49
+      },
+      "revId": "953d0fa5bcb901e64bcc51e38781f3eddccd4fe5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
