@@ -1,6 +1,6 @@
 /** @module common/login-sk */
 import { errorMessage } from 'common/errorMessage';
-import { login } from 'common/login';
+import { Login } from 'common/login';
 
 /** <code>login-sk</code>
  *
@@ -13,7 +13,7 @@ import { login } from 'common/login';
 class LoginSk extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<span class=email>Loading...</span><a class=logInOut></a>`;
-    login.then(status => {
+    Login.then(status => {
       this.querySelector('.email').textContent = status.Email;
       let logInOut = this.querySelector('.logInOut');
       if (!status.Email) {

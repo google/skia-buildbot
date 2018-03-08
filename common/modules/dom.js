@@ -12,20 +12,22 @@ export const DomReady = new Promise(function(resolve, reject) {
   }
 });
 
-/**
- * $ returns a real JS array of DOM elements that match the CSS selector.
+/** @function $
+ *
+ * @description Returns a real JS array of DOM elements that match the CSS selector.
  *
  * @param {string} query CSS selector string.
  * @param {Element} ele The Element to start the search from.
- * @return {Array} Array of DOM Elements that match the CSS selector.
+ * @returns {Array} Array of DOM Elements that match the CSS selector.
  *
  */
 export const $ = (query, ele = document) => {
   return Array.prototype.map.call(ele.querySelectorAll(query), (e) => e);
 };
 
-/**
- * $$ returns the first DOM element that matches the CSS query selector.
+/** @function $$
+ *
+ * @description Returns the first DOM element that matches the CSS query selector.
  *
  * @param {string} query CSS selector string.
  * @param {Element} ele The Element to start the search from.
