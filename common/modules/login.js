@@ -1,13 +1,18 @@
-// A Promise that will be resolved with the users current login status.
-//
-// The resolution object looks like:
-//
-//   {
-//     "Email": "fred@example.com",
-//     "LoginURL": "https://..."
-//   }
-//
-// The Email will be the empty string if the user is not logged in.
+/** @module common/login */
+
+/**
+ * A Promise that will be resolved with the users current login status.
+ *
+ * The resolution object looks like:
+ * <pre>
+ *   {
+ *     "Email": "fred@example.com",
+ *     "LoginURL": "https://..."
+ *   }
+ * </pre>
+ *
+ * The Email will be the empty string if the user is not logged in.
+ */
 export var login = fetch('/loginstatus/', {
   credentials: 'include',
 }).then(res => {
