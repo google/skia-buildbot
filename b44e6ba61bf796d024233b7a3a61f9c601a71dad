@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47135b00_4013f127",
+        "filename": "common/jsdoc.common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T19:30:13Z",
+      "side": 1,
+      "message": "What is this pattern matching?  It\u0027s not obvious to me.",
+      "range": {
+        "startLine": 27,
+        "startChar": 21,
+        "endLine": 27,
+        "endChar": 34
+      },
+      "revId": "b44e6ba61bf796d024233b7a3a61f9c601a71dad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08e1d964_5c947aa5",
+        "filename": "common/karma.common.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T19:30:13Z",
+      "side": 1,
+      "message": "delete this phrase?",
+      "range": {
+        "startLine": 99,
+        "startChar": 31,
+        "endLine": 99,
+        "endChar": 76
+      },
+      "revId": "b44e6ba61bf796d024233b7a3a61f9c601a71dad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7235ed0d_47a2a3b1",
+        "filename": "push/modules/push-selection-sk/push-selection-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T19:30:13Z",
+      "side": 1,
+      "message": "hanging",
+      "range": {
+        "startLine": 54,
+        "startChar": 67,
+        "endLine": 54,
+        "endChar": 78
+      },
+      "revId": "b44e6ba61bf796d024233b7a3a61f9c601a71dad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
