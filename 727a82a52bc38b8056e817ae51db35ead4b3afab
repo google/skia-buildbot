@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e985b55c_399e850d",
+        "filename": "skolo/raspberry-pi/start_swarming",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-08T13:42:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c4381bb_daf355aa",
+      "revId": "727a82a52bc38b8056e817ae51db35ead4b3afab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9849dd3c_bc8b24c1",
         "filename": "skolo/raspberry-pi/start_swarming",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2018-03-08T13:28:58Z",
       "side": 1,
       "message": "If this fails, what will we see in the log?\nCan you make sure there\u0027s actionable/understandable logs if it fails 1. at the get token step, 2. connecting to swarming ?",
+      "range": {
+        "startLine": 39,
+        "startChar": 2,
+        "endLine": 39,
+        "endChar": 21
+      },
+      "revId": "727a82a52bc38b8056e817ae51db35ead4b3afab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "385c5e3d_91184819",
+        "filename": "skolo/raspberry-pi/start_swarming",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-08T13:42:48Z",
+      "side": 1,
+      "message": "I don\u0027t know where the logs for start_swarming end up, if anywhere.  If they do end up in syslog or somewhere useful, we should see a stacktrace on failure.  I guess I could write a try/except for each request and a \"helpful\" error message, but I personally prefer seeing the stacktrace, as a \"helpful\" error message just tends to obscure useful details.",
+      "parentUuid": "9849dd3c_bc8b24c1",
       "range": {
         "startLine": 39,
         "startChar": 2,
