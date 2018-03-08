@@ -2,6 +2,7 @@ package search
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"math/rand"
 	"os"
@@ -51,7 +52,7 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 		q.FRGBAMax = 255
 	}
 
-	resp, err := api.Search(q)
+	resp, err := api.Search(context.Background(), q)
 	assert.NoError(t, err)
 
 	// Serialize the response to json.
