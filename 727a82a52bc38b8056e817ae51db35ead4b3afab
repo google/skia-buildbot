@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c4381bb_daf355aa",
+        "filename": "skolo/raspberry-pi/start_swarming",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T13:28:58Z",
+      "side": 1,
+      "message": "Can you link to the (well-documented) ansible script upon which this is based?",
+      "revId": "727a82a52bc38b8056e817ae51db35ead4b3afab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9849dd3c_bc8b24c1",
+        "filename": "skolo/raspberry-pi/start_swarming",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T13:28:58Z",
+      "side": 1,
+      "message": "If this fails, what will we see in the log?\nCan you make sure there\u0027s actionable/understandable logs if it fails 1. at the get token step, 2. connecting to swarming ?",
+      "range": {
+        "startLine": 39,
+        "startChar": 2,
+        "endLine": 39,
+        "endChar": 21
+      },
+      "revId": "727a82a52bc38b8056e817ae51db35ead4b3afab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
