@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3cc0333_f85400b1",
+        "filename": "common/modules/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T15:06:16Z",
+      "side": 1,
+      "message": "find-replace bug?",
+      "range": {
+        "startLine": 32,
+        "startChar": 8,
+        "endLine": 32,
+        "endChar": 9
+      },
+      "revId": "e5a2b6d1f589d3fad9ad070bfc2379843a3ca30d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05a73589_433aa690",
+        "filename": "common/modules/confirm-dialog-sk/confirm-dialog-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T15:06:16Z",
+      "side": 1,
+      "message": "Is this the preferred idiom?  Define a class and then link it to a custom element?  Does it help out the docs?",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 41
+      },
+      "revId": "e5a2b6d1f589d3fad9ad070bfc2379843a3ca30d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
