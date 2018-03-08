@@ -29,9 +29,9 @@ const template = (ele) => html`<dialog-sk>
 * <script>
 *   (function(){
 *     $('#confirm-dialog').open("Proceed with taking over the world?").then(() => {
-*       // Do some thing on confirm.
+*       * Do some thing on confirm.
 *     }).catch(() => {
-*       // Do some thing on cancel.
+*       * Do some thing on cancel.
 *     });
 *   })();
 * </script>
