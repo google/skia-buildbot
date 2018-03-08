@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f119529_07190253",
+        "filename": "common/modules/confirm-dialog-sk/confirm-dialog-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T14:34:33Z",
+      "side": 1,
+      "message": "nit: single quotes (and below)",
+      "range": {
+        "startLine": 3,
+        "startChar": 39,
+        "endLine": 3,
+        "endChar": 40
+      },
+      "revId": "9cf901b09cf59be2242352f4d73e46f6418b1cd2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3979e0f_bb916164",
+        "filename": "common/modules/confirm-dialog-sk/confirm-dialog-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T14:34:33Z",
+      "side": 1,
+      "message": "Maybe I missed it, but I don\u0027t see the \"assert\" that makes sure it resolves",
+      "range": {
+        "startLine": 19,
+        "startChar": 8,
+        "endLine": 19,
+        "endChar": 23
+      },
+      "revId": "9cf901b09cf59be2242352f4d73e46f6418b1cd2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75112fc8_7f5f5cfa",
+        "filename": "common/modules/systemd-unit-status-sk/systemd-unit-status-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-08T14:34:33Z",
+      "side": 1,
+      "message": "moar single quote nits",
+      "range": {
+        "startLine": 3,
+        "startChar": 39,
+        "endLine": 3,
+        "endChar": 40
+      },
+      "revId": "9cf901b09cf59be2242352f4d73e46f6418b1cd2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
