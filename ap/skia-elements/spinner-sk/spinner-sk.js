@@ -1,25 +1,22 @@
+/** @module skia-elements/spinner-sk */
 import { upgradeProperty } from '../upgradeProperty'
 
-// The <spinner-sk> custom element declaration.
-//
-//  Attributes:
-//    active - Boolean attribute, if present, spinner is active.
-//
-//  Properties:
-//    active - Mirrors the 'active' attribute.
-//
-//  Events:
-//    None
-//
-//  Methods:
-//    None
-//
-//  TODO(jcgregorio) What is ARIA for a spinner?
-window.customElements.define('spinner-sk', class extends HTMLElement {
+/**
+ * <code>spinner-sk</code>
+ * <p>
+ *   An activity spinner.
+ * </p>
+ *
+ * @attr active - Boolean attribute, if present, spinner is active.
+ *
+ */
+class SpinnerSk extends HTMLElement {
+  // TODO(jcgregorio) What is ARIA for a spinner?
   connectedCallback() {
     upgradeProperty(this, 'active');
   }
 
+  /** @prop {boolean} active Mirrors the attribute 'active'. */
   get active() { return this.hasAttribute('active'); }
   set active(val) {
     if (val) {
@@ -28,4 +25,6 @@ window.customElements.define('spinner-sk', class extends HTMLElement {
       this.removeAttribute('active');
     }
   }
-});
+}
+
+window.customElements.define('spinner-sk', SpinnerSk);

@@ -1,24 +1,20 @@
-// The following custom elements are just 24x24 svg icons.
-//
-//   <icon-menu-sk>
-//   <icon-link-sk>
-//   <icon-check-sk>
-//   <icon-warning-sk>
-//   <icon-create-sk>
-//   <icon-alarm-sk>
-//
-//  Attributes:
-//    None
-//
-//  Properties:
-//    None
-//
-//  Events:
-//    None
-//
-//  Methods:
-//    None
-//
+/**
+ * @module skia-elements/icon-sk
+ * @description The following custom elements are just 24x24 svg icons.
+ *
+ * <p>
+ *   <b>These elements may change in the future.</b>
+ * </p>
+ *
+ * @example
+ * <icon-menu-sk></icon-menu-sk>
+ * <icon-link-sk></icon-link-sk>
+ * <icon-check-sk></icon-check-sk>
+ * <icon-warning-sk></icon-warning-sk>
+ * <icon-create-sk></icon-create-sk>
+ * <icon-alarm-sk></icon-alarm-sk>
+ *
+ */
 const iconSkTemplate = document.createElement('template');
 iconSkTemplate.innerHTML = `<svg class="icon-sk-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false">
   <g><path d=""></path></g>
