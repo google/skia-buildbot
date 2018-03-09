@@ -1,8 +1,6 @@
-/** @module common/select-sk */
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
-
-/**
- * <code>select-sk</code> a selection element that allows any kind of children.
+/** @module common/select-sk
+ *
+ * @description <h2><code>select-sk</code></h2>
  *
  * <p>
  *   Clicking on the children will cause them to be selected.
@@ -34,7 +32,9 @@ import { upgradeProperty } from 'skia-elements/upgradeProperty'
  *   </pre>
  *
  */
-class SelectSk extends HTMLElement {
+import { upgradeProperty } from 'skia-elements/upgradeProperty'
+
+window.customElements.define('select-sk', class extends HTMLElement {
   constructor() {
     super();
     // Keep _selection up to date by monitoring DOM changes.
@@ -113,6 +113,4 @@ class SelectSk extends HTMLElement {
     }
     this._rationalize();
   }
-}
-
-window.customElements.define('select-sk', SelectSk);
+});

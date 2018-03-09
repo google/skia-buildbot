@@ -8,6 +8,19 @@
  *
  * @param {Element} ele -The element.
  * @param {string} prop - The name of the property to upgrade.
+ *
+ * @example
+ *
+ * // Upgrade the 'duration' property if it was already set.
+ * window.customElements.define('my-element', class extends HTMLElement {
+ *   connectedCallback() {
+ *     upgradeProperty(this, 'duration');
+ *   }
+ *
+ *   get duration() { return +this.getAttribute('duration'); }
+ *   set duration(val) { this.setAttribute('duration', val); }
+ * });
+ *
  */
 export function upgradeProperty(ele, prop) {
   if (ele.hasOwnProperty(prop)) {

@@ -1,18 +1,12 @@
-/** @module skia-elements/tabs-sk */
-import { upgradeProperty } from '../upgradeProperty';
-
-// TODO(jcgregorio) Currently only sets the selected attribute on the next
-// sibling if the next sibling is a 'tabs-panel-sk'. We should also have
-// the ability to set the id of the 'tabs-panel-sk' we want to affect.
-
 /**
- * <code>tabs-sk</code>
+ * @module skia-elements/tabs-sk
+ * @description <h2><code>tabs-sk</code></h2>
  *
  * <p>
  * The tabs-sk custom element declaration, used in conjunction with button and
- * the [tabs-panel-sk]{@link module:skia-elements/tabs-sk~TabsPanelSk} element
+ * the [tabs-panel-sk]{@link module:skia-elements/tabs-panel-sk} element
  * allows you to create tabbed interfaces. The association between the buttons
- * and the tabs displayed in [tabs-panel-sk]{@link module:skia-elements/tabs-sk~TabsPanelSk}
+ * and the tabs displayed in [tabs-panel-sk]{@link module:skia-elements/tabs-panel-sk}
  * is document order, i.e. the first button shows the first panel, second
  * button shows second panel, etc.
  * </p>
@@ -36,7 +30,9 @@ import { upgradeProperty } from '../upgradeProperty';
  *        value of detail.index is the index of the selected tab.
  *
  */
-class TabsSk extends HTMLElement {
+import { upgradeProperty } from '../upgradeProperty';
+
+window.customElements.define('tabs-sk', class extends HTMLElement {
   constructor() {
     super();
   }
@@ -83,45 +79,4 @@ class TabsSk extends HTMLElement {
       this.nextElementSibling.setAttribute('selected', index);
     }
   }
-}
-
-window.customElements.define('tabs-sk', TabsSk);
-
-/**
- * <code>tabs-panel-sk</code>
- *
- * <p>
- *   See the description of [tabs-sk]{@link module:skia-elements/tabs-sk~TabsSk}.
- * </p>
- *
- * @attr selected - The index of the tab panel to display.
- *
- */
-class TabsPanelSk extends HTMLElement {
-  static get observedAttributes() {
-    return ['selected'];
-  }
-
-  connectedCallback() {
-    upgradeProperty(this, 'selected');
-  }
-
-  /** @prop {boolean} selected Mirrors the 'selected' attribute. */
-  get selected() { return this.hasAttribute('selected'); }
-  set selected(val) {
-    this.setAttribute('selected', val);
-    this._select(val);
-  }
-
-	attributeChangedCallback(name, oldValue, newValue) {
-    this._select(+newValue);
-	}
-
-  _select(index) {
-    for (let i=0; i<this.children.length; i++) {
-      this.children[i].classList.toggle('selected', i === index);
-    }
-  }
-}
-
-window.customElements.define('tabs-panel-sk', TabsPanelSk);
+});

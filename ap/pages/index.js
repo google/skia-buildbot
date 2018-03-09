@@ -9,4 +9,6 @@ import 'skia-elements/checkbox-sk';
 import 'skia-elements/radio-sk';
 import 'skia-elements/dialog-sk';
 import 'skia-elements/tabs-sk';
-import 'skia-elements/nav-sk';
+import 'skia-elements/tabs-panel-sk';
+import 'skia-elements/nav-button-sk';
+import 'skia-elements/nav-links-sk';

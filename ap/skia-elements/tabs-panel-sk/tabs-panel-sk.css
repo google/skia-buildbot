@@ -1,0 +1,16 @@
+tabs-panel-sk {
+  display: block;
+  border: solid 4px #175A87;
+  margin: 0;
+  padding: 16px;
+  margin-top: -4px;
+  border-radius: 4px;
+}
+
+tabs-panel-sk > div {
+  display: none;
+}
+
+tabs-panel-sk > div.selected {
+  display: block;
+}

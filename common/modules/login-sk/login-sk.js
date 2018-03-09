@@ -1,8 +1,6 @@
-/** @module common/login-sk */
-import { errorMessage } from 'common/errorMessage';
-import { Login } from 'common/login';
-
-/** <code>login-sk</code>
+/**
+ * @module common/login-sk
+ * @description <h2><code>login-sk</code></h2>
  *
  * <p>
  * The <login-sk> custom element. Uses the Login promise to display the
@@ -10,7 +8,10 @@ import { Login } from 'common/login';
  * {@linkcode module:common/errorMessage}.
  * </p>
  */
-class LoginSk extends HTMLElement {
+import { errorMessage } from 'common/errorMessage';
+import { Login } from 'common/login';
+
+window.customElements.define('login-sk', class extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<span class=email>Loading...</span><a class=logInOut></a>`;
     Login.then(status => {
@@ -25,6 +26,4 @@ class LoginSk extends HTMLElement {
       }
     }).catch(errorMessage);
   }
-}
-
-window.customElements.define('login-sk', LoginSk);
+});

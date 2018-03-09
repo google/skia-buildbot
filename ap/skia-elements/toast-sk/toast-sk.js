@@ -1,8 +1,6 @@
-/** @module skia-elements/toast-sk */
-import { upgradeProperty } from '../upgradeProperty'
-
 /**
- * <code>toast-sk</code>
+ * @module skia-elements/toast-sk
+ * @description <h2><code>toast-sk</code></h2>
  *
  * <p>
  *   Notification toast that pops up from the bottom of the screen
@@ -13,7 +11,9 @@ import { upgradeProperty } from '../upgradeProperty'
  *               Defaults to 5000. A value of 0 means to display
  *               forever.
  */
-class ToastSk extends HTMLElement {
+import { upgradeProperty } from '../upgradeProperty'
+
+window.customElements.define('toast-sk', class extends HTMLElement {
   constructor() {
     super();
     this._timer = null;
@@ -49,6 +49,4 @@ class ToastSk extends HTMLElement {
       this._timer = null;
     }
   }
-}
-
-window.customElements.define('toast-sk', ToastSk);
+});

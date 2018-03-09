@@ -1,7 +1,6 @@
-/** @module skia-elements/collapse-sk */
-import { upgradeProperty } from '../upgradeProperty'
-
-/** <code>collapse-sk</code>
+/**
+ * @module skia-elements/collapse-sk
+ * @description <h2><code>collapse-sk</code></h2>
  *
  * <p>
  *   Is a collapsable element, upon collapse the element and its children
@@ -12,7 +11,9 @@ import { upgradeProperty } from '../upgradeProperty'
  *     collapse, i.e., transition to display: none.
  *
  */
-class CollapseSk extends HTMLElement {
+import { upgradeProperty } from '../upgradeProperty'
+
+window.customElements.define('collapse-sk', class extends HTMLElement {
   connectedCallback() {
     upgradeProperty(this, 'closed');
   }
@@ -26,6 +27,4 @@ class CollapseSk extends HTMLElement {
       this.removeAttribute('closed');
     }
   }
-}
-
-window.customElements.define('collapse-sk', CollapseSk);
+});
