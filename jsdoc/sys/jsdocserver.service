@@ -1,0 +1,16 @@
+[Unit]
+Description=jsdocserver
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/jsdocserver \
+    --git_repo_dir=/mnt/pd0/skia \
+    --logtostderr
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+#!/bin/bash
+# Builds and serves jsdoc documentation of libraries.
+APPNAME=jsdocserver
+DESCRIPTION="Serves jsdoc built documentation."
+SYSTEMD=${APPNAME}.service
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+
+${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service      ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/jsdocserver     ${ROOT}/usr/local/bin/jsdocserver
+}
+
+source ../bash/release.sh
