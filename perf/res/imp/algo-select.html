@@ -29,6 +29,7 @@
     <iron-selector attr-for-selected="value" selected="{{algo}}" fallback-selection="kmeans">
       <div value=kmeans title="Use k-means clustering on the trace shapes.">K-Means</div>
       <div value=stepfit title="Only look for traces that step up or down at the selected commit.">StepFit</div>
+      <div value=tail title="Only look for traces with a jumping tail.">Tail</div>
     </iron-selector>
   </template>
 </dom-module>

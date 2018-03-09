@@ -63,10 +63,11 @@ type ClusterAlgo string
 const (
 	KMEANS_ALGO  ClusterAlgo = "kmeans"  // Cluster traces using k-means clustering on their shapes.
 	STEPFIT_ALGO ClusterAlgo = "stepfit" // Look at each trace individually and determing if it steps up or down.
+	TAIL_ALGO    ClusterAlgo = "tail"    // Whether a trace has a jumping tail (a step in the end)
 )
 
 var (
-	allClusterAlgos = []ClusterAlgo{KMEANS_ALGO, STEPFIT_ALGO}
+	allClusterAlgos = []ClusterAlgo{KMEANS_ALGO, STEPFIT_ALGO, TAIL_ALGO}
 )
 
 func ToClusterAlgo(s string) (ClusterAlgo, error) {
@@ -337,32 +338,38 @@ func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWi
 		}
 		cids = append(cids, withData...)
 
-		// Then check from the target forward in time.
-		lastCommit := v.LastNIndex(1)
-		lastIndex := lastCommit[0].Index
-		finalIndex := request.Offset + 1 + SPARSE_BLOCK_SEARCH_MULT*request.Radius
-		if finalIndex > lastIndex {
-			finalIndex = lastIndex
+		if request.Algo != TAIL_ALGO {
+			// Then check from the target forward in time.
+			lastCommit := v.LastNIndex(1)
+			lastIndex := lastCommit[0].Index
+			finalIndex := request.Offset + 1 + SPARSE_BLOCK_SEARCH_MULT*request.Radius
+			if finalIndex > lastIndex {
+				finalIndex = lastIndex
+			}
+			withData, err = cidsWithDataInRange(request.Offset+1, finalIndex)
+			if err != nil {
+				return nil, err
+			}
+			if len(withData) < request.Radius {
+				return nil, fmt.Errorf("Not enough sparse data after the target commit.")
+			}
+			cids = append(cids, withData[:request.Radius]...)
 		}
-		withData, err = cidsWithDataInRange(request.Offset+1, finalIndex)
-		if err != nil {
-			return nil, err
-		}
-		if len(withData) < request.Radius {
-			return nil, fmt.Errorf("Not enough sparse data after the target commit.")
-		}
-		cids = append(cids, withData[:request.Radius]...)
 
 		// Finally check backward in time.
-		startIndex := request.Offset - SPARSE_BLOCK_SEARCH_MULT*request.Radius
+		backward := request.Radius
+		if request.Algo == TAIL_ALGO {
+			backward = 2 * request.Radius
+		}
+		startIndex := request.Offset - SPARSE_BLOCK_SEARCH_MULT*backward
 		withData, err = cidsWithDataInRange(startIndex, request.Offset)
 		if err != nil {
 			return nil, err
 		}
-		if len(withData) < request.Radius {
+		if len(withData) < backward {
 			return nil, fmt.Errorf("Not enough sparse data before the target commit.")
 		}
-		withData = withData[len(withData)-request.Radius:]
+		withData = withData[len(withData)-backward:]
 		cids = append(withData, cids...)
 	} else {
 		if request.Radius <= 0 {
@@ -371,7 +378,13 @@ func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWi
 		if request.Radius > MAX_RADIUS {
 			request.Radius = MAX_RADIUS
 		}
-		for i := request.Offset - request.Radius; i <= request.Offset+request.Radius; i++ {
+		from := request.Offset - request.Radius
+		to := request.Offset + request.Radius
+		if request.Algo == TAIL_ALGO {
+			from = request.Offset - 2*request.Radius
+			to = request.Offset
+		}
+		for i := from; i <= to; i++ {
 			cids = append(cids, &cid.CommitID{
 				Source: request.Source,
 				Offset: i,
