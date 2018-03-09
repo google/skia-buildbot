@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a44632b4_677ca00b",
+        "filename": "ap/skia-elements/upgradeProperty.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-09T21:21:34Z",
+      "side": 1,
+      "message": "Show an example of this with a constructor/ connectedCallback, just to encourage the appropriate placement of this.",
+      "revId": "24e43ee4187324709acf0ff2e98ed077266fa18e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
