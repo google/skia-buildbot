@@ -1515,3 +1515,24 @@ server {
     server_name predict.skia.org;
     return 301 https://predict.skia.org$request_uri;
 }
+
+#####   jsdoc.skia.org   ###########################
+server {
+    listen      443;
+    server_name jsdoc.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/jsdoc.access.log;
+    error_log /var/log/nginx/jsdoc.error.log error;
+
+    location / {
+        proxy_pass http://skia-jsdoc:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name jsdoc.skia.org;
+    return 301 https://jsdoc.skia.org$request_uri;
+}
