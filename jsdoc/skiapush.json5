@@ -1,0 +1,10 @@
+{
+  "Servers": {
+    "skia-jsdoc": {
+      "AppNames": [
+        "pulld",
+        "jsdocserver",
+      ],
+    },
+  },
+}
