@@ -49,6 +49,7 @@
         font-size: 12px;
         font-weight: normal;
         height: 108px;
+        width: 160px;
         padding: 5px;
       }
 
@@ -348,7 +349,7 @@
       var masterIdx = -1;
       var branches = [];
       for (var b = 0; b < branch_heads.length; b++) {
-        if (branch_heads[b].name == "master") {
+        if (branch_heads[b].name === "master") {
           masterIdx = b;
           branches.push(branch_heads[b]);
         }
