@@ -1,16 +1,10 @@
-/** @module skia-elements/checkbox-sk */
-import { upgradeProperty } from '../upgradeProperty'
-
-/** <code>checkbox-sk</code>
+/**
+ * @module skia-elements/checkbox-sk
+ * @description <h2><code>checkbox-sk</code></h2>
  *
  * <p>
- * This is the implementation for both the checkbox-sk and radio-sk custom
- * element.
- * </p>
- *
- * <p>
- * The checkbox-sk and radio-sk elements each contains a native 'input'
- * element in light DOM so that they can participate in a form element.
+ *   The checkbox-sk and element contains a native 'input'
+ *   element in light DOM so that it can participate in a form element.
  * </p>
  *
  * <p>
@@ -24,17 +18,23 @@ import { upgradeProperty } from '../upgradeProperty'
  * </p>
  *
  * <p>
- *    All the normal events of a native checkbox or radio button are
- *    supported.
+ *    All the normal events of a native checkbox are supported.
  * </p>
  *
  * @attr label - A string, with no markup, that is to be used as the label for
  *            the checkbox. If you wish to have a label with markup then set
  *            'label' to the empty string and create your own
  *            <code>label</code> element in the DOM with the 'for' attribute
- *            set to match the name of the checkbox-sk or radio-sk.
+ *            set to match the name of the checkbox-sk.
+ *
+ * @prop {boolean} checked This mirrors the checked attribute.
+ * @prop {boolean} disabled This mirrors the disabled attribute.
+ * @prop {string} disabled This mirrors the name attribute.
+ * @prop {string} disabled This mirrors the label attribute.
  *
  */
+import { upgradeProperty } from '../upgradeProperty'
+
 export class CheckOrRadio extends HTMLElement {
   get _role() { return 'checkbox'; }
 
@@ -58,7 +58,6 @@ export class CheckOrRadio extends HTMLElement {
     // by the input element so that the evt.target points to 'this'?
   }
 
-  /** @prop {boolean} checked This mirrors the checked attribute. */
   get checked() { return this.hasAttribute('checked'); }
   set checked(val) {
     let isTrue = !!val;
@@ -70,7 +69,6 @@ export class CheckOrRadio extends HTMLElement {
     }
   }
 
-  /** @prop {boolean} disabled This mirrors the disabled attribute. */
   get disabled() { return this.hasAttribute('disabled'); }
   set disabled(val) {
     let isTrue = !!val;
@@ -82,14 +80,12 @@ export class CheckOrRadio extends HTMLElement {
     }
   }
 
-  /** @prop {string} disabled This mirrors the name attribute. */
   get name() { return this._input.getAttribute('name'); }
   set name(val) {
     this.setAttribute('name', val);
     this._input.setAttribute('name', val);
   }
 
-  /** @prop {string} disabled This mirrors the label attribute. */
   get label() { return this._input.getAttribute('label'); }
   set label(val) {
     this.setAttribute('label', val);
