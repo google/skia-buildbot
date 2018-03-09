@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "00f79658_82623845",
+        "filename": "scripts/check_swarming_bot_auth/check_swarming_bot_auth.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-09T15:26:46Z",
+      "side": 1,
+      "message": "nit: Provide more context.",
+      "revId": "fa1b0df725727d10f2ed5982ce69817860622fed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
