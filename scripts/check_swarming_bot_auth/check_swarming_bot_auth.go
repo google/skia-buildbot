@@ -16,7 +16,7 @@ import (
 
 var (
 	pool    = flag.String("pool", "Skia", "Which Swarming pool to use.")
-	server  = flag.String("server", "https://chromium-swarm.appspot.com", "Swarming server to use.")
+	server  = flag.String("server", "chromium-swarm.appspot.com", "Swarming server to use.")
 	workdir = flag.String("workdir", ".", "Working directory used to find the google_storage_token.data Optional, but recommended not to use CWD.")
 )
 
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Swarming API client.
-	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
+	swarmApi, err := swarming.NewApiClient(httpClient, *server)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -67,6 +67,10 @@ func main() {
 	var ip, bot, user, other []*swarming_api.SwarmingRpcsBotInfo
 	for _, b := range bots {
 		if b.AuthenticatedAs == "bot:whitelisted-ip" {
+			if len(ip) == 0 {
+				log("The following bots are IP-whitelisted:")
+			}
+			log("  %s", b.BotId)
 			ip = append(ip, b)
 		} else if strings.HasPrefix(b.AuthenticatedAs, "bot:") {
 			bot = append(bot, b)
@@ -76,6 +80,7 @@ func main() {
 			other = append(other, b)
 		}
 	}
+	log("")
 	logResult(ip, "IP whitelist")
 	logResult(bot, "as bot\t")
 	logResult(user, "as user\t")
