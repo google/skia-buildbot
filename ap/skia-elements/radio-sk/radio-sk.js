@@ -1,3 +1,9 @@
+/** @module skia-elements/radio-sk
+ *
+ * @description See the description for {@linkcode module:skia-elements/checkbox-sk}.
+ *
+ */
+
 // Note that we are importing just the class, not the whole element + CSS definition.
 import { CheckOrRadio } from '../checkbox-sk/checkbox-sk.js';
 

@@ -1,50 +1,47 @@
+/** @module skia-elements/nav-sk */
 import '../icon-sk';
 import '../buttons';
 import { upgradeProperty } from '../upgradeProperty'
 
-// The <nav-button-sk> custom element declaration.
-//
-// Allows for the creation of a pop-up menu. The actual menu is contained
-// in a sibling <nav-links-sk> element. For example:
-//
-//    <nav-button-sk></nav-button-sk>
-//    <nav-links-sk shown>
-//      <a href="">Main</a>
-//      <a href="">Triage</a>
-//      <a href="">Alerts</a>
-//    </nav-links-sk>
-//
-//  <nav-button-sk> is just a convenience that contains the hamburger menu
-//  and toggles the shown property of a sibling 'nav-links-sk'. Other types
-//  of popup menus can be created using buttons and icons directly. For
-//  example:
-//
-//    <button onclick="this.nextElementSibling.shown = true;">
-//      <icon-create-sk></icon-create-sk>
-//    </button>
-//    <nav-links-sk>
-//      <a href="">New A</a>
-//      <a href="">New B</a>
-//      <a href="">New C</a>
-//    </nav-links-sk>
-//
-//
-//  The children of 'nav-links-sk' does not have to be links, it could
-//  be other elements, such as buttons.
-//
-//  Attributes:
-//    None
-//
-//  Properties:
-//    None
-//
-//  Events:
-//    None
-//
-//  Methods:
-//    None
-//
-window.customElements.define('nav-button-sk', class extends HTMLElement {
+/**
+ * <code>nav-button-sk<code>
+ *
+ * <p>
+ *   Allows for the creation of a pop-up menu. The actual menu is contained
+ *   in a sibling <nav-links-sk> element.
+ * </p>
+ *
+ * <p>
+ *   <code>nav-button-sk</code> is just a convenience that contains the
+ *   hamburger menu and toggles the shown property of a sibling
+ *   'nav-links-sk'. Other types of popup menus can be created using buttons
+ *   and icons directly.  The children of 'nav-links-sk' do not have to be
+ *   links, they could be other elements, such as buttons.
+ * </p>
+ *
+ *
+ * @example
+ *
+ * // Using nav-button-sk:
+ * <nav-button-sk></nav-button-sk>
+ * <nav-links-sk shown>
+ *   <a href="">Main</a>
+ *   <a href="">Triage</a>
+ *   <a href="">Alerts</a>
+ * </nav-links-sk>
+ *
+ * // Using a button instead of nav-button-sk:
+ * <button onclick="this.nextElementSibling.shown = true;">
+ *   <icon-create-sk></icon-create-sk>
+ * </button>
+ * <nav-links-sk>
+ *   <a href="">New A</a>
+ *   <a href="">New B</a>
+ *   <a href="">New C</a>
+ * </nav-links-sk>
+ *
+ */
+class NavButtonSk extends HTMLElement {
   connectedCallback() {
     this.addEventListener('click', this);
     this.innerHTML = `<button><icon-menu-sk></icon-menu-sk></button>`;
@@ -62,29 +59,27 @@ window.customElements.define('nav-button-sk', class extends HTMLElement {
       }
     }
   }
-});
+}
 
-// The <nav-links-sk> custom element declaration.
-//
-// See the documentation above for nav-button-sk.
-//
-// The nav-links-sk will closed if the user presses ESC, or if focus moves off
-// of <nav-links-sk> or any of its children.
-//
-//  Attributes:
-//    shown - A boolean attribute controlling if the list of links
-//             is displayed or not.
-//
-//  Properties:
-//    shown - Mirrors the 'shown' attribute.
-//
-//  Methods:
-//    None
-//
-//  Events:
-//    closed - This event is generated when nav-links-sk is closed.
-//
-window.customElements.define('nav-links-sk', class extends HTMLElement {
+window.customElements.define('nav-button-sk', NavButtonSk);
+
+/**
+ * <code>nav-links-sk</code>
+ *
+ * <p>
+ *   See the documentation for {@link module:skia-elements/nav-sk~NavButtonSk}.
+ * </p>
+ *
+ * <p>
+ *   The nav-links-sk will be closed if the user presses ESC, or if focus
+ *   moves off of nav-links-sk or any of its children.
+ * </p>
+ *
+ * @attr shown - A boolean attribute controlling if the list of links is
+ *   displayed or not.
+ *
+ */
+class NavLinksSk extends HTMLElement {
   static get observedAttributes() {
     return ['shown'];
   }
@@ -93,6 +88,7 @@ window.customElements.define('nav-links-sk', class extends HTMLElement {
     upgradeProperty(this, 'shown');
   }
 
+  /** @prop shown {boolean} Mirrors the shown attribute. */
   get shown() { return this.hasAttribute('shown'); }
   set shown(val) {
     if (val) {
@@ -130,5 +126,6 @@ window.customElements.define('nav-links-sk', class extends HTMLElement {
       }
     }
   }
-});
+}
 
+window.customElements.define('nav-links-sk', NavLinksSk);
