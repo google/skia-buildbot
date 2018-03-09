@@ -46,6 +46,7 @@ func step() error {
 		Name:        "make",
 		Args:        []string{"docs"},
 		Dir:         path.Join(*gitRepoDir, "jsdoc"),
+		InheritEnv:  true,
 		InheritPath: false,
 		LogStderr:   true,
 		LogStdout:   true,
