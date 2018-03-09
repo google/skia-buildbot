@@ -1,8 +1,6 @@
-/** @module common/error-toast-sk */
-import 'skia-elements/toast-sk'
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
-
-/** <code>error-toast-sk</code>
+/**
+ * @module common/error-toast-sk
+ * @description <h2><code>error-toast-sk</code></h2>
  *
  * <p>
  *   Listens for 'error-sk' events that bubble up to the document and displays them.
@@ -12,6 +10,7 @@ import { upgradeProperty } from 'skia-elements/upgradeProperty'
  * <p>
  *   The 'error-sk' event should have 'detail' of the form:
  * </p>
+ *
  * <pre>
  *    {
  *      message: "The error message to display goes here.",
@@ -26,7 +25,10 @@ import { upgradeProperty } from 'skia-elements/upgradeProperty'
  *   <error-toast-sk></error-toast-sk>
  * </footer>
  */
-class ErrorToastSk extends HTMLElement {
+import 'skia-elements/toast-sk'
+import { upgradeProperty } from 'skia-elements/upgradeProperty'
+
+window.customElements.define('error-toast-sk', class extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<toast-sk></toast-sk>`;
     this._toast = this.firstElementChild;
@@ -44,6 +46,4 @@ class ErrorToastSk extends HTMLElement {
     this._toast.textContent = e.detail.message;
     this._toast.show();
   }
-}
-
-window.customElements.define('error-toast-sk', ErrorToastSk);
+});
