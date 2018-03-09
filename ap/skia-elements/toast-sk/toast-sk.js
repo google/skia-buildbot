@@ -1,27 +1,19 @@
+/** @module skia-elements/toast-sk */
 import { upgradeProperty } from '../upgradeProperty'
 
-// The <toast-sk> custom element declaration.
-//
-//   Notification toast that pops up from the bottom of the screen
-//   when shown.
-//
-//  Attributes:
-//    duration - The duration, in ms, to display the notification.
-//               Defaults to 5000. A value of 0 means to display
-//               forever.
-//
-//  Properties:
-//    duration - Mirrors the 'duration' attribute.
-//
-//  Events:
-//    None
-//
-//  Methods:
-//    show() - Displays the contents of the toast.
-//
-//    hide() - Hides the contents of the toast.
-//
-window.customElements.define('toast-sk', class extends HTMLElement {
+/**
+ * <code>toast-sk</code>
+ *
+ * <p>
+ *   Notification toast that pops up from the bottom of the screen
+ *   when shown.
+ * </p>
+ *
+ * @attr duration - The duration, in ms, to display the notification.
+ *               Defaults to 5000. A value of 0 means to display
+ *               forever.
+ */
+class ToastSk extends HTMLElement {
   constructor() {
     super();
     this._timer = null;
@@ -34,9 +26,11 @@ window.customElements.define('toast-sk', class extends HTMLElement {
     upgradeProperty(this, 'duration');
   }
 
+  /** @prop {number} duration Mirrors the duration attribute. */
   get duration() { return +this.getAttribute('duration'); }
   set duration(val) { this.setAttribute('duration', val); }
 
+  /** Displays the contents of the toast. */
   show() {
     this.setAttribute('shown', '');
     if (this.duration > 0 && !this._timer) {
@@ -47,6 +41,7 @@ window.customElements.define('toast-sk', class extends HTMLElement {
     }
   }
 
+  /** Hides the contents of the toast. */
   hide() {
     this.removeAttribute('shown');
     if (this._timer) {
@@ -54,4 +49,6 @@ window.customElements.define('toast-sk', class extends HTMLElement {
       this._timer = null;
     }
   }
-});
+}
+
+window.customElements.define('toast-sk', ToastSk);
