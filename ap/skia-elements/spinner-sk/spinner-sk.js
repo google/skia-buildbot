@@ -1,8 +1,7 @@
-/** @module skia-elements/spinner-sk */
-import { upgradeProperty } from '../upgradeProperty'
-
 /**
- * <code>spinner-sk</code>
+ * @module skia-elements/spinner-sk
+ * @decription <h2><code>spinner-sk</code></h2>
+ *
  * <p>
  *   An activity spinner.
  * </p>
@@ -10,7 +9,9 @@ import { upgradeProperty } from '../upgradeProperty'
  * @attr active - Boolean attribute, if present, spinner is active.
  *
  */
-class SpinnerSk extends HTMLElement {
+import { upgradeProperty } from '../upgradeProperty'
+
+window.customElements.define('spinner-sk', class extends HTMLElement {
   // TODO(jcgregorio) What is ARIA for a spinner?
   connectedCallback() {
     upgradeProperty(this, 'active');
@@ -25,6 +26,4 @@ class SpinnerSk extends HTMLElement {
       this.removeAttribute('active');
     }
   }
-}
-
-window.customElements.define('spinner-sk', SpinnerSk);
+});
