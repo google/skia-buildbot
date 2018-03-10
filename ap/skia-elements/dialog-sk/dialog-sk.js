@@ -1,6 +1,6 @@
-/** @module skia-elements/dialog-sk */
-
-/** <code>dialog-sk</code>
+/**
+ * @module skia-elements/dialog-sk
+ * @description <h2><code>dialog-sk</code></h2>
  *
  * <p>
  *   A custom elment that creates a dialog centered in the window.
@@ -19,7 +19,7 @@
  *
  * @evt closed - This event is generated when the dialog is closed.
  */
-class DialogSk extends HTMLElement {
+window.customElements.define('dialog-sk', class extends HTMLElement {
   static get observedAttributes() {
     return ['shown'];
   }
@@ -49,6 +49,4 @@ class DialogSk extends HTMLElement {
       this.shown = false;
     }
   }
-}
-
-window.customElements.define('dialog-sk', DialogSk);
+});
