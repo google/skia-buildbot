@@ -757,3 +757,12 @@ ALERT PredictLiveness
     summary = "Predict model building is failing ({{ $labels.instance }})",
     description = "{{ $labels.instance }} has failed to build a prediction model for the last 2 hours. https://skia.googlesource.com/buildbot/%2B/master/predict/PROD.md#build_liveness"
   }
+
+# JSDoc
+ALERT JSDocLiveness
+  IF liveness_build_s/60 > 120
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "JSDoc documentation building is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to rebuild documentation for the last 2 hours. https://skia.googlesource.com/buildbot/%2B/master/jsdoc/PROD.md#build_liveness"
+  }
