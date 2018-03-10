@@ -25,7 +25,6 @@ var (
 	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	refresh    = flag.Duration("refresh", 15*time.Minute, "The duration between doc git repo refreshes.")
-	docsDir    = flag.String("docs_dir", "", "The directory with the generated documentation.")
 	gitRepoDir = flag.String("git_repo_dir", "/tmp/buildbot", "The directory to check out the doc repo into.")
 )
 
@@ -42,6 +41,7 @@ func step() error {
 		return fmt.Errorf("Failed to clone buildbot repo: %s", err)
 	}
 
+	// Build docs.
 	buildDocsCmd := &exec.Command{
 		Name:        "make",
 		Args:        []string{"docs"},
@@ -54,6 +54,33 @@ func step() error {
 	if err := exec.Run(ctx, buildDocsCmd); err != nil {
 		return fmt.Errorf("Failed building docs: %s", err)
 	}
+
+	// Build element demo.
+	buildElementDemoCmd := &exec.Command{
+		Name:        "make",
+		Dir:         path.Join(*gitRepoDir, "ap"),
+		InheritPath: false,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+
+	if err := exec.Run(ctx, buildElementDemoCmd); err != nil {
+		return fmt.Errorf("Failed building element demos: %s", err)
+	}
+
+	// Build common demo pages.
+	buildCommonDemoCmd := &exec.Command{
+		Name:        "make",
+		Dir:         path.Join(*gitRepoDir, "common"),
+		InheritPath: false,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+
+	if err := exec.Run(ctx, buildCommonDemoCmd); err != nil {
+		return fmt.Errorf("Failed building common demos: %s", err)
+	}
+
 	liveness.Reset()
 	return nil
 }
@@ -83,10 +110,12 @@ func main() {
 		sklog.Fatalf("Failed initial checkout and doc build: %s", err)
 	}
 	go periodic()
-	if *docsDir == "" {
-		*docsDir = path.Join(*gitRepoDir, "jsdoc", "out")
-	}
-	http.HandleFunc("/", autogzip.HandleFunc(httputils.MakeResourceHandler(*docsDir)))
+	docsDir := path.Join(*gitRepoDir, "jsdoc", "out")
+	elementsDemoDir := path.Join(*gitRepoDir, "ap", "dist")
+	commonDemoDir := path.Join(*gitRepoDir, "common", "dist")
+	http.HandleFunc("/", autogzip.HandleFunc(httputils.MakeResourceHandler(docsDir)))
+	http.HandleFunc("/skia-elements", autogzip.HandleFunc(httputils.MakeResourceHandler(elementsDemoDir)))
+	http.HandleFunc("/common", autogzip.HandleFunc(httputils.MakeResourceHandler(commonDemoDir)))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
