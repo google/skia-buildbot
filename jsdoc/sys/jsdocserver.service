@@ -11,6 +11,7 @@ Restart=always
 User=default
 Group=default
 LimitNOFILE=10000
+Environment=PATH=/home/default/node/bin:/home/default/.yarn/bin:/home/default/.config/yarn/global/node_modules/.bin:/usr/local/bin:/usr/bin:/bin
 
 [Install]
 WantedBy=multi-user.target
