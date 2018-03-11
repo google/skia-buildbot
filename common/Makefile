@@ -1,4 +1,5 @@
 build:
+	yarn
 	npx webpack
 
 serve:
