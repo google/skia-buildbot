@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
+	"path"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -290,6 +292,11 @@ func MakeResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Re
 	fileServer := http.FileServer(http.Dir(resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
+		mimetype := mime.TypeByExtension(path.Ext(r.URL.Path))
+		sklog.Infof("Mimetype: %q for %q", mimetype, r.URL.Path)
+		if mimetype != "" {
+			w.Header().Add("Content-Type", mimetype)
+		}
 		fileServer.ServeHTTP(w, r)
 	}
 }
