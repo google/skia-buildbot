@@ -1,4 +1,5 @@
 default:
+	yarn
 	npx webpack
 
 release:

@@ -3,7 +3,7 @@ build:
 
 docs:
 	yarn
-	npx jsdoc -c jsdoc.config.js `find ../ap/skia-elements ../common/modules -name "*.js"`
+	npx jsdoc -c jsdoc.config.js `find ../ap/skia-elements ../common/modules ./jsdoc/README.md`
 
 push: build
 	./build_release "`git log -n1 --format=%s`"
