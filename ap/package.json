@@ -1,7 +1,7 @@
 {
   "name": "skia-elements",
   "version": "1.0.1",
-  "private": false,
+  "private": true,
   "description": "A set of light-weight custom elements with a uniform style.",
   "main": "index.js",
   "author": "",
