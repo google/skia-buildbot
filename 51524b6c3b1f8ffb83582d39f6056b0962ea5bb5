@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b8070a47_e0a420cc",
+        "filename": "skolo/go/get_oauth2_token/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-12T14:20:53Z",
+      "side": 1,
+      "message": "If it\u0027s like ssh-keys are, the last bits may have more entropy than the first ones.",
+      "range": {
+        "startLine": 84,
+        "startChar": 57,
+        "endLine": 84,
+        "endChar": 60
+      },
+      "revId": "51524b6c3b1f8ffb83582d39f6056b0962ea5bb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
