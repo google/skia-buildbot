@@ -22,6 +22,30 @@
       "revId": "51524b6c3b1f8ffb83582d39f6056b0962ea5bb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6afbf598_238af5e7",
+        "filename": "skolo/go/get_oauth2_token/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-12T14:24:28Z",
+      "side": 1,
+      "message": "Worth a try. Changed to last 8.",
+      "parentUuid": "b8070a47_e0a420cc",
+      "range": {
+        "startLine": 84,
+        "startChar": 57,
+        "endLine": 84,
+        "endChar": 60
+      },
+      "revId": "51524b6c3b1f8ffb83582d39f6056b0962ea5bb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
