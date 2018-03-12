@@ -81,5 +81,5 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	sklog.Infof("Wrote new auth token: %s", tok.AccessToken[:8])
+	sklog.Infof("Wrote new auth token: %s", tok.AccessToken[len(tok.AccessToken)-8:])
 }
