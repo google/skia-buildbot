@@ -1,9 +1,11 @@
 #! /bin/bash
 
-pushd /home/default
-
+cd $HOME
 sudo apt-get update
 sudo apt remove cmdtest # https://github.com/yarnpkg/yarn/issues/2821
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-sudo apt-get update && sudo apt-get install yarn
-echo "alias nodejs=node" >> ~/.bashrc
+wget https://nodejs.org/dist/v8.10.0/node-v8.10.0-linux-x64.tar.xz
+tar -xf node-v8.10.0-linux-x64.tar.xz
+mv node-v8.10.0-linux-x64 node
+curl -o- -L https://yarnpkg.com/install.sh | bash
+rm *.xz
+echo 'export PATH="$HOME/node/bin:$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> ~/.bashrc
