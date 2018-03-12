@@ -24,4 +24,4 @@ update-patch:
 	echo "Don't forget to publish."
 
 docs:
-	npx jsdoc -c jsdoc.config.js `find skia-elements -name "*.js"`
+	npx jsdoc -c jsdoc.config.js
