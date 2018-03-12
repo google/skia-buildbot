@@ -116,7 +116,6 @@ func main() {
 
 	// Set up the logging options.
 	logOpts := []common.Opt{
-		common.MaxOpenFiles(1048576),
 		common.PrometheusOpt(promPort),
 	}
 

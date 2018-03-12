@@ -35,7 +35,7 @@ ExecStart=/usr/local/bin/skiacorrectness-chromevr  \
 Restart=always
 User=default
 Group=default
-LimitNOFILE=10000
+LimitNOFILE=500000
 
 [Install]
 WantedBy=multi-user.target
