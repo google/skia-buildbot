@@ -87,6 +87,14 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "ParsePath", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
+	"api_path_measure": {
+		PrettyName:          "API - PathMeasure",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "caryclark",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "PathMeasure", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
 	"api_pathop": {
 		PrettyName:          "API - PathOp",
 		Status:              STABLE_FUZZER,
