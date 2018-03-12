@@ -12,10 +12,12 @@
 // Then add this to your Makefile:
 //
 //     docs:
-//         npx jsdoc -c jsdoc.config.js `find modules -name "*.js"`
+//         npx jsdoc -c jsdoc.config.js
 //
 // This config loads the element plugin which adds support
 // for @evt and @attr tags in documentation.
+//
+// It also presumes the modules exists under the './modules' directory.
 //
 // Docs will appear in the ./out directory, which should be added
 // to .gitignore.
@@ -23,4 +25,11 @@ const path = require('path');
 
 module.exports = {
   plugins: [path.resolve(__dirname, './plugins/element')],
+  source: {
+    include: ['./modules'],
+    includePattern: '.+\\.(js|md)$',
+  },
+  opts: {
+    recurse: true,
+  },
 };
