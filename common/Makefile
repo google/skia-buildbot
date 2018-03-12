@@ -29,5 +29,5 @@ continuous_desktop:
 	npx karma start &
 
 docs:
-	npx jsdoc -c jsdoc.config.js `find modules -name "*.js"`
+	npx jsdoc -r -c jsdoc.config.js
 
