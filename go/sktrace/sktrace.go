@@ -28,7 +28,7 @@ func Init(serviceName string, tokenSrc oauth2.TokenSource, local bool) error {
 	var err error
 
 	// if running local we write to the local Jaeger endpoint.
-	if !local {
+	if local {
 		jaegerOpt := jaeger.Options{
 			Endpoint:    LOCAL_JAEGER_ENDPOINT,
 			ServiceName: serviceName,
@@ -36,6 +36,7 @@ func Init(serviceName string, tokenSrc oauth2.TokenSource, local bool) error {
 		if exporter, err = jaeger.NewExporter(jaegerOpt); err != nil {
 			return sklog.FmtErrorf("Error creating Jaeger exporter: %s", err)
 		}
+		sklog.Infof("Jaeger trace exporter created.")
 	} else {
 		sdOptions := stackdriver.Options{
 			ProjectID:     common.PROJECT_ID,
@@ -44,6 +45,7 @@ func Init(serviceName string, tokenSrc oauth2.TokenSource, local bool) error {
 		if exporter, err = stackdriver.NewExporter(sdOptions); err != nil {
 			return sklog.FmtErrorf("Error creating stackdriver exporter: %s", err)
 		}
+		sklog.Infof("StackDriver trace exporter created.")
 	}
 
 	trace.RegisterExporter(exporter)

@@ -9,7 +9,6 @@ import (
 	"sort"
 
 	"github.com/skia-dev/glog"
-	"golang.org/x/sys/unix"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
@@ -87,17 +86,6 @@ func (b *baseInitOpt) init(appName string) error {
 
 func (b *baseInitOpt) order() int {
 	return 0
-}
-
-// maxOpenFiles implements Opt and sets the max number of open files for this process.
-// This probably works only on Linux, so we keep it out of the general init function above.
-type maxOpenFiles uint64
-
-func MaxOpenFiles(nFiles uint64) Opt                { return maxOpenFiles(nFiles) }
-func (m maxOpenFiles) order() int                   { return 0 }
-func (m maxOpenFiles) preinit(appName string) error { return nil }
-func (m maxOpenFiles) init(appName string) error {
-	return unix.Setrlimit(unix.RLIMIT_NOFILE, &unix.Rlimit{Cur: uint64(m), Max: uint64(m)})
 }
 
 // cloudLoggingInitOpt implements Opt for cloud logging.

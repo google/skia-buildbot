@@ -34,7 +34,7 @@ ExecStart=/usr/local/bin/skiacorrectness-public  \
 Restart=always
 User=default
 Group=default
-LimitNOFILE=10000
+LimitNOFILE=500000
 
 [Install]
 WantedBy=multi-user.target

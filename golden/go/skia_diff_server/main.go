@@ -47,7 +47,6 @@ func main() {
 
 	// Set up the options.
 	opts := []common.Opt{
-		common.MaxOpenFiles(1048576),   // Dramatically increase the number of open files for this process.
 		common.PrometheusOpt(promPort), // Enable Prometheus logging.
 	}
 
