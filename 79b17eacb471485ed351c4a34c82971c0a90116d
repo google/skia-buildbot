@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aee0d324_40849393",
+        "filename": "skolo/go/get_oauth2_token/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-12T13:38:43Z",
+      "side": 1,
+      "message": "suggestion - log the first 8-12 chars of the token",
+      "range": {
+        "startLine": 84,
+        "startChar": 1,
+        "endLine": 84,
+        "endChar": 12
+      },
+      "revId": "79b17eacb471485ed351c4a34c82971c0a90116d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
