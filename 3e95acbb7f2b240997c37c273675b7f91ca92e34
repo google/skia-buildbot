@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "aa3292e8_e4b6cb33",
+        "filename": "skolo/grep_token_logs.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-12T17:14:11Z",
+      "side": 1,
+      "message": "Huh. We have a bunch of instances of \"Google Inc\" in skia.git.",
+      "parentUuid": "c354375c_a4bf6c9a",
+      "range": {
+        "startLine": 3,
+        "startChar": 17,
+        "endLine": 3,
+        "endChar": 28
+      },
+      "revId": "3e95acbb7f2b240997c37c273675b7f91ca92e34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "64998e5e_2ef30166",
         "filename": "skolo/grep_token_logs.py",
         "patchSetId": 2
@@ -92,6 +116,30 @@
       "revId": "3e95acbb7f2b240997c37c273675b7f91ca92e34",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81cd5a35_b66eb1cb",
+        "filename": "skolo/grep_token_logs.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-12T17:14:11Z",
+      "side": 1,
+      "message": "Abbreviated.  Only the last 8 characters.",
+      "parentUuid": "4fe24bdf_6e32cc4f",
+      "range": {
+        "startLine": 30,
+        "startChar": 122,
+        "endLine": 30,
+        "endChar": 132
+      },
+      "revId": "3e95acbb7f2b240997c37c273675b7f91ca92e34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
