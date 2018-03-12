@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
@@ -68,7 +67,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	go tok.UpdateLoop(time.Hour, context.Background())
+	go tok.UpdateLoop(context.Background())
 
 	r := mux.NewRouter()
 	metadata.SetupServer(r, pm, im, tok)

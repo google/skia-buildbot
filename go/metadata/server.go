@@ -84,6 +84,7 @@ func (t *ServiceAccountToken) Update() error {
 	t.mtx.Lock()
 	defer t.mtx.Unlock()
 	t.tok = tok
+	sklog.Infof("Updated token: %s", tok.AccessToken[:8])
 	return nil
 }
 
@@ -101,7 +102,7 @@ func (t *ServiceAccountToken) Get() (*oauth2.Token, error) {
 }
 
 // UpdateLoop updates the ServiceAccountToken from the given file on a timer.
-func (t *ServiceAccountToken) UpdateLoop(freq time.Duration, ctx context.Context) {
+func (t *ServiceAccountToken) UpdateLoop(ctx context.Context) {
 	// get_oauth2_token runs every 45 minutes, and the tokens are valid for
 	// 60 minutes. Reloading the token every 10 minutes ensures that our
 	// token is always valid.
@@ -190,6 +191,7 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tok *Se
 			ExpiresInSec: int(t.Expiry.Sub(time.Now()).Seconds()),
 			TokenType:    t.TokenType,
 		}
+		sklog.Infof("Token requested by %s, serving %s", r.RemoteAddr, res.AccessToken[:8])
 		if err := json.NewEncoder(w).Encode(res); err != nil {
 			httputils.ReportError(w, r, err, "Failed to write response.")
 			return

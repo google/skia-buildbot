@@ -49,6 +49,8 @@ func checkFilePerms(fp string) error {
 func main() {
 	common.Init()
 
+	sklog.Infof("Obtaining new auth token.")
+
 	if *serviceAccountFile == "" {
 		sklog.Fatalf("--service_account_file is required.")
 	}
@@ -78,4 +80,6 @@ func main() {
 	if err := ioutil.WriteFile(*dest, b, 0644); err != nil {
 		sklog.Fatal(err)
 	}
+
+	sklog.Infof("Wrote new auth token: %s", tok.AccessToken[:8])
 }
