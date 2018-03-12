@@ -101,11 +101,12 @@ func (t *ServiceAccountToken) Get() (*oauth2.Token, error) {
 }
 
 // UpdateLoop updates the ServiceAccountToken from the given file on a timer.
-func (t *ServiceAccountToken) UpdateLoop(freq time.Duration, ctx context.Context) {
+func (t *ServiceAccountToken) UpdateLoop(ctx context.Context) {
 	// get_oauth2_token runs every 45 minutes, and the tokens are valid for
 	// 60 minutes. Reloading the token every 10 minutes ensures that our
 	// token is always valid.
 	util.RepeatCtx(10*time.Minute, ctx, func() {
+		sklog.Infof("Reading token...")
 		if err := t.Update(); err != nil {
 			sklog.Errorf("Failed to update ServiceAccountToken from file: %s", err)
 		}
@@ -173,6 +174,8 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tok *Se
 	// The service account token path does not quite follow the pattern of
 	// the other two metadata types.
 	r.HandleFunc(TOKEN_PATH, func(w http.ResponseWriter, r *http.Request) {
+		sklog.Infof("Token requested by %s", r.RemoteAddr)
+
 		t, err := tok.Get()
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to obtain key.")
