@@ -84,7 +84,7 @@ func (t *ServiceAccountToken) Update() error {
 	t.mtx.Lock()
 	defer t.mtx.Unlock()
 	t.tok = tok
-	sklog.Infof("Updated token: %s", tok.AccessToken[:8])
+	sklog.Infof("Updated token: %s", tok.AccessToken[len(tok.AccessToken)-8:])
 	return nil
 }
 
@@ -191,7 +191,7 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tok *Se
 			ExpiresInSec: int(t.Expiry.Sub(time.Now()).Seconds()),
 			TokenType:    t.TokenType,
 		}
-		sklog.Infof("Token requested by %s, serving %s", r.RemoteAddr, res.AccessToken[:8])
+		sklog.Infof("Token requested by %s, serving %s", r.RemoteAddr, res.AccessToken[len(res.AccessToken)-8:])
 		if err := json.NewEncoder(w).Encode(res); err != nil {
 			httputils.ReportError(w, r, err, "Failed to write response.")
 			return
