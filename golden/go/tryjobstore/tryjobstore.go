@@ -23,6 +23,8 @@ const (
 	// EV_TRYJOB_EXP_CHANGED is the event type that is fired when the expectations
 	// for an issue change. It sends an instance of *TryjobExpChange.
 	EV_TRYJOB_EXP_CHANGED = "tryjobstore:change"
+
+	EV_TRYJOB_UPDATED = "tryjobstore:tryjob-updated"
 )
 
 // TryjobStore define methods to store tryjob information and code review
@@ -157,7 +159,7 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatch
 
 // UpdateIssue implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateIssue(details *IssueDetails) error {
-	return c.updateIfNewer(c.getIssueKey(details.ID), details, nil, false)
+	return c.updateIfNewer(c.getIssueKey(details.ID), details, nil, false, nil)
 }
 
 // CommitIssueExp implements the TryjobStore interface.
@@ -186,7 +188,7 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 		}
 
 		issue.Commited = true
-		return c.updateIfNewer(key, issue, tx, true)
+		return c.updateIfNewer(key, issue, tx, true, nil)
 	}
 
 	_, err := c.client.RunInTransaction(context.Background(), setCommittedFn)
@@ -234,7 +236,11 @@ func (c *cloudTryjobStore) GetTryjob(issueID, buildBucketID int64) (*Tryjob, err
 
 // UpdateTryjob implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateTryjob(issueID int64, tryjob *Tryjob) error {
-	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID), tryjob, nil, false)
+	updatedFn := func() {
+		c.eventBus.Publish(EV_TRYJOB_UPDATED, tryjob, false)
+	}
+
+	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID), tryjob, nil, false, updatedFn)
 }
 
 // GetTryjobResults implements the TryjobStore interface.
@@ -660,7 +666,7 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 // transaction.
 // If tx is not nil the given transaction will be used. If force it true the item
 // will always be updated.
-func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface, tx *datastore.Transaction, force bool) error {
+func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface, tx *datastore.Transaction, force bool, updatedFn func()) error {
 	// Update the issue if the provided one is newer.
 	updateFn := func(tx *datastore.Transaction) error {
 		curr := reflect.New(reflect.TypeOf(item).Elem()).Interface()
@@ -674,6 +680,9 @@ func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface
 		}
 
 		_, err = tx.Put(key, item)
+		if (err != nil) && (updatedFn != nil) {
+			updatedFn()
+		}
 		return err
 	}
 
