@@ -5,6 +5,7 @@ package sktrace
 import (
 	"net/http"
 
+	"go.opencensus.io/exporter/jaeger"
 	"go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
 	"golang.org/x/oauth2"
@@ -14,22 +15,38 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-// TODO(stephana): Re-add Jaeger as a local option when the Go package is stable
-// again.
+const (
+	// Endpoint of the locally running Jaeger instance.
+	LOCAL_JAEGER_ENDPOINT = "http://localhost:14268"
+)
 
-// Init initializes traceing support.
-func Init(serviceName string, tokenSrc oauth2.TokenSource) error {
+// Init initializes traceing support. If local is true, tokenSrc can be nil and
+// tracing will point to a local instance of Jaeger.
+// See https://jaeger.readthedocs.io/en/latest/
+func Init(serviceName string, tokenSrc oauth2.TokenSource, local bool) error {
 	var exporter trace.Exporter
 	var err error
 
-	sdOptions := stackdriver.Options{
-		ProjectID:     common.PROJECT_ID,
-		ClientOptions: []option.ClientOption{option.WithTokenSource(tokenSrc)},
+	// if running local we write to the local Jaeger endpoint.
+	if local {
+		jaegerOpt := jaeger.Options{
+			Endpoint:    LOCAL_JAEGER_ENDPOINT,
+			ServiceName: serviceName,
+		}
+		if exporter, err = jaeger.NewExporter(jaegerOpt); err != nil {
+			return sklog.FmtErrorf("Error creating Jaeger exporter: %s", err)
+		}
+		sklog.Infof("Jaeger trace exporter created.")
+	} else {
+		sdOptions := stackdriver.Options{
+			ProjectID:     common.PROJECT_ID,
+			ClientOptions: []option.ClientOption{option.WithTokenSource(tokenSrc)},
+		}
+		if exporter, err = stackdriver.NewExporter(sdOptions); err != nil {
+			return sklog.FmtErrorf("Error creating stackdriver exporter: %s", err)
+		}
+		sklog.Infof("StackDriver trace exporter created.")
 	}
-	if exporter, err = stackdriver.NewExporter(sdOptions); err != nil {
-		return sklog.FmtErrorf("Error creating stackdriver exporter: %s", err)
-	}
-	sklog.Infof("StackDriver trace exporter created.")
 
 	trace.RegisterExporter(exporter)
 	trace.SetDefaultSampler(trace.AlwaysSample())
