@@ -33,6 +33,6 @@ lunch_cmd="lunch gce_x86_phone-eng"
 log_step "Running $lunch_cmd"
 eval $lunch_cmd
 
-mmma_cmd="mmma -j32 frameworks/base/core/jni"
+mmma_cmd="mmma -j32 frameworks/base/core/jni external/skia"
 log_step "Running $mmma_cmd"
 eval $mmma_cmd
