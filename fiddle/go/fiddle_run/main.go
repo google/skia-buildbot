@@ -106,6 +106,8 @@ func main() {
 		res.Compile.Output = output
 		serializeOutput(res)
 		return
+	} else {
+		res.Compile.Output = output
 	}
 
 	if *duration == 0 {
