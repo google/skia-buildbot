@@ -1,4 +1,6 @@
 {
+	"jumphost-internal-01": "100.115.95.131",
+
 	"jumphost-win-01": "100.115.95.132",
 
 	"jumphost-win-02": "100.115.95.133",
@@ -7,5 +9,5 @@
 
 	"jumphost-rpi-01": "100.115.95.143",
 
-	"jumphost-linux-01" "100.115.95.130"
+	"jumphost-linux-01": "100.115.95.130"
 }
