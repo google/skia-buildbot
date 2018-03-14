@@ -19,6 +19,14 @@ import (
 
 var (
 	// Default service account used for bots which connect to
+	// chrome-swarming.appspot.com.
+	chromeSwarming = &serviceAccount{
+		project:  "skia-buildbots",
+		email:    "chrome-swarming-bots@skia-buildbots.iam.gserviceaccount.com",
+		nickname: "swarming",
+	}
+
+	// Default service account used for bots which connect to
 	// chromium-swarm.appspot.com.
 	chromiumSwarm = &serviceAccount{
 		project:  "skia-swarming-bots",
@@ -29,6 +37,9 @@ var (
 	// Determines which keys go on which machines:
 	// map[jumphost_name][]*serviceAccount
 	jumphostServiceAccountMapping = map[string][]*serviceAccount{
+		"internal-01.skolo": []*serviceAccount{
+			chromeSwarming,
+		},
 		"linux-01.skolo": []*serviceAccount{
 			chromiumSwarm,
 		},
