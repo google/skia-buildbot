@@ -420,11 +420,15 @@ func run(ctx context.Context, user string, req *types.FiddleContext) (*types.Run
 	}
 	// Take the compiler output and strip off all the implementation dependant information
 	// and format it to be retured in types.RunResults.
-	if res.Compile.Errors != "" {
+	if res.Compile.Output != "" {
 		lines := strings.Split(res.Compile.Output, "\n")
 		for _, line := range lines {
 			match := parseCompilerOutput.FindAllStringSubmatch(line, -1)
 			if match == nil || len(match[0]) < 5 {
+				// Skip the ninja generated lines.
+				if strings.HasPrefix(line, "ninja:") || strings.HasPrefix(line, "[") {
+					continue
+				}
 				resp.CompileErrors = append(resp.CompileErrors, types.CompileError{
 					Text: line,
 					Line: 0,
