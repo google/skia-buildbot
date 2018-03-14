@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f552a5e4_7ad360f6",
+        "filename": "prometheus/sys/jumphost-internal-01/jumphost-prom-tunnel.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-14T18:15:27Z",
+      "side": 1,
+      "message": "Copied without modification from ../jumphost-linux-01.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "9533c0cf1aa8f8e0b36def61e16fdd500667876e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1e5cf16_1f2971db",
+        "filename": "prometheus/sys/jumphost-internal-01/jumphost-rev-prom-tunnel.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-14T18:15:27Z",
+      "side": 1,
+      "message": "Copied without modification from ../jumphost-linux-01.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "9533c0cf1aa8f8e0b36def61e16fdd500667876e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5b2c1d1_10464d0f",
+        "filename": "prometheus/sys/jumphost-internal-01/prometheus.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-14T18:15:27Z",
+      "side": 1,
+      "message": "Copied without modification from ../jumphost-linux-01.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 15
+      },
+      "revId": "9533c0cf1aa8f8e0b36def61e16fdd500667876e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f73c21b6_6cd5ee05",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-14T18:15:27Z",
+      "side": 1,
+      "message": "What needs to be set up for this to work?",
+      "range": {
+        "startLine": 330,
+        "startChar": 10,
+        "endLine": 330,
+        "endChar": 27
+      },
+      "revId": "9533c0cf1aa8f8e0b36def61e16fdd500667876e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
