@@ -293,8 +293,8 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
       </template>
     </div>
     <div on-tap="_errSelect">
-      <template is="dom-if" if="{{_hasCompileErrors(_compile_errors)}}">
-        <h2>Compilation Errors</h2>
+      <template is="dom-if" if="{{_hasCompileWarningsOrErrors(_compile_errors)}}">
+        <h2>Compilation Warnings/Errors</h2>
         <template is="dom-repeat" items="{{_compile_errors}}">
           <pre class=compile-error data-line$="{{item.line}}" data-col$="{{item.col}}">{{item.text}}</pre>
         </template>
@@ -692,10 +692,14 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
     },
 
     _hasImages: function(fiddlehash, compile_errors, runtime_error, textonly) {
-      return !textonly && fiddlehash != "" && runtime_error == "" && (compile_errors.length == 0);
+      return !textonly && fiddlehash != "" && runtime_error == "" && !this._hasCompileErrors(compile_errors);
     },
 
     _hasCompileErrors: function(compile_errors) {
+      return compile_errors.some((e) => e.text.includes("error:"));
+    },
+
+    _hasCompileWarningsOrErrors: function(compile_errors) {
       return compile_errors.length > 0;
     },
 
