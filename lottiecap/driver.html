@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=egde,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="node_modules/lottie-web/build/player/lottie.min.js" type="text/javascript" charset="utf-8"></script>
+    <style type="text/css" media="screen">
+      #anim {
+        width: 200px;
+      }
+    </style>
+</head>
+<body>
+  <div id=anim></div>
+  <script type="text/javascript" charset="utf-8">
+    let anim = lottie.loadAnimation({
+      container: document.getElementById('anim'), // the dom element that will contain the animation
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      path: 'hamburger.json', // the path to the animation json
+      rendererSettings: {
+        progressiveLoad:true,
+        preserveAspectRatio:'xMidYMid meet'
+      },
+    });
+    anim.playSegments([0, 6]);
+  </script>
+</body>
+</html>
