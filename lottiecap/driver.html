@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=egde,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="node_modules/lottie-web/build/player/lottie.min.js" type="text/javascript" charset="utf-8"></script>
+    <style type="text/css" media="screen">
+      .anim {
+        width: 200px;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+</head>
+<body>
+  <div class=anim></div>
+  <script type="text/javascript" charset="utf-8">
+    let anim = lottie.loadAnimation({
+      container: document.querySelector('.anim'), // the dom element that will contain the animation
+      renderer: 'svg',
+      loop: false,
+      autoplay: true,
+      path: 'online-offline.json', // the path to the animation json
+      rendererSettings: {
+        preserveAspectRatio:'xMidYMid meet'
+      },
+    });
+    anim.addEventListener('data_ready', e => {
+      console.log(anim.frameRate, anim.totalFrames, anim.animationData.h,  anim.animationData.w);
+      // At this point:
+      // - determine # of divs to create
+      // - framestop for each div.
+      // - create remaining divs.
+      // - attach anims to each one, each with right stopping point.
+    });
+    anim.addEventListener('enterFrame', e => {
+      console.log(e.currentTime, e.totalTime, anim.currentFrame);
+      if (Math.round(anim.currentFrame) >= 20) {
+        anim.pause();
+      }
+    });
+  </script>
+</body>
+</html>
