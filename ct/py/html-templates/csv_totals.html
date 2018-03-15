@@ -57,6 +57,7 @@
     <table border="1" cellpadding="5">
       <tr bgcolor="#CCCCFF">
         <th>Fieldname</th>
+        <th>#Webpages</th>
         <th>Total</th>
         <th>Total with Patch</th>
         <th>Percentage Change</th>
@@ -65,6 +66,7 @@
       {% for fieldname, fieldname_values in sorted_fieldnames_totals_items %}
         <tr>
           <td><a href='{{ absolute_url }}fieldname{{ forloop.counter }}.html'>{{ fieldname }}</a></td>
+          <td>{{ fieldname_values.total_webpages_reported }}</td>
           <td>{{ fieldname_values.value1|floatformat:"-3" }}</td>
           <td>{{ fieldname_values.value2|floatformat:"-3" }}</td>
           <td {% if fieldname_values.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change|floatformat:"-3" }}%</td>
