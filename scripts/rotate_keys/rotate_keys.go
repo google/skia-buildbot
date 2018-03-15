@@ -19,6 +19,14 @@ import (
 
 var (
 	// Default service account used for bots which connect to
+	// chrome-swarming.appspot.com.
+	chromeSwarming = &serviceAccount{
+		project:  "skia-buildbots",
+		email:    "chrome-swarming-bots@skia-buildbots.iam.gserviceaccount.com",
+		nickname: "swarming",
+	}
+
+	// Default service account used for bots which connect to
 	// chromium-swarm.appspot.com.
 	chromiumSwarm = &serviceAccount{
 		project:  "skia-swarming-bots",
@@ -29,6 +37,17 @@ var (
 	// Determines which keys go on which machines:
 	// map[jumphost_name][]*serviceAccount
 	jumphostServiceAccountMapping = map[string][]*serviceAccount{
+		// TODO(borenet): I get the following error when attempting to
+		// list the keys for this account, even though I'm auth'd as
+		// myself and I can do it via the UI:
+		//
+		// Permission iam.serviceAccountKeys.list is required to perform
+		// this operation on service account X.
+		//
+		// For now, I'll do it manually.
+		/*"internal-01.skolo": []*serviceAccount{
+			chromeSwarming,
+		},*/
 		"linux-01.skolo": []*serviceAccount{
 			chromiumSwarm,
 		},
@@ -107,8 +126,8 @@ func main() {
 			validAfter := time.Unix(key.ValidAfterTime.Seconds, 0)
 			validBefore := time.Unix(key.ValidBeforeTime.Seconds, 0)
 			duration := validBefore.Sub(validAfter)
-			if duration > 50*time.Hour {
-				// GCE seems to auto-generate keys with 48-hour
+			if duration > 21*24*time.Hour {
+				// GCE seems to auto-generate keys with short
 				// expirations. These do not show up on the UI.
 				// Don't mess with them and only delete the
 				// longer-lived keys which we've created.

@@ -12,6 +12,16 @@
         "pulld-not-gce",
       ],
     },
+    "jumphost-internal-01": {
+      "AppNames": [
+        "get-oauth2-token",
+        "metadata-server",
+        "prometheus-jumphost-internal-01",
+        "pulld-not-gce",
+        "router-backup",
+        "trooper-tools-internal-01",
+      ],
+    },
     "jumphost-rpi-01": {
       "AppNames": [
         "get-oauth2-token",
