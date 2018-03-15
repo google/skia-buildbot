@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -40,8 +39,9 @@ const (
 	// DefaultPollInterval is the interval at which we poll BuildBucket.
 	DefaultPollInterval = 5 * time.Minute // Interval at which we poll buildbucket
 
-	// TestBuilderPrefix is the prefix that identifies tryjobs that run tests/produce images.
-	TestBuilderPrefix = "Test-"
+	// DefaultTestBuilderRegex is the default regexp that identifies tryjobs that
+	// run tests/produce images. This will probably only work for Skia.
+	DefaultTestBuilderRegex = `^Test-`
 
 	// maxConcurrentWrites controls how many updates written concurrently to the
 	// underlying TryjobStore.
@@ -70,6 +70,9 @@ type Config struct {
 
 	// TimeWindow is the time delta that defines how far back in time BuildBucket is queried.
 	TimeWindow time.Duration
+
+	// BuilderRegexp is the regular expresstion that has to match for a builder to be included.
+	BuilderRegexp string
 }
 
 // BuildBucketState captures all tryjobs that are being run by BuildBucket.
@@ -79,10 +82,11 @@ type Config struct {
 // stored in a TryjobStore.
 type BuildBucketState struct {
 	// service client to access buildbucket.
-	service     *bb_api.Service
-	bucketName  string
-	tryjobStore tryjobstore.TryjobStore
-	gerritAPI   *gerrit.Gerrit
+	service       *bb_api.Service
+	bucketName    string
+	tryjobStore   tryjobstore.TryjobStore
+	gerritAPI     *gerrit.Gerrit
+	builderRegExp *regexp.Regexp
 }
 
 // NewBuildBucketState creates a new instance of BuildBucketState.
@@ -93,12 +97,20 @@ func NewBuildBucketState(config *Config) (IssueBuildFetcher, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// compile the regular expression to filter builders that should be ingested.
+	builderRegExp, err := regexp.Compile(config.BuilderRegexp)
+	if err != nil {
+		return nil, err
+	}
+
 	service.BasePath = config.BuildBucketURL
 	ret := &BuildBucketState{
-		service:     service,
-		bucketName:  config.BuildBucketName,
-		tryjobStore: config.TryjobStore,
-		gerritAPI:   config.GerritClient,
+		service:       service,
+		bucketName:    config.BuildBucketName,
+		tryjobStore:   config.TryjobStore,
+		gerritAPI:     config.GerritClient,
+		builderRegExp: builderRegExp,
 	}
 	if err := ret.start(config.PollInterval, config.TimeWindow); err != nil {
 		return nil, err
@@ -345,7 +357,7 @@ func (b *BuildBucketState) pollBuildBucket(buildsCh chan<- *bb_api.ApiCommonBuil
 // BuildBucket should be ignored. For example, BuildBucket can contain build jobs
 // that produce no test output.
 func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
-	return !strings.HasPrefix(params.BuilderName, TestBuilderPrefix)
+	return !b.builderRegExp.Match([]byte(params.BuilderName))
 }
 
 // startBuildPoller polls the BuildBucket immediatedly and starts a poller at the
