@@ -32,7 +32,7 @@
       }
     },
 
-    // Gold Tryjob Ingester for gold-stage.
+    // Gold Tryjob Ingester for gold-prod.
     "gold-tryjob": {
       RunEvery: "5m",
       NCommits: 10,

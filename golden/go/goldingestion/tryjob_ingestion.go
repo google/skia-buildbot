@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	gstorage "google.golang.org/api/storage/v1"
@@ -32,6 +33,7 @@ const (
 	CONFIG_BUILD_BUCKET_NAME          = "BuildBucketName"
 	CONFIG_BUILD_BUCKET_POLL_INTERVAL = "BuildBucketPollInterval"
 	CONFIG_BUILD_BUCKET_TIME_WINDOW   = "BuildBucketTimeWindow"
+	CONFIG_BUILDER_REGEX              = "BuilderRegEx"
 )
 
 // Register the ingestion Processor with the ingestion framework.
@@ -49,8 +51,8 @@ type goldTryjobProcessor struct {
 // newGoldTryjobProcessor implementes the ingestion.Constructor function.
 func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clientx *http.Client) (ingestion.Processor, error) {
 	sklog.Infof("Creating tryjob processor.")
-	gerritURL, ok := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
-	if !ok {
+	gerritURL := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
+	if strings.TrimSpace(gerritURL) == "" {
 		return nil, fmt.Errorf("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
 	}
 
@@ -72,6 +74,11 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	buildBucketName := config.ExtraParams[CONFIG_BUILD_BUCKET_NAME]
 	if (buildBucketURL == "") || (buildBucketName == "") {
 		return nil, fmt.Errorf("BuildBucketName and BuildBucketURL must not be empty.")
+	}
+
+	builderRegExp := config.ExtraParams[CONFIG_BUILDER_REGEX]
+	if builderRegExp == "" {
+		builderRegExp = bbstate.DefaultTestBuilderRegex
 	}
 
 	// Create the cloud tryjob store.
@@ -99,6 +106,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		GerritClient:    gerritReview,
 		PollInterval:    pollInterval,
 		TimeWindow:      timeWindow,
+		BuilderRegexp:   builderRegExp,
 	}
 
 	bbGerritClient, err := bbstate.NewBuildBucketState(bbConf)
