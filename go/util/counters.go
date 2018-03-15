@@ -88,10 +88,10 @@ func NewPersistentAutoDecrementCounter(file string, d time.Duration) (*Persisten
 		return nil, err
 	}
 	// Start timers for any existing counts.
-	now := timeNowFunc().UTC()
+	now := time.Now()
 	for _, t := range c.times {
 		timeAfterFunc(t.Sub(now), func() {
-			c.decLogErr()
+			c.decLogErr(t)
 		})
 	}
 	return c, nil
@@ -108,24 +108,32 @@ func (c *PersistentAutoDecrementCounter) write() error {
 func (c *PersistentAutoDecrementCounter) Inc() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	c.times = append(c.times, timeNowFunc().UTC().Add(c.duration))
+	decTime := timeNowFunc().UTC().Add(c.duration)
+	c.times = append(c.times, decTime)
 	timeAfterFunc(c.duration, func() {
-		c.decLogErr()
+		c.decLogErr(decTime)
 	})
 	return c.write()
 }
 
 // dec decrements the PersistentAutoDecrementCounter.
-func (c *PersistentAutoDecrementCounter) dec() error {
+func (c *PersistentAutoDecrementCounter) dec(t time.Time) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	c.times = c.times[1:]
-	return c.write()
+	if len(c.times) > 0 && c.times[0] == t {
+		c.times = c.times[1:]
+		return c.write()
+	}
+	if len(c.times) > 0 {
+		sklog.Warningf("First t should be the one to get deleted! %s vs %s", c.times[0], t)
+	}
+	sklog.Debugf("PersistentAutoDecrementCounter: Nothing to delete; did we get reset?")
+	return nil
 }
 
 // decLogErr decrements the PersistentAutoDecrementCounter and logs any error.
-func (c *PersistentAutoDecrementCounter) decLogErr() {
-	if err := c.dec(); err != nil {
+func (c *PersistentAutoDecrementCounter) decLogErr(t time.Time) {
+	if err := c.dec(t); err != nil {
 		sklog.Errorf("Failed to decrement PersistentAutoDecrementCounter: %s", err)
 	}
 }
@@ -135,4 +143,13 @@ func (c *PersistentAutoDecrementCounter) Get() int64 {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 	return int64(len(c.times))
+}
+
+// Reset resets the value of the PersistentAutoDecrementCounter to zero.
+func (c *PersistentAutoDecrementCounter) Reset() error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	sklog.Debugf("PersistentAutoDecrementCounter: reset.")
+	c.times = []time.Time{}
+	return c.write()
 }
