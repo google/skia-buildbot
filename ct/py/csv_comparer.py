@@ -54,10 +54,11 @@ class PageValues(object):
 
 class FieldNameValues(object):
   """Container class to hold the values of a field name."""
-  def __init__(self, value1, value2, perc_diff):
+  def __init__(self, value1, value2, perc_diff, total_webpages_reported):
     self.value1 = value1
     self.value2 = value2
     self.perc_diff = perc_diff
+    self.total_webpages_reported = total_webpages_reported
 
 
 class CsvComparer(object):
@@ -187,7 +188,7 @@ class CsvComparer(object):
 
             # Update the total in the dict.
             fieldname_values = fieldnames_to_totals.get(
-                fieldname, FieldNameValues(0, 0, 0))
+                fieldname, FieldNameValues(0, 0, 0, 0))
             fieldname_values.value1 += csv1_value
             fieldname_values.value2 += csv2_value
             fieldnames_to_totals[fieldname] = fieldname_values
@@ -275,6 +276,10 @@ class CsvComparer(object):
     # Both maps should end up with the same number of keys.
     assert set(fieldnames_to_page_values.keys()) == set(
         fieldnames_to_totals.keys())
+
+    # Set the number of reporting webpages in fieldnames_to_totals.
+    for fieldname, values in fieldnames_to_page_values.iteritems():
+      fieldnames_to_totals[fieldname].total_webpages_reported = len(values)
 
     # Done processing. Output the HTML.
     self.OutputToHTML(fieldnames_to_totals, fieldnames_to_page_values,
