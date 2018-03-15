@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5c120f7_714ec10b",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-15T20:21:09Z",
+      "side": 1,
+      "message": "Was this change intentional? I\u0027m confused why the tests still pass.",
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1fa5064_60c3d190",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-15T20:21:09Z",
+      "side": 1,
+      "message": "I think you need to do \"t :\u003d t\"",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 9
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbc1746c_7f5b2005",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-15T20:21:09Z",
+      "side": 1,
+      "message": "I see nothing in the doc of time.AfterFunc that suggests it guarantees the order in which functions are called.",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 41
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09d94afb_a1f0bce9",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-15T20:21:09Z",
+      "side": 1,
+      "message": "nit: slightly misleading, maybe change to \"persist\"",
+      "range": {
+        "startLine": 137,
+        "startChar": 26,
+        "endLine": 137,
+        "endChar": 35
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
