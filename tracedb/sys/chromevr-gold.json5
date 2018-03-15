@@ -20,5 +20,28 @@
         TraceService: "skia-tracedb:9092"
       }
     }
+  },
+
+  // Gold Tryjob Ingester for gold-chromevr.
+  "gold-tryjob": {
+    RunEvery: "5m",
+    NCommits: 10,
+    MinDays: 10,
+    StatusDir: "/mnt/pd0/chromevr-tryjob/ingest_status",
+    MetricName: "chromevr-gold-ingest-tryjob",
+    Sources: [
+      {
+        Bucket: "skia-chromevr-gm",
+        Dir: "trybot/dm-json-v1"
+      },
+    ],
+    ExtraParams: {
+      GerritCodeReviewURL: "https://chromium-review.googlesource.com",
+      BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
+      BuildBucketName: "master.tryserver.chromium.linux",
+      BuildBucketPollInterval: "10m",
+      BuildBucketTimeWindow: "5d",
+      BuilderRegEx: "^.+_vr",
+    }
   }
 }
