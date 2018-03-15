@@ -16,9 +16,16 @@ import (
 	bb_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/tryjobstore"
+)
+
+const (
+	// EV_NEW_ISSUE is an event that is sent when a tryjob is update.
+	// It's payload is the instance of Tryjob that triggered the creation.
+	EV_ISSUE_ADDED = "bbstate:issue-added"
 )
 
 // IssueBuildFetcher fetches issue and build information from the relevant services.
@@ -70,6 +77,8 @@ type Config struct {
 
 	// TimeWindow is the time delta that defines how far back in time BuildBucket is queried.
 	TimeWindow time.Duration
+
+	EventBus eventbus.EventBus
 }
 
 // BuildBucketState captures all tryjobs that are being run by BuildBucket.
@@ -83,6 +92,7 @@ type BuildBucketState struct {
 	bucketName  string
 	tryjobStore tryjobstore.TryjobStore
 	gerritAPI   *gerrit.Gerrit
+	eventBus    eventbus.EventBus
 }
 
 // NewBuildBucketState creates a new instance of BuildBucketState.
@@ -99,6 +109,7 @@ func NewBuildBucketState(config *Config) (IssueBuildFetcher, error) {
 		bucketName:  config.BuildBucketName,
 		tryjobStore: config.TryjobStore,
 		gerritAPI:   config.GerritClient,
+		eventBus:    config.EventBus,
 	}
 	if err := ret.start(config.PollInterval, config.TimeWindow); err != nil {
 		return nil, err
@@ -221,6 +232,8 @@ func (b *BuildBucketState) processBuild(build *bb_api.ApiCommonBuildMessage) (*t
 
 // updateTryjobState adds the provided tryjob information to the TryjobStore.
 func (b *BuildBucketState) updateTryjobState(params *tryjobstore.Parameters, tryjob *tryjobstore.Tryjob) error {
+	// isNew := false
+
 	// Find the existing issue in the tryjob store.
 	issue, err := b.tryjobStore.GetIssue(tryjob.IssueID, false, nil)
 	if err != nil {
@@ -230,13 +243,14 @@ func (b *BuildBucketState) updateTryjobState(params *tryjobstore.Parameters, try
 	if !issue.HasPatchset(tryjob.PatchsetID) {
 		// Make sure we have an up to date issue. Note: 'issue' might be nil
 		// if we didn't find it in the issue store.
+		// isNew = issue == nil
 		if issue, err = b.syncGerritIssue(tryjob.IssueID, tryjob.PatchsetID, issue); err != nil {
 			return err
 		}
 
 		// If the issue was not found we have a problem.
 		if issue == nil {
-			return fmt.Errorf("Issue %d was not found.", tryjob.IssueID)
+			return fmt.Errorf("Issue %d was not found", tryjob.IssueID)
 		}
 
 		// Make sure the patchset detail is present.
@@ -249,6 +263,11 @@ func (b *BuildBucketState) updateTryjobState(params *tryjobstore.Parameters, try
 	if err := b.tryjobStore.UpdateTryjob(tryjob.IssueID, tryjob); err != nil {
 		return fmt.Errorf("Error updating issue and tryjob (%d, %d). Got error: %s", tryjob.IssueID, tryjob.BuildBucketID, err)
 	}
+
+	// If isNew and we reach this point that means a new issue was created. Let's send an event.
+	// if isNew {
+	// 	b.eventBus.Publish(EV_ISSUE_ADDED, tryjob, false)
+	// }
 	return nil
 }
 
