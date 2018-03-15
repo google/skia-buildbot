@@ -117,6 +117,30 @@
       "revId": "b9f496985e5122ca8ad303919991a465a2a4a3e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19159473_72f51fb3",
+        "filename": "skolo/ip_map.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-15T13:44:24Z",
+      "side": 1,
+      "message": "SGTM!",
+      "parentUuid": "bfcf4270_3b176ee6",
+      "range": {
+        "startLine": 12,
+        "startChar": 11,
+        "endLine": 12,
+        "endChar": 16
+      },
+      "revId": "b9f496985e5122ca8ad303919991a465a2a4a3e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
