@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0568bf32_84c38de3",
+        "filename": "prometheus/sys/jumphost-internal-01/jumphost-rev-prom-tunnel.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-15T13:21:01Z",
+      "side": 1,
+      "message": "Good catch, fixed.",
+      "parentUuid": "a7fc72ad_9db37de1",
+      "range": {
+        "startLine": 15,
+        "startChar": 11,
+        "endLine": 15,
+        "endChar": 16
+      },
+      "revId": "b9f496985e5122ca8ad303919991a465a2a4a3e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "53ea5c41_cf4f040e",
         "filename": "skolo/ip_map.json",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-03-15T12:55:00Z",
       "side": 1,
       "message": "Can you sort these by ip address?",
+      "range": {
+        "startLine": 12,
+        "startChar": 11,
+        "endLine": 12,
+        "endChar": 16
+      },
+      "revId": "b9f496985e5122ca8ad303919991a465a2a4a3e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56b94389_8f7f2475",
+        "filename": "skolo/ip_map.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-15T13:21:01Z",
+      "side": 1,
+      "message": "Sure, although to me it makes more sense to sort by key rather than value.  I don\u0027t really understand the format of this file to begin with; what\u0027s the rationale for tabs instead of spaces, double line spacing, etc?",
+      "parentUuid": "53ea5c41_cf4f040e",
       "range": {
         "startLine": 12,
         "startChar": 11,
