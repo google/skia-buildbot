@@ -86,14 +86,12 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	}()
 	time.Sleep(5 * time.Second)
 
-	issue := &IssueDetails{
-		Issue: &Issue{
-			ID:      issueID,
-			Subject: "Test issue",
-			Owner:   "jdoe@example.com",
-			Updated: time.Now(),
-			Status:  "",
-		},
+	issue := &Issue{
+		ID:      issueID,
+		Subject: "Test issue",
+		Owner:   "jdoe@example.com",
+		Updated: time.Now(),
+		Status:  "",
 		PatchsetDetails: []*PatchsetDetail{
 			{ID: patchsetID},
 			{ID: patchsetID_2},
@@ -122,6 +120,12 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		foundTryjobs = append(foundTryjobs, ps.Tryjobs...)
 	}
 	assert.Equal(t, []*Tryjob{tryjob_1, tryjob_2}, foundTryjobs)
+
+	listedIssues, total, err := store.ListIssues(0, 1000)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(listedIssues))
+	assert.Equal(t, 1, total)
+	checkEqualIssue(t, issue, listedIssues[0])
 
 	// Generate instances of results
 	allTryjobs := []*Tryjob{tryjob_1, tryjob_2}
@@ -225,4 +229,20 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	foundIssue, err = store.GetIssue(issueID, false, nil)
 	assert.NoError(t, err)
 	assert.True(t, foundIssue.Commited)
+}
+
+func checkEqualIssue(t *testing.T, exp *Issue, actual *Issue) {
+	expCp := *exp
+	actCp := *actual
+
+	expCp.Updated = normalizeTimeToMs(expCp.Updated)
+	actCp.Updated = normalizeTimeToMs(actCp.Updated)
+	assert.Equal(t, &expCp, &actCp)
+}
+
+func normalizeTimeToMs(t time.Time) time.Time {
+	unixNano := t.UnixNano()
+	secs := unixNano / int64(time.Second)
+	newNanoRemainder := ((unixNano % int64(time.Second)) / int64(time.Millisecond)) * int64(time.Millisecond)
+	return time.Unix(secs, newNanoRemainder)
 }
