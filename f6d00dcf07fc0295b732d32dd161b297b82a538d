@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5707d958_3ce2dacf",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-16T12:49:38Z",
+      "side": 1,
+      "message": "Nope.  I don\u0027t know why they pass either.",
+      "parentUuid": "b5c120f7_714ec10b",
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f1fa5064_60c3d190",
         "filename": "go/util/counters.go",
         "patchSetId": 1
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "02f4d33f_fed462c1",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-16T12:49:38Z",
+      "side": 1,
+      "message": "Good catch, although this seems to work.",
+      "parentUuid": "f1fa5064_60c3d190",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 9
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dbc1746c_7f5b2005",
         "filename": "go/util/counters.go",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2018-03-15T20:21:09Z",
       "side": 1,
       "message": "I see nothing in the doc of time.AfterFunc that suggests it guarantees the order in which functions are called.",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 41
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37f0f102_87409df3",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-16T12:49:38Z",
+      "side": 1,
+      "message": "Hmm, so normally the autoroller would be calling Inc() kind of sporadically, so we shouldn\u0027t run into this, but you\u0027re right in that a different user could trigger that.  Maybe a different approach would be better?  Another approach I considered was to record the triggering time of each call to dec() and store a lastReset time.  If time.AfterFunc(...) was called before lastReset, we don\u0027t try to decrement.  WDYT?",
+      "parentUuid": "dbc1746c_7f5b2005",
       "range": {
         "startLine": 123,
         "startChar": 1,
