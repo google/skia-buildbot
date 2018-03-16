@@ -117,10 +117,18 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 	assert.NoError(t, c.Inc())
 	assert.Equal(t, int64(1), c.Get())
 
-	c2 := newCounter()
-	assert.Equal(t, int64(1), c2.Get())
+	mt.Sleep(time.Duration(0.5 * float64(d)))
 
-	mt.Sleep(time.Duration(1.5 * float64(d)))
+	assert.NoError(t, c.Inc())
+	assert.Equal(t, int64(2), c.Get())
+
+	c2 := newCounter()
+	assert.Equal(t, int64(2), c2.Get())
+
+	mt.Sleep(d)
+	assert.Equal(t, int64(1), c.Get())
+	assert.Equal(t, int64(1), c2.Get())
+	mt.Sleep(d)
 
 	assert.Equal(t, int64(0), c.Get())
 	assert.Equal(t, int64(0), c2.Get())
@@ -151,4 +159,18 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 		expect--
 		return true
 	})
+
+	// Test the Reset() functionality.
+	assert.NoError(t, c.Inc())
+	assert.Equal(t, int64(1), c.Get())
+	c2 = newCounter()
+	assert.Equal(t, int64(1), c2.Get())
+	assert.NoError(t, c.Reset())
+	assert.Equal(t, int64(0), c.Get())
+	c2 = newCounter()
+	assert.Equal(t, int64(0), c2.Get())
+
+	// Ensure that we don't go negative or crash.
+	mt.Sleep(time.Duration(1.5 * float64(d)))
+	assert.Equal(t, int64(0), c.Get())
 }
