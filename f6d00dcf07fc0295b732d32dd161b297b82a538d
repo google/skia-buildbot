@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "de4c969d_7b2f7643",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-16T14:19:58Z",
+      "side": 1,
+      "message": "If there isn\u0027t a test where len(c.times) \u003e 1 (or even if so, if all t are the same value), this wouldn\u0027t cause a test failure.",
+      "parentUuid": "02f4d33f_fed462c1",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 9
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dbc1746c_7f5b2005",
         "filename": "go/util/counters.go",
         "patchSetId": 1
@@ -119,6 +143,30 @@
       "side": 1,
       "message": "Hmm, so normally the autoroller would be calling Inc() kind of sporadically, so we shouldn\u0027t run into this, but you\u0027re right in that a different user could trigger that.  Maybe a different approach would be better?  Another approach I considered was to record the triggering time of each call to dec() and store a lastReset time.  If time.AfterFunc(...) was called before lastReset, we don\u0027t try to decrement.  WDYT?",
       "parentUuid": "dbc1746c_7f5b2005",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 41
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea0cc873_01f50fa0",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-16T14:19:58Z",
+      "side": 1,
+      "message": "I was just thinking of:\nfor i, x :\u003d range c.times {\n  if x \u003d\u003d t {\n    c.times \u003d append(c.times[:i], c.times[i+1:]...)\n    return c.write()\n  }\n}",
+      "parentUuid": "37f0f102_87409df3",
       "range": {
         "startLine": 123,
         "startChar": 1,
