@@ -336,6 +336,20 @@ func (r *AutoRoller) GetUser() string {
 	return r.rm.User()
 }
 
+// Reset all of the roller's throttle timers.
+func (r *AutoRoller) Unthrottle() error {
+	if err := r.failureThrottle.Reset(); err != nil {
+		return err
+	}
+	if err := r.safetyThrottle.Reset(); err != nil {
+		return err
+	}
+	if err := r.successThrottle.Reset(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error {
 	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, r.GetEmails(), r.cqExtraTrybots, dryRun)
