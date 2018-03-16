@@ -33,7 +33,6 @@ import (
 	"go.skia.org/infra/autoroll/go/google3"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/roller"
-	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
@@ -422,13 +421,13 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	var tc *state_machine.ThrottleConfig
+	var tc *roller.ThrottleConfig
 	if *throttleTime != "" && *throttleCount != 0 {
 		parsed, err := human.ParseDuration(*throttleTime)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		tc = &state_machine.ThrottleConfig{
+		tc = &roller.ThrottleConfig{
 			AttemptCount: *throttleCount,
 			TimeWindow:   parsed,
 		}

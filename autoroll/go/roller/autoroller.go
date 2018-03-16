@@ -25,8 +25,25 @@ import (
 )
 
 const (
+	// Throttling parameters.
+	DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT = 3
+	DEFAULT_SAFETY_THROTTLE_TIME_WINDOW   = 30 * time.Minute
+
 	EMAIL_FROM_ADDRESS = "autoroller@skia.org"
 )
+
+var (
+	SAFETY_THROTTLE_CONFIG_DEFAULT = &ThrottleConfig{
+		AttemptCount: DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT,
+		TimeWindow:   DEFAULT_SAFETY_THROTTLE_TIME_WINDOW,
+	}
+)
+
+// ThrottleConfig determines the throttling behavior for the roller.
+type ThrottleConfig struct {
+	AttemptCount int64
+	TimeWindow   time.Duration
+}
 
 // AutoRollerConfig contains configuration information for an AutoRoller.
 type AutoRollerConfig struct {
@@ -45,33 +62,35 @@ type AutoRollerConfig struct {
 	PreUploadSteps   []string
 	ServerURL        string
 	Strategy         repo_manager.NextRollStrategy
-	ThrottleConfig   *state_machine.ThrottleConfig
+	ThrottleConfig   *ThrottleConfig
 	Workdir          string
 }
 
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
-	childName        string
-	cqExtraTrybots   string
-	currentRoll      RollImpl
-	emailer          *email.GMail
-	emails           []string
-	emailsMtx        sync.RWMutex
-	gerrit           *gerrit.Gerrit
-	liveness         metrics2.Liveness
-	maxRollFrequency time.Duration
-	modeHistory      *modes.ModeHistory
-	parentName       string
-	recent           *recent_rolls.RecentRolls
-	retrieveRoll     func(context.Context, *AutoRoller, int64) (RollImpl, error)
-	rm               repo_manager.RepoManager
-	runningMtx       sync.Mutex
-	serverURL        string
-	sm               *state_machine.AutoRollStateMachine
-	status           *AutoRollStatusCache
-	statusMtx        sync.RWMutex
-	rollIntoAndroid  bool
+	childName       string
+	cqExtraTrybots  string
+	currentRoll     RollImpl
+	emailer         *email.GMail
+	emails          []string
+	emailsMtx       sync.RWMutex
+	failureThrottle *state_machine.Throttler
+	gerrit          *gerrit.Gerrit
+	liveness        metrics2.Liveness
+	modeHistory     *modes.ModeHistory
+	parentName      string
+	recent          *recent_rolls.RecentRolls
+	retrieveRoll    func(context.Context, *AutoRoller, int64) (RollImpl, error)
+	rm              repo_manager.RepoManager
+	runningMtx      sync.Mutex
+	safetyThrottle  *state_machine.Throttler
+	serverURL       string
+	sm              *state_machine.AutoRollStateMachine
+	status          *AutoRollStatusCache
+	statusMtx       sync.RWMutex
+	successThrottle *state_machine.Throttler
+	rollIntoAndroid bool
 }
 
 // newAutoRoller returns an AutoRoller instance.
@@ -86,23 +105,44 @@ func newAutoRoller(ctx context.Context, retrieveRoll func(context.Context, *Auto
 		return nil, err
 	}
 
-	arb := &AutoRoller{
-		childName:        c.ChildName,
-		cqExtraTrybots:   c.CqExtraTrybots,
-		emailer:          c.Emailer,
-		emails:           c.Emails,
-		gerrit:           c.Gerrit,
-		liveness:         metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": c.ChildPath}),
-		maxRollFrequency: c.MaxRollFrequency,
-		modeHistory:      mh,
-		parentName:       c.ParentName,
-		recent:           recent,
-		retrieveRoll:     retrieveRoll,
-		rm:               rm,
-		serverURL:        c.ServerURL,
-		status:           &AutoRollStatusCache{},
+	// Throttling counters.
+	if c.ThrottleConfig == nil {
+		c.ThrottleConfig = SAFETY_THROTTLE_CONFIG_DEFAULT
 	}
-	sm, err := state_machine.New(arb, c.Workdir, c.ThrottleConfig)
+	safetyThrottle, err := state_machine.NewThrottler(path.Join(c.Workdir, "attempt_counter"), c.ThrottleConfig.TimeWindow, c.ThrottleConfig.AttemptCount)
+	if err != nil {
+		return nil, err
+	}
+
+	failureThrottle, err := state_machine.NewThrottler(path.Join(c.Workdir, "fail_counter"), time.Hour, 1)
+	if err != nil {
+		return nil, err
+	}
+
+	successThrottle, err := state_machine.NewThrottler(path.Join(c.Workdir, "success_counter"), c.MaxRollFrequency, 1)
+	if err != nil {
+		return nil, err
+	}
+
+	arb := &AutoRoller{
+		childName:       c.ChildName,
+		cqExtraTrybots:  c.CqExtraTrybots,
+		emailer:         c.Emailer,
+		emails:          c.Emails,
+		failureThrottle: failureThrottle,
+		gerrit:          c.Gerrit,
+		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": c.ChildPath}),
+		modeHistory:     mh,
+		parentName:      c.ParentName,
+		recent:          recent,
+		retrieveRoll:    retrieveRoll,
+		rm:              rm,
+		safetyThrottle:  safetyThrottle,
+		serverURL:       c.ServerURL,
+		status:          &AutoRollStatusCache{},
+		successThrottle: successThrottle,
+	}
+	sm, err := state_machine.New(arb, c.Workdir)
 	if err != nil {
 		return nil, err
 	}
@@ -254,11 +294,6 @@ func (r *AutoRoller) SetEmails(e []string) {
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
-func (r *AutoRoller) GetMaxRollFrequency() time.Duration {
-	return r.maxRollFrequency
-}
-
-// See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) GetMode() string {
 	return r.modeHistory.CurrentMode().Mode
 }
@@ -318,6 +353,12 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun 
 	return nil
 }
 
+// Return a state_machine.Throttler indicating that we have failed to roll too many
+// times within a time period.
+func (r *AutoRoller) FailureThrottle() *state_machine.Throttler {
+	return r.failureThrottle
+}
+
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) GetCurrentRev() string {
 	return r.rm.LastRollRev()
@@ -331,6 +372,18 @@ func (r *AutoRoller) GetNextRollRev() string {
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) RolledPast(ctx context.Context, rev string) (bool, error) {
 	return r.rm.RolledPast(ctx, rev)
+}
+
+// Return a state_machine.Throttler indicating that we have attempted to upload too
+// many CLs within a time period.
+func (r *AutoRoller) SafetyThrottle() *state_machine.Throttler {
+	return r.safetyThrottle
+}
+
+// Return a state_machine.Throttler indicating whether we have successfully rolled too
+// many times within a time period.
+func (r *AutoRoller) SuccessThrottle() *state_machine.Throttler {
+	return r.successThrottle
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
