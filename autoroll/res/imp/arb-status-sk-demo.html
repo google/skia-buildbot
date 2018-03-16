@@ -291,17 +291,23 @@
     };
 
     sk.post = function(url, body) {
-      return new Promise(function(resolve, reject) {
-        var res = JSON.parse(body);
-        res["user"] = "you@google.com";
-        var validMode = fakeStatus["validModes"].indexOf(res.mode);
-        if (validMode >= 0) {
-          fakeStatus["mode"] = res;
-          resolve(JSON.stringify(fakeStatus));
-        } else {
-          reject("Invalid mode: " + res.mode + "; valid modes: " + fakeStatus["validModes"]);
-        }
-      });
+      if (url === "/json/mode") {
+        return new Promise(function(resolve, reject) {
+          var res = JSON.parse(body);
+          res["user"] = "you@google.com";
+          var validMode = fakeStatus["validModes"].indexOf(res.mode);
+          if (validMode >= 0) {
+            fakeStatus["mode"] = res;
+            resolve(JSON.stringify(fakeStatus));
+          } else {
+            reject("Invalid mode: " + res.mode + "; valid modes: " + fakeStatus["validModes"]);
+          }
+        });
+      } else if (url === "/json/unthrottle") {
+        return new Promise(function(resolve, reject) {
+          resolve();
+        });
+      }
     };
   </script>
   <link rel=import href="arb-status-sk.html">

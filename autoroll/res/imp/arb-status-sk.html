@@ -99,6 +99,9 @@
           <div class="td nowrap">Status:</div>
           <div class="td nowrap">
             <span class$="{{_statusClass(status)}}"><span class="big">{{status}}</span></span>
+            <template is="dom-if" if="{{_isThrottled(status)}}">
+              <button on-tap="_unthrottle">Force Unthrottle</button>
+            </template>
           </div>
         </div>
         <template is="dom-if" if="{{_computeShowError(_editRights,error)}}">
@@ -366,6 +369,10 @@
         return tryjob.category === "cq";
       },
 
+      _isThrottled: function(st) {
+        return st.indexOf("throttle") >= 0;
+      },
+
       _reloadChanged: function() {
         this._resetTimeout();
       },
@@ -443,6 +450,17 @@
         } else {
           return "fg-unknown";
         }
+      },
+
+      _unthrottle: function() {
+        var url = "/json/unthrottle";
+        console.log("Unthrottling: " + url);
+
+        sk.post(url).then(function(json) {
+          sk.errorMessage("Successfully unthrottled the roller. May take a minute or so to start up.")
+        }.bind(this)).catch(function(err) {
+          sk.errorMessage(err);
+        }.bind(this));
       },
 
       _update: function(json) {
