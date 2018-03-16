@@ -23,7 +23,7 @@ import (
 // IssueBuildFetcher fetches issue and build information from the relevant services.
 // This defines the interfaces of BuildBucketState and is used to mock it in tests.
 type IssueBuildFetcher interface {
-	FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.IssueDetails, *tryjobstore.Tryjob, error)
+	FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error)
 }
 
 const (
@@ -122,7 +122,7 @@ func NewBuildBucketState(config *Config) (IssueBuildFetcher, error) {
 // Gerrit and the Tryjob information from BuildBucket. This is an expensive
 // operation and should be the exception. If either does not exist in
 // Gerrit or BuildBucket the function will return an error.
-func (b *BuildBucketState) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.IssueDetails, *tryjobstore.Tryjob, error) {
+func (b *BuildBucketState) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
 	// syncTryjob will also sync the issue referenced by the tryjob.
 	tryjob, err := b.syncTryjob(buildBucketID)
 	if err != nil {
@@ -270,7 +270,7 @@ func (b *BuildBucketState) updateTryjobState(params *tryjobstore.Parameters, try
 // create a new entry in the TryjobStore.
 // If the issue identified by 'issueID' does not exist in Gerrit it will
 // return nil.
-func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *tryjobstore.IssueDetails) (*tryjobstore.IssueDetails, error) {
+func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *tryjobstore.Issue) (*tryjobstore.Issue, error) {
 	// If 'issue' is nil, we need to see if we can find it in Gerrit.
 	if issue == nil {
 		var err error
@@ -304,14 +304,14 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 // updateGerritIssue fetches issue details from Gerrit and merges them into the
 // internal representation of the Gerrit issues. If issue is nil a new instance
 // will be allocated and returned.
-func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.IssueDetails) (*tryjobstore.IssueDetails, error) {
+func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.Issue) (*tryjobstore.Issue, error) {
 	changeInfo, err := b.gerritAPI.GetIssueProperties(issueID)
 	if err != nil {
 		return nil, err
 	}
 
 	if issue == nil {
-		issue = &tryjobstore.IssueDetails{Issue: &tryjobstore.Issue{}}
+		issue = &tryjobstore.Issue{}
 	}
 
 	b.setIssueDetails(issueID, changeInfo, issue)
@@ -320,12 +320,12 @@ func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.I
 
 // setIssueDetails set the properties of the given IssueDetails from the values
 // in the Gerrit ChangeInfo.
-func (b *BuildBucketState) setIssueDetails(issueID int64, changeInfo *gerrit.ChangeInfo, issue *tryjobstore.IssueDetails) {
-	issue.Issue.ID = issueID
-	issue.Issue.Subject = changeInfo.Subject
-	issue.Issue.Owner = changeInfo.Owner.Email
-	issue.Issue.Updated = changeInfo.Updated
-	issue.Issue.URL = b.gerritAPI.Url(issueID)
+func (b *BuildBucketState) setIssueDetails(issueID int64, changeInfo *gerrit.ChangeInfo, issue *tryjobstore.Issue) {
+	issue.ID = issueID
+	issue.Subject = changeInfo.Subject
+	issue.Owner = changeInfo.Owner.Email
+	issue.Updated = changeInfo.Updated
+	issue.URL = b.gerritAPI.Url(issueID)
 	issue.Status = changeInfo.Status
 
 	// extract the patchset detail.

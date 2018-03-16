@@ -139,7 +139,7 @@
       _load: function() {
         var q = window.location.search;
         this.$.activityTrybot.startSpinner("Loading ...");
-        sk.get("/json/trybot"+q).then(JSON.parse).then(function (json) {
+        sk.get("/json/tryjob"+q).then(JSON.parse).then(function (json) {
           this._trybotEntries = json.data;
           this._replaceState(json.pagination);
           this.set('_pagination', json.pagination);
@@ -150,8 +150,8 @@
         }.bind(this));
       },
 
-      _humanDiffDate: function (timeStampSec) {
-        return sk.human.diffDate(timeStampSec * 1000);
+      _humanDiffDate: function (timeStampMs) {
+        return sk.human.diffDate(timeStampMs);
       }
     });
   </script>
