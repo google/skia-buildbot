@@ -108,6 +108,30 @@
     },
     {
       "key": {
+        "uuid": "2814d33e_90a6763f",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-16T15:07:43Z",
+      "side": 1,
+      "message": "You\u0027re right; added an extra increment before loading a new counter from the same file, and it caused a failure without \"t :\u003d t\".",
+      "parentUuid": "de4c969d_7b2f7643",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 9
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dbc1746c_7f5b2005",
         "filename": "go/util/counters.go",
         "patchSetId": 1
@@ -179,6 +203,30 @@
     },
     {
       "key": {
+        "uuid": "5d48ed33_5637e7c8",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-16T15:07:43Z",
+      "side": 1,
+      "message": "Ah, sgtm, done.",
+      "parentUuid": "ea0cc873_01f50fa0",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 41
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "09d94afb_a1f0bce9",
         "filename": "go/util/counters.go",
         "patchSetId": 1
@@ -199,6 +247,30 @@
       "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51f31ea9_626c3884",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-16T15:07:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "09d94afb_a1f0bce9",
+      "range": {
+        "startLine": 137,
+        "startChar": 26,
+        "endLine": 137,
+        "endChar": 35
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
