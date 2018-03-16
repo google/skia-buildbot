@@ -348,3 +348,8 @@ func (a *AutoRoller) SetMode(context.Context, string, string, string) error {
 
 // SetEmails is ignored for Google3 roller.
 func (a *AutoRoller) SetEmails([]string) {}
+
+// Forcibly unthrottle the roller.
+func (a *AutoRoller) Unthrottle() error {
+	return errors.New("Not implemented for Google3 roller.")
+}

@@ -99,6 +99,8 @@ type AutoRollerI interface {
 	GetStatus(isGoogler bool) *roller.AutoRollStatus
 	// Return minimal status information for the bot.
 	GetMiniStatus() *roller.AutoRollMiniStatus
+	// Forcibly unthrottle the roller.
+	Unthrottle() error
 }
 
 // Update the current sheriff list.
@@ -255,6 +257,17 @@ func miniStatusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func unthrottleHandler(w http.ResponseWriter, r *http.Request) {
+	if !login.IsGoogler(r) {
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in with an @google.com account to do that.")
+		return
+	}
+	if err := arb.Unthrottle(); err != nil {
+		httputils.ReportError(w, r, err, "Failed to unthrottle.")
+		return
+	}
+}
+
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -279,6 +292,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/mode", modeJsonHandler).Methods("POST")
 	r.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	r.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
+	r.HandleFunc("/json/unthrottle", unthrottleHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)

@@ -178,6 +178,11 @@ func (t *Throttler) IsThrottled() bool {
 	return t.c.Get() >= t.threshold
 }
 
+// Reset forcibly unthrottles the Throttler.
+func (t *Throttler) Reset() error {
+	return t.c.Reset()
+}
+
 // New returns a StateMachine for the autoroller.
 func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 	s := &AutoRollStateMachine{
