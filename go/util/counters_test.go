@@ -151,4 +151,18 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 		expect--
 		return true
 	})
+
+	// Test the Reset() functionality.
+	assert.NoError(t, c.Inc())
+	assert.Equal(t, int64(1), c.Get())
+	c2 = newCounter()
+	assert.Equal(t, int64(1), c2.Get())
+	assert.NoError(t, c.Reset())
+	assert.Equal(t, int64(0), c.Get())
+	c2 = newCounter()
+	assert.Equal(t, int64(0), c2.Get())
+
+	// Ensure that we don't go negative or crash.
+	mt.Sleep(time.Duration(1.5 * float64(d)))
+	assert.Equal(t, int64(0), c.Get())
 }
