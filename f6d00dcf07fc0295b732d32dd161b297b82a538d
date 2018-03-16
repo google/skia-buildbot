@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "40e04530_ad7054a6",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-16T15:20:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5707d958_3ce2dacf",
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f1fa5064_60c3d190",
         "filename": "go/util/counters.go",
         "patchSetId": 1
@@ -132,6 +150,30 @@
     },
     {
       "key": {
+        "uuid": "b45b6ce4_7ed906fd",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-16T15:20:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2814d33e_90a6763f",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 9
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dbc1746c_7f5b2005",
         "filename": "go/util/counters.go",
         "patchSetId": 1
@@ -224,6 +266,30 @@
       "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe8cf23b_1be3ee6b",
+        "filename": "go/util/counters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-16T15:20:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5d48ed33_5637e7c8",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 41
+      },
+      "revId": "f6d00dcf07fc0295b732d32dd161b297b82a538d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
