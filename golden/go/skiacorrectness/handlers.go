@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/tryjobstore"
+
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/sklog"
 
@@ -209,9 +211,33 @@ type TestRollup struct {
 	SampleDigest string `json:"sample_digest"`
 }
 
+// jsonTryjobListHandler returns the list of Gerrit issues that have triggered
+// or produced tryjob results recently.
+func jsonTryjobListHandler(w http.ResponseWriter, r *http.Request) {
+	var tryjobRuns []*tryjobstore.Issue
+	var total int
+
+	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	if err == nil {
+		tryjobRuns, total, err = storages.TryjobStore.ListIssues(offset, size)
+	}
+
+	if err != nil {
+		httputils.ReportError(w, r, err, "Retrieving trybot results failed.")
+		return
+	}
+
+	pagination := &httputils.ResponsePagination{
+		Offset: offset,
+		Size:   size,
+		Total:  total,
+	}
+	sendResponse(w, tryjobRuns, 200, pagination)
+}
+
 // jsonTryjobsSummaryHandler is the endpoint to get a summary of the tryjob
 // results for a Gerrit issue.
-func jsonTryjobsSummaryHandler(w http.ResponseWriter, r *http.Request) {
+func jsonTryjobSummaryHandler(w http.ResponseWriter, r *http.Request) {
 	issueID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, "ID must be valid integer.")

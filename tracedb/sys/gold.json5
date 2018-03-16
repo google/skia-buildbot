@@ -51,6 +51,7 @@
         BuildBucketName: "skia.primary",
         BuildBucketPollInterval: "10m",
         BuildBucketTimeWindow: "5d",
+        JobConfigFile: "infra/bots/cfg.json",
       }
     }
   }
