@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -284,4 +285,70 @@ cache_dir=None
 		}
 	}
 	assert.True(t, found)
+}
+
+// Verify that we include the correct bug lings.
+func TestDEPSRepoManagerBugs(t *testing.T) {
+	testutils.LargeTest(t)
+
+	project := "skiatestproject"
+
+	test := func(bugLine, expect string) {
+		// Setup.
+		ctx, wd, child, _, parent, mockRun, cleanup := setup(t)
+		defer cleanup()
+
+		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
+		assert.NoError(t, err)
+		g := setupFakeGerrit(t, wd)
+		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+		assert.NoError(t, err)
+
+		// Insert a fake entry into the repo mapping.
+		issues.REPO_PROJECT_MAPPING[parent.RepoUrl()] = project
+
+		// Make a commit with the bug entry.
+		child.AddGen(ctx, "myfile")
+		hash := child.CommitMsg(ctx, fmt.Sprintf(`Some dummy commit
+
+%s
+`, bugLine))
+
+		// Create a roll.
+		assert.NoError(t, rm.Update(ctx))
+		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), hash, emails, cqExtraTrybots, false)
+		assert.NoError(t, err)
+
+		// Verify that we passed the correct --bug argument to roll-dep.
+		foundCmd := false
+		for _, cmd := range mockRun.Commands() {
+			if strings.Contains(cmd.Name, "roll-dep") {
+				foundCmd = true
+				foundArg := false
+				for idx, arg := range cmd.Args {
+					if arg == "--bug" {
+						assert.True(t, idx+1 < len(cmd.Args))
+						foundArg = true
+						assert.Equal(t, cmd.Args[idx+1], expect)
+					}
+				}
+				if expect == "" {
+					assert.False(t, foundArg)
+				} else {
+					assert.True(t, foundArg)
+				}
+			}
+		}
+		assert.True(t, foundCmd)
+	}
+
+	// Test cases.
+	test("", "")
+	test("BUG=skiatestproject:23", "skiatestproject:23")
+	test("BUG=skiatestproject:18,skiatestproject:58", "skiatestproject:18,skiatestproject:58")
+	// No prefix defaults to "chromium", which we don't include for rolls into "skiatestproject".
+	test("BUG=skiatestproject:18,58", "skiatestproject:18")
+	test("BUG=456", "")
+	test("BUG=skia:123,chromium:4532,skiatestproject:21", "skiatestproject:21")
+	test("Bug: skiatestproject:33", "skiatestproject:33")
 }
