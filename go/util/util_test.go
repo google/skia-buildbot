@@ -401,6 +401,13 @@ func TestBugsFromCommitMsg(t *testing.T) {
 			},
 		},
 		{
+			in: "BUG=skia:1234,456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
 			in: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 
 Quisque feugiat, mi et tristique dignissim, sapien risus tristique mi, non dignissim nibh erat ut ex.
@@ -410,6 +417,67 @@ BUG=1234, skia:5678
 			out: map[string][]string{
 				"chromium": {"1234"},
 				"skia":     {"5678"},
+			},
+		},
+		{
+			in: "Bug: skia:1234",
+			out: map[string][]string{
+				"skia": {"1234"},
+			},
+		},
+		{
+			in: "Bug: skia:1234,skia:4567",
+			out: map[string][]string{
+				"skia": {"1234", "4567"},
+			},
+		},
+		{
+			in: "Bug: skia:1234,skia:4567,skia:8901",
+			out: map[string][]string{
+				"skia": {"1234", "4567", "8901"},
+			},
+		},
+		{
+			in: "Bug: 1234",
+			out: map[string][]string{
+				"chromium": {"1234"},
+			},
+		},
+		{
+			in: "Bug: skia:1234, 456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
+			in: "Bug: skia:1234,456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
+			in: "Bug: 1234,456",
+			out: map[string][]string{
+				"chromium": {"1234", "456"},
+			},
+		},
+		{
+			in: "Bug: skia:1234,chromium:456",
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234"},
+			},
+		},
+		{
+			in: `asdf
+Bug: skia:1234,456
+BUG=skia:888
+`,
+			out: map[string][]string{
+				"chromium": {"456"},
+				"skia":     {"1234", "888"},
 			},
 		},
 	}

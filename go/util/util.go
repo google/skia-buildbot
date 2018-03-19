@@ -37,7 +37,7 @@ const (
 
 	PROJECT_CHROMIUM    = "chromium"
 	BUG_DEFAULT_PROJECT = PROJECT_CHROMIUM
-	BUGS_PATTERN        = "(?m)^BUG=(.+)$"
+	BUGS_PATTERN        = "(?m)^(?:BUG=|Bug:)(.+)$"
 
 	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
 	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
@@ -767,22 +767,24 @@ func ChunkIter(s []int, chunkSize int, fn func([]int) error) error {
 // BugsFromCommitMsg parses BUG= tags from a commit message and returns them.
 func BugsFromCommitMsg(msg string) map[string][]string {
 	rv := map[string][]string{}
-	m := BUGS_REGEX.FindStringSubmatch(msg)
-	if len(m) > 1 {
-		bugs := strings.Split(m[1], ",")
-		for _, b := range bugs {
-			b = strings.Trim(b, " ")
-			split := strings.SplitN(strings.Trim(b, " "), ":", 2)
-			project := BUG_DEFAULT_PROJECT
-			bug := split[0]
-			if len(split) > 1 {
-				project = split[0]
-				bug = split[1]
+	m := BUGS_REGEX.FindAllStringSubmatch(msg, -1)
+	for _, match := range m {
+		for _, s := range match[1:] {
+			bugs := strings.Split(s, ",")
+			for _, b := range bugs {
+				b = strings.Trim(b, " ")
+				split := strings.SplitN(strings.Trim(b, " "), ":", 2)
+				project := BUG_DEFAULT_PROJECT
+				bug := split[0]
+				if len(split) > 1 {
+					project = split[0]
+					bug = split[1]
+				}
+				if rv[project] == nil {
+					rv[project] = []string{}
+				}
+				rv[project] = append(rv[project], bug)
 			}
-			if rv[project] == nil {
-				rv[project] = []string{}
-			}
-			rv[project] = append(rv[project], bug)
 		}
 	}
 	return rv
