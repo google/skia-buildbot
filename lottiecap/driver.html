@@ -64,6 +64,12 @@
 
         let main = document.querySelector('main');
 
+        let renderer = 'svg';
+        let hash = window.location.hash;
+        if (hash) {
+          renderer = hash.slice(1);
+        }
+
         // Clear out the first div now that our measurements are done.
         main.firstElementChild.remove();
 
@@ -79,7 +85,7 @@
 
           let anim = lottie.loadAnimation({
             container: div,
-            renderer: 'svg',
+            renderer: renderer,
             loop: false,
             autoplay: true,
             path: PATH,

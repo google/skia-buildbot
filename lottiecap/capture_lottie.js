@@ -9,6 +9,9 @@ const fs = require('fs');
 const commandLineArgs = require('command-line-args');
 const commandLineUsage= require('command-line-usage');
 
+// Valid values for the --renderer flag.
+const RENDERERS = ['svg', 'canvas'];
+
 const opts = [
   {
     name: 'input',
@@ -19,6 +22,11 @@ const opts = [
     name: 'output',
     typeLabel: '{underline file}',
     description: 'The captured filmstrip PNG file to write. Defaults to filmstrip.png',
+  },
+  {
+    name: 'renderer',
+    typeLabel: '{underline mode}',
+    description: 'Which renderer to use, "svg" or "canvas". Defaults to "svg".',
   },
   {
     name: 'port',
@@ -46,6 +54,7 @@ that filmstrip in a 1000x1000 PNG.`
   },
 ];
 
+// Parse and validate flags.
 const options = commandLineArgs(opts);
 
 if (!options.output) {
@@ -61,7 +70,17 @@ if (options.help) {
 }
 
 if (!options.input) {
-  console.error("You must supply a Lottie JSON filename.");
+  console.error('You must supply a Lottie JSON filename.');
+  console.log(commandLineUsage(usage));
+  process.exit(1);
+}
+
+if (!options.renderer) {
+  options.renderer = 'svg';
+}
+
+if (!RENDERERS.includes(options.renderer)) {
+  console.error('The --renderer flag must have as a value one of: ', RENDERERS);
   console.log(commandLineUsage(usage));
   process.exit(1);
 }
@@ -89,7 +108,7 @@ async function driveBrowser() {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   console.log('- Loading our Lottie exercising page.');
-  await page.goto('http://localhost:' + options.port + '/', {waitUntil: 'networkidle2'});
+  await page.goto('http://localhost:' + options.port + '/' + '#' + options.renderer, {waitUntil: 'networkidle2'});
   console.log('- Waiting for all the tiles to be drawn.');
   await page.waitForFunction('window._tileCount === 25');
   console.log('- Taking screenshot.');
