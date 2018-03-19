@@ -124,6 +124,21 @@ func PDFium() *gce.Instance {
 	return vm
 }
 
+func Flutter() *gce.Instance {
+	vm := AutoRollBase("flutter-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"rmistry@google.com",
+		"brianosman@google.com",
+	}
+	vm.ServiceAccount = "skia-flutter-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+
+	// TODO(rmistry): Will need some sort of setup
+	//_, filename, _, _ := runtime.Caller(0)
+	//dir := path.Dir(filename)
+	//vm.SetupScript = path.Join(dir, "setup-script-github.sh")
+	return vm
+}
+
 func Fuchsia() *gce.Instance {
 	vm := AutoRollBase("fuchsia-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -225,6 +240,7 @@ func main() {
 		"catapult":              Catapult(),
 		"chromite-chromium":     Chromite_Chromium(),
 		"depot-tools-chromium":  DepotTools_Chromium(),
+		"flutter":               Flutter(),
 		"fuchsia":               Fuchsia(),
 		"google3":               Google3(),
 		"ios-internal-chromium": IosInternal_Chromium(),
