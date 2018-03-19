@@ -129,7 +129,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
 		issueResp = &IssueSearchResponse{}
-		inter, issueResp.Issue, issueResp.QueryPatchsets, err = s.queryIssue(ctx, q, idx, exp)
+		inter, issueResp.Issue, issueResp.QueryPatchsets, err = s.queryIssue(ctx, q, s.storages.WhiteListQuery, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
@@ -297,7 +297,7 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, []int64, error) {
+func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery paramtools.ParamSet, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, []int64, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
 	defer span.End()
 
@@ -332,6 +332,17 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.Searc
 		for _, oneTryjob := range tjResults {
 			for idx, trj := range oneTryjob {
 				if ignoreMatcher.MatchAny(trj.Params) {
+					oneTryjob[idx] = nil
+				}
+			}
+		}
+	}
+
+	// If we have a white list filter out anything that is not on the white list.
+	if len(whiteListQuery) > 0 {
+		for _, oneTryjob := range tjResults {
+			for idx, trj := range oneTryjob {
+				if (trj != nil) && !whiteListQuery.Matches(trj.Params) {
 					oneTryjob[idx] = nil
 				}
 			}
