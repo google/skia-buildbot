@@ -42,6 +42,7 @@ type Storage struct {
 	GerritAPI         *gerrit.Gerrit
 	GStorageClient    *GStorageClient
 	Git               *gitinfo.GitInfo
+	WhiteListQuery    paramtools.ParamSet
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
@@ -53,7 +54,6 @@ type Storage struct {
 	lastIgnoreRev          int64
 	lastIgnoreRules        paramtools.ParamMatcher
 	mutex                  sync.Mutex
-	whiteListQuery         url.Values
 }
 
 // CanWriteBaseline returns true if this instance was configured to write baseline files.
@@ -132,13 +132,13 @@ func (s *Storage) LoadWhiteList(fName string) error {
 	}
 	defer util.Close(f)
 
-	if err := json5.NewDecoder(f).Decode(&s.whiteListQuery); err != nil {
+	if err := json5.NewDecoder(f).Decode(&s.WhiteListQuery); err != nil {
 		return err
 	}
 
 	// Make sure the whitelist is not empty.
 	empty := true
-	for _, values := range s.whiteListQuery {
+	for _, values := range s.WhiteListQuery {
 		if empty = len(values) == 0; !empty {
 			break
 		}
@@ -313,7 +313,7 @@ func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.
 // getWhiteListedTile creates a new tile from the given tile that contains
 // only traces that match the whitelist that was loaded earlier.
 func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
-	if s.whiteListQuery == nil {
+	if s.WhiteListQuery == nil {
 		return tile
 	}
 
@@ -327,7 +327,7 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 	// Build the paramset in the process.
 	paramSet := paramtools.ParamSet{}
 	for traceID, trace := range tile.Traces {
-		if tiling.Matches(trace, s.whiteListQuery) {
+		if tiling.Matches(trace, url.Values(s.WhiteListQuery)) {
 			ret.Traces[traceID] = trace
 			paramSet.AddParams(trace.Params())
 		}
