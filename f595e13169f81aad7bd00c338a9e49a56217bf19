@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab525320_b6d16b32",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-19T12:18:22Z",
+      "side": 1,
+      "message": "nits: wrap comments to 100 cols",
+      "range": {
+        "startLine": 92,
+        "startChar": 93,
+        "endLine": 92,
+        "endChar": 99
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00fab51e_8d5e11d6",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-19T12:18:22Z",
+      "side": 1,
+      "message": "why not !\u003d ?",
+      "range": {
+        "startLine": 232,
+        "startChar": 18,
+        "endLine": 232,
+        "endChar": 19
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5888ef7_8dd58dad",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-19T12:18:22Z",
+      "side": 1,
+      "message": "It\u0027s not clear to me what this int represents",
+      "range": {
+        "startLine": 34,
+        "startChar": 41,
+        "endLine": 34,
+        "endChar": 44
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6daf1d8_a2adcfb7",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-19T12:18:22Z",
+      "side": 1,
+      "message": "Should this be zero?",
+      "range": {
+        "startLine": 122,
+        "startChar": 21,
+        "endLine": 122,
+        "endChar": 26
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
