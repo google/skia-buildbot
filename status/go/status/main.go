@@ -615,6 +615,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func lkgrHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
 	if _, err := w.Write([]byte(lkgrObj.Get())); err != nil {
 		httputils.ReportError(w, r, err, "Failed to write response.")
 		return
