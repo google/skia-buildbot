@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "e0585f2c_3602a129",
+        "filename": "go/util/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-19T14:46:01Z",
+      "side": 1,
+      "message": "It\u0027s a non-capturing group, see https://github.com/google/re2/wiki/Syntax",
+      "parentUuid": "006845b8_fe6e1007",
+      "range": {
+        "startLine": 40,
+        "startChar": 29,
+        "endLine": 40,
+        "endChar": 42
+      },
+      "revId": "ae1dfe868aff48be435d04cb810b8173d84b59eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1d2af031_c1cbb255",
         "filename": "go/util/util_test.go",
         "patchSetId": 1
@@ -60,6 +84,24 @@
       "writtenOn": "2018-03-19T14:24:13Z",
       "side": 1,
       "message": "Should we also add tests for Bug: 1234,456\nand Bug: skia:1234,chromium:456\n?",
+      "revId": "ae1dfe868aff48be435d04cb810b8173d84b59eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff2f2d8d_0a154b1b",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-19T14:46:01Z",
+      "side": 1,
+      "message": "Sure, done.  Also realized that the current implementation doesn\u0027t support multiple \"Bug: \" lines. Fixed.",
+      "parentUuid": "1d2af031_c1cbb255",
       "revId": "ae1dfe868aff48be435d04cb810b8173d84b59eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
