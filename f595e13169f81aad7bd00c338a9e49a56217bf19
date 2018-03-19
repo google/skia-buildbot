@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8bf99900_c4313521",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-19T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ab525320_b6d16b32",
+      "range": {
+        "startLine": 92,
+        "startChar": 93,
+        "endLine": 92,
+        "endChar": 99
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00fab51e_8d5e11d6",
         "filename": "golden/go/goldingestion/tryjob_ingestion.go",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2018-03-19T12:18:22Z",
       "side": 1,
       "message": "why not !\u003d ?",
+      "range": {
+        "startLine": 232,
+        "startChar": 18,
+        "endLine": 232,
+        "endChar": 19
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ea16543_3b10e982",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-19T13:27:54Z",
+      "side": 1,
+      "message": "The status is ordered and the idea is only to move from a \"lower\" status to a higher one. \ne.g. once a tryjob has been marked ingested it should never go back \"completed\" because ingested implies completed. This routine might be called redundantly with potentially old data and this prevents it from slipping backwards.",
+      "parentUuid": "00fab51e_8d5e11d6",
       "range": {
         "startLine": 232,
         "startChar": 18,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "18c6fd68_115fc6fc",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-19T13:27:54Z",
+      "side": 1,
+      "message": "They are for pagination. I added documentation about offset, size and also the second return value which is the total number of items available.",
+      "parentUuid": "f5888ef7_8dd58dad",
+      "range": {
+        "startLine": 34,
+        "startChar": 41,
+        "endLine": 34,
+        "endChar": 44
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b6daf1d8_a2adcfb7",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 8
@@ -82,6 +154,30 @@
       "writtenOn": "2018-03-19T12:18:22Z",
       "side": 1,
       "message": "Should this be zero?",
+      "range": {
+        "startLine": 122,
+        "startChar": 21,
+        "endLine": 122,
+        "endChar": 26
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58b6f28e_2db739d3",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-19T13:27:54Z",
+      "side": 1,
+      "message": "No. That should always be the total number of items in the database, since it\u0027s used for pagination.",
+      "parentUuid": "b6daf1d8_a2adcfb7",
       "range": {
         "startLine": 122,
         "startChar": 21,
