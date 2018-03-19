@@ -198,7 +198,7 @@ func main() {
 	}
 
 	// Set up tracing via the sktrace.
-	if err := sktrace.Init("gold", tokenSource, *local); err != nil {
+	if err := sktrace.Init("gold", tokenSource); err != nil {
 		sklog.Fatalf("Failure setting up tracing: %s", err)
 	}
 
