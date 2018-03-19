@@ -1,6 +1,7 @@
 package tryjobstore
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -57,25 +58,36 @@ type newerInterface interface {
 
 // Issue captures information about a single code review issue.
 type Issue struct {
-	ID      int64     `json:"id"`
-	Subject string    `json:"subject"`
-	Owner   string    `json:"owner"`
-	Updated time.Time `json:"updated"`
-	URL     string    `json:"url"`
-	Status  string    `json:"status"`
-}
-
-// IssueDetails extends Issue with information about Patchsets, which in turn
-// contain information about tryjobs for patchsets.
-type IssueDetails struct {
-	*Issue
+	ID              int64             `json:"id"`
+	Subject         string            `json:"subject"`
+	Owner           string            `json:"owner"`
+	Updated         time.Time         `json:"updated"`
+	URL             string            `json:"url"`
+	Status          string            `json:"status"`
 	PatchsetDetails []*PatchsetDetail `json:"patchsets"`
 	Commited        bool
-	clean           bool
+
+	clean bool
 }
 
+// MarshalJSON implements the Marshaller interface in encoding/json.
+func (is *Issue) MarshalJSON() ([]byte, error) {
+	// Create a wrapping struct around the Tryjob that produces the correct output.
+	temp := struct {
+		*wrapIssue
+		Updated TimeJsonMs `json:"updated"` // Override the Updated field to produce a timestamp in MS.
+	}{
+		wrapIssue: (*wrapIssue)(is),
+		Updated:   TimeJsonMs(is.Updated),
+	}
+	return json.Marshal(&temp)
+}
+
+// wrapIssue is a dummy type to avoid recursive call to Tryjob.MarshallJSON
+type wrapIssue Issue
+
 // HasPatchset returns true if the issue has the given patchset.
-func (is *IssueDetails) HasPatchset(patchsetID int64) bool {
+func (is *Issue) HasPatchset(patchsetID int64) bool {
 	if is == nil {
 		return false
 	}
@@ -84,7 +96,7 @@ func (is *IssueDetails) HasPatchset(patchsetID int64) bool {
 }
 
 // findPatchset returns the patchset for the issue.
-func (is *IssueDetails) findPatchset(id int64) *PatchsetDetail {
+func (is *Issue) findPatchset(id int64) *PatchsetDetail {
 	for _, psd := range is.PatchsetDetails {
 		if psd.ID == id {
 			return psd
@@ -94,7 +106,7 @@ func (is *IssueDetails) findPatchset(id int64) *PatchsetDetail {
 }
 
 // UpdatePatchset merges the given patchset information into this issue.
-func (is *IssueDetails) UpdatePatchsets(patchsets []*PatchsetDetail) {
+func (is *Issue) UpdatePatchsets(patchsets []*PatchsetDetail) {
 	if is.PatchsetDetails == nil {
 		is.PatchsetDetails = make([]*PatchsetDetail, 0, len(patchsets))
 	}
@@ -114,8 +126,8 @@ func (is *IssueDetails) UpdatePatchsets(patchsets []*PatchsetDetail) {
 }
 
 // newer implments newerInterface.
-func (is *IssueDetails) newer(right interface{}) bool {
-	return is.Updated.After(right.(*IssueDetails).Updated)
+func (is *Issue) newer(right interface{}) bool {
+	return is.Updated.After(right.(*Issue).Updated)
 }
 
 // PatchsetDetails accumulates information about one patchset and the connected
@@ -132,8 +144,15 @@ type Tryjob struct {
 	PatchsetID    int64        `json:"patchsetID"`
 	Builder       string       `json:"builder"`
 	Status        TryjobStatus `json:"status"`
-	Updated       time.Time    `json:"updated"`
+	Updated       time.Time    `json:"-"`
 	MasterCommit  string       `json:"masterCommit"`
+}
+
+type TimeJsonMs time.Time
+
+func (j TimeJsonMs) MarshalJSON() ([]byte, error) {
+	val := time.Time(j).UnixNano() / int64(time.Millisecond)
+	return json.Marshal(val)
 }
 
 // String returns a string representation for the Tryjob

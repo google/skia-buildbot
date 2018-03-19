@@ -30,7 +30,8 @@ ExecStart=/usr/local/bin/skiacorrectness-chromevr  \
     --hashes_gs_path=skia-chromevr-gm/hash_files/gold-chromevr-hashes.txt \
     --baseline_gs_path=skia-chromevr-gm/hash_files/gold-chromevr-baseline.json \
     --public_whitelist=${RESOURCE_DIR}/skiacorrectness-chromevr-whitelist.json5 \
-    --force_login=false
+    --force_login=false \
+    --ds_namespace=gold-chromevr
 
 Restart=always
 User=default
