@@ -2,15 +2,19 @@ package goldingestion
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/skia-dev/glog"
 	gstorage "google.golang.org/api/storage/v1"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
@@ -34,6 +38,7 @@ const (
 	CONFIG_BUILD_BUCKET_POLL_INTERVAL = "BuildBucketPollInterval"
 	CONFIG_BUILD_BUCKET_TIME_WINDOW   = "BuildBucketTimeWindow"
 	CONFIG_BUILDER_REGEX              = "BuilderRegEx"
+	CONFIG_JOB_CFG_FILE               = "JobConfigFile"
 )
 
 // Register the ingestion Processor with the ingestion framework.
@@ -46,6 +51,9 @@ func init() {
 type goldTryjobProcessor struct {
 	issueBuildFetcher bbstate.IssueBuildFetcher
 	tryjobStore       tryjobstore.TryjobStore
+	eventBus          eventbus.EventBus
+	vcs               vcsinfo.VCS
+	cfgFile           string
 }
 
 // newGoldTryjobProcessor implementes the ingestion.Constructor function.
@@ -81,8 +89,13 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		builderRegExp = bbstate.DefaultTestBuilderRegex
 	}
 
+	// Get the config file in the repo that should be parsed to determine whether a
+	// bot uploads results. Currently only applies to the Skia repo.
+	cfgFile := config.ExtraParams[CONFIG_JOB_CFG_FILE]
+
 	// Create the cloud tryjob store.
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, nil)
+	eventBus := eventbus.New()
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
@@ -113,10 +126,16 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	if err != nil {
 		return nil, err
 	}
-	return &goldTryjobProcessor{
+
+	ret := &goldTryjobProcessor{
 		issueBuildFetcher: bbGerritClient,
 		tryjobStore:       tryjobStore,
-	}, nil
+		vcs:               vcs,
+		cfgFile:           cfgFile,
+	}
+	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, ret.tryjobUpdatedHandler)
+
+	return ret, nil
 }
 
 // See ingestion.Processor interface.
@@ -191,8 +210,30 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return err
 	}
 
-	tryjob.Status = tryjobstore.TRYJOB_INGESTED
-	return g.tryjobStore.UpdateTryjob(issueID, tryjob)
+	return g.setTryjobToStatus(issueID, dmResults.BuildBucketID, tryjob, tryjobstore.TRYJOB_INGESTED)
+}
+
+// setTryjobToState is a utility function that updates the status of a tryjob
+// to the new status if the new status is a logical successor to the current status.
+// If tryjob is nil, issuID and tryjobID will be used to fetch the tryjob record.
+func (g *goldTryjobProcessor) setTryjobToStatus(issueID, tryjobID int64, tryjob *tryjobstore.Tryjob, newStatus tryjobstore.TryjobStatus) error {
+	if tryjob == nil {
+		// load it
+		tryjob, err := g.tryjobStore.GetTryjob(issueID, tryjobID)
+		if err != nil {
+			return err
+		}
+		if tryjob == nil {
+			return sklog.FmtErrorf("Unable to retrieve tryjob %d for issue %d", tryjobID, issueID)
+		}
+	}
+
+	// update it if necessary.
+	if tryjob.Status < newStatus {
+		tryjob.Status = newStatus
+		return g.tryjobStore.UpdateTryjob(issueID, tryjob)
+	}
+	return nil
 }
 
 // See ingestion.Processor interface.
@@ -205,4 +246,57 @@ func parseDuration(strVal string, defaultVal time.Duration) (time.Duration, erro
 		return defaultVal, nil
 	}
 	return human.ParseDuration(strVal)
+}
+
+// tryjobUpdateHandler is the event handler for when a tryjob is updated in the
+// underlying tryjob store.
+func (g *goldTryjobProcessor) tryjobUpdatedHandler(evData interface{}) {
+	tryjob := evData.(*tryjobstore.Tryjob)
+
+	// Check if this is a no-upload bot. If that's the case mark the bot as ingested.
+	if g.noUpload(tryjob.Builder, tryjob.MasterCommit, g.cfgFile) {
+		// Mark as ingested.
+		if err := g.setTryjobToStatus(tryjob.IssueID, tryjob.BuildBucketID, nil, tryjobstore.TRYJOB_INGESTED); err != nil {
+			sklog.Errorf("Unable to set tryjob (%d, %d) to status 'ingested': %s", tryjob.IssueID, tryjob.BuildBucketID, err)
+		}
+	}
+}
+
+// TODO(stephana): Make the noUpload code use the same code as gen_tasks.go in the
+// skia repo. This is essentially a copy of the code, but uses the same source of
+// information (the cfg.json file from skia).
+
+// noUpload returns true if this builder does not upload results and we should
+// therefore not wait for results to appear.
+func (g *goldTryjobProcessor) noUpload(builder, commit, cfgFile string) bool {
+	if cfgFile == "" {
+		return false
+	}
+
+	ctx := context.Background()
+	cfgContent, err := g.vcs.GetFile(ctx, cfgFile, commit)
+	if err != nil {
+		sklog.Errorf("Error retrieving %s: %s", cfgFile, err)
+	}
+
+	// Parse the config file used to generate the tasks.
+	config := struct {
+		NoUpload []string `json:"no_upload"`
+	}{}
+	if err := json.Unmarshal([]byte(cfgContent), &config); err != nil {
+		sklog.Errorf("Unable to parse %s. Got error: %s", cfgFile, err)
+	}
+
+	// See if we match the builders that should not be uploaded.
+	for _, s := range config.NoUpload {
+		m, err := regexp.MatchString(s, builder)
+		if err != nil {
+			glog.Errorf("Error matching regex: %s", err)
+			continue
+		}
+		if m {
+			return true
+		}
+	}
+	return false
 }

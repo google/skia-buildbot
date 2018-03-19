@@ -38,15 +38,12 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	issueUpdated, err := time.Parse("2006-01-02 15:04:05 MST", "2017-12-07 14:54:05 EST")
 	assert.NoError(t, err)
 
-	testIssue := &tryjobstore.IssueDetails{
-		Issue: &tryjobstore.Issue{
-			ID:      81300,
-			Subject: "[infra] Move commands from isolates to gen_tasks.go",
-			Owner:   "someone@example.com",
-			Status:  "MERGED",
-			Updated: issueUpdated,
-		},
-
+	testIssue := &tryjobstore.Issue{
+		ID:      81300,
+		Subject: "[infra] Move commands from isolates to gen_tasks.go",
+		Owner:   "someone@example.com",
+		Status:  "MERGED",
+		Updated: issueUpdated,
 		PatchsetDetails: []*tryjobstore.PatchsetDetail{
 			&tryjobstore.PatchsetDetail{
 				ID: 9,
@@ -96,12 +93,12 @@ func TestTryjobGoldProcessor(t *testing.T) {
 }
 
 type mockIBF struct {
-	issue       *tryjobstore.IssueDetails
+	issue       *tryjobstore.Issue
 	tryjob      *tryjobstore.Tryjob
 	tryjobStore tryjobstore.TryjobStore
 }
 
-func (m *mockIBF) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.IssueDetails, *tryjobstore.Tryjob, error) {
+func (m *mockIBF) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
 	if issueID != m.issue.ID {
 		return nil, nil, fmt.Errorf("Unknown issued.")
 	}
