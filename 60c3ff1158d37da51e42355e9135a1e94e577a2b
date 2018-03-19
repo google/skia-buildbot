@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6697ec1d_53422845",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-03-19T18:21:55Z",
+      "side": 1,
+      "message": "10 mins seems like a long time. Should it be more frequent?",
+      "range": {
+        "startLine": 680,
+        "startChar": 20,
+        "endLine": 680,
+        "endChar": 34
+      },
+      "revId": "60c3ff1158d37da51e42355e9135a1e94e577a2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
