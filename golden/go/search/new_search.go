@@ -77,7 +77,7 @@ type NewSearchResponse struct {
 
 // IssueSearchResponse contains the information about the code review issue.
 type IssueSearchResponse struct {
-	*tryjobstore.IssueDetails
+	*tryjobstore.Issue
 	QueryPatchsets []int64 `json:"queryPatchsets"`
 }
 
@@ -129,7 +129,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
 		issueResp = &IssueSearchResponse{}
-		inter, issueResp.IssueDetails, issueResp.QueryPatchsets, err = s.queryIssue(ctx, q, idx, exp)
+		inter, issueResp.Issue, issueResp.QueryPatchsets, err = s.queryIssue(ctx, q, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
@@ -297,7 +297,7 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.IssueDetails, []int64, error) {
+func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, []int64, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
 	defer span.End()
 

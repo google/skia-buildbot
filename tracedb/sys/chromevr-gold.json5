@@ -19,9 +19,8 @@
       ExtraParams: {
         TraceService: "skia-tracedb:9092"
       }
-    }
-  },
-
+    },
+ 
   // Gold Tryjob Ingester for gold-chromevr.
   "gold-tryjob": {
     RunEvery: "5m",
@@ -44,4 +43,5 @@
       BuilderRegEx: "^.+_vr",
     }
   }
+ }
 }

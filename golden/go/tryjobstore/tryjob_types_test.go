@@ -2,6 +2,8 @@ package tryjobstore
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,14 +15,12 @@ import (
 func TestIssueDetails(t *testing.T) {
 	testutils.SmallTest(t)
 
-	issue := &IssueDetails{
-		Issue: &Issue{
-			ID:      12345,
-			Subject: "Test Subject",
-			Owner:   "jdoe@example.com",
-			Updated: time.Now(),
-			URL:     "https://cr.example.com",
-		},
+	issue := &Issue{
+		ID:      12345,
+		Subject: "Test Subject",
+		Owner:   "jdoe@example.com",
+		Updated: time.Now(),
+		URL:     "https://cr.example.com",
 	}
 
 	firstPS := &PatchsetDetail{ID: 34567}
@@ -52,4 +52,24 @@ func TestSerialize(t *testing.T) {
 	jsonStatus, err := json.Marshal(status)
 	assert.NoError(t, err)
 	assert.Equal(t, "\"ingested\"", string(jsonStatus))
+}
+
+func TestTimeJsonMs(t *testing.T) {
+	testutils.SmallTest(t)
+
+	now := TimeJsonMs(time.Now())
+	expMs := fmt.Sprintf("%d", time.Time(now).UnixNano()/int64(time.Millisecond))
+
+	jsonBytes, err := json.Marshal(now)
+	assert.NoError(t, err)
+	assert.Equal(t, expMs, string(jsonBytes))
+
+	tjs := []*Issue{
+		&Issue{Updated: time.Time(now)},
+	}
+
+	jsonBytes, err = json.Marshal(tjs)
+	assert.NoError(t, err)
+	expField := `"updated":` + expMs
+	assert.True(t, strings.Contains(string(jsonBytes), expField))
 }

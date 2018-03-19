@@ -400,7 +400,8 @@ func main() {
 	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
 	router.HandleFunc(sktrace.Trace("/json/search", jsonSearchHandler)).Methods("GET")
 	router.HandleFunc("/json/export", jsonExportHandler).Methods("GET")
-	router.HandleFunc("/json/tryjobs/{id}", jsonTryjobsSummaryHandler).Methods("GET")
+	router.HandleFunc("/json/tryjob", jsonTryjobListHandler).Methods("GET")
+	router.HandleFunc("/json/tryjob/{id}", jsonTryjobSummaryHandler).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app.
 	if *forceLogin {

@@ -62,7 +62,7 @@ func TestBuildBucketState(t *testing.T) {
 	time.Sleep(10 * time.Second)
 
 	// Output all the issue we have found.
-	issues, _, err := tjStore.ListIssues()
+	issues, _, err := tjStore.ListIssues(0, 1000)
 	assert.NoError(t, err)
 	for _, issueEntry := range issues {
 		if issueEntry.ID == 54204 {
@@ -82,7 +82,7 @@ func TestBuildBucketState(t *testing.T) {
 }
 
 func deleteAllIssues(t *testing.T, tjStore tryjobstore.TryjobStore) {
-	issues, _, err := tjStore.ListIssues()
+	issues, _, err := tjStore.ListIssues(0, 1000)
 	assert.NoError(t, err)
 	fmt.Printf("Got %d issues\n", len(issues))
 
