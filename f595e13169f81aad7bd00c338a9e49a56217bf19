@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "80055015_bdf60ec9",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-19T13:30:37Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8ea16543_3b10e982",
+      "range": {
+        "startLine": 232,
+        "startChar": 18,
+        "endLine": 232,
+        "endChar": 19
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f5888ef7_8dd58dad",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 8
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "f491e39a_cbf2e328",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-19T13:30:37Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "18c6fd68_115fc6fc",
+      "range": {
+        "startLine": 34,
+        "startChar": 41,
+        "endLine": 34,
+        "endChar": 44
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6daf1d8_a2adcfb7",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 8
@@ -187,6 +235,30 @@
       "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78222493_a403233b",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-03-19T13:30:37Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "58b6f28e_2db739d3",
+      "range": {
+        "startLine": 122,
+        "startChar": 21,
+        "endLine": 122,
+        "endChar": 26
+      },
+      "revId": "f595e13169f81aad7bd00c338a9e49a56217bf19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
