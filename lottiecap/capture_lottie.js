@@ -91,7 +91,7 @@ async function driveBrowser() {
   console.log('- Loading our Lottie exercising page.');
   await page.goto('http://localhost:' + options.port + '/', {waitUntil: 'networkidle2'});
   console.log('- Waiting for all the tiles to be drawn.');
-  await page.waitForFunction('window._tileCount === 24');
+  await page.waitForFunction('window._tileCount === 25');
   console.log('- Taking screenshot.');
   await page.screenshot({
     path: options.output,
