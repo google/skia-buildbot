@@ -23,21 +23,26 @@ const (
 	// EV_TRYJOB_EXP_CHANGED is the event type that is fired when the expectations
 	// for an issue change. It sends an instance of *TryjobExpChange.
 	EV_TRYJOB_EXP_CHANGED = "tryjobstore:change"
+
+	EV_TRYJOB_UPDATED = "tryjobstore:tryjob-updated"
 )
 
 // TryjobStore define methods to store tryjob information and code review
 // issues as a key component for for transactional trybot support.
 type TryjobStore interface {
-	// ListIssues lists all current issues in the store.
-	ListIssues() ([]*Issue, int, error)
+	// ListIssues lists all current issues in the store. The offset and size are
+	// used for pagination. 'offset' defines the starting index (zero based) of the
+	// page and size defines the size of the page.
+	// The function returns a a list of issues and the total number of issues.
+	ListIssues(offset, size int) ([]*Issue, int, error)
 
 	// GetIssue retrieves information about the given issue and patchsets. If needded
 	// this will include tryjob information.
-	GetIssue(issueID int64, loadTryjobs bool, targetPatchsets []int64) (*IssueDetails, error)
+	GetIssue(issueID int64, loadTryjobs bool, targetPatchsets []int64) (*Issue, error)
 
 	// UpdateIssue updates the given issue with the provided data. If the issue does not
 	// exist in the database it will be created.
-	UpdateIssue(details *IssueDetails) error
+	UpdateIssue(details *Issue) error
 
 	// CommitIssueExp commits the expecations of the given issue. The writeFn
 	// is expected to make the changes to the master baseline. An issue is
@@ -102,23 +107,35 @@ func NewCloudTryjobStore(client *datastore.Client, eventBus eventbus.EventBus) (
 }
 
 // ListIssues implements the TryjobStore interface.
-func (c *cloudTryjobStore) ListIssues() ([]*Issue, int, error) {
-	query := ds.NewQuery(ds.ISSUE).KeysOnly()
-	keys, err := c.client.GetAll(context.Background(), query, nil)
+func (c *cloudTryjobStore) ListIssues(offset, size int) ([]*Issue, int, error) {
+	ctx := context.Background()
+	query := ds.NewQuery(ds.ISSUE).KeysOnly().Order("-Updated")
+
+	keys, err := c.client.GetAll(ctx, query, nil)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	ret := make([]*Issue, 0, len(keys))
-	for _, k := range keys {
-		ret = append(ret, &Issue{ID: k.ID})
+	total := len(keys)
+	start := util.MinInt(total, offset)
+	end := util.MinInt(start+size, total)
+	targetKeys := keys[start:end]
+
+	if len(targetKeys) == 0 {
+		return []*Issue{}, total, nil
 	}
-	return ret, len(ret), nil
+
+	// Fetch the entities.
+	ret := make([]*Issue, len(targetKeys))
+	if err := c.client.GetMulti(ctx, targetKeys, ret); err != nil {
+		return nil, 0, err
+	}
+	return ret, total, nil
 }
 
 // GetIssue implements the TryjobStore interface.
-func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatchsets []int64) (*IssueDetails, error) {
-	target := &IssueDetails{}
+func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatchsets []int64) (*Issue, error) {
+	target := &Issue{}
 	key := c.getIssueKey(issueID)
 	ok, err := c.getEntity(key, target, nil)
 	if err != nil {
@@ -156,15 +173,15 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatch
 }
 
 // UpdateIssue implements the TryjobStore interface.
-func (c *cloudTryjobStore) UpdateIssue(details *IssueDetails) error {
-	return c.updateIfNewer(c.getIssueKey(details.ID), details, nil, false)
+func (c *cloudTryjobStore) UpdateIssue(details *Issue) error {
+	return c.updateIfNewer(c.getIssueKey(details.ID), details, nil, false, nil)
 }
 
 // CommitIssueExp implements the TryjobStore interface.
 func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) error {
 	// setCommittedFn is the exee
 	setCommittedFn := func(tx *datastore.Transaction) error {
-		issue := &IssueDetails{}
+		issue := &Issue{}
 		key := c.getIssueKey(issueID)
 		ok, err := c.getEntity(key, issue, nil)
 		if err != nil {
@@ -186,7 +203,7 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 		}
 
 		issue.Commited = true
-		return c.updateIfNewer(key, issue, tx, true)
+		return c.updateIfNewer(key, issue, tx, true, nil)
 	}
 
 	_, err := c.client.RunInTransaction(context.Background(), setCommittedFn)
@@ -234,7 +251,11 @@ func (c *cloudTryjobStore) GetTryjob(issueID, buildBucketID int64) (*Tryjob, err
 
 // UpdateTryjob implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateTryjob(issueID int64, tryjob *Tryjob) error {
-	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID), tryjob, nil, false)
+	updatedFn := func() {
+		c.eventBus.Publish(EV_TRYJOB_UPDATED, tryjob, false)
+	}
+
+	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID), tryjob, nil, false, updatedFn)
 }
 
 // GetTryjobResults implements the TryjobStore interface.
@@ -660,7 +681,7 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 // transaction.
 // If tx is not nil the given transaction will be used. If force it true the item
 // will always be updated.
-func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface, tx *datastore.Transaction, force bool) error {
+func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface, tx *datastore.Transaction, force bool, updatedFn func()) error {
 	// Update the issue if the provided one is newer.
 	updateFn := func(tx *datastore.Transaction) error {
 		curr := reflect.New(reflect.TypeOf(item).Elem()).Interface()
@@ -674,6 +695,9 @@ func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface
 		}
 
 		_, err = tx.Put(key, item)
+		if (err != nil) && (updatedFn != nil) {
+			updatedFn()
+		}
 		return err
 	}
 
