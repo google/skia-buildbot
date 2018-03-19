@@ -37,7 +37,7 @@ const (
 
 	PROJECT_CHROMIUM    = "chromium"
 	BUG_DEFAULT_PROJECT = PROJECT_CHROMIUM
-	BUGS_PATTERN        = "(?m)^BUG=(.+)$"
+	BUGS_PATTERN        = "(?m)^(?:BUG=|Bug:)(.+)$"
 
 	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
 	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)

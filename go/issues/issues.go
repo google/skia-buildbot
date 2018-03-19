@@ -8,12 +8,34 @@ import (
 	"net/http"
 	"net/url"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
 const (
 	MONORAIL_BASE_URL = "https://monorail-prod.appspot.com/_ah/api/monorail/v1/projects/skia/issues"
+
+	PROJECT_ANGLE    = "angleproject"
+	PROJECT_CHROMIUM = util.PROJECT_CHROMIUM
+	PROJECT_PDFIUM   = "pdfium"
+	PROJECT_SKIA     = "skia"
+	PROJECT_WEBRTC   = "webrtc"
+)
+
+var (
+	// "Constants"
+	REPO_PROJECT_MAPPING = map[string]string{
+		common.REPO_ANGLE:              PROJECT_ANGLE,
+		common.REPO_CHROMIUM:           PROJECT_CHROMIUM,
+		common.REPO_DEPOT_TOOLS:        PROJECT_CHROMIUM,
+		common.REPO_PDFIUM:             PROJECT_PDFIUM,
+		common.REPO_SKIA:               PROJECT_SKIA,
+		common.REPO_SKIA_INFRA:         PROJECT_SKIA,
+		common.REPO_SKIA_INTERNAL:      PROJECT_SKIA,
+		common.REPO_SKIA_INTERNAL_TEST: PROJECT_SKIA,
+		common.REPO_WEBRTC:             PROJECT_WEBRTC,
+	}
 )
 
 // IssueTracker is a genric interface to an issue tracker that allows us

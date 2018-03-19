@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -187,16 +188,21 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		return 0, err
 	}
 
-	// Find Chromium bugs.
+	// Find relevant bugs.
 	bugs := []string{}
-	for _, c := range commits {
-		d, err := cr.Details(ctx, c)
-		if err != nil {
-			return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
-		}
-		b := util.BugsFromCommitMsg(d.Body)
-		for _, bug := range b[util.PROJECT_CHROMIUM] {
-			bugs = append(bugs, bug)
+	monorailProject := issues.REPO_PROJECT_MAPPING[dr.parentRepo]
+	if monorailProject == "" {
+		sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", dr.parentRepo)
+	} else {
+		for _, c := range commits {
+			d, err := cr.Details(ctx, c)
+			if err != nil {
+				return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
+			}
+			b := util.BugsFromCommitMsg(d.Body)
+			for _, bug := range b[monorailProject] {
+				bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
+			}
 		}
 	}
 
