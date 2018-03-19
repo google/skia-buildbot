@@ -264,15 +264,6 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(stephana): Allow querying for issues once whitelist filtering
-	// has been added to tryjobstore.
-
-	if disableIssueQueries && (query.Issue > 0) {
-		msg := "Issue search not supported on this instance."
-		httputils.ReportError(w, r, errors.New(msg), msg)
-		return
-	}
-
 	searchResponse, err := searchAPI.Search(r.Context(), query)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
