@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
+	"go.skia.org/infra/status/go/lkgr"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -52,6 +53,7 @@ var (
 	capacityTemplate *template.Template            = nil
 	commitsTemplate  *template.Template            = nil
 	iCache           *incremental.IncrementalCache = nil
+	lkgrObj          *lkgr.LKGR                    = nil
 	taskDb           db.RemoteDB                   = nil
 	tasksPerCommit   *tasksPerCommitCache          = nil
 	tCache           db.TaskCache                  = nil
@@ -612,6 +614,13 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func lkgrHandler(w http.ResponseWriter, r *http.Request) {
+	if _, err := w.Write([]byte(lkgrObj.Get())); err != nil {
+		httputils.ReportError(w, r, err, "Failed to write response.")
+		return
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", defaultRedirectHandler)
@@ -620,6 +629,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
+	r.HandleFunc("/lkgr", lkgrHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
@@ -661,8 +671,15 @@ func main() {
 	}
 	ctx := context.Background()
 
-	// Create remote Tasks DB.
+	// Create LKGR object.
 	var err error
+	lkgrObj, err = lkgr.New(ctx)
+	if err != nil {
+		sklog.Fatalf("Failed to create LKGR: %s", err)
+	}
+	lkgrObj.UpdateLoop(10*time.Minute, ctx)
+
+	// Create remote Tasks DB.
 	if *testing {
 		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"))
 		if err != nil {
