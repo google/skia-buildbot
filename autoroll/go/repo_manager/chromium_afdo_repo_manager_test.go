@@ -23,6 +23,10 @@ const (
 	afdoRevPrev = "chromeos-chrome-amd64-66.0.3336.3_rc-r0.afdo.bz2"
 	afdoRevBase = "chromeos-chrome-amd64-66.0.3336.3_rc-r1.afdo.bz2"
 	afdoRevNext = "chromeos-chrome-amd64-66.0.3337.3_rc-r1.afdo.bz2"
+
+	afdoTimePrev = "2009-11-10T23:00:00Z"
+	afdoTimeBase = "2009-11-10T23:01:00Z"
+	afdoTimeNext = "2009-11-10T23:02:00Z"
 )
 
 func setupAfdo(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
@@ -155,13 +159,13 @@ func TestAFDOVersionGreater(t *testing.T) {
 	t2([AFDO_VERSION_LENGTH]int{0, 5, 5, 5, 5}, [AFDO_VERSION_LENGTH]int{5, 5, 5, 5, 5}, false)
 }
 
-func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path string, items []string) {
+func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path string, items map[string]string) {
 	fakeUrl := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&pageToken=&prefix=%s&projection=full&versions=false", bucket, url.PathEscape(path))
 	resp := gsObjectList{
 		Kind:  "storage#objects",
 		Items: []gsObject{},
 	}
-	for _, item := range items {
+	for item, timestamp := range items {
 		resp.Items = append(resp.Items, gsObject{
 			Kind:                    "storage#object",
 			Id:                      bucket + path + item,
@@ -171,10 +175,10 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path stri
 			Generation:              "1",
 			Metageneration:          "1",
 			ContentType:             "application/octet-stream",
-			TimeCreated:             "???",
-			Updated:                 "???",
+			TimeCreated:             timestamp,
+			Updated:                 timestamp,
 			StorageClass:            "MULTI_REGIONAL",
-			TimeStorageClassUpdated: "???",
+			TimeStorageClassUpdated: timestamp,
 			Size:      "12345",
 			Md5Hash:   "dsafkldkldsaf",
 			MediaLink: fakeUrl + item,
@@ -195,7 +199,9 @@ func TestAFDORepoManager(t *testing.T) {
 	g := setupFakeGerrit(t, wd)
 
 	// Initial update, everything up-to-date.
-	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, []string{afdoRevBase})
+	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
+		afdoRevBase: afdoTimeBase,
+	})
 	rm, err := NewAFDORepoManager(ctx, wd, gb.RepoUrl(), "master", depot_tools.GetDepotTools(t, ctx), g, "fake.server.com", urlmock.Client())
 	assert.NoError(t, err)
 	assert.Equal(t, mockUser, rm.User())
@@ -217,7 +223,10 @@ func TestAFDORepoManager(t *testing.T) {
 	assert.Equal(t, 0, rm.CommitsNotRolled())
 
 	// There's a new version.
-	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, []string{afdoRevBase, afdoRevNext})
+	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
+		afdoRevBase: afdoTimeBase,
+		afdoRevNext: afdoTimeNext,
+	})
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, afdoRevBase, rm.LastRollRev())
 	assert.Equal(t, afdoRevNext, rm.NextRollRev())
