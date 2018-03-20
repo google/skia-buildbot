@@ -11,7 +11,7 @@ import (
 	"fmt"
 
 	"go.chromium.org/luci/cipd/client/cipd"
-	"go.chromium.org/luci/cipd/client/cipd/common"
+	"go.chromium.org/luci/cipd/common"
 	"go.skia.org/infra/go/auth"
 )
 
