@@ -722,6 +722,27 @@ server {
     return 301 https://fuchsia-roll.skia.org$request_uri;
 }
 
+#####   fuchsia-sdk-chromium-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name fuchsia-sdk-chromium-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/fuchsia-sdk-chromium-roll.access.log;
+    error_log /var/log/nginx/fuchsia-sdk-chromium-roll.error.log error;
+
+    location / {
+        proxy_pass http://fuchsia-sdk-chromium-autoroll:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name fuchsia-sdk-chromium-roll.skia.org;
+    return 301 https://fuchsia-sdk-chromium-roll.skia.org$request_uri;
+}
+
 #####   ios-internal-chromium-roll.skia.org   ###########################
 server {
     listen      443;

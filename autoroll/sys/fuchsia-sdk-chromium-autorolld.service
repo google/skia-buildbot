@@ -1,0 +1,25 @@
+[Unit]
+Description=AutoRoll Bot
+Requires=mnt-pd0.mount
+Wants=network-online.target
+After=mnt-pd0.mount network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --cqExtraTrybots=tryserver.chromium.linux:fuchsia_arm64_cast_audio;tryserver.chromium.linux:fuchsia_x64_cast_audio \
+    --host=fuchsia-sdk-chromium-roll.skia.org \
+    --logtostderr \
+    --parent_name=Chromium \
+    --parent_waterfall=https://build.chromium.org \
+    --resources_dir=/usr/local/share/autoroll/ \
+    --sheriff=cr-fuchsia+bot@chromium.org \
+    --roll_fuchsia_sdk_into_chromium \
+    --use_metadata=true \
+    --workdir=/mnt/pd0/autoroll_workdir
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
