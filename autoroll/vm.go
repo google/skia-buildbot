@@ -134,6 +134,16 @@ func Fuchsia() *gce.Instance {
 	return vm
 }
 
+func FuchsiaSDK_Chromium() *gce.Instance {
+	vm := AutoRollBase("fuchsia-sdk-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"jbudorick@chromium.org",
+		"cr-fuchsia+bot@chromium.org",
+	}
+	vm.ServiceAccount = "fuchsia-sdk-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func SkCMS_Skia() *gce.Instance {
 	vm := AutoRollBase("skcms-skia-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -226,6 +236,7 @@ func main() {
 		"chromite-chromium":     Chromite_Chromium(),
 		"depot-tools-chromium":  DepotTools_Chromium(),
 		"fuchsia":               Fuchsia(),
+		"fuchsia-sdk-chromium":  FuchsiaSDK_Chromium(),
 		"google3":               Google3(),
 		"ios-internal-chromium": IosInternal_Chromium(),
 		"nacl":                  NaCl(),
