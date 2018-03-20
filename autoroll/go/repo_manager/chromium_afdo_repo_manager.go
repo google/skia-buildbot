@@ -63,7 +63,7 @@ var (
 	NewAFDORepoManager func(context.Context, string, string, string, string, *gerrit.Gerrit, string, *http.Client) (RepoManager, error) = newAfdoRepoManager
 
 	// Error used to indicate that a version number is invalid.
-	errInvalidVersion = errors.New("Invalid AFDO version.")
+	errInvalidAFDOVersion = errors.New("Invalid AFDO version.")
 )
 
 // Parse the AFDO version.
@@ -80,7 +80,7 @@ func parseAFDOVersion(ver string) ([AFDO_VERSION_LENGTH]int, error) {
 		}
 		return matchInts, nil
 	} else {
-		return matchInts, errInvalidVersion
+		return matchInts, errInvalidAFDOVersion
 	}
 }
 
@@ -146,7 +146,7 @@ func (s *afdoStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, _ st
 		name := strings.TrimPrefix(item.Name, AFDO_GS_PATH)
 		if _, err := parseAFDOVersion(name); err == nil {
 			available = append(available, name)
-		} else if err == errInvalidVersion {
+		} else if err == errInvalidAFDOVersion {
 			sklog.Warningf("Found AFDO file with improperly formatted name: %s", name)
 		} else {
 			sklog.Error(err)
