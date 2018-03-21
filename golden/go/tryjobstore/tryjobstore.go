@@ -695,7 +695,8 @@ func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface
 		}
 
 		_, err = tx.Put(key, item)
-		if (err != nil) && (updatedFn != nil) {
+		// If there was no error and we have an updateFn callback, then call it.
+		if (err == nil) && (updatedFn != nil) {
 			updatedFn()
 		}
 		return err

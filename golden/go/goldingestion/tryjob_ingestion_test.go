@@ -3,13 +3,16 @@ package goldingestion
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
+	"go.skia.org/infra/go/vcsinfo"
 
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -26,6 +29,12 @@ const (
 // Tests the processor in conjunction with the vcs.
 func TestTryjobGoldProcessor(t *testing.T) {
 	testutils.LargeTest(t)
+
+	assert.NoError(t, os.Setenv("DATASTORE_DATASET", "google.com:skia-buildbots"))
+	assert.NoError(t, os.Setenv("DATASTORE_EMULATOR_HOST", "localhost:8888"))
+	assert.NoError(t, os.Setenv("DATASTORE_EMULATOR_HOST_PATH", "localhost:8888/datastore"))
+	assert.NoError(t, os.Setenv("DATASTORE_HOST", "http://localhost:8888"))
+	assert.NoError(t, os.Setenv("DATASTORE_PROJECT_ID", "google.com:skia-buildbots"))
 
 	cleanup := testutil.InitDatastore(t,
 		ds.ISSUE,
@@ -59,8 +68,41 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, nil)
+	noUploadTryjob := &tryjobstore.Tryjob{
+		BuildBucketID: 8960860541739406896,
+		IssueID:       81300,
+		PatchsetID:    9,
+		Builder:       "Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-ASAN",
+		Status:        tryjobstore.TRYJOB_COMPLETE,
+		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
+	}
+
+	eventBus := eventbus.New()
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
 	assert.NoError(t, err)
+
+	// Map the path of the file to it's content
+	cfgFile := "infra/bots/cfg.json"
+	fileContentMap := map[string]string{
+		cfgFile: `{
+			"gs_bucket_gm": "skia-infra-gm",
+			"gs_bucket_nano": "skia-perf",
+			"gs_bucket_coverage": "skia-coverage",
+			"gs_bucket_calm": "skia-calmbench",
+			"pool": "Skia",
+			"no_upload": [
+				"ASAN",
+				"Coverage",
+				"MSAN",
+				"TSAN",
+				"UBSAN",
+				"Valgrind",
+				"AbandonGpuContext",
+				"SKQP"
+			]
+		}`,
+	}
+	mockVCS := ingestion.MockVCS([]*vcsinfo.LongCommit{}, nil, fileContentMap)
 
 	// Make sure the issue is removed.
 	assert.NoError(t, tryjobStore.DeleteIssue(testIssue.ID))
@@ -69,11 +111,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		tryjob:      testTryjob,
 		tryjobStore: tryjobStore,
 	}
-
-	processor := &goldTryjobProcessor{
-		issueBuildFetcher: mockedIBF,
-		tryjobStore:       tryjobStore,
-	}
+	processor := initTryjobProcessor(mockedIBF, tryjobStore, mockVCS, cfgFile, eventBus)
 
 	// Call process for the input file.
 	fsResult, err := ingestion.FileSystemResult(TRYJOB_INGESTION_FILE, TEST_DATA_DIR)
@@ -90,6 +128,12 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	// At this point the tryjob should be marked ingested.
 	testTryjob.Status = tryjobstore.TRYJOB_INGESTED
 	assert.Equal(t, testTryjob, foundTryjob)
+
+	assert.NoError(t, tryjobStore.UpdateTryjob(testIssue.ID, noUploadTryjob))
+	time.Sleep(20 * time.Second)
+	foundTryjob, err = tryjobStore.GetTryjob(testIssue.ID, noUploadTryjob.BuildBucketID)
+	assert.NoError(t, err)
+	assert.Equal(t, tryjobstore.TRYJOB_INGESTED, foundTryjob.Status)
 }
 
 type mockIBF struct {

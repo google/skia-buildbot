@@ -13,16 +13,18 @@ import (
 type MockVCSImpl struct {
 	commits            []*vcsinfo.LongCommit
 	depsFileMap        map[string]string
+	pathContentMap     map[string]string
 	secondaryVCS       vcsinfo.VCS
 	secondaryExtractor depot_tools.DEPSExtractor
 }
 
 // MockVCS returns an instance of VCS that returns the commits passed as
 // arguments.
-func MockVCS(commits []*vcsinfo.LongCommit, depsContentMap map[string]string) vcsinfo.VCS {
+func MockVCS(commits []*vcsinfo.LongCommit, depsContentMap map[string]string, pathContentMap map[string]string) vcsinfo.VCS {
 	return MockVCSImpl{
-		commits:     commits,
-		depsFileMap: depsContentMap,
+		commits:        commits,
+		depsFileMap:    depsContentMap,
+		pathContentMap: pathContentMap,
 	}
 }
 
@@ -56,6 +58,9 @@ func (m MockVCSImpl) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, e
 }
 
 func (m MockVCSImpl) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
+	if fileName != "" {
+		return m.pathContentMap[fileName], nil
+	}
 	return m.depsFileMap[commitHash], nil
 }
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/skia-dev/glog"
 	gstorage "google.golang.org/api/storage/v1"
 
@@ -51,7 +52,6 @@ func init() {
 type goldTryjobProcessor struct {
 	issueBuildFetcher bbstate.IssueBuildFetcher
 	tryjobStore       tryjobstore.TryjobStore
-	eventBus          eventbus.EventBus
 	vcs               vcsinfo.VCS
 	cfgFile           string
 }
@@ -127,15 +127,19 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, err
 	}
 
+	return initTryjobProcessor(bbGerritClient, tryjobStore, vcs, cfgFile, eventBus), nil
+}
+
+func initTryjobProcessor(ibf bbstate.IssueBuildFetcher, tryjobStore tryjobstore.TryjobStore, vcs vcsinfo.VCS, cfgFile string, eventBus eventbus.EventBus) ingestion.Processor {
 	ret := &goldTryjobProcessor{
-		issueBuildFetcher: bbGerritClient,
+		issueBuildFetcher: ibf,
 		tryjobStore:       tryjobStore,
 		vcs:               vcs,
 		cfgFile:           cfgFile,
 	}
 	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, ret.tryjobUpdatedHandler)
 
-	return ret, nil
+	return ret
 }
 
 // See ingestion.Processor interface.
@@ -210,28 +214,19 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return err
 	}
 
-	return g.setTryjobToStatus(issueID, dmResults.BuildBucketID, tryjob, tryjobstore.TRYJOB_INGESTED)
+	return g.setTryjobToStatus(tryjob, tryjobstore.TRYJOB_UNKNOWN, tryjobstore.TRYJOB_INGESTED)
 }
 
 // setTryjobToState is a utility function that updates the status of a tryjob
 // to the new status if the new status is a logical successor to the current status.
 // If tryjob is nil, issuID and tryjobID will be used to fetch the tryjob record.
-func (g *goldTryjobProcessor) setTryjobToStatus(issueID, tryjobID int64, tryjob *tryjobstore.Tryjob, newStatus tryjobstore.TryjobStatus) error {
-	if tryjob == nil {
-		// load it
-		tryjob, err := g.tryjobStore.GetTryjob(issueID, tryjobID)
-		if err != nil {
-			return err
-		}
-		if tryjob == nil {
-			return sklog.FmtErrorf("Unable to retrieve tryjob %d for issue %d", tryjobID, issueID)
-		}
-	}
-
+func (g *goldTryjobProcessor) setTryjobToStatus(tryjob *tryjobstore.Tryjob, minStatus tryjobstore.TryjobStatus, newStatus tryjobstore.TryjobStatus) error {
 	// update it if necessary.
-	if tryjob.Status < newStatus {
+	if (tryjob.Status >= minStatus) && (tryjob.Status < newStatus) {
 		tryjob.Status = newStatus
-		return g.tryjobStore.UpdateTryjob(issueID, tryjob)
+		return g.tryjobStore.UpdateTryjob(tryjob.IssueID, tryjob, func(data interface{}{
+
+		})
 	}
 	return nil
 }
@@ -251,12 +246,14 @@ func parseDuration(strVal string, defaultVal time.Duration) (time.Duration, erro
 // tryjobUpdateHandler is the event handler for when a tryjob is updated in the
 // underlying tryjob store.
 func (g *goldTryjobProcessor) tryjobUpdatedHandler(evData interface{}) {
-	tryjob := evData.(*tryjobstore.Tryjob)
+	// Make a shallow copy of the tryjob.
+	tryjob := *(evData.(*tryjobstore.Tryjob))
+	sklog.Infof("Tryjob change handler called: %s", spew.Sdump(tryjob))
 
 	// Check if this is a no-upload bot. If that's the case mark the bot as ingested.
-	if g.noUpload(tryjob.Builder, tryjob.MasterCommit, g.cfgFile) {
-		// Mark as ingested.
-		if err := g.setTryjobToStatus(tryjob.IssueID, tryjob.BuildBucketID, nil, tryjobstore.TRYJOB_INGESTED); err != nil {
+	if g.noUpload(tryjob.Builder, tryjob.MasterCommit) {
+		// Mark as ingested if it has completed.
+		if err := g.setTryjobToStatus(&tryjob, tryjobstore.TRYJOB_COMPLETE, tryjobstore.TRYJOB_INGESTED); err != nil {
 			sklog.Errorf("Unable to set tryjob (%d, %d) to status 'ingested': %s", tryjob.IssueID, tryjob.BuildBucketID, err)
 		}
 	}
@@ -268,15 +265,16 @@ func (g *goldTryjobProcessor) tryjobUpdatedHandler(evData interface{}) {
 
 // noUpload returns true if this builder does not upload results and we should
 // therefore not wait for results to appear.
-func (g *goldTryjobProcessor) noUpload(builder, commit, cfgFile string) bool {
-	if cfgFile == "" {
+func (g *goldTryjobProcessor) noUpload(builder, commit string) bool {
+	sklog.Infof("cfgFile: %s", g.cfgFile)
+	if g.cfgFile == "" {
 		return false
 	}
 
 	ctx := context.Background()
-	cfgContent, err := g.vcs.GetFile(ctx, cfgFile, commit)
+	cfgContent, err := g.vcs.GetFile(ctx, g.cfgFile, commit)
 	if err != nil {
-		sklog.Errorf("Error retrieving %s: %s", cfgFile, err)
+		sklog.Errorf("Error retrieving %s: %s", g.cfgFile, err)
 	}
 
 	// Parse the config file used to generate the tasks.
@@ -284,8 +282,10 @@ func (g *goldTryjobProcessor) noUpload(builder, commit, cfgFile string) bool {
 		NoUpload []string `json:"no_upload"`
 	}{}
 	if err := json.Unmarshal([]byte(cfgContent), &config); err != nil {
-		sklog.Errorf("Unable to parse %s. Got error: %s", cfgFile, err)
+		sklog.Errorf("Unable to parse %s. Got error: %s", g.cfgFile, err)
 	}
+
+	sklog.Infof("exp: %s", spew.Sdump(config))
 
 	// See if we match the builders that should not be uploaded.
 	for _, s := range config.NoUpload {
