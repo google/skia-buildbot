@@ -339,6 +339,7 @@
 
         var q = window.location.search;
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
+          debugger;
           // Split out the digests that are being displayed and keep a copy
           // of all digests that matched the query.
           var displayData = sk.object.shallowCopy(json);

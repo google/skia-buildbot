@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/golden/go/tryjobstore"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/sklog"
 
@@ -269,6 +270,8 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
+
+	sklog.Infof("xxxQueryPatchset: %s", spew.Sdump(searchResponse.Issue.QueryPatchsets))
 	sendJsonResponse(w, searchResponse)
 }
 
