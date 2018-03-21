@@ -68,17 +68,11 @@ type SRDiffDigest struct {
 // Search(...) function of SearchAPI and intended to be
 // returned as JSON in an HTTP response.
 type NewSearchResponse struct {
-	Digests []*SRDigest          `json:"digests"`
-	Offset  int                  `json:"offset"`
-	Size    int                  `json:"size"`
-	Commits []*tiling.Commit     `json:"commits"`
-	Issue   *IssueSearchResponse `json:"issue"`
-}
-
-// IssueSearchResponse contains the information about the code review issue.
-type IssueSearchResponse struct {
-	*tryjobstore.Issue
-	QueryPatchsets []int64 `json:"queryPatchsets"`
+	Digests []*SRDigest        `json:"digests"`
+	Offset  int                `json:"offset"`
+	Size    int                `json:"size"`
+	Commits []*tiling.Commit   `json:"commits"`
+	Issue   *tryjobstore.Issue `json:"issue"`
 }
 
 // DigestDetails contains details about a digest.
@@ -123,13 +117,13 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	idx := s.ixr.GetIndex()
 
 	var inter srInterMap = nil
-	var issueResp *IssueSearchResponse = nil
+	var issue *tryjobstore.Issue = nil
 
 	// Find the digests (left hand side) we are interested in.
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
-		issueResp = &IssueSearchResponse{}
-		inter, issueResp.Issue, issueResp.QueryPatchsets, err = s.queryIssue(ctx, q, s.storages.WhiteListQuery, idx, exp)
+		issue = &tryjobstore.Issue{}
+		inter, issue, err = s.queryIssue(ctx, q, s.storages.WhiteListQuery, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
@@ -165,13 +159,14 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	s.addParamsAndTraces(ctx, displayRet, inter, exp, idx)
 
 	// Return all digests with the selected offset within the result set.
-	return &NewSearchResponse{
+	searchRet := &NewSearchResponse{
 		Digests: ret,
 		Offset:  offset,
 		Size:    len(displayRet),
 		Commits: idx.GetTile(false).Commits,
-		Issue:   issueResp,
-	}, nil
+		Issue:   issue,
+	}
+	return searchRet, nil
 }
 
 // Summary returns a high level summary of a Gerrit issue and the tryjobs
@@ -297,33 +292,33 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery paramtools.ParamSet, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, []int64, error) {
+func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery paramtools.ParamSet, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
 	defer span.End()
 
 	// Get the issue.
 	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true, q.Patchsets)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	if issue == nil {
-		return nil, nil, nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
+		return nil, nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
 	}
 
 	// Determine the patchsets we need to retrieve.
-	queryPatchsets := q.Patchsets
-	if queryPatchsets == nil {
-		queryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
+	issue.QueryPatchsets = q.Patchsets
+	if issue.QueryPatchsets == nil {
+		issue.QueryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
 		for _, psd := range issue.PatchsetDetails {
-			queryPatchsets = append(queryPatchsets, psd.ID)
+			issue.QueryPatchsets = append(issue.QueryPatchsets, psd.ID)
 		}
 	}
 
 	// Get the results
-	_, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, queryPatchsets, true)
+	_, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, issue.QueryPatchsets, true)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	// Filter the ignored results by setting the results to nil.
@@ -380,8 +375,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 			}
 		}
 	}
-
-	return ret, issue, queryPatchsets, nil
+	return ret, issue, nil
 }
 
 // TODO(stephana): The filterTile function should be merged with the
