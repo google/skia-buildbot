@@ -43,7 +43,7 @@ const (
 
 	// MAX_RADIUS  is the maximum number of points on either side of a commit
 	// that will be included in clustering.
-	MAX_RADIUS = 25
+	MAX_RADIUS = 100
 
 	// SPARSE_BLOCK_SEARCH_MULT When searching for commits that have data in a
 	// sparse data set, we'll request data in chunks of this many commits per
