@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -34,6 +35,8 @@ const (
 
 var (
 	NewFuchsiaSDKRepoManager func(context.Context, string, string, string, string, *gerrit.Gerrit, string, *http.Client) (RepoManager, error) = newFuchsiaSDKRepoManager
+
+	FUCHSIA_SDK_VERSION_HASH_REGEXP = regexp.MustCompile(`SDK_HASH = '([a-f0-9]+)'`)
 )
 
 // fuchsiaSDKVersion corresponds to one version of the Fuchsia SDK.
@@ -230,7 +233,12 @@ func (rm *fuchsiaSDKRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	lastRollRevStr := string(lastRollRevBytes)
+	// TODO(borenet): Temporary hack until the hash is in its own file.
+	match := FUCHSIA_SDK_VERSION_HASH_REGEXP.FindStringSubmatch(string(lastRollRevBytes))
+	if match == nil || len(match) != 2 {
+		return fmt.Errorf("Could not find Fuchsia SDK version hash in file!")
+	}
+	lastRollRevStr := match[1]
 
 	// Get the available SDK versions.
 	availableVersions := []*fuchsiaSDKVersion{}
@@ -258,7 +266,7 @@ func (rm *fuchsiaSDKRepoManager) Update(ctx context.Context) error {
 		}
 	}
 	if lastIdx == -1 {
-		return fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong. Versions: %v", lastRollRevStr, availableVersions)
+		return fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevStr)
 	}
 
 	rm.infoMtx.Lock()
