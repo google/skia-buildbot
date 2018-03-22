@@ -304,8 +304,7 @@
       },
 
       _update: function () {
-        var mid = Math.floor(this._frame.dataframe.header.length/2);
-        var cid = this._frame.dataframe.header[mid];
+        var cid = this._summary.step_point;
         var detail = {
           cid: cid,
           triage: this.triage,
