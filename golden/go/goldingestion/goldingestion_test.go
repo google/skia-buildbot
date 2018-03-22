@@ -116,7 +116,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	ctx := context.Background()
-	vcs := ingestion.MockVCS(TEST_COMMITS, nil)
+	vcs := ingestion.MockVCS(TEST_COMMITS, nil, nil)
 	server, serverAddr := testhelpers.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
 	defer server.Stop()
 	defer testutils.Remove(t, TRACE_DB_FILENAME)
@@ -139,7 +139,7 @@ func TestGoldProcessor(t *testing.T) {
 	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit"))
 
 	// Inject a secondary repo and test its use.
-	secVCS := ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP)
+	secVCS := ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP, nil)
 	extractor := depot_tools.NewRegExDEPSExtractor(depot_tools.DEPSSkiaVarRegEx)
 	vcs.(ingestion.MockVCSImpl).SetSecondaryRepo(secVCS, extractor)
 

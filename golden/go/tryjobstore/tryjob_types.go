@@ -14,22 +14,22 @@ import (
 
 // States of a tryjob in increasing order.
 const (
-	TRYJOB_SCHEDULED TryjobStatus = iota
+	TRYJOB_UNKNOWN TryjobStatus = iota
+	TRYJOB_SCHEDULED
 	TRYJOB_RUNNING
 	TRYJOB_COMPLETE
 	TRYJOB_INGESTED
 	TRYJOB_FAILED
-	TRYJOB_UNKNOWN
 )
 
 // statusStringRepr maps from a TryjobStatus to a string.
 var statusStringRepr = []string{
+	"unknown",
 	"scheduled",
 	"running",
 	"complete",
 	"ingested",
 	"failed",
-	"unknown",
 }
 
 // TryjobStatus is an enum that captures the status of a tryjob.
