@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
@@ -42,7 +43,8 @@ func TestCloudTryjobStore(t *testing.T) {
 		defer cleanup()
 	}
 
-	store, err := NewCloudTryjobStore(ds.DS, nil)
+	eventBus := eventbus.New()
+	store, err := NewCloudTryjobStore(ds.DS, eventBus)
 	assert.NoError(t, err)
 
 	testTryjobStore(t, store)
@@ -104,12 +106,12 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	assert.Equal(t, 0, len(expChangeKeys))
 
 	// Insert the tryjobs into the datastore.
-	assert.NoError(t, store.UpdateTryjob(issueID, tryjob_1))
+	assert.NoError(t, store.UpdateTryjob(0, tryjob_1, nil))
 	found, err := store.GetTryjob(issueID, buildBucketID)
 	assert.NoError(t, err)
 	assert.Equal(t, tryjob_1.Updated, found.Updated)
 	assert.Equal(t, tryjob_1, found)
-	assert.NoError(t, store.UpdateTryjob(issueID, tryjob_2))
+	assert.NoError(t, store.UpdateTryjob(0, tryjob_2, nil))
 
 	time.Sleep(5 * time.Second)
 	foundIssue, err := store.GetIssue(issueID, true, nil)

@@ -89,7 +89,7 @@ func TestPerfProcessor(t *testing.T) {
 		testutils.RemoveAll(t, dir)
 	}()
 
-	vcs := ingestion.MockVCS(TEST_COMMITS, nil)
+	vcs := ingestion.MockVCS(TEST_COMMITS, nil, nil)
 	ingesterConf := &sharedconfig.IngesterConfig{}
 
 	// Set up the processor.
