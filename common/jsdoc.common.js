@@ -27,7 +27,7 @@ module.exports = {
   plugins: [path.resolve(__dirname, './plugins/element')],
   source: {
     include: ['./modules'],
-    includePattern: '.+\\.(js|md)$',
+    includePattern: '.+\\.js$',
   },
   opts: {
     recurse: true,
