@@ -1,0 +1,222 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9fd8cf05_6960482a",
+        "filename": "go/ingestion/mocks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "LGTM, but you might consider rather than pass the mock data here, instead add methods MockCommits, MockDepsFile, and MockPathContent.",
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1c5ce4a_4b221869",
+        "filename": "go/ingestion/mocks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "I don\u0027t really understand this. Why would anyone call this method with an empty fileName?",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 18
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6d19ed7_9b79d8cf",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "nit: Maybe change to Debugf.",
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17cede8e_302d74e4",
+        "filename": "golden/go/goldingestion/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 108,
+        "startChar": 13,
+        "endLine": 108,
+        "endChar": 14
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "415534db_b2df094e",
+        "filename": "golden/go/goldingestion/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": ":-(",
+      "range": {
+        "startLine": 140,
+        "startChar": 1,
+        "endLine": 140,
+        "endChar": 28
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0745d165_83b0e175",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "If you do this all the Tryjobs already in Datastore will get read back with a different TryjobStatus.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 17
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee7025cc_7deb0a9f",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "nit: This seems like two different methods:\nPutTryjob(tryjob *Tryjob)\nUpdateTryJob(buildbucketID int64, newValFn NewValueFn)\n\nThat makes it impossible for the caller to make a mistake, e.g. provide all three values.",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 77
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80bc7487_5108203a",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 264,
+        "startChar": 94,
+        "endLine": 264,
+        "endChar": 96
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f29e9e98_b026a985",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "This Tryjob will be empty if using newValFn, but I think you want it to be the updated value.",
+      "range": {
+        "startLine": 278,
+        "startChar": 40,
+        "endLine": 278,
+        "endChar": 46
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8e96b39_fd3ba7e1",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-22T21:56:57Z",
+      "side": 1,
+      "message": "nit: update docs",
+      "range": {
+        "startLine": 701,
+        "startChar": 3,
+        "endLine": 701,
+        "endChar": 16
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
