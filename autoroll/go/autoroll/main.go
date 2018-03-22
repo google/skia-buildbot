@@ -75,6 +75,7 @@ var (
 	rollAFDOIntoChromium       = flag.Bool("roll_afdo_into_chromium", false, "Roll Android AFDO profiles into Chromium.")
 	rollFuchsiaSDKIntoChromium = flag.Bool("roll_fuchsia_sdk_into_chromium", false, "Roll Fuchsia SDK into Chromium.")
 	rollIntoAndroid            = flag.Bool("roll_into_android", false, "Roll into Android; do not do a DEPS/Manifest roll.")
+	rollIntoGithub             = flag.Bool("roll_into_github", false, "Roll into Github; do not do a Gerrit roll.")
 	rollIntoGoogle3            = flag.Bool("roll_into_google3", false, "Roll into Google3; do not do a Gerrit roll.")
 	sheriff                    = common.NewMultiStringFlag("sheriff", nil, "Email address to CC on rolls, or URL from which to obtain such an email address.")
 	strategy                   = flag.String("strategy", repo_manager.ROLL_STRATEGY_BATCH, "DEPS roll strategy; how many commits should be rolled at once.")
@@ -308,8 +309,8 @@ func runServer(serverURL string) {
 func main() {
 	common.InitWithMust(
 		"autoroll",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		//common.PrometheusOpt(promPort),
+		//common.CloudLoggingOpt(),
 	)
 	defer common.Defer()
 
@@ -481,6 +482,13 @@ func main() {
 		arb, err = roller.NewChromiumAFDOAutoRoller(ctx, cfg)
 	} else if *rollFuchsiaSDKIntoChromium {
 		arb, err = roller.NewChromiumFuchsiaSDKAutoRoller(ctx, cfg)
+	} else if *rollIntoGithub {
+		fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+		fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+		fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+		fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+		arb, err = roller.NewGithubAutoRoller(ctx, cfg, !*noLog, *gclientSpec)
 	} else {
 		arb, err = roller.NewDEPSAutoRoller(ctx, cfg, !*noLog, *gclientSpec)
 	}

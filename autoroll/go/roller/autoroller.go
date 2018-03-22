@@ -182,7 +182,7 @@ func NewDEPSAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool,
 	return newAutoRoller(ctx, retrieveRoll, rm, c)
 }
 
-// NewManifestAutoRoller returns an AutoRoller instance which rolls using DEPS.
+// NewManifestAutoRoller returns an AutoRoller instance which rolls using Manifest files.
 func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
 	rm, err := repo_manager.NewManifestRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, c.ServerURL)
 	if err != nil {
@@ -190,6 +190,18 @@ func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller
 	}
 	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
 		return newGerritRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
+	}
+	return newAutoRoller(ctx, retrieveRoll, rm, c)
+}
+
+// NewGithubAutoRoller returns an AutoRoller instance which rolls into a Github repository.
+func NewGithubAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool, gclientSpec string) (*AutoRoller, error) {
+	rm, err := repo_manager.NewGithubRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, includeLog, gclientSpec, c.ServerURL)
+	if err != nil {
+		return nil, err
+	}
+	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
+		return newGithubRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
 	}
 	return newAutoRoller(ctx, retrieveRoll, rm, c)
 }
