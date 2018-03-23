@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ef1a201_d7b7524b",
+        "filename": "go/ingestion/mocks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-23T18:00:29Z",
+      "side": 1,
+      "message": "Oh, I missed that this returns the interface. SGTM.",
+      "parentUuid": "6274a880_17d319af",
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a1c5ce4a_4b221869",
         "filename": "go/ingestion/mocks.go",
         "patchSetId": 6
@@ -81,6 +99,30 @@
       "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1e57343_22ba694a",
+        "filename": "go/ingestion/mocks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-23T18:00:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "57c9e8e5_ae121457",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 18
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -304,6 +346,30 @@
       "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b50bdc2f_d9368116",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-23T18:00:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0cf35c10_8d0309a8",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 77
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

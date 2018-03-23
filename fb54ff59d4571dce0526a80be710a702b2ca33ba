@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bec04727_7bf5c2f8",
+        "filename": "go/ingestion/mocks.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-23T18:00:29Z",
+      "side": 1,
+      "message": "typo: \"from a hash to a dependency file\"",
+      "range": {
+        "startLine": 27,
+        "startChar": 34,
+        "endLine": 27,
+        "endChar": 65
+      },
+      "revId": "fb54ff59d4571dce0526a80be710a702b2ca33ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9dea73e_0a4ac74e",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-23T18:00:29Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 16,
+        "startChar": 8,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "fb54ff59d4571dce0526a80be710a702b2ca33ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "561dbf9e_ed695595",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-23T18:00:29Z",
+      "side": 1,
+      "message": "nit: This makes it sound like the result of newValFn will be written regardless of whether it is newer, which is not true.",
+      "range": {
+        "startLine": 713,
+        "startChar": 16,
+        "endLine": 713,
+        "endChar": 53
+      },
+      "revId": "fb54ff59d4571dce0526a80be710a702b2ca33ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
