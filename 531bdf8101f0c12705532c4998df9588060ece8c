@@ -16,6 +16,24 @@
       "revId": "531bdf8101f0c12705532c4998df9588060ece8c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be4ca838_347d1251",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 712,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T19:27:25Z",
+      "side": 1,
+      "message": "If newValFn returns non-nil it will always be written to the database. The idea being that function essentially decides whether the item should be written or not.",
+      "parentUuid": "ff5741e7_85e282dc",
+      "revId": "531bdf8101f0c12705532c4998df9588060ece8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
