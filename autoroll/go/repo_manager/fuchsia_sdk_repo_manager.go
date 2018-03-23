@@ -25,7 +25,7 @@ const (
 	FUCHSIA_SDK_GS_BUCKET = "fuchsia"
 	FUCHSIA_SDK_GS_PATH   = "sdk"
 
-	FUCHSIA_SDK_VERSION_FILE_PATH = "build/fuchsia/update_sdk.py"
+	FUCHSIA_SDK_VERSION_FILE_PATH = "build/fuchsia/sdk.sha1"
 
 	FUCHSIA_SDK_COMMIT_MSG_TMPL = `Roll Fuchsia SDK from %s to %s
 
@@ -150,7 +150,7 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	// Commit.
-	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, afdoShortVersion(from), afdoShortVersion(to), rm.serverURL)
+	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, afdoShortVersion(from), afdoShortVersion(to), rm.serverURL)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
 		Env:  rm.GetEnvForDepotTools(),
@@ -235,9 +235,10 @@ func (rm *fuchsiaSDKRepoManager) Update(ctx context.Context) error {
 	// Get the available SDK versions.
 	availableVersions := []*fuchsiaSDKVersion{}
 	if err := rm.gcs.AllFilesInDirectory(ctx, rm.gsPath, func(item *storage.ObjectAttrs) {
+		vSplit := strings.Split(item.Name, "/")
 		availableVersions = append(availableVersions, &fuchsiaSDKVersion{
 			Timestamp: item.Updated,
-			Version:   item.Name,
+			Version:   vSplit[len(vSplit)-1],
 		})
 	}); err != nil {
 		return err
@@ -258,7 +259,7 @@ func (rm *fuchsiaSDKRepoManager) Update(ctx context.Context) error {
 		}
 	}
 	if lastIdx == -1 {
-		return fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong. Versions: %v", lastRollRevStr, availableVersions)
+		return fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevStr)
 	}
 
 	rm.infoMtx.Lock()
