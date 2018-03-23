@@ -12,6 +12,9 @@ import (
 	"go.skia.org/infra/go/paramtools"
 )
 
+// TODO(stephana): Move the UNKNOWN status to the first spot, so that we can
+// move the a "higher" status easily.
+
 // States of a tryjob in increasing order.
 const (
 	TRYJOB_SCHEDULED TryjobStatus = iota

@@ -27,6 +27,16 @@ const (
 	EV_TRYJOB_UPDATED = "tryjobstore:tryjob-updated"
 )
 
+// NewValueFn is a callback function that allows to update the value of
+// datastore entity within a transation. It receives the current value an
+// entity and returns the updated value or nil, if it does not want to update
+// the current value.
+type NewValueFn func(data interface{}) interface{}
+
+// TODO(stephana): Clean up the interface by extracting a PutTryjob function from
+// the UpdateTryjob and possibly also detangle the newer interface from
+// UpdateTryjob.
+
 // TryjobStore define methods to store tryjob information and code review
 // issues as a key component for for transactional trybot support.
 type TryjobStore interface {
@@ -62,8 +72,12 @@ type TryjobStore interface {
 	GetTryjobResults(issueID int64, patchsetID []int64, filterDup bool) ([]*Tryjob, [][]*TryjobResult, error)
 
 	// UpdateTryjob updates the information about a tryjob. If the tryjob does not
-	// exist it will be created.
-	UpdateTryjob(issueID int64, tryjob *Tryjob) error
+	// exist it will be created. If tryjob is not nil it will be written to the
+	// datastore if it is newer than the current entity.
+	// If tryjob is nil, then the buildBucketID and newValFn are used to load the
+	// current value and update it. If the current entity does not exist an error
+	// is returned.
+	UpdateTryjob(buildBucketID int64, tryjob *Tryjob, newValFn NewValueFn) error
 
 	// UpdateTryjobResult updates the results for the given tryjob.
 	UpdateTryjobResult(tryjob *Tryjob, results []*TryjobResult) error
@@ -174,7 +188,8 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatch
 
 // UpdateIssue implements the TryjobStore interface.
 func (c *cloudTryjobStore) UpdateIssue(details *Issue) error {
-	return c.updateIfNewer(c.getIssueKey(details.ID), details, nil, false, nil)
+	_, err := c.updateEntity(c.getIssueKey(details.ID), details, nil, false, nil)
+	return err
 }
 
 // CommitIssueExp implements the TryjobStore interface.
@@ -203,7 +218,8 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 		}
 
 		issue.Commited = true
-		return c.updateIfNewer(key, issue, tx, true, nil)
+		_, err = c.updateEntity(key, issue, tx, true, nil)
+		return err
 	}
 
 	_, err := c.client.RunInTransaction(context.Background(), setCommittedFn)
@@ -250,12 +266,26 @@ func (c *cloudTryjobStore) GetTryjob(issueID, buildBucketID int64) (*Tryjob, err
 }
 
 // UpdateTryjob implements the TryjobStore interface.
-func (c *cloudTryjobStore) UpdateTryjob(issueID int64, tryjob *Tryjob) error {
-	updatedFn := func() {
-		c.eventBus.Publish(EV_TRYJOB_UPDATED, tryjob, false)
+func (c *cloudTryjobStore) UpdateTryjob(buildBucketID int64, tryjob *Tryjob, newValFn NewValueFn) error {
+	// If this is an update that needs to call the newVal function, then set the parameters for updateEntity right.
+	if tryjob == nil {
+		// make sure we have the necessary information if there are no data to be written directly.
+		if (buildBucketID == 0) || (newValFn == nil) {
+			return sklog.FmtErrorf("Id and newValFn cannot be nil when no tryjob is provided. Update not possible")
+		}
+		tryjob = &Tryjob{}
+	} else {
+		// signal to updateEntity that this not in a transaction. Just in case.
+		newValFn = nil
+		buildBucketID = tryjob.BuildBucketID
 	}
 
-	return c.updateIfNewer(c.getTryjobKey(tryjob.BuildBucketID), tryjob, nil, false, updatedFn)
+	newTryjob, err := c.updateEntity(c.getTryjobKey(buildBucketID), tryjob, nil, false, newValFn)
+	if err != nil {
+		return err
+	}
+	c.eventBus.Publish(EV_TRYJOB_UPDATED, newTryjob, false)
+	return nil
 }
 
 // GetTryjobResults implements the TryjobStore interface.
@@ -676,12 +706,12 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 	return retKeys, retVals, nil
 }
 
-// updateIfNewer inserts the given item at the given key if the item is newer than what's in
-// the database. Based on the return value of the newer function. The update happens in a
-// transaction.
-// If tx is not nil the given transaction will be used. If force it true the item
-// will always be updated.
-func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface, tx *datastore.Transaction, force bool, updatedFn func()) error {
+// updateEntity writes the given entity to the datastore. If the
+// newValFn is not nil an error will be returned if the entity does not exist.
+// The non-nil return value of newValFn will be written to the data store.
+// If newValFn is nil the entity will be written to the datastore if either does
+// not exist yet or is newer than the existing entity.
+func (c *cloudTryjobStore) updateEntity(key *datastore.Key, item newerInterface, tx *datastore.Transaction, force bool, newValFn NewValueFn) (interface{}, error) {
 	// Update the issue if the provided one is newer.
 	updateFn := func(tx *datastore.Transaction) error {
 		curr := reflect.New(reflect.TypeOf(item).Elem()).Interface()
@@ -690,14 +720,25 @@ func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface
 			return err
 		}
 
-		if ok && !force && !item.newer(curr) {
+		// If this is an in-transaction update then get the new value from the current one.
+		if newValFn != nil {
+			if ok {
+				newVal := newValFn(curr)
+
+				// No update required. We are done.
+				if newVal == nil {
+					return nil
+				}
+				item = newVal.(newerInterface)
+			} else {
+				return sklog.FmtErrorf("Unable to find item %s for transactional update.", key)
+			}
+		} else if ok && !force && !item.newer(curr) {
+			// We found an item that is not newer than the current one: Nothing to do.
 			return nil
 		}
 
 		_, err = tx.Put(key, item)
-		if (err != nil) && (updatedFn != nil) {
-			updatedFn()
-		}
 		return err
 	}
 
@@ -708,7 +749,8 @@ func (c *cloudTryjobStore) updateIfNewer(key *datastore.Key, item newerInterface
 	} else {
 		err = updateFn(tx)
 	}
-	return err
+
+	return item, err
 }
 
 // getEntity loads the entity defined by key into target. If tx is not nil it uses the transaction.

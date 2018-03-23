@@ -258,7 +258,7 @@ func (b *BuildBucketState) updateTryjobState(params *tryjobstore.Parameters, try
 	}
 
 	// Add the Tryjob.
-	if err := b.tryjobStore.UpdateTryjob(tryjob.IssueID, tryjob); err != nil {
+	if err := b.tryjobStore.UpdateTryjob(0, tryjob, nil); err != nil {
 		return fmt.Errorf("Error updating issue and tryjob (%d, %d). Got error: %s", tryjob.IssueID, tryjob.BuildBucketID, err)
 	}
 	return nil
