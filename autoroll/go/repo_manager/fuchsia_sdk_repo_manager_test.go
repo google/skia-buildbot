@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	fuchsiaSDKRevPrev = "def456"
-	fuchsiaSDKRevBase = "abc123"
-	fuchsiaSDKRevNext = "ace999"
+	fuchsiaSDKRevPrev = "000633ae6e904f7eaced443d6aa65fb3d24afe8c"
+	fuchsiaSDKRevBase = "32a56ad54471732034ba802cbfc3c9ff277b9d1c"
+	fuchsiaSDKRevNext = "37417b795289818723990da66dd7a7b38e50fc04"
 
 	fuchsiaSDKTimePrev = "2009-11-10T23:00:01Z"
 	fuchsiaSDKTimeBase = "2009-11-10T23:00:02Z"

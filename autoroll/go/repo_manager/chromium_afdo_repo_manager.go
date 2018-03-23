@@ -362,10 +362,10 @@ func (rm *afdoRepoManager) Update(ctx context.Context) error {
 		}
 	}
 	if lastIdx == -1 {
-		sklog.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong. Versions: %v", lastRollRev, versions)
+		sklog.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRev)
 	}
 	if nextIdx == -1 {
-		sklog.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong. Versions: %v", nextRollRev, versions)
+		sklog.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", nextRollRev)
 	}
 
 	rm.infoMtx.Lock()
