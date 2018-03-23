@@ -12,6 +12,9 @@ import (
 	"go.skia.org/infra/go/paramtools"
 )
 
+// TODO(stephana): Move the UNKNOWN status to the first spot, so that we can
+// move the a "higher" status easily.
+
 // States of a tryjob in increasing order.
 const (
 	TRYJOB_SCHEDULED TryjobStatus = iota
@@ -147,6 +150,16 @@ type Tryjob struct {
 	Updated       time.Time    `json:"-"`
 	MasterCommit  string       `json:"masterCommit"`
 }
+
+// // Save implements the datastore.PropertyLoadSaver interface.
+// func (t *Tryjob) Save() ([]datastore.Property, error) {
+// 	return nil, nil
+// }
+
+// // Load implements the datastore.PropertyLoadSaver interface.
+// func (t *Tryjob) Load(props []datastore.Property) error {
+// 	return nil
+// }
 
 type TimeJsonMs time.Time
 

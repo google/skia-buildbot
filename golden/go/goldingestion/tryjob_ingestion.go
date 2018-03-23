@@ -51,7 +51,6 @@ func init() {
 type goldTryjobProcessor struct {
 	issueBuildFetcher bbstate.IssueBuildFetcher
 	tryjobStore       tryjobstore.TryjobStore
-	eventBus          eventbus.EventBus
 	vcs               vcsinfo.VCS
 	cfgFile           string
 }
@@ -210,30 +209,24 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return err
 	}
 
-	return g.setTryjobToStatus(issueID, dmResults.BuildBucketID, tryjob, tryjobstore.TRYJOB_INGESTED)
+	tryjob.Status = tryjobstore.TRYJOB_INGESTED
+	return g.tryjobStore.UpdateTryjob(0, tryjob, nil)
 }
 
 // setTryjobToState is a utility function that updates the status of a tryjob
 // to the new status if the new status is a logical successor to the current status.
 // If tryjob is nil, issuID and tryjobID will be used to fetch the tryjob record.
-func (g *goldTryjobProcessor) setTryjobToStatus(issueID, tryjobID int64, tryjob *tryjobstore.Tryjob, newStatus tryjobstore.TryjobStatus) error {
-	if tryjob == nil {
-		// load it
-		tryjob, err := g.tryjobStore.GetTryjob(issueID, tryjobID)
-		if err != nil {
-			return err
+func (g *goldTryjobProcessor) setTryjobToStatus(tryjob *tryjobstore.Tryjob, minStatus tryjobstore.TryjobStatus, newStatus tryjobstore.TryjobStatus) error {
+	return g.tryjobStore.UpdateTryjob(tryjob.BuildBucketID, nil, func(curr interface{}) interface{} {
+		tryjob := curr.(*tryjobstore.Tryjob)
+		// Only update if it is at the minimum status level and the status increases.
+		if (tryjob.Status < minStatus) || (tryjob.Status >= newStatus) {
+			return nil
 		}
-		if tryjob == nil {
-			return sklog.FmtErrorf("Unable to retrieve tryjob %d for issue %d", tryjobID, issueID)
-		}
-	}
 
-	// update it if necessary.
-	if tryjob.Status < newStatus {
 		tryjob.Status = newStatus
-		return g.tryjobStore.UpdateTryjob(issueID, tryjob)
-	}
-	return nil
+		return tryjob
+	})
 }
 
 // See ingestion.Processor interface.
@@ -251,14 +244,16 @@ func parseDuration(strVal string, defaultVal time.Duration) (time.Duration, erro
 // tryjobUpdateHandler is the event handler for when a tryjob is updated in the
 // underlying tryjob store.
 func (g *goldTryjobProcessor) tryjobUpdatedHandler(evData interface{}) {
-	tryjob := evData.(*tryjobstore.Tryjob)
+	// Make a shallow copy of the tryjob.
+	tryjob := *(evData.(*tryjobstore.Tryjob))
 
 	// Check if this is a no-upload bot. If that's the case mark the bot as ingested.
-	if g.noUpload(tryjob.Builder, tryjob.MasterCommit, g.cfgFile) {
-		// Mark as ingested.
-		if err := g.setTryjobToStatus(tryjob.IssueID, tryjob.BuildBucketID, nil, tryjobstore.TRYJOB_INGESTED); err != nil {
+	if g.noUpload(tryjob.Builder, tryjob.MasterCommit) {
+		// Mark as ingested if it has completed.
+		if err := g.setTryjobToStatus(&tryjob, tryjobstore.TRYJOB_COMPLETE, tryjobstore.TRYJOB_INGESTED); err != nil {
 			sklog.Errorf("Unable to set tryjob (%d, %d) to status 'ingested': %s", tryjob.IssueID, tryjob.BuildBucketID, err)
 		}
+		sklog.Infof("Job %d for issue %d marked as ingested.", tryjob.BuildBucketID, tryjob.IssueID)
 	}
 }
 
@@ -268,15 +263,15 @@ func (g *goldTryjobProcessor) tryjobUpdatedHandler(evData interface{}) {
 
 // noUpload returns true if this builder does not upload results and we should
 // therefore not wait for results to appear.
-func (g *goldTryjobProcessor) noUpload(builder, commit, cfgFile string) bool {
-	if cfgFile == "" {
+func (g *goldTryjobProcessor) noUpload(builder, commit string) bool {
+	if g.cfgFile == "" {
 		return false
 	}
 
 	ctx := context.Background()
-	cfgContent, err := g.vcs.GetFile(ctx, cfgFile, commit)
+	cfgContent, err := g.vcs.GetFile(ctx, g.cfgFile, commit)
 	if err != nil {
-		sklog.Errorf("Error retrieving %s: %s", cfgFile, err)
+		sklog.Errorf("Error retrieving %s: %s", g.cfgFile, err)
 	}
 
 	// Parse the config file used to generate the tasks.
@@ -284,7 +279,7 @@ func (g *goldTryjobProcessor) noUpload(builder, commit, cfgFile string) bool {
 		NoUpload []string `json:"no_upload"`
 	}{}
 	if err := json.Unmarshal([]byte(cfgContent), &config); err != nil {
-		sklog.Errorf("Unable to parse %s. Got error: %s", cfgFile, err)
+		sklog.Errorf("Unable to parse %s. Got error: %s", g.cfgFile, err)
 	}
 
 	// See if we match the builders that should not be uploaded.

@@ -9,7 +9,9 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
+	"go.skia.org/infra/go/vcsinfo"
 
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -59,8 +61,41 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, nil)
+	noUploadTryjob := &tryjobstore.Tryjob{
+		BuildBucketID: 8960860541739406896,
+		IssueID:       81300,
+		PatchsetID:    9,
+		Builder:       "Test-iOS-Clang-iPhone7-GPU-GT7600-arm64-Debug-ASAN",
+		Status:        tryjobstore.TRYJOB_COMPLETE,
+		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
+	}
+
+	eventBus := eventbus.New()
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
 	assert.NoError(t, err)
+
+	// Map the path of the file to it's content
+	cfgFile := "infra/bots/cfg.json"
+	fileContentMap := map[string]string{
+		cfgFile: `{
+			"gs_bucket_gm": "skia-infra-gm",
+			"gs_bucket_nano": "skia-perf",
+			"gs_bucket_coverage": "skia-coverage",
+			"gs_bucket_calm": "skia-calmbench",
+			"pool": "Skia",
+			"no_upload": [
+				"ASAN",
+				"Coverage",
+				"MSAN",
+				"TSAN",
+				"UBSAN",
+				"Valgrind",
+				"AbandonGpuContext",
+				"SKQP"
+			]
+		}`,
+	}
+	mockVCS := ingestion.MockVCS([]*vcsinfo.LongCommit{}, nil, fileContentMap)
 
 	// Make sure the issue is removed.
 	assert.NoError(t, tryjobStore.DeleteIssue(testIssue.ID))
@@ -70,10 +105,18 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		tryjobStore: tryjobStore,
 	}
 
+	// Instantiate the processor and add a channel to capture the callback.
+	callbackCh := make(chan interface{}, 20)
 	processor := &goldTryjobProcessor{
 		issueBuildFetcher: mockedIBF,
 		tryjobStore:       tryjobStore,
+		vcs:               mockVCS,
+		cfgFile:           cfgFile,
 	}
+	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, func(data interface{}) {
+		processor.tryjobUpdatedHandler(data)
+		callbackCh <- data
+	})
 
 	// Call process for the input file.
 	fsResult, err := ingestion.FileSystemResult(TRYJOB_INGESTION_FILE, TEST_DATA_DIR)
@@ -90,6 +133,24 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	// At this point the tryjob should be marked ingested.
 	testTryjob.Status = tryjobstore.TRYJOB_INGESTED
 	assert.Equal(t, testTryjob, foundTryjob)
+
+	// Write a tryjob result that doesn't upload and make sure the status is
+	// updated correct upon completion.
+	assert.NoError(t, tryjobStore.UpdateTryjob(0, noUploadTryjob, nil))
+
+	// Just give the events enough time to write the channel before we close it.
+	time.Sleep(1 * time.Second)
+	close(callbackCh)
+
+	calledBack := false
+	for data := range callbackCh {
+		tryjob := data.(*tryjobstore.Tryjob)
+		calledBack = calledBack || (tryjob.Builder == noUploadTryjob.Builder)
+	}
+	assert.True(t, calledBack)
+	foundTryjob, err = tryjobStore.GetTryjob(testIssue.ID, noUploadTryjob.BuildBucketID)
+	assert.NoError(t, err)
+	assert.Equal(t, tryjobstore.TRYJOB_INGESTED, foundTryjob.Status)
 }
 
 type mockIBF struct {
@@ -112,7 +173,7 @@ func (m *mockIBF) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstor
 		return nil, nil, err
 	}
 
-	if err := m.tryjobStore.UpdateTryjob(m.issue.ID, m.tryjob); err != nil {
+	if err := m.tryjobStore.UpdateTryjob(0, m.tryjob, nil); err != nil {
 		return nil, nil, err
 	}
 

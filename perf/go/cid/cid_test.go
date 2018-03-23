@@ -40,7 +40,7 @@ func TestCommitID(t *testing.T) {
 func TestFromHash(t *testing.T) {
 	testutils.SmallTest(t)
 	ctx := context.Background()
-	vcs := ingestion.MockVCS(TEST_COMMITS, nil)
+	vcs := ingestion.MockVCS(TEST_COMMITS, nil, nil)
 	commitID, err := FromHash(ctx, vcs, "fe4a4029a080bc955e9588d05a6cd9eb490845d4")
 	assert.NoError(t, err)
 
