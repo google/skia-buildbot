@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -30,6 +31,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
+)
+
+const (
+	ISSUE_URL_BASE = "https://goto.google.com/skia-autoroll-cl/"
 )
 
 // AutoRoller provides a handler for adding/updating Rolls, translating them into AutoRollIssue for
@@ -160,7 +165,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		CurrentRoll:    a.recent.CurrentRoll(),
 		Error:          errorMsg,
 		FullHistoryUrl: "https://goto.google.com/skia-autoroll-history",
-		IssueUrlBase:   "https://goto.google.com/skia-autoroll-cl/",
+		IssueUrlBase:   ISSUE_URL_BASE,
 		LastRoll:       lastRoll,
 		LastRollRev:    lastSuccessRev,
 		Mode: &modes.ModeChange{
@@ -237,18 +242,29 @@ func (a *AutoRoller) AddOrUpdateIssue(issue *autoroll.AutoRollIssue, method stri
 // Roll represents a Google3 AutoRoll attempt.
 type Roll struct {
 	ChangeListNumber jsonutils.Number `json:"changeListNumber"`
+	CheckResults     []*CheckResult   `json:"checkResults"`
 	// Closed indicates that the autoroller is finished with this CL. It does not correspond to any
 	// property of the CL.
-	Closed         bool           `json:"closed"`
-	Created        jsonutils.Time `json:"created"`
-	ErrorMsg       string         `json:"errorMsg"`
-	Modified       jsonutils.Time `json:"modified"`
-	Result         string         `json:"result"`
-	RollingFrom    string         `json:"rollingFrom"`
-	RollingTo      string         `json:"rollingTo"`
-	Subject        string         `json:"subject"`
-	Submitted      bool           `json:"submitted"`
-	TestSummaryUrl string         `json:"testSummaryUrl"`
+	Closed      bool           `json:"closed"`
+	Created     jsonutils.Time `json:"created"`
+	ErrorMsg    string         `json:"errorMsg"`
+	Modified    jsonutils.Time `json:"modified"`
+	Result      string         `json:"result"`
+	RollingFrom string         `json:"rollingFrom"`
+	RollingTo   string         `json:"rollingTo"`
+	Subject     string         `json:"subject"`
+	Submitted   bool           `json:"submitted"`
+	// Deprecated.
+	TestSummaryUrl string `json:"testSummaryUrl"`
+}
+
+// CheckResult represents a Google3 CL presubmit check.
+type CheckResult struct {
+	Name      string         `json:"name"`
+	Result    string         `json:"result"`
+	Status    string         `json:"status"`
+	StartTime jsonutils.Time `json:"startTime"`
+	Url       string         `json:"url"`
 }
 
 // AsIssue validates the Roll and generates an AutoRollIssue representing the same information. If
@@ -268,6 +284,7 @@ func (roll Roll) AsIssue() (*autoroll.AutoRollIssue, error) {
 	}
 
 	tryResults := []*autoroll.TryResult{}
+	// TestSummaryUrl is for legacy requests that do not specify CheckResults.
 	if roll.TestSummaryUrl != "" {
 		url, err := url.Parse(roll.TestSummaryUrl)
 		if err != nil {
@@ -295,6 +312,36 @@ func (roll Roll) AsIssue() (*autoroll.AutoRollIssue, error) {
 				Url:      url.String(),
 			},
 		}
+	}
+	for _, r := range roll.CheckResults {
+		url, _ := url.Parse(fmt.Sprintf("%s%d", ISSUE_URL_BASE, roll.ChangeListNumber))
+		if r.Url != "" {
+			var err error
+			url, err = url.Parse(r.Url)
+			if err != nil {
+				sklog.Warningf("Invalid Roll in request; invalid checkResults.url parameter %q: %s", r.Url, err)
+				return nil, errors.New("Invalid checkResult.url parameter.")
+			}
+		}
+		if !util.In(r.Status, []string{autoroll.TRYBOT_STATUS_STARTED, autoroll.TRYBOT_STATUS_COMPLETED, autoroll.TRYBOT_STATUS_SCHEDULED}) {
+			return nil, errors.New("Unsupported value for checkResult.status.")
+		}
+		result := r.Result
+		if r.Status == autoroll.TRYBOT_STATUS_COMPLETED {
+			if !util.In(result, []string{autoroll.TRYBOT_RESULT_CANCELED, autoroll.TRYBOT_RESULT_SUCCESS, autoroll.TRYBOT_RESULT_FAILURE}) {
+				return nil, errors.New("Unsupported value for checkResult.result.")
+			}
+		} else {
+			result = ""
+		}
+		tryResults = append(tryResults, &autoroll.TryResult{
+			Builder:  r.Name,
+			Category: autoroll.TRYBOT_CATEGORY_CQ,
+			Created:  time.Time(r.StartTime),
+			Result:   result,
+			Status:   r.Status,
+			Url:      url.String(),
+		})
 	}
 	return &autoroll.AutoRollIssue{
 		Closed:      roll.Closed,
