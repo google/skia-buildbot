@@ -709,6 +709,7 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 // updateEntity writes the given entity to the datastore. If the
 // newValFn is not nil an error will be returned if the entity does not exist.
 // The non-nil return value of newValFn will be written to the data store.
+// If newValFn returns nil nothing will be written to the datastore.
 // If newValFn is nil the entity will be written to the datastore if either does
 // not exist yet or is newer than the existing entity.
 func (c *cloudTryjobStore) updateEntity(key *datastore.Key, item newerInterface, tx *datastore.Transaction, force bool, newValFn NewValueFn) (interface{}, error) {
