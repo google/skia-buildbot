@@ -9,6 +9,12 @@ test: build
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
+testci:
+	node --version
+	npm install
+	# Run the generated tests just once under Xvfb.
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
 continuous:
 	# Setup for continuous testing when ssh'd into a machine.
 	# To debug tests, set up port forwarding via ssh with "-L 9876:localhost:9876".

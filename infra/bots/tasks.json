@@ -117,6 +117,11 @@
           "version": "version:4"
         },
         {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
+        },
+        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
@@ -183,7 +188,8 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "node/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -237,6 +243,11 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:4"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
         },
         {
           "name": "infra/gsutil",
@@ -300,7 +311,8 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "node/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -354,6 +366,11 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:4"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
         },
         {
           "name": "infra/gsutil",
@@ -417,7 +434,8 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "node/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -472,6 +490,11 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:4"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
         },
         {
           "name": "infra/gsutil",
@@ -535,7 +558,8 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "node/bin"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
