@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6274a880_17d319af",
+        "filename": "go/ingestion/mocks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "I agree that in some ways that would be a better interface, but as a result I would have\nto return a different type or the client would have to that case the return value. \nI\u0027d rather evolve the constructor in the future if necessary to take a better lookup method\nfor the GetFile function.",
+      "parentUuid": "9fd8cf05_6960482a",
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a1c5ce4a_4b221869",
         "filename": "go/ingestion/mocks.go",
         "patchSetId": 6
@@ -30,6 +48,30 @@
       "writtenOn": "2018-03-22T21:56:57Z",
       "side": 1,
       "message": "I don\u0027t really understand this. Why would anyone call this method with an empty fileName?",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 18
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57c9e8e5_ae121457",
+        "filename": "go/ingestion/mocks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "The intention was to give precedence to supplied fileName. \nThis mock doesn\u0027t support file lookup via fileName AND commitHash, but only one of the two. \nI added a TODO above to fix at a later point. \nChanged it, so it fails in a clearer way and is hopefully better to read.",
+      "parentUuid": "a1c5ce4a_4b221869",
       "range": {
         "startLine": 61,
         "startChar": 4,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "ffece10c_9f6ac158",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "Done\nRemoved, was used for debugging.",
+      "parentUuid": "d6d19ed7_9b79d8cf",
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "17cede8e_302d74e4",
         "filename": "golden/go/goldingestion/tryjob_ingestion_test.go",
         "patchSetId": 6
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "b5e93a0b_3eae0ede",
+        "filename": "golden/go/goldingestion/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17cede8e_302d74e4",
+      "range": {
+        "startLine": 108,
+        "startChar": 13,
+        "endLine": 108,
+        "endChar": 14
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "415534db_b2df094e",
         "filename": "golden/go/goldingestion/tryjob_ingestion_test.go",
         "patchSetId": 6
@@ -93,6 +177,30 @@
       "writtenOn": "2018-03-22T21:56:57Z",
       "side": 1,
       "message": ":-(",
+      "range": {
+        "startLine": 140,
+        "startChar": 1,
+        "endLine": 140,
+        "endChar": 28
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "951150d8_7eaa2ff8",
+        "filename": "golden/go/goldingestion/tryjob_ingestion_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "I share your sentiment. \nBut currently this test doesn\u0027t run on the Housekeeper (which it should). \nOnce we test the datastore code in the cloud these will go away. \nReduced to 1sec.",
+      "parentUuid": "415534db_b2df094e",
       "range": {
         "startLine": 140,
         "startChar": 1,
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "9e1423ac_aa21162b",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "Done\nReverted and added a todo to fix that, but that requires to migrate data in CDS.",
+      "parentUuid": "0745d165_83b0e175",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 17
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ee7025cc_7deb0a9f",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 6
@@ -139,6 +271,30 @@
       "writtenOn": "2018-03-22T21:56:57Z",
       "side": 1,
       "message": "nit: This seems like two different methods:\nPutTryjob(tryjob *Tryjob)\nUpdateTryJob(buildbucketID int64, newValFn NewValueFn)\n\nThat makes it impossible for the caller to make a mistake, e.g. provide all three values.",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 77
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cf35c10_8d0309a8",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "For now I added a TODO to clean that up, because there is also the implicit check on whether the new tryjob is newer (via the newer interface). \nThere will be more changes to this interface and I want to see how the hole interface changes.",
+      "parentUuid": "ee7025cc_7deb0a9f",
       "range": {
         "startLine": 70,
         "startChar": 0,
@@ -174,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "05f60b82_56bc154d",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "80bc7487_5108203a",
+      "range": {
+        "startLine": 264,
+        "startChar": 94,
+        "endLine": 264,
+        "endChar": 96
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f29e9e98_b026a985",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 6
@@ -197,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "b0267e3b_346f0d23",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f29e9e98_b026a985",
+      "range": {
+        "startLine": 278,
+        "startChar": 40,
+        "endLine": 278,
+        "endChar": 46
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f8e96b39_fd3ba7e1",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 6
@@ -217,6 +421,30 @@
       "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "240b5c39_1b501c60",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-23T17:51:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f8e96b39_fd3ba7e1",
+      "range": {
+        "startLine": 701,
+        "startChar": 3,
+        "endLine": 701,
+        "endChar": 16
+      },
+      "revId": "8311d6b56a241aa264ea8c8cacb72d4cfad6505c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
