@@ -10,19 +10,29 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
+// TODO(stephana): Make the GetFile function support lookup with a combination
+// of fileName and commitHash to truly reflect the functionality of the VCS interface.
+
 type MockVCSImpl struct {
 	commits            []*vcsinfo.LongCommit
 	depsFileMap        map[string]string
+	pathContentMap     map[string]string
 	secondaryVCS       vcsinfo.VCS
 	secondaryExtractor depot_tools.DEPSExtractor
 }
 
 // MockVCS returns an instance of VCS that returns the commits passed as
 // arguments.
-func MockVCS(commits []*vcsinfo.LongCommit, depsContentMap map[string]string) vcsinfo.VCS {
+// To control the GetFile function use these two parameters:
+//    depsContentMap maps commits from a dependecy file to a hash.
+//    pathContentMap maps file names to string content.
+// Currently the GetFile function will only consider the fileName or the hash
+// but not a combination of both. The fileName has priority.
+func MockVCS(commits []*vcsinfo.LongCommit, depsContentMap map[string]string, pathContentMap map[string]string) vcsinfo.VCS {
 	return MockVCSImpl{
-		commits:     commits,
-		depsFileMap: depsContentMap,
+		commits:        commits,
+		depsFileMap:    depsContentMap,
+		pathContentMap: pathContentMap,
 	}
 }
 
@@ -56,7 +66,15 @@ func (m MockVCSImpl) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, e
 }
 
 func (m MockVCSImpl) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
-	return m.depsFileMap[commitHash], nil
+	// fileName must be non-empty to be considered.
+	if ret, ok := m.pathContentMap[fileName]; (fileName != "") && ok {
+		return ret, nil
+	}
+	// gitHash must be non-empty to be considered.
+	if ret, ok := m.depsFileMap[commitHash]; (commitHash != "") && ok {
+		return ret, nil
+	}
+	return "", fmt.Errorf("Unable to find file '%s' for commit '%s'", fileName, commitHash)
 }
 
 func (m MockVCSImpl) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
