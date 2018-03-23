@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9378b78d_a45f8288",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-23T13:04:59Z",
+      "side": 0,
+      "message": "Drive by: this causes gigantic log spam.",
+      "range": {
+        "startLine": 365,
+        "startChar": 98,
+        "endLine": 365,
+        "endChar": 135
+      },
+      "revId": "bee31988ba0367921b5a5d1d94e21b6df818eadf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
