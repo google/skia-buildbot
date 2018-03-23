@@ -34,6 +34,24 @@
       "revId": "531bdf8101f0c12705532c4998df9588060ece8c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45378af3_78794f89",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 712,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-23T19:32:39Z",
+      "side": 1,
+      "message": "Oh, sorry, you are right.",
+      "parentUuid": "be4ca838_347d1251",
+      "revId": "531bdf8101f0c12705532c4998df9588060ece8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
