@@ -21,6 +21,8 @@
         <th>Value with Patch</th>
         <th>Percentage Change</th>
         <th>Percentage Difference</th>
+        <th>Traces w/o patch</th>
+        <th>Traces with patch</th>
       </tr>
       {% for page_value in page_values %}
         <tr>
@@ -29,6 +31,8 @@
           <td>{{ page_value.value2|floatformat:"-3" }}</td>
           <td  {% if page_value.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_change|floatformat:"-3" }}%</td>
           <td  {% if page_value.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_diff|floatformat:"-3" }}%</td>
+          <td>{% for traceUrl in page_value.traceUrls1 %}<a href="{{traceUrl}}">trace{{forloop.counter}}</a>{% if not forloop.last %},{% endif %}{% endfor %}</td>
+          <td>{% for traceUrl in page_value.traceUrls2 %}<a href="{{traceUrl}}">trace{{forloop.counter}}</a>{% if not forloop.last %},{% endif %}{% endfor %}</td>
         </tr>
       {% endfor %}
     </table>

@@ -42,7 +42,7 @@ def _GetPercentageChange(value1, value2):
 class PageValues(object):
   """Container class to hold the values of a page name."""
   def __init__(self, page_name, value1, value2, perc_diff, perc_change,
-               pageset_link, archive_link):
+               pageset_link, archive_link, traceUrls1, traceUrls2):
     self.page_name = page_name
     self.value1 = value1
     self.value2 = value2
@@ -50,6 +50,8 @@ class PageValues(object):
     self.perc_change = perc_change
     self.pageset_link = pageset_link
     self.archive_link = archive_link
+    self.traceUrls1 = traceUrls1.split(',') if traceUrls1 else []
+    self.traceUrls2 = traceUrls2.split(',') if traceUrls2 else []
 
 
 class FieldNameValues(object):
@@ -212,7 +214,9 @@ class CsvComparer(object):
               l = fieldnames_to_page_values.get(fieldname, [])
               l.append(PageValues(page_name2, csv1_value, csv2_value, perc_diff,
                                   _GetPercentageChange(csv1_value, csv2_value),
-                                  pageset_link, archive_link))
+                                  pageset_link, archive_link,
+                                  csv1_row.get('traceUrls'),
+                                  csv2_row.get('traceUrls')))
               fieldnames_to_page_values[fieldname] = l
     finally:
       sorted_csv1.close()
