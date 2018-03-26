@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/webhook"
 
 	"go.skia.org/infra/autoroll/go/google3"
+	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/common"
@@ -431,6 +432,24 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
+	// Set up notifiers.
+	mgr, err := notifier.NewManager()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	// TODO(borenet): The email list may periodically change, but the
+	// EmailNotifier will not respect those changes.
+	emailNotifier, err := notifier.EmailNotifier(emails, emailer)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	chatNotifier, err := notifier.ChatNotifier("autoroll")
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	mgr.Add(emailNotifier, notifier.FILTER_WARNING, "")
+	mgr.Add(chatNotifier, notifier.FILTER_DEBUG, "")
+
 	// Create the autoroller.
 	strat, err := repo_manager.GetNextRollStrategy(*strategy, *childBranch, "")
 	if err != nil {
@@ -457,10 +476,10 @@ func main() {
 		ChildPath:        *childPath,
 		CqExtraTrybots:   cqExtraTrybots,
 		DepotTools:       depotTools,
-		Emailer:          emailer,
 		Emails:           emails,
 		Gerrit:           g,
 		MaxRollFrequency: mrf,
+		Notifier:         mgr,
 		ParentBranch:     *parentBranch,
 		ParentName:       *parentName,
 		ParentRepo:       *parentRepo,
