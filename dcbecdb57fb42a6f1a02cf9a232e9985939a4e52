@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "7a9bda39_cb820e70",
+        "filename": "autoroll/go/notifier/manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-26T17:24:28Z",
+      "side": 1,
+      "message": "It would mean that the threading config for all notifiers are the same. I.e. I wouldn\u0027t be able to configure emails to be in different threads but have chats all in the same thread.",
+      "parentUuid": "42ded297_b08dc0ee",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "43dba1e4_cceb31a3",
         "filename": "autoroll/go/notifier/manager.go",
         "patchSetId": 3
