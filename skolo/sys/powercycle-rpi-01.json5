@@ -56,7 +56,7 @@
         "skia-rpi-060-device": 3,
         "skia-rpi-061-device": 4,
         "skia-rpi-062-device": 5,
-        "skia-rpi-063-device": 6,
+        // "skia-rpi-063-device": 6,  This is now a Pixel2 XL and cannot be remotely powercycled.
         "skia-rpi-064-device": 7,
         "seeeduino-test": 16
       }
