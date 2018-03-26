@@ -13,7 +13,7 @@ import (
 )
 
 // TODO(stephana): Move the UNKNOWN status to the first spot, so that we can
-// move the a "higher" status easily.
+// move to a "higher" status easily.
 
 // States of a tryjob in increasing order.
 const (

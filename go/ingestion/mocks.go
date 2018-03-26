@@ -24,7 +24,7 @@ type MockVCSImpl struct {
 // MockVCS returns an instance of VCS that returns the commits passed as
 // arguments.
 // To control the GetFile function use these two parameters:
-//    depsContentMap maps commits from a dependecy file to a hash.
+//    depsContentMap maps commits from a hash to a dependency file.
 //    pathContentMap maps file names to string content.
 // Currently the GetFile function will only consider the fileName or the hash
 // but not a combination of both. The fileName has priority.
