@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4208ee1b_91a8c2f5",
+        "filename": "autoroll/go/notifier/filter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-26T16:43:53Z",
+      "side": 1,
+      "message": "Missing type, here and SEVERITY_ERROR.",
+      "range": {
+        "startLine": 5,
+        "startChar": 1,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53279c25_c14cc6d3",
+        "filename": "autoroll/go/notifier/manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-26T16:43:53Z",
+      "side": 1,
+      "message": "Would it be simpler if this were moved to Manager?",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43dba1e4_cceb31a3",
+        "filename": "autoroll/go/notifier/manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-26T16:43:53Z",
+      "side": 1,
+      "message": "n :\u003d n",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 39,
+        "endChar": 9
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "975e1782_72f89663",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-26T16:43:53Z",
+      "side": 1,
+      "message": "Is this an alias for skiabot@?",
+      "range": {
+        "startLine": 9,
+        "startChar": 23,
+        "endLine": 9,
+        "endChar": 42
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
