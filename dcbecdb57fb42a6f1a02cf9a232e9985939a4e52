@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "3a0917ed_92027c8f",
+        "filename": "autoroll/go/notifier/manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-26T17:45:23Z",
+      "side": 1,
+      "message": "I\u0027d prefer to support a different threading config per notifier.  For example, we might want to notify skia-team differently (less spammy) than the current sheriff (more spammy).",
+      "parentUuid": "7a9bda39_cb820e70",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "43dba1e4_cceb31a3",
         "filename": "autoroll/go/notifier/manager.go",
         "patchSetId": 3
