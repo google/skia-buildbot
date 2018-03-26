@@ -1,3 +1,4 @@
+/*
 describe('sk.request, sk.get, sk.post, and sk.delete',
   function() {
     var server;
@@ -116,3 +117,4 @@ describe('sk.request, sk.get, sk.post, and sk.delete',
     it('should use DELETE for sk.delete', testDelete);
   }
 );
+*/
