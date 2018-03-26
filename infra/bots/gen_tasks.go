@@ -94,6 +94,14 @@ var (
 		},
 	}
 
+	CIPD_PKGS_NODE = []*specs.CipdPackage{
+		&specs.CipdPackage{
+			Name:    "skia/bots/node",
+			Path:    "cipd_bin_packages",
+			Version: "0",
+		},
+	}
+
 	LOGDOG_ANNOTATION_URL = fmt.Sprintf("logdog://logs.chromium.org/%s/%s/+/annotations", PROJECT, specs.PLACEHOLDER_TASK_ID)
 )
 
@@ -157,7 +165,7 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 func infra(b *specs.TasksCfgBuilder, name string) string {
 	bundle := bundleRecipes(b)
 
-	pkgs := append([]*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go")}, CIPD_PKGS_GSUTIL...)
+	pkgs := append([]*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go"), b.MustGetCipdPackageFromAsset("node")}, CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") {
 		pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
 	}

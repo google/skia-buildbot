@@ -117,6 +117,11 @@
           "version": "version:4"
         },
         {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
+        },
+        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
@@ -239,6 +244,11 @@
           "version": "version:4"
         },
         {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
+        },
+        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
@@ -354,6 +364,11 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:4"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
         },
         {
           "name": "infra/gsutil",
@@ -472,6 +487,11 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:4"
+        },
+        {
+          "name": "skia/bots/node",
+          "path": "node",
+          "version": "version:0"
         },
         {
           "name": "infra/gsutil",

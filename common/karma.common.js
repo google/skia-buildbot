@@ -89,7 +89,7 @@ module.exports = function(dirname) {
 
 
       // Start these browsers.
-      browsers: ['Chrome', 'Firefox'],
+      browsers: ['Chrome'],
 
 
       // If browser does not capture in given timeout [ms], kill it

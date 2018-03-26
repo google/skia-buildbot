@@ -166,7 +166,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "which go"
   },
@@ -184,7 +184,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "update_deps"
   },
@@ -348,24 +348,6 @@
       "npm",
       "i",
       "-g",
-      "npm@5.4.2"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[START_DIR]/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
-    },
-    "name": "install npm"
-  },
-  {
-    "cmd": [
-      "sudo",
-      "npm",
-      "i",
-      "-g",
       "bower@1.8.2"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
@@ -374,7 +356,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "install bower"
   },
@@ -390,7 +372,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "install goimports"
   },
@@ -406,7 +388,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "install errcheck"
   },
@@ -423,7 +405,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "install protoc-gen-go"
   },
@@ -440,7 +422,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "install stringer"
   },
@@ -454,7 +436,7 @@
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>"
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
     "name": "setup database"
   },
@@ -474,7 +456,7 @@
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "KARMA_PORT": "9876",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:<PATH>:[DEPOT_TOOLS]",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
       "TMPDIR": null
     },
     "name": "run_unittests"
