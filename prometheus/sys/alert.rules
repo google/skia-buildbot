@@ -760,7 +760,7 @@ ALERT PredictLiveness
 
 # JSDoc
 ALERT JSDocLiveness
-  IF liveness_build_s/60 > 120
+  IF liveness_build_s{instance="skia-jsdoc:20000"}/60 > 120
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     summary = "JSDoc documentation building is failing ({{ $labels.instance }})",
