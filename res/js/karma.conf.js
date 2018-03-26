@@ -15,7 +15,15 @@ module.exports = function(config) {
 
 
     // frameworks to use
-    frameworks: ['mocha', 'chai-as-promised', 'chai', 'sinon'],
+    frameworks: ['mocha', 'chai', 'sinon'],
+
+    plugins: [
+      'karma-chrome-launcher',
+      'karma-firefox-launcher',
+      'karma-sinon',
+      'karma-mocha',
+      'karma-chai'
+    ],
 
 
     // list of files / patterns to load in the browser
