@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1789a96b_089cef50",
+        "filename": "autoroll/go/notifier/filter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-26T17:09:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4208ee1b_91a8c2f5",
+      "range": {
+        "startLine": 5,
+        "startChar": 1,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "53279c25_c14cc6d3",
         "filename": "autoroll/go/notifier/manager.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2018-03-26T16:43:53Z",
       "side": 1,
       "message": "Would it be simpler if this were moved to Manager?",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42ded297_b08dc0ee",
+        "filename": "autoroll/go/notifier/manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-26T17:09:25Z",
+      "side": 1,
+      "message": "Not sure I understand - wouldn\u0027t that force us to single-thread ALL of the notifiers?",
+      "parentUuid": "53279c25_c14cc6d3",
       "range": {
         "startLine": 27,
         "startChar": 1,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f0e5394d_061d5e28",
+        "filename": "autoroll/go/notifier/manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-26T17:09:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43dba1e4_cceb31a3",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 39,
+        "endChar": 9
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "975e1782_72f89663",
         "filename": "autoroll/go/notifier/notifier.go",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2018-03-26T16:43:53Z",
       "side": 1,
       "message": "Is this an alias for skiabot@?",
+      "range": {
+        "startLine": 9,
+        "startChar": 23,
+        "endLine": 9,
+        "endChar": 42
+      },
+      "revId": "dcbecdb57fb42a6f1a02cf9a232e9985939a4e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7017fca_a1093308",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-26T17:09:25Z",
+      "side": 1,
+      "message": "It\u0027s what we currently use for the emails, so I just copied it here.  I guess we could use skiabot@.  Maybe noreply@ would be more appropriate.",
+      "parentUuid": "975e1782_72f89663",
       "range": {
         "startLine": 9,
         "startChar": 23,
