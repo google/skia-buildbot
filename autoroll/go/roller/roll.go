@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
@@ -17,6 +18,12 @@ type RollImpl interface {
 
 	// Insert the roll into the DB.
 	InsertIntoDB() error
+
+	// Return the issue ID of the roll.
+	IssueID() string
+
+	// Return the URL of the roll.
+	IssueURL() string
 }
 
 func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
@@ -43,6 +50,7 @@ type gerritRoll struct {
 	ci           *gerrit.ChangeInfo
 	issue        *autoroll.AutoRollIssue
 	g            *gerrit.Gerrit
+	n            *notifier.AutoRollNotifier
 	recent       *recent_rolls.RecentRolls
 	retrieveRoll func(context.Context, int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error)
 	result       string
@@ -51,7 +59,7 @@ type gerritRoll struct {
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
+func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, n *notifier.AutoRollNotifier, issueNum int64) (RollImpl, error) {
 	ci, issue, err := retrieveGerritIssue(ctx, g, rm, false, issueNum)
 	if err != nil {
 		return nil, err
@@ -60,6 +68,7 @@ func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoMa
 		ci:     ci,
 		issue:  issue,
 		g:      g,
+		n:      n,
 		recent: recent,
 		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
 			return retrieveGerritIssue(ctx, g, rm, false, issueNum)
@@ -102,9 +111,12 @@ func (r *gerritRoll) withModify(ctx context.Context, action string, fn func() er
 func (r *gerritRoll) Close(ctx context.Context, result, msg string) error {
 	sklog.Infof("Closing issue %d (result %q) with message: %s", r.ci.Issue, result, msg)
 	r.result = result
-	return r.withModify(ctx, "close the CL", func() error {
+	if err := r.withModify(ctx, "close the CL", func() error {
 		return r.g.Abandon(r.ci, msg)
-	})
+	}); err != nil {
+		return err
+	}
+	return r.n.SendIssueUpdate(r.IssueID(), r.IssueURL(), fmt.Sprintf("The roller has closed this issue (result %q) with message: %s", result, msg))
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -178,13 +190,23 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 	return r.recent.Update(r.issue)
 }
 
+// See documentation for RollImpl interface.
+func (r *gerritRoll) IssueID() string {
+	return fmt.Sprintf("%d", r.issue.Issue)
+}
+
+// See documentation for RollImpl interface.
+func (r *gerritRoll) IssueURL() string {
+	return r.g.Url(r.issue.Issue)
+}
+
 // Special type for Android rolls.
 type gerritAndroidRoll struct {
 	*gerritRoll
 }
 
 // newGerritAndroidRoll obtains a gerritAndroidRoll instance from the given Gerrit issue number.
-func newGerritAndroidRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
+func newGerritAndroidRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, n *notifier.AutoRollNotifier, issueNum int64) (RollImpl, error) {
 	ci, issue, err := retrieveGerritIssue(ctx, g, rm, true, issueNum)
 	if err != nil {
 		return nil, err
@@ -193,6 +215,7 @@ func newGerritAndroidRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager
 		ci:     ci,
 		issue:  issue,
 		g:      g,
+		n:      n,
 		recent: recent,
 		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
 			return retrieveGerritIssue(ctx, g, rm, true, issueNum)
