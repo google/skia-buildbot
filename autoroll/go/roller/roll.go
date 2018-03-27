@@ -9,7 +9,9 @@ import (
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/travisci"
 )
 
 type RollImpl interface {
@@ -256,3 +258,124 @@ func (r *gerritAndroidRoll) RetryDryRun(ctx context.Context) error {
 		return r.g.SetReview(r.ci, "Dry run failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"})
 	})
 }
+
+///////////////////////////
+
+// Special type for Github rolls. get documentaiton from the gerritroll stuff above!
+type githubRoll struct {
+	build       *travis.Build
+	pullRequest *github.PullRequest
+	// ci           *gerrit.ChangeInfo // THIS SHOULD CHANGE. call it whatever!
+	issue *autoroll.AutoRollIssue
+	//g            *gerrit.Gerrit
+	recent       *recent_rolls.RecentRolls
+	retrieveRoll func(context.Context, int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error)
+	result       string
+	rm           repo_manager.RepoManager
+}
+
+func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
+	info, err := g.GetIssueProperties(issueNum)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to get issue properties: %s", err)
+	}
+	a, err := autoroll.FromGerritChangeInfo(info, func(h string) (string, error) {
+		return rm.FullChildHash(ctx, h)
+	}, rollIntoAndroid)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
+	}
+	tryResults, err := autoroll.GetTryResultsFromGerrit(g, a)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to retrieve try results: %s", err)
+	}
+	a.TryResults = tryResults
+	return info, a, nil
+}
+
+// TODO(rmistry): Notes below.
+// everything from about needs to be implemented here with githubapi and travisapi.
+// newGithubRoll obtains a githutRoll instance from the given Gerrit issue number.
+func newGithubRoll(ctx context.Context, g *github.GitHub, t *travisci.TravisCI, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64) (RollImpl, error) {
+	// Get the travisci build here and then check on it?
+	ci, issue, err := retrieveGithubBuild(ctx, g, rm, true, pullRequestNum)
+	if err != nil {
+		return nil, err
+	}
+	return &githubRoll{&gerritRoll{
+		ci:     ci,
+		issue:  issue,
+		g:      g,
+		recent: recent,
+		retrieveRoll: func(ctx context.Context, pullRequestNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
+			return retrieveGerritIssue(ctx, g, rm, true, pullRequestNum)
+		},
+		rm: rm,
+	}}, nil
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) IsDryRunFinished() bool {
+	// check to see if travis build is done.
+	if _, ok := r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]; ok {
+		for _, lb := range r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL].All {
+			if lb.Value != gerrit.PRESUBMIT_VERIFIED_LABEL_RUNNING {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) IsDryRunSuccess() bool {
+	// Check to see if travis build is successful now.
+	presubmit, ok := r.ci.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL]
+	if !ok || len(presubmit.All) == 0 {
+		// Not done yet.
+		return false
+	}
+	for _, lb := range presubmit.All {
+		if lb.Value == gerrit.PRESUBMIT_VERIFIED_LABEL_ACCEPTED {
+			return true
+		}
+	}
+	return false
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) SwitchToDryRun(ctx context.Context) error {
+	// not sure what to do here. does a bit somewhere need to flip to say it is dry run?
+
+	return r.withModify(ctx, "switch the CL to dry run", func() error {
+		return r.g.SetReview(r.ci, "Mode was changed to dry run", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE})
+	})
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) SwitchToNormal(ctx context.Context) error {
+	return r.withModify(ctx, "switch the CL out of dry run", func() error {
+		return r.g.SetReview(r.ci, "Mode was changed to normal", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT})
+	})
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) RetryCQ(ctx context.Context) error {
+	// Can you retrigger travice ci?
+
+	return r.withModify(ctx, "retry TH", func() error {
+		return r.g.SetReview(r.ci, "TH failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"})
+
+	})
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) RetryDryRun(ctx context.Context) error {
+	// Can you retrigger travice ci?
+
+	return r.withModify(ctx, "retry the TH (dry run)", func() error {
+		return r.g.SetReview(r.ci, "Dry run failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"})
+	})
+}
+
+///////////////////////////
