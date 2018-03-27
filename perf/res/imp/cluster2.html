@@ -179,7 +179,7 @@
         <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
         <div>
           <button id="shortcut" on-click="_openShortcut">View on dashboard</button>
-          <a id="permalink" class$="[[_hiddenClass(triage.status)]]" href$="[[_permaLink(_frame)]]">Permlink</a>
+          <a id="permalink" class$="[[_hiddenClass(triage.status)]]" href$="[[_permaLink(_summary)]]">Permlink</a>
           <a id=rangelink href="" target=_blank></a>
         </div>
         <toggle-display-sk>Word Cloud</toggle-display-sk>
@@ -338,12 +338,11 @@
 
       _permaLink: function () {
         // Bounce to the triage page, but with the time range narrowed to
-        // contain just the middle commit.
-        if (!this._frame || !this._frame.dataframe) {
+        // contain just the step_point commit.
+        if (!this._summary || !this._summary.step_point) {
           return ""
         }
-        var mid = Math.floor(this._frame.dataframe.header.length/2);
-        var begin = this._frame.dataframe.header[mid].timestamp;
+        var begin = this._summary.step_point.timestamp;
         var end = begin+1;
         return '/t/?begin=' + begin + '&end=' + end;
       },
