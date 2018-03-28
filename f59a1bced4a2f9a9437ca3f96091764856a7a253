@@ -322,6 +322,24 @@
       "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c87aa878_e68f85a4",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T18:49:33Z",
+      "side": 1,
+      "message": "Oh! No, that\u0027s a mistake on my part, thanks for the catch.",
+      "parentUuid": "91744d32_e9f5afa5",
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
