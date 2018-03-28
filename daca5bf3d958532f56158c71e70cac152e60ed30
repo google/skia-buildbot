@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b981501e_6e5e5623",
+        "filename": "go/chatbot/bot.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-28T14:18:57Z",
+      "side": 1,
+      "message": "I think escaping here will cause this to be double-escaped.\n\n(OTOH, there\u0027s nothing to escape in a base64-encoded string.)",
+      "range": {
+        "startLine": 87,
+        "startChar": 29,
+        "endLine": 87,
+        "endChar": 44
+      },
+      "revId": "daca5bf3d958532f56158c71e70cac152e60ed30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5c40f61_d4d91ab9",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-28T14:18:57Z",
+      "side": 1,
+      "message": "nit: Might be worthwhile to document that the impl should be goroutine-safe. (or maybe that\u0027s not required?)",
+      "revId": "daca5bf3d958532f56158c71e70cac152e60ed30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c8d5d8a_74e52576",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-28T14:18:57Z",
+      "side": 1,
+      "message": "nit: document first arg",
+      "range": {
+        "startLine": 15,
+        "startChar": 6,
+        "endLine": 15,
+        "endChar": 12
+      },
+      "revId": "daca5bf3d958532f56158c71e70cac152e60ed30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
