@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d5495444_41414fc5",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T18:39:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea98a9bb_4f6833b7",
+      "range": {
+        "startLine": 70,
+        "startChar": 66,
+        "endLine": 70,
+        "endChar": 67
+      },
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "77a5b8cd_7fd3f84a",
         "filename": "autoroll/go/autoroll/main.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7004113b_d1b05db1",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T18:39:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "77a5b8cd_7fd3f84a",
+      "range": {
+        "startLine": 441,
+        "startChar": 0,
+        "endLine": 443,
+        "endChar": 2
+      },
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "189803b4_4ccc8f65",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T18:39:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b841ce13_77ea3de2",
+      "range": {
+        "startLine": 13,
+        "startChar": 115,
+        "endLine": 13,
+        "endChar": 126
+      },
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "70e38378_97d18d65",
         "filename": "autoroll/go/notifier/notifier.go",
         "patchSetId": 11
@@ -85,6 +157,24 @@
       "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d70a404f_17c026bb",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T18:39:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70e38378_97d18d65",
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "c9f3892a_23eec429",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T18:39:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "612829a3_ca2ed367",
+      "range": {
+        "startLine": 79,
+        "startChar": 12,
+        "endLine": 79,
+        "endChar": 40
+      },
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b0c30866_4a6ad6ab",
         "filename": "autoroll/go/notifier/notifier_test.go",
         "patchSetId": 11
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "d0aed4db_a346e922",
+        "filename": "autoroll/go/notifier/notifier_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T18:39:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0c30866_4a6ad6ab",
+      "range": {
+        "startLine": 43,
+        "startChar": 65,
+        "endLine": 43,
+        "endChar": 74
+      },
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da18b9a4_f5344814",
         "filename": "autoroll/go/state_machine/state_machine.go",
         "patchSetId": 11
@@ -145,6 +283,24 @@
       "writtenOn": "2018-03-28T18:17:31Z",
       "side": 1,
       "message": "Do you want to notify for throttled-\u003eidle?",
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f930ea2_a2e501aa",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T18:39:17Z",
+      "side": 1,
+      "message": "I don\u0027t think we need it, since when we unthrottle we\u0027ll either be up to date or immediately upload another CL.  It\u0027s certainly a possibility though.  We can dogfood the notifications and see what we think is missing or overly spammy.",
+      "parentUuid": "da18b9a4_f5344814",
       "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
