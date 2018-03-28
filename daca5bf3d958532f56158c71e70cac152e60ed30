@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f88cf04d_23bd86e4",
+        "filename": "go/chatbot/bot.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T15:07:16Z",
+      "side": 1,
+      "message": "Ah, you\u0027re right. This is incomplete anyway, parsedUrl.String() doesn\u0027t include the query parameters until you do:\n\nparsedUrl.RawQuery \u003d q.Encode()",
+      "parentUuid": "b981501e_6e5e5623",
+      "range": {
+        "startLine": 87,
+        "startChar": 29,
+        "endLine": 87,
+        "endChar": 44
+      },
+      "revId": "daca5bf3d958532f56158c71e70cac152e60ed30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e5c40f61_d4d91ab9",
         "filename": "go/notifier/notifier.go",
         "patchSetId": 3
@@ -39,6 +63,24 @@
       "revId": "daca5bf3d958532f56158c71e70cac152e60ed30",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "434f75e6_87d6d99f",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T15:07:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e5c40f61_d4d91ab9",
+      "revId": "daca5bf3d958532f56158c71e70cac152e60ed30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -62,6 +104,30 @@
       "revId": "daca5bf3d958532f56158c71e70cac152e60ed30",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f22ffd6_3c241302",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T15:07:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8c8d5d8a_74e52576",
+      "range": {
+        "startLine": 15,
+        "startChar": 6,
+        "endLine": 15,
+        "endChar": 12
+      },
+      "revId": "daca5bf3d958532f56158c71e70cac152e60ed30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
