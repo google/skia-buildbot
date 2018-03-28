@@ -304,6 +304,24 @@
       "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91744d32_e9f5afa5",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-28T18:45:36Z",
+      "side": 1,
+      "message": "Am I misunderstanding what\u0027s going on with this line?",
+      "parentUuid": "2f930ea2_a2e501aa",
+      "revId": "f59a1bced4a2f9a9437ca3f96091764856a7a253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
