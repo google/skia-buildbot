@@ -178,6 +178,16 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 	return r.recent.Update(r.issue)
 }
 
+// See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) IssueID() string {
+	return fmt.Sprintf("%d", r.issue.Issue)
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) IssueURL() string {
+	return r.g.Url(r.issue.Issue)
+}
+
 // Special type for Android rolls.
 type gerritAndroidRoll struct {
 	*gerritRoll
