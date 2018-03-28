@@ -19,8 +19,10 @@ import (
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/travisci"
 	"go.skia.org/infra/go/util"
 )
 
@@ -182,7 +184,7 @@ func NewDEPSAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool,
 	return newAutoRoller(ctx, retrieveRoll, rm, c)
 }
 
-// NewManifestAutoRoller returns an AutoRoller instance which rolls using DEPS.
+// NewManifestAutoRoller returns an AutoRoller instance which rolls using Manifest files.
 func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
 	rm, err := repo_manager.NewManifestRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, c.ServerURL)
 	if err != nil {
@@ -190,6 +192,19 @@ func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller
 	}
 	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
 		return newGerritRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
+	}
+	return newAutoRoller(ctx, retrieveRoll, rm, c)
+}
+
+// NewGithubAutoRoller returns an AutoRoller instance which rolls into a Github repository.
+func NewGithubAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool, gclientSpec string, g *github.GitHub, t *travisci.TravisCI) (*AutoRoller, error) {
+	rm, err := repo_manager.NewGithubRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, g, t, c.Strategy, c.PreUploadSteps, includeLog, gclientSpec, c.ServerURL)
+	if err != nil {
+		return nil, err
+	}
+	retrieveRoll := func(ctx context.Context, arb *AutoRoller, pullRequestNum int64) (RollImpl, error) {
+		// THIS SHOULD BE newGithubRoll
+		return newGithubRoll(ctx, g, t, arb.rm, arb.recent, pullRequestNum)
 	}
 	return newAutoRoller(ctx, retrieveRoll, rm, c)
 }

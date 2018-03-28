@@ -171,6 +171,10 @@ func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
 }
 
 func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
+	return r.createAndSyncDir(ctx, r.parentDir, r.parentBranch)
+}
+
+func (r *depotToolsRepoManager) createAndSyncDir(ctx context.Context, dir, branch string) error {
 	// Create the working directory if needed.
 	if _, err := os.Stat(r.workdir); err != nil {
 		if err := os.MkdirAll(r.workdir, 0755); err != nil {
@@ -178,15 +182,15 @@ func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 		}
 	}
 
-	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
+	if _, err := os.Stat(path.Join(dir, ".git")); err == nil {
 		if err := r.cleanParent(ctx); err != nil {
 			return err
 		}
 		// Update the repo.
-		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "fetch"); err != nil {
+		if _, err := exec.RunCwd(ctx, dir, "git", "fetch"); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", r.parentBranch)); err != nil {
+		if _, err := exec.RunCwd(ctx, dir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", branch)); err != nil {
 			return err
 		}
 	}
