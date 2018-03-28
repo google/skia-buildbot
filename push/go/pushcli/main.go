@@ -179,7 +179,7 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 		username = userinfo.Username
 	}
 	body := fmt.Sprintf(CHAT_MSG, username, appName, serverName)
-	if err := chatbot.SendUsingMetadataGet(body, "push", metadataGet); err != nil {
+	if err := chatbot.SendUsingMetadataGet(body, "push", "", metadataGet); err != nil {
 		sklog.Warningf("Failed to send chat notification: %s", err)
 	}
 
