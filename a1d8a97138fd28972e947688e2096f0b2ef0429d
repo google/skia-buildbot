@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6db5a8e5_73e4add8",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T16:41:10Z",
+      "side": 1,
+      "message": "I\u0027m going to start working on changing over from flags to config files.  Part of that will be to give finer control over these notifications, rather than just opting in.",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 124
+      },
+      "revId": "a1d8a97138fd28972e947688e2096f0b2ef0429d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
