@@ -3,9 +3,11 @@ package chatbot
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"go.skia.org/infra/go/httputils"
@@ -38,8 +40,8 @@ func Init(name string) {
 }
 
 // Send the 'body' as a message to the given chat 'room' name.
-func Send(body string, room string) error {
-	return SendUsingMetadataGet(body, room, metadata.ProjectGetWithDefault)
+func Send(body, room, thread string) error {
+	return SendUsingMetadataGet(body, room, thread, metadata.ProjectGetWithDefault)
 }
 
 // GetWithDefault is a func that returns metadata.
@@ -47,7 +49,7 @@ type GetWithDefault func(key string, defaultValue string) string
 
 // SendUsingMetadataGet is just like Send(), but the metadata retrieved is
 // abstracted.
-func SendUsingMetadataGet(body string, room string, metadataGet GetWithDefault) error {
+func SendUsingMetadataGet(body, room, thread string, metadataGet GetWithDefault) error {
 	// First look up the chat room webhook address as stored in project level
 	// metadata.  The list of supported webhooks is stored at
 	// BOT_WEBHOOK_METADATA_KEY in the metadata, and is a multiline string of the
@@ -65,18 +67,28 @@ func SendUsingMetadataGet(body string, room string, metadataGet GetWithDefault) 
 		return fmt.Errorf("Failed to find project metadata for %s", BOT_WEBHOOK_METADATA_KEY)
 	}
 	lines := strings.Split(botWebhooks, "\n")
-	url := ""
+	u := ""
 	for _, line := range lines {
 		parts := strings.Split(line, " ")
 		if len(parts) == 2 && parts[0] == room {
-			url = parts[1]
+			u = parts[1]
 			break
 		}
 	}
-	if url == "" {
+	if u == "" {
 		return fmt.Errorf("Unknown room name: %q", room)
 	}
-	sklog.Infof("Sending to: %q", url)
+	if thread != "" {
+		parsedUrl, err := url.Parse(u)
+		if err != nil {
+			return err
+		}
+		q := parsedUrl.Query()
+		q.Set("thread_key", base64.StdEncoding.EncodeToString([]byte(thread)))
+		parsedUrl.RawQuery = q.Encode()
+		u = parsedUrl.String()
+	}
+	sklog.Infof("Sending to: %q", u)
 
 	body = strings.TrimSpace(body)
 	if body == "" {
@@ -97,7 +109,7 @@ func SendUsingMetadataGet(body string, room string, metadataGet GetWithDefault) 
 	buf := bytes.NewBuffer(b)
 
 	// Now send the message to the webhook.
-	resp, err := client.Post(url, "application/json", buf)
+	resp, err := client.Post(u, "application/json", buf)
 	if err != nil {
 		return fmt.Errorf("Failed to send encoded message: %s", err)
 	}

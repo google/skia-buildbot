@@ -355,7 +355,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			body := fmt.Sprintf(CHAT_MSG, login.LoggedInAs(r), appName, push.Server)
-			if err := chatbot.Send(body, "push"); err != nil {
+			if err := chatbot.Send(body, "push", ""); err != nil {
 				sklog.Warningf("Failed to send chat notification: %s", err)
 			}
 
@@ -447,7 +447,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	machine := r.Form.Get("machine")
 	if action == "start" && name == "reboot.target" {
 		body := fmt.Sprintf("%s rebooted %s", login.LoggedInAs(r), machine)
-		if err := chatbot.Send(body, "push"); err != nil {
+		if err := chatbot.Send(body, "push", ""); err != nil {
 			sklog.Warningf("Failed to send chat notification: %s", err)
 		}
 	}
