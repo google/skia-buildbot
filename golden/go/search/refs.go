@@ -1,8 +1,10 @@
 package search
 
 import (
+	"context"
 	"math"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -48,7 +50,10 @@ func NewRefDiffer(exp ExpSlice, diffStore diff.DiffStore, idx *indexer.SearchInd
 // metric. 'match' is the list of parameters that need to match between
 // the digests that are compared, i.e. this allows to restrict comparison
 // of gamma correct images to other digests that are also gamma correct.
-func (r *RefDiffer) GetRefDiffs(metric string, match []string, test, digest string, params paramtools.ParamSet, includeIgnores bool) (string, map[string]*SRDiffDigest) {
+func (r *RefDiffer) GetRefDiffs(ctx context.Context, metric string, match []string, test, digest string, params paramtools.ParamSet, includeIgnores bool) (string, map[string]*SRDiffDigest) {
+	ctx, span := trace.StartSpan(ctx, "refdiffer/GetRefDiffs")
+	defer span.End()
+
 	unavailableDigests := r.diffStore.UnavailableDigests()
 	if _, ok := unavailableDigests[digest]; ok {
 		return "", nil
