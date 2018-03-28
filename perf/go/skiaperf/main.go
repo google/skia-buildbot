@@ -83,6 +83,7 @@ var (
 	commitRangeURL        = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
+	noemail               = flag.Bool("noemail", false, "Do not send emails.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	gitRepoDir            = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
@@ -256,15 +257,19 @@ func Init() {
 			sklog.Fatalf("Failed to cache token: %s", err)
 		}
 	}
-	if *local && (emailClientId == "" || emailClientSecret == "") {
-		sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
-	}
-	emailAuth, err := email.NewGMail(emailClientId, emailClientSecret, tokenFile)
-	if err != nil {
-		sklog.Fatalf("Failed to create email auth: %v", err)
+
+	if !*noemail {
+		if *local && (emailClientId == "" || emailClientSecret == "") {
+			sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
+		}
+		emailAuth, err := email.NewGMail(emailClientId, emailClientSecret, tokenFile)
+		if err != nil {
+			sklog.Fatalf("Failed to create email auth: %v", err)
+		}
+
+		notifier = notify.New(emailAuth, *subdomain)
 	}
 
-	notifier = notify.New(emailAuth, *subdomain)
 	frameRequests = dataframe.NewRunningFrameRequests(git)
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting))
 	regStore = regression.NewStore()
