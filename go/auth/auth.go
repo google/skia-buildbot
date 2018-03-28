@@ -118,8 +118,18 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 			Timeout: httputils.REQUEST_TIMEOUT,
 		})
 	} else {
-		// Use compute engine service account.
-		client = GCEServiceAccountClient(transport)
+		// Are we running on GCE?
+		_, err := metadata.ProjectId()
+		if err == nil {
+			// Use compute engine service account.
+			client = GCEServiceAccountClient(transport)
+		} else {
+			// Use jwt service account held in metadata.
+			client, err = NewJWTServiceAccountClient(JWT_SERVICE_ACCOUNT, "", transport, scopes...)
+			if err != nil {
+				return nil, fmt.Errorf("NewClientFromConfigAndTransport: Unable to load JWT Service Account: %s", err)
+			}
+		}
 	}
 
 	return client, nil
