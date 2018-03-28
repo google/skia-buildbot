@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -57,6 +58,7 @@ var (
 
 // flags
 var (
+	configFile                 = flag.String("config_file", "", "Configuration file to use.")
 	childBranch                = flag.String("child_branch", "master", "Branch of the project we want to roll.")
 	childName                  = flag.String("childName", "Skia", "Name of the project to roll.")
 	childPath                  = flag.String("childPath", "src/third_party/skia", "Path within parent repo of the project to roll.")
@@ -461,10 +463,6 @@ func main() {
 	}
 
 	// Create the autoroller.
-	strat, err := repo_manager.GetNextRollStrategy(*strategy, *childBranch, "")
-	if err != nil {
-		sklog.Fatal(err)
-	}
 	var tc *roller.ThrottleConfig
 	if *throttleTime != "" && *throttleCount != 0 {
 		parsed, err := human.ParseDuration(*throttleTime)
@@ -480,38 +478,45 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	cfg := roller.AutoRollerConfig{
-		ChildBranch:      *childBranch,
-		ChildName:        *childName,
-		ChildPath:        *childPath,
-		CqExtraTrybots:   cqExtraTrybots,
-		DepotTools:       depotTools,
-		Emails:           emails,
-		Gerrit:           g,
-		MaxRollFrequency: mrf,
-		Notifier:         n,
-		ParentBranch:     *parentBranch,
-		ParentName:       *parentName,
-		ParentRepo:       *parentRepo,
-		PreUploadSteps:   *preUploadSteps,
-		ServerURL:        serverURL,
-		Strategy:         strat,
-		ThrottleConfig:   tc,
-		Workdir:          *workdir,
+	var cfg roller.AutoRollerConfig
+	if *configFile != "" {
+		if err := util.WithReadFile(*configFile, func(f io.Reader) error {
+			return json.NewDecoder(f).Decode(&cfg)
+		}); err != nil {
+			sklog.Fatal(err)
+		}
+	} else {
+		cfg = roller.AutoRollerConfig{
+			ChildBranch:      *childBranch,
+			ChildName:        *childName,
+			ChildPath:        *childPath,
+			CqExtraTrybots:   cqExtraTrybots,
+			Emails:           emails,
+			Gerrit:           g,
+			MaxRollFrequency: mrf,
+			Notifier:         n,
+			ParentBranch:     *parentBranch,
+			ParentName:       *parentName,
+			ParentRepo:       *parentRepo,
+			PreUploadSteps:   *preUploadSteps,
+			ServerURL:        serverURL,
+			Strategy:         *strategy,
+			ThrottleConfig:   tc,
+			Workdir:          *workdir,
+		}
 	}
 	if *rollIntoAndroid {
-		cfg.Strategy = repo_manager.StrategyRemoteHead(*childBranch)
 		arb, err = roller.NewAndroidAutoRoller(ctx, cfg)
 	} else if *rollIntoGoogle3 {
 		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, *childBranch)
 	} else if *useManifest {
-		arb, err = roller.NewManifestAutoRoller(ctx, cfg)
+		arb, err = roller.NewManifestAutoRoller(ctx, cfg, depotTools)
 	} else if *rollAFDOIntoChromium {
-		arb, err = roller.NewChromiumAFDOAutoRoller(ctx, cfg)
+		arb, err = roller.NewChromiumAFDOAutoRoller(ctx, cfg, depotTools)
 	} else if *rollFuchsiaSDKIntoChromium {
-		arb, err = roller.NewChromiumFuchsiaSDKAutoRoller(ctx, cfg)
+		arb, err = roller.NewChromiumFuchsiaSDKAutoRoller(ctx, cfg, depotTools)
 	} else {
-		arb, err = roller.NewDEPSAutoRoller(ctx, cfg, !*noLog, *gclientSpec)
+		arb, err = roller.NewDEPSAutoRoller(ctx, cfg, !*noLog, depotTools, *gclientSpec)
 	}
 	if err != nil {
 		sklog.Fatal(err)

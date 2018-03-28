@@ -47,23 +47,22 @@ type ThrottleConfig struct {
 
 // AutoRollerConfig contains configuration information for an AutoRoller.
 type AutoRollerConfig struct {
-	ChildBranch      string
-	ChildName        string
-	ChildPath        string
-	CqExtraTrybots   string
-	DepotTools       string
-	Emails           []string
-	Gerrit           *gerrit.Gerrit
-	MaxRollFrequency time.Duration
-	Notifier         *arb_notifier.AutoRollNotifier
-	ParentBranch     string
-	ParentName       string
-	ParentRepo       string
-	PreUploadSteps   []string
-	ServerURL        string
-	Strategy         repo_manager.NextRollStrategy
-	ThrottleConfig   *ThrottleConfig
-	Workdir          string
+	ChildBranch      string                         `json:"childBranch"`
+	ChildName        string                         `json:"childName"`
+	ChildPath        string                         `json:"childPath"`
+	CqExtraTrybots   string                         `json:"cqExtraTrybots"`
+	Emails           []string                       `json:"emails"`
+	GerritURL        string                         `json:"gerritURL"`
+	MaxRollFrequency time.Duration                  `json:"maxRollFrequency"`
+	Notifier         *arb_notifier.AutoRollNotifier `json:"-"`
+	ParentBranch     string                         `json:"parentBranch"`
+	ParentName       string                         `json:"parentName"`
+	ParentRepo       string                         `json:"parentRepo"`
+	PreUploadSteps   []string                       `json:"preUploadSteps"`
+	ServerURL        string                         `json:"serverURL"`
+	Strategy         string                         `json:"strategy"`
+	ThrottleConfig   *ThrottleConfig                `json:"throttleConfig"`
+	Workdir          string                         `json:"workdir"`
 }
 
 // AutoRoller is a struct which automates the merging new revisions of one
@@ -129,7 +128,7 @@ func newAutoRoller(ctx context.Context, retrieveRoll func(context.Context, *Auto
 		cqExtraTrybots:  c.CqExtraTrybots,
 		emails:          c.Emails,
 		failureThrottle: failureThrottle,
-		gerrit:          c.Gerrit,
+		gerrit:          g,
 		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": c.ChildPath}),
 		modeHistory:     mh,
 		notifier:        c.Notifier,
@@ -160,7 +159,8 @@ func newAutoRoller(ctx context.Context, retrieveRoll func(context.Context, *Auto
 
 // NewAndroidAutoRoller returns an AutoRoller instance which rolls into Android.
 func NewAndroidAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
-	rm, err := repo_manager.NewAndroidRepoManager(ctx, c.Workdir, c.ParentBranch, c.ChildPath, c.ChildBranch, c.Gerrit, c.Strategy, c.PreUploadSteps, c.ServerURL)
+	strat := repo_manager.StrategyRemoteHead(c.ChildBranch)
+	rm, err := repo_manager.NewAndroidRepoManager(ctx, c.Workdir, c.ParentBranch, c.ChildPath, c.ChildBranch, g, strat, c.PreUploadSteps, c.ServerURL)
 	if err != nil {
 		return nil, err
 	}
@@ -171,8 +171,12 @@ func NewAndroidAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller,
 }
 
 // NewDEPSAutoRoller returns an AutoRoller instance which rolls using DEPS.
-func NewDEPSAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool, gclientSpec string) (*AutoRoller, error) {
-	rm, err := repo_manager.NewDEPSRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, includeLog, gclientSpec, c.ServerURL)
+func NewDEPSAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool, depotTools string, gclientSpec string) (*AutoRoller, error) {
+	strat, err := repo_manager.GetNextRollStrategy(c.Strategy, c.ChildBranch, "")
+	if err != nil {
+		return nil, err
+	}
+	rm, err := repo_manager.NewDEPSRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, depotTools, g, strat, c.PreUploadSteps, includeLog, gclientSpec, c.ServerURL)
 	if err != nil {
 		return nil, err
 	}
@@ -183,8 +187,12 @@ func NewDEPSAutoRoller(ctx context.Context, c AutoRollerConfig, includeLog bool,
 }
 
 // NewManifestAutoRoller returns an AutoRoller instance which rolls using DEPS.
-func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
-	rm, err := repo_manager.NewManifestRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, c.DepotTools, c.Gerrit, c.Strategy, c.PreUploadSteps, c.ServerURL)
+func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig, depotTools string) (*AutoRoller, error) {
+	strat, err := repo_manager.GetNextRollStrategy(c.Strategy, c.ChildBranch, "")
+	if err != nil {
+		return nil, err
+	}
+	rm, err := repo_manager.NewManifestRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.ChildPath, c.ChildBranch, depotTools, g, strat, c.PreUploadSteps, c.ServerURL)
 	if err != nil {
 		return nil, err
 	}
@@ -196,8 +204,8 @@ func NewManifestAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller
 
 // NewChromiumAFDOAutoRoller returns an AutoRoller instance which rolls Android
 // AFDO profile versions into Chromium.
-func NewChromiumAFDOAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
-	rm, err := repo_manager.NewAFDORepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.DepotTools, c.Gerrit, c.ServerURL, nil)
+func NewChromiumAFDOAutoRoller(ctx context.Context, c AutoRollerConfig, depotTools string) (*AutoRoller, error) {
+	rm, err := repo_manager.NewAFDORepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, depotTools, g, c.ServerURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -209,8 +217,8 @@ func NewChromiumAFDOAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRo
 
 // NewChromiumFuchsiaSDKAutoRoller returns an AutoRoller instance which rolls
 // the Fuchsia SDK into Chromium.
-func NewChromiumFuchsiaSDKAutoRoller(ctx context.Context, c AutoRollerConfig) (*AutoRoller, error) {
-	rm, err := repo_manager.NewFuchsiaSDKRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, c.DepotTools, c.Gerrit, c.ServerURL, nil)
+func NewChromiumFuchsiaSDKAutoRoller(ctx context.Context, c AutoRollerConfig, depotTools string) (*AutoRoller, error) {
+	rm, err := repo_manager.NewFuchsiaSDKRepoManager(ctx, c.Workdir, c.ParentRepo, c.ParentBranch, depotTools, g, c.ServerURL, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,17 @@
+{
+  "childBranch": "master",
+  "childName": "Skia",
+  "childPath": "skia",
+  "cqExtraTrybots": [],
+  "emails": ["borenet@google.com"],
+  "gerritURL": "https://skia-review.googlesource.com",
+  "maxRollFrequency": "",
+  "parentBranch": "master",
+  "parentName": "Internal Test",
+  "parentRepo": "https://skia.googlesource.com/internal_test.git",
+  "parentWaterfall": "https://status-internal.skia.org/",
+  "preUploadSteps": ["TrainInfra"],
+  "serverURL": "",
+  "sheriff": "borenet@google.com",
+  "strategy": "single"
+}
