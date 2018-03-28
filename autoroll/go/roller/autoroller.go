@@ -11,13 +11,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/autoroll/go/modes"
+	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
-	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -52,10 +52,10 @@ type AutoRollerConfig struct {
 	ChildPath        string
 	CqExtraTrybots   string
 	DepotTools       string
-	Emailer          *email.GMail // Can be nil, in which case no email will be sent.
 	Emails           []string
 	Gerrit           *gerrit.Gerrit
 	MaxRollFrequency time.Duration
+	Notifier         *arb_notifier.AutoRollNotifier
 	ParentBranch     string
 	ParentName       string
 	ParentRepo       string
@@ -72,13 +72,13 @@ type AutoRoller struct {
 	childName       string
 	cqExtraTrybots  string
 	currentRoll     RollImpl
-	emailer         *email.GMail
 	emails          []string
 	emailsMtx       sync.RWMutex
 	failureThrottle *state_machine.Throttler
 	gerrit          *gerrit.Gerrit
 	liveness        metrics2.Liveness
 	modeHistory     *modes.ModeHistory
+	notifier        *arb_notifier.AutoRollNotifier
 	parentName      string
 	recent          *recent_rolls.RecentRolls
 	retrieveRoll    func(context.Context, *AutoRoller, int64) (RollImpl, error)
@@ -127,12 +127,12 @@ func newAutoRoller(ctx context.Context, retrieveRoll func(context.Context, *Auto
 	arb := &AutoRoller{
 		childName:       c.ChildName,
 		cqExtraTrybots:  c.CqExtraTrybots,
-		emailer:         c.Emailer,
 		emails:          c.Emails,
 		failureThrottle: failureThrottle,
 		gerrit:          c.Gerrit,
 		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"child_path": c.ChildPath}),
 		modeHistory:     mh,
+		notifier:        c.Notifier,
 		parentName:      c.ParentName,
 		recent:          recent,
 		retrieveRoll:    retrieveRoll,
@@ -142,7 +142,7 @@ func newAutoRoller(ctx context.Context, retrieveRoll func(context.Context, *Auto
 		status:          &AutoRollStatusCache{},
 		successThrottle: successThrottle,
 	}
-	sm, err := state_machine.New(arb, c.Workdir)
+	sm, err := state_machine.New(arb, c.Workdir, c.Notifier)
 	if err != nil {
 		return nil, err
 	}
@@ -275,14 +275,6 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 	})
 }
 
-// Send the given email message.
-func (r *AutoRoller) sendEmail(from string, to []string, subject, body, markup string) error {
-	if r.emailer == nil {
-		return nil
-	}
-	return r.emailer.SendWithMarkup(from, to, subject, body, markup)
-}
-
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) GetActiveRoll() state_machine.RollCLImpl {
 	return r.currentRoll
@@ -316,14 +308,8 @@ func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) er
 	if err := r.modeHistory.Add(mode, user, message); err != nil {
 		return err
 	}
-	subject := fmt.Sprintf("%s changed the %s into %s AutoRoller mode", user, r.childName, r.parentName)
-	body := fmt.Sprintf("%s changed the mode to <b>%s</b> with message:<br/><br/>%s<br/><br/>See %s for more details.", user, mode, message, r.serverURL)
-	markup, err := email.GetViewActionMarkup(r.serverURL, "Go to AutoRoller", "Direct link to the AutoRoll server.")
-	if err != nil {
-		return err
-	}
-	if err := r.sendEmail(EMAIL_FROM_ADDRESS, r.emails, subject, body, markup); err != nil {
-		return err
+	if err := r.notifier.SendModeChange(user, mode, message); err != nil {
+		return fmt.Errorf("Failed to send notification: %s", err)
 	}
 
 	// Update the status so that the mode change shows up on the UI.

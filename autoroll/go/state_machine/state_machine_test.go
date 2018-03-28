@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/modes"
+	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/testutils"
 
@@ -71,6 +72,16 @@ func (r *TestRollCLImpl) IsDryRunFinished() bool {
 // See documentation for RollCLImpl.
 func (r *TestRollCLImpl) IsDryRunSuccess() bool {
 	return r.dryRunResult == "SUCCESS"
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) IssueID() string {
+	return "0"
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) IssueURL() string {
+	return "http://codereview/123"
 }
 
 // See documentation for RollCLImpl.
@@ -305,7 +316,7 @@ func setup(t *testing.T) (*AutoRollStateMachine, *TestAutoRollerImpl, func()) {
 	rollerImpl := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	sm, err := New(rollerImpl, workdir)
+	sm, err := New(rollerImpl, workdir, notifier.New("fake", "fake"))
 	assert.NoError(t, err)
 	return sm, rollerImpl, func() {
 		testutils.RemoveAll(t, workdir)
@@ -318,7 +329,7 @@ func TestNormal(t *testing.T) {
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
-	sm, err := New(r, workdir)
+	sm, err := New(r, workdir, notifier.New("fake", "fake"))
 	assert.NoError(t, err)
 	ctx := context.Background()
 
@@ -429,7 +440,7 @@ func TestDryRun(t *testing.T) {
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
-	sm, err := New(r, workdir)
+	sm, err := New(r, workdir, notifier.New("fake", "fake"))
 	assert.NoError(t, err)
 	ctx := context.Background()
 
@@ -579,7 +590,7 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
-	sm, err := New(r, workdir)
+	sm, err := New(r, workdir, notifier.New("fake", "fake"))
 	assert.NoError(t, err)
 
 	safetyThrottle, err := NewThrottler(path.Join(workdir, "attempt_counter"), period, attemptCount)
@@ -652,12 +663,12 @@ func TestPersistence(t *testing.T) {
 	r := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	sm, err := New(r, workdir)
+	sm, err := New(r, workdir, notifier.New("fake", "fake"))
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
 	check := func() {
-		sm2, err := New(r, workdir)
+		sm2, err := New(r, workdir, notifier.New("fake", "fake"))
 		assert.NoError(t, err)
 		assert.Equal(t, sm.Current(), sm2.Current())
 	}
@@ -688,7 +699,7 @@ func TestSuccessThrottle(t *testing.T) {
 	successThrottle, err := NewThrottler(counterFile, 30*time.Minute, 1)
 	assert.NoError(t, err)
 	r.successThrottle = successThrottle
-	sm, err := New(r, workdir)
+	sm, err := New(r, workdir, notifier.New("fake", "fake"))
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 	ctx := context.Background()

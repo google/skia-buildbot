@@ -153,3 +153,16 @@ func (c *PersistentAutoDecrementCounter) Reset() error {
 	c.times = []time.Time{}
 	return c.write()
 }
+
+// GetDecrementTimes returns a slice of time.Time which indicate *roughly* when
+// the counter will be decremented. This is informational only, and the caller
+// should not rely on the times to be perfectly accurate.
+func (c *PersistentAutoDecrementCounter) GetDecrementTimes() []time.Time {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	rv := make([]time.Time, len(c.times))
+	for i, t := range c.times {
+		rv[i] = t
+	}
+	return rv
+}

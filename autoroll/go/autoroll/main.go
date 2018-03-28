@@ -22,15 +22,18 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/webhook"
 
 	"go.skia.org/infra/autoroll/go/google3"
+	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/common"
@@ -64,6 +67,8 @@ var (
 	local                      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	maxRollFreq                = flag.String("max_roll_frequency", "0s", "Limit to one successful roll within this time period.")
 	noLog                      = flag.Bool("no_log", false, "If true, roll CLs do not include a git log (DEPS rollers only).")
+	notifierChatWebhook        = flag.String("chat_webhook", "", "Send notifications using the given Hangouts Chat webhook name.")
+	notifierEmailSheriff       = flag.Bool("email_sheriff", false, "If true, send notification emails to the current sheriff.")
 	parentBranch               = flag.String("parent_branch", "master", "Branch of the parent repo we want to roll into.")
 	parentName                 = flag.String("parent_name", "", "User friendly name of the parent repo.")
 	parentRepo                 = flag.String("parent_repo", common.REPO_CHROMIUM, "Repo to roll into.")
@@ -431,6 +436,30 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
+	// Set up notifiers.
+	n := arb_notifier.New(*childName, *parentName)
+	if *notifierEmailSheriff {
+		// TODO(borenet): The email list may periodically change, but the
+		// EmailNotifier will not respect those changes.
+		markup, err := email.GetViewActionMarkup(serverURL, "Go to AutoRoller", "Direct link to the AutoRoll server.")
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		emailNotifier, err := notifier.EmailNotifier(emails, emailer, markup)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		n.Add(emailNotifier, notifier.FILTER_WARNING, "")
+	}
+	if *notifierChatWebhook != "" {
+		chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", *childName, *parentName))
+		chatNotifier, err := notifier.ChatNotifier(*notifierChatWebhook)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		n.Add(chatNotifier, notifier.FILTER_DEBUG, "")
+	}
+
 	// Create the autoroller.
 	strat, err := repo_manager.GetNextRollStrategy(*strategy, *childBranch, "")
 	if err != nil {
@@ -457,10 +486,10 @@ func main() {
 		ChildPath:        *childPath,
 		CqExtraTrybots:   cqExtraTrybots,
 		DepotTools:       depotTools,
-		Emailer:          emailer,
 		Emails:           emails,
 		Gerrit:           g,
 		MaxRollFrequency: mrf,
+		Notifier:         n,
 		ParentBranch:     *parentBranch,
 		ParentName:       *parentName,
 		ParentRepo:       *parentRepo,
