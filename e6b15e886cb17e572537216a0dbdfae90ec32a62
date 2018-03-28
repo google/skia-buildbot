@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "bfcf005e_b4929b1c",
+        "filename": "go/chatbot/bot.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T12:36:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26c41d59_6cf5dcf5",
+      "revId": "e6b15e886cb17e572537216a0dbdfae90ec32a62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6914987b_ddd8b117",
         "filename": "go/notifier/manager.go",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "e6b15e886cb17e572537216a0dbdfae90ec32a62",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "160a8a35_d2ed702d",
+        "filename": "go/notifier/manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T12:36:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6914987b_ddd8b117",
+      "revId": "e6b15e886cb17e572537216a0dbdfae90ec32a62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "5f449547_d8ae6663",
+        "filename": "go/notifier/manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T12:36:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3bc4a2ec_5d5007df",
+      "revId": "e6b15e886cb17e572537216a0dbdfae90ec32a62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "53fdf252_e4907b80",
         "filename": "go/notifier/manager.go",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2018-03-28T12:21:03Z",
       "side": 1,
       "message": "I\u0027m not a fan of the \"Manager\" name, how about \"Mux\" or \"Router\"?",
+      "revId": "e6b15e886cb17e572537216a0dbdfae90ec32a62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0d2bf8d_54b35392",
+        "filename": "go/notifier/manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T12:36:37Z",
+      "side": 1,
+      "message": "Changed to \"Router\"",
+      "parentUuid": "53fdf252_e4907b80",
       "revId": "e6b15e886cb17e572537216a0dbdfae90ec32a62",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
