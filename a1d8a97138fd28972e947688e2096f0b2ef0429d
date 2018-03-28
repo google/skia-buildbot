@@ -46,6 +46,30 @@
       "revId": "a1d8a97138fd28972e947688e2096f0b2ef0429d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b5fc4a1a_f8de9231",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T19:03:40Z",
+      "side": 1,
+      "message": "This is a really interesting idea, but we\u0027d need to think about how it would work.  Do we pick up the config automatically (this seems dangerous)?  Do we load the config from HEAD of master when we build the push package?  What parts of the config does the child repo get to specify?",
+      "parentUuid": "36b5937c_0015cc1f",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 124
+      },
+      "revId": "a1d8a97138fd28972e947688e2096f0b2ef0429d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
