@@ -86,7 +86,7 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send the message to the chat room.
-	if err := chatbot.Send(body, to); err != nil {
+	if err := chatbot.Send(body, to, ""); err != nil {
 		httputils.ReportError(w, r, err, "Failed to send outgoing chat.")
 		return
 	}
