@@ -211,12 +211,13 @@ const char *unlink_allowed_prefixes[] = {
 const char *writing_allowed_prefixes[] = {
     "/dev/dri/",
     "/dev/nvidia",
-    "/tmp/",
+    "/tmp",
     NULL,
 };
 
 const char *readonly_allowed_prefixes[] = {
     "/dev/dri",
+    "/etc/egl/",
     "/etc/fonts",
     "/etc/glvnd/",
     "/etc/ld.so.cache",
@@ -226,7 +227,8 @@ const char *readonly_allowed_prefixes[] = {
     "/proc/driver/nvidia",
     "/proc/meminfo",
     "/proc/modules",
-    "/tmp/",
+    "/sys/",
+    "/tmp",
     "/usr/lib/",
     "/usr/local/share/fonts",
     "/usr/share/",
