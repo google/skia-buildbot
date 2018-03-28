@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e706a4d2_37efed93",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T20:36:15Z",
+      "side": 1,
+      "message": "Should this be: metadata.JWT_SERVICE_ACCOUNT?",
+      "range": {
+        "startLine": 128,
+        "startChar": 44,
+        "endLine": 128,
+        "endChar": 63
+      },
+      "revId": "87c68a98a6f4377b3487a7c639dd414c98bd5b73",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45d5f59d_b57706aa",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-28T20:36:15Z",
+      "side": 1,
+      "message": "If we\u0027re running outside of GCE (eg. skolo), we should still have a metadata server which could serve us a project ID.  That might be useful.",
+      "range": {
+        "startLine": 159,
+        "startChar": 44,
+        "endLine": 159,
+        "endChar": 65
+      },
+      "revId": "87c68a98a6f4377b3487a7c639dd414c98bd5b73",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
