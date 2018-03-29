@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 
@@ -118,11 +119,22 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 			Timeout: httputils.REQUEST_TIMEOUT,
 		})
 	} else {
-		// Use compute engine service account.
-		client = GCEServiceAccountClient(transport)
+		// Are we running on GCE?
+		if onGCE() {
+			// Use compute engine service account.
+			client = GCEServiceAccountClient(transport)
+		} else {
+			// Create and use a token provider for skolo service account access tokens.
+			client = SkoloServiceAccountClient(transport)
+		}
 	}
 
 	return client, nil
+}
+
+func onGCE() bool {
+	_, err := net.ResolveIPAddr("tcp", "metadata.google.internal")
+	return err == nil
 }
 
 const (
@@ -148,6 +160,41 @@ func GCEServiceAccountClient(transport http.RoundTripper) *http.Client {
 	return httputils.AddMetricsToClient(&http.Client{
 		Transport: &oauth2.Transport{
 			Source: google.ComputeTokenSource(""),
+			Base:   transport,
+		},
+		Timeout: httputils.REQUEST_TIMEOUT,
+	})
+}
+
+type skoloTokenSource struct {
+	client *http.Client
+}
+
+func newSkoloTokenSource() *skoloTokenSource {
+	return &skoloTokenSource{
+		client: httputils.NewFastTimeoutClient(),
+	}
+}
+
+func (s *skoloTokenSource) Token() (*oauth2.Token, error) {
+	resp, err := s.client.Get(metadata.TOKEN_URL)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve token: %s", err)
+	}
+	defer util.Close(resp.Body)
+	var tok oauth2.Token
+	if err := json.NewDecoder(resp.Body).Decode(&tok); err != nil {
+		return nil, fmt.Errorf("Failed to decode token: %s", err)
+	}
+	return &tok, nil
+}
+
+// SkoloServiceAccountClient creates an oauth client that is uses the auth token
+// provided by the skolo metadata server.
+func SkoloServiceAccountClient(transport http.RoundTripper) *http.Client {
+	return httputils.AddMetricsToClient(&http.Client{
+		Transport: &oauth2.Transport{
+			Source: newSkoloTokenSource(),
 			Base:   transport,
 		},
 		Timeout: httputils.REQUEST_TIMEOUT,
