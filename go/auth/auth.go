@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	cloud_metadata "cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
@@ -23,16 +24,29 @@ import (
 const (
 	DEFAULT_JWT_FILENAME           = "service-account.json"
 	DEFAULT_CLIENT_SECRET_FILENAME = "client_secret.json"
+	DEFAULT_TOKEN_STORE_FILENAME   = "google_storage_token.data"
 )
 
 // NewDefaultClient creates a new OAuth 2.0 authorized client with all the
 // defaults for the given scopes. If local is true then a 3-legged flow is
-// initiated, otherwise the GCE Service Account is used.
+// initiated, otherwise the GCE Service Account is used if running in GCE, and
+// the Skolo access token provider is used if running in Skolo.
 //
 // The default OAuth config filename is "client_secret.json".
 // The default OAuth token store filename is "google_storage_token.data".
 func NewDefaultClient(local bool, scopes ...string) (*http.Client, error) {
-	return NewClient(local, "", scopes...)
+	tok, err := NewDefaultTokenSource(local, scopes...)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create TokenSource: %s", err)
+	}
+
+	return httputils.AddMetricsToClient(&http.Client{
+		Transport: &oauth2.Transport{
+			Source: tok,
+			Base:   httputils.NewBackOffTransport(),
+		},
+		Timeout: httputils.REQUEST_TIMEOUT,
+	}), nil
 }
 
 // NewClient creates a new OAuth 2.0 authorized client with all the defaults
@@ -93,7 +107,7 @@ func NewClientWithTransport(local bool, oauthCacheFile string, oauthConfigFile s
 // Service Account is used.
 func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCacheFile string, transport http.RoundTripper) (*http.Client, error) {
 	if oauthCacheFile == "" {
-		oauthCacheFile = "google_storage_token.data"
+		oauthCacheFile = DEFAULT_TOKEN_STORE_FILENAME
 	}
 	if transport == nil {
 		transport = httputils.NewBackOffTransport()
@@ -118,11 +132,54 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 			Timeout: httputils.REQUEST_TIMEOUT,
 		})
 	} else {
-		// Use compute engine service account.
-		client = GCEServiceAccountClient(transport)
+		// Are we running on GCE?
+		if cloud_metadata.OnGCE() {
+			// Use compute engine service account.
+			client = GCEServiceAccountClient(transport)
+		} else {
+			// Create and use a token provider for skolo service account access tokens.
+			client = SkoloServiceAccountClient(transport)
+		}
 	}
 
 	return client, nil
+}
+
+// NewDefaultClient creates a new OAuth 2.0 token source with all the
+// defaults for the given scopes. If local is true then a 3-legged flow is
+// initiated, otherwise the GCE Service Account is used if running in GCE, and
+// the Skolo access token provider is used if running in Skolo.
+//
+// The default OAuth config filename is "client_secret.json".
+// The default OAuth token store filename is "google_storage_token.data".
+func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
+	if local {
+		body, err := ioutil.ReadFile(DEFAULT_CLIENT_SECRET_FILENAME)
+		if err != nil {
+			return nil, err
+		}
+		config, err := google.ConfigFromJSON(body, scopes...)
+		if err != nil {
+			return nil, err
+		}
+
+		transport := httputils.NewBackOffTransport()
+		oauthCacheFile := DEFAULT_TOKEN_STORE_FILENAME
+		tokenClient := &http.Client{
+			Transport: transport,
+			Timeout:   httputils.REQUEST_TIMEOUT,
+		}
+		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
+		return newCachingTokenSource(oauthCacheFile, ctx, config)
+	} else {
+		// Are we running on GCE?
+		if cloud_metadata.OnGCE() {
+			return google.ComputeTokenSource(""), nil
+		} else {
+			// Create and use a token provider for skolo service account access tokens.
+			return newSkoloTokenSource(), nil
+		}
+	}
 }
 
 const (
@@ -148,6 +205,43 @@ func GCEServiceAccountClient(transport http.RoundTripper) *http.Client {
 	return httputils.AddMetricsToClient(&http.Client{
 		Transport: &oauth2.Transport{
 			Source: google.ComputeTokenSource(""),
+			Base:   transport,
+		},
+		Timeout: httputils.REQUEST_TIMEOUT,
+	})
+}
+
+// skoloTokenSource implements the oauth2.TokenSource interface using tokens
+// from the skolo metadata server.
+type skoloTokenSource struct {
+	client *http.Client
+}
+
+func newSkoloTokenSource() *skoloTokenSource {
+	return &skoloTokenSource{
+		client: httputils.NewBackOffClient(),
+	}
+}
+
+func (s *skoloTokenSource) Token() (*oauth2.Token, error) {
+	resp, err := s.client.Get(metadata.TOKEN_URL)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve token: %s", err)
+	}
+	defer util.Close(resp.Body)
+	var tok oauth2.Token
+	if err := json.NewDecoder(resp.Body).Decode(&tok); err != nil {
+		return nil, fmt.Errorf("Failed to decode token: %s", err)
+	}
+	return &tok, nil
+}
+
+// SkoloServiceAccountClient creates an oauth client that uses the auth token
+// provided by the skolo metadata server.
+func SkoloServiceAccountClient(transport http.RoundTripper) *http.Client {
+	return httputils.AddMetricsToClient(&http.Client{
+		Transport: &oauth2.Transport{
+			Source: newSkoloTokenSource(),
 			Base:   transport,
 		},
 		Timeout: httputils.REQUEST_TIMEOUT,
