@@ -25,6 +25,19 @@ var (
 	manifestEmails = []string{"reviewer@chromium.org"}
 )
 
+func manifestCfg() *ManifestRepoManagerConfig {
+	return &ManifestRepoManagerConfig{
+		depotToolsRepoManagerConfig: &depotToolsRepoManagerConfig{
+			commonRepoManagerConfig: &commonRepoManagerConfig{
+				ChildBranch:  "master",
+				ChildPath:    childPath,
+				ParentBranch: "master",
+				Strategy:     ROLL_STRATEGY_BATCH,
+			},
+		},
+	}
+}
+
 func setupManifest(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -144,10 +157,10 @@ func TestManifestRepoManager(t *testing.T) {
 	ctx, wd, child, childCommits, parent, cleanup := setupManifest(t)
 	defer cleanup()
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
+	cfg := manifestCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -169,10 +182,10 @@ func TestCreateNewManifestRoll(t *testing.T) {
 	ctx, wd, _, _, parent, cleanup := setupManifest(t)
 	defer cleanup()
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
+	cfg := manifestCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -190,10 +203,10 @@ func TestRanPreUploadStepsManifest(t *testing.T) {
 	ctx, wd, _, _, parent, cleanup := setupManifest(t)
 	defer cleanup()
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
+	cfg := manifestCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 	assert.NoError(t, err)
 	ran := false
 	rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{

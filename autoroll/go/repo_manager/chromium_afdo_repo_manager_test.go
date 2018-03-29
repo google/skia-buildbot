@@ -29,6 +29,19 @@ const (
 	afdoTimeNext = "2009-11-10T23:02:00Z"
 )
 
+func afdoCfg() *AFDORepoManagerConfig {
+	return &AFDORepoManagerConfig{
+		depotToolsRepoManagerConfig: &depotToolsRepoManagerConfig{
+			commonRepoManagerConfig: &commonRepoManagerConfig{
+				ChildBranch:  "master",
+				ChildPath:    "???",
+				ParentBranch: "master",
+				Strategy:     "afdo",
+			},
+		},
+	}
+}
+
 func setupAfdo(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -194,7 +207,7 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path stri
 func TestAFDORepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 
-	ctx, wd, gb, _, urlmock, cleanup := setupAfdo(t)
+	ctx, wd, parent, _, urlmock, cleanup := setupAfdo(t)
 	defer cleanup()
 	g := setupFakeGerrit(t, wd)
 
@@ -202,7 +215,9 @@ func TestAFDORepoManager(t *testing.T) {
 	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
-	rm, err := NewAFDORepoManager(ctx, wd, gb.RepoUrl(), "master", depot_tools.GetDepotTools(t, ctx), g, "fake.server.com", urlmock.Client())
+	cfg := afdoCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewAFDORepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com", urlmock.Client())
 	assert.NoError(t, err)
 	assert.Equal(t, mockUser, rm.User())
 	assert.Equal(t, afdoRevBase, rm.LastRollRev())

@@ -30,7 +30,7 @@ func (n *testNotifier) Send(subject string, m *notifier.Message) error {
 func TestNotifier(t *testing.T) {
 	testutils.SmallTest(t)
 
-	n := New("childRepo", "parentRepo")
+	n := New("childRepo", "parentRepo", nil)
 	t1 := &testNotifier{}
 	n.Add(t1, notifier.FILTER_DEBUG, "")
 
