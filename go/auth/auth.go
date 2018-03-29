@@ -27,6 +27,28 @@ const (
 	DEFAULT_TOKEN_STORE_FILENAME   = "google_storage_token.data"
 )
 
+// NewDefault creates a new OAuth 2.0 authorized client and TokenSource with all the
+// defaults for the given scopes. If local is true then a 3-legged flow is
+// initiated, otherwise the GCE Service Account is used if running in GCE, and
+// the Skolo access token provider is used if running in Skolo.
+//
+// The default OAuth config filename is "client_secret.json".
+// The default OAuth token store filename is "google_storage_token.data".
+func NewDefault(local bool, scopes ...string) (*http.Client, oauth2.TokenSource, error) {
+	tok, err := NewDefaultTokenSource(local, scopes...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to create TokenSource: %s", err)
+	}
+
+	return httputils.AddMetricsToClient(&http.Client{
+		Transport: &oauth2.Transport{
+			Source: tok,
+			Base:   httputils.NewBackOffTransport(),
+		},
+		Timeout: httputils.REQUEST_TIMEOUT,
+	}), tok, nil
+}
+
 // NewDefaultClient creates a new OAuth 2.0 authorized client with all the
 // defaults for the given scopes. If local is true then a 3-legged flow is
 // initiated, otherwise the GCE Service Account is used if running in GCE, and

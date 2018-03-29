@@ -1,0 +1,17 @@
+{
+  "name": "pulld",
+  "version": "0.2.0",
+  "private": true,
+  "description": "pulld daemon component of push.skia.org",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "BSD",
+  "devDependencies": {
+    "webpack-cli": "^2.0.13"
+  },
+  "dependencies": {
+    "lit-html": "^0.9.0",
+    "pulito": "^2.0.0"
+  }
+}

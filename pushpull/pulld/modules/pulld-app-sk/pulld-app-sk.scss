@@ -1,0 +1,20 @@
+@import '~common/colors';
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  margin: 0;
+  padding: 0.6em;
+  color: white;
+  background: $blue;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+header h1 {
+  font-size: 110%;
+}
