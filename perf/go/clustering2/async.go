@@ -375,7 +375,7 @@ func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWi
 		if request.Radius <= 0 {
 			request.Radius = 1
 		}
-		if request.Radius > MAX_RADIUS {
+		if request.Algo != TAIL_ALGO && request.Radius > MAX_RADIUS {
 			request.Radius = MAX_RADIUS
 		}
 		from := request.Offset - request.Radius
