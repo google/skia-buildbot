@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5c49fcf8_299c2706",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-29T14:18:20Z",
+      "side": 1,
+      "message": "Now using skolo service account access token endpoint.",
+      "parentUuid": "e706a4d2_37efed93",
+      "range": {
+        "startLine": 128,
+        "startChar": 44,
+        "endLine": 128,
+        "endChar": 63
+      },
+      "revId": "87c68a98a6f4377b3487a7c639dd414c98bd5b73",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "45d5f59d_b57706aa",
         "filename": "go/metadata/metadata.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "87c68a98a6f4377b3487a7c639dd414c98bd5b73",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3771e435_a5fa0a12",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-29T14:18:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "45d5f59d_b57706aa",
+      "range": {
+        "startLine": 159,
+        "startChar": 44,
+        "endLine": 159,
+        "endChar": 65
+      },
+      "revId": "87c68a98a6f4377b3487a7c639dd414c98bd5b73",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
