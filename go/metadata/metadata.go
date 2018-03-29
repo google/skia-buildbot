@@ -79,11 +79,16 @@ const (
 	// to the metadata server.
 	HEADER_MD_FLAVOR_KEY = "Metadata-Flavor"
 	HEADER_MD_FLAVOR_VAL = "Google"
+
+	SKOLO_PROJECT_ID = "skolo"
 )
 
 var (
 	// Metadata path for a default service account token.
 	TOKEN_PATH = fmt.Sprintf(METADATA_PATH_PREFIX_TMPL, LEVEL_INSTANCE) + "/service-accounts/default/token"
+
+	// PROJECT_ID_PATH is the metadata location of the project id.
+	PROJECT_ID_PATH = fmt.Sprintf(METADATA_PATH_PREFIX_TMPL, LEVEL_PROJECT) + "/project-id"
 
 	// Full metadata URL for a default service account token.
 	TOKEN_URL = METADATA_URL_PREFIX + TOKEN_PATH
@@ -151,6 +156,16 @@ func ProjectGetWithDefault(name, defaultValue string) string {
 		sklog.Warningf("Unable to obtain %q from metadata server: %v", name, err)
 		return defaultValue
 	}
+}
+
+// ProjectId returns the project id as reported by the metadata
+// server, or "skolo" if no metadata server is present.
+func ProjectId() (string, error) {
+	id, err := getUrl(fmt.Sprintf(METADATA_URL_PREFIX, PROJECT_ID_PATH))
+	if err == nil && id == "" {
+		id = SKOLO_PROJECT_ID
+	}
+	return id, err
 }
 
 // MustGet is Get() that panics on error.
