@@ -92,6 +92,8 @@ func (b *baseInitOpt) order() int {
 type cloudLoggingInitOpt struct {
 	logGrouping        string
 	serviceAccountPath *string
+	local              *bool
+	useDefaultAuth     bool // If true then use the instance service account.
 }
 
 // CloudLoggingOpt creates an Opt to initialize cloud logging when passed to InitWith().
@@ -99,6 +101,16 @@ type cloudLoggingInitOpt struct {
 // Uses metadata to configure the auth.
 func CloudLoggingOpt() Opt {
 	return &cloudLoggingInitOpt{}
+}
+
+// CloudLoggingDefaultAuthOpt creates an Opt to initialize cloud logging when passed to InitWith().
+//
+// Uses the instance service account for auth.
+func CloudLoggingDefaultAuthOpt(local *bool) Opt {
+	return &cloudLoggingInitOpt{
+		useDefaultAuth: true,
+		local:          local,
+	}
 }
 
 // CloudLoggingJWTOpt creates an Opt to initialize cloud logging when passed to InitWith().
@@ -125,11 +137,17 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 	transport := &http.Transport{
 		Dial: httputils.FastDialTimeout,
 	}
-	path := ""
-	if o.serviceAccountPath != nil {
-		path = *(o.serviceAccountPath)
+	var err error
+	var c *http.Client
+	if !o.useDefaultAuth {
+		path := ""
+		if o.serviceAccountPath != nil {
+			path = *(o.serviceAccountPath)
+		}
+		c, err = auth.NewJWTServiceAccountClient("", path, transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	} else {
+		c, err = auth.NewDefaultClient(*o.local, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	}
-	c, err := auth.NewJWTServiceAccountClient("", path, transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
 		return fmt.Errorf("Problem getting authenticated client: %s", err)
 	}
