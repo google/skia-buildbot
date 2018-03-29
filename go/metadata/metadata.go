@@ -85,6 +85,9 @@ var (
 	// Metadata path for a default service account token.
 	TOKEN_PATH = fmt.Sprintf(METADATA_PATH_PREFIX_TMPL, LEVEL_INSTANCE) + "/service-accounts/default/token"
 
+	// PROJECT_ID_PATH is the metadata location of the project id.
+	PROJECT_ID_PATH = fmt.Sprintf(METADATA_PATH_PREFIX_TMPL, LEVEL_PROJECT) + "/project-id"
+
 	// Full metadata URL for a default service account token.
 	TOKEN_URL = METADATA_URL_PREFIX + TOKEN_PATH
 )
