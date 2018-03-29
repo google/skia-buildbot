@@ -148,6 +148,7 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (r *androidRepoManager) getLastRollRev(ctx context.Context) (string, error) {
+	// rmistry
 	output, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/goog/%s", r.parentBranch))
 	if err != nil {
 		return "", err
