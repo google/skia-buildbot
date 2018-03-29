@@ -160,3 +160,22 @@ func TestPostWrongType(t *testing.T) {
 		t.Errorf("The wrong error was shown: %s", err)
 	}
 }
+
+//func TestPatchNotGet(t *testing.T) {
+//	testutils.SmallTest(t)
+//	urlMock := NewURLMock()
+
+//	expectedResponse := []byte("Hello world")
+//	urlMock.MockOnce("http://www.example.com", MockGetDialogue(expectedResponse))
+
+//	c := urlMock.Client()
+//	r := bytes.NewReader([]byte("fizzbuzz"))
+
+//	req, err := http.NewRequest("PATCH", "http://www.example.com", r)
+//	if err != nil {
+//		t.Errorf("Error when creating patch request: %s", err)
+//	}
+//	//if resp, err := c.Do(req); err == nil {
+//	//	t.Errorf("Should have gotten error that we PATCHed when a GET was mocked, but was %#v", resp)
+//	//}
+//}
