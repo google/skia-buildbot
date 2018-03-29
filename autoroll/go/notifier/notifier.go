@@ -2,9 +2,12 @@ package notifier
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"html/template"
 	"time"
 
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/notifier"
 )
 
@@ -47,14 +50,16 @@ type tmplVars struct {
 // AutoRoller. It is a convenience wrapper around notifier.Router.
 type AutoRollNotifier struct {
 	childName  string
+	emailer    *email.GMail
 	n          *notifier.Router
 	parentName string
 }
 
 // Return an AutoRollNotifier instance.
-func New(childName, parentName string) *AutoRollNotifier {
+func New(childName, parentName string, emailer *email.GMail) *AutoRollNotifier {
 	return &AutoRollNotifier{
 		childName:  childName,
+		emailer:    emailer,
 		n:          notifier.NewRouter(),
 		parentName: parentName,
 	}
@@ -63,6 +68,26 @@ func New(childName, parentName string) *AutoRollNotifier {
 // Add a new Notifier. See docs for notifier.Router.Add for more details.
 func (a *AutoRollNotifier) Add(n notifier.Notifier, f notifier.Filter, singleThreadSubject string) {
 	a.n.Add(n, f, singleThreadSubject)
+}
+
+// Add a new Notifier based on the given Config.
+func (a *AutoRollNotifier) AddFromConfig(c Config) error {
+	n, f, s, err := c.notifier(a.emailer)
+	if err != nil {
+		return err
+	}
+	a.Add(n, f, s)
+	return nil
+}
+
+// Add all of the Notifiers specified by the given Configs.
+func (a *AutoRollNotifier) AddFromConfigs(cfgs []Config) error {
+	for _, c := range cfgs {
+		if err := a.AddFromConfig(c); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Send a message.
@@ -117,4 +142,82 @@ func (a *AutoRollNotifier) SendSuccessThrottled(until time.Time) error {
 	return a.send(&tmplVars{
 		ThrottledUntil: until.Format(time.RFC1123),
 	}, subjectTmplThrottled, bodyTmplSuccessThrottled, notifier.SEVERITY_WARNING)
+}
+
+type Config map[string]interface{}
+
+func (m Config) getString(name string) (string, error) {
+	s, ok := m[name]
+	if !ok {
+		return "", nil
+	}
+	rv, ok := s.(string)
+	if !ok {
+		return "", fmt.Errorf("Expected string for %q, got %T", name, s)
+	}
+	return rv, nil
+}
+
+func (m Config) getStringRequired(name string) (string, error) {
+	s, err := m.getString(name)
+	if err != nil {
+		return "", err
+	}
+	if s == "" {
+		return "", fmt.Errorf("%q is required.", name)
+	}
+	return s, nil
+}
+
+func (m Config) notifier(emailer *email.GMail) (notifier.Notifier, notifier.Filter, string, error) {
+	t, err := m.getStringRequired("type")
+	if err != nil {
+		return nil, 0, "", err
+	}
+	filterStr, err := m.getStringRequired("filter")
+	if err != nil {
+		return nil, 0, "", err
+	}
+	filter, err := notifier.ParseFilter(filterStr)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	subject, err := m.getString("subject")
+	if err != nil {
+		return nil, 0, "", err
+	}
+	switch t {
+	case "email":
+		e, ok := m["emails"]
+		if !ok {
+			return nil, 0, "", errors.New("\"emails\" is required for type \"email\"")
+		}
+		emailsIface, ok := e.([]interface{})
+		if !ok {
+			return nil, 0, "", errors.New("Expected slice for \"emails\"")
+		}
+		emails := make([]string, 0, len(emailsIface))
+		for _, e := range emailsIface {
+			str, ok := e.(string)
+			if !ok {
+				return nil, 0, "", errors.New("Expected []string for \"emails\"")
+			}
+			emails = append(emails, str)
+		}
+		markup, err := m.getString("markup")
+		if err != nil {
+			return nil, 0, "", err
+		}
+		n, err := notifier.EmailNotifier(emails, emailer, markup)
+		return n, filter, subject, err
+	case "chat":
+		room, err := m.getStringRequired("room")
+		if err != nil {
+			return nil, 0, "", err
+		}
+		n, err := notifier.ChatNotifier(room)
+		return n, filter, subject, err
+	default:
+		return nil, 0, "", fmt.Errorf("Unknown type %q", t)
+	}
 }
