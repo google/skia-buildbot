@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "326ffa01_931240d0",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-29T14:39:51Z",
+      "side": 1,
+      "message": "Nit: documentation",
+      "range": {
+        "startLine": 147,
+        "startChar": 5,
+        "endLine": 147,
+        "endChar": 26
+      },
+      "revId": "19ea6fb8b4be745aea9c8af6359fd3561cd9bb70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ff85cf6_b2e73565",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-29T14:39:51Z",
+      "side": 1,
+      "message": "IIUC this would work for skolo as well if we added \"metadata.google.internal\" as an alias for \"metadata\".  I guess it\u0027s probably not a good idea to fake it out though.",
+      "range": {
+        "startLine": 169,
+        "startChar": 10,
+        "endLine": 169,
+        "endChar": 39
+      },
+      "revId": "19ea6fb8b4be745aea9c8af6359fd3561cd9bb70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a77643b6_7486e829",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-29T14:39:51Z",
+      "side": 1,
+      "message": "Can we just use this directly? https://godoc.org/cloud.google.com/go/compute/metadata#OnGCE",
+      "range": {
+        "startLine": 177,
+        "startChar": 0,
+        "endLine": 183,
+        "endChar": 0
+      },
+      "revId": "19ea6fb8b4be745aea9c8af6359fd3561cd9bb70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdab3ce9_9c3cb273",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-29T14:39:51Z",
+      "side": 1,
+      "message": "I think it would be more correct to use \"skia-swarming-bots\", or even leave it up to the metadata server on the jumphost to decide, since the internal jumphost will be serving tokens from a different project.",
+      "range": {
+        "startLine": 83,
+        "startChar": 1,
+        "endLine": 83,
+        "endChar": 27
+      },
+      "revId": "19ea6fb8b4be745aea9c8af6359fd3561cd9bb70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ced44d3_f041c8db",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-29T14:39:51Z",
+      "side": 1,
+      "message": "Why not add the PROJECT_ID_PATH to the metadata server?",
+      "range": {
+        "startLine": 165,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 2
+      },
+      "revId": "19ea6fb8b4be745aea9c8af6359fd3561cd9bb70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
