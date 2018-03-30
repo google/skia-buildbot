@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f0c8d324_2d15fab8",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-03-30T14:45:58Z",
+      "side": 1,
+      "message": "This package has way too much redundancy. IMO this should be a convenience function that just passes default values to a function that allows fine-grained controlled how a token source is created. \nTokenSource seems to be the most versatile auth interface, the different Go package all seem to accept either a TokenSource or something that easily be derived from it.",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 86
+      },
+      "revId": "53456a1d5b2493a845a21f290a7cbd88b0bf2c20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
