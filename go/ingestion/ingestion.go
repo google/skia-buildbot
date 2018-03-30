@@ -300,8 +300,8 @@ func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileL
 				} else {
 					errorCounter++
 					sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
+					return
 				}
-				return
 			}
 
 			// Gather all successfully processed MD5s
