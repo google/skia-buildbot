@@ -35,15 +35,21 @@ import (
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/travisci"
 	"go.skia.org/infra/go/util"
 )
 
 const (
 	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
+
+	// Constants for github roller.
+	GITHUB_ROLLER_GITHUB_TOKEN   = "github_roller_github_token"
+	GITHUB_ROLLER_TRAVISCI_TOKEN = "travisci_roller_github_token"
 )
 
 var (
@@ -83,6 +89,12 @@ var (
 	useManifest                = flag.Bool("use_manifest", false, "Do a Manifest roll.")
 	useMetadata                = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir                    = flag.String("workdir", ".", "Directory to use for scratch work.")
+	// Flags for github roller.
+	rollIntoGithub  = flag.Bool("roll_into_github", false, "Roll into Github; do not do a Gerrit roll.")
+	githubToken     = flag.String("github_token", "", "Access token to use for the Github V3 API. Only used if *local is true.")
+	travisCiToken   = flag.String("travisci_token", "", "Access token to use for the Travis V3 API. Only used if *local is true.")
+	githubRepoOwner = flag.String("github_repo_owner", "flutter", "Owner of the github repo we want to roll into.")
+	githubRepoName  = flag.String("github_repo_name", "engine", "Name of the github repo we want to roll into.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -308,8 +320,8 @@ func runServer(serverURL string) {
 func main() {
 	common.InitWithMust(
 		"autoroll",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		//common.PrometheusOpt(promPort),
+		//common.CloudLoggingOpt(),
 	)
 	defer common.Defer()
 
@@ -404,6 +416,121 @@ func main() {
 		g.TurnOnAuthenticatedGets()
 	}
 
+	ctx := context.Background()
+
+	//Create the github API client.
+	//githubClient, err := github.NewGitHub(ctx, "flutter", "engine", "------------")
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
+	//fmt.Println(githubClient)
+	//title := "Test pull request using Github API"
+	//baseBranch := "master"
+	//headBranch := "rmistry:roll_branch"
+	//pr, err := githubClient.CreatePullRequest(title, baseBranch, headBranch)
+	//if err != nil {
+	//	sklog.Fatal(err)
+	//}
+	//if _, err := githubClient.ClosePullRequest(pr.GetNumber()); err != nil {
+	//	sklog.Fatal(err)
+	//}
+	//sklog.Fatalf("I am done!")
+
+	//// Junk notes are below!!!!!!!!!
+
+	////// rmistry!!!!!!!!!!!!!!!!
+	////fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXx")
+	////fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXx")
+	////fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXx")
+	////fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXx")
+	////fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXx")
+	////ctx := context.Background()
+	////ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "6fccee30a0b28be5108d076ae2f1da8596f36c91"})
+	////oauth2Client := oauth2.NewClient(ctx, ts)
+	////githubClient := github.NewClient(oauth2Client)
+	////pullRequestList := &github.PullRequestListOptions{
+	////	State: "Open",
+	////	Head:  "master",
+	////	Base:  "master",
+	////}
+	////pullRequests, resp, err := githubClient.PullRequests.List(ctx, "flutter", "engine", pullRequestList)
+	////if err != nil {
+	////	sklog.Fatalf("Failed doing pullrequests.list")
+	////}
+	////if resp.StatusCode != 200 {
+	////	sklog.Fatalf("Failed to request pull requests")
+	////}
+	////fmt.Println("----------------------------------------------------------")
+	////fmt.Println(len(pullRequests))
+	////for _, request := range pullRequests {
+	////	fmt.Println(request.GetTitle())
+	////}
+
+	////// Play with creating a pull request now via the API!!!!
+	//////type NewPullRequest struct {
+	//////	Title               *string `json:"title,omitempty"`
+	//////	Head                *string `json:"head,omitempty"`
+	//////	Base                *string `json:"base,omitempty"`
+	//////	Body                *string `json:"body,omitempty"`
+	//////	Issue               *int    `json:"issue,omitempty"`
+	//////	MaintainerCanModify *bool   `json:"maintainer_can_modify,omitempty"`
+	//////}
+	////title := "Test pull request using Github API"
+	////base := "master"
+	////head := "rmistry:roll_branch" // roll_branch?
+	//////body := "test body"
+	////pullRequest := &github.NewPullRequest{
+	////	Title: &title,
+	////	//Body:  &body,
+	////	//Base:  &base,
+	////	//Head:  &head,
+	////	Base: &base,
+	////	Head: &head,
+	////}
+	////pullReq, resp2, err := githubClient.PullRequests.Create(ctx, "flutter", "engine", pullRequest)
+	////if err != nil {
+	////	fmt.Println(err.Error())
+	////	sklog.Fatalf("Failed doing pullrequests.create")
+	////}
+	////if resp2.StatusCode != http.StatusCreated {
+	////	sklog.Fatalf("Failed to create pull request")
+	////}
+
+	////fmt.Println("----------------------------------------------------------")
+	////fmt.Println(pullReq)
+	////fmt.Println(pullReq.GetID())
+	////fmt.Println(pullReq.GetState())
+	////fmt.Println(pullReq.GetNumber())
+
+	////// CLOSING IT. Don't do it yet!!!! Leave it open to test for travis stuff!1
+	////closedState := "Closed"
+	////editPullRequest := &github.PullRequest{
+	////	State: &closedState,
+	////}
+	////edittedPullRequest, resp3, err := githubClient.PullRequests.Edit(ctx, "flutter", "engine", pullReq.GetNumber(), editPullRequest)
+	////fmt.Println("HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE")
+	////fmt.Println(resp3.StatusCode)
+	////fmt.Println(edittedPullRequest.GetState())
+	//// UNCOMMENT EVERYTHING ABOVE!!!!!!!!
+
+	////type NewPullRequest struct {
+	////	Title               *string `json:"title,omitempty"`
+	////	Head                *string `json:"head,omitempty"`
+	////	Base                *string `json:"base,omitempty"`
+	////	Body                *string `json:"body,omitempty"`
+	////	Issue               *int    `json:"issue,omitempty"`
+	////	MaintainerCanModify *bool   `json:"maintainer_can_modify,omitempty"`
+	////}
+	////pullRequest := &github.NewPullRequest{
+	////	Title: "Test pull request",
+	////	Body:  "Test body",
+	////	Base:  "rmistry:engine",
+	////	HEAD:  "roll_branch",
+	////}
+	////githubClient.PullRequests.Create(ctx, "rmistry@google.com", "engine", pullRequest)
+	//fmt.Println("")
+	//// rmistry!!!!!!!!!!!!!!!!
+
 	// Retrieve the list of extra CQ trybots.
 	// TODO(borenet): Make this editable on the web front-end.
 	cqExtraTrybots := getCQExtraTrybots()
@@ -417,7 +544,7 @@ func main() {
 	sklog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Sync depot_tools.
-	ctx := context.Background()
+	//ctx := context.Background()
 	var depotTools string
 	if !*rollIntoAndroid && !*rollIntoGoogle3 {
 		depotTools, err = depot_tools.Sync(ctx, *workdir)
@@ -481,6 +608,28 @@ func main() {
 		arb, err = roller.NewChromiumAFDOAutoRoller(ctx, cfg)
 	} else if *rollFuchsiaSDKIntoChromium {
 		arb, err = roller.NewChromiumFuchsiaSDKAutoRoller(ctx, cfg)
+	} else if *rollIntoGithub {
+		gToken := *githubToken
+		tToken := *travisCiToken
+		if !*local {
+			gToken = metadata.Must(metadata.ProjectGet(GITHUB_ROLLER_GITHUB_TOKEN))
+			tToken = metadata.Must(metadata.ProjectGet(GITHUB_ROLLER_TRAVISCI_TOKEN))
+		}
+		if *local && (gToken == "" || tToken == "") {
+			sklog.Fatal("If -local, you must provide -github_token and -travisci_token")
+		}
+		githubClient, err := github.NewGitHub(ctx, *githubRepoOwner, *githubRepoName, gToken)
+		if err != nil {
+			sklog.Fatalf("Could not create github client: %s", err)
+		}
+		travisCiClient, err := travisci.NewTravisCI(ctx, *githubRepoOwner, *githubRepoName, tToken)
+		if err != nil {
+			sklog.Fatalf("Could not create github client: %s", err)
+		}
+		arb, err = roller.NewGithubAutoRoller(ctx, cfg, !*noLog, *gclientSpec, githubClient, travisCiClient)
+		if err != nil {
+			sklog.Fatalf("Error when creating github roller: %s", err)
+		}
 	} else {
 		arb, err = roller.NewDEPSAutoRoller(ctx, cfg, !*noLog, *gclientSpec)
 	}
