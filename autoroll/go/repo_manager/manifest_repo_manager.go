@@ -21,11 +21,21 @@ import (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewManifestRepoManager func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, string) (RepoManager, error) = newManifestRepoManager
+	NewManifestRepoManager func(context.Context, *ManifestRepoManagerConfig, string, string, *gerrit.Gerrit, string) (RepoManager, error) = newManifestRepoManager
 
 	// TODO(rmistry): Make this configurable.
 	manifestFileName = filepath.Join("manifest", "skia")
 )
+
+// ManifestRepoManagerConfig provides configuration for the Manifest RepoManager.
+type ManifestRepoManagerConfig struct {
+	*depotToolsRepoManagerConfig
+}
+
+// Validate the config.
+func (c *ManifestRepoManagerConfig) Validate() error {
+	return c.depotToolsRepoManagerConfig.Validate()
+}
 
 // manifestRepoManager is a struct used by Manifest AutoRoller for managing checkouts.
 type manifestRepoManager struct {
@@ -34,14 +44,23 @@ type manifestRepoManager struct {
 
 // newManifestRepoManager returns a RepoManager instance which operates in the
 // given working directory and updates at the given frequency.
-func newManifestRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch string, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, serverURL string) (RepoManager, error) {
+func newManifestRepoManager(ctx context.Context, c *ManifestRepoManagerConfig, workdir, depot_tools string, g *gerrit.Gerrit, serverURL string) (RepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
 	wd := path.Join(workdir, "repo_manager")
 	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
 		return nil, err
 	}
-	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
+
+	strategy, err := GetNextRollStrategy(c.Strategy, c.ChildBranch, "")
+	if err != nil {
+		return nil, err
+	}
+
+	parentBase := strings.TrimSuffix(path.Base(c.ParentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
-	childDir := path.Join(wd, childPath)
+	childDir := path.Join(wd, c.ChildPath)
 	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
 	user, err := g.GetUserEmail()
@@ -50,7 +69,7 @@ func newManifestRepoManager(ctx context.Context, workdir, parentRepo, parentBran
 	}
 	sklog.Infof("Repo Manager user: %s", user)
 
-	preUploadSteps, err := GetPreUploadSteps(preUploadStepNames)
+	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +77,11 @@ func newManifestRepoManager(ctx context.Context, workdir, parentRepo, parentBran
 	mr := &manifestRepoManager{
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
-				parentBranch:   parentBranch,
+				parentBranch:   c.ParentBranch,
 				childDir:       childDir,
-				childPath:      childPath,
+				childPath:      c.ChildPath,
 				childRepo:      childRepo,
-				childBranch:    childBranch,
+				childBranch:    c.ChildBranch,
 				preUploadSteps: preUploadSteps,
 				serverURL:      serverURL,
 				strategy:       strategy,
@@ -73,7 +92,7 @@ func newManifestRepoManager(ctx context.Context, workdir, parentRepo, parentBran
 			depot_tools: depot_tools,
 			gclient:     path.Join(depot_tools, "gclient.py"),
 			parentDir:   parentDir,
-			parentRepo:  parentRepo,
+			parentRepo:  c.ParentRepo,
 		},
 	}
 

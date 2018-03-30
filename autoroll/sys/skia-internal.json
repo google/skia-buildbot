@@ -1,0 +1,21 @@
+{
+  "childBranch": "master",
+  "childName": "Skia",
+  "childPath": "skia",
+  "cqExtraTrybots": [],
+  "gerritURL": "https://skia-review.googlesource.com",
+  "maxRollFrequency": "",
+  "parentBranch": "master",
+  "parentName": "Internal Test",
+  "parentRepo": "https://skia.googlesource.com/internal_test.git",
+  "parentWaterfall": "https://status-internal.skia.org/",
+  "preUploadSteps": ["TrainInfra"],
+  "rollerType": "deps",
+  "safetyThrottle": {
+    "throttleCount": 0,
+    "throttleTime": 0
+  },
+  "serverURL": "",
+  "sheriff": ["borenet@google.com"],
+  "strategy": "single"
+}

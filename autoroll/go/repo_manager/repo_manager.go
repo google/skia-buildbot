@@ -2,6 +2,7 @@ package repo_manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -43,6 +44,35 @@ type RepoManager interface {
 	RolledPast(context.Context, string) (bool, error)
 	Update(context.Context) error
 	User() string
+}
+
+// commonRepoManagerConfig provides configuration for commonRepoManager.
+type commonRepoManagerConfig struct {
+	// Required fields.
+	ChildBranch  string `json:"childBranch"`
+	ChildPath    string `json:"childPath"`
+	ParentBranch string `json:"parentBranch"`
+	Strategy     string `json:"strategy"`
+
+	// Optional fields.
+	PreUploadSteps []string `json:"preUploadSteps"`
+}
+
+// Validate the config.
+func (c *commonRepoManagerConfig) Validate() error {
+	if c.ChildBranch == "" {
+		return errors.New("ChildBranch is required.")
+	}
+	if c.ChildPath == "" {
+		return errors.New("ChildPath is required.")
+	}
+	if c.ParentBranch == "" {
+		return errors.New("ParentBranch is required.")
+	}
+	if c.Strategy == "" {
+		return errors.New("Strategy is required.")
+	}
+	return nil
 }
 
 // commonRepoManager is a struct used by the AutoRoller implementations for
@@ -128,6 +158,28 @@ func (r *commonRepoManager) IsRollSubject(line string) (bool, error) {
 // not been rolled into the parent repo.
 func (r *commonRepoManager) CommitsNotRolled() int {
 	return r.commitsNotRolled
+}
+
+// depotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
+type depotToolsRepoManagerConfig struct {
+	*commonRepoManagerConfig
+
+	// Required fields.
+	ParentRepo string `json:"parentRepo"`
+
+	// Optional fields.
+	GClientSpec string `json:"gclientSpec"`
+}
+
+// Validate the config.
+func (c *depotToolsRepoManagerConfig) Validate() error {
+	if err := c.commonRepoManagerConfig.Validate(); err != nil {
+		return err
+	}
+	if c.ParentRepo == "" {
+		return errors.New("ParentRepo is required.")
+	}
+	return nil
 }
 
 // depotToolsRepoManager is a struct used by AutoRoller implementations that use

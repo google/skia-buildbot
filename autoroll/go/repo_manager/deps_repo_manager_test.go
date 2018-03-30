@@ -36,6 +36,19 @@ var (
 	emails = []string{"reviewer@chromium.org"}
 )
 
+func depsCfg() *DEPSRepoManagerConfig {
+	return &DEPSRepoManagerConfig{
+		depotToolsRepoManagerConfig: &depotToolsRepoManagerConfig{
+			commonRepoManagerConfig: &commonRepoManagerConfig{
+				ChildBranch:  "master",
+				ChildPath:    childPath,
+				ParentBranch: "master",
+				Strategy:     ROLL_STRATEGY_BATCH,
+			},
+		},
+	}
+}
+
 func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -109,9 +122,9 @@ func TestDEPSRepoManager(t *testing.T) {
 	defer cleanup()
 
 	g := setupFakeGerrit(t, wd)
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+	cfg := depsCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -148,10 +161,11 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	ctx, wd, child, childCommits, parent, _, cleanup := setup(t)
 	defer cleanup()
 
-	s, err := GetNextRollStrategy(strategy, "master", "")
-	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+	cfg := depsCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	cfg.Strategy = strategy
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -185,10 +199,10 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	ctx, wd, _, _, parent, _, cleanup := setup(t)
 	defer cleanup()
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+	cfg := depsCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 	assert.NoError(t, err)
 
 	ran := false
@@ -213,11 +227,11 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
 		defer cleanup()
 
-		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
-
-		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, includeLog, "", "fake.server.com")
+		cfg := depsCfg()
+		cfg.ParentRepo = parent.RepoUrl()
+		cfg.IncludeLog = includeLog
+		rm, err := NewDEPSRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 		assert.NoError(t, err)
 
 		// Create a roll.
@@ -246,8 +260,6 @@ func TestDEPSRepoManagerGclientSpec(t *testing.T) {
 	ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
 	defer cleanup()
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
 	gclientSpec := fmt.Sprintf(`
 solutions=[{
@@ -265,8 +277,10 @@ cache_dir=None
 `, path.Base(parent.RepoUrl()), parent.RepoUrl())
 	// Remove newlines.
 	gclientSpec = strings.Replace(gclientSpec, "\n", "", -1)
-
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, gclientSpec, "fake.server.com")
+	cfg := depsCfg()
+	cfg.GClientSpec = gclientSpec
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll.
@@ -298,10 +312,10 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		ctx, wd, child, _, parent, mockRun, cleanup := setup(t)
 		defer cleanup()
 
-		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
-		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+		cfg := depsCfg()
+		cfg.ParentRepo = parent.RepoUrl()
+		rm, err := NewDEPSRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com")
 		assert.NoError(t, err)
 
 		// Insert a fake entry into the repo mapping.
