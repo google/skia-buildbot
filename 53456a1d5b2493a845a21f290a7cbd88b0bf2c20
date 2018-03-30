@@ -22,6 +22,30 @@
       "revId": "53456a1d5b2493a845a21f290a7cbd88b0bf2c20",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1728349f_e8c199f0",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-03-30T15:10:23Z",
+      "side": 1,
+      "message": "Agreed, I have a follow-on CL where I have a NewDefault() func that returns both an authorized client and and authorized TokenSource. But maybe an even cleaner interface would be NewDefaultTokenSource and then a separate func to create an http.Client from a TokenSource.\n\nAlmost no one calls the NewClientWith* or NewClientFrom* functions, so I can clean up all those call sites.",
+      "parentUuid": "f0c8d324_2d15fab8",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 86
+      },
+      "revId": "53456a1d5b2493a845a21f290a7cbd88b0bf2c20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
