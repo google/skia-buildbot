@@ -36,6 +36,10 @@ var (
 	// indicated that this file should be considered ignored. It is up to the processor
 	// to write to the log.
 	IgnoreResultsFileErr = errors.New("Ignore this file.")
+
+	// IgnoreResultsFileForeverErr indicates that the result file should not be retried for
+	// ingestion, but be considered to be ignored.
+	IgnoreResultsFileForeverErr = errors.New("Ignore this file forever and consider it processed.")
 )
 
 // Source defines an ingestion source that returns lists of result files
@@ -295,13 +299,21 @@ func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileL
 			defer mutex.Unlock()
 
 			if err != nil {
-				if err == IgnoreResultsFileErr {
+				switch err {
+				// count it as ignored, but also mark it as processed.
+				case IgnoreResultsFileForeverErr:
 					ignoredCounter++
-				} else {
+
+				// count it as ignored and re-process it in the future.
+				case IgnoreResultsFileErr:
+					ignoredCounter++
+					return
+				// Record an error and re-process in the future.
+				default:
 					errorCounter++
 					sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
+					return
 				}
-				return
 			}
 
 			// Gather all successfully processed MD5s

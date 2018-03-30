@@ -5,8 +5,8 @@ Wants=network-online.target
 After=mnt-pd0.mount network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/gold_ingestion \
-    --config_filename=/etc/gold_ingestion/config.json5 \
+ExecStart=/usr/local/bin/skia-gold-ingestion \
+    --config_filename=/etc/skia-gold-ingestion/config.json5 \
     --ds_namespace=gold-skia-prod \
     --logtostderr \
     --prom_port=:20000

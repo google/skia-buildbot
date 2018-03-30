@@ -56,41 +56,52 @@ type goldTryjobProcessor struct {
 }
 
 // newGoldTryjobProcessor implementes the ingestion.Constructor function.
-func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clientx *http.Client) (ingestion.Processor, error) {
+func newGoldTryjobProcessor(vcs vcsinfo.VCS, sharedConf *sharedconfig.IngesterConfig, clientx *http.Client) (ingestion.Processor, error) {
 	sklog.Infof("Creating tryjob processor.")
-	gerritURL := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
+	gerritURL := sharedConf.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
 	if strings.TrimSpace(gerritURL) == "" {
 		return nil, fmt.Errorf("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
 	}
 
 	// Get the config options.
-	svcAccountFile := config.ExtraParams[CONFIG_SERVICE_ACCOUNT_FILE]
+	svcAccountFile := sharedConf.ExtraParams[CONFIG_SERVICE_ACCOUNT_FILE]
 	sklog.Infof("Got service accoutn file '%s'", svcAccountFile)
 
-	pollInterval, err := parseDuration(config.ExtraParams[CONFIG_BUILD_BUCKET_POLL_INTERVAL], bbstate.DefaultPollInterval)
+	pollInterval, err := parseDuration(sharedConf.ExtraParams[CONFIG_BUILD_BUCKET_POLL_INTERVAL], bbstate.DefaultPollInterval)
 	if err != nil {
 		return nil, err
 	}
 
-	timeWindow, err := parseDuration(config.ExtraParams[CONFIG_BUILD_BUCKET_TIME_WINDOW], bbstate.DefaultTimeWindow)
+	timeWindow, err := parseDuration(sharedConf.ExtraParams[CONFIG_BUILD_BUCKET_TIME_WINDOW], bbstate.DefaultTimeWindow)
 	if err != nil {
 		return nil, err
 	}
 
-	buildBucketURL := config.ExtraParams[CONFIG_BUILD_BUCKET_URL]
-	buildBucketName := config.ExtraParams[CONFIG_BUILD_BUCKET_NAME]
+	buildBucketURL := sharedConf.ExtraParams[CONFIG_BUILD_BUCKET_URL]
+	buildBucketName := sharedConf.ExtraParams[CONFIG_BUILD_BUCKET_NAME]
 	if (buildBucketURL == "") || (buildBucketName == "") {
 		return nil, fmt.Errorf("BuildBucketName and BuildBucketURL must not be empty.")
 	}
 
-	builderRegExp := config.ExtraParams[CONFIG_BUILDER_REGEX]
+	builderRegExp := sharedConf.ExtraParams[CONFIG_BUILDER_REGEX]
 	if builderRegExp == "" {
 		builderRegExp = bbstate.DefaultTestBuilderRegex
 	}
 
 	// Get the config file in the repo that should be parsed to determine whether a
 	// bot uploads results. Currently only applies to the Skia repo.
-	cfgFile := config.ExtraParams[CONFIG_JOB_CFG_FILE]
+	cfgFile := sharedConf.ExtraParams[CONFIG_JOB_CFG_FILE]
+
+	// Dump all the config parameter that were set for this ingester.
+	sklog.Infof("Creating ingester: %s", config.CONSTRUCTOR_GOLD_TRYJOB)
+	sklog.Infof("Param: %s = '%s'", CONFIG_GERRIT_CODE_REVIEW_URL, gerritURL)
+	sklog.Infof("Param: %s = '%s'", CONFIG_SERVICE_ACCOUNT_FILE, svcAccountFile)
+	sklog.Infof("Param: %s = '%s'", CONFIG_BUILD_BUCKET_URL, buildBucketURL)
+	sklog.Infof("Param: %s = '%s'", CONFIG_BUILD_BUCKET_NAME, buildBucketName)
+	sklog.Infof("Param: %s = '%s'", CONFIG_BUILD_BUCKET_POLL_INTERVAL, human.Duration(pollInterval))
+	sklog.Infof("Param: %s = '%s'", CONFIG_BUILD_BUCKET_TIME_WINDOW, human.Duration(timeWindow))
+	sklog.Infof("Param: %s = '%s'", CONFIG_BUILDER_REGEX, builderRegExp)
+	sklog.Infof("Param: %s = '%s'", CONFIG_JOB_CFG_FILE, cfgFile)
 
 	// Create the cloud tryjob store.
 	eventBus := eventbus.New()
@@ -146,7 +157,9 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 
 	// Make sure we have an issue, patchset and a buildbucket id.
 	if (dmResults.Issue <= 0) || (dmResults.Patchset <= 0) || (dmResults.BuildBucketID <= 0) {
-		return fmt.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.Issue, dmResults.Patchset, dmResults.BuildBucketID)
+		// log an error and never process this file again.
+		sklog.Errorf("Skipping %s: Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.Name(), dmResults.Issue, dmResults.Patchset, dmResults.BuildBucketID)
+		return ingestion.IgnoreResultsFileForeverErr
 	}
 
 	entries, err := dmResults.getTraceDBEntries()

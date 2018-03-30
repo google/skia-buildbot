@@ -215,7 +215,8 @@ func (b *BuildBucketState) processBuild(build *bb_api.ApiCommonBuildMessage) (*t
 	}
 
 	// Check if this is a builder we can ignore.
-	if b.ignoreBuild(build, params) {
+	if b.ignoreBuild(params) {
+		sklog.Infof("Ignoring builder: %s - %d", params.BuilderName, build.Id)
 		return nil, nil
 	}
 
@@ -338,13 +339,15 @@ func (b *BuildBucketState) setIssueDetails(issueID int64, changeInfo *gerrit.Cha
 
 // pollBuildBucket queries the BuildBucket instance from (now - timeWindow) to now.
 func (b *BuildBucketState) pollBuildBucket(buildsCh chan<- *bb_api.ApiCommonBuildMessage, timeWindow time.Duration) error {
-	sklog.Infof("Starting search of buildbucket.")
+
+	now := time.Now().UTC()
+	timeWindowStart := now.Add(-timeWindow)
+	timeWindowStartMicro := timeWindowStart.UnixNano() / int64(time.Microsecond)
+	sklog.Infof("Starting search of buildbucket in range: %s - %s", timeWindowStart, now)
 
 	// Search over a specific time window.
 	searchCall := b.service.Search()
-
-	timeWindowStart := time.Now().Add(-timeWindow).UnixNano() / int64(time.Microsecond)
-	searchCall.Bucket(b.bucketName).CreationTsLow(timeWindowStart)
+	searchCall.Bucket(b.bucketName).CreationTsLow(timeWindowStartMicro)
 
 	if err := searchCall.Run(buildsCh, 0, nil); err != nil {
 		return fmt.Errorf("Error querying build bucket: %s", err)
@@ -356,7 +359,7 @@ func (b *BuildBucketState) pollBuildBucket(buildsCh chan<- *bb_api.ApiCommonBuil
 // ignoreBuild is the central place to determine whether a build from
 // BuildBucket should be ignored. For example, BuildBucket can contain build jobs
 // that produce no test output.
-func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
+func (b *BuildBucketState) ignoreBuild(params *tryjobstore.Parameters) bool {
 	return !b.builderRegExp.Match([]byte(params.BuilderName))
 }
 
