@@ -52,7 +52,10 @@
     "skia-ingestion": {
       "AppNames": [
         "pulld",
-        "ingestiond",
+        "skia-gold-ingestion",
+        "pdfium-gold-ingestion",
+        "chromevr-gold-ingestion",
+        "stage-gold-ingestion",
       ],
     },
   },

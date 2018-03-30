@@ -5,8 +5,8 @@ Wants=network-online.target
 After=mnt-pd0.mount network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/chromevr_gold_ingestion \
-    --config_filename=/etc/chromevr_gold_ingestion/config.json5 \
+ExecStart=/usr/local/bin/chromevr-gold-ingestion \
+    --config_filename=/etc/chromevr-gold-ingestion/config.json5 \
     --ds_namespace=gold-chromevr \
     --logtostderr \
     --prom_port=:20002

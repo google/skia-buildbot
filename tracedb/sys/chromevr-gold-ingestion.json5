@@ -1,5 +1,5 @@
 {
-  GitRepoDir: "/mnt/pd0/chromevr_gold/chromevr_repo",           // Directory location for the ChromeVR repo.
+  GitRepoDir: "/mnt/pd0/chromevr-gold-ingestion/repo",           // Directory location for the ChromeVR repo.
   GitRepoURL: "https://chromium.googlesource.com/chromium/src", // URL location for the repo.
 
   Ingesters: {
@@ -8,7 +8,7 @@
       RunEvery: "5m",
       NCommits: 75,
       MinDays: 20,
-      StatusDir: "/mnt/pd0/chromevr_gold/ingest_status",
+      StatusDir: "/mnt/pd0/chromevr-gold-ingestion/ingest_status",
       MetricName: "chromevr-gold-ingest",
       Sources: [
         {
@@ -20,13 +20,13 @@
         TraceService: "skia-tracedb:9092"
       }
     },
- 
+
   // Gold Tryjob Ingester for gold-chromevr.
   "gold-tryjob": {
     RunEvery: "5m",
     NCommits: 10,
     MinDays: 10,
-    StatusDir: "/mnt/pd0/chromevr-tryjob/ingest_status",
+    StatusDir: "/mnt/pd0/chromevr-gold-ingestion/tryjobs/ingest_status",
     MetricName: "chromevr-gold-ingest-tryjob",
     Sources: [
       {

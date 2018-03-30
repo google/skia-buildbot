@@ -1,5 +1,5 @@
 {
-  GitRepoDir: "/mnt/pd0/stage_gold/skiarepo",       // Directory location for the Skia repo.
+  GitRepoDir: "/mnt/pd0/stage-gold-ingestion/repo", // Directory location for the Skia repo.
   GitRepoURL: "https://skia.googlesource.com/skia", // URL location for the repo.
 
   Ingesters: {
@@ -8,7 +8,7 @@
       RunEvery: "5m",
       NCommits: 10,
       MinDays: 10,
-      StatusDir: "/mnt/pd0/gold-tryjob-stage/ingest_status",
+      StatusDir: "/mnt/pd0/stage-gold-ingestion/tryjobs/ingest_status",
       MetricName: "gold-ingest-tryjob-stage",
       Sources: [
         {
