@@ -2,6 +2,7 @@ package repo_manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -43,6 +44,43 @@ type RepoManager interface {
 	RolledPast(context.Context, string) (bool, error)
 	Update(context.Context) error
 	User() string
+}
+
+// CommonRepoManagerConfig provides configuration for commonRepoManager.
+type CommonRepoManagerConfig struct {
+	// Required fields.
+	ChildBranch  string `json:"childBranch"`
+	ChildPath    string `json:"childPath"`
+	ParentBranch string `json:"parentBranch"`
+	Strategy     string `json:"strategy"`
+
+	// Optional fields.
+	PreUploadSteps []string `json:"preUploadSteps"`
+}
+
+// Validate the config.
+func (c *CommonRepoManagerConfig) Validate() error {
+	if c.ChildBranch == "" {
+		return errors.New("ChildBranch is required.")
+	}
+	if c.ChildPath == "" {
+		return errors.New("ChildPath is required.")
+	}
+	if c.ParentBranch == "" {
+		return errors.New("ParentBranch is required.")
+	}
+	if c.Strategy == "" {
+		return errors.New("Strategy is required.")
+	}
+	if _, err := GetNextRollStrategy(c.Strategy, "master", "lkgr"); err != nil {
+		return err
+	}
+	for _, s := range c.PreUploadSteps {
+		if _, err := GetPreUploadStep(s); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // commonRepoManager is a struct used by the AutoRoller implementations for
@@ -128,6 +166,29 @@ func (r *commonRepoManager) IsRollSubject(line string) (bool, error) {
 // not been rolled into the parent repo.
 func (r *commonRepoManager) CommitsNotRolled() int {
 	return r.commitsNotRolled
+}
+
+// DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
+type DepotToolsRepoManagerConfig struct {
+	CommonRepoManagerConfig
+
+	// Required fields.
+	ParentRepo string `json:"parentRepo"`
+
+	// Optional fields.
+	GClientSpec string `json:"gclientSpec"`
+}
+
+// Validate the config.
+func (c *DepotToolsRepoManagerConfig) Validate() error {
+	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
+		return err
+	}
+	if c.ParentRepo == "" {
+		return errors.New("ParentRepo is required.")
+	}
+	// TODO(borenet): Should we validate c.GClientSpec?
+	return nil
 }
 
 // depotToolsRepoManager is a struct used by AutoRoller implementations that use

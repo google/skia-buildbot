@@ -28,7 +28,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool, string, string) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(context.Context, *DEPSRepoManagerConfig, string, string, *gerrit.Gerrit, string) (RepoManager, error) = newDEPSRepoManager
 )
 
 // issueJson is the structure of "git cl issue --json"
@@ -44,19 +44,38 @@ type depsRepoManager struct {
 	rollDep    string
 }
 
+// DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
+type DEPSRepoManagerConfig struct {
+	DepotToolsRepoManagerConfig
+	IncludeLog bool `json:"includeLog"`
+}
+
+// Validate the config.
+func (c *DEPSRepoManagerConfig) Validate() error {
+	return c.DepotToolsRepoManagerConfig.Validate()
+}
+
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool, gclientSpec, serverURL string) (RepoManager, error) {
+func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir, depot_tools string, g *gerrit.Gerrit, serverURL string) (RepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
 	gclient := path.Join(depot_tools, GCLIENT)
 	rollDep := path.Join(depot_tools, ROLL_DEP)
+
+	strategy, err := GetNextRollStrategy(c.Strategy, c.ChildBranch, "")
+	if err != nil {
+		return nil, err
+	}
 
 	wd := path.Join(workdir, "repo_manager")
 	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
 		return nil, err
 	}
-	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
+	parentBase := strings.TrimSuffix(path.Base(c.ParentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
-	childDir := path.Join(wd, childPath)
+	childDir := path.Join(wd, c.ChildPath)
 	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
 	user, err := g.GetUserEmail()
@@ -65,7 +84,7 @@ func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, 
 	}
 	sklog.Infof("Repo Manager user: %s", user)
 
-	preUploadSteps, err := GetPreUploadSteps(preUploadStepNames)
+	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
 	if err != nil {
 		return nil, err
 	}
@@ -73,11 +92,11 @@ func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, 
 	dr := &depsRepoManager{
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
-				parentBranch:   parentBranch,
+				parentBranch:   c.ParentBranch,
 				childDir:       childDir,
-				childPath:      childPath,
+				childPath:      c.ChildPath,
 				childRepo:      childRepo,
-				childBranch:    childBranch,
+				childBranch:    c.ChildBranch,
 				g:              g,
 				preUploadSteps: preUploadSteps,
 				serverURL:      serverURL,
@@ -87,11 +106,11 @@ func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, 
 			},
 			depot_tools: depot_tools,
 			gclient:     gclient,
-			gclientSpec: gclientSpec,
+			gclientSpec: c.GClientSpec,
 			parentDir:   parentDir,
-			parentRepo:  parentRepo,
+			parentRepo:  c.ParentRepo,
 		},
-		includeLog: includeLog,
+		includeLog: c.IncludeLog,
 		rollDep:    rollDep,
 	}
 
