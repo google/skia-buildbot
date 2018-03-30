@@ -122,7 +122,7 @@ var fuzzers = map[string]FuzzerInfo{
 	"debug_gl_canvas": {
 		PrettyName:          "Canvas to debug GL backend",
 		Status:              EXPERIMENTAL_FUZZER,
-		Groomer:             "halcanary",
+		Groomer:             "robertphillips",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "DebugGLCanvas", "--bytes"},
 		// For most of the canvases, some of the initial test cases take a long time. If they
@@ -154,6 +154,14 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "NullCanvas", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
+	},
+	"null_gl_canvas": {
+		PrettyName:          "Canvas to null canvas backend",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "robertphillips",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "NullGLCanvas", "--bytes"},
+		GenerationArgs:      []string{"-m", "5000", "-t", "500+"},
 	},
 	"path_deserialize": {
 		PrettyName:          "SkPath deserialize",
