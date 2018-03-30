@@ -1,36 +1,46 @@
 #!/bin/bash
-# Builds and uploads a debian package for traceserver.
-APPNAME="ingestiond"
-SYSTEMD="gold-ingestion.service pdfium-gold-ingestion.service chromevr-gold-ingestion.service stage-gold-ingestion.service"
 
-DESCRIPTION="Ingestion services."
-
+# Builds and uploads debian packages for various ingestion services.
 set -x -e
 
-# Copy files into the right locations in ${ROOT}.
-copy_release_files()
-{
-INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/gold/skiarepo
-${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/stage_gold/skiarepo
-${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/pdfium_gold/pdfium_repo
-${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/chromevr_gold/chromevr_repo
-
-${INSTALL}     --mode=644 -T ./sys/gold-ingestion.service          ${ROOT}/etc/systemd/system/gold-ingestion.service
-${INSTALL}     --mode=644 -T ./sys/stage-gold-ingestion.service    ${ROOT}/etc/systemd/system/stage-gold-ingestion.service
-${INSTALL}     --mode=644 -T ./sys/pdfium-gold-ingestion.service   ${ROOT}/etc/systemd/system/pdfium-gold-ingestion.service
-${INSTALL}     --mode=644 -T ./sys/chromevr-gold-ingestion.service ${ROOT}/etc/systemd/system/chromevr-gold-ingestion.service
-
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/gold_ingestion
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/stage_gold_ingestion
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/pdfium_gold_ingestion
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/chromevr_gold_ingestion
-
-${INSTALL}     --mode=644 -T ./sys/gold.json5                      ${ROOT}/etc/gold_ingestion/config.json5
-${INSTALL}     --mode=644 -T ./sys/stage-gold.json5                ${ROOT}/etc/stage_gold_ingestion/config.json5
-${INSTALL}     --mode=644 -T ./sys/pdfium-gold.json5               ${ROOT}/etc/pdfium_gold_ingestion/config.json5
-${INSTALL}     --mode=644 -T ./sys/chromevr-gold.json5             ${ROOT}/etc/chromevr_gold_ingestion/config.json5
+ALL_IDS="skia pdfium chromevr stage"
+print_usage() {
+    echo "Usage: $0 MESSAGE INSTANCE_ID"
+    echo "     MESSAGE     is the message to be included in the release package."
+    echo "     INSTANCE_ID is the id of the instance targeted by this package."
+    echo "                 This should be one of: '$ALL_IDS' or 'all'."
+    exit 1
 }
+if [ "$#" -ne 2 ]; then
+    print_usage
+fi
 
-source ../bash/release.sh
+TARGET_INSTANCE_IDS=$2
+
+# Strip the second argument to keep this compatible with the shared build script.
+set -- "$1"
+
+# Determine the instance ids we want to build
+if [ "$TARGET_INSTANCE_IDS" = "all" ]; then
+  TARGET_INSTANCE_IDS=$ALL_IDS
+fi
+
+for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
+    APPNAME="${INSTANCE_ID}-gold-ingestion"
+    SYSTEMD="${APPNAME}.service"
+    SERVICE_FILE="./sys/${SYSTEMD}"
+    DESCRIPTION="Ingest test results."
+
+    # Copy files into the right locations in ${ROOT}.
+    copy_release_files()
+    {
+     INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+     INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
+     ${INSTALL_DIR} --mode=777                                          ${ROOT}/mnt/pd0/${APPNAME}/repo
+     ${INSTALL}     --mode=644 -T ${SERVICE_FILE}                       ${ROOT}/etc/systemd/system/${SYSTEMD}
+     ${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion          ${ROOT}/usr/local/bin/${APPNAME}
+     ${INSTALL}     --mode=644 -T ./sys/${APPNAME}.json5                ${ROOT}/etc/${APPNAME}/config.json5
+    }
+
+    source ../bash/release.sh
+done

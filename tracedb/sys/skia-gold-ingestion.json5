@@ -1,8 +1,8 @@
 {
-  GitRepoDir: "/mnt/pd0/gold/skiarepo",             // Directory location for the Skia repo.
+  GitRepoDir: "/mnt/pd0/skia-gold-ingestion/repo",             // Directory location for the Skia repo.
   GitRepoURL: "https://skia.googlesource.com/skia", // URL location for the repo.
   SecondaryRepoURL: "https://skia.googlesource.com/internal_test",
-  SecondaryRepoDir: "/mnt/pd0/gold/internal_test",
+  SecondaryRepoDir: "/mnt/pd0/skia-gold-ingestion/internal_test_repo",
   SecondaryRegEx: "^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$",
 
   Ingesters: {
@@ -11,7 +11,7 @@
       RunEvery: "5m",
       NCommits: 75,
       MinDays: 3,
-      StatusDir: "/mnt/pd0/gold/ingest_status",
+      StatusDir: "/mnt/pd0/skia-gold-ingestion/ingest_status",
       MetricName: "gold-ingest",
       Sources: [
         {
@@ -37,7 +37,7 @@
       RunEvery: "5m",
       NCommits: 10,
       MinDays: 10,
-      StatusDir: "/mnt/pd0/gold-tryjob/ingest_status",
+      StatusDir: "/mnt/pd0/skia-gold-ingestion/tryjobs/ingest_status",
       MetricName: "gold-ingest-tryjob",
       Sources: [
         {
@@ -51,6 +51,7 @@
         BuildBucketName: "skia.primary",
         BuildBucketPollInterval: "10m",
         BuildBucketTimeWindow: "5d",
+        JobConfigFile: "infra/bots/cfg.json",
       }
     }
   }
