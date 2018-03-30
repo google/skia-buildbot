@@ -26,6 +26,19 @@ const (
 	fuchsiaSDKTimeNext = "2009-11-10T23:00:03Z"
 )
 
+func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
+	return &FuchsiaSDKRepoManagerConfig{
+		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:  "master",
+				ChildPath:    "???",
+				ParentBranch: "master",
+				Strategy:     "fuchsiaSDK",
+			},
+		},
+	}
+}
+
 func setupFuchsiaSDK(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -75,7 +88,9 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
 	})
-	rm, err := NewFuchsiaSDKRepoManager(ctx, wd, gb.RepoUrl(), "master", depot_tools.GetDepotTools(t, ctx), g, "fake.server.com", urlmock.Client())
+	cfg := fuchsiaCfg()
+	cfg.ParentRepo = gb.RepoUrl()
+	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, depot_tools.GetDepotTools(t, ctx), g, "fake.server.com", urlmock.Client())
 	assert.NoError(t, err)
 	assert.Equal(t, mockUser, rm.User())
 	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
@@ -124,4 +139,17 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fuchsiaSDKRevBase, from)
 	assert.Equal(t, fuchsiaSDKRevNext, to)
+}
+
+func TestFuchsiaSDKConfigValidation(t *testing.T) {
+	testutils.SmallTest(t)
+
+	cfg := fuchsiaCfg()
+	cfg.ParentRepo = "dummy" // Not supplied above.
+	assert.NoError(t, cfg.Validate())
+
+	// The only fields come from the nested Configs, so exclude them and
+	// verify that we fail validation.
+	cfg = &FuchsiaSDKRepoManagerConfig{}
+	assert.Error(t, cfg.Validate())
 }

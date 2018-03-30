@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -33,7 +34,7 @@ const (
 )
 
 var (
-	NewFuchsiaSDKRepoManager func(context.Context, string, string, string, string, *gerrit.Gerrit, string, *http.Client) (RepoManager, error) = newFuchsiaSDKRepoManager
+	NewFuchsiaSDKRepoManager func(context.Context, *FuchsiaSDKRepoManagerConfig, string, string, *gerrit.Gerrit, string, *http.Client) (RepoManager, error) = newFuchsiaSDKRepoManager
 )
 
 // fuchsiaSDKVersion corresponds to one version of the Fuchsia SDK.
@@ -67,6 +68,20 @@ func fuchsiaSDKShortVersion(long string) string {
 	return long[:12]
 }
 
+// FuchsiaSDKRepoManagerConfig provides configuration for the Fuchia SDK
+// RepoManager.
+type FuchsiaSDKRepoManagerConfig struct {
+	DepotToolsRepoManagerConfig
+}
+
+// Validate the config.
+func (c *FuchsiaSDKRepoManagerConfig) Validate() error {
+	if c.Strategy != ROLL_STRATEGY_FUCHSIA_SDK {
+		return errors.New("No custom strategy allowed for Fuchsia SDK RepoManager.")
+	}
+	return c.DepotToolsRepoManagerConfig.Validate()
+}
+
 // fuchsiaSDKRepoManager is a RepoManager which rolls the Fuchsia SDK version
 // into Chromium. Unlike other rollers, there is no child repo to sync; the
 // version number is obtained from Google Cloud Storage.
@@ -82,7 +97,10 @@ type fuchsiaSDKRepoManager struct {
 }
 
 // Return a fuchsiaSDKRepoManager instance.
-func newFuchsiaSDKRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, depotTools string, g *gerrit.Gerrit, serverURL string, authClient *http.Client) (RepoManager, error) {
+func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfig, workdir, depotTools string, g *gerrit.Gerrit, serverURL string, authClient *http.Client) (RepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
 		return nil, err
@@ -99,13 +117,13 @@ func newFuchsiaSDKRepoManager(ctx context.Context, workdir, parentRepo, parentBr
 		return nil, err
 	}
 
-	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
+	parentBase := strings.TrimSuffix(path.Base(c.ParentRepo), ".git")
 	parentDir := path.Join(wd, parentBase)
 
 	rv := &fuchsiaSDKRepoManager{
 		depotToolsRepoManager: &depotToolsRepoManager{
 			commonRepoManager: &commonRepoManager{
-				parentBranch: parentBranch,
+				parentBranch: c.ParentBranch,
 				g:            g,
 				serverURL:    serverURL,
 				user:         user,
@@ -114,7 +132,7 @@ func newFuchsiaSDKRepoManager(ctx context.Context, workdir, parentRepo, parentBr
 			depot_tools: depotTools,
 			gclient:     path.Join(depotTools, GCLIENT),
 			parentDir:   parentDir,
-			parentRepo:  parentRepo,
+			parentRepo:  c.ParentRepo,
 		},
 		gcs:         gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
 		gsPath:      FUCHSIA_SDK_GS_PATH,

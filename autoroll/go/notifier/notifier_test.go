@@ -30,7 +30,7 @@ func (n *testNotifier) Send(subject string, m *notifier.Message) error {
 func TestNotifier(t *testing.T) {
 	testutils.SmallTest(t)
 
-	n := New("childRepo", "parentRepo")
+	n := New("childRepo", "parentRepo", nil)
 	t1 := &testNotifier{}
 	n.Add(t1, notifier.FILTER_DEBUG, "")
 
@@ -52,4 +52,70 @@ func TestNotifier(t *testing.T) {
 	assert.Equal(t, "The childRepo into parentRepo AutoRoller is throttled", t1.msgs[2].subject)
 	assert.Equal(t, fmt.Sprintf("The roller is throttled because it attempted to upload too many CLs in too short a time.  The roller will unthrottle at %s.", now.Format(time.RFC1123)), t1.msgs[2].m.Body)
 	assert.Equal(t, notifier.SEVERITY_ERROR, t1.msgs[2].m.Severity)
+}
+
+func TestConfigs(t *testing.T) {
+	testutils.SmallTest(t)
+
+	c := Config{}
+	_, _, _, err := c.notifier(nil)
+	assert.EqualError(t, err, "\"type\" is required.")
+
+	c = Config{
+		"type": "bogus",
+	}
+	_, _, _, err = c.notifier(nil)
+	assert.EqualError(t, err, "\"filter\" is required.")
+
+	c = Config{
+		"type":   "bogus",
+		"filter": "bogus",
+	}
+	_, _, _, err = c.notifier(nil)
+	assert.EqualError(t, err, "Unknown filter \"bogus\"")
+
+	c = Config{
+		"type":   "bogus",
+		"filter": "debug",
+	}
+	_, _, _, err = c.notifier(nil)
+	assert.EqualError(t, err, "Invalid notifier type \"bogus\"")
+
+	c = Config{
+		"type":   "email",
+		"filter": "debug",
+	}
+	_, _, _, err = c.notifier(nil)
+	assert.EqualError(t, err, "\"emails\" is required for type \"email\"")
+
+	c = Config{
+		"type":    "email",
+		"filter":  "debug",
+		"subject": "my subject",
+		"emails":  []interface{}{"me@example.com"},
+	}
+	n, filter, subject, err := c.notifier(nil)
+	assert.NoError(t, err)
+	assert.NotNil(t, n)
+	assert.Equal(t, filter, notifier.FILTER_DEBUG)
+	assert.Equal(t, subject, "my subject")
+
+	c = Config{
+		"type":   "chat",
+		"filter": "debug",
+	}
+	_, _, _, err = c.notifier(nil)
+	assert.EqualError(t, err, "\"room\" is required.")
+
+	c = Config{
+		"type":    "chat",
+		"filter":  "debug",
+		"subject": "my subject",
+		"room":    "my-room",
+	}
+	n, filter, subject, err = c.notifier(nil)
+	assert.NoError(t, err)
+	assert.NotNil(t, n)
+	assert.Equal(t, filter, notifier.FILTER_DEBUG)
+	assert.Equal(t, subject, "my subject")
 }
