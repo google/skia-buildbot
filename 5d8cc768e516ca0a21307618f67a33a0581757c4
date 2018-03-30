@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2647ae2_2d8a66c9",
+        "filename": "autoroll/sys/skia-internal-autorolld.service",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-03-30T15:25:59Z",
+      "side": 1,
+      "message": "With this change, all of the .service files will be the same.  I like the idea of collapsing all of the autoroll server packages into one, and then just having a separate autoroll-config package for each server.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "5d8cc768e516ca0a21307618f67a33a0581757c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
