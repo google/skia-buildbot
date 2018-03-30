@@ -1,12 +1,12 @@
 [Unit]
-Description=Gold Tryjob Stage Ingester
+Description=Gold Stage Ingester
 Requires=mnt-pd0.mount
 Wants=network-online.target
 After=mnt-pd0.mount network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/stage_gold_ingestion \
-    --config_filename=/etc/stage_gold_ingestion/config.json5 \
+ExecStart=/usr/local/bin/stage-gold-ingestion \
+    --config_filename=/etc/stage-gold-ingestion/config.json5 \
     --ds_namespace=gold-skia-stage \
     --logtostderr \
     --prom_port=:20005
