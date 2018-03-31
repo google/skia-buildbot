@@ -1,0 +1,284 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35e5ec44_f05e043c",
+        "filename": "autoroll/config/skia-internal.json",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "(No action required.) Other apps have config files in sys. I don\u0027t know if there\u0027s a reason for that or if it was just laziness.",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "427d7f3c_6c01e350",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "nit: json5",
+      "range": {
+        "startLine": 211,
+        "startChar": 9,
+        "endLine": 211,
+        "endChar": 13
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "184092eb_de4fa1e7",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "nit: Seems like all the new code could be added to go/notifier rather than here.",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45502ed2_8625e678",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "Are you sure that you don\u0027t want to do one of the following?\n\nA.\n  \"notifiers\": {\n    \"email\": [\n      {\n        \"filter\": \"warning\",\n        \"emails\": [\"borenet@gmail.com\"]\n      },\n    ],\n    \"chat\": [\n      {\n        \"filter\": \"debug\",\n        \"room\": \"autoroll-test\"\n      }\n    ],\n  },\n\nB.\n  \"email_notifiers\": [\n    {\n      \"filter\": \"warning\",\n      \"emails\": [\"borenet@gmail.com\"]\n    },\n  ],\n  \"chat_notifiers\": [\n    {\n      \"filter\": \"debug\",\n      \"room\": \"autoroll-test\"\n    }\n  ],\n\nC.\n  \"notifiers\": [\n    {\n      \"email\": {\n        \"emails\": [\"borenet@gmail.com\"],\n      },\n      \"filter\": \"warning\",\n    },\n    {\n      \"chat\": {\n        \"room\": \"autoroll-test\"\n      },\n      \"filter\": \"debug\",\n    }\n  ],\n\nD.\nstruct Notifier {\n  type    string  // or enum\n  filter  notifier.Filter\n  subject string\n  // Fields only applicable when type\u003d\u003d\"email\"\n  emails []string\n  markup string\n  // Fields only applicable when type\u003d\u003d\"chat\"\n  room string\n}",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d80d548_64351eb3",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "uber-nit: (based on impl for AFDO)\n\tif c.Strategy !\u003d ROLL_STRATEGY_REMOTE_BATCH {\n\t\treturn fmt.Errorf(\"Only %q strategy is allowed for AndroidRepoManager.\", ROLL_STRATEGY_REMOTE_BATCH)\n\t}\n\treturn c.CommonRepoManagerConfig.Validate()",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 11
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e0345f1_14efe35d",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "I\u0027m assuming this will make sense to Ravi.",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a5770e6_55f5a92b",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3b4ccf66_f7205237",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "uber-nit: ditto from prev Validate comment",
+      "range": {
+        "startLine": 184,
+        "startChar": 0,
+        "endLine": 191,
+        "endChar": 11
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ceb6b865_4c16edc9",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "nit: json5",
+      "range": {
+        "startLine": 61,
+        "startChar": 11,
+        "endLine": 61,
+        "endChar": 15
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f298288_d36a9b5a",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "nit: copy docs from autoroll/go/autoroll/main.go",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efb1341b_f1c4d0e5",
+        "filename": "autoroll/go/roller/sheriff.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "case changed -- was that intentional?",
+      "range": {
+        "startLine": 23,
+        "startChar": 35,
+        "endLine": 23,
+        "endChar": 36
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bdeb5d6_5d40de26",
+        "filename": "autoroll/go/validate_config/validate_config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "Are you planning to run this from the Makefile?",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49cb0e19_4bb6f33b",
+        "filename": "autoroll/go/validate_config/validate_config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "nit: json5",
+      "range": {
+        "startLine": 31,
+        "startChar": 9,
+        "endLine": 31,
+        "endChar": 13
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac3e918e_d05a8386",
+        "filename": "autoroll/sys/skia-internal-autorolld.service",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-03-31T03:09:23Z",
+      "side": 1,
+      "message": "Isn\u0027t this the default?",
+      "range": {
+        "startLine": 11,
+        "startChar": 4,
+        "endLine": 11,
+        "endChar": 17
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
