@@ -16,6 +16,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/go-systemd/dbus"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/packages"
@@ -23,6 +24,7 @@ import (
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/push/go/types"
+	storage "google.golang.org/api/storage/v1"
 )
 
 var (
@@ -48,14 +50,12 @@ const (
 // flags
 var (
 	bucketName            = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
-	cloudLoggingGroup     = flag.String("cloud_logging_group", "skolo-rpi-master", "The log grouping to be used if cloud logging is configured (i.e. on_gce is false)")
 	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	onGCE                 = flag.Bool("on_gce", true, "Running on GCE.  Could be running on some external machine, e.g. in the Skolo.")
 	port                  = flag.String("port", ":10000", "HTTP service address (e.g., ':8000')")
 	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	serviceAccountPath    = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
 	pullPeriod            = flag.Duration("pull_period", 5*time.Minute, "How often to check the configuration. On GCE, the metadata update will likely happen first")
 )
 
@@ -258,22 +258,20 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	defer common.LogPanic()
 	flag.Parse()
-	if *onGCE {
-		common.InitWithMust(
-			"pulld",
-			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
-		)
-	} else {
-		common.InitWithMust(
-			"pulld-not-gce",
-			common.PrometheusOpt(promPort),
-			common.CloudLoggingJWTOpt(serviceAccountPath),
-		)
+	common.InitWithMust(
+		"pulld",
+		common.PrometheusOpt(promPort),
+		common.CloudLoggingDefaultAuthOpt(local),
+	)
+	tokenSource, err := auth.NewDefaultTokenSource(*local, storage.DevstorageFullControlScope)
+	if err != nil {
+		sklog.Fatal(err)
 	}
+	client := auth.ClientFromTokenSource(tokenSource)
+
 	Init()
 	ctx := context.Background()
-	pullInit(ctx, *serviceAccountPath)
+	pullInit(ctx, client)
 	rebootMonitoringInit()
 
 	r := mux.NewRouter()

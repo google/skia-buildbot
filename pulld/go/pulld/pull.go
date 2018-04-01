@@ -7,19 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	compute "google.golang.org/api/compute/v1"
 	storage "google.golang.org/api/storage/v1"
 )
 
 var (
-	metadataTriggerCh = make(chan bool, 1)
-
 	store *storage.Service
 
 	allPackages map[string]*packages.Package
@@ -112,7 +107,7 @@ func containsPulld(packages []string) bool {
 
 // metadataWait waits for the instance level metadata 'pushrev' to change, at
 // which point the server should check for new versions of apps to install.
-func metadataWait() {
+func metadataWait(metadataTriggerCh chan bool) {
 	for {
 		req, err := http.NewRequest("GET", "http://metadata.google.internal/computeMetadata/v1/instance/attributes/pushrev?wait_for_change=true", nil)
 		if err != nil {
@@ -139,18 +134,13 @@ func metadataWait() {
 	}
 }
 
-func pullInit(ctx context.Context, serviceAccountPath string) {
+func pullInit(ctx context.Context, client *http.Client) {
+	metadataTriggerCh := make(chan bool, 1)
 	hostname, err := os.Hostname()
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	sklog.Infof("Running with hostname: %s", hostname)
-
-	client, err := auth.NewJWTServiceAccountClient("", serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
-	if err != nil {
-		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
-	}
-	sklog.Info("Got authenticated client.")
 
 	store, err = storage.New(client)
 	if err != nil {
@@ -163,7 +153,7 @@ func pullInit(ctx context.Context, serviceAccountPath string) {
 	}
 
 	if *onGCE {
-		go metadataWait()
+		go metadataWait(metadataTriggerCh)
 	}
 
 	step(ctx, client, store, hostname)
