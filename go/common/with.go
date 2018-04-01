@@ -125,7 +125,7 @@ func CloudLoggingJWTOpt(serviceAccountPath *string) Opt {
 
 func (o *cloudLoggingInitOpt) preinit(appName string) error {
 	glog.Info("cloudlogging preinit")
-	if *o.local {
+	if o.local != nil && *o.local {
 		return nil
 	}
 	hostname, err := os.Hostname()
@@ -150,7 +150,7 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 		}
 		c, err = auth.NewJWTServiceAccountClient("", path, transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	} else {
-		if *o.local {
+		if o.local != nil && *o.local {
 			return nil
 		}
 		c, err = auth.NewDefaultClient(*o.local, sklog.CLOUD_LOGGING_WRITE_SCOPE)

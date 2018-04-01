@@ -103,7 +103,7 @@ func Init() {
 
 	serverNames = config.AllServerNames()
 
-	if client, err = auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
+	if client, err = auth.NewDefaultClient(*local, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
 		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
