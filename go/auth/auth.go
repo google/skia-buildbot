@@ -27,6 +27,55 @@ const (
 	DEFAULT_TOKEN_STORE_FILENAME   = "google_storage_token.data"
 )
 
+// NewDefaultTokenSource creates a new OAuth 2.0 token source with all the
+// defaults for the given scopes. If local is true then a 3-legged flow is
+// initiated, otherwise the GCE Service Account is used if running in GCE, and
+// the Skolo access token provider is used if running in Skolo.
+//
+// The default OAuth config filename is "client_secret.json".
+// The default OAuth token store filename is "google_storage_token.data".
+func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
+	if local {
+		body, err := ioutil.ReadFile(DEFAULT_CLIENT_SECRET_FILENAME)
+		if err != nil {
+			return nil, err
+		}
+		config, err := google.ConfigFromJSON(body, scopes...)
+		if err != nil {
+			return nil, err
+		}
+
+		transport := httputils.NewBackOffTransport()
+		oauthCacheFile := DEFAULT_TOKEN_STORE_FILENAME
+		tokenClient := &http.Client{
+			Transport: transport,
+			Timeout:   httputils.REQUEST_TIMEOUT,
+		}
+		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
+		return newCachingTokenSource(oauthCacheFile, ctx, config)
+	} else {
+		// Are we running on GCE?
+		if cloud_metadata.OnGCE() {
+			return google.ComputeTokenSource(""), nil
+		} else {
+			// Create and use a token provider for skolo service account access tokens.
+			return newSkoloTokenSource(), nil
+		}
+	}
+}
+
+// ClientFromTokenSource creates an http.Client with a BackOff transport and a
+// request timeout.
+func ClientFromTokenSource(tok oauth2.TokenSource) *http.Client {
+	return httputils.AddMetricsToClient(&http.Client{
+		Transport: &oauth2.Transport{
+			Source: tok,
+			Base:   httputils.NewBackOffTransport(),
+		},
+		Timeout: httputils.REQUEST_TIMEOUT,
+	})
+}
+
 // NewDefaultClient creates a new OAuth 2.0 authorized client with all the
 // defaults for the given scopes. If local is true then a 3-legged flow is
 // initiated, otherwise the GCE Service Account is used if running in GCE, and
@@ -40,13 +89,7 @@ func NewDefaultClient(local bool, scopes ...string) (*http.Client, error) {
 		return nil, fmt.Errorf("Failed to create TokenSource: %s", err)
 	}
 
-	return httputils.AddMetricsToClient(&http.Client{
-		Transport: &oauth2.Transport{
-			Source: tok,
-			Base:   httputils.NewBackOffTransport(),
-		},
-		Timeout: httputils.REQUEST_TIMEOUT,
-	}), nil
+	return ClientFromTokenSource(tok), nil
 }
 
 // NewClient creates a new OAuth 2.0 authorized client with all the defaults
@@ -143,43 +186,6 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 	}
 
 	return client, nil
-}
-
-// NewDefaultClient creates a new OAuth 2.0 token source with all the
-// defaults for the given scopes. If local is true then a 3-legged flow is
-// initiated, otherwise the GCE Service Account is used if running in GCE, and
-// the Skolo access token provider is used if running in Skolo.
-//
-// The default OAuth config filename is "client_secret.json".
-// The default OAuth token store filename is "google_storage_token.data".
-func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
-	if local {
-		body, err := ioutil.ReadFile(DEFAULT_CLIENT_SECRET_FILENAME)
-		if err != nil {
-			return nil, err
-		}
-		config, err := google.ConfigFromJSON(body, scopes...)
-		if err != nil {
-			return nil, err
-		}
-
-		transport := httputils.NewBackOffTransport()
-		oauthCacheFile := DEFAULT_TOKEN_STORE_FILENAME
-		tokenClient := &http.Client{
-			Transport: transport,
-			Timeout:   httputils.REQUEST_TIMEOUT,
-		}
-		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
-		return newCachingTokenSource(oauthCacheFile, ctx, config)
-	} else {
-		// Are we running on GCE?
-		if cloud_metadata.OnGCE() {
-			return google.ComputeTokenSource(""), nil
-		} else {
-			// Create and use a token provider for skolo service account access tokens.
-			return newSkoloTokenSource(), nil
-		}
-	}
 }
 
 const (
