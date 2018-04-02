@@ -3,6 +3,7 @@ package notifier
 import (
 	"fmt"
 
+	"go.skia.org/infra/go/email"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -40,16 +41,17 @@ type filteredThreadedNotifier struct {
 // Router is a struct used for sending notification through zero or more
 // Notifiers.
 type Router struct {
+	emailer   *email.GMail
 	notifiers []*filteredThreadedNotifier
 }
 
 // Send a notification.
-func (m *Router) Send(msg *Message) error {
+func (r *Router) Send(msg *Message) error {
 	if err := msg.Validate(); err != nil {
 		return err
 	}
 	var group errgroup.Group
-	for _, n := range m.notifiers {
+	for _, n := range r.notifiers {
 		n := n
 		group.Go(func() error {
 			if n.filter.ShouldSend(msg.Severity) {
@@ -66,8 +68,9 @@ func (m *Router) Send(msg *Message) error {
 }
 
 // Return a Router instance.
-func NewRouter() *Router {
+func NewRouter(emailer *email.GMail) *Router {
 	return &Router{
+		emailer:   emailer,
 		notifiers: []*filteredThreadedNotifier{},
 	}
 }
@@ -75,10 +78,33 @@ func NewRouter() *Router {
 // Add a new Notifier, which filters according to the given Filter. If
 // singleThreadSubject is provided, that will be used as the subject for all
 // Messages, ignoring their Subject field.
-func (m *Router) Add(n Notifier, f Filter, singleThreadSubject string) {
-	m.notifiers = append(m.notifiers, &filteredThreadedNotifier{
+func (r *Router) Add(n Notifier, f Filter, singleThreadSubject string) {
+	r.notifiers = append(r.notifiers, &filteredThreadedNotifier{
 		notifier:            n,
 		filter:              f,
 		singleThreadSubject: singleThreadSubject,
 	})
+}
+
+// Add a new Notifier based on the given Config.
+func (r *Router) AddFromConfig(c *Config) error {
+	if err := c.Validate(); err != nil {
+		return err
+	}
+	n, f, s, err := c.Create(r.emailer)
+	if err != nil {
+		return err
+	}
+	r.Add(n, f, s)
+	return nil
+}
+
+// Add all of the Notifiers specified by the given Configs.
+func (r *Router) AddFromConfigs(cfgs []*Config) error {
+	for _, c := range cfgs {
+		if err := r.AddFromConfig(c); err != nil {
+			return err
+		}
+	}
+	return nil
 }

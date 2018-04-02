@@ -6,18 +6,10 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll \
-    --use_metadata=true \
+    --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
     --host=android-roll.skia.org \
-    --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --childName="Skia into Android master" \
-    --childPath=external/skia \
-    --resources_dir=/usr/local/share/autoroll/ \
-    --sheriff=https://skia-tree-status.appspot.com/current-robocop \
-    --roll_into_android=true \
-    --parent_name="Android (master)" \
-    --parent_repo=android \
-    --parent_waterfall=https://android-build.googleplex.com/builds/branches/git_master/grid
+    --resources_dir=/usr/local/share/autoroll/
 Restart=always
 User=default
 Group=default

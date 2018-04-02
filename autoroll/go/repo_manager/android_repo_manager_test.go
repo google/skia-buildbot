@@ -15,7 +15,6 @@ import (
 
 const (
 	androidIssueNum        = int64(12345)
-	mockAndroidServer      = "https://mock-server-review.googlesource.com"
 	numAndroidChildCommits = 10
 )
 
@@ -25,6 +24,17 @@ var (
 		"5678888888888888888888888888888888888888",
 		"1234444444444444444444444444444444444444"}
 )
+
+func androidCfg() *AndroidRepoManagerConfig {
+	return &AndroidRepoManagerConfig{
+		CommonRepoManagerConfig{
+			ChildBranch:  "master",
+			ChildPath:    childPath,
+			ParentBranch: "master",
+			Strategy:     ROLL_STRATEGY_REMOTE_BATCH,
+		},
+	}
+}
 
 func setupAndroid(t *testing.T) (context.Context, string, func()) {
 	wd, err := ioutil.TempDir("", "")
@@ -63,16 +73,13 @@ func TestAndroidRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
-	g, err := gerrit.NewGerrit(mockAndroidServer, "", nil)
-	assert.NoError(t, err)
-	rm, err := NewAndroidRepoManager(ctx, wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
+	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
 	assert.NoError(t, err)
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
-	assert.Equal(t, "https://mock-server.googlesource.com", rm.(*androidRepoManager).repoUrl)
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev())
 	assert.Equal(t, childCommits[0], rm.NextRollRev())
-	assert.Equal(t, SERVICE_ACCOUNT, rm.User())
 }
 
 // TestCreateNewAndroidRoll tests creating a new roll.
@@ -82,7 +89,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
 	assert.NoError(t, err)
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
@@ -148,7 +155,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, wd, "master", childPath, "master", g, StrategyRemoteHead("master"), nil, "fake.server.com")
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
 	assert.NoError(t, err)
 
 	ran := false
@@ -163,4 +170,16 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
 	assert.NoError(t, err)
 	assert.True(t, ran)
+}
+
+func TestAndroidConfigValidation(t *testing.T) {
+	testutils.SmallTest(t)
+
+	cfg := androidCfg()
+	assert.NoError(t, cfg.Validate())
+
+	// The only fields come from the nested Configs, so exclude them and
+	// verify that we fail validation.
+	cfg = &AndroidRepoManagerConfig{}
+	assert.Error(t, cfg.Validate())
 }
