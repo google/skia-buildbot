@@ -10,30 +10,38 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 )
 
 // TODO(stephana): Re-add Jaeger as a local option when the Go package is stable
 // again.
 
-// Init initializes traceing support.
-func Init(serviceName string, tokenSrc oauth2.TokenSource) error {
+// TraceClient wraps the information relevant for tracing of this node.
+// Use the Trace(...) function to register handlers where the service name will
+// be injected in the traces.
+type TraceClient struct {
+	serviceName string
+}
+
+// NewTraceClient returns a new trace client instance.
+func NewTraceClient(projectID, serviceName string, tokenSrc oauth2.TokenSource) (*TraceClient, error) {
 	var exporter trace.Exporter
 	var err error
 
 	sdOptions := stackdriver.Options{
-		ProjectID:     common.PROJECT_ID,
+		ProjectID:     projectID,
 		ClientOptions: []option.ClientOption{option.WithTokenSource(tokenSrc)},
 	}
 	if exporter, err = stackdriver.NewExporter(sdOptions); err != nil {
-		return sklog.FmtErrorf("Error creating stackdriver exporter: %s", err)
+		return nil, sklog.FmtErrorf("Error creating stackdriver exporter: %s", err)
 	}
 	sklog.Infof("StackDriver trace exporter created.")
 
 	trace.RegisterExporter(exporter)
 	trace.SetDefaultSampler(trace.AlwaysSample())
-	return nil
+	return &TraceClient{
+		serviceName: serviceName,
+	}, nil
 }
 
 // Trace wraps a given pattern and handler function and sets up tracing for it.
@@ -44,10 +52,11 @@ func Init(serviceName string, tokenSrc oauth2.TokenSource) error {
 // Inside the 'handler' function they can retrieve the contex via r.Context()
 // where 'r' is the http.Request object and pass it around for more detailed
 // tracing.
-func Trace(pattern string, handler func(http.ResponseWriter, *http.Request)) (string, func(http.ResponseWriter, *http.Request)) {
+func (t *TraceClient) Trace(pattern string, handler func(http.ResponseWriter, *http.Request)) (string, func(http.ResponseWriter, *http.Request)) {
 	return pattern, func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		ctx, span := trace.StartSpan(ctx, pattern)
+		span.SetAttributes(trace.StringAttribute("service", t.serviceName))
 		defer span.End()
 
 		// If the context was created in the Context() call we need to make sure
