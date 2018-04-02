@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e018bc37_513988fe",
+        "filename": "autoroll/build_ios_internal_chromium_release",
+        "patchSetId": 9
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-02T19:24:59Z",
+      "side": 1,
+      "message": "wrong file",
+      "range": {
+        "startLine": 21,
+        "startChar": 34,
+        "endLine": 21,
+        "endChar": 60
+      },
+      "revId": "08c2c1d0ab06e5d11a711988b0c86e34a644c840",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

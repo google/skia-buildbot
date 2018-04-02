@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "487ab8b8_ae32ee32",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-02T19:24:59Z",
+      "side": 1,
+      "message": "Oh, sorry.",
+      "parentUuid": "9331478f_3d73d802",
+      "revId": "d31643c9a41865bc03a875dd5287eca125210ec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a11e85d_813dfb3e",
         "filename": "autoroll/config/angle-skia.json",
         "patchSetId": 8
