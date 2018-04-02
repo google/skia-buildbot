@@ -252,6 +252,8 @@ func (g *goldTryjobProcessor) tryjobUpdatedHandler(evData interface{}) {
 		// Mark as ingested if it has completed.
 		if err := g.setTryjobToStatus(&tryjob, tryjobstore.TRYJOB_COMPLETE, tryjobstore.TRYJOB_INGESTED); err != nil {
 			sklog.Errorf("Unable to set tryjob (%d, %d) to status 'ingested': %s", tryjob.IssueID, tryjob.BuildBucketID, err)
+		} else {
+			sklog.Infof("Marked %s as ingested.", tryjob.Builder)
 		}
 		sklog.Infof("Job %d for issue %d marked as ingested.", tryjob.BuildBucketID, tryjob.IssueID)
 	}
