@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/golden/go/gtile"
 	"go.skia.org/infra/golden/go/tryjobstore"
 
 	"go.skia.org/infra/go/sklog"
@@ -50,6 +51,7 @@ type SearchIndex struct {
 	paramsetSummary      *paramsets.ParamSummary
 	blamer               *blame.Blamer
 	warmer               *warmer.Warmer
+	gTile                *gtile.GTile
 
 	// This is set by the indexing pipeline when we just want to update
 	// individual tests that have changed.
@@ -80,6 +82,10 @@ func (idx *SearchIndex) GetTile(includeIgnores bool) *tiling.Tile {
 		return idx.tilePair.TileWithIgnores
 	}
 	return idx.tilePair.Tile
+}
+
+func (idx *SearchIndex) GTile(includeIgnores bool) *gtile.GTile {
+	return idx.gTile
 }
 
 // GetIgnoreMatcher returns a matcher for the ignore rules that were used to
