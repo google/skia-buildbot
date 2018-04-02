@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "413b2fd1_03bd44a3",
+        "filename": "autoroll/config/skia-internal.json",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "I like the idea of not cluttering sys with non-systemd-related stuff.",
+      "parentUuid": "35e5ec44_f05e043c",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6aa93161_3acba633",
         "filename": "autoroll/go/autoroll/main.go",
         "patchSetId": 6
@@ -30,6 +48,30 @@
       "writtenOn": "2018-04-02T13:11:16Z",
       "side": 1,
       "message": "optional: \"where values from metadata are used.\"",
+      "range": {
+        "startLine": 58,
+        "startChar": 85,
+        "endLine": 58,
+        "endChar": 95
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66e62dfa_2065a9ce",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "IMO it\u0027s pretty logical that we\u0027d use metadata in production but not locally.",
+      "parentUuid": "6aa93161_3acba633",
       "range": {
         "startLine": 58,
         "startChar": 85,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "16a052f0_f6ba5f9b",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "427d7f3c_6c01e350",
+      "range": {
+        "startLine": 211,
+        "startChar": 9,
+        "endLine": 211,
+        "endChar": 13
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e55dfbe_861ea4c3",
         "filename": "autoroll/go/autoroll/main.go",
         "patchSetId": 6
@@ -76,6 +142,24 @@
       "writtenOn": "2018-04-02T13:11:16Z",
       "side": 1,
       "message": "Previous code was checking if if *gerritUrl !\u003d \"\" before doing the below which made it easier to add a github roller.\nNew code is assuming that all rollers are gerrit based which will not be true soon. So would be useful to add some sort of check back especially since it is now (rightly so) in config files which should imply that it is optional.",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb9eb9cf_c0dd594c",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "So I think the right answer is to do something similar to how the repo manager configs are added to the roller config struct: have a Gerrit sub-config and a GitHub sub-config and verify that only one code review sub-config is supplied.  I\u0027d like to save that for a future CL, since this one is already gigantic.  WDYT?",
+      "parentUuid": "0e55dfbe_861ea4c3",
       "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -99,6 +183,24 @@
     },
     {
       "key": {
+        "uuid": "b3b532a1_632274bf",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Hokay. I did some more work and changed the RepoManagers to call newCommonRepoManager() or newDepotToolsRepoManager() constructors instead of filling in the structs themselves.  Now newDepotToolsRepoManager() does the syncing of depot_tools.",
+      "parentUuid": "afc9ac7c_969e74e4",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "184092eb_de4fa1e7",
         "filename": "autoroll/go/notifier/notifier.go",
         "patchSetId": 6
@@ -116,6 +218,24 @@
     },
     {
       "key": {
+        "uuid": "576acbbe_7963bd9f",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Moved it.  I added it here because I didn\u0027t want to clutter it; AddFromConfig(s) requires that we know about all of the possible Notifier implementations that could be specified in configs and also needs to have access to any required auth/api clients (eg. emailer) for any of those notifiers.  But as long as we stick to Notifiers defined in the notifier package, that should all be fine.",
+      "parentUuid": "184092eb_de4fa1e7",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "45502ed2_8625e678",
         "filename": "autoroll/go/notifier/notifier.go",
         "patchSetId": 6
@@ -127,6 +247,24 @@
       "writtenOn": "2018-03-31T03:09:23Z",
       "side": 1,
       "message": "Are you sure that you don\u0027t want to do one of the following?\n\nA.\n  \"notifiers\": {\n    \"email\": [\n      {\n        \"filter\": \"warning\",\n        \"emails\": [\"borenet@gmail.com\"]\n      },\n    ],\n    \"chat\": [\n      {\n        \"filter\": \"debug\",\n        \"room\": \"autoroll-test\"\n      }\n    ],\n  },\n\nB.\n  \"email_notifiers\": [\n    {\n      \"filter\": \"warning\",\n      \"emails\": [\"borenet@gmail.com\"]\n    },\n  ],\n  \"chat_notifiers\": [\n    {\n      \"filter\": \"debug\",\n      \"room\": \"autoroll-test\"\n    }\n  ],\n\nC.\n  \"notifiers\": [\n    {\n      \"email\": {\n        \"emails\": [\"borenet@gmail.com\"],\n      },\n      \"filter\": \"warning\",\n    },\n    {\n      \"chat\": {\n        \"room\": \"autoroll-test\"\n      },\n      \"filter\": \"debug\",\n    }\n  ],\n\nD.\nstruct Notifier {\n  type    string  // or enum\n  filter  notifier.Filter\n  subject string\n  // Fields only applicable when type\u003d\u003d\"email\"\n  emails []string\n  markup string\n  // Fields only applicable when type\u003d\u003d\"chat\"\n  room string\n}",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60d92fa3_a02ec24f",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Went with C. It\u0027s a lot like what I did with the repo manager configs.",
+      "parentUuid": "45502ed2_8625e678",
       "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -173,6 +311,30 @@
     },
     {
       "key": {
+        "uuid": "f3cbf76c_bc8fe03d",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d80d548_64351eb3",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 11
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e0345f1_14efe35d",
         "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager_test.go",
         "patchSetId": 6
@@ -208,6 +370,24 @@
     },
     {
       "key": {
+        "uuid": "5fec21e5_b81571d9",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "It\u0027s not used by this RepoManager.  I changed it to indicate that.",
+      "parentUuid": "9e0345f1_14efe35d",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a5770e6_55f5a92b",
         "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager_test.go",
         "patchSetId": 6
@@ -219,6 +399,24 @@
       "writtenOn": "2018-03-31T03:09:23Z",
       "side": 1,
       "message": "ditto",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8905d6ba_e2222cf8",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a5770e6_55f5a92b",
       "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -248,6 +446,30 @@
     },
     {
       "key": {
+        "uuid": "40d25590_4380c720",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b4ccf66_f7205237",
+      "range": {
+        "startLine": 184,
+        "startChar": 0,
+        "endLine": 191,
+        "endChar": 11
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ceb6b865_4c16edc9",
         "filename": "autoroll/go/roller/config.go",
         "patchSetId": 6
@@ -271,6 +493,30 @@
     },
     {
       "key": {
+        "uuid": "9c2cac81_5ece9a34",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ceb6b865_4c16edc9",
+      "range": {
+        "startLine": 61,
+        "startChar": 11,
+        "endLine": 61,
+        "endChar": 15
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f298288_d36a9b5a",
         "filename": "autoroll/go/roller/config.go",
         "patchSetId": 6
@@ -288,6 +534,24 @@
     },
     {
       "key": {
+        "uuid": "2caa9706_06ec9c60",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Done, here and elsewhere.",
+      "parentUuid": "4f298288_d36a9b5a",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "efb1341b_f1c4d0e5",
         "filename": "autoroll/go/roller/sheriff.go",
         "patchSetId": 6
@@ -299,6 +563,30 @@
       "writtenOn": "2018-03-31T03:09:23Z",
       "side": 1,
       "message": "case changed -- was that intentional?",
+      "range": {
+        "startLine": 23,
+        "startChar": 35,
+        "endLine": 23,
+        "endChar": 36
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef1ea7be_56928197",
+        "filename": "autoroll/go/roller/sheriff.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Yes, since the parent name is the human-friendly name and therefore should use proper capitalization.",
+      "parentUuid": "efb1341b_f1c4d0e5",
       "range": {
         "startLine": 23,
         "startChar": 35,
@@ -328,6 +616,24 @@
     },
     {
       "key": {
+        "uuid": "1496aecb_9e12f3e4",
+        "filename": "autoroll/go/validate_config/validate_config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "I\u0027ve been using this to test the config files I\u0027m gradually creating from the current service files.  It\u0027d be a good idea to add this to the makefile and add \"make -C autoroll validate-configs\" or whatever to run_unittests.",
+      "parentUuid": "5bdeb5d6_5d40de26",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49cb0e19_4bb6f33b",
         "filename": "autoroll/go/validate_config/validate_config.go",
         "patchSetId": 6
@@ -351,6 +657,30 @@
     },
     {
       "key": {
+        "uuid": "807f5188_301bd0a8",
+        "filename": "autoroll/go/validate_config/validate_config.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49cb0e19_4bb6f33b",
+      "range": {
+        "startLine": 31,
+        "startChar": 9,
+        "endLine": 31,
+        "endChar": 13
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ac3e918e_d05a8386",
         "filename": "autoroll/sys/skia-internal-autorolld.service",
         "patchSetId": 6
@@ -362,6 +692,30 @@
       "writtenOn": "2018-03-31T03:09:23Z",
       "side": 1,
       "message": "Isn\u0027t this the default?",
+      "range": {
+        "startLine": 11,
+        "startChar": 4,
+        "endLine": 11,
+        "endChar": 17
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e08d0b6_c2bf70fa",
+        "filename": "autoroll/sys/skia-internal-autorolld.service",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T16:57:21Z",
+      "side": 1,
+      "message": "Yep, removed.",
+      "parentUuid": "ac3e918e_d05a8386",
       "range": {
         "startLine": 11,
         "startChar": 4,
