@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -448,7 +449,7 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(retDigest *SRDigest) {
-			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores)
+			closestRef, refDiffs := refDiffer.GetRefDiffs(ctx, metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores)
 			retDigest.ClosestRef = closestRef
 			retDigest.RefDiffs = refDiffs
 
