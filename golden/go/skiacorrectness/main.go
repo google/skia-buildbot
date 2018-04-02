@@ -192,8 +192,15 @@ func main() {
 		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
 	}
 
+	// serviceName uniquely identifies this host and app and is used as ID for other services.
+	nodeName, err := getNodeName(*local)
+	if err != nil {
+		sklog.Fatalf("Error getting unique service name: %s", err)
+	}
+
 	// Set up tracing via the sktrace.
-	if err := sktrace.Init("gold", tokenSource); err != nil {
+	traceClient, err := sktrace.NewTraceClient(common.PROJECT_ID, nodeName, tokenSource)
+	if err != nil {
 		sklog.Fatalf("Failure setting up tracing: %s", err)
 	}
 
@@ -255,16 +262,11 @@ func main() {
 	// depending whether an PubSub topic was defined.
 	var evt eventbus.EventBus = nil
 	if *eventTopic != "" {
-		subscriberName, err := getSubscriberName(*local)
-		if err != nil {
-			sklog.Fatalf("Error getting unique subscriber name: %s", err)
-		}
-
-		evt, err = gevent.New(common.PROJECT_ID, *eventTopic, subscriberName, option.WithTokenSource(tokenSource))
+		evt, err = gevent.New(common.PROJECT_ID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
 		if err != nil {
 			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
 		}
-		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, subscriberName)
+		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
 	} else {
 		evt = eventbus.New()
 	}
@@ -392,7 +394,7 @@ func main() {
 	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
 	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
-	router.HandleFunc(sktrace.Trace("/json/search", jsonSearchHandler)).Methods("GET")
+	router.HandleFunc(traceClient.Trace("/json/search", jsonSearchHandler)).Methods("GET")
 	router.HandleFunc("/json/export", jsonExportHandler).Methods("GET")
 	router.HandleFunc("/json/tryjob", jsonTryjobListHandler).Methods("GET")
 	router.HandleFunc("/json/tryjob/{id}", jsonTryjobSummaryHandler).Methods("GET")
@@ -475,10 +477,11 @@ func main() {
 	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
 }
 
-// getSubscriberName generates a subscriber name based on the hostname and
+// getNodeName generates a service name for this host based on the hostname and
 // whether we are running locally or in the cloud. This is enough to distinguish
-// between hosts.
-func getSubscriberName(local bool) (string, error) {
+// between hosts and can be used across services, e.g. pubsub subscription or
+// logging and tracing information.
+func getNodeName(local bool) (string, error) {
 	hostName, err := os.Hostname()
 	if err != nil {
 		return "", err
