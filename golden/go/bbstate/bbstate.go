@@ -124,7 +124,7 @@ func NewBuildBucketState(config *Config) (IssueBuildFetcher, error) {
 // Gerrit or BuildBucket the function will return an error.
 func (b *BuildBucketState) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
 	// syncTryjob will also sync the issue referenced by the tryjob.
-	tryjob, err := b.syncTryjob(buildBucketID)
+	tryjob, err := b.syncTryjob(buildBucketID, true)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -152,7 +152,7 @@ func (b *BuildBucketState) FetchIssueAndTryjob(issueID, buildBucketID int64) (*t
 
 // syncTryjob fetches the given tryjob from BuildBucket and makes sure the
 // referenced Gerrit issue exists and all data is in the tryjob store.
-func (b *BuildBucketState) syncTryjob(buildBucketID int64) (*tryjobstore.Tryjob, error) {
+func (b *BuildBucketState) syncTryjob(buildBucketID int64, force bool) (*tryjobstore.Tryjob, error) {
 	buildResp, err := b.service.Get(buildBucketID).Do()
 	if err != nil {
 		return nil, err
@@ -170,7 +170,7 @@ func (b *BuildBucketState) syncTryjob(buildBucketID int64) (*tryjobstore.Tryjob,
 		return nil, fmt.Errorf("Unable to retrieve build %d. Got %s", buildBucketID, buildResp.Error.Message)
 	}
 
-	return b.processBuild(buildResp.Build)
+	return b.processBuild(buildResp.Build, force)
 }
 
 // start continuously processes data it gets from buildbucket by polling.
@@ -189,7 +189,7 @@ func (b *BuildBucketState) start(pollInterval, timeWindow time.Duration) error {
 				// Give up work permission at the end.
 				defer func() { <-workPermissions }()
 
-				if _, err := b.processBuild(build); err != nil {
+				if _, err := b.processBuild(build, false); err != nil {
 					sklog.Errorf("Error processing build: %s", err)
 				}
 			}(build)
@@ -207,7 +207,7 @@ func (b *BuildBucketState) start(pollInterval, timeWindow time.Duration) error {
 // processBuild processes a single Build record returned from BuildBucket.
 // It makes sure the referenced issue exists in Gerrit and stores the issue
 // and tryjob information in the TryjobStore.
-func (b *BuildBucketState) processBuild(build *bb_api.ApiCommonBuildMessage) (*tryjobstore.Tryjob, error) {
+func (b *BuildBucketState) processBuild(build *bb_api.ApiCommonBuildMessage, force bool) (*tryjobstore.Tryjob, error) {
 	// Parse the parameters encoded in the ParametersJson field.
 	params := &tryjobstore.Parameters{}
 	if err := json.Unmarshal([]byte(build.ParametersJson), params); err != nil {
@@ -215,7 +215,8 @@ func (b *BuildBucketState) processBuild(build *bb_api.ApiCommonBuildMessage) (*t
 	}
 
 	// Check if this is a builder we can ignore.
-	if b.ignoreBuild(build, params) {
+	if !force && b.ignoreBuild(params) {
+		// sklog.Infof("Ignoring builder: %s - %d", params.BuilderName, build.Id)
 		return nil, nil
 	}
 
@@ -338,13 +339,15 @@ func (b *BuildBucketState) setIssueDetails(issueID int64, changeInfo *gerrit.Cha
 
 // pollBuildBucket queries the BuildBucket instance from (now - timeWindow) to now.
 func (b *BuildBucketState) pollBuildBucket(buildsCh chan<- *bb_api.ApiCommonBuildMessage, timeWindow time.Duration) error {
-	sklog.Infof("Starting search of buildbucket.")
+
+	now := time.Now().UTC()
+	timeWindowStart := now.Add(-timeWindow)
+	timeWindowStartMicro := timeWindowStart.UnixNano() / int64(time.Microsecond)
+	sklog.Infof("Starting search of buildbucket in range: %s - %s", timeWindowStart, now)
 
 	// Search over a specific time window.
 	searchCall := b.service.Search()
-
-	timeWindowStart := time.Now().Add(-timeWindow).UnixNano() / int64(time.Microsecond)
-	searchCall.Bucket(b.bucketName).CreationTsLow(timeWindowStart)
+	searchCall.Bucket(b.bucketName).CreationTsLow(timeWindowStartMicro)
 
 	if err := searchCall.Run(buildsCh, 0, nil); err != nil {
 		return fmt.Errorf("Error querying build bucket: %s", err)
@@ -356,7 +359,7 @@ func (b *BuildBucketState) pollBuildBucket(buildsCh chan<- *bb_api.ApiCommonBuil
 // ignoreBuild is the central place to determine whether a build from
 // BuildBucket should be ignored. For example, BuildBucket can contain build jobs
 // that produce no test output.
-func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
+func (b *BuildBucketState) ignoreBuild(params *tryjobstore.Parameters) bool {
 	return !b.builderRegExp.Match([]byte(params.BuilderName))
 }
 
