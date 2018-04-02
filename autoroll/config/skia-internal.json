@@ -1,0 +1,36 @@
+{
+  "childName": "Skia",
+  "cqExtraTrybots": [],
+  "gerritURL": "https://skia-review.googlesource.com",
+  "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "filter": "warning",
+      "email": {
+        "emails": ["borenet@gmail.com"]
+      }
+    },
+    {
+      "filter": "debug",
+      "chat": {
+        "room": "autoroll-test"
+      }
+    }
+  ],
+  "parentName": "Internal Test",
+  "parentWaterfall": "https://status-internal.skia.org/",
+  "preUploadSteps": ["TrainInfra"],
+  "safetyThrottle": {
+    "attemptCount": 0,
+    "timeWindow": "1h"
+  },
+  "serverURL": "",
+  "sheriff": ["borenet@google.com"],
+  "depsRepoManager": {
+    "childBranch": "master",
+    "childPath": "skia",
+    "parentBranch": "master",
+    "parentRepo": "https://skia.googlesource.com/internal_test.git",
+    "strategy": "single"
+  }
+}
