@@ -18,10 +18,10 @@ sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options
 sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoremove
 
 # Remove unused packages.
-sudo apt-get --assume-yes --purge remove dnsmasq*
+sudo apt-get --assume-yes --purge remove dnsmasq
 
 # Now install the apps that we guarantee to appear.
-sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install git collectd unattended-upgrades
+sudo DEBIAN_FRONTEND=noninteractive apt -o quiet=2 --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install git collectd
 gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2017-03-02T16:55:37Z:38251c8ddc7f1033dd92064735aa45aedb48f527.deb pulld.deb
 sudo dpkg -i pulld.deb
 sudo systemctl start pulld.service
@@ -74,16 +74,3 @@ LoadPlugin write_graphite
 EOF
 sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
 sudo /etc/init.d/collectd restart
-
-cat <<EOF | sudo tee /etc/apt/apt.conf.d/20auto-upgrades
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Unattended-Upgrade "1";
-EOF
-
-cat <<EOF | sudo tee /etc/apt/apt.conf.d/50unattended-upgrades
-Unattended-Upgrade::Origins-Pattern {
-      "o=*";
-};
-Unattended-Upgrade::Remove-Unused-Dependencies "true";
-Unattended-Upgrade::Automatic-Reboot "true";
-EOF
