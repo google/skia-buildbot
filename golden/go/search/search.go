@@ -105,16 +105,8 @@ const (
 	GROUP_TEST_MAX_COUNT = "count"
 )
 
-// Query is the query that Search understands.
-type Query struct {
-	// Diff metric to use.
-	Metric string   `json:"metric"`
-	Sort   string   `json:"sort"`
-	Match  []string `json:"match"`
-
-	// Blaming
-	BlameGroupID string `json:"blame"`
-
+// TileQuery defines all the query fields available
+type TileQuery struct {
 	// Image classification
 	Pos            bool `json:"pos"`
 	Neg            bool `json:"neg"`
@@ -125,10 +117,43 @@ type Query struct {
 	// URL encoded query string
 	QueryStr string     `json:"query"`
 	Query    url.Values `json:"-"`
+}
 
-	// URL encoded query string to select the right hand side of comparisons.
+// excludeClassification returns true if the given label/status for a digest
+// should be excluded based on the values in the query.
+func (q *TileQuery) excludeClassification(cl types.Label) bool {
+	return ((cl == types.NEGATIVE) && !q.Neg) ||
+		((cl == types.POSITIVE) && !q.Pos) ||
+		((cl == types.UNTRIAGED) && !q.Unt)
+}
+
+// Query is the query that Search understands.
+type Query struct {
+	// Diff metric to use.
+	Metric string   `json:"metric"`
+	Sort   string   `json:"sort"`
+	Match  []string `json:"match"`
+
+	// Blaming
+	BlameGroupID string `json:"blame"`
+
+	// Fields to select the left hand side of the comparison.
+	TileQuery
+
+	// Fields select the right hand side of the comparisons. They are consolidated
+	// into rhsQuery by the parse routines.
 	RQueryStr string     `json:"rquery"`
 	RQuery    url.Values `json:"-"`
+
+	RPos            bool `json:"rpos"`
+	RNeg            bool `json:"rneg"`
+	RHead           bool `json:"rhead"`
+	RUnt            bool `json:"runt"`
+	RIncludeIgnores bool `json:"rinclude"`
+
+	// rhsQuery is populated when the query is parsed and determines which digests
+	// are on the right-hand-side of the comparison. It maps to search selectors above.
+	rhsQuery *TileQuery
 
 	// Trybot support.
 	Issue         int64   `json:"issue,string"`
@@ -166,14 +191,6 @@ type SearchResponse struct {
 // it extends trybot.IssueDetails.
 type IssueResponse struct {
 	QueryPatchsets []int64
-}
-
-// excludeClassification returns true if the given label/status for a digest
-// should be excluded based on the values in the query.
-func (q *Query) excludeClassification(cl types.Label) bool {
-	return ((cl == types.NEGATIVE) && !q.Neg) ||
-		((cl == types.POSITIVE) && !q.Pos) ||
-		((cl == types.UNTRIAGED) && !q.Unt)
 }
 
 // DigestSlice is a utility type for sorting slices of Digest by their max diff.
@@ -464,7 +481,7 @@ func CompareTest(ctq *CTQuery, storages *storage.Storage, idx *indexer.SearchInd
 // filterTile iterates over the tile and finds digests that match the given query.
 // It returns a map[digest]ParamSet which contains all the found digests and
 // the paramsets that generated them.
-func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]paramtools.ParamSet, error) {
+func filterTile(q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]paramtools.ParamSet, error) {
 	ret := map[string]paramtools.ParamSet{}
 
 	// Add digest/trace to the result.
@@ -481,7 +498,7 @@ func filterTile(query *Query, storages *storage.Storage, idx *indexer.SearchInde
 		return nil, err
 	}
 
-	if err := iterTile(query, addFn, nil, ExpSlice{exp}, idx); err != nil {
+	if err := iterTile(&q.TileQuery, q.BlameGroupID, q.FCommitBegin, q.FCommitEnd, addFn, nil, ExpSlice{exp}, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -541,7 +558,7 @@ func getFilterByTileFunctions(matchFields []string, condDigests map[string]param
 // fields listed in matchFields. condDigests contains the digests their
 // parameter sets for which we would like to find a set of digests for
 // comparison. It returns a set of digests for each digest in condDigests.
-func filterTileWithMatch(query *Query, matchFields []string, condDigests map[string]paramtools.ParamSet, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]util.StringSet, error) {
+func filterTileWithMatch(q *Query, matchFields []string, condDigests map[string]paramtools.ParamSet, storages *storage.Storage, idx *indexer.SearchIndex) (map[string]util.StringSet, error) {
 	if len(condDigests) == 0 {
 		return map[string]util.StringSet{}, nil
 	}
@@ -583,7 +600,7 @@ func filterTileWithMatch(query *Query, matchFields []string, condDigests map[str
 		return nil, err
 	}
 
-	if err := iterTile(query, addFn, acceptFn, ExpSlice{exp}, idx); err != nil {
+	if err := iterTile(&q.TileQuery, q.BlameGroupID, q.FCommitBegin, q.FCommitEnd, addFn, acceptFn, ExpSlice{exp}, idx); err != nil {
 		return nil, err
 	}
 	return ret, nil
