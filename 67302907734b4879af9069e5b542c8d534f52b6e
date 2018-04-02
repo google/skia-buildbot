@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "829fc56c_d19901fa",
+        "filename": "autoroll/go/repo_manager/android_repo_manager_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T19:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "609ea74f_274f3c66",
+      "revId": "67302907734b4879af9069e5b542c8d534f52b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "615ca57b_c81fb992",
         "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
         "patchSetId": 7
@@ -47,6 +65,24 @@
       "writtenOn": "2018-04-02T18:41:30Z",
       "side": 1,
       "message": "Is it worthwhile to check that PreUploadSteps is not specified?\n\nMaybe also check that ChildPath/ChildBranch is a fixed dummy value?\n\nIs GClientSpec supported for this roller?\n\nSimilar Qs for FuchsiaSDKRepoManagerConfig.",
+      "revId": "67302907734b4879af9069e5b542c8d534f52b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "050032fe_7c669712",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T19:09:30Z",
+      "side": 1,
+      "message": "This roller currently has default/empty values for all of those, but as far as I know it could start using any of them without any issues.  Same thing with Fuchsia SDK.",
+      "parentUuid": "615ca57b_c81fb992",
       "revId": "67302907734b4879af9069e5b542c8d534f52b6e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -76,6 +112,30 @@
     },
     {
       "key": {
+        "uuid": "19a15e4c_08c75ee9",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T19:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d20f6e6_3ea6bb56",
+      "range": {
+        "startLine": 61,
+        "startChar": 54,
+        "endLine": 62,
+        "endChar": 33
+      },
+      "revId": "67302907734b4879af9069e5b542c8d534f52b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "11beb67f_1c611090",
         "filename": "autoroll/go/roller/config.go",
         "patchSetId": 7
@@ -87,6 +147,30 @@
       "writtenOn": "2018-04-02T18:41:30Z",
       "side": 1,
       "message": "uber-nit: use notifier rather than arb_notifier",
+      "range": {
+        "startLine": 169,
+        "startChar": 1,
+        "endLine": 169,
+        "endChar": 43
+      },
+      "revId": "67302907734b4879af9069e5b542c8d534f52b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67042834_bbe28525",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T19:09:30Z",
+      "side": 1,
+      "message": "So, change \"notifier\" to \"common_notifier\" or something and use \"notifier\" here instead?",
+      "parentUuid": "11beb67f_1c611090",
       "range": {
         "startLine": 169,
         "startChar": 1,
@@ -122,6 +206,30 @@
     },
     {
       "key": {
+        "uuid": "a21d6718_e55120fc",
+        "filename": "autoroll/go/validate_config/validate_config.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T19:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c6928a2d_8afe4157",
+      "range": {
+        "startLine": 61,
+        "startChar": 38,
+        "endLine": 61,
+        "endChar": 42
+      },
+      "revId": "67302907734b4879af9069e5b542c8d534f52b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8c5fc032_22026488",
         "filename": "autoroll/go/validate_config/validate_config.go",
         "patchSetId": 7
@@ -136,6 +244,24 @@
       "revId": "67302907734b4879af9069e5b542c8d534f52b6e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80723a5c_cae07519",
+        "filename": "autoroll/go/validate_config/validate_config.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T19:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8c5fc032_22026488",
+      "revId": "67302907734b4879af9069e5b542c8d534f52b6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
