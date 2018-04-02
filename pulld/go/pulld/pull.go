@@ -107,7 +107,7 @@ func containsPulld(packages []string) bool {
 
 // metadataWait waits for the instance level metadata 'pushrev' to change, at
 // which point the server should check for new versions of apps to install.
-func metadataWait(metadataTriggerCh chan bool) {
+func metadataWait(triggerPullCh chan bool) {
 	for {
 		req, err := http.NewRequest("GET", "http://metadata.google.internal/computeMetadata/v1/instance/attributes/pushrev?wait_for_change=true", nil)
 		if err != nil {
@@ -129,13 +129,12 @@ func metadataWait(metadataTriggerCh chan bool) {
 			continue
 		}
 		util.Close(resp.Body)
-		metadataTriggerCh <- true
+		triggerPullCh <- true
 		sklog.Infof("Pull triggered via metadata.")
 	}
 }
 
-func pullInit(ctx context.Context, client *http.Client) {
-	metadataTriggerCh := make(chan bool, 1)
+func pullInit(ctx context.Context, client *http.Client, triggerPullCh chan bool) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		sklog.Fatal(err)
@@ -153,7 +152,7 @@ func pullInit(ctx context.Context, client *http.Client) {
 	}
 
 	if *onGCE {
-		go metadataWait(metadataTriggerCh)
+		go metadataWait(triggerPullCh)
 	}
 
 	step(ctx, client, store, hostname)
@@ -162,7 +161,7 @@ func pullInit(ctx context.Context, client *http.Client) {
 		for {
 			select {
 			case <-timeCh:
-			case <-metadataTriggerCh:
+			case <-triggerPullCh:
 			}
 			step(ctx, client, store, hostname)
 		}

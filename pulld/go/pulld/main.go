@@ -36,7 +36,10 @@ var (
 
 	hostname = ""
 
-	ACTIONS = []string{"start", "stop", "restart"}
+	ACTIONS = []string{string(types.Start), string(types.Stop), string(types.Restart)}
+
+	// triggerPullCh triggers a pull when sent a boolean value.
+	triggerPullCh = make(chan bool, 1)
 
 	// PROCESS_ENDING_UNITS include those that are likely to cause the
 	// current process to end.
@@ -93,13 +96,13 @@ func Init() {
 }
 
 // getFunctionForAction returns StartUnit, StopUnit, or RestartUnit based on action.
-func getFunctionForAction(action string) func(name string, mode string, ch chan<- string) (int, error) {
+func getFunctionForAction(action types.Action) func(name string, mode string, ch chan<- string) (int, error) {
 	switch action {
-	case "start":
+	case types.Start:
 		return dbc.StartUnit
-	case "stop":
+	case types.Stop:
 		return dbc.StopUnit
-	case "restart":
+	case types.Restart:
 		return dbc.RestartUnit
 	default:
 		sklog.Fatalf("%q in ACTIONS but not handled by getFunctionForAction", action)
@@ -112,7 +115,7 @@ func getFunctionForAction(action string) func(name string, mode string, ch chan<
 // Takes the following query parameters:
 //
 //   name - The name of the service.
-//   action - The action to perform. One of ["start", "stop", "restart"].
+//   action - The action to perform.
 //
 // The response is of the form:
 //
@@ -142,27 +145,41 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	f := getFunctionForAction(action)
-	res := ChangeResult{}
-	if util.In(name, PROCESS_ENDING_UNITS) {
-		go func() {
-			<-time.After(1 * time.Second)
-			if _, err := f(name, "replace", nil); err != nil {
-				sklog.Error(err)
-			}
-		}()
-		res.Result = "enqueued"
-	} else {
-		ch := make(chan string)
-		if _, err := f(name, "replace", ch); err != nil {
-			httputils.ReportError(w, r, err, "Action failed.")
-			return
-		}
-		res.Result = <-ch
+	cmd := &types.Command{
+		Action:  types.Action(action),
+		Service: name,
 	}
+	res := ChangeResult{}
+	res.Result = executeCommand(cmd)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(res); err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
+// executeCommand executes the given Command and returns a status message.
+func executeCommand(cmd *types.Command) string {
+	if cmd.Action == types.Pull {
+		triggerPullCh <- true
+		return "pull enqueued"
+	} else {
+		f := getFunctionForAction(cmd.Action)
+		if util.In(cmd.Service, PROCESS_ENDING_UNITS) {
+			go func() {
+				<-time.After(1 * time.Second)
+				if _, err := f(cmd.Service, "replace", nil); err != nil {
+					sklog.Error(err)
+				}
+			}()
+			return "enqueued"
+		} else {
+			ch := make(chan string)
+			if _, err := f(cmd.Service, "replace", ch); err != nil {
+				sklog.Errorf("Action failed: %s", err)
+				return "action failed"
+			}
+			return <-ch
+		}
 	}
 }
 
@@ -271,7 +288,7 @@ func main() {
 
 	Init()
 	ctx := context.Background()
-	pullInit(ctx, client)
+	pullInit(ctx, client, triggerPullCh)
 	rebootMonitoringInit()
 
 	r := mux.NewRouter()
