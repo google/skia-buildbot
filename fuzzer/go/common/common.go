@@ -119,18 +119,6 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "icc", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
-	"debug_gl_canvas": {
-		PrettyName:          "Canvas to debug GL backend",
-		Status:              EXPERIMENTAL_FUZZER,
-		Groomer:             "robertphillips",
-		ExtraBugLabels:      nil,
-		ArgsAfterExecutable: []string{"--type", "api", "--name", "DebugGLCanvas", "--bytes"},
-		// For most of the canvases, some of the initial test cases take a long time. If they
-		// time out (1000+ms ), afl-fuzz aborts during startup. To keep things moving, we
-		// tell afl-fuzz to set the timout to 500ms and ignore any test cases that take longer
-		// than that (the plus sign after 500).
-		GenerationArgs: []string{"-m", "5000", "-t", "500+"},
-	},
 	"image_filter_deserialize": {
 		PrettyName:          "FilterFuzz Stub",
 		Status:              EXPERIMENTAL_FUZZER,
@@ -138,6 +126,18 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "filter_fuzz", "--bytes"},
 		GenerationArgs:      []string{"-m", "5000", "-t", "200+"},
+	},
+	"mock_gl_canvas": {
+		PrettyName:          "Canvas to mock GL backend",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "robertphillips",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "MockGLCanvas", "--bytes"},
+		// For most of the canvases, some of the initial test cases take a long time. If they
+		// time out (1000+ms ), afl-fuzz aborts during startup. To keep things moving, we
+		// tell afl-fuzz to set the timout to 500ms and ignore any test cases that take longer
+		// than that (the plus sign after 500).
+		GenerationArgs: []string{"-m", "5000", "-t", "500+"},
 	},
 	"n32_canvas": {
 		PrettyName:          "Canvas to raster n32 backend",
@@ -156,7 +156,7 @@ var fuzzers = map[string]FuzzerInfo{
 		GenerationArgs:      defaultGenerationArgs,
 	},
 	"null_gl_canvas": {
-		PrettyName:          "Canvas to null canvas backend",
+		PrettyName:          "Canvas to null gl canvas backend",
 		Status:              EXPERIMENTAL_FUZZER,
 		Groomer:             "robertphillips",
 		ExtraBugLabels:      nil,
