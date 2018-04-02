@@ -19,6 +19,29 @@
     },
     {
       "key": {
+        "uuid": "6aa93161_3acba633",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T13:11:16Z",
+      "side": 1,
+      "message": "optional: \"where values from metadata are used.\"",
+      "range": {
+        "startLine": 58,
+        "startChar": 85,
+        "endLine": 58,
+        "endChar": 95
+      },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "427d7f3c_6c01e350",
         "filename": "autoroll/go/autoroll/main.go",
         "patchSetId": 6
@@ -36,6 +59,40 @@
         "endLine": 211,
         "endChar": 13
       },
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e55dfbe_861ea4c3",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T13:11:16Z",
+      "side": 1,
+      "message": "Previous code was checking if if *gerritUrl !\u003d \"\" before doing the below which made it easier to add a github roller.\nNew code is assuming that all rollers are gerrit based which will not be true soon. So would be useful to add some sort of check back especially since it is now (rightly so) in config files which should imply that it is optional.",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afc9ac7c_969e74e4",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T13:11:16Z",
+      "side": 1,
+      "message": "Could we instead have a config value for requiresDepotTools? would be nice to remove as many such checks as we can.",
       "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -76,6 +133,23 @@
     },
     {
       "key": {
+        "uuid": "c729bb8a_25d86194",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T13:11:16Z",
+      "side": 1,
+      "message": "This is totally fine but was this always the case for android rollers? disclaimer: I remember nothing of past conversations.",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6d80d548_64351eb3",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 6
@@ -113,6 +187,24 @@
       "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3cc964fc_fca50308",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T13:11:16Z",
+      "side": 1,
+      "message": "This makes sense to Ravi if it makes sense to Eric (he wrote the afdo repo manager, I did the android repo manager). Maybe add a comment somewhere explaining why this makes sense?",
+      "parentUuid": "9e0345f1_14efe35d",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef2104a4_8b3e4898",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T13:11:16Z",
+      "side": 0,
+      "message": "It was a good idea to get rid of useMetadata flag since it should be the same as !*local.",
+      "range": {
+        "startLine": 365,
+        "startChar": 5,
+        "endLine": 365,
+        "endChar": 16
+      },
+      "revId": "32fd0793d64b34378fa0906404b9f21616fd62cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
