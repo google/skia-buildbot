@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07f884fe_7e1aaece",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-02T18:41:30Z",
+      "side": 0,
+      "message": "Is it OK that this changed?",
+      "range": {
+        "startLine": 72,
+        "startChar": 3,
+        "endLine": 72,
+        "endChar": 35
+      },
+      "revId": "6736beafe18d745f65b3d2f022c67b18334a5d8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

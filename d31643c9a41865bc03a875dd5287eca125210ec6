@@ -2,6 +2,69 @@
   "comments": [
     {
       "key": {
+        "uuid": "fe8454bb_b6e36930",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-02T18:41:30Z",
+      "side": 1,
+      "message": "Do you also want to change the *.service files in this CL?",
+      "revId": "d31643c9a41865bc03a875dd5287eca125210ec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a11e85d_813dfb3e",
+        "filename": "autoroll/config/angle-skia.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-02T18:41:30Z",
+      "side": 1,
+      "message": "Doesn\u0027t match angle-skia-autorolld.service",
+      "range": {
+        "startLine": 16,
+        "startChar": 23,
+        "endLine": 16,
+        "endChar": 25
+      },
+      "revId": "d31643c9a41865bc03a875dd5287eca125210ec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d832a73_7ce9c6ba",
+        "filename": "autoroll/config/skia-fuchsia.json",
+        "patchSetId": 8
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-02T18:41:30Z",
+      "side": 1,
+      "message": "Doesn\u0027t match fuchsia-autorolld.service",
+      "range": {
+        "startLine": 4,
+        "startChar": 23,
+        "endLine": 4,
+        "endChar": 25
+      },
+      "revId": "d31643c9a41865bc03a875dd5287eca125210ec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "304b407a_1ac825e9",
         "filename": "autoroll/go/repo_manager/android_repo_manager_test.go",
         "patchSetId": 8
