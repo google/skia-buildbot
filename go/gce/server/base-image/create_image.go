@@ -33,7 +33,7 @@ func BaseConfig() *gce.Instance {
 	vm := &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        INSTANCE_NAME,
-			SourceImage: "projects/debian-cloud/global/images/debian-9-stretch-v20170829",
+			SourceImage: "projects/eip-images/global/images/debian-9-drawfork-v20180327",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		MachineType: gce.MACHINE_TYPE_STANDARD_4,
