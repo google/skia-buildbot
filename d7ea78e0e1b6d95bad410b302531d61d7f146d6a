@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "33213c65_cf4ba647",
+        "filename": "push/go/types/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-02T12:50:31Z",
+      "side": 1,
+      "message": "Super-nit: Adding a String() method to Action would be a little more idiomatic than having to type string(action) elsewhere.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 18
+      },
+      "revId": "d7ea78e0e1b6d95bad410b302531d61d7f146d6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
