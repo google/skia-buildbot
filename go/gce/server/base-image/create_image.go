@@ -33,17 +33,15 @@ func BaseConfig() *gce.Instance {
 	vm := &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        INSTANCE_NAME,
-			SourceImage: "projects/debian-cloud/global/images/debian-9-stretch-v20170829",
+			SourceImage: "projects/debian-cloud/global/images/debian-9-stretch-v20180401",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		MachineType: gce.MACHINE_TYPE_STANDARD_4,
-		Name:        INSTANCE_NAME,
-		Os:          gce.OS_LINUX,
-		Scopes: []string{
-			"https://www.googleapis.com/auth/cloud-platform",
-		},
-		SetupScript: path.Join(dir, "setup-script.sh"),
-		User:        gce.USER_DEFAULT,
+		MachineType:    gce.MACHINE_TYPE_STANDARD_4,
+		Name:           INSTANCE_NAME,
+		Os:             gce.OS_LINUX,
+		ServiceAccount: "snapshot-base-image@skia-buildbots.google.com.iam.gserviceaccount.com",
+		SetupScript:    path.Join(dir, "setup-script.sh"),
+		User:           gce.USER_DEFAULT,
 	}
 
 	return vm
