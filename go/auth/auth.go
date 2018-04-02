@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 
 	cloud_metadata "cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/pubsub"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
@@ -25,34 +27,16 @@ const (
 	DEFAULT_JWT_FILENAME           = "service-account.json"
 	DEFAULT_CLIENT_SECRET_FILENAME = "client_secret.json"
 	DEFAULT_TOKEN_STORE_FILENAME   = "google_storage_token.data"
+	DEFAULT_MIMIC_FILE             = "client_mimic.json"
 )
 
 // NewDefaultTokenSource creates a new OAuth 2.0 token source with all the
-// defaults for the given scopes. If local is true then a 3-legged flow is
-// initiated, otherwise the GCE Service Account is used if running in GCE, and
-// the Skolo access token provider is used if running in Skolo.
-//
-// The default OAuth config filename is "client_secret.json".
-// The default OAuth token store filename is "google_storage_token.data".
+// defaults for the given scopes. If local is true then it looks for a
+// client_mimic.json file, otherwise the GCE Service Account is used if running
+// in GCE, and the Skolo access token provider is used if running in Skolo.
 func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
 	if local {
-		body, err := ioutil.ReadFile(DEFAULT_CLIENT_SECRET_FILENAME)
-		if err != nil {
-			return nil, err
-		}
-		config, err := google.ConfigFromJSON(body, scopes...)
-		if err != nil {
-			return nil, err
-		}
-
-		transport := httputils.NewBackOffTransport()
-		oauthCacheFile := DEFAULT_TOKEN_STORE_FILENAME
-		tokenClient := &http.Client{
-			Transport: transport,
-			Timeout:   httputils.REQUEST_TIMEOUT,
-		}
-		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
-		return newCachingTokenSource(oauthCacheFile, ctx, config)
+		return NewMimicTokenSourceFromFile(DEFAULT_MIMIC_FILE)
 	} else {
 		// Are we running on GCE?
 		if cloud_metadata.OnGCE() {
@@ -100,6 +84,63 @@ func NewDefaultClient(local bool, scopes ...string) (*http.Client, error) {
 // The default OAuth config filename is "client_secret.json".
 func NewClient(local bool, oauthCacheFile string, scopes ...string) (*http.Client, error) {
 	return NewClientWithTransport(local, oauthCacheFile, "", nil, scopes...)
+}
+
+// MimicTokenSource points to a specific server we want to impersonate, i.e.
+// to use credentials as the service account of that machine.
+//
+// To use this TokenSource the `gcloud` command line tool must be installed, on
+// the path, and authorized.
+type MimicTokenSource struct {
+	Project  string `json:"project"`
+	Instance string `json:"instance"`
+	Zone     string `json:"zone"`
+}
+
+func NewMimicTokenSourceFromFile(filename string) (*MimicTokenSource, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open MimicTokenSource file: %s", err)
+	}
+	defer util.Close(f)
+	var ret MimicTokenSource
+	if err = json.NewDecoder(f).Decode(&ret); err != nil {
+		return nil, fmt.Errorf("Failed to decode MimicTokenSource file: %s", err)
+	}
+	return &ret, nil
+}
+
+func (i *MimicTokenSource) Token() (*oauth2.Token, error) {
+	buf := bytes.Buffer{}
+	errBuf := bytes.Buffer{}
+	args := []string{
+		"compute", "ssh",
+		fmt.Sprintf("default@%s", i.Instance),
+		fmt.Sprintf("--zone=%s", i.Zone),
+		fmt.Sprintf("--project=%s", i.Project),
+		"--",
+		"curl",
+		"http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
+		"-H",
+		"\\\"Metadata-Flavor: Google\\\"",
+		"--silent",
+	}
+	gcloudCmd := &exec.Command{
+		Name:        "gcloud",
+		Args:        args,
+		InheritPath: true,
+		Stdout:      &buf,
+		Stderr:      &errBuf,
+	}
+
+	if err := exec.Run(context.Background(), gcloudCmd); err != nil {
+		return nil, fmt.Errorf("Failed fetching access token: %s - %s", err, errBuf.String())
+	}
+	var ret oauth2.Token
+	if err := json.Unmarshal(buf.Bytes(), &ret); err != nil {
+		return nil, fmt.Errorf("Failed decoding access token: %s", err)
+	}
+	return &ret, nil
 }
 
 // NewClientFromIdAndSecret creates a new OAuth 2.0 authorized client with all the defaults
