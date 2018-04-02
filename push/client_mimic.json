@@ -1,0 +1,5 @@
+{
+  "project": "google.com:skia-buildbots",
+  "instance": "skia-push2",
+  "zone": "us-central1-f"
+}
