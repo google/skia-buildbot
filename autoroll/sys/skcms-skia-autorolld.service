@@ -6,18 +6,10 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll \
-    --use_metadata=true \
+    --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
     --host=skcms-skia-roll.skia.org \
-    --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --childName=skcms \
-    --childPath=skia/third_party/externals/skcms \
-    --max_roll_frequency=3h \
-    --parent_name=Skia \
-    --parent_repo=https://skia.googlesource.com/skia.git \
-    --parent_waterfall=https://status.skia.org \
-    --resources_dir=/usr/local/share/autoroll/ \
-    --sheriff=https://skia-tree-status.appspot.com/current-sheriff
+    --resources_dir=/usr/local/share/autoroll/
 Restart=always
 User=default
 Group=default
