@@ -166,6 +166,24 @@
     },
     {
       "key": {
+        "uuid": "277f106a_ad000357",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T18:03:13Z",
+      "side": 1,
+      "message": "SGTM. I look forward to working with that when I\u0027m back next week :)",
+      "parentUuid": "eb9eb9cf_c0dd594c",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "afc9ac7c_969e74e4",
         "filename": "autoroll/go/autoroll/main.go",
         "patchSetId": 6
@@ -198,6 +216,24 @@
       "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73c2dcde_330a4d7d",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T18:03:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b3b532a1_632274bf",
+      "revId": "7b2611a302c08da4f17a4cb48b7f6a976cd2b9b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

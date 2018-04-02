@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "304b407a_1ac825e9",
+        "filename": "autoroll/go/repo_manager/android_repo_manager_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-02T18:03:13Z",
+      "side": 1,
+      "message": "This line and 85 are commented out.",
+      "revId": "d31643c9a41865bc03a875dd5287eca125210ec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
