@@ -259,17 +259,6 @@ func main() {
 		}
 	}
 
-	// Create the code review API client.
-	if cfg.RollerType() == roller.ROLLER_TYPE_ANDROID {
-		cfg.GerritURL = androidInternalGerritUrl
-	}
-	g, err := gerrit.NewGerrit(cfg.GerritURL, gitcookiesPath, nil)
-	if err != nil {
-		sklog.Fatalf("Failed to create Gerrit client: %s", err)
-	}
-	g.TurnOnAuthenticatedGets()
-
-	// Sync depot_tools.
 	ctx := context.Background()
 
 	serverURL := "https://" + *host
@@ -277,9 +266,20 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
+	var g *gerrit.Gerrit
 	if cfg.RollerType() == roller.ROLLER_TYPE_GOOGLE3 {
 		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master")
 	} else {
+		// Create the code review API client.
+		if cfg.RollerType() == roller.ROLLER_TYPE_ANDROID {
+			cfg.GerritURL = androidInternalGerritUrl
+		}
+		g, err = gerrit.NewGerrit(cfg.GerritURL, gitcookiesPath, nil)
+		if err != nil {
+			sklog.Fatalf("Failed to create Gerrit client: %s", err)
+		}
+		g.TurnOnAuthenticatedGets()
+
 		if *recipesCfgFile == "" {
 			*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 		}
