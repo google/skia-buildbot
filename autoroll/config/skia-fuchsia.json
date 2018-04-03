@@ -1,0 +1,15 @@
+{
+  "childName": "Skia",
+  "gerritURL": "https://fuchsia-review.googlesource.com",
+  "maxRollFrequency": "3h",
+  "parentName": "Fuchsia",
+  "parentWaterfall": "https://fuchsia-dashboard.appspot.com/",
+  "sheriff": ["brianosman@google.com"],
+  "manifestRepoManager": {
+    "childBranch": "master",
+    "childPath": "skia",
+    "parentBranch": "master",
+    "parentRepo": "https://fuchsia.googlesource.com/topaz.git",
+    "strategy": "batch"
+  }
+}

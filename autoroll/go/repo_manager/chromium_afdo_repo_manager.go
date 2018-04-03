@@ -60,7 +60,7 @@ var (
 
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewAFDORepoManager func(context.Context, string, string, string, string, *gerrit.Gerrit, string, *http.Client) (RepoManager, error) = newAfdoRepoManager
+	NewAFDORepoManager func(context.Context, *AFDORepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (RepoManager, error) = newAfdoRepoManager
 
 	// Error used to indicate that a version number is invalid.
 	errInvalidAFDOVersion = errors.New("Invalid AFDO version.")
@@ -173,6 +173,19 @@ func (s *afdoStrategy) GetVersions() []string {
 	return s.versions
 }
 
+// AFDORepoManagerConfig provides configuration for the AFDO RepoManager.
+type AFDORepoManagerConfig struct {
+	DepotToolsRepoManagerConfig
+}
+
+// Validate the config.
+func (c *AFDORepoManagerConfig) Validate() error {
+	if c.Strategy != ROLL_STRATEGY_AFDO {
+		return errors.New("No custom strategy allowed for AFDO RepoManager.")
+	}
+	return c.DepotToolsRepoManagerConfig.Validate()
+}
+
 // afdoRepoManager is a RepoManager which rolls Android AFDO profile version
 // numbers into Chromium. Unlike other rollers, there is no child repo to sync;
 // the version number is obtained from Google Cloud Storage.
@@ -183,45 +196,26 @@ type afdoRepoManager struct {
 	versions         []string // Protected by infoMtx.
 }
 
-func newAfdoRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, depot_tools string, g *gerrit.Gerrit, serverURL string, authClient *http.Client) (RepoManager, error) {
+func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, authClient *http.Client) (RepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
+
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g)
+	if err != nil {
+		return nil, err
+	}
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
 		return nil, err
 	}
-	strategy := &afdoStrategy{
+	drm.strategy = &afdoStrategy{
 		gcs: gcs.NewGCSClient(storageClient, AFDO_GS_BUCKET),
 	}
 
-	user, err := g.GetUserEmail()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
-	}
-	sklog.Infof("Repo Manager user: %s", user)
-
-	wd := path.Join(workdir, "repo_manager")
-	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
-		return nil, err
-	}
-
-	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
-	parentDir := path.Join(wd, parentBase)
-
 	rv := &afdoRepoManager{
-		depotToolsRepoManager: &depotToolsRepoManager{
-			commonRepoManager: &commonRepoManager{
-				parentBranch: parentBranch,
-				g:            g,
-				serverURL:    serverURL,
-				strategy:     strategy,
-				user:         user,
-				workdir:      wd,
-			},
-			depot_tools: depot_tools,
-			gclient:     path.Join(depot_tools, GCLIENT),
-			parentDir:   parentDir,
-			parentRepo:  parentRepo,
-		},
-		afdoVersionFile: path.Join(parentDir, AFDO_VERSION_FILE_PATH),
+		afdoVersionFile:       path.Join(drm.parentDir, AFDO_VERSION_FILE_PATH),
+		depotToolsRepoManager: drm,
 	}
 	return rv, rv.Update(ctx)
 }

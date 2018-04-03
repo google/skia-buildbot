@@ -1,0 +1,9 @@
+{
+  "childName": "Skia",
+  "gerritURL": "N/A",
+  "maxRollFrequency": "0m",
+  "parentName": "Google3",
+  "parentWaterfall": "https://goto.google.com/skia-testing-status",
+  "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
+  "google3": {}
+}

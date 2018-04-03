@@ -1,0 +1,19 @@
+{
+  "childName": "Fuchsia SDK",
+  "cqExtraTrybots": [
+    "tryserver.chromium.linux:fuchsia_arm64_cast_audio",
+    "tryserver.chromium.linux:fuchsia_x64_cast_audio"
+  ],
+  "gerritURL": "https://chromium-review.googlesource.com",
+  "maxRollFrequency": "0m",
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "sheriff": ["cr-fuchsia+bot@chromium.org"],
+  "fuchsiaSDKRepoManager": {
+    "childBranch": "master",
+    "childPath": "build/fuchsia/sdk.sha1",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "strategy": "fuchsiaSDK"
+  }
+}

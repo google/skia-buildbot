@@ -7,18 +7,19 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
-	depot_tools "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -35,6 +36,19 @@ const (
 var (
 	emails = []string{"reviewer@chromium.org"}
 )
+
+func depsCfg() *DEPSRepoManagerConfig {
+	return &DEPSRepoManagerConfig{
+		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:  "master",
+				ChildPath:    childPath,
+				ParentBranch: "master",
+				Strategy:     ROLL_STRATEGY_BATCH,
+			},
+		},
+	}
+}
 
 func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
 	wd, err := ioutil.TempDir("", "")
@@ -107,11 +121,12 @@ func TestDEPSRepoManager(t *testing.T) {
 
 	ctx, wd, child, childCommits, parent, _, cleanup := setup(t)
 	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g := setupFakeGerrit(t, wd)
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+	cfg := depsCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -147,11 +162,13 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 
 	ctx, wd, child, childCommits, parent, _, cleanup := setup(t)
 	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	s, err := GetNextRollStrategy(strategy, "master", "")
-	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+	cfg := depsCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	cfg.Strategy = strategy
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -184,11 +201,12 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 
 	ctx, wd, _, _, parent, _, cleanup := setup(t)
 	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+	cfg := depsCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 
 	ran := false
@@ -212,12 +230,13 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 	test := func(includeLog bool) {
 		ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
 		defer cleanup()
+		recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
-
-		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, includeLog, "", "fake.server.com")
+		cfg := depsCfg()
+		cfg.ParentRepo = parent.RepoUrl()
+		cfg.IncludeLog = includeLog
+		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 		assert.NoError(t, err)
 
 		// Create a roll.
@@ -245,9 +264,8 @@ func TestDEPSRepoManagerGclientSpec(t *testing.T) {
 
 	ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
 	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupFakeGerrit(t, wd)
 	gclientSpec := fmt.Sprintf(`
 solutions=[{
@@ -265,8 +283,10 @@ cache_dir=None
 `, path.Base(parent.RepoUrl()), parent.RepoUrl())
 	// Remove newlines.
 	gclientSpec = strings.Replace(gclientSpec, "\n", "", -1)
-
-	rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, gclientSpec, "fake.server.com")
+	cfg := depsCfg()
+	cfg.GClientSpec = gclientSpec
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll.
@@ -297,11 +317,12 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		// Setup.
 		ctx, wd, child, _, parent, mockRun, cleanup := setup(t)
 		defer cleanup()
+		recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-		s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-		assert.NoError(t, err)
 		g := setupFakeGerrit(t, wd)
-		rm, err := NewDEPSRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, true, "", "fake.server.com")
+		cfg := depsCfg()
+		cfg.ParentRepo = parent.RepoUrl()
+		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 		assert.NoError(t, err)
 
 		// Insert a fake entry into the repo mapping.
@@ -351,4 +372,17 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 	test("BUG=456", "")
 	test("BUG=skia:123,chromium:4532,skiatestproject:21", "skiatestproject:21")
 	test("Bug: skiatestproject:33", "skiatestproject:33")
+}
+
+func TestDEPSConfigValidation(t *testing.T) {
+	testutils.SmallTest(t)
+
+	cfg := depsCfg()
+	cfg.ParentRepo = "dummy" // Not supplied above.
+	assert.NoError(t, cfg.Validate())
+
+	// The only fields come from the nested Configs, so exclude them and
+	// verify that we fail validation.
+	cfg = &DEPSRepoManagerConfig{}
+	assert.Error(t, cfg.Validate())
 }
