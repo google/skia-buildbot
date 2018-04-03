@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f51062df_2cc5f0f7",
+        "filename": "autoroll/sys/catapult-autorolld.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-03T17:53:54Z",
+      "side": 0,
+      "message": "No idea how or why this happened.",
+      "range": {
+        "startLine": 12,
+        "startChar": 45,
+        "endLine": 12,
+        "endChar": 54
+      },
+      "revId": "9da2bf94f767178c5ff6e3cad8a7b1591ee1ecf2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
