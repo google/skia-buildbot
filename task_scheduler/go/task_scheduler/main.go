@@ -77,6 +77,7 @@ var (
 	isolateServer  = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	repoUrls       = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
+	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
 	swarmingPools  = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
@@ -708,7 +709,7 @@ func main() {
 	}
 
 	// Find depot_tools.
-	depotTools, err := depot_tools.Sync(ctx, wdAbs)
+	depotTools, err := depot_tools.Sync(ctx, wdAbs, *recipesCfgFile)
 	if err != nil {
 		sklog.Fatal(err)
 	}

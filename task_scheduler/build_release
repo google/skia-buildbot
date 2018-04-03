@@ -19,6 +19,7 @@ ${INSTALL}     --mode=644 -T ./res/img/fav.ico            ${ROOT}/usr/local/shar
 ${INSTALL_DIR} --mode=755                                 ${ROOT}/usr/local/share/${APPNAME}/templates
 ${INSTALL}     --mode=644 ./templates/*                   ${ROOT}/usr/local/share/${APPNAME}/templates
 ${INSTALL_DIR} --mode=777                                 ${ROOT}/mnt/pd0/task_scheduler_workdir
+${INSTALL}     --mode=644 -T ../infra/config/recipes.cfg  ${ROOT}/mnt/pd0/task_scheduler_workdir/recipes.cfg
 }
 
 source ../bash/release.sh

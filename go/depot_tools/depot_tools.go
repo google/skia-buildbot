@@ -8,21 +8,55 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"os"
+	"os/exec"
+	"path"
 	"regexp"
+	"sync"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/recipe_cfg"
 )
 
 var (
-	// Filled in by gen_version.go.
-	DEPOT_TOOLS_VERSION = "none"
+	depotToolsMtx sync.Mutex
+
+	version    string
+	versionMtx sync.Mutex
 )
+
+// Determine the desired depot_tools revision.
+func FindVersion(recipesCfgFile string) (string, error) {
+	versionMtx.Lock()
+	defer versionMtx.Unlock()
+
+	if version != "" {
+		return version, nil
+	}
+
+	recipesCfg, err := recipe_cfg.ParseCfg(recipesCfgFile)
+	if err != nil {
+		return "", err
+	}
+	dep, ok := recipesCfg.Deps["depot_tools"]
+	if !ok {
+		return "", errors.New("No dependency found for depot_tools.")
+	}
+	version = dep.Revision
+	return version, nil
+}
 
 // Sync syncs the depot_tools checkout to DEPOT_TOOLS_VERSION. Returns the
 // location of the checkout or an error.
-func Sync(ctx context.Context, workdir string) (string, error) {
+func Sync(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
+	version, err := FindVersion(recipesCfgFile)
+	if err != nil {
+		return "", err
+	}
+
 	// Clone the repo if necessary.
 	co, err := git.NewCheckout(ctx, common.REPO_DEPOT_TOOLS, workdir)
 	if err != nil {
@@ -34,7 +68,7 @@ func Sync(ctx context.Context, workdir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if hash == DEPOT_TOOLS_VERSION {
+	if hash == version {
 		return co.Dir(), nil
 	}
 
@@ -45,17 +79,43 @@ func Sync(ctx context.Context, workdir string) (string, error) {
 	if err := co.Cleanup(ctx); err != nil {
 		return "", fmt.Errorf("Failed to cleanup repo in %s: %s", co.Dir(), err)
 	}
-	if _, err := co.Git(ctx, "reset", "--hard", DEPOT_TOOLS_VERSION); err != nil {
+	if _, err := co.Git(ctx, "reset", "--hard", version); err != nil {
 		return "", fmt.Errorf("Failed to reset repo in %s: %s", co.Dir(), err)
 	}
 	hash, err = co.RevParse(ctx, "HEAD")
 	if err != nil {
 		return "", err
 	}
-	if hash != DEPOT_TOOLS_VERSION {
-		return "", fmt.Errorf("Got incorrect depot_tools revision: %s", hash)
+	if hash != version {
+		return "", fmt.Errorf("Got incorrect depot_tools revision: %s, wanted %s", hash, version)
 	}
 	return co.Dir(), nil
+}
+
+// GetDepotTools returns the path to depot_tools, syncing it into the given
+// workdir if necessary.
+func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
+	depotToolsMtx.Lock()
+	defer depotToolsMtx.Unlock()
+
+	// Check the environment. Bots may not have a full Git checkout, so
+	// just return the dir.
+	depotTools := os.Getenv("DEPOT_TOOLS")
+	if depotTools != "" {
+		if _, err := os.Stat(depotTools); err == nil {
+			return depotTools, nil
+		}
+		return "", fmt.Errorf("DEPOT_TOOLS=%s but dir does not exist!", depotTools)
+	}
+
+	// If "gclient" is in PATH, then we know where to get depot_tools.
+	gclient, err := exec.LookPath("gclient")
+	if err == nil && gclient != "" {
+		return Sync(ctx, path.Dir(path.Dir(gclient)), recipesCfgFile)
+	}
+
+	// Sync to the given workdir.
+	return Sync(ctx, workdir, recipesCfgFile)
 }
 
 const (

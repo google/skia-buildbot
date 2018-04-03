@@ -14,6 +14,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"time"
 
@@ -26,6 +27,8 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/recipe_cfg"
+	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -279,7 +282,12 @@ func main() {
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assertNoError(err)
 	swarmingClient := testutils.NewTestClient()
-	depotTools, err := depot_tools.Sync(ctx, workdir)
+
+	// This is okay since this only runs locally.
+	root, err := repo_root.Get()
+	assertNoError(err)
+	recipesCfgFile := filepath.Join(root, recipe_cfg.RECIPE_CFG_PATH)
+	depotTools, err := depot_tools.Sync(ctx, workdir, recipesCfgFile)
 	assertNoError(err)
 	urlMock := mockhttpclient.NewURLMock()
 	gitcookies := path.Join(workdir, "gitcookies_fake")

@@ -18,6 +18,7 @@ ${INSTALL} --mode=644 -T ./res/js/core.js         ${ROOT}/usr/local/share/autoro
 ${INSTALL} --mode=644 -T ./templates/header.html  ${ROOT}/usr/local/share/autoroll/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/main.html    ${ROOT}/usr/local/share/autoroll/templates/main.html
 ${INSTALL_DIR} --mode=777                         ${ROOT}/mnt/pd0/autoroll_workdir
+${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/mnt/pd0/autoroll_workdir/recipes.cfg
 }
 
 source ../bash/release.sh

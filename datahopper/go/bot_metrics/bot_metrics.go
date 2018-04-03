@@ -390,7 +390,7 @@ func writeTs(workdir string, ts time.Time) error {
 }
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
-func Start(dbUrl, workdir string, ctx context.Context) error {
+func Start(ctx context.Context, dbUrl, workdir, recipesCfgFile string) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return err
@@ -409,7 +409,7 @@ func Start(dbUrl, workdir string, ctx context.Context) error {
 		return err
 	}
 
-	depotTools, err := depot_tools.Sync(ctx, workdir)
+	depotTools, err := depot_tools.Sync(ctx, workdir, recipesCfgFile)
 	if err != nil {
 		return fmt.Errorf("Failed to sync depot_tools: %s", err)
 	}

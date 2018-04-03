@@ -32,6 +32,7 @@ import (
 var (
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	recipesCfgFile     = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
 
@@ -153,7 +154,7 @@ func main() {
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if err := bot_metrics.Start(*taskSchedulerDbUrl, *workdir, ctx); err != nil {
+	if err := bot_metrics.Start(ctx, *taskSchedulerDbUrl, *workdir, *recipesCfgFile); err != nil {
 		sklog.Fatal(err)
 	}
 
