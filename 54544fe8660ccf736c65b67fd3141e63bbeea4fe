@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a15ad497_5986807a",
+        "filename": "autoroll/config/skia-internal.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-03T19:17:21Z",
+      "side": 1,
+      "message": "This requires that the roller service account has the \"Pub/Sub Admin\" role.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 46
+      },
+      "revId": "54544fe8660ccf736c65b67fd3141e63bbeea4fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
