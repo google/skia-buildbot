@@ -7,16 +7,18 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	depot_tools "go.skia.org/infra/go/depot_tools/testutils"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -24,6 +26,19 @@ import (
 var (
 	manifestEmails = []string{"reviewer@chromium.org"}
 )
+
+func manifestCfg() *ManifestRepoManagerConfig {
+	return &ManifestRepoManagerConfig{
+		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:  "master",
+				ChildPath:    childPath,
+				ParentBranch: "master",
+				Strategy:     ROLL_STRATEGY_BATCH,
+			},
+		},
+	}
+}
 
 func setupManifest(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
@@ -77,7 +92,7 @@ func setupManifest(t *testing.T) (context.Context, string, *git_testutils.GitBui
 					return nil
 				}
 			} else if cmd.Args[0] == "clone" {
-				if !util.In(child.RepoUrl(), cmd.Args) {
+				if !util.In(child.RepoUrl(), cmd.Args) && !util.In(common.REPO_DEPOT_TOOLS, cmd.Args) {
 					return nil
 				}
 			}
@@ -143,11 +158,12 @@ func TestManifestRepoManager(t *testing.T) {
 
 	ctx, wd, child, childCommits, parent, cleanup := setupManifest(t)
 	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
+	cfg := manifestCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
@@ -168,11 +184,12 @@ func TestCreateNewManifestRoll(t *testing.T) {
 
 	ctx, wd, _, _, parent, cleanup := setupManifest(t)
 	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
+	cfg := manifestCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
@@ -185,15 +202,14 @@ func TestCreateNewManifestRoll(t *testing.T) {
 func TestRanPreUploadStepsManifest(t *testing.T) {
 	testutils.LargeTest(t)
 
-	testutils.LargeTest(t)
-
 	ctx, wd, _, _, parent, cleanup := setupManifest(t)
 	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	s, err := GetNextRollStrategy(ROLL_STRATEGY_BATCH, "master", "")
-	assert.NoError(t, err)
 	g := setupManifestFakeGerrit(t, wd)
-	rm, err := NewManifestRepoManager(ctx, wd, parent.RepoUrl(), "master", childPath, "master", depot_tools.GetDepotTools(t, ctx), g, s, nil, "fake.server.com")
+	cfg := manifestCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 	ran := false
 	rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{
@@ -207,4 +223,17 @@ func TestRanPreUploadStepsManifest(t *testing.T) {
 	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), manifestEmails, "", false)
 	assert.NoError(t, err)
 	assert.True(t, ran)
+}
+
+func TestManifestConfigValidation(t *testing.T) {
+	testutils.SmallTest(t)
+
+	cfg := manifestCfg()
+	cfg.ParentRepo = "repo" // Excluded from manifestCfg.
+	assert.NoError(t, cfg.Validate())
+
+	// The only fields come from the nested Configs, so exclude them and
+	// verify that we fail validation.
+	cfg = &ManifestRepoManagerConfig{}
+	assert.Error(t, cfg.Validate())
 }

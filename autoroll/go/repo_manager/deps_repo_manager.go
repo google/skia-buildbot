@@ -12,7 +12,6 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -28,7 +27,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(context.Context, string, string, string, string, string, string, *gerrit.Gerrit, NextRollStrategy, []string, bool, string, string) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(context.Context, *DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string) (RepoManager, error) = newDEPSRepoManager
 )
 
 // issueJson is the structure of "git cl issue --json"
@@ -44,55 +43,33 @@ type depsRepoManager struct {
 	rollDep    string
 }
 
+// DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
+type DEPSRepoManagerConfig struct {
+	DepotToolsRepoManagerConfig
+
+	// If false, roll CLs do not include a git log.
+	IncludeLog bool `json:"includeLog"`
+}
+
+// Validate the config.
+func (c *DEPSRepoManagerConfig) Validate() error {
+	return c.DepotToolsRepoManagerConfig.Validate()
+}
+
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(ctx context.Context, workdir, parentRepo, parentBranch, childPath, childBranch, depot_tools string, g *gerrit.Gerrit, strategy NextRollStrategy, preUploadStepNames []string, includeLog bool, gclientSpec, serverURL string) (RepoManager, error) {
-	gclient := path.Join(depot_tools, GCLIENT)
-	rollDep := path.Join(depot_tools, ROLL_DEP)
-
-	wd := path.Join(workdir, "repo_manager")
-	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
+func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string) (RepoManager, error) {
+	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	parentBase := strings.TrimSuffix(path.Base(parentRepo), ".git")
-	parentDir := path.Join(wd, parentBase)
-	childDir := path.Join(wd, childPath)
-	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
-
-	user, err := g.GetUserEmail()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
-	}
-	sklog.Infof("Repo Manager user: %s", user)
-
-	preUploadSteps, err := GetPreUploadSteps(preUploadStepNames)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g)
 	if err != nil {
 		return nil, err
 	}
-
 	dr := &depsRepoManager{
-		depotToolsRepoManager: &depotToolsRepoManager{
-			commonRepoManager: &commonRepoManager{
-				parentBranch:   parentBranch,
-				childDir:       childDir,
-				childPath:      childPath,
-				childRepo:      childRepo,
-				childBranch:    childBranch,
-				g:              g,
-				preUploadSteps: preUploadSteps,
-				serverURL:      serverURL,
-				strategy:       strategy,
-				user:           user,
-				workdir:        wd,
-			},
-			depot_tools: depot_tools,
-			gclient:     gclient,
-			gclientSpec: gclientSpec,
-			parentDir:   parentDir,
-			parentRepo:  parentRepo,
-		},
-		includeLog: includeLog,
-		rollDep:    rollDep,
+		depotToolsRepoManager: drm,
+		includeLog:            c.IncludeLog,
+		rollDep:               path.Join(drm.depotTools, ROLL_DEP),
 	}
 
 	// TODO(borenet): This update can be extremely expensive. Consider
