@@ -627,7 +627,7 @@ func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, r
 	tags[SWARMING_TAG_FORCED_JOB_ID] = forcedJobId
 	tags[SWARMING_TAG_NAME] = name
 	tags[SWARMING_TAG_ID] = id
-	tags[SWARMING_TAG_LUCI_PROJECT] = common.REPO_PROJECT_MAPPING[rs.Repo]
+	tags[SWARMING_TAG_LUCI_PROJECT] = common.LUCI_PROJECT_MAPPING[rs.Repo]
 	tags[SWARMING_TAG_PRIORITY] = fmt.Sprintf("%f", priority)
 	tags[SWARMING_TAG_REPO] = rs.Repo
 	tags[SWARMING_TAG_RETRY_OF] = retryOf

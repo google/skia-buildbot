@@ -42,6 +42,14 @@ var (
 	PRIVATE_REPOS = []string{REPO_SKIA_INTERNAL, REPO_SKIA_INTERNAL_TEST}
 	ALL_REPOS     = append(PUBLIC_REPOS, PRIVATE_REPOS...)
 
+	// LUCI_PROJECT_MAPPING maps a repo URL to its LUCI project ID.
+	LUCI_PROJECT_MAPPING = map[string]string{
+		REPO_SKIA:               "skia",
+		REPO_SKIA_INFRA:         "skia",
+		REPO_SKIA_INTERNAL:      "skia-internal",
+		REPO_SKIA_INTERNAL_TEST: "skia-internal-test",
+	}
+
 	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs. It
 	// is filled in during init().
 	PROJECT_REPO_MAPPING = map[string]string{}
