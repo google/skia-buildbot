@@ -50,7 +50,7 @@ var (
 	REPO_PROJECT_MAPPING = map[string]string{
 		REPO_SKCMS:              "skcms",
 		REPO_SKIA:               "skia",
-		REPO_SKIA_INFRA:         "skia",
+		REPO_SKIA_INFRA:         "skiabuildbot",
 		REPO_SKIA_INTERNAL:      "skia-internal",
 		REPO_SKIA_INTERNAL_TEST: "skia-internal-test",
 	}
