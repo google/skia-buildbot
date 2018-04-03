@@ -1,6 +1,7 @@
 package notifier
 
 import (
+	"context"
 	"fmt"
 
 	"go.skia.org/infra/go/email"
@@ -46,7 +47,7 @@ type Router struct {
 }
 
 // Send a notification.
-func (r *Router) Send(msg *Message) error {
+func (r *Router) Send(ctx context.Context, msg *Message) error {
 	if err := msg.Validate(); err != nil {
 		return err
 	}
@@ -59,7 +60,7 @@ func (r *Router) Send(msg *Message) error {
 				if n.singleThreadSubject != "" {
 					subject = n.singleThreadSubject
 				}
-				return n.notifier.Send(subject, msg)
+				return n.notifier.Send(ctx, subject, msg)
 			}
 			return nil
 		})

@@ -15,6 +15,12 @@
       "chat": {
         "room": "autoroll-test"
       }
+    },
+    {
+      "filter": "debug",
+      "pubsub": {
+        "topic": "autoroll-skia-internal-test"
+      }
     }
   ],
   "parentName": "Internal Test",
