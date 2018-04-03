@@ -27,7 +27,7 @@ const (
 	// Pool for Skia bots.
 	POOL_SKIA = "Skia"
 
-	PROJECT = "skia"
+	PROJECT = "skiabuildbot"
 )
 
 var (
