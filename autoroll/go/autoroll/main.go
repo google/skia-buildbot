@@ -76,6 +76,7 @@ var (
 	port                       = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	preUploadSteps             = common.NewMultiStringFlag("pre_upload_step", nil, "Named steps to run before uploading roll CLs. Pre-upload steps and their names are available in https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go")
 	promPort                   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	recipesCfgFile             = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	resourcesDir               = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	rollAFDOIntoChromium       = flag.Bool("roll_afdo_into_chromium", false, "Roll Android AFDO profiles into Chromium.")
 	rollFuchsiaSDKIntoChromium = flag.Bool("roll_fuchsia_sdk_into_chromium", false, "Roll Fuchsia SDK into Chromium.")
@@ -425,7 +426,10 @@ func main() {
 	ctx := context.Background()
 	var depotTools string
 	if !*rollIntoAndroid && !*rollIntoGoogle3 {
-		depotTools, err = depot_tools.Sync(ctx, *workdir)
+		if *recipesCfgFile == "" {
+			*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
+		}
+		depotTools, err = depot_tools.Sync(ctx, *workdir, *recipesCfgFile)
 		if err != nil {
 			sklog.Fatal(err)
 		}

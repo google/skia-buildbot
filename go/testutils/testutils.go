@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/repo_root"
 )
 
 const (
@@ -259,4 +260,11 @@ func MarshalIndentJSON(t *testing.T, i interface{}) string {
 func AssertErrorContains(t *testing.T, err error, substr string) {
 	assert.NotNil(t, err)
 	assert.True(t, strings.Contains(err.Error(), substr))
+}
+
+// Return the path to the root of the checkout.
+func GetRepoRoot(t *testing.T) string {
+	root, err := repo_root.Get()
+	assert.NoError(t, err)
+	return root
 }
