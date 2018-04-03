@@ -1,0 +1,16 @@
+{
+  "childName": "Chromite",
+  "gerritURL": "https://chromium-review.googlesource.com",
+  "maxRollFrequency": "0m",
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "sheriff": ["chrome-os-gardeners@google.com"],
+  "depsRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/chromite",
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "strategy": "batch"
+  }
+}

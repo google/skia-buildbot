@@ -1,0 +1,22 @@
+{
+  "childName": "ANGLE",
+  "cqExtraTrybots": [
+    "luci.chromium.try:android_optional_gpu_tests_rel",
+    "luci.chromium.try:linux_optional_gpu_tests_rel",
+    "luci.chromium.try:mac_optional_gpu_tests_rel",
+    "master.tryserver.chromium.win:win_optional_gpu_tests_rel"
+  ],
+  "gerritURL": "https://chromium-review.googlesource.com",
+  "maxRollFrequency": "1h",
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "sheriff": ["https://build.chromium.org/deprecated/chromium/sheriff_angle.json"],
+  "depsRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/angle",
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "strategy": "batch"
+  }
+}
