@@ -127,12 +127,12 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "filter_fuzz", "--bytes"},
 		GenerationArgs:      []string{"-m", "5000", "-t", "200+"},
 	},
-	"mock_gl_canvas": {
+	"mock_gpu_canvas": {
 		PrettyName:          "Canvas to mock GL backend",
 		Status:              EXPERIMENTAL_FUZZER,
 		Groomer:             "robertphillips",
 		ExtraBugLabels:      nil,
-		ArgsAfterExecutable: []string{"--type", "api", "--name", "MockGLCanvas", "--bytes"},
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "MockGPUCanvas", "--bytes"},
 		// For most of the canvases, some of the initial test cases take a long time. If they
 		// time out (1000+ms ), afl-fuzz aborts during startup. To keep things moving, we
 		// tell afl-fuzz to set the timout to 500ms and ignore any test cases that take longer
