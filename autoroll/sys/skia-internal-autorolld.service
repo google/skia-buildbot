@@ -6,18 +6,10 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll \
-    --use_metadata=true \
+    --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
     --host=skia-internal-autoroll-8000-proxy.skia.org \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --childName="Skia" \
-    --childPath=skia \
-    --parent_name="Skia Internal" \
-    --parent_repo=https://skia.googlesource.com/internal_test.git \
-    --parent_waterfall=https://status-internal.skia.org/ \
-    --resources_dir=/usr/local/share/autoroll/ \
-    --sheriff=borenet@google.com \
-    --strategy=single \
-    --pre_upload_step=TrainInfra
+    --resources_dir=/usr/local/share/autoroll/
 Restart=always
 User=default
 Group=default

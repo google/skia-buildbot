@@ -2,14 +2,17 @@ package repo_manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -45,6 +48,50 @@ type RepoManager interface {
 	User() string
 }
 
+// CommonRepoManagerConfig provides configuration for commonRepoManager.
+type CommonRepoManagerConfig struct {
+	// Required fields.
+
+	// Branch of the child repo we want to roll.
+	ChildBranch string `json:"childBranch"`
+	// Path of the child repo within the parent repo.
+	ChildPath string `json:"childPath"`
+	// Branch of the parent repo we want to roll into.
+	ParentBranch string `json:"parentBranch"`
+	// Strategy for determining which commit(s) to roll.
+	Strategy string `json:"strategy"`
+
+	// Optional fields.
+
+	// Named steps to run before uploading roll CLs.
+	PreUploadSteps []string `json:"preUploadSteps"`
+}
+
+// Validate the config.
+func (c *CommonRepoManagerConfig) Validate() error {
+	if c.ChildBranch == "" {
+		return errors.New("ChildBranch is required.")
+	}
+	if c.ChildPath == "" {
+		return errors.New("ChildPath is required.")
+	}
+	if c.ParentBranch == "" {
+		return errors.New("ParentBranch is required.")
+	}
+	if c.Strategy == "" {
+		return errors.New("Strategy is required.")
+	}
+	if _, err := GetNextRollStrategy(c.Strategy, "master", "lkgr"); err != nil {
+		return err
+	}
+	for _, s := range c.PreUploadSteps {
+		if _, err := GetPreUploadStep(s); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // commonRepoManager is a struct used by the AutoRoller implementations for
 // managing checkouts.
 type commonRepoManager struct {
@@ -64,6 +111,44 @@ type commonRepoManager struct {
 	strategy         NextRollStrategy
 	user             string
 	workdir          string
+}
+
+// Returns a commonRepoManager instance.
+func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, g gerrit.GerritInterface) (*commonRepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
+		return nil, err
+	}
+	childDir := path.Join(workdir, c.ChildPath)
+	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
+	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
+	if err != nil {
+		return nil, err
+	}
+	strategy, err := GetNextRollStrategy(c.Strategy, c.ChildBranch, "")
+	if err != nil {
+		return nil, err
+	}
+	user, err := g.GetUserEmail()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
+	}
+	sklog.Infof("Repo Manager user: %s", user)
+	return &commonRepoManager{
+		parentBranch:   c.ParentBranch,
+		childDir:       childDir,
+		childPath:      c.ChildPath,
+		childRepo:      childRepo,
+		childBranch:    c.ChildBranch,
+		preUploadSteps: preUploadSteps,
+		serverURL:      serverURL,
+		strategy:       strategy,
+		user:           user,
+		workdir:        workdir,
+		g:              g,
+	}, nil
 }
 
 // FullChildHash returns the full hash of the given short hash or ref in the
@@ -130,21 +215,70 @@ func (r *commonRepoManager) CommitsNotRolled() int {
 	return r.commitsNotRolled
 }
 
+// DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
+type DepotToolsRepoManagerConfig struct {
+	CommonRepoManagerConfig
+
+	// Required fields.
+
+	// URL of the parent repo.
+	ParentRepo string `json:"parentRepo"`
+
+	// Optional fields.
+
+	// Override the default gclient spec with this string.
+	GClientSpec string `json:"gclientSpec"`
+}
+
+// Validate the config.
+func (c *DepotToolsRepoManagerConfig) Validate() error {
+	if c.ParentRepo == "" {
+		return errors.New("ParentRepo is required.")
+	}
+	// TODO(borenet): Should we validate c.GClientSpec?
+	return c.CommonRepoManagerConfig.Validate()
+}
+
 // depotToolsRepoManager is a struct used by AutoRoller implementations that use
 // depot_tools to manage checkouts.
 type depotToolsRepoManager struct {
 	*commonRepoManager
-	depot_tools string
+	depotTools  string
 	gclient     string
 	gclientSpec string
 	parentDir   string
 	parentRepo  string
 }
 
+// Return a depotToolsRepoManager instance.
+func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL string, g *gerrit.Gerrit) (*depotToolsRepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g)
+	if err != nil {
+		return nil, err
+	}
+	depotTools, err := depot_tools.Sync(ctx, workdir, recipeCfgFile)
+	if err != nil {
+		return nil, err
+	}
+	parentBase := strings.TrimSuffix(path.Base(c.ParentRepo), ".git")
+	parentDir := path.Join(workdir, parentBase)
+	return &depotToolsRepoManager{
+		commonRepoManager: crm,
+		depotTools:        depotTools,
+		gclient:           path.Join(depotTools, GCLIENT),
+		gclientSpec:       c.GClientSpec,
+		parentDir:         parentDir,
+		parentRepo:        c.ParentRepo,
+	}, nil
+}
+
 // GetEnvForDepotTools returns the environment used for depot_tools commands.
 func (r *depotToolsRepoManager) GetEnvForDepotTools() []string {
 	return []string{
-		fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH")),
+		fmt.Sprintf("PATH=%s:%s", r.depotTools, os.Getenv("PATH")),
 		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
 	}
 }

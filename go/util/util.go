@@ -1069,3 +1069,8 @@ func SafeAtoi(n string) int {
 		return i
 	}
 }
+
+// Validator is an interface which has a Validate() method.
+type Validator interface {
+	Validate() error
+}

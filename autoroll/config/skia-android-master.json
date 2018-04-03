@@ -1,0 +1,15 @@
+{
+  "childName": "Skia",
+  "gerritURL": "(none)",
+  "maxRollFrequency": "0m",
+  "parentName": "Android (master)",
+  "parentWaterfall": "https://android-build.googleplex.com/builds/branches/git_master/grid",
+  "sheriff": ["https://skia-tree-status.appspot.com/current-robocop"],
+  "androidRepoManager": {
+    "childBranch": "master",
+    "childPath": "external/skia",
+    "parentBranch": "master",
+    "parentRepo": "android",
+    "strategy": "remote batch"
+  }
+}

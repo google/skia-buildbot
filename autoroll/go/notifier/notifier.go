@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"time"
 
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/notifier"
 )
 
@@ -47,22 +48,23 @@ type tmplVars struct {
 // AutoRoller. It is a convenience wrapper around notifier.Router.
 type AutoRollNotifier struct {
 	childName  string
+	emailer    *email.GMail
 	n          *notifier.Router
 	parentName string
 }
 
 // Return an AutoRollNotifier instance.
-func New(childName, parentName string) *AutoRollNotifier {
+func New(childName, parentName string, emailer *email.GMail) *AutoRollNotifier {
 	return &AutoRollNotifier{
 		childName:  childName,
-		n:          notifier.NewRouter(),
+		n:          notifier.NewRouter(emailer),
 		parentName: parentName,
 	}
 }
 
-// Add a new Notifier. See docs for notifier.Router.Add for more details.
-func (a *AutoRollNotifier) Add(n notifier.Notifier, f notifier.Filter, singleThreadSubject string) {
-	a.n.Add(n, f, singleThreadSubject)
+// Return the underlying notifier.Router.
+func (a *AutoRollNotifier) Router() *notifier.Router {
+	return a.n
 }
 
 // Send a message.

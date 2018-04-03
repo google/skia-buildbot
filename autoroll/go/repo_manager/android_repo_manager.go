@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/android_skia_checkout"
@@ -28,7 +27,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(context.Context, string, string, string, string, gerrit.GerritInterface, NextRollStrategy, []string, string) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
 
@@ -37,6 +36,19 @@ var (
 	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
 )
 
+// AndroidRepoManagerConfig provides configuration for the Android RepoManager.
+type AndroidRepoManagerConfig struct {
+	CommonRepoManagerConfig
+}
+
+// Validate the config.
+func (c *AndroidRepoManagerConfig) Validate() error {
+	if c.Strategy != ROLL_STRATEGY_REMOTE_BATCH {
+		return fmt.Errorf("Only %q strategy is allowed for AndroidRepoManager.", ROLL_STRATEGY_REMOTE_BATCH)
+	}
+	return c.CommonRepoManagerConfig.Validate()
+}
+
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
@@ -44,37 +56,25 @@ type androidRepoManager struct {
 	repoToolPath string
 }
 
-func newAndroidRepoManager(ctx context.Context, workdir, parentBranch, childPath, childBranch string, g gerrit.GerritInterface, strategy NextRollStrategy, preUploadStepNames []string, serverURL string) (RepoManager, error) {
+func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string) (RepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
 	}
 	repoToolPath := path.Join(user.HomeDir, "bin", "repo")
 	wd := path.Join(workdir, "android_repo")
-	childDir := path.Join(wd, childPath)
-	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
-	preUploadSteps, err := GetPreUploadSteps(preUploadStepNames)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, g)
 	if err != nil {
 		return nil, err
 	}
-
 	r := &androidRepoManager{
-		commonRepoManager: &commonRepoManager{
-			parentBranch:   parentBranch,
-			childDir:       childDir,
-			childPath:      childPath,
-			childRepo:      childRepo,
-			childBranch:    childBranch,
-			preUploadSteps: preUploadSteps,
-			serverURL:      serverURL,
-			strategy:       strategy,
-			user:           SERVICE_ACCOUNT,
-			workdir:        wd,
-			g:              g,
-		},
-		repoUrl:      g.GetRepoUrl(),
-		repoToolPath: repoToolPath,
+		commonRepoManager: crm,
+		repoUrl:           g.GetRepoUrl(),
+		repoToolPath:      repoToolPath,
 	}
 
 	// TODO(borenet): This update can be extremely expensive. Consider

@@ -6,16 +6,10 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll \
-    --use_metadata=true \
+    --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
     --host=catapult-roll.skia.org \
-    --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --childName=Catapult \
-    --childPath=src/third_party/catapult \
-    --parent_name=Chromium \
-    --parent_waterfall=https://build.chromium.org \
-    --resources_dir=/usr/local/share/autoroll/ \
-    --sheriff=sullivan@chromium.org
+    --resources_dir=/usr/local/share/autoroll/autoroll
 Restart=always
 User=default
 Group=default

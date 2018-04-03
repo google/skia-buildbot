@@ -431,7 +431,7 @@ ALERT IssueTrackerLiveness
 # Autoroller
 
 ALERT SkiaAutoRoll
-  IF autoroll_last_roll_result{child_path="src/third_party/skia"} == 0
+  IF autoroll_last_roll_result{instance="skia-autoroll:20000"} == 0
   FOR 10m
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
@@ -439,7 +439,7 @@ ALERT SkiaAutoRoll
   }
 
 ALERT SkiaAutoRoll24H
-  IF liveness_last_autoroll_landed_s{child_path="src/third_party/skia"}/60/60 > 24
+  IF liveness_last_autoroll_landed_s{instance="skia-autoroll:20000"}/60/60 > 24
   LABELS { category = "general", severity = "warning" }
   ANNOTATIONS {
     description = "The last-landed AutoRoll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h"

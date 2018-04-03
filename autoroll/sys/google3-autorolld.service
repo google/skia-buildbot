@@ -6,20 +6,10 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll \
-    --roll_into_google3=true \
-    --childName="Skia into Google3" \
-    --childPath="HEAD" \
-    --use_metadata=true \
+    --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
     --host=google3-roll.skia.org \
-    --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --resources_dir=/usr/local/share/autoroll/ \
-    --sheriff=https://skia-tree-status.appspot.com/current-sheriff \
-    --parent_name="Google3" \
-    --parent_repo="google3" \
-    --parent_branch="" \
-    --parent_waterfall="https://goto.google.com/skia-testing-status" \
-    --gerrit_url=""
+    --resources_dir=/usr/local/share/autoroll/
 Restart=always
 User=default
 Group=default

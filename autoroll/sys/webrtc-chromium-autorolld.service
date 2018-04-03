@@ -6,18 +6,10 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll \
-    --use_metadata=true \
+    --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
     --host=webrtc-chromium-roll.skia.org \
-    --logtostderr \
-    --parent_name=Chromium \
-    --parent_waterfall=https://build.chromium.org \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --child_branch=lkgr \
-    --childName=WebRTC \
-    --childPath=src/third_party/webrtc \
-    --resources_dir=/usr/local/share/autoroll/ \
-    --sheriff=webrtc-chromium-sheriffs-robots@google.com \
-    --cqExtraTrybots=master.tryserver.chromium.linux:linux_chromium_archive_rel_ng;master.tryserver.chromium.mac:mac_chromium_archive_rel_ng;master.tryserver.chromium.win:win-msvc-dbg
+    --resources_dir=/usr/local/share/autoroll/
 Restart=always
 User=default
 Group=default

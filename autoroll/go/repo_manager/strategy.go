@@ -12,7 +12,9 @@ import (
 )
 
 const (
+	ROLL_STRATEGY_AFDO         = "afdo"
 	ROLL_STRATEGY_BATCH        = "batch"
+	ROLL_STRATEGY_FUCHSIA_SDK  = "fuchsiaSDK"
 	ROLL_STRATEGY_LKGR         = "lkgr"
 	ROLL_STRATEGY_REMOTE_BATCH = "remote batch"
 	ROLL_STRATEGY_SINGLE       = "single"
@@ -29,14 +31,18 @@ type NextRollStrategy interface {
 // Return the NextRollStrategy indicated by the given string.
 func GetNextRollStrategy(strategy string, branch, lkgr string) (NextRollStrategy, error) {
 	switch strategy {
-	case ROLL_STRATEGY_REMOTE_BATCH:
-		return StrategyRemoteHead(branch), nil
+	case ROLL_STRATEGY_AFDO:
+		return nil, nil // Handled by ChromiumAFDORepoManager.
 	case ROLL_STRATEGY_BATCH:
 		return StrategyHead(branch), nil
-	case ROLL_STRATEGY_SINGLE:
-		return StrategySingle(branch), nil
+	case ROLL_STRATEGY_FUCHSIA_SDK:
+		return nil, nil // Handled by FuchsiaSDKRepoManager.
 	case ROLL_STRATEGY_LKGR:
 		return StrategyLKGR(lkgr), nil
+	case ROLL_STRATEGY_REMOTE_BATCH:
+		return StrategyRemoteHead(branch), nil
+	case ROLL_STRATEGY_SINGLE:
+		return StrategySingle(branch), nil
 	default:
 		return nil, fmt.Errorf("Unknown roll strategy %q", strategy)
 	}

@@ -30,9 +30,9 @@ func (n *testNotifier) Send(subject string, m *notifier.Message) error {
 func TestNotifier(t *testing.T) {
 	testutils.SmallTest(t)
 
-	n := New("childRepo", "parentRepo")
+	n := New("childRepo", "parentRepo", nil)
 	t1 := &testNotifier{}
-	n.Add(t1, notifier.FILTER_DEBUG, "")
+	n.Router().Add(t1, notifier.FILTER_DEBUG, "")
 
 	assert.NoError(t, n.SendIssueUpdate("123", "https://codereview/123", "uploaded a CL!"))
 	assert.Equal(t, 1, len(t1.msgs))

@@ -27,7 +27,7 @@ func (n *testNotifier) Send(subject string, msg *Message) error {
 func TestRouter(t *testing.T) {
 	testutils.SmallTest(t)
 
-	m := NewRouter()
+	m := NewRouter(nil)
 
 	n1 := &testNotifier{}
 	m.Add(n1, FILTER_DEBUG, "")

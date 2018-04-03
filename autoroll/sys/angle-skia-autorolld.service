@@ -6,19 +6,10 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll \
-    --use_metadata=true \
+    --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
     --host=angle-skia-roll.skia.org \
-    --logtostderr \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --childName=ANGLE \
-    --childPath=skia/third_party/externals/angle2 \
-    --max_roll_frequency=8h \
-    --parent_name=Skia \
-    --parent_repo=https://skia.googlesource.com/skia.git \
-    --parent_waterfall=https://status.skia.org \
-    --resources_dir=/usr/local/share/autoroll/ \
-    --sheriff=https://skia-tree-status.appspot.com/current-sheriff \
-    --cqExtraTrybots=skia.primary:Perf-Win10-Clang-AlphaR2-GPU-RadeonR9M470X-x86_64-Debug-All-ANGLE,Perf-Win10-Clang-NUC5i7RYH-GPU-IntelIris6100-x86_64-Debug-All-ANGLE,Perf-Win10-Clang-NUC6i5SYK-GPU-IntelIris540-x86_64-Debug-All-ANGLE,Perf-Win10-Clang-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-All-ANGLE,Perf-Win10-Clang-ShuttleC-GPU-GTX960-x86_64-Debug-All-ANGLE,Test-Win10-Clang-AlphaR2-GPU-RadeonR9M470X-x86_64-Debug-All-ANGLE,Test-Win10-Clang-NUC6i5SYK-GPU-IntelIris540-x86_64-Debug-All-ANGLE,Test-Win10-Clang-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-All-ANGLE,Test-Win10-Clang-ShuttleC-GPU-GTX960-x86_64-Debug-All-ANGLE,Build-Debian9-Clang-x86_64-Release-ANGLE
+    --resources_dir=/usr/local/share/autoroll/
 Restart=always
 User=default
 Group=default

@@ -6,18 +6,10 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll \
-    --use_metadata=true \
+    --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
     --host=src-internal-chromium-roll.skia.org \
-    --parent_name=Chromium \
-    --parent_waterfall=https://build.chromium.org \
-    --logtostderr \
-    --no_log \
     --workdir=/mnt/pd0/autoroll_workdir \
-    --childName=src-internal \
-    --childPath=src-internal \
-    --gclient_spec='solutions=[{"name":"src","url":"https://chromium.googlesource.com/chromium/src.git","deps_file":"DEPS","managed":True,"custom_deps":{},"custom_vars":{"checkout_src_internal":True}}];cache_dir = None' \
-    --resources_dir=/usr/local/share/autoroll/ \
-    --sheriff=mmoss@chromium.org
+    --resources_dir=/usr/local/share/autoroll/
 Restart=always
 User=default
 Group=default

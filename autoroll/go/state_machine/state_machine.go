@@ -162,7 +162,7 @@ func NewThrottler(filename string, period time.Duration, attempts int64) (*Throt
 		period:    period,
 		threshold: attempts,
 	}
-	if period > time.Duration(0) {
+	if period > time.Duration(0) && attempts > 0 {
 		c, err := util.NewPersistentAutoDecrementCounter(filename, period)
 		if err != nil {
 			return nil, err
