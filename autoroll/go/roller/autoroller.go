@@ -258,7 +258,7 @@ func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) er
 	if err := r.modeHistory.Add(mode, user, message); err != nil {
 		return err
 	}
-	if err := r.notifier.SendModeChange(user, mode, message); err != nil {
+	if err := r.notifier.SendModeChange(ctx, user, mode, message); err != nil {
 		return fmt.Errorf("Failed to send notification: %s", err)
 	}
 
