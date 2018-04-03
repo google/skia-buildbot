@@ -28,15 +28,15 @@ type AddFn func(test, digest, traceID string, trace *types.GoldenTrace, acceptRe
 // acceptFn to determine whether to keep a trace (after it has already been
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
-func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *indexer.SearchIndex) error {
-	tile := idx.GetTile(query.IncludeIgnores)
+func iterTile(tileQuery *TileQuery, firstCommit, blameGroup, lastCommit string, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *indexer.SearchIndex) error {
+	tile := idx.GetTile(tileQuery.IncludeIgnores)
 
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) { return true, nil }
 	}
 
-	traceTally := idx.TalliesByTrace(query.IncludeIgnores)
-	lastTraceIdx, traceView, err := getTraceViewFn(tile, query.FCommitBegin, query.FCommitEnd)
+	traceTally := idx.TalliesByTrace(tileQuery.IncludeIgnores)
+	lastTraceIdx, traceView, err := getTraceViewFn(tile, firstCommit, lastCommit)
 	if err != nil {
 		return err
 	}
@@ -44,11 +44,11 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 	// Iterate through the tile.
 	for id, trace := range tile.Traces {
 		// Check if the query matches.
-		if tiling.Matches(trace, query.Query) {
+		if tiling.Matches(trace, tileQuery.Query) {
 			fullTr := trace.(*types.GoldenTrace)
 			params := fullTr.Params_
 			reducedTr := traceView(fullTr)
-			digests := digestsFromTrace(id, reducedTr, query.Head, lastTraceIdx, traceTally)
+			digests := digestsFromTrace(id, reducedTr, tileQuery.Head, lastTraceIdx, traceTally)
 
 			// If there is an acceptFn defined then check whether
 			// we should include this trace.
@@ -61,15 +61,15 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 			test := params[types.PRIMARY_KEY_FIELD]
 			for _, digest := range digests {
 				cl := exp.Classification(test, digest)
-				if query.excludeClassification(cl) {
+				if tileQuery.excludeClassification(cl) {
 					continue
 				}
 
 				// Fix blamer to make this easier.
-				if query.BlameGroupID != "" {
+				if blameGroup != "" {
 					if cl == types.UNTRIAGED {
 						b := idx.GetBlame(test, digest, tile.Commits)
-						if query.BlameGroupID != blameGroupID(b, tile.Commits) {
+						if blameGroup != blameGroupID(b, tile.Commits) {
 							continue
 						}
 					} else {

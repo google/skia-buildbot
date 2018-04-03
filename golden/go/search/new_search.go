@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -122,7 +123,6 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	// Find the digests (left hand side) we are interested in.
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
-		issue = &tryjobstore.Issue{}
 		inter, issue, err = s.queryIssue(ctx, q, s.storages.WhiteListQuery, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
@@ -407,7 +407,7 @@ func (s *SearchAPI) filterTile(ctx context.Context, q *Query, exp ExpSlice, idx 
 		ret.add(test, digest, traceID, trace, nil)
 	}
 
-	if err := iterTile(q, addFn, acceptFn, exp, idx); err != nil {
+	if err := iterTile(&q.TileQuery, q.BlameGroupID, q.FCommitBegin, q.FCommitEnd, addFn, acceptFn, exp, idx); err != nil {
 		return nil, err
 	}
 
@@ -448,7 +448,7 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(retDigest *SRDigest) {
-			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores)
+			closestRef, refDiffs := refDiffer.GetRefDiffs(ctx, metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores)
 			retDigest.ClosestRef = closestRef
 			retDigest.RefDiffs = refDiffs
 
