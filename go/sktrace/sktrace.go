@@ -32,7 +32,7 @@ func Init(serviceName string, tokenSrc oauth2.TokenSource) error {
 	sklog.Infof("StackDriver trace exporter created.")
 
 	trace.RegisterExporter(exporter)
-	trace.SetDefaultSampler(trace.AlwaysSample())
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 	return nil
 }
 
