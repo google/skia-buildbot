@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40679586_02a6d2da",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-04T17:00:57Z",
+      "side": 1,
+      "message": "It\u0027s slightly unfortunate to have to put this in a local file.  The only alternative I can think of is to include this information in vm.go (which would need to know all of it anyway) and somehow obtain that information either here or in the main file.",
+      "range": {
+        "startLine": 31,
+        "startChar": 34,
+        "endLine": 31,
+        "endChar": 53
+      },
+      "revId": "80e53753b82de179a6bfd4b61f4cac2351cc4624",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e87ee14_32e9c2b4",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-04T17:00:57Z",
+      "side": 1,
+      "message": "Left intentionally?",
+      "range": {
+        "startLine": 177,
+        "startChar": 1,
+        "endLine": 177,
+        "endChar": 28
+      },
+      "revId": "80e53753b82de179a6bfd4b61f4cac2351cc4624",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
