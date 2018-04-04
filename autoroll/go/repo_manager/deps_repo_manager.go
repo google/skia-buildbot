@@ -120,8 +120,12 @@ func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
 		return "", err
 	}
 	split := strings.Split(output, "\n")
+	childPathCleaned := path.Clean(dr.childPath)
+	if strings.HasPrefix(childPathCleaned, "../") {
+		childPathCleaned = childPathCleaned[3:]
+	}
 	for _, s := range split {
-		if strings.HasPrefix(s, dr.childPath) {
+		if strings.HasPrefix(s, childPathCleaned) {
 			subs := strings.Split(s, "@")
 			if len(subs) != 2 {
 				return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (wrong number of entries for %s):\n\n%s\n", dr.childPath, output)

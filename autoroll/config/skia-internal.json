@@ -27,7 +27,7 @@
   "sheriff": ["borenet@google.com"],
   "depsRepoManager": {
     "childBranch": "master",
-    "childPath": "skia",
+    "childPath": "../skia",
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/internal_test.git",
