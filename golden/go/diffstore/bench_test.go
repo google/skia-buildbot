@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"context"
 	"os"
 	"sync"
 	"testing"
@@ -66,7 +67,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 		go func(digests []string) {
 			defer wg.Done()
 			for _, d1 := range digests {
-				_, _ = diffStore.Get(diff.PRIORITY_NOW, d1, digests)
+				_, _ = diffStore.Get(context.Background(), diff.PRIORITY_NOW, d1, digests)
 			}
 		}(digests)
 
@@ -84,7 +85,7 @@ func BenchmarkMemDiffStore(b *testing.B) {
 		go func(digests []string) {
 			defer wg.Done()
 			for _, d1 := range digests {
-				_, _ = diffStore.Get(diff.PRIORITY_NOW, d1, digests)
+				_, _ = diffStore.Get(context.Background(), diff.PRIORITY_NOW, d1, digests)
 			}
 		}(digests)
 	}

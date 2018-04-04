@@ -1,6 +1,7 @@
 package diff
 
 import (
+	"context"
 	"image"
 	"image/color"
 	"image/draw"
@@ -133,7 +134,7 @@ const (
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
-	Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error)
+	Get(cts context.Context, priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error)
 
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
 	// can then serve images of the format:

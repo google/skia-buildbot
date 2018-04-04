@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"context"
 	"fmt"
 	"image"
 	"net"
@@ -171,7 +172,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	foundDiffs := make(map[string]map[string]interface{}, len(digests))
 	ti := timer.New("Get warmed diffs.")
 	for _, oneDigest := range digests {
-		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
+		found, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, oneDigest, digests)
 		assert.NoError(t, err)
 		foundDiffs[oneDigest] = found
 
@@ -191,7 +192,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	ti = timer.New("Get cold diffs")
 	foundDiffs = make(map[string]map[string]interface{}, len(digests))
 	for _, oneDigest := range digests {
-		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, digests)
+		found, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, oneDigest, digests)
 		assert.NoError(t, err)
 		foundDiffs[oneDigest] = found
 	}
@@ -202,7 +203,7 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 	gcsImgID := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
 	foundDiffs = map[string]map[string]interface{}{}
 	for _, oneDigest := range digests {
-		found, err := diffStore.Get(diff.PRIORITY_NOW, oneDigest, []string{gcsImgID})
+		found, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, oneDigest, []string{gcsImgID})
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(found))
 		foundDiffs[oneDigest] = found

@@ -1,6 +1,7 @@
 package diffstore
 
 import (
+	"context"
 	"path"
 	"testing"
 
@@ -39,7 +40,7 @@ func TestFailureHandling(t *testing.T) {
 	mainDigest := validDigests[0]
 	diffDigests := append(validDigests[1:6], invalidDigest_1, invalidDigest_2)
 
-	diffs, err := diffStore.Get(diff.PRIORITY_NOW, mainDigest, diffDigests)
+	diffs, err := diffStore.Get(context.Background(), diff.PRIORITY_NOW, mainDigest, diffDigests)
 	assert.NoError(t, err)
 	assert.Equal(t, len(diffDigests)-2, len(diffs))
 

@@ -32,7 +32,7 @@ func NewDiffServiceServer(diffStore diff.DiffStore, codec util.LRUCodec) DiffSer
 
 // GetDiffs wraps around the Get method of the underlying DiffStore.
 func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*GetDiffsResponse, error) {
-	diffs, err := d.diffStore.Get(req.Priority, req.MainDigest, req.RightDigests)
+	diffs, err := d.diffStore.Get(ctx, req.Priority, req.MainDigest, req.RightDigests)
 	if err != nil {
 		return nil, err
 	}

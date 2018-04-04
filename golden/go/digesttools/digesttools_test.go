@@ -1,6 +1,7 @@
 package digesttools
 
 import (
+	"context"
 	"math"
 	"net/http"
 	"testing"
@@ -22,7 +23,7 @@ func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure      
 func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
 
 // Get always finds that digest "eee" is closest to dMain.
-func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]interface{}, error) {
+func (m MockDiffStore) Get(ctx context.Context, priority int64, dMain string, dRest []string) (map[string]interface{}, error) {
 	result := map[string]interface{}{}
 	for i, d := range dRest {
 		diffPercent := float32(i + 2)
