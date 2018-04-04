@@ -1,10 +1,10 @@
 package recent_rolls
 
 import (
-	"fmt"
 	"sync"
 
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/sklog"
 )
 
 const RECENT_ROLLS_LENGTH = 10
@@ -45,14 +45,14 @@ func (r *RecentRolls) Add(roll *autoroll.AutoRollIssue) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
-	// Refuse to insert more rolls if we already have an active roll.
+	// Warn if we already have an active roll.
 	if r.currentRoll() != nil {
-		return fmt.Errorf("There is already an active roll. Cannot add another.")
+		sklog.Warningf("There is already an active roll, but another is being added!")
 	}
 
-	// Validate the new roll.
+	// Warn if the new roll is already closed.
 	if roll.Closed {
-		return fmt.Errorf("Cannot insert a new roll which is already closed.")
+		sklog.Warningf("Inserting a new roll which is already closed.")
 	}
 
 	if err := r.db.InsertRoll(roll); err != nil {

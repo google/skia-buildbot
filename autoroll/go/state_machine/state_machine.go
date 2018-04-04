@@ -443,6 +443,10 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
 		}
 	case S_NORMAL_IDLE:
+		currentRoll := s.a.GetActiveRoll()
+		if currentRoll != nil {
+			sklog.Warningf("In idle state but still have an active roll: %s (%v)", currentRoll.IssueID(), currentRoll.IsFinished())
+		}
 		switch desiredMode {
 		case modes.MODE_RUNNING:
 			break
