@@ -522,7 +522,7 @@ func main() {
 	common.InitWithMust(
 		"push",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		common.CloudLoggingDefaultAuthOpt(local),
 	)
 	login.SimpleInitMust(*port, *local)
 
