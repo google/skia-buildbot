@@ -194,9 +194,6 @@
           "${cache_dir}/vpython"
         ]
       },
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
-      },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,
       "priority": 0.8
@@ -315,9 +312,6 @@
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
         ]
-      },
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
       },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,
@@ -438,9 +432,6 @@
           "${cache_dir}/vpython"
         ]
       },
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
-      },
       "io_timeout_ns": 2400000000000,
       "isolate": "infrabots.isolate",
       "max_attempts": 1,
@@ -560,9 +551,6 @@
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
         ]
-      },
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
       },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,

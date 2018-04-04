@@ -212,9 +212,6 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
 			"VPYTHON_VIRTUALENV_ROOT": []string{"${cache_dir}/vpython"},
 		},
-		ExtraTags: map[string]string{
-			"log_location": LOGDOG_ANNOTATION_URL,
-		},
 		Isolate:     "infrabots.isolate",
 		Priority:    0.8,
 		MaxAttempts: attempts,
