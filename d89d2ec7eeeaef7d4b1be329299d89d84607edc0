@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ab5c24d_931b319b",
+        "filename": "luci-logdog.cfg",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-04T13:16:22Z",
+      "side": 1,
+      "message": "wrong year?",
+      "range": {
+        "startLine": 1,
+        "startChar": 16,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "d89d2ec7eeeaef7d4b1be329299d89d84607edc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
