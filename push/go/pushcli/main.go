@@ -27,7 +27,7 @@ var (
 	rollback       = flag.Bool("rollback", false, "If true roll back to the next most recent package, otherwise use the most recently pushed package.")
 	force          = flag.Bool("force", false, "If true then install the package even if it hasn't previously been installed on the given server.")
 	dryrun         = flag.Bool("dryrun", false, "If true don't actually push, but just log what actions would be taken.")
-	configFilename = flag.String("config_filename", "skiapush.json5", "Config filename used by Push.")
+	configFilename = flag.String("config_filename", "allskiapush.json5", "Config filename used by Push.")
 )
 
 func init() {
@@ -62,10 +62,8 @@ func main() {
 	serverName := args[1] // "skia-debugger" or "*"
 
 	// Create the needed clients.
-	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageReadWriteScope, compute.CloudPlatformScope)
-	if err != nil {
-		sklog.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
-	}
+	tokenSource := auth.NewMimicTokenSource("google.com:skia-buildbots", "skia-push", "us-central1-f")
+	client := auth.ClientFromTokenSource(tokenSource)
 	store, err := storage.New(client)
 	if err != nil {
 		sklog.Fatalf("Failed to create storage service client: %s", err)
