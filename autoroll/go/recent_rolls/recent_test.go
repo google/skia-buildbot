@@ -53,8 +53,8 @@ func TestRecentRolls(t *testing.T) {
 	assert.NoError(t, r.Add(ari1))
 	check(ari1, nil, expect)
 
-	// Try to add it again. Ensure that we throw an error.
-	assert.Error(t, r.Add(ari1))
+	// Try to add it again. We should log an error but not fail.
+	assert.NoError(t, r.Add(ari1))
 	check(ari1, nil, expect)
 
 	// Close the issue as successful. Ensure that it's now the last roll
@@ -85,9 +85,9 @@ func TestRecentRolls(t *testing.T) {
 	expect = []*autoroll.AutoRollIssue{ari2, ari1}
 	check(ari2, ari1, expect)
 
-	// Try to add another active issue. Ensure that the RecentRolls complains.
+	// Try to add another active issue. We should log an error but not fail.
 	now = time.Now().UTC()
-	bad1 := &autoroll.AutoRollIssue{
+	ari3 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
@@ -99,7 +99,9 @@ func TestRecentRolls(t *testing.T) {
 		Subject:     "FAKE DEPS ROLL 3",
 		TryResults:  []*autoroll.TryResult{},
 	}
-	assert.Error(t, r.Add(bad1))
+	assert.NoError(t, r.Add(ari3))
+	expect = []*autoroll.AutoRollIssue{ari3, ari2, ari1}
+	check(ari3, ari2, expect)
 
 	// Close the issue as failed. Ensure that it's now the last roll
 	// instead of the current roll.
@@ -108,7 +110,15 @@ func TestRecentRolls(t *testing.T) {
 	ari2.CommitQueue = false
 	ari2.Result = autoroll.ROLL_RESULT_FAILURE
 	assert.NoError(t, r.Update(ari2))
-	check(nil, ari2, expect)
+	check(ari3, ari2, expect)
+
+	// Same with ari3.
+	ari3.Closed = true
+	ari3.Committed = false
+	ari3.CommitQueue = false
+	ari3.Result = autoroll.ROLL_RESULT_FAILURE
+	assert.NoError(t, r.Update(ari3))
+	check(nil, ari3, expect)
 
 	// Try to add a bogus issue.
 	now = time.Now().UTC()
@@ -128,7 +138,7 @@ func TestRecentRolls(t *testing.T) {
 
 	// Add one more roll. Ensure that it's the current roll.
 	now = time.Now().UTC()
-	ari3 := &autoroll.AutoRollIssue{
+	ari4 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
@@ -140,7 +150,7 @@ func TestRecentRolls(t *testing.T) {
 		Subject:     "FAKE DEPS ROLL 5",
 		TryResults:  []*autoroll.TryResult{},
 	}
-	assert.NoError(t, r.Add(ari3))
-	expect = []*autoroll.AutoRollIssue{ari3, ari2, ari1}
-	check(ari3, ari2, expect)
+	assert.NoError(t, r.Add(ari4))
+	expect = []*autoroll.AutoRollIssue{ari4, ari3, ari2, ari1}
+	check(ari4, ari3, expect)
 }
