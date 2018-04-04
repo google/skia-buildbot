@@ -31,11 +31,11 @@ const (
 	DEFAULT_MIMIC_FILE             = "client_mimic.json"
 )
 
-// NewDefaultTokenSource creates a new OAuth 2.0 token source with all the
-// defaults for the given scopes. If local is true then it looks for a
-// client_mimic.json file, otherwise the GCE Service Account is used if running
-// in GCE, and the Skolo access token provider is used if running in Skolo.
-func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
+// NewDefaultTokenSource creates a new OAuth 2.0 token source. If local is true
+// then it looks for a client_mimic.json file, otherwise the GCE Service
+// Account is used if running in GCE, and the Skolo access token provider is
+// used if running in Skolo.
+func NewDefaultTokenSource(local bool) (oauth2.TokenSource, error) {
 	if local {
 		return NewMimicTokenSourceFromFile(DEFAULT_MIMIC_FILE)
 	} else {
@@ -69,12 +69,7 @@ func ClientFromTokenSource(tok oauth2.TokenSource) *http.Client {
 // The default OAuth config filename is "client_secret.json".
 // The default OAuth token store filename is "google_storage_token.data".
 func NewDefaultClient(local bool, scopes ...string) (*http.Client, error) {
-	tok, err := NewDefaultTokenSource(local, scopes...)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create TokenSource: %s", err)
-	}
-
-	return ClientFromTokenSource(tok), nil
+	return NewClient(local, "", scopes...)
 }
 
 // NewClient creates a new OAuth 2.0 authorized client with all the defaults

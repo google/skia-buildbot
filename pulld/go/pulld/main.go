@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/push/go/types"
-	storage "google.golang.org/api/storage/v1"
 )
 
 var (
@@ -280,7 +279,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingDefaultAuthOpt(local),
 	)
-	tokenSource, err := auth.NewDefaultTokenSource(*local, storage.DevstorageFullControlScope)
+	tokenSource, err := auth.NewDefaultTokenSource(*local)
 	if err != nil {
 		sklog.Fatal(err)
 	}
