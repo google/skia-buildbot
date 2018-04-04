@@ -259,7 +259,7 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 	if err != nil {
 		return nil, err
 	}
-	depotTools, err := depot_tools.Sync(ctx, workdir, recipeCfgFile)
+	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
 	if err != nil {
 		return nil, err
 	}

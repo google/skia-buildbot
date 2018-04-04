@@ -190,6 +190,9 @@ func (t *Throttler) IsThrottled() bool {
 
 // Reset forcibly unthrottles the Throttler.
 func (t *Throttler) Reset() error {
+	if t.c == nil {
+		return nil
+	}
 	return t.c.Reset()
 }
 
