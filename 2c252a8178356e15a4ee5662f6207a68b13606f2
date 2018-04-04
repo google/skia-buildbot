@@ -16,6 +16,24 @@
       "revId": "2c252a8178356e15a4ee5662f6207a68b13606f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "143a4670_a0259190",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-04T14:52:12Z",
+      "side": 1,
+      "message": "Whoops, done.",
+      "parentUuid": "7e0fda40_2b7355bc",
+      "revId": "2c252a8178356e15a4ee5662f6207a68b13606f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
