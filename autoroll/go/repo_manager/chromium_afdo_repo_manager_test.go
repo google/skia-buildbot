@@ -118,6 +118,7 @@ func TestParseAFDOVersion(t *testing.T) {
 	testS(afdoRevBase, [AFDO_VERSION_LENGTH]int{66, 0, 3336, 3, 1})
 	testS(afdoRevNext, [AFDO_VERSION_LENGTH]int{66, 0, 3337, 3, 1})
 	testS("chromeos-chrome-amd64-67.0.3.222222_rc-r32823.afdo.bz2", [AFDO_VERSION_LENGTH]int{67, 0, 3, 222222, 32823})
+	testS("chromeos-chrome-amd64-67.0.3387.0_rc-r1.debug.bz2", [AFDO_VERSION_LENGTH]int{67, 0, 3387, 0, 1})
 
 	// Failure cases.
 	testF := func(s string) {

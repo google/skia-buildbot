@@ -54,7 +54,7 @@ var (
 		"^chromeos-chrome-amd64-" + // Prefix
 			"(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)" + // Version
 			"_rc-r(\\d+)" + // Revision
-			"\\.afdo\\.bz2$") // Suffix
+			"\\.\\w+\\.bz2$") // Suffix
 
 	AFDO_VERSION_FILE_PATH = path.Join("chrome", "android", "profiles", "newest.txt")
 
