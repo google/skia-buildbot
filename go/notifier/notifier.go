@@ -1,10 +1,13 @@
 package notifier
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/chatbot"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/util"
 )
@@ -17,7 +20,7 @@ const (
 type Notifier interface {
 	// Send the given message to the given thread. This should be safe to
 	// run in a goroutine.
-	Send(thread string, msg *Message) error
+	Send(ctx context.Context, thread string, msg *Message) error
 }
 
 // Configuration for a Notifier.
@@ -28,8 +31,9 @@ type Config struct {
 	Filter string `json:"filter"`
 
 	// Exactly one of these should be specified.
-	Email *EmailNotifierConfig `json:"email"`
-	Chat  *ChatNotifierConfig  `json:"chat"`
+	Email  *EmailNotifierConfig  `json:"email"`
+	Chat   *ChatNotifierConfig   `json:"chat"`
+	PubSub *PubSubNotifierConfig `json:"pubsub"`
 
 	// Optional fields.
 
@@ -52,6 +56,9 @@ func (c *Config) Validate() error {
 	if c.Chat != nil {
 		n = append(n, c.Chat)
 	}
+	if c.PubSub != nil {
+		n = append(n, c.PubSub)
+	}
 	if len(n) != 1 {
 		return fmt.Errorf("Exactly one notification config must be supplied, but got %d", len(n))
 	}
@@ -59,7 +66,7 @@ func (c *Config) Validate() error {
 }
 
 // Create a Notifier from the Config.
-func (c *Config) Create(emailer *email.GMail) (Notifier, Filter, string, error) {
+func (c *Config) Create(ctx context.Context, emailer *email.GMail) (Notifier, Filter, string, error) {
 	if err := c.Validate(); err != nil {
 		return nil, FILTER_SILENT, "", err
 	}
@@ -72,6 +79,8 @@ func (c *Config) Create(emailer *email.GMail) (Notifier, Filter, string, error) 
 		n, err = EmailNotifier(c.Email.Emails, emailer, "")
 	} else if c.Chat != nil {
 		n, err = ChatNotifier(c.Chat.RoomID)
+	} else if c.PubSub != nil {
+		n, err = PubSubNotifier(ctx, c.PubSub.Topic)
 	} else {
 		return nil, FILTER_SILENT, "", fmt.Errorf("No config specified!")
 	}
@@ -105,7 +114,7 @@ type emailNotifier struct {
 }
 
 // See documentation for Notifier interface.
-func (n *emailNotifier) Send(subject string, msg *Message) error {
+func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) error {
 	if n.gmail == nil {
 		return nil
 	}
@@ -142,7 +151,7 @@ type chatNotifier struct {
 }
 
 // See documentation for Notifier interface.
-func (n *chatNotifier) Send(thread string, msg *Message) error {
+func (n *chatNotifier) Send(_ context.Context, thread string, msg *Message) error {
 	return chatbot.Send(msg.Body, n.roomId, thread)
 }
 
@@ -150,5 +159,58 @@ func (n *chatNotifier) Send(thread string, msg *Message) error {
 func ChatNotifier(roomId string) (Notifier, error) {
 	return &chatNotifier{
 		roomId: roomId,
+	}, nil
+}
+
+// Configuration for a PubSubNotifier.
+type PubSubNotifierConfig struct {
+	Topic string `json:"topic"`
+}
+
+// Validate the PubSubNotifierConfig.
+func (c *PubSubNotifierConfig) Validate() error {
+	if c.Topic == "" {
+		return errors.New("Topic is required.")
+	}
+	return nil
+}
+
+// pubSubNotifier is a Notifier implementation which sends pub/sub messages.
+type pubSubNotifier struct {
+	topic *pubsub.Topic
+}
+
+// See documentation for Notifier interface.
+func (n *pubSubNotifier) Send(ctx context.Context, subject string, msg *Message) error {
+	res := n.topic.Publish(ctx, &pubsub.Message{
+		Attributes: map[string]string{
+			"severity": msg.Severity.String(),
+			"subject":  subject,
+		},
+		Data: []byte(msg.Body),
+	})
+	_, err := res.Get(ctx)
+	return err
+}
+
+// PubSubNotifier returns a Notifier which sends messages via PubSub.
+func PubSubNotifier(ctx context.Context, topic string) (Notifier, error) {
+	client, err := pubsub.NewClient(ctx, common.PROJECT_ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create the topic if it doesn't exist.
+	t := client.Topic(topic)
+	if exists, err := t.Exists(ctx); err != nil {
+		return nil, err
+	} else if !exists {
+		t, err = client.CreateTopic(ctx, topic)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &pubSubNotifier{
+		topic: t,
 	}, nil
 }
