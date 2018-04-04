@@ -1,15 +1,18 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	cloud_metadata "cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/pubsub"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
@@ -25,34 +28,16 @@ const (
 	DEFAULT_JWT_FILENAME           = "service-account.json"
 	DEFAULT_CLIENT_SECRET_FILENAME = "client_secret.json"
 	DEFAULT_TOKEN_STORE_FILENAME   = "google_storage_token.data"
+	DEFAULT_MIMIC_FILE             = "client_mimic.json"
 )
 
 // NewDefaultTokenSource creates a new OAuth 2.0 token source with all the
-// defaults for the given scopes. If local is true then a 3-legged flow is
-// initiated, otherwise the GCE Service Account is used if running in GCE, and
-// the Skolo access token provider is used if running in Skolo.
-//
-// The default OAuth config filename is "client_secret.json".
-// The default OAuth token store filename is "google_storage_token.data".
+// defaults for the given scopes. If local is true then it looks for a
+// client_mimic.json file, otherwise the GCE Service Account is used if running
+// in GCE, and the Skolo access token provider is used if running in Skolo.
 func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
 	if local {
-		body, err := ioutil.ReadFile(DEFAULT_CLIENT_SECRET_FILENAME)
-		if err != nil {
-			return nil, err
-		}
-		config, err := google.ConfigFromJSON(body, scopes...)
-		if err != nil {
-			return nil, err
-		}
-
-		transport := httputils.NewBackOffTransport()
-		oauthCacheFile := DEFAULT_TOKEN_STORE_FILENAME
-		tokenClient := &http.Client{
-			Transport: transport,
-			Timeout:   httputils.REQUEST_TIMEOUT,
-		}
-		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
-		return newCachingTokenSource(oauthCacheFile, ctx, config)
+		return NewMimicTokenSourceFromFile(DEFAULT_MIMIC_FILE)
 	} else {
 		// Are we running on GCE?
 		if cloud_metadata.OnGCE() {
@@ -100,6 +85,100 @@ func NewDefaultClient(local bool, scopes ...string) (*http.Client, error) {
 // The default OAuth config filename is "client_secret.json".
 func NewClient(local bool, oauthCacheFile string, scopes ...string) (*http.Client, error) {
 	return NewClientWithTransport(local, oauthCacheFile, "", nil, scopes...)
+}
+
+// mimicTokenSource points to a specific server we want to impersonate, i.e.
+// to use credentials as the service account of that machine.
+type mimicTokenSource struct {
+	Project  string `json:"project"`
+	Instance string `json:"instance"`
+	Zone     string `json:"zone"`
+}
+
+// NewMimicTokenSource creates a TokenSource that impersonates the service account associated
+// with the specified GCE instance.
+//
+// project - The id of the project.
+// instance - The name of the instance in the project.
+// zone - The zone that the instance resides in.
+//
+// To use this TokenSource the `gcloud` command line tool must be installed, on
+// the path, and authorized.
+func NewMimicTokenSource(project, instance, zone string) oauth2.TokenSource {
+	return oauth2.ReuseTokenSource(nil, &mimicTokenSource{
+		Project:  project,
+		Instance: instance,
+		Zone:     zone,
+	})
+}
+
+// NewMimicTokenSourceFromFile creates a TokenSource that impersonates the
+// service account associated with a particular GCE instance.
+//
+// filename - The name of a JSON file with information on which instance
+//   to impersonate. The format of the file is:
+//
+//  {
+//    "project": "google.com:skia-buildbots",
+//    "instance": "skia-push",
+//    "zone": "us-central1-c"
+//  }
+//
+// To use this TokenSource the `gcloud` command line tool must be installed, on
+// the path, and authorized.
+func NewMimicTokenSourceFromFile(filename string) (oauth2.TokenSource, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open mimicTokenSource file: %s", err)
+	}
+	defer util.Close(f)
+	var ret mimicTokenSource
+	if err = json.NewDecoder(f).Decode(&ret); err != nil {
+		return nil, fmt.Errorf("Failed to decode mimicTokenSource file: %s", err)
+	}
+	return oauth2.ReuseTokenSource(nil, &ret), nil
+}
+
+func (i *mimicTokenSource) Token() (*oauth2.Token, error) {
+	buf := bytes.Buffer{}
+	errBuf := bytes.Buffer{}
+	args := []string{
+		"compute", "ssh",
+		fmt.Sprintf("default@%s", i.Instance),
+		fmt.Sprintf("--zone=%s", i.Zone),
+		fmt.Sprintf("--project=%s", i.Project),
+		fmt.Sprintf("--ssh-flag=-T"), // Disable TTY.
+		"--command=curl http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -H Metadata-Flavor:Google --silent",
+	}
+	gcloudCmd := &exec.Command{
+		Name:        "gcloud",
+		Args:        args,
+		InheritPath: true,
+		InheritEnv:  true,
+		Stdout:      &buf,
+		Stderr:      &errBuf,
+	}
+
+	if err := exec.Run(context.Background(), gcloudCmd); err != nil {
+		return nil, fmt.Errorf("Failed fetching access token: %s - %s", err, errBuf.String())
+	}
+
+	var res struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresInSec int    `json:"expires_in"`
+		TokenType    string `json:"token_type"`
+	}
+	if err := json.NewDecoder(&buf).Decode(&res); err != nil {
+		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
+	}
+	if res.ExpiresInSec == 0 || res.AccessToken == "" {
+		return nil, fmt.Errorf("Incomplete token received from metadata")
+	}
+	return &oauth2.Token{
+		AccessToken: res.AccessToken,
+		TokenType:   res.TokenType,
+		Expiry:      time.Now().Add(time.Duration(res.ExpiresInSec) * time.Second),
+	}, nil
 }
 
 // NewClientFromIdAndSecret creates a new OAuth 2.0 authorized client with all the defaults
@@ -223,10 +302,10 @@ type skoloTokenSource struct {
 	client *http.Client
 }
 
-func newSkoloTokenSource() *skoloTokenSource {
-	return &skoloTokenSource{
+func newSkoloTokenSource() oauth2.TokenSource {
+	return oauth2.ReuseTokenSource(nil, &skoloTokenSource{
 		client: httputils.NewBackOffClient(),
-	}
+	})
 }
 
 func (s *skoloTokenSource) Token() (*oauth2.Token, error) {
