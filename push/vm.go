@@ -1,7 +1,6 @@
 package main
 
 import (
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -11,8 +10,7 @@ func PushBase(name string) *gce.Instance {
 	vm.DataDisks = nil
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_1
 	vm.Metadata["owner_primary"] = "jcgregorio"
-
-	vm.Scopes = append(vm.Scopes, auth.SCOPE_COMPUTE_READ_ONLY)
+	vm.ServiceAccount = "skia-push@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
