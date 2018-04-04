@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -92,7 +91,7 @@ func setupManifest(t *testing.T) (context.Context, string, *git_testutils.GitBui
 					return nil
 				}
 			} else if cmd.Args[0] == "clone" {
-				if !util.In(child.RepoUrl(), cmd.Args) && !util.In(common.REPO_DEPOT_TOOLS, cmd.Args) {
+				if !util.In(child.RepoUrl(), cmd.Args) {
 					return nil
 				}
 			}
