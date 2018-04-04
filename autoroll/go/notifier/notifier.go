@@ -2,6 +2,7 @@ package notifier
 
 import (
 	"bytes"
+	"context"
 	"html/template"
 	"time"
 
@@ -68,7 +69,7 @@ func (a *AutoRollNotifier) Router() *notifier.Router {
 }
 
 // Send a message.
-func (a *AutoRollNotifier) send(vars *tmplVars, subjectTmpl, bodyTmpl *template.Template, severity notifier.Severity) error {
+func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl, bodyTmpl *template.Template, severity notifier.Severity) error {
 	vars.ChildName = a.childName
 	vars.ParentName = a.parentName
 	var subjectBytes bytes.Buffer
@@ -79,7 +80,7 @@ func (a *AutoRollNotifier) send(vars *tmplVars, subjectTmpl, bodyTmpl *template.
 	if err := bodyTmpl.Execute(&bodyBytes, vars); err != nil {
 		return err
 	}
-	return a.n.Send(&notifier.Message{
+	return a.n.Send(ctx, &notifier.Message{
 		Subject:  subjectBytes.String(),
 		Body:     bodyBytes.String(),
 		Severity: severity,
@@ -87,20 +88,20 @@ func (a *AutoRollNotifier) send(vars *tmplVars, subjectTmpl, bodyTmpl *template.
 }
 
 // Send an issue update message.
-func (a *AutoRollNotifier) SendIssueUpdate(id, url, msg string) error {
+func (a *AutoRollNotifier) SendIssueUpdate(ctx context.Context, id, url, msg string) error {
 	bodyTmpl, err := template.New("body").Parse(msg)
 	if err != nil {
 		return err
 	}
-	return a.send(&tmplVars{
+	return a.send(ctx, &tmplVars{
 		IssueID:  id,
 		IssueURL: url,
 	}, subjectTmplIssueUpdate, bodyTmpl, notifier.SEVERITY_INFO)
 }
 
 // Send a mode change message.
-func (a *AutoRollNotifier) SendModeChange(user, mode, message string) error {
-	return a.send(&tmplVars{
+func (a *AutoRollNotifier) SendModeChange(ctx context.Context, user, mode, message string) error {
+	return a.send(ctx, &tmplVars{
 		Message: message,
 		Mode:    mode,
 		User:    user,
@@ -108,15 +109,15 @@ func (a *AutoRollNotifier) SendModeChange(user, mode, message string) error {
 }
 
 // Send a notification that the roller is safety-throttled.
-func (a *AutoRollNotifier) SendSafetyThrottled(until time.Time) error {
-	return a.send(&tmplVars{
+func (a *AutoRollNotifier) SendSafetyThrottled(ctx context.Context, until time.Time) error {
+	return a.send(ctx, &tmplVars{
 		ThrottledUntil: until.Format(time.RFC1123),
 	}, subjectTmplThrottled, bodyTmplSafetyThrottled, notifier.SEVERITY_ERROR)
 }
 
 // Send a notification that the roller is success-throttled.
-func (a *AutoRollNotifier) SendSuccessThrottled(until time.Time) error {
-	return a.send(&tmplVars{
+func (a *AutoRollNotifier) SendSuccessThrottled(ctx context.Context, until time.Time) error {
+	return a.send(ctx, &tmplVars{
 		ThrottledUntil: until.Format(time.RFC1123),
 	}, subjectTmplThrottled, bodyTmplSuccessThrottled, notifier.SEVERITY_WARNING)
 }

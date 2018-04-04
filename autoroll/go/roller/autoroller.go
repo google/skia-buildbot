@@ -128,7 +128,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 
 	n := arb_notifier.New(c.ParentName, c.ChildName, emailer)
-	if err := n.Router().AddFromConfigs(c.Notifiers); err != nil {
+	if err := n.Router().AddFromConfigs(ctx, c.Notifiers); err != nil {
 		return nil, err
 	}
 
@@ -258,7 +258,7 @@ func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) er
 	if err := r.modeHistory.Add(mode, user, message); err != nil {
 		return err
 	}
-	if err := r.notifier.SendModeChange(user, mode, message); err != nil {
+	if err := r.notifier.SendModeChange(ctx, user, mode, message); err != nil {
 		return fmt.Errorf("Failed to send notification: %s", err)
 	}
 

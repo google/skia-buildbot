@@ -1,6 +1,7 @@
 package roller
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -167,7 +168,7 @@ func (c *AutoRollerConfig) Validate() error {
 
 	// Verify that the notifier configs are valid.
 	a := arb_notifier.New("fake", "fake", nil)
-	return a.Router().AddFromConfigs(c.Notifiers)
+	return a.Router().AddFromConfigs(context.Background(), c.Notifiers)
 }
 
 // Return a metrics-friendly name for the roller based on the config.

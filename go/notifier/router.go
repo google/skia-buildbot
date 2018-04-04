@@ -1,6 +1,7 @@
 package notifier
 
 import (
+	"context"
 	"fmt"
 
 	"go.skia.org/infra/go/email"
@@ -46,7 +47,7 @@ type Router struct {
 }
 
 // Send a notification.
-func (r *Router) Send(msg *Message) error {
+func (r *Router) Send(ctx context.Context, msg *Message) error {
 	if err := msg.Validate(); err != nil {
 		return err
 	}
@@ -59,7 +60,7 @@ func (r *Router) Send(msg *Message) error {
 				if n.singleThreadSubject != "" {
 					subject = n.singleThreadSubject
 				}
-				return n.notifier.Send(subject, msg)
+				return n.notifier.Send(ctx, subject, msg)
 			}
 			return nil
 		})
@@ -87,11 +88,11 @@ func (r *Router) Add(n Notifier, f Filter, singleThreadSubject string) {
 }
 
 // Add a new Notifier based on the given Config.
-func (r *Router) AddFromConfig(c *Config) error {
+func (r *Router) AddFromConfig(ctx context.Context, c *Config) error {
 	if err := c.Validate(); err != nil {
 		return err
 	}
-	n, f, s, err := c.Create(r.emailer)
+	n, f, s, err := c.Create(ctx, r.emailer)
 	if err != nil {
 		return err
 	}
@@ -100,9 +101,9 @@ func (r *Router) AddFromConfig(c *Config) error {
 }
 
 // Add all of the Notifiers specified by the given Configs.
-func (r *Router) AddFromConfigs(cfgs []*Config) error {
+func (r *Router) AddFromConfigs(ctx context.Context, cfgs []*Config) error {
 	for _, c := range cfgs {
-		if err := r.AddFromConfig(c); err != nil {
+		if err := r.AddFromConfig(ctx, c); err != nil {
 			return err
 		}
 	}

@@ -7,13 +7,19 @@
     {
       "filter": "warning",
       "email": {
-        "emails": ["borenet@gmail.com"]
+        "emails": ["borenet@google.com"]
       }
     },
     {
       "filter": "debug",
       "chat": {
         "room": "autoroll-test"
+      }
+    },
+    {
+      "filter": "debug",
+      "pubsub": {
+        "topic": "autoroll-skia-internal-test"
       }
     }
   ],

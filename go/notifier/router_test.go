@@ -1,6 +1,7 @@
 package notifier
 
 import (
+	"context"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -16,7 +17,7 @@ type testNotifier struct {
 	sent []*sentMessage
 }
 
-func (n *testNotifier) Send(subject string, msg *Message) error {
+func (n *testNotifier) Send(_ context.Context, subject string, msg *Message) error {
 	n.sent = append(n.sent, &sentMessage{
 		subject: subject,
 		msg:     msg,
@@ -28,13 +29,14 @@ func TestRouter(t *testing.T) {
 	testutils.SmallTest(t)
 
 	m := NewRouter(nil)
+	ctx := context.Background()
 
 	n1 := &testNotifier{}
 	m.Add(n1, FILTER_DEBUG, "")
 	n2 := &testNotifier{}
 	m.Add(n2, FILTER_WARNING, "")
 
-	assert.NoError(t, m.Send(&Message{
+	assert.NoError(t, m.Send(ctx, &Message{
 		Subject:  "Hi!",
 		Body:     "Message body",
 		Severity: SEVERITY_INFO,
@@ -48,7 +50,7 @@ func TestRouter(t *testing.T) {
 	n3 := &testNotifier{}
 	m.Add(n3, FILTER_INFO, "One subject to rule them all")
 
-	assert.NoError(t, m.Send(&Message{
+	assert.NoError(t, m.Send(ctx, &Message{
 		Subject:  "My subject",
 		Body:     "Second Message",
 		Severity: SEVERITY_ERROR,
