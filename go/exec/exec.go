@@ -46,6 +46,7 @@ import (
 	"os"
 	osexec "os/exec"
 	"strings"
+	"syscall"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
@@ -118,6 +119,9 @@ type Command struct {
 	Timeout time.Duration
 	// Whether to log when the command starts.
 	Verbose Verbosity
+	// SysProcAttr holds optional, operating system-specific attributes.
+	// Run passes it to os.StartProcess as the os.ProcAttr's Sys field.
+	SysProcAttr *syscall.SysProcAttr
 }
 
 type Process interface {
@@ -197,6 +201,11 @@ func createCmd(command *Command) *osexec.Cmd {
 		stderrLog = WriteErrorLog
 	}
 	cmd.Stderr = squashWriters(stderrLog, command.Stderr, command.CombinedOutput)
+
+	if command.SysProcAttr != nil {
+		cmd.SysProcAttr = command.SysProcAttr
+	}
+
 	return cmd
 }
 
@@ -277,13 +286,27 @@ type execContext struct {
 	runFn func(*Command) error
 }
 
-// WithContext returns a context.Context instance which uses the given function
+// NewContext returns a context.Context instance which uses the given function
 // to run Commands.
 func NewContext(ctx context.Context, runFn func(*Command) error) context.Context {
 	newCtx := &execContext{
 		runFn: runFn,
 	}
 	return context.WithValue(ctx, contextKey, newCtx)
+}
+
+// NoInterruptContext returns a context.Context instance which launches
+// subprocesses in a difference process group so that they are not killed when
+// this process is killed.
+func NoInterruptContext(ctx context.Context) context.Context {
+	parent := getCtx(ctx)
+	runFn := func(c *Command) error {
+		c.SysProcAttr = &syscall.SysProcAttr{
+			Setpgid: true,
+		}
+		return parent.runFn(c)
+	}
+	return NewContext(ctx, runFn)
 }
 
 // getCtx retrieves the Context associated with the context.Context.
