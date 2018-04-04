@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 
 	"go.skia.org/infra/go/sklog"
@@ -43,7 +44,10 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string, codec
 }
 
 // Get, see the diff.DiffStore interface.
-func (n *NetDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
+func (n *NetDiffStore) Get(ctx context.Context, priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
+	ctx, span := trace.StartSpan(ctx, "netdiffstore/get")
+	defer span.End()
+
 	req := &GetDiffsRequest{Priority: priority, MainDigest: mainDigest, RightDigests: rightDigests}
 	resp, err := n.serviceClient.GetDiffs(context.Background(), req)
 	if err != nil {

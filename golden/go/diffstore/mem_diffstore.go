@@ -2,6 +2,7 @@ package diffstore
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"math"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"sync"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/fileutil"
@@ -184,7 +186,10 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
+func (d *MemDiffStore) Get(ctx context.Context, priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
+	ctx, span := trace.StartSpan(ctx, "memdiffstore/get")
+	defer span.End()
+
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
