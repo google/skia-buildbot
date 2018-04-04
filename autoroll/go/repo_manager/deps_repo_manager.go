@@ -120,6 +120,10 @@ func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
 		return "", err
 	}
 	split := strings.Split(output, "\n")
+	childPathCleaned := path.Clean(dr.childPath)
+	if strings.HasPrefix(childPathCleaned, "../") {
+		childPathCleaned = childPathCleaned[3]
+	}
 	for _, s := range split {
 		if strings.HasPrefix(s, dr.childPath) {
 			subs := strings.Split(s, "@")
