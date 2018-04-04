@@ -174,7 +174,7 @@
         "-properties",
         "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Large\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "logdog://logs.chromium.org/skiabuildbot/<(TASK_ID)/+/annotations"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -195,7 +195,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skiabuildbot/<(TASK_ID)/+/annotations"
       },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,
@@ -296,7 +296,7 @@
         "-properties",
         "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Medium\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "logdog://logs.chromium.org/skiabuildbot/<(TASK_ID)/+/annotations"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -317,7 +317,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skiabuildbot/<(TASK_ID)/+/annotations"
       },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,
@@ -418,7 +418,7 @@
         "-properties",
         "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Race\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "logdog://logs.chromium.org/skiabuildbot/<(TASK_ID)/+/annotations"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -439,7 +439,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skiabuildbot/<(TASK_ID)/+/annotations"
       },
       "io_timeout_ns": 2400000000000,
       "isolate": "infrabots.isolate",
@@ -541,7 +541,7 @@
         "-properties",
         "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Infra-PerCommit-Small\",\"patch_issue\":\"<(ISSUE)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "logdog://logs.chromium.org/skiabuildbot/<(TASK_ID)/+/annotations"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes"
@@ -562,7 +562,7 @@
         ]
       },
       "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
+        "log_location": "logdog://logs.chromium.org/skiabuildbot/<(TASK_ID)/+/annotations"
       },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,
