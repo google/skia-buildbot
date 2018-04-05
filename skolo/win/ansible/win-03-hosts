@@ -30,6 +30,7 @@ all:
       hosts:
         skia-e-win-301:
         skia-e-win-304:
+        skia-e-win-305:
         skia-e-win-313:
     radeon:
       hosts:
@@ -45,3 +46,4 @@ all:
         skia-e-win-349:
         skia-e-win-350:
         skia-e-win-351:
+        skia-e-win-352:
