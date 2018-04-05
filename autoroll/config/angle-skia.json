@@ -19,7 +19,8 @@
   "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
   "depsRepoManager": {
     "childBranch": "master",
-    "childPath": "skia/third_party/externals/angle2",
+    "childPath": "third_party/externals/angle2",
+    "childSubdir": "skia",
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",

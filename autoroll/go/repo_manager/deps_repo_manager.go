@@ -116,21 +116,22 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
+	childPath := path.Join(dr.childSubdir, dr.childPath)
 	output, err := exec.RunCwd(ctx, dr.parentDir, "python", dr.gclient, "revinfo")
 	if err != nil {
 		return "", err
 	}
 	split := strings.Split(output, "\n")
 	for _, s := range split {
-		if strings.HasPrefix(s, dr.childPath) {
+		if strings.HasPrefix(s, childPath) {
 			subs := strings.Split(s, "@")
 			if len(subs) != 2 {
-				return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (wrong number of entries for %s):\n\n%s\n", dr.childPath, output)
+				return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (wrong number of entries for %s):\n\n%s\n", childPath, output)
 			}
 			return subs[1], nil
 		}
 	}
-	return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (no entry for %s):\n\n%s\n", dr.childPath, output)
+	return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (no entry for %s):\n\n%s\n", childPath, output)
 }
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
