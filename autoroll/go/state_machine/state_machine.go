@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/state_machine"
 	"go.skia.org/infra/go/util"
@@ -633,7 +634,7 @@ func (s *AutoRollStateMachine) Transition(ctx context.Context, dest string) erro
 		return err
 	}
 	sklog.Infof("Attempting to perform transition from %q to %q: %s", s.s.Current(), dest, fName)
-	if err := s.s.Transition(ctx, dest); err != nil {
+	if err := s.s.Transition(exec.NoInterruptContext(ctx), dest); err != nil {
 		return err
 	}
 	sklog.Infof("Successfully performed transition.")
