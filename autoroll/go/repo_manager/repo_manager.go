@@ -63,6 +63,11 @@ type CommonRepoManagerConfig struct {
 
 	// Optional fields.
 
+	// ChildSubdir indicates the subdirectory of the workdir in which
+	// the childPath should be rooted. In most cases, this should be empty,
+	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
+	// specifies use_relative_paths), then this is required.
+	ChildSubdir string `json:"childSubdir"`
 	// Named steps to run before uploading roll CLs.
 	PreUploadSteps []string `json:"preUploadSteps"`
 }
@@ -99,6 +104,7 @@ type commonRepoManager struct {
 	childDir         string
 	childPath        string
 	childRepo        *git.Checkout
+	childSubdir      string
 	commitsNotRolled int
 	g                gerrit.GerritInterface
 	infoMtx          sync.RWMutex
@@ -122,6 +128,9 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 		return nil, err
 	}
 	childDir := path.Join(workdir, c.ChildPath)
+	if c.ChildSubdir != "" {
+		childDir = path.Join(workdir, c.ChildSubdir, c.ChildPath)
+	}
 	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
 	if err != nil {
@@ -137,17 +146,18 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 	}
 	sklog.Infof("Repo Manager user: %s", user)
 	return &commonRepoManager{
-		parentBranch:   c.ParentBranch,
+		childBranch:    c.ChildBranch,
 		childDir:       childDir,
 		childPath:      c.ChildPath,
 		childRepo:      childRepo,
-		childBranch:    c.ChildBranch,
+		childSubdir:    c.ChildSubdir,
+		g:              g,
+		parentBranch:   c.ParentBranch,
 		preUploadSteps: preUploadSteps,
 		serverURL:      serverURL,
 		strategy:       strategy,
 		user:           user,
 		workdir:        workdir,
-		g:              g,
 	}, nil
 }
 
