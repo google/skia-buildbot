@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/go-systemd/dbus"
 	"go.skia.org/infra/go/auth"
@@ -24,7 +25,7 @@ import (
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/push/go/types"
-	storage "google.golang.org/api/storage/v1"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -244,7 +245,7 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 	for _, unit := range units {
 		props, err := dbc.GetUnitTypeProperties(unit.Status.Name, "Service")
 		if err != nil {
-			sklog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
+			//sklog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
 			continue
 		}
 		// Props are huge, only pass along the value(s) we use.
@@ -272,6 +273,61 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func pubOneStatus(ctx context.Context, ps *pubsub.Client, topic *pubsub.Topic) {
+	sklog.Infof("Publishing status.")
+	units, err := listUnits()
+	if err != nil {
+		sklog.Errorf("Failed to list units: %s", err)
+		return
+	}
+	resp := &types.ListResponse{
+		Hostname: hostname,
+		Units:    units,
+	}
+	b, err := json.Marshal(resp)
+	if err != nil {
+		sklog.Errorf("Failed to encode output: %s", err)
+		return
+	}
+	pr := topic.Publish(ctx, &pubsub.Message{
+		Data: b,
+	})
+	<-pr.Ready()
+}
+
+func pubStatusWait(ctx context.Context, ps *pubsub.Client) {
+	// TODO make project into a flag.
+	topic := ps.Topic("push_status")
+	pubOneStatus(ctx, ps, topic)
+	for _ = range time.Tick(15 * time.Second) {
+		pubOneStatus(ctx, ps, topic)
+	}
+}
+
+// Only returns on error.
+func subCommandWait(ctx context.Context, ps *pubsub.Client) {
+	sub := ps.Subscription("pulld")
+	err := sub.Receive(ctx, func(innerCtx context.Context, m *pubsub.Message) {
+		sklog.Infof("Got Pub/Sub command")
+		m.Ack()
+		var cmd types.Command
+		if err := json.Unmarshal(m.Data, &cmd); err != nil {
+			sklog.Errorf("Failed to decode command: %s", err)
+			return
+		}
+		if cmd.Hostname != hostname {
+			sklog.Infof("Command not for us: %#v", cmd)
+			return
+		}
+
+		// TODO(jcgregorio) Do something with status.
+		_ = executeCommand(&cmd)
+	})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+}
+
 func main() {
 	defer common.LogPanic()
 	flag.Parse()
@@ -280,16 +336,23 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingDefaultAuthOpt(local),
 	)
-	tokenSource, err := auth.NewDefaultTokenSource(*local, storage.DevstorageFullControlScope)
+	tokenSource, err := auth.NewDefaultTokenSource(*local)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	client := auth.ClientFromTokenSource(tokenSource)
 
-	Init()
 	ctx := context.Background()
+	ps, err := pubsub.NewClient(ctx, "google.com:skia-buildbots", option.WithTokenSource(tokenSource))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	Init()
 	pullInit(ctx, client, triggerPullCh)
 	rebootMonitoringInit()
+	go subCommandWait(ctx, ps)
+	go pubStatusWait(ctx, ps)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/_/list", listHandler).Methods("GET")

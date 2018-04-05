@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
@@ -29,6 +31,7 @@ import (
 	"go.skia.org/infra/push/go/trigger"
 	"go.skia.org/infra/push/go/types"
 	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/option"
 	storage "google.golang.org/api/storage/v1"
 )
 
@@ -46,11 +49,10 @@ var (
 	// Extracted from 'config'.
 	serverNames []string
 
-	// client is an HTTP client authorized to read and write gs://skia-push.
-	client *http.Client
-
 	// fastClient is an HTTP client that is unauthorized and fails quickly.
 	fastClient *http.Client
+
+	pubsubClient *pubsub.Client
 
 	// store is an Google Storage API client authorized to read and write gs://skia-push.
 	store *storage.Service
@@ -65,7 +67,7 @@ var (
 	mutex sync.Mutex
 
 	// The current status of all the units.
-	currentStatus map[string]*systemd.UnitStatus
+	currentStatus = map[string]*systemd.UnitStatus{}
 )
 
 const (
@@ -81,6 +83,7 @@ var (
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	usePubSub      = flag.Bool("use_pub_sub", false, "Use pub/sub to communitate with pulld instances.")
 )
 
 // NewTimeoutClient creates a new http.Client with both a dial timeout and a
@@ -103,8 +106,16 @@ func Init() {
 
 	serverNames = config.AllServerNames()
 
-	if client, err = auth.NewDefaultClient(*local, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
-		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
+	tokenSource, err := auth.NewDefaultTokenSource(*local)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	client := auth.ClientFromTokenSource(tokenSource)
+
+	ctx := context.Background()
+	pubsubClient, err = pubsub.NewClient(ctx, "google.com:skia-buildbots", option.WithTokenSource(tokenSource))
+	if err != nil {
+		sklog.Fatal(err)
 	}
 
 	fastClient = NewFastTimeoutClient()
@@ -138,13 +149,13 @@ type Zones struct {
 
 func (i *Zones) load() error {
 	zoneMap := map[string]string{}
-	zones, err := comp.Zones.List(*project).Do()
+	zones, err := i.comp.Zones.List(*project).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to list zones: %s", err)
 	}
 	for _, zone := range zones.Items {
 		sklog.Infof("Zone: %s", zone.Name)
-		list, err := comp.Instances.List(*project, zone.Name).Do()
+		list, err := i.comp.Instances.List(*project, zone.Name).Do()
 		if err != nil {
 			return fmt.Errorf("Failed to list instances: %s", err)
 		}
@@ -359,8 +370,14 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				sklog.Warningf("Failed to send chat notification: %s", err)
 			}
 
-			if err := trigger.ByMetadata(comp, *project, push.Name, push.Server, ip.Zone(push.Server)); err != nil {
-				sklog.Warningf("Could not trigger package load via metadata: %s", err)
+			if *usePubSub {
+				if err := trigger.ByPubSub(r.Context(), pubsubClient, push.Server); err != nil {
+					sklog.Warningf("Could not trigger package load via pubsub: %s", err)
+				}
+			} else {
+				if err := trigger.ByMetadata(comp, *project, push.Name, push.Server, ip.Zone(push.Server)); err != nil {
+					sklog.Warningf("Could not trigger package load via metadata: %s", err)
+				}
 			}
 			allInstalled[push.Server].Names = newInstalled
 		}
@@ -401,17 +418,40 @@ func serversFromAllInstalled(allInstalled map[string]*packages.Installed) Server
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	err := enc.Encode(getCurrentStatus())
+	mutex.Lock()
+	defer mutex.Unlock()
+	err := enc.Encode(currentStatus)
 	if err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
 
-func getCurrentStatus() map[string]*systemd.UnitStatus {
+func ingestStatus(resp *types.ListResponse) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	return currentStatus
+	for _, status := range resp.Units {
+		if status.Status != nil {
+			currentStatus[resp.Hostname+":"+status.Status.Name] = status
+		}
+	}
+}
+
+func pubSubStatusWait(ctx context.Context, ps *pubsub.Client) {
+	sub := ps.Subscription("push")
+	err := sub.Receive(ctx, func(innerCtx context.Context, m *pubsub.Message) {
+		m.Ack()
+		var resp types.ListResponse
+		if err := json.Unmarshal(m.Data, &resp); err != nil {
+			sklog.Errorf("Failed to decode status: %s", err)
+			return
+		}
+		sklog.Infof("Received Status: %#v", resp)
+		ingestStatus(&resp)
+	})
+	if err != nil {
+		sklog.Fatal(err)
+	}
 }
 
 func stepStatus() {
@@ -529,7 +569,11 @@ func main() {
 	Init()
 
 	go startDirtyMonitoring()
-	go startStatusUpdate()
+	if *usePubSub {
+		go pubSubStatusWait(context.Background(), pubsubClient)
+	} else {
+		go startStatusUpdate()
+	}
 	r := mux.NewRouter()
 	r.HandleFunc("/_/change", changeHandler)
 	r.HandleFunc("/_/state", stateHandler)
