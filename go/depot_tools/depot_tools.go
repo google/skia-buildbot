@@ -22,6 +22,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+const (
+	DEPOT_TOOLS_TEST_ENV_VAR = "SKIABOT_TEST_DEPOT_TOOLS"
+)
+
 var (
 	depotToolsMtx sync.Mutex
 
@@ -115,15 +119,15 @@ func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string,
 
 	// Check the environment. Bots may not have a full Git checkout, so
 	// just return the dir.
-	depotTools := os.Getenv("SKIABOT_TEST_DEPOT_TOOLS")
+	depotTools := os.Getenv(DEPOT_TOOLS_TEST_ENV_VAR)
 	if depotTools != "" {
-		sklog.Infof("Found SKIABOT_TEST_DEPOT_TOOLS environment variable.")
+		sklog.Infof("Found %s environment variable.", DEPOT_TOOLS_TEST_ENV_VAR)
 		if _, err := os.Stat(depotTools); err == nil {
 			sklog.Infof("Found depot_tools in dir specified in env.")
 			return depotTools, nil
 		}
 		sklog.Infof("depot_tools is not present in dir specified in env.")
-		return "", fmt.Errorf("DEPOT_TOOLS=%s but dir does not exist!", depotTools)
+		return "", fmt.Errorf("%s=%s but dir does not exist!", DEPOT_TOOLS_TEST_ENV_VAR, depotTools)
 	}
 
 	// If "gclient" is in PATH, then we know where to get depot_tools.
