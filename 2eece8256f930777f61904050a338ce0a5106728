@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "079a61e9_6d03f22b",
+        "filename": "go/depot_tools/depot_tools.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-05T14:38:25Z",
+      "side": 1,
+      "message": "nit: update (or replace strings with a constant)",
+      "range": {
+        "startLine": 126,
+        "startChar": 25,
+        "endLine": 126,
+        "endChar": 36
+      },
+      "revId": "2eece8256f930777f61904050a338ce0a5106728",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
