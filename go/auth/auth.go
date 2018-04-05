@@ -174,6 +174,7 @@ func (i *mimicTokenSource) Token() (*oauth2.Token, error) {
 	if res.ExpiresInSec == 0 || res.AccessToken == "" {
 		return nil, fmt.Errorf("Incomplete token received from metadata")
 	}
+	sklog.Infof("%#v", res)
 	return &oauth2.Token{
 		AccessToken: res.AccessToken,
 		TokenType:   res.TokenType,

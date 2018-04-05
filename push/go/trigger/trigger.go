@@ -1,10 +1,14 @@
 package trigger
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"time"
 
+	"cloud.google.com/go/pubsub"
+	"go.skia.org/infra/push/go/types"
 	compute "google.golang.org/api/compute/v1"
 )
 
@@ -42,5 +46,22 @@ func ByMetadata(comp *compute.Service, project, revValue, serverName, zone strin
 	if err != nil || op.HTTPStatusCode != 200 {
 		return fmt.Errorf("Failed to set pushrev for server instance %q: %s", serverName, err)
 	}
+	return nil
+}
+
+func ByPubSub(ctx context.Context, ps *pubsub.Client, hostName string) error {
+	topic := ps.Topic("push_command")
+	cmd := types.Command{
+		Action:   types.Pull,
+		Hostname: hostName,
+	}
+	b, err := json.Marshal(cmd)
+	if err != nil {
+		return fmt.Errorf("Failed to encode command: %s", err)
+	}
+	pr := topic.Publish(ctx, &pubsub.Message{
+		Data: b,
+	})
+	<-pr.Ready()
 	return nil
 }

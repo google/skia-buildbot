@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/go-systemd/dbus"
 	"go.skia.org/infra/go/auth"
@@ -24,7 +25,7 @@ import (
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/push/go/types"
-	storage "google.golang.org/api/storage/v1"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -272,6 +273,72 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func pubSubList(ctx context.Context, ps *pubsub.Client) {
+	// TODO make project into a flag.
+	t := ps.Topic("push_status")
+	for _ = range time.Tick(time.Minute) {
+		units, err := listUnits()
+		if err != nil {
+			sklog.Errorf("Failed to list units: %s", err)
+			continue
+		}
+		resp := &types.ListResponse{
+			Hostname: hostname,
+			Units:    units,
+		}
+		b, err := json.Marshal(resp)
+		if err != nil {
+			sklog.Errorf("Failed to encode output: %s", err)
+			continue
+		}
+		pr := t.Publish(ctx, &pubsub.Message{
+			Data: b,
+		})
+		<-pr.Ready()
+	}
+}
+
+// Only returns on error.
+func pubSubCommandWait(ctx context.Context, ps *pubsub.Client) {
+	sub := ps.Subscription("pulld")
+	ok, err := sub.Exists(ctx)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if !ok {
+		sklog.Fatalf("Not OK")
+	}
+	/*
+		if !ok {
+			sub, err = ps.CreateSubscription(ctx, "pulld", pubsub.SubscriptionConfig{
+				Topic:       t,
+				AckDeadline: 10 * time.Second,
+			})
+			if err != nil {
+				sklog.Fatal(err)
+			}
+		}
+	*/
+	err = sub.Receive(ctx, func(innerCtx context.Context, m *pubsub.Message) {
+		m.Ack()
+		var cmd types.Command
+		if err := json.Unmarshal(m.Data, &cmd); err != nil {
+			sklog.Errorf("Failed to decode command: %s", err)
+			return
+		}
+		if cmd.Hostname != hostname {
+			sklog.Infof("Command not for us: %#v", cmd)
+			return
+		}
+
+		// TODO(jcgregorio) Do something with status.
+		_ = executeCommand(&cmd)
+	})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+}
+
 func main() {
 	defer common.LogPanic()
 	flag.Parse()
@@ -280,16 +347,23 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingDefaultAuthOpt(local),
 	)
-	tokenSource, err := auth.NewDefaultTokenSource(*local, storage.DevstorageFullControlScope)
+	tokenSource, err := auth.NewDefaultTokenSource(*local)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	client := auth.ClientFromTokenSource(tokenSource)
 
-	Init()
 	ctx := context.Background()
+	ps, err := pubsub.NewClient(ctx, "google.com:skia-buildbots", option.WithTokenSource(tokenSource))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	Init()
 	pullInit(ctx, client, triggerPullCh)
 	rebootMonitoringInit()
+	go pubSubCommandWait(ctx, ps)
+	go pubSubList(ctx, ps)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
