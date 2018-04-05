@@ -22,6 +22,30 @@
       "revId": "307cf80950757485e9ca87ce625c80fc5dcadcdd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8851a045_ec5dfb4b",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-05T16:45:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9347a90_f1eed880",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 2
+      },
+      "revId": "307cf80950757485e9ca87ce625c80fc5dcadcdd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
