@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/recipe_cfg"
+	"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -27,6 +28,15 @@ var (
 	version    string
 	versionMtx sync.Mutex
 )
+
+// Env returns the environment used for depot_tools commands.
+func Env(depotToolsPath string) []string {
+	return []string{
+		fmt.Sprintf("PATH=%s:%s", depotToolsPath, os.Getenv("PATH")),
+		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
+		"DEPOT_TOOLS_UPDATE=0",
+	}
+}
 
 // Determine the desired depot_tools revision.
 func FindVersion(recipesCfgFile string) (string, error) {
@@ -56,6 +66,7 @@ func Sync(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	sklog.Infof("Want depot_tools at %s", version)
 
 	// Clone the repo if necessary.
 	co, err := git.NewCheckout(ctx, common.REPO_DEPOT_TOOLS, workdir)
@@ -68,6 +79,7 @@ func Sync(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	sklog.Infof("Have depot_tools at %s", hash)
 	if hash == version {
 		return co.Dir(), nil
 	}
@@ -89,6 +101,7 @@ func Sync(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
 	if hash != version {
 		return "", fmt.Errorf("Got incorrect depot_tools revision: %s, wanted %s", hash, version)
 	}
+	sklog.Infof("Successfully synced depot_tools to %s", version)
 	return co.Dir(), nil
 }
 
@@ -98,23 +111,30 @@ func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string,
 	depotToolsMtx.Lock()
 	defer depotToolsMtx.Unlock()
 
+	sklog.Infof("Finding depot_tools...")
+
 	// Check the environment. Bots may not have a full Git checkout, so
 	// just return the dir.
-	depotTools := os.Getenv("DEPOT_TOOLS")
+	depotTools := os.Getenv("SKIABOT_TEST_DEPOT_TOOLS")
 	if depotTools != "" {
+		sklog.Infof("Found SKIABOT_TEST_DEPOT_TOOLS environment variable.")
 		if _, err := os.Stat(depotTools); err == nil {
+			sklog.Infof("Found depot_tools in dir specified in env.")
 			return depotTools, nil
 		}
+		sklog.Infof("depot_tools is not present in dir specified in env.")
 		return "", fmt.Errorf("DEPOT_TOOLS=%s but dir does not exist!", depotTools)
 	}
 
 	// If "gclient" is in PATH, then we know where to get depot_tools.
 	gclient, err := exec.LookPath("gclient")
 	if err == nil && gclient != "" {
+		sklog.Infof("Found depot_tools in PATH")
 		return Sync(ctx, path.Dir(path.Dir(gclient)), recipesCfgFile)
 	}
 
 	// Sync to the given workdir.
+	sklog.Infof("Syncing depot_tools.")
 	return Sync(ctx, workdir, recipesCfgFile)
 }
 
