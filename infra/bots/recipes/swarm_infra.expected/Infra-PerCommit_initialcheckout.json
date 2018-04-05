@@ -451,12 +451,12 @@
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
     "env": {
       "CHROME_HEADLESS": "1",
-      "DEPOT_TOOLS": "[DEPOT_TOOLS]",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "KARMA_PORT": "9876",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
+      "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]",
       "TMPDIR": null
     },
     "name": "run_unittests"

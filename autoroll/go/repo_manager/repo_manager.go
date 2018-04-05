@@ -275,14 +275,6 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 	}, nil
 }
 
-// GetEnvForDepotTools returns the environment used for depot_tools commands.
-func (r *depotToolsRepoManager) GetEnvForDepotTools() []string {
-	return []string{
-		fmt.Sprintf("PATH=%s:%s", r.depotTools, os.Getenv("PATH")),
-		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
-	}
-}
-
 // cleanParent forces the parent checkout into a clean state.
 func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
 	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
@@ -295,7 +287,7 @@ func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
 	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
-		Env:  r.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(r.depotTools),
 		Name: "python",
 		Args: []string{r.gclient, "revert", "--nohooks"},
 	}); err != nil {
@@ -333,7 +325,7 @@ func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
-		Env:  r.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(r.depotTools),
 		Name: "python",
 		Args: args,
 	}); err != nil {
@@ -341,7 +333,7 @@ func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
-		Env:  r.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(r.depotTools),
 		Name: "python",
 		Args: []string{r.gclient, "sync", "--nohooks"},
 	}); err != nil {
