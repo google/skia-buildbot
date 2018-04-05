@@ -1,7 +1,7 @@
 {
   "childName": "skcms",
   "gerritURL": "https://skia-review.googlesource.com",
-  "maxRollFrequency": "3h",
+  "maxRollFrequency": "0m",
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
@@ -12,6 +12,6 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",
-    "strategy": "batch"
+    "strategy": "single"
   }
 }
