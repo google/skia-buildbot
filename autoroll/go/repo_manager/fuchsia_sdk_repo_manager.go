@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
@@ -154,7 +155,7 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, fuchsiaSDKShortVersion(from), fuchsiaSDKShortVersion(to), rm.serverURL)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
-		Env:  rm.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(rm.depotTools),
 		Name: "git",
 		Args: []string{"commit", "-a", "-m", commitMsg},
 	}); err != nil {
@@ -164,7 +165,7 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	// Upload the CL.
 	uploadCmd := &exec.Command{
 		Dir:     rm.parentDir,
-		Env:     rm.GetEnvForDepotTools(),
+		Env:     depot_tools.Env(rm.depotTools),
 		Name:    "git",
 		Args:    []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 		Timeout: 2 * time.Minute,
@@ -199,7 +200,7 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
-		Env:  rm.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(rm.depotTools),
 		Name: "git",
 		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {

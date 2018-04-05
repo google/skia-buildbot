@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
@@ -255,7 +256,7 @@ func (rm *afdoRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, afdoShortVersion(from), afdoShortVersion(to), rm.serverURL)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
-		Env:  rm.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(rm.depotTools),
 		Name: "git",
 		Args: []string{"commit", "-a", "-m", commitMsg},
 	}); err != nil {
@@ -265,7 +266,7 @@ func (rm *afdoRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	// Upload the CL.
 	uploadCmd := &exec.Command{
 		Dir:     rm.parentDir,
-		Env:     rm.GetEnvForDepotTools(),
+		Env:     depot_tools.Env(rm.depotTools),
 		Name:    "git",
 		Args:    []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 		Timeout: 2 * time.Minute,
@@ -300,7 +301,7 @@ func (rm *afdoRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
-		Env:  rm.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(rm.depotTools),
 		Name: "git",
 		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {

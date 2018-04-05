@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/issues"
@@ -194,7 +195,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  dr.parentDir,
-		Env:  dr.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(dr.depotTools),
 		Name: dr.rollDep,
 		Args: args,
 	}); err != nil {
@@ -220,7 +221,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	// Upload the CL.
 	uploadCmd := &exec.Command{
 		Dir:     dr.parentDir,
-		Env:     dr.GetEnvForDepotTools(),
+		Env:     depot_tools.Env(dr.depotTools),
 		Name:    "git",
 		Args:    []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 		Timeout: 2 * time.Minute,
@@ -255,7 +256,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  dr.parentDir,
-		Env:  dr.GetEnvForDepotTools(),
+		Env:  depot_tools.Env(dr.depotTools),
 		Name: "git",
 		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {

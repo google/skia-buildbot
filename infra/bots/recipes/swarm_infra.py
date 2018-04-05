@@ -177,7 +177,7 @@ def RunSteps(api):
   # Run tests.
   karma_port = '9876'
   env['KARMA_PORT'] = karma_port
-  env['DEPOT_TOOLS'] = api.path['depot_tools']
+  env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']
   env['TMPDIR'] = None
   env['PATH'] = api.path.pathsep.join([
       env['PATH'], str(api.path['depot_tools'])])
