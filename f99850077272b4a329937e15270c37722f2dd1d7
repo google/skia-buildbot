@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68ad020f_0c165177",
+        "filename": "go/gce/swarming/base-image/setup-script.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-06T19:52:04Z",
+      "side": 1,
+      "message": "Sorry, I thought this list was in go/gce/swarming/setup-script-linux.sh rather than in go/gce/swarming/base-image/setup-script.sh. The other motivation for upgrading is to add the EGL lib for skia:7671.",
+      "revId": "f99850077272b4a329937e15270c37722f2dd1d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
