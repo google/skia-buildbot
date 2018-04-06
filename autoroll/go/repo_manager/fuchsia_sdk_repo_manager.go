@@ -153,6 +153,9 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 
 	// Commit.
 	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, fuchsiaSDKShortVersion(from), fuchsiaSDKShortVersion(to), rm.serverURL)
+	if cqExtraTrybots != "" {
+		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
+	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
 		Env:  depot_tools.Env(rm.depotTools),
@@ -160,6 +163,13 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 		Args: []string{"commit", "-a", "-m", commitMsg},
 	}); err != nil {
 		return 0, err
+	}
+
+	// Run the pre-upload steps.
+	for _, s := range rm.PreUploadSteps() {
+		if err := s(ctx, rm.parentDir); err != nil {
+			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
+		}
 	}
 
 	// Upload the CL.
