@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b490c8a2_9765093c",
+        "filename": "go/gce/swarming/base-image/setup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-06T21:45:04Z",
+      "side": 0,
+      "message": "Based on https://cloud.google.com/storage/docs/gsutil/addlhelp/CRC32CandInstallingcrcmod#debian-and-ubuntu, this is not necessary, and it caused a failure.",
+      "revId": "b2fd2290adadd7512ea5d36333e351bc91981b2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
