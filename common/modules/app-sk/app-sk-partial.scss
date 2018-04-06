@@ -1,0 +1,99 @@
+/* By default, the app-sk does not include this scss.  It is up to the client to import
+it as part of their scss files, after they have set any variables they like. */
+
+$sidebar-width: 200px !default;
+$sidebar-horiz-padding: 5px !default;
+$sidebar-background-color: #FFF !default;
+
+$header-height: 50px !default;
+$header-background-color: #1F78B4 !default;
+$header-font-color: #FFF !default;
+
+$content-horiz-padding: 5px !default
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+app-sk > {
+  header {
+    background: $header-background-color;
+    height: $header-height;
+    padding: 0 .5em;
+    display: flex;
+    flex-flow: row;
+    justify-content: flex-start;
+    color: $header-font-color;
+  }
+
+  header > * {
+    margin: auto; /* Center things vertically */
+  }
+
+  aside {
+    position: absolute;
+    top: $header-height;
+    left: 0;
+    height: calc(100% - #{$header-height});
+    width: $sidebar-width;
+    border-right: 1px solid #ddd;
+    padding: 0 $sidebar-horiz-padding;
+    z-index: 2;
+    background-color: $sidebar-background-color;
+  }
+
+  main {
+    position: absolute;
+    top: $header-height;
+    left: $sidebar-width + 10px;
+    /* The # {...} notation below does math/substition at compile time
+       allowing verbose calculations w/o impacting load or run time.*/
+    height: calc(100% - #{$header-height});
+    width: calc(100% - #{$sidebar-width + 2*$sidebar-horiz-padding + 2*$content-horiz-padding});
+    padding: 0 $content-horiz-padding;
+    overflow-y: auto;
+  }
+
+  @media screen and (min-width: 480px) {
+    header > .toggle-button {
+      display: none
+    }
+
+    aside {
+      display: block;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    header > .toggle-button {
+      display: block;
+      background-color: transparent;
+      border: none;
+    }
+
+    /* Hide the sidebar just off screen. Then, when it is toggled on and off,
+       the transitions will make it slide between the two states. */
+    aside {
+      left: -$sidebar-width - 2*$sidebar-horiz-padding;
+      transition: 0.5s;
+    }
+
+    aside.shown {
+      left: 0;
+      transition: 0.5s;
+    }
+
+    main {
+      left: 0;
+      width: 100%;
+    }
+  }
+
+}
+
+app-sk {
+  .spacer {
+    flex-grow: 1;
+  }
+}

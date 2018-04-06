@@ -24,7 +24,7 @@ continuous:
 	npx webpack --watch &
 	sleep 2
 	# Continuously run the tests each time they are modified.
-	DISPLAY=:99 npx karma start &
+	DISPLAY=:99 npx karma start --no-single-run &
 
 continuous_desktop:
 	# Setup for continuous testing when running on the desktop.

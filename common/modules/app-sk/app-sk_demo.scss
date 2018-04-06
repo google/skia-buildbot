@@ -1,0 +1,28 @@
+
+$header-background-color: #8be1b8;
+$header-font-color: #000;
+$sidebar-width: 250px !default
+
+/* Import this after setting the above variables
+to let the properly propagate */
+@import '~common/app-sk/app-sk-partial';
+
+.no-decorate {
+  list-style-type: none;
+  padding-left: 10px;
+}
+
+.small-image {
+  max-height: 400px;
+  display: inline-block;
+}
+
+.narrow {
+  width: 20vw;
+}
+
+/* This causes duplicate CSS for login-sk, the one that was
+included with login-sk/index.js and this import.
+TODO(kjlubick) Not ideal - maybe there's a way around it? */
+$login-font-color: #000;
+@import '~common/login-sk/login-sk';
