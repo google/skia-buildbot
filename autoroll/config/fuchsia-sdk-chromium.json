@@ -1,8 +1,8 @@
 {
   "childName": "Fuchsia SDK",
   "cqExtraTrybots": [
-    "tryserver.chromium.linux:fuchsia_arm64_cast_audio",
-    "tryserver.chromium.linux:fuchsia_x64_cast_audio"
+    "master.tryserver.chromium.linux:fuchsia_arm64_cast_audio",
+    "master.tryserver.chromium.linux:fuchsia_x64_cast_audio"
   ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "maxRollFrequency": "0m",
