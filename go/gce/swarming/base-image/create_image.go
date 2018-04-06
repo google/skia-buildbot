@@ -40,8 +40,9 @@ func BaseConfig() *gce.Instance {
 		Scopes: []string{
 			"https://www.googleapis.com/auth/cloud-platform",
 		},
-		SetupScript: path.Join(dir, "setup-script.sh"),
-		User:        gce.USER_CHROME_BOT,
+		ServiceAccount: gce.SERVICE_ACCOUNT_CHROMIUM_SWARM,
+		SetupScript:    path.Join(dir, "setup-script.sh"),
+		User:           gce.USER_CHROME_BOT,
 	}
 
 	return vm
