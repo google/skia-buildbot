@@ -130,6 +130,14 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	assert.Equal(t, 1, rm.CommitsNotRolled())
 
 	// Upload a CL.
+	ran := false
+	rm.(*fuchsiaSDKRepoManager).preUploadSteps = []PreUploadStep{
+		func(context.Context, string) error {
+			ran = true
+			return nil
+		},
+	}
+	cqExtraTrybots := "tryserver.chromium.linux:fuchsia_x64_cast_audio"
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
@@ -141,6 +149,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fuchsiaSDKRevBase, from)
 	assert.Equal(t, fuchsiaSDKRevNext, to)
+	assert.True(t, strings.Contains(string(msg), cqExtraTrybots))
+	assert.True(t, ran)
 }
 
 func TestFuchsiaSDKConfigValidation(t *testing.T) {
