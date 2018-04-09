@@ -94,14 +94,20 @@ func TestIndexer(t *testing.T) {
 
 	idxOne := ixr.GetIndex()
 
-	// Change the classifications.
+	// Set up a waitgroup so we can block until the index is updated.
+	var wg sync.WaitGroup
+	eventBus.SubscribeAsync(EV_INDEX_UPDATED, func(ignore interface{}) {
+		wg.Done()
+	})
+	wg.Add(1)
+
+	// Change the classifications and wait for the indexing to propagate.
 	changes := getChanges(t, idxOne.tilePair.Tile)
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
+	wg.Wait()
 
-	// Wait for the re-indexing.
-	time.Sleep(time.Second)
+	// Make sure the new index is different from the previous one.
 	idxTwo := ixr.GetIndex()
-
 	assert.NotEqual(t, idxOne, idxTwo)
 }
 
