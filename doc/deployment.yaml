@@ -1,0 +1,25 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: docserver
+spec:
+  template:
+    metadata:
+      labels:
+        app: docserver
+    spec:
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: skia-docs-key
+      containers:
+      - name: docserver
+        image: gcr.io/skia-public/docserver:real
+        ports:
+          - containerPort: 8000
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
