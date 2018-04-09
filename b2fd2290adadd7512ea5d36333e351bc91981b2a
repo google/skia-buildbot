@@ -16,6 +16,24 @@
       "revId": "b2fd2290adadd7512ea5d36333e351bc91981b2a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1dd1fdb6_2d500519",
+        "filename": "go/gce/swarming/base-image/setup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-09T11:19:53Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "b490c8a2_9765093c",
+      "revId": "b2fd2290adadd7512ea5d36333e351bc91981b2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
