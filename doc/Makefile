@@ -25,3 +25,21 @@ push: default
 	pushcli docserver skia-docs
 
 include ../webtools/webtools.mk
+
+NOW=`date --iso-8601=seconds`
+
+docker_release:
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./docker/docserver ./go/docserver
+
+docker:
+	cp ./templates/index.html ./docker
+	cp ./res/js/core.js       ./docker
+	cp ./res/img/logo.png     ./docker
+	cp ./res/css/docs.css     ./docker
+	docker build -t docserver ./docker
+
+push_docker:
+	docker tag docserver gcr.io/skia-public/docserver:real
+	docker push gcr.io/skia-public/docserver:real
+
+.PHONY: docker
