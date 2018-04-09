@@ -21,10 +21,11 @@ const (
 
 var (
 	// Flags.
-	workdir = flag.String("workdir", ".", "Working directory.")
+	internal = flag.Bool("internal", false, "Whether to create an image for internal bots.")
+	workdir  = flag.String("workdir", ".", "Working directory.")
 )
 
-func BaseConfig() *gce.Instance {
+func BaseConfig(serviceAccount string) *gce.Instance {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
 
@@ -40,7 +41,7 @@ func BaseConfig() *gce.Instance {
 		Scopes: []string{
 			"https://www.googleapis.com/auth/cloud-platform",
 		},
-		ServiceAccount: gce.SERVICE_ACCOUNT_CHROMIUM_SWARM,
+		ServiceAccount: serviceAccount,
 		SetupScript:    path.Join(dir, "setup-script.sh"),
 		User:           gce.USER_CHROME_BOT,
 	}
@@ -59,12 +60,18 @@ func main() {
 	}
 
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(gce.PROJECT_ID_SWARMING, gce.ZONE_DEFAULT, wdAbs)
+	project := gce.PROJECT_ID_SWARMING
+	serviceAccount := gce.SERVICE_ACCOUNT_CHROMIUM_SWARM
+	if *internal {
+		project = gce.PROJECT_ID_SERVER
+		serviceAccount = gce.SERVICE_ACCOUNT_DEFAULT
+	}
+	g, err := gce.NewGCloud(project, gce.ZONE_DEFAULT, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	vm := BaseConfig()
+	vm := BaseConfig(serviceAccount)
 
 	// Delete the instance if it already exists, to ensure that we're in a
 	// clean state.
