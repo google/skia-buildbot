@@ -141,7 +141,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.IncludeIgnores, exp, idx)
+		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RQuery, q.IncludeIgnores, exp, idx)
 		if err != nil {
 			return nil, err
 		}
@@ -252,7 +252,7 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	s.getReferenceDiffs(nil, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, false, exp, idx)
+	s.getReferenceDiffs(nil, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, false, exp, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -439,7 +439,7 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, includeIgnores bool, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, includeIgnores bool, exp ExpSlice, idx *indexer.SearchIndex) {
 	ctx, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
 	defer span.End()
 
@@ -448,7 +448,7 @@ func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDi
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(retDigest *SRDigest) {
-			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, includeIgnores)
+			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, rhsQuery, includeIgnores)
 			retDigest.ClosestRef = closestRef
 			retDigest.RefDiffs = refDiffs
 

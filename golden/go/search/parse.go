@@ -197,16 +197,16 @@ func (v *Validation) Int64SliceFormValue(r *http.Request, name string, defaultVa
 // If the named field was not available in the given request an empty set url.Values
 // is returned. If an error occurs it will be added to the error list of the validation
 // object.
-func (v *Validation) QueryFormValue(r *http.Request, name string, val *url.Values) {
+func (v *Validation) QueryFormValue(r *http.Request, name string) map[string][]string {
 	if q := r.FormValue(name); q != "" {
-		var err error
-		*val, err = url.ParseQuery(q)
+		ret, err := url.ParseQuery(q)
 		if err != nil {
 			*v = append(*v, fmt.Sprintf("Unable to parse query: %s. Error: %s", q, err))
+			return nil
 		}
-	} else {
-		*val = url.Values{}
+		return ret
 	}
+	return map[string][]string{}
 }
 
 // Errors returns a concatenation of all error values accumulated in validation or nil
@@ -235,9 +235,10 @@ func ParseQuery(r *http.Request, query *Query) error {
 
 	validate := Validation{}
 
-	// Parse the query strings.
-	validate.QueryFormValue(r, "query", &query.Query)
-	validate.QueryFormValue(r, "rquery", &query.RQuery)
+	// Parse the query strings. Note Query and RQuery have different types, but the
+	// same underlying type: map[string][]string
+	query.Query = validate.QueryFormValue(r, "query")
+	query.RQuery = validate.QueryFormValue(r, "rquery")
 
 	// TODO(stephan) Add range limiting to the validation of limit and offset.
 	query.Limit = int32(validate.Int64FormValue(r, "limit", 50))
