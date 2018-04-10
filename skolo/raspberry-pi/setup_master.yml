@@ -62,7 +62,7 @@
 
     - name: Make convenient ~/start_serving_image script
       lineinfile:
-        dest: /home/chromebot/start_serving_image
+        dest: /home/chrome-bot/start_serving_image
         mode: 0755
         owner: chrome-bot
         group: chrome-bot
