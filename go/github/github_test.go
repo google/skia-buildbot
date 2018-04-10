@@ -1,0 +1,99 @@
+package github
+
+import (
+	"context"
+	"net/http"
+	"testing"
+
+	"github.com/google/go-github/github"
+	"github.com/gorilla/mux"
+	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/testutils"
+)
+
+func TestAddComment(t *testing.T) {
+	testutils.SmallTest(t)
+	reqType := "application/json"
+	reqBody := []byte(`{"body":"test msg"}
+`)
+	r := mux.NewRouter()
+	md := mockhttpclient.MockPostError(reqType, reqBody, "OK", http.StatusCreated)
+	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/issues/1234/comments").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", "dummy-access-token")
+	assert.NoError(t, err)
+	githubClient.client = github.NewClient(httpClient)
+	addCommentErr := githubClient.AddComment(1234, "test msg")
+	assert.NoError(t, addCommentErr)
+}
+
+func TestGetPullRequest(t *testing.T) {
+	testutils.SmallTest(t)
+	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{State: &CLOSED_STATE}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/pulls/1234").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", "dummy-access-token")
+	assert.NoError(t, err)
+	githubClient.client = github.NewClient(httpClient)
+	pr, getPullErr := githubClient.GetPullRequest(1234)
+	assert.NoError(t, getPullErr)
+	assert.Equal(t, CLOSED_STATE, *pr.State)
+}
+
+func TestCreatePullRequest(t *testing.T) {
+	testutils.SmallTest(t)
+	reqType := "application/json"
+	reqBody := []byte(`{"title":"title","head":"headBranch","base":"baseBranch"}
+`)
+	r := mux.NewRouter()
+	md := mockhttpclient.MockPostError(reqType, reqBody, "OK", http.StatusCreated)
+	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/pulls").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", "dummy-access-token")
+	assert.NoError(t, err)
+	githubClient.client = github.NewClient(httpClient)
+	_, createPullErr := githubClient.CreatePullRequest("title", "baseBranch", "headBranch")
+	assert.NoError(t, createPullErr)
+}
+
+func TestMergePullRequest(t *testing.T) {
+	testutils.SmallTest(t)
+	reqType := "application/json"
+	reqBody := []byte(`{"commit_message":"test comment"}
+`)
+	r := mux.NewRouter()
+	md := mockhttpclient.MockPutDialogue(reqType, reqBody, nil)
+	r.Schemes("https").Host("api.github.com").Methods("PUT").Path("/repos/kryptonians/krypton/pulls/1234/merge").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", "dummy-access-token")
+	assert.NoError(t, err)
+	githubClient.client = github.NewClient(httpClient)
+	mergePullErr := githubClient.MergePullRequest(1234, "test comment")
+	assert.NoError(t, mergePullErr)
+}
+
+func TestClosePullRequest(t *testing.T) {
+	testutils.SmallTest(t)
+	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{State: &CLOSED_STATE}))
+	reqType := "application/json"
+	reqBody := []byte(`{"state":"closed"}
+`)
+	r := mux.NewRouter()
+	md := mockhttpclient.MockPatchDialogue(reqType, reqBody, respBody)
+	r.Schemes("https").Host("api.github.com").Methods("PATCH").Path("/repos/kryptonians/krypton/pulls/1234").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", "dummy-access-token")
+	assert.NoError(t, err)
+	githubClient.client = github.NewClient(httpClient)
+	pr, closePullErr := githubClient.ClosePullRequest(1234)
+	assert.NoError(t, closePullErr)
+	assert.Equal(t, CLOSED_STATE, *pr.State)
+}
