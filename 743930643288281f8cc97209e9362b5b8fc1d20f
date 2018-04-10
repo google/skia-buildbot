@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf785787_9e436dcd",
+        "filename": "golden/go/search/parse.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-10T14:36:17Z",
+      "side": 1,
+      "message": "nit: map is internally a pointer type, so you shouldn\u0027t need a pointer to a map.",
+      "range": {
+        "startLine": 200,
+        "startChar": 70,
+        "endLine": 200,
+        "endChar": 90
+      },
+      "revId": "743930643288281f8cc97209e9362b5b8fc1d20f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af346a54_4d11ee5c",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-10T14:36:17Z",
+      "side": 1,
+      "message": "nit: extra parens?",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 100,
+        "endChar": 24
+      },
+      "revId": "743930643288281f8cc97209e9362b5b8fc1d20f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
