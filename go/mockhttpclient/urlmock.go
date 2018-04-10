@@ -169,6 +169,18 @@ func MockPutDialogue(requestType string, requestBody, responseBody []byte) MockD
 	}
 }
 
+func MockPatchDialogue(requestType string, requestBody, responseBody []byte) MockDialogue {
+	return MockDialogue{
+		requestMethod:  "PATCH",
+		requestType:    requestType,
+		requestPayload: requestBody,
+
+		responseStatus:  "OK",
+		responseCode:    http.StatusOK,
+		responsePayload: responseBody,
+	}
+}
+
 // Mock adds a mocked response for the given URL; whenever this URLMock is used
 // as a transport for an http.Client, requests to the given URL will always
 // receive the given body in their responses. Mocks specified using Mock() are
