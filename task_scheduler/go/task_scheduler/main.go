@@ -709,6 +709,9 @@ func main() {
 	}
 
 	// Find depot_tools.
+	if *recipesCfgFile == "" {
+		*recipesCfgFile = path.Join(wdAbs, "recipes.cfg")
+	}
 	depotTools, err := depot_tools.Sync(ctx, wdAbs, *recipesCfgFile)
 	if err != nil {
 		sklog.Fatal(err)
