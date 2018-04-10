@@ -117,6 +117,30 @@
       "revId": "eba42797f8ad0176c0a8c57573d50ee419d0dc38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "28fea5bc_db566b56",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-10T17:58:58Z",
+      "side": 1,
+      "message": "Just in case you missed this suggestion.",
+      "parentUuid": "7bdf234a_c15b1db5",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "eba42797f8ad0176c0a8c57573d50ee419d0dc38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
