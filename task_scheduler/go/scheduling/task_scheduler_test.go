@@ -636,26 +636,6 @@ func TestProcessTaskCandidate(t *testing.T) {
 	assert.Equal(t, CANDIDATE_SCORE_TRY_JOB+1.0, c.Score)
 	assert.Nil(t, c.Commits)
 
-	// Retries are scored lower.
-	c = &taskCandidate{
-		Attempt:    1,
-		JobCreated: now.Add(-1 * time.Hour),
-		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
-				Patch: db.Patch{
-					Server:   "my-server",
-					Issue:    "my-issue",
-					Patchset: "my-patchset",
-				},
-				Repo:     gb.RepoUrl(),
-				Revision: c1,
-			},
-		},
-	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
-	assert.Equal(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score)
-	assert.Nil(t, c.Commits)
-
 	// Manually forced candidates have a blamelist and a specific score.
 	c = &taskCandidate{
 		JobCreated: now.Add(-2 * time.Hour),
@@ -2257,30 +2237,27 @@ func TestBlacklist(t *testing.T) {
 	assert.NotEqual(t, c1, tasks[0].Revision)
 }
 
-func TestTrybots(t *testing.T) {
-	ctx, gb, d, swarmingClient, s, mock, cleanup := setup(t)
-	defer cleanup()
-
-	rs2 := getRS2(t, ctx, gb)
-
-	// The trybot integrator has its own tests, so just verify that we can
-	// receive a try request, execute the necessary tasks, and report its
-	// results back.
-
+// runAllTasks executes s.MainLoop and adds finished tasks to d until all
+// tasks are finished. Returns the count of tasks. Assumes all task
+// dimensions match either linuxTaskDims or androidTaskDims.
+func runAllTasks(t *testing.T, ctx context.Context, now time.Time, d db.TaskDB, swarmingClient *swarming_testutils.TestClient, s *TaskScheduler) int {
 	// Run ourselves out of tasks.
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", androidTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
-	now := time.Now()
 
+	const rounds = 100
 	n := 0
-	for i := 0; i < 10; i++ {
+	for i := 0; i < rounds; i++ {
 		assert.NoError(t, s.MainLoop(ctx))
 		assert.NoError(t, s.tCache.Update())
 		tasks, err := s.tCache.UnfinishedTasks()
 		assert.NoError(t, err)
 		if len(tasks) == 0 {
-			break
+			jobs, err := s.jCache.UnfinishedJobs()
+			assert.NoError(t, err)
+			assert.Equal(t, 0, len(jobs))
+			return n
 		}
 		for _, t := range tasks {
 			t.Status = db.TASK_STATUS_SUCCESS
@@ -2291,11 +2268,15 @@ func TestTrybots(t *testing.T) {
 		assert.NoError(t, d.PutTasks(tasks))
 		assert.NoError(t, s.tCache.Update())
 	}
-	assert.Equal(t, 5, n)
-	jobs, err := s.jCache.UnfinishedJobs()
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(jobs))
+	assert.Fail(t, "runAllTasks still has unfinished tasks after %d MainLoops.", rounds)
+	return n
+}
 
+// createTryJob generates a TestTask try job in s and returns the new try
+// job's RepoState. First creates a fake CL in gb, then mocks tryjobs to
+// return a TestTask buildbucket build, then triggers a Poll so that the
+// new Job is created.
+func createTryJob(t *testing.T, ctx context.Context, now time.Time, base db.RepoState, gb *git_testutils.GitBuilder, s *TaskScheduler, mock *mockhttpclient.URLMock) db.RepoState {
 	// Create a try job.
 	issue := "10001"
 	patchset := "20002"
@@ -2306,11 +2287,11 @@ func TestTrybots(t *testing.T) {
 		Patch: db.Patch{
 			Server:    gb.RepoUrl(),
 			Issue:     issue,
-			PatchRepo: rs2.Repo,
+			PatchRepo: base.Repo,
 			Patchset:  patchset,
 		},
-		Repo:     rs2.Repo,
-		Revision: rs2.Revision,
+		Repo:     base.Repo,
+		Revision: base.Revision,
 	}
 	b.ParametersJson = testutils.MarshalJSON(t, tryjobs.Params(t, specs_testutils.TestTask, "skia", rs.Revision, rs.Server, rs.Issue, rs.Patchset))
 	tryjobs.MockPeek(mock, []*buildbucket_api.ApiCommonBuildMessage{b}, now, "", "", nil)
@@ -2318,10 +2299,25 @@ func TestTrybots(t *testing.T) {
 	tryjobs.MockJobStarted(mock, b.Id, now, nil)
 	assert.NoError(t, s.tryjobs.Poll(ctx, now))
 	assert.True(t, mock.Empty())
+	return rs
+}
+
+func TestTrybots(t *testing.T) {
+	ctx, gb, d, swarmingClient, s, mock, cleanup := setup(t)
+	defer cleanup()
+
+	rs2 := getRS2(t, ctx, gb)
+
+	// The trybot integrator has its own tests, so just verify that we can
+	// receive a try request, execute the necessary tasks, and report its
+	// results back.
+	now := time.Now()
+	assert.Equal(t, 5, runAllTasks(t, ctx, now, d, swarmingClient, s))
+	rs := createTryJob(t, ctx, now, rs2, gb, s, mock)
 
 	// Ensure that we added a Job.
 	assert.NoError(t, s.jCache.Update())
-	jobs, err = s.jCache.UnfinishedJobs()
+	jobs, err := s.jCache.UnfinishedJobs()
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
 	var tryJob *db.Job
@@ -2334,6 +2330,7 @@ func TestTrybots(t *testing.T) {
 	assert.NotNil(t, tryJob)
 	assert.False(t, tryJob.Done())
 
+	n := 0
 	// Run through the try job's tasks.
 	for i := 0; i < 10; i++ {
 		assert.NoError(t, s.MainLoop(ctx))
@@ -2358,7 +2355,7 @@ func TestTrybots(t *testing.T) {
 
 	// Some final checks.
 	assert.NoError(t, s.jCache.Update())
-	assert.Equal(t, 7, n)
+	assert.Equal(t, 2, n)
 	tryJob, err = s.jCache.GetJob(tryJob.Id)
 	assert.NoError(t, err)
 	assert.True(t, tryJob.IsTryJob())
@@ -2367,6 +2364,38 @@ func TestTrybots(t *testing.T) {
 	jobs, err = s.jCache.UnfinishedJobs()
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
+}
+
+func TestTryJobNoRetry(t *testing.T) {
+	ctx, gb, d, swarmingClient, s, mock, cleanup := setup(t)
+	defer cleanup()
+
+	now := time.Now()
+	assert.Equal(t, 5, runAllTasks(t, ctx, now, d, swarmingClient, s))
+	rs := createTryJob(t, ctx, now, getRS1(t, ctx, gb), gb, s, mock)
+
+	// Mark the compile task as failed.
+	bot1 := makeBot("bot1", linuxTaskDims)
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.MainLoop(ctx))
+	assert.NoError(t, s.tCache.Update())
+	tasks, err := s.tCache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tasks))
+	t1 := tasks[0]
+	assert.NotNil(t, t1)
+	// Ensure RepoState matches.
+	assert.Equal(t, rs, t1.RepoState)
+	t1.Status = db.TASK_STATUS_FAILURE
+	t1.Finished = now
+	assert.NoError(t, d.PutTasks([]*db.Task{t1}))
+	assert.NoError(t, s.tCache.Update())
+	assert.NoError(t, s.MainLoop(ctx))
+	assert.NoError(t, s.tCache.Update())
+	tasks, err = s.tCache.UnfinishedTasks()
+	assert.NoError(t, err)
+	// Try job task should not be retried.
+	assert.Equal(t, 0, len(tasks))
 }
 
 func TestGetTasksForJob(t *testing.T) {

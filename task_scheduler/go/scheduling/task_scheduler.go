@@ -40,10 +40,6 @@ const (
 	// 5 commits behind.
 	CANDIDATE_SCORE_TRY_JOB = 10.0
 
-	// When retrying a try job task that has failed, prioritize the retry
-	// lower than tryjob tasks that haven't run yet.
-	CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER = 0.75
-
 	// MAX_BLAMELIST_COMMITS is the maximum number of commits which are
 	// allowed in a task blamelist before we stop tracing commit history.
 	MAX_BLAMELIST_COMMITS = 500
@@ -490,6 +486,11 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 			if previous.Success() {
 				continue
 			}
+			if c.IsTryJob() {
+				// Never retry try job tasks. Generally failures are not flakes, and
+				// retrying just delays the result.
+				continue
+			}
 			// The attempt counts are only valid if the previous
 			// attempt we're looking at is the last attempt for this
 			// TaskSpec. Fortunately, TaskCache.GetTasksByKey sorts
@@ -547,10 +548,6 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit) error {
 	if c.IsTryJob() {
 		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(c.JobCreated).Hours()
-		// Proritize each subsequent attempt lower than the previous attempt.
-		for i := 0; i < c.Attempt; i++ {
-			c.Score *= CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER
-		}
 		return nil
 	}
 
