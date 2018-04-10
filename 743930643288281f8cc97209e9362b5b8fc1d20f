@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f1efd154_4d7f21d4",
+        "filename": "golden/go/search/parse.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-04-10T14:51:33Z",
+      "side": 1,
+      "message": "Converted val to real return value, since the original motivation of doing it this way is gone.",
+      "parentUuid": "bf785787_9e436dcd",
+      "range": {
+        "startLine": 200,
+        "startChar": 70,
+        "endLine": 200,
+        "endChar": 90
+      },
+      "revId": "743930643288281f8cc97209e9362b5b8fc1d20f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "af346a54_4d11ee5c",
         "filename": "golden/go/search/refs.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "743930643288281f8cc97209e9362b5b8fc1d20f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b06155c6_827e0853",
+        "filename": "golden/go/search/refs.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-04-10T14:51:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af346a54_4d11ee5c",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 100,
+        "endChar": 24
+      },
+      "revId": "743930643288281f8cc97209e9362b5b8fc1d20f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
