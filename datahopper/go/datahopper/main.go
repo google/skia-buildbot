@@ -154,6 +154,9 @@ func main() {
 	}
 
 	// Generate "time to X% bot coverage" metrics.
+	if *recipesCfgFile == "" {
+		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
+	}
 	if err := bot_metrics.Start(ctx, *taskSchedulerDbUrl, *workdir, *recipesCfgFile); err != nil {
 		sklog.Fatal(err)
 	}
