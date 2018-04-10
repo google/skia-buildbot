@@ -127,8 +127,8 @@ type Query struct {
 	Query    url.Values `json:"-"`
 
 	// URL encoded query string to select the right hand side of comparisons.
-	RQueryStr string     `json:"rquery"`
-	RQuery    url.Values `json:"-"`
+	RQueryStr string              `json:"rquery"`
+	RQuery    paramtools.ParamSet `json:"-"`
 
 	// Trybot support.
 	Issue         int64   `json:"issue,string"`
