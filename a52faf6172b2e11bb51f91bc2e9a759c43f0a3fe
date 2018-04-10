@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "00a30cc4_2212d608",
+        "filename": "whitespace.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-10T18:29:34Z",
+      "side": 0,
+      "message": "test",
+      "revId": "a52faf6172b2e11bb51f91bc2e9a759c43f0a3fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
