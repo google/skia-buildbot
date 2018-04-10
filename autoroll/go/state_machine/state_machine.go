@@ -216,12 +216,15 @@ func New(impl AutoRollerImpl, workdir string) (*AutoRollStateMachine, error) {
 		return s.a.UpdateRepos(ctx)
 	})
 	b.F(F_CLOSE_FAILED, func(ctx context.Context) error {
+		fmt.Printf("Commit queue failed; closing this roll.")
 		return s.a.GetActiveRoll().Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll."))
 	})
 	b.F(F_CLOSE_STOPPED, func(ctx context.Context) error {
+		fmt.Printf("AutoRoller is stopped; closing the active roll.")
 		return s.a.GetActiveRoll().Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("AutoRoller is stopped; closing the active roll."))
 	})
 	b.F(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context) error {
+		fmt.Printf("Dry run failed; closing this roll.")
 		return s.a.GetActiveRoll().Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll."))
 	})
 	b.F(F_CLOSE_DRY_RUN_OUTDATED, func(ctx context.Context) error {
