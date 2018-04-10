@@ -19,12 +19,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
-const (
-	// Tasks should use this location, relative to their working directory,
-	// to write any results.
-	ISOLATED_OUTDIR = "swarm_out_dir"
-)
-
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
 	Attempt int `json:"attempt"`
@@ -249,6 +243,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 	if ioTimeoutSecs == int64(0) {
 		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds())
 	}
+	outputs := util.CopyStringSlice(c.TaskSpec.Outputs)
 	serviceAccount := c.TaskSpec.ServiceAccount
 	if serviceAccount == "" {
 		serviceAccount = swarming.GetServiceAccountFromTaskDims(dimsMap)
@@ -272,7 +267,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 				Namespace:      isolate.DEFAULT_NAMESPACE,
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
-			Outputs:       []string{ISOLATED_OUTDIR},
+			Outputs:       outputs,
 		},
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
 		ServiceAccount: serviceAccount,

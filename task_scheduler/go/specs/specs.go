@@ -196,6 +196,11 @@ type TaskSpec struct {
 	// zero, DEFAULT_TASK_SPEC_MAX_ATTEMPTS is used.
 	MaxAttempts int `json:"max_attempts,omitempty"`
 
+	// Outputs are files and/or directories to use as outputs for the task.
+	// Paths are relative to the task workdir. No error occurs if any of
+	// these is missing.
+	Outputs []string `json:"outputs,omitempty"`
+
 	// Priority indicates the relative priority of the task, with 0 < p <= 1
 	Priority float64 `json:"priority"`
 
@@ -253,6 +258,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 	}
 	extraArgs := util.CopyStringSlice(t.ExtraArgs)
 	extraTags := util.CopyStringMap(t.ExtraTags)
+	outputs := util.CopyStringSlice(t.Outputs)
 	return &TaskSpec{
 		CipdPackages:     cipdPackages,
 		Command:          cmd,
@@ -267,6 +273,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		IoTimeout:        t.IoTimeout,
 		Isolate:          t.Isolate,
 		MaxAttempts:      t.MaxAttempts,
+		Outputs:          outputs,
 		Priority:         t.Priority,
 		ServiceAccount:   t.ServiceAccount,
 	}

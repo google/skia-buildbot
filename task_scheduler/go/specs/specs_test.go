@@ -55,6 +55,7 @@ func TestCopyTaskSpec(t *testing.T) {
 		IoTimeout:      10 * time.Minute,
 		Isolate:        "abc123",
 		MaxAttempts:    5,
+		Outputs:        []string{"out"},
 		Priority:       19.0,
 		ServiceAccount: "fake-account@gmail.com",
 	}
