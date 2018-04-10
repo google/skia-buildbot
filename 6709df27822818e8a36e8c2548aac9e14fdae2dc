@@ -16,6 +16,24 @@
       "revId": "6709df27822818e8a36e8c2548aac9e14fdae2dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "35a6c552_f0843120",
+        "filename": "skolo/raspberry-pi/start_serving_image.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-10T18:05:43Z",
+      "side": 1,
+      "message": "I think it didn\u0027t work because one of the partitions was still mounted.  The mount fails without this change.",
+      "parentUuid": "fea18428_0db60191",
+      "revId": "6709df27822818e8a36e8c2548aac9e14fdae2dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
