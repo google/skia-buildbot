@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe1ff692_149e12b2",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-11T20:02:42Z",
+      "side": 1,
+      "message": "I didn\u0027t know this works. Neat!",
+      "revId": "589d3dd811222ac9b5a855dcc85baaf8a65b05e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
