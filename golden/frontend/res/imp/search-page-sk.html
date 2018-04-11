@@ -182,6 +182,7 @@
       </div>
     </paper-dialog>
 
+    <commits-dialog-sk></commits-dialog-sk>
   </template>
   <script>
     Polymer({
@@ -370,7 +371,9 @@
         sk.get("/json/commits").then(JSON.parse).then(function (json) {
           this.$.searchControls.setCommitInfo(json);
           this._commits = json;
-        }.bind(this)).catch(sk.errorMessage);
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+        });
       },
 
       _loadParamset: function() {
