@@ -47,22 +47,14 @@
     win_file:
       path: c:\Temp\skolo.pow
       state: absent
-  # https://support.microsoft.com/en-us/kb/324737
-  - name: Enable auto-login
+  # Auto-login is enabled in the base image (using Netplwiz method here:
+  # http://www.intowindows.com/how-to-automatically-login-in-windows-10/), however, the
+  # DefaultDomain is incorrect due to the machine being renamed after imaging. It seems that the
+  # DefaultDomain must match the host name for local accounts, otherwise Windows will get confused
+  # and say "We can’t sign in to your account," (sometimes).
+  - name: Set auto-login DefaultDomain
     win_regedit:
       path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
-      name: AutoAdminLogon
-      data: "1"
-      type: string
-  - name: Set auto-login user name
-    win_regedit:
-      path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
-      name: DefaultUserName
-      data: "{{ ansible_user }}"
-      type: string
-  - name: Set auto-login password
-    win_regedit:
-      path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
-      name: DefaultPassword
-      data: "{{ ansible_password }}"
+      name: DefaultDomain
+      data: "{{ ansible_host | upper }}"
       type: string
