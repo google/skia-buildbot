@@ -150,7 +150,9 @@
       },
 
       setCommitInfo: function(commitinfo) {
+        debugger;
         if (commitinfo) {
+          debugger;
           this._commitinfo = commitinfo;
           this._processCommitInfo();
         }
@@ -214,7 +216,10 @@
                 ele.refresh();
               });
               this.fire('commits-loaded', {});
-            }.bind(this)).catch(sk.errorMessage);
+            }.bind(this)).catch(function(e) {
+              debugger;
+              sk.errorMessage(e);
+            }.bind(this));
           } else {
             // Fire the message even when the commit messages were cached.
             this.fire('commits-loaded', {});

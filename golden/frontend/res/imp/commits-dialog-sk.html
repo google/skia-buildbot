@@ -55,6 +55,10 @@
         }
       },
 
+      ready: function() {
+        console.log("ready function:", this._repo);
+      },
+
       attached: function () {
         this.listen(this.parentElement, 'show-commits', '_handleCommitSelected');
         this.listen(this.$.commitsPanel, 'commits-loaded', '_handleCommitsLoaded');
@@ -63,6 +67,8 @@
       },
 
       _handleCommitSelected: function(ev) {
+        debugger;
+        ev.stopPropagation();
         this.setCommitInfo(ev.detail);
       },
 

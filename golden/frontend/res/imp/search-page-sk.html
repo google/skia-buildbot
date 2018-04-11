@@ -182,6 +182,7 @@
       </div>
     </paper-dialog>
 
+    <commits-dialog-sk></commits-dialog-sk>
   </template>
   <script>
     Polymer({
@@ -329,6 +330,7 @@
         sk.post('/json/triage', JSON.stringify(query)).then(function() {
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
+          debugger;
           this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
@@ -353,6 +355,7 @@
           this.$.trybotControls.setIssue(json.issue);
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
+          debugger;
           this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
@@ -370,7 +373,10 @@
         sk.get("/json/commits").then(JSON.parse).then(function (json) {
           this.$.searchControls.setCommitInfo(json);
           this._commits = json;
-        }.bind(this)).catch(sk.errorMessage);
+        }.bind(this)).catch(function(e) {
+          debugger;
+          sk.errorMessage(e);
+        });
       },
 
       _loadParamset: function() {

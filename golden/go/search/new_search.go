@@ -308,7 +308,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 
 	// Determine the patchsets we need to retrieve.
 	issue.QueryPatchsets = q.Patchsets
-	if issue.QueryPatchsets == nil {
+	if len(issue.QueryPatchsets) == 0 {
 		issue.QueryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
 		for _, psd := range issue.PatchsetDetails {
 			issue.QueryPatchsets = append(issue.QueryPatchsets, psd.ID)
