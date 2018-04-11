@@ -1,0 +1,59 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: docserver2-volumeclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: docserver2
+  name: docserver2
+spec:
+  ports:
+  - port: 8000
+  selector:
+    app: docserver2
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: docserver2
+spec:
+  template:
+    metadata:
+      labels:
+        app: docserver2
+    spec:
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: skia-docs-key
+      - name: docserver2-storage
+        persistentVolumeClaim:
+          claimName: docserver2-volumeclaim
+      containers:
+      - name: docserver2
+        image: gcr.io/skia-public/docserver:2018-04-11T13_01_27Z-jcgregorio-ac25f9b42c90123bd121970d3a5b777fad0c0f9f-dirty
+        ports:
+          - name: http
+            containerPort: 8000
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "500Mi"
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+        - name: docserver2-storage
+          mountPath: /mnt/pd0
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
