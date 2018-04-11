@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1d0f251_7a1d7243",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-11T19:05:22Z",
+      "side": 0,
+      "message": "Was this an unintentional change?",
+      "range": {
+        "startLine": 255,
+        "startChar": 88,
+        "endLine": 255,
+        "endChar": 93
+      },
+      "revId": "cbb57b256176ef4669218580697ebbaec83da7f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
