@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c1fa358_c022f28d",
+        "filename": "go/github/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-11T11:45:45Z",
+      "side": 1,
+      "message": "Why not auth.NewDefaultTokenSource()?  Or better yet, just have the caller pass in an http.Client?",
+      "range": {
+        "startLine": 27,
+        "startChar": 7,
+        "endLine": 27,
+        "endChar": 72
+      },
+      "revId": "7b1586b1dc1eb0369ee2597c7bc5026323dde2cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "043d031d_016cd817",
+        "filename": "go/github/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-11T11:45:45Z",
+      "side": 1,
+      "message": "Will resp.Body contain useful information in this case?",
+      "range": {
+        "startLine": 62,
+        "startChar": 14,
+        "endLine": 62,
+        "endChar": 92
+      },
+      "revId": "7b1586b1dc1eb0369ee2597c7bc5026323dde2cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
