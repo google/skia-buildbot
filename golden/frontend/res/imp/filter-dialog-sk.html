@@ -118,8 +118,8 @@
 
             <div class="filterItem">
               Commit Range:
-              <commit-picker-sk id="startCommitPicker"></commit-picker-sk>
-              <commit-picker-sk id="endCommitPicker"></commit-picker-sk>
+              <commit-picker-sk id="startCommitPicker" repo="[[_repo]]"></commit-picker-sk>
+              <commit-picker-sk id="endCommitPicker" repo="[[_repo]]"></commit-picker-sk>
             </div>
 
             <!-- group by test -->
@@ -224,7 +224,11 @@
         properties: {
           _curr: {
             type: Object
-          }
+          },
+          _repo: {
+            type: String,
+            value: sk.app_config.baseRepoURL
+          },
         },
 
         ready: function() {
