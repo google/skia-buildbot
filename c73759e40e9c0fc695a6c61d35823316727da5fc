@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03f202c4_69f9cc68",
+        "filename": "whitespace.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-11T21:17:29Z",
+      "side": 0,
+      "message": "Needs more space.",
+      "revId": "c73759e40e9c0fc695a6c61d35823316727da5fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "26214513_4cc5a8fc",
+        "filename": "whitespace.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-11T21:17:29Z",
+      "side": 1,
+      "message": "This space is superfluous.",
+      "revId": "ae4e75fd6a0e4e9bdd19a946b0564d16c103ebdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
