@@ -1,0 +1,20 @@
+https://github.com/kubernetes/ingress-nginx/issues/396
+
+$ gcloud compute ssl-certificates create skiatest-cert --certificate=skiatest.cert --private-key=skiatest.key --project=my-project --project=skia-public
+Created [https://www.googleapis.com/compute/v1/projects/skia-public/global/sslCertificates/skiatest-cert].
+NAME           CREATION_TIMESTAMP
+skiatest-cert  2018-04-09T10:18:17.698-07:00
+jcgregorio@jcgregorio ~/cert
+$ gcloud compute addresses create skiatest-ip --global
+Created [https://www.googleapis.com/compute/v1/projects/skia-public/global/addresses/skiatest-ip].
+jcgregorio@jcgregorio ~/cert
+
+skiatest-cert
+skiatest-ip
+
+
+kubectl run docs --image=gcr.io/skia-public/docserver:1.0 --port=8000
+kubectl expose deployment docs --target-port=8000 --type=NodePort
+kubectl describe ingress
+kubectl apply -f basic-ingress.yaml
+
