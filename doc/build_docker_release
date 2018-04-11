@@ -1,0 +1,19 @@
+#!/bin/bash
+# Builds and uploads a docker package for docserver.
+APPNAME=docserver
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+${INSTALL} --mode=644 -T docker/Dockerfile         ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/docserver   ${ROOT}/usr/local/bin/docserver
+${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/docserver/res/js/core.js
+${INSTALL} --mode=644 -T ./res/img/logo.png        ${ROOT}/usr/local/share/docserver/res/img/logo.png
+${INSTALL} --mode=644 -T ./res/css/docs.css        ${ROOT}/usr/local/share/docserver/res/css/docs.css
+${INSTALL} --mode=644 -T ./templates/index.html    ${ROOT}/usr/local/share/docserver/templates/index.html
+}
+
+source ../bash/docker_push.sh
