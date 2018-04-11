@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/compute/metadata"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/sklog"
@@ -151,7 +152,7 @@ func pullInit(ctx context.Context, client *http.Client, triggerPullCh chan bool)
 		sklog.Fatalf("Failed to retrieve a list of all packages: %s", err)
 	}
 
-	if *onGCE {
+	if metadata.OnGCE() {
 		go metadataWait(triggerPullCh)
 	}
 
