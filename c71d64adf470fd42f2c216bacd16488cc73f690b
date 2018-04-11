@@ -16,6 +16,24 @@
       "revId": "c71d64adf470fd42f2c216bacd16488cc73f690b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f9ac0c1_ee7ff1d9",
+        "filename": "whitespace.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-11T12:56:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37e5c764_1f424793",
+      "revId": "c71d64adf470fd42f2c216bacd16488cc73f690b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
