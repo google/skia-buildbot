@@ -41,7 +41,7 @@ func NewDefaultTokenSource(local bool) (oauth2.TokenSource, error) {
 	} else {
 		// Are we running on GCE?
 		if cloud_metadata.OnGCE() {
-			return google.ComputeTokenSource(""), nil
+			return google.DefaultTokenSource(context.Background())
 		} else {
 			// Create and use a token provider for skolo service account access tokens.
 			return newSkoloTokenSource(), nil
