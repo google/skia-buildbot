@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "77b9c2d5_91ff06ae",
+        "filename": "go/travisci/travisci.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-11T11:35:56Z",
+      "side": 1,
+      "message": "This should be part of the http.Client, right?",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 19
+      },
+      "revId": "6bafdfa8cedde423ea3fc0cda8c2260b5dd0accf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b358aa0e_c76537c4",
+        "filename": "go/travisci/travisci.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-11T11:35:56Z",
+      "side": 1,
+      "message": "This seems low, especially if the API is expected to return all builds for any pull request.  Do we expect to only need a small number?",
+      "range": {
+        "startLine": 60,
+        "startChar": 22,
+        "endLine": 60,
+        "endChar": 24
+      },
+      "revId": "6bafdfa8cedde423ea3fc0cda8c2260b5dd0accf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8b8a548_faee29f9",
+        "filename": "go/travisci/travisci.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-11T11:35:56Z",
+      "side": 1,
+      "message": "Nit: constant?",
+      "range": {
+        "startLine": 86,
+        "startChar": 39,
+        "endLine": 86,
+        "endChar": 40
+      },
+      "revId": "6bafdfa8cedde423ea3fc0cda8c2260b5dd0accf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
