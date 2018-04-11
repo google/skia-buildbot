@@ -351,11 +351,9 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 	if !q.IncludeMaster {
 		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
 		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
-			// Check if the tile contains a known digests.
-			if dMap, ok := talliesByTest[test]; ok {
-				if _, ok = dMap[digest]; !ok {
-					ret.add(test, digest, traceID, trace, params)
-				}
+			// Include the digest if either the test or the digest is not in the master tile.
+			if _, ok := talliesByTest[test][digest]; !ok {
+				ret.add(test, digest, traceID, trace, params)
 			}
 		}
 	}
