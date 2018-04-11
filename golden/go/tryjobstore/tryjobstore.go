@@ -649,7 +649,7 @@ func (c *cloudTryjobStore) getTestDigestExps(changeKey *datastore.Key, keysOnly 
 
 // getTryjobsForIssue returns the tryjobs for the given issue.
 func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64, keysOnly bool) ([]*datastore.Key, []*Tryjob, error) {
-	if patchsetIDs == nil {
+	if len(patchsetIDs) == 0 {
 		patchsetIDs = []int64{-1}
 	} else {
 		sort.Slice(patchsetIDs, func(i, j int) bool { return patchsetIDs[i] < patchsetIDs[j] })

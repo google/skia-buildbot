@@ -63,6 +63,7 @@
       },
 
       _handleCommitSelected: function(ev) {
+        ev.stopPropagation();
         this.setCommitInfo(ev.detail);
       },
 

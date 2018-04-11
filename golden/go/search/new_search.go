@@ -218,6 +218,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 
 // GetDigestDetails returns details about a digest as an instance of SRDigestDetails.
 func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, error) {
+	ctx := context.Background()
 	idx := s.ixr.GetIndex()
 	tile := idx.GetTile(true)
 
@@ -252,14 +253,14 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	s.getReferenceDiffs(nil, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, false, exp, idx)
+	s.getReferenceDiffs(ctx, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, false, exp, idx)
 	if err != nil {
 		return nil, err
 	}
 
 	if hasTraces {
 		// Get the params and traces.
-		s.addParamsAndTraces(nil, ret, inter, exp, idx)
+		s.addParamsAndTraces(ctx, ret, inter, exp, idx)
 	}
 
 	return &SRDigestDetails{
@@ -308,7 +309,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 
 	// Determine the patchsets we need to retrieve.
 	issue.QueryPatchsets = q.Patchsets
-	if issue.QueryPatchsets == nil {
+	if len(issue.QueryPatchsets) == 0 {
 		issue.QueryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
 		for _, psd := range issue.PatchsetDetails {
 			issue.QueryPatchsets = append(issue.QueryPatchsets, psd.ID)
