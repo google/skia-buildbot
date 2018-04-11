@@ -61,7 +61,6 @@
 <link rel="import" href="blame-sk.html">
 <link rel="import" href="dots-sk.html">
 <link rel="import" href="dot-legend-sk.html">
-<link rel="import" href="commits-dialog-sk.html">
 <link rel="import" href="purge-sk.html">
 <link rel="import" href="shared-styles.html">
 
@@ -168,8 +167,6 @@
 
     </style>
     <div class="vertical layout wrap" hidden$="[[_noData(details)]]">
-      <commits-dialog-sk></commits-dialog-sk>
-
       <!-- Triage Controls -->
       <div class="horizontal layout triageInfo">
         <triage-sk value="{{details.status}}"
