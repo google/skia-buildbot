@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2ea267f3_c3873e54",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-12T13:20:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f41b46ac_31806b3e",
+      "range": {
+        "startLine": 126,
+        "startChar": 76,
+        "endLine": 126,
+        "endChar": 77
+      },
+      "revId": "df3e9fc88fdbee586b2c664aac862bd84e50780b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c07e1160_fbfb88cd",
         "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "df3e9fc88fdbee586b2c664aac862bd84e50780b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2bd8c91_0fd985bf",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-12T13:20:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c07e1160_fbfb88cd",
+      "range": {
+        "startLine": 153,
+        "startChar": 14,
+        "endLine": 153,
+        "endChar": 54
+      },
+      "revId": "df3e9fc88fdbee586b2c664aac862bd84e50780b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
