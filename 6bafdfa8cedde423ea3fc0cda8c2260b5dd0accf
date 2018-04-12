@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "1c036ee2_a8751343",
+        "filename": "go/travisci/travisci.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-12T13:02:38Z",
+      "side": 1,
+      "message": "Unfortunately github api requires a real user with an email so it will be a skia.org account not a service account. The skia.org account will not have any special access anywhere.\n\nLet\u0027s talk about authentication to both github and travisci here. While starting out I did the simplest method to get it working but maybe there are better ways.\n\nFor github I used a personal access token: https://developer.github.com/v3/auth/ which I intended to store in metadata.\nI guess other option is to hit their authorizations end point https://developer.github.com/v3/oauth_authorizations/ but will need to store client id and client secret for that, so I figured storing access token would be somewhat equivalent.\n\nFor travis ci https://docs.travis-ci.com/api/#authentication\nI got an access token from https://github.com/settings/applications for travis ci",
+      "parentUuid": "fd2848f8_3b7cd282",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 19
+      },
+      "revId": "6bafdfa8cedde423ea3fc0cda8c2260b5dd0accf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b358aa0e_c76537c4",
         "filename": "go/travisci/travisci.go",
         "patchSetId": 1
