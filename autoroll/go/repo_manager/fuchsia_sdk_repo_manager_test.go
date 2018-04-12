@@ -90,6 +90,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
 	})
+	urlmock.MockOnce("https://storage.googleapis.com/fuchsia/linux-amd64/sdk/LATEST_ARCHIVE", mockhttpclient.MockGetDialogue([]byte(fuchsiaSDKRevBase)))
 	cfg := fuchsiaCfg()
 	cfg.ParentRepo = gb.RepoUrl()
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client())
@@ -115,6 +116,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevNext: fuchsiaSDKTimeNext,
 	})
+	urlmock.MockOnce("https://storage.googleapis.com/fuchsia/linux-amd64/sdk/LATEST_ARCHIVE", mockhttpclient.MockGetDialogue([]byte(fuchsiaSDKRevNext)))
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
 	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev())
