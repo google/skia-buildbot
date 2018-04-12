@@ -12,3 +12,6 @@ push: default
 
 release:
 	build_release
+
+push_docker: default
+	./build_docker_release
