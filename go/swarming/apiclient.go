@@ -360,7 +360,9 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 }
 
 func (c *apiClient) CancelTask(id string) error {
-	req, reqErr := c.s.Task.Cancel(id).Do()
+	req, reqErr := c.s.Task.Cancel(id, &swarming.SwarmingRpcsTaskCancelRequest{
+		KillRunning: false,
+	}).Do()
 	if reqErr != nil {
 		return reqErr
 	}
