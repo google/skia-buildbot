@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "bf20da28_cc7d3126",
+        "filename": "go/travisci/travisci.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T13:44:03Z",
+      "side": 1,
+      "message": "From what I\u0027m reading here, a service account can be used in a \"GitHub App\", whatever that means: https://developer.github.com/apps/differences-between-apps/\n\nIf you\u0027ve done the research and determined that authenticating as a service account is truly not possible, then let\u0027s add a lot of comments explaining why we need to do it this way.  It would be good to know if there is a plan to support them in the future so that we can switch as soon as it\u0027s enabled.",
+      "parentUuid": "1c036ee2_a8751343",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 19
+      },
+      "revId": "6bafdfa8cedde423ea3fc0cda8c2260b5dd0accf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b358aa0e_c76537c4",
         "filename": "go/travisci/travisci.go",
         "patchSetId": 1
