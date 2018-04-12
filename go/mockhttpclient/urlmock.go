@@ -82,7 +82,7 @@ func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
 			return nil, fmt.Errorf("Error reading request body: %s", err)
 		}
 		if !reflect.DeepEqual(md.requestPayload, DONT_CARE_REQUEST) && !reflect.DeepEqual(md.requestPayload, requestBody) {
-			return nil, fmt.Errorf("Wrong request payload, expected \n%s, but was \n%s", md.requestPayload, requestBody)
+			return nil, fmt.Errorf("Wrong request payload, expected \nX%sX, but was \nX%sX", md.requestPayload, requestBody)
 		}
 	}
 	return &http.Response{
