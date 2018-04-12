@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aaf2a96_3e836b82",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T11:22:40Z",
+      "side": 1,
+      "message": "I chose false here because it\u0027s the same behavior we had before.  If we do want to interrupt running tasks, we can make the change in another CL.",
+      "range": {
+        "startLine": 364,
+        "startChar": 2,
+        "endLine": 364,
+        "endChar": 21
+      },
+      "revId": "87afdf16f89610c13d223bfae725fce52ade002b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
