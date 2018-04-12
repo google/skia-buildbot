@@ -12,3 +12,7 @@ push: default
 
 release:
 	build_release
+
+push_docker: default
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/prober
+	./build_docker_release
