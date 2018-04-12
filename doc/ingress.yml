@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: fanout-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: skiatest-org
+spec:
+  backend:
+    serviceName: web
+    servicePort: 8000
+  rules:
+  - host: docs.skiatest.org
+    http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: docserver
+          servicePort: 8000
+  - host: web.skiatest.org
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: web
+          servicePort: 8000
+  - host: skiatest.org
+    http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: hello-server
+          servicePort: 8080

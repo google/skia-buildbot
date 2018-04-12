@@ -16,7 +16,6 @@ import (
 
 	"github.com/flynn/json5"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
@@ -29,7 +28,7 @@ import (
 // flags
 var (
 	config   = flag.String("config", "probers.json5", "Comma separated names of prober config files.")
-	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 	validate = flag.Bool("validate", false, "Validate the config file and then exit.")
 )
@@ -280,9 +279,8 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
-		"probeserver",
+		"prober",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
 	cfg, err := readConfigFiles(*config)
 	if *validate {
@@ -296,11 +294,6 @@ func main() {
 	if err != nil {
 		sklog.Fatalln("Failed to read config file: ", err)
 	}
-	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
-	if err != nil {
-		sklog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
-	}
-	go monitorIssueTracker(client)
 
 	liveness := metrics2.NewLiveness("probes")
 

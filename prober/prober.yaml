@@ -1,0 +1,32 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: prober
+spec:
+  template:
+    metadata:
+      labels:
+        app: prober
+    spec:
+      containers:
+      - name: prober
+        image: gcr.io/skia-public/proberd:2018-04-12T17_00_59Z-jcgregorio-7a612cb3ea0b1130e5db1d03847128fa9a46e274-dirty
+        ports:
+          - name: metrics
+            containerPort: 20000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prober
+  name: prober
+spec:
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 20000
+  selector:
+    app: prober
+  type: NodePort
+

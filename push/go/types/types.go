@@ -20,6 +20,7 @@ const (
 
 // Command represents the commands that can be sent to a pulld instance.
 type Command struct {
-	Action  Action
-	Service string // Name of the service the action applies to, if appropriate.
+	Action   Action
+	Service  string // Name of the service the action applies to, if appropriate.
+	Hostname string // Hostname this command applies to.
 }
