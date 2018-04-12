@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c3bf73c_f80d15e6",
+        "filename": "go/mockhttpclient/urlmock.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T13:27:39Z",
+      "side": 1,
+      "message": "Did you add a test which uses this but forget to \"git add\" it?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 7
+      },
+      "revId": "f9d8eb1eb76e3b022558e78525b46f4017ae3342",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
