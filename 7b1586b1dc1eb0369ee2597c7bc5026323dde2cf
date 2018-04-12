@@ -93,6 +93,30 @@
       "revId": "7b1586b1dc1eb0369ee2597c7bc5026323dde2cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "377e6d9b_ebe96885",
+        "filename": "go/github/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T12:17:53Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bb5a40bd_61e079ca",
+      "range": {
+        "startLine": 62,
+        "startChar": 14,
+        "endLine": 62,
+        "endChar": 92
+      },
+      "revId": "7b1586b1dc1eb0369ee2597c7bc5026323dde2cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
