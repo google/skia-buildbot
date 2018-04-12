@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fd2848f8_3b7cd282",
+        "filename": "go/travisci/travisci.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T12:20:36Z",
+      "side": 1,
+      "message": "The problem is that this strongly implies a long-lived token since (from what I can tell) this token never gets refreshed.  We should be avoiding long-lived tokens in favor of short-lived tokens obtained from the GCE metadata server.  It\u0027s possible that this failed because the service account was not authorized in the TravisCI server?",
+      "parentUuid": "9f8f8d07_cf73fc36",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 19
+      },
+      "revId": "6bafdfa8cedde423ea3fc0cda8c2260b5dd0accf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b358aa0e_c76537c4",
         "filename": "go/travisci/travisci.go",
         "patchSetId": 1
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Flutter has only 1 build which is why I set this so low. I increased it to 100 now because it can\u0027t hurt.",
       "parentUuid": "b358aa0e_c76537c4",
+      "range": {
+        "startLine": 60,
+        "startChar": 22,
+        "endLine": 60,
+        "endChar": 24
+      },
+      "revId": "6bafdfa8cedde423ea3fc0cda8c2260b5dd0accf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7da44718_e11e058c",
+        "filename": "go/travisci/travisci.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T12:20:36Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9f14880b_51448e0a",
       "range": {
         "startLine": 60,
         "startChar": 22,
