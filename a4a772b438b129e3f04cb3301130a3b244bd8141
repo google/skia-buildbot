@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d16ce6a9_fa646134",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-12T17:11:16Z",
+      "side": 1,
+      "message": "Nit: Use constants like FUCHSIA_SDK_GS_LATEST_PATH to construct this? (same above)",
+      "revId": "a4a772b438b129e3f04cb3301130a3b244bd8141",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
