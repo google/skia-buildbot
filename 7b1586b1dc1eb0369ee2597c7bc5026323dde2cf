@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "44e7eb3e_20d8a96a",
+        "filename": "go/github/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-12T12:12:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c1fa358_c022f28d",
+      "range": {
+        "startLine": 27,
+        "startChar": 7,
+        "endLine": 27,
+        "endChar": 72
+      },
+      "revId": "7b1586b1dc1eb0369ee2597c7bc5026323dde2cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "043d031d_016cd817",
         "filename": "go/github/github.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "7b1586b1dc1eb0369ee2597c7bc5026323dde2cf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb5a40bd_61e079ca",
+        "filename": "go/github/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-12T12:12:08Z",
+      "side": 1,
+      "message": "Not sure. I figured the status code should tell us everything we know like 404s. Will add more to err if this turns out not to be enough information.",
+      "parentUuid": "043d031d_016cd817",
+      "range": {
+        "startLine": 62,
+        "startChar": 14,
+        "endLine": 62,
+        "endChar": 92
+      },
+      "revId": "7b1586b1dc1eb0369ee2597c7bc5026323dde2cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
