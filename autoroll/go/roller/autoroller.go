@@ -127,7 +127,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 
-	n := arb_notifier.New(c.ParentName, c.ChildName, emailer)
+	n := arb_notifier.New(c.ChildName, c.ParentName, emailer)
 	if err := n.Router().AddFromConfigs(ctx, c.Notifiers); err != nil {
 		return nil, err
 	}
