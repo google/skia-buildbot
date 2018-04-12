@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "31e761cc_71566e37",
+        "filename": "autoroll/config/catapult-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T19:51:59Z",
+      "side": 1,
+      "message": "The roller notifications are graded by severity, eg:\nupdates for individual rolls -\u003e info\nmode changes -\u003e warning\nsafety throttled (infra problem) -\u003e error\nsuccess throttled (when the roller is configured to only land a roll every N hours) -\u003e warning\n\nWe can set these filters however you want, and since these notifications are brand new, we\u0027re open to adjusting the severity level for individual messages.",
+      "range": {
+        "startLine": 7,
+        "startChar": 17,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
