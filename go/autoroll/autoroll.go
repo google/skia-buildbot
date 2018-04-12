@@ -12,9 +12,12 @@ import (
 	"sort"
 	"time"
 
+	github_api "github.com/google/go-github/github"
+
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -157,6 +160,38 @@ func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
 		ChangeId:  fmt.Sprintf("%d", a.Issue),
 		Patchsets: patchsets,
 	}, nil
+}
+
+// FromGitHubPullRequest returns an AutoRollIssue instance based on the given
+// PullRequest.
+func FromGitHubPullRequest(pullRequest *github_api.PullRequest, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
+	// No such thing as dry run for GitHub rolls right now.
+	cq := true
+	dryRun := false
+
+	ps := make([]int64, 0, *pullRequest.Commits)
+	for i := 1; i <= *pullRequest.Commits; i++ {
+		ps = append(ps, int64(i))
+	}
+	roll := &AutoRollIssue{
+		Closed:            pullRequest.GetState() == github.CLOSED_STATE,
+		Committed:         pullRequest.GetMerged(),
+		CommitQueue:       cq,
+		CommitQueueDryRun: dryRun,
+		Created:           pullRequest.GetCreatedAt(),
+		Issue:             int64(pullRequest.GetNumber()),
+		Modified:          pullRequest.GetUpdatedAt(),
+		Patchsets:         ps,
+		Subject:           pullRequest.GetTitle(),
+	}
+	roll.Result = rollResult(roll)
+	from, to, err := RollRev(roll.Subject, fullHashFn)
+	if err != nil {
+		return nil, err
+	}
+	roll.RollingFrom = from
+	roll.RollingTo = to
+	return roll, nil
 }
 
 // FromGerritChangeInfo returns an AutoRollIssue instance based on the given
