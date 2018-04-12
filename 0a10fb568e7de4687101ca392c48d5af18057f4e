@@ -22,6 +22,30 @@
       "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27bd15d5_7b2d1031",
+        "filename": "autoroll/config/catapult-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 6641
+      },
+      "writtenOn": "2018-04-12T20:01:47Z",
+      "side": 1,
+      "message": "Thanks! I\u0027m a little unsure what a mode change is? Ideally we would know when:\n* First roll that fails\n* First success after a failed roll\n* Underlying infra problem\n\nWould warning be the closest level?",
+      "parentUuid": "31e761cc_71566e37",
+      "range": {
+        "startLine": 7,
+        "startChar": 17,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
