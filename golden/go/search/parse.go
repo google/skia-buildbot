@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
@@ -222,6 +223,10 @@ func (v *Validation) Errors() error {
 // ParseQuery parses the request parameters from the URL query string or from the
 // form parameters and stores the parsed and validated values in query.
 func ParseQuery(r *http.Request, query *Query) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+
 	// Parse the list of fields that need to match and ensure the
 	// test name is in it.
 	var ok bool
@@ -232,6 +237,7 @@ func ParseQuery(r *http.Request, query *Query) error {
 	} else {
 		query.Match = []string{types.PRIMARY_KEY_FIELD}
 	}
+	sklog.Infof("MATCH: %s", query.Match)
 
 	validate := Validation{}
 

@@ -135,10 +135,11 @@ func (r *RefDiffer) getClosestDiff(metric, digest string, compDigests []string) 
 }
 
 // paramSetsMatch returns true if the two param sets have matching
-// values for the parameters listed in 'match'. If one of the is nil
+// values for the parameters listed in 'match'. If one of them is nil
 // there is always a match.
 func paramSetsMatch(match []string, p1, p2 paramtools.ParamSet) bool {
 	if (p1 == nil) || (p2 == nil) {
+		sklog.Infof("Found nil match: %v    %v", p1, p2)
 		return true
 	}
 
@@ -159,5 +160,13 @@ func paramSetsMatch(match []string, p1, p2 paramtools.ParamSet) bool {
 			return false
 		}
 	}
+
+	left := []string{}
+	right := []string{}
+	for _, m := range match {
+		left = append(left, p1[m]...)
+		right = append(right, p1[m]...)
+	}
+	sklog.Infof("\n\n\nMATCH: %v\n%v\n%v\n\n\n", match, left, right)
 	return true
 }
