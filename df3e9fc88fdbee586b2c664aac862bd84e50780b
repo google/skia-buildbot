@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f41b46ac_31806b3e",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T12:27:26Z",
+      "side": 1,
+      "message": "Nit: add \"--no-ext-diff\".  Otherwise tests will do weird things for those of us who use an external difftool.",
+      "range": {
+        "startLine": 126,
+        "startChar": 76,
+        "endLine": 126,
+        "endChar": 77
+      },
+      "revId": "df3e9fc88fdbee586b2c664aac862bd84e50780b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c07e1160_fbfb88cd",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-12T12:27:26Z",
+      "side": 1,
+      "message": "Nit: Here and elsewhere, I think I\u0027d prefer:\n\ngit.GitDir(licenseToolsDir).Git(ctx, \"checkout\", ...\n\nAt the moment, there\u0027s no difference, but I can imagine us wanting to use Git from CIPD or something in the future, so having fewer instances of \"git\" around would be nice.",
+      "range": {
+        "startLine": 153,
+        "startChar": 14,
+        "endLine": 153,
+        "endChar": 54
+      },
+      "revId": "df3e9fc88fdbee586b2c664aac862bd84e50780b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
