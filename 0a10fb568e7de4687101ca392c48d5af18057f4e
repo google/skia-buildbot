@@ -70,6 +70,30 @@
       "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c34d6b3_457f667b",
+        "filename": "autoroll/config/catapult-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 6641
+      },
+      "writtenOn": "2018-04-13T13:37:06Z",
+      "side": 1,
+      "message": "Let\u0027s start with \"info\" to just the chat group, and adjust from there.",
+      "parentUuid": "7a774832_6d302779",
+      "range": {
+        "startLine": 7,
+        "startChar": 17,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
