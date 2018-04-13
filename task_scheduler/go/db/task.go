@@ -273,7 +273,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 
 	// Status.
 	switch s.State {
-	case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_TIMED_OUT:
+	case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
 		copy.Status = TASK_STATUS_MISHAP
 	case swarming.TASK_STATE_PENDING:
 		copy.Status = TASK_STATUS_PENDING
