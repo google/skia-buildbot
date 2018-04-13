@@ -26,7 +26,7 @@ const (
 	fuchsiaSDKTimeBase = "2009-11-10T23:00:02Z"
 	fuchsiaSDKTimeNext = "2009-11-10T23:00:03Z"
 
-	fuchsiaSDKLatestArchiveUrl = "https://storage.googleapis.com/fuchsia/linux-amd64/sdk/LATEST_ARCHIVE"
+	fuchsiaSDKLatestArchiveUrl = "https://storage.googleapis.com/fuchsia/sdk/linux-amd64/LATEST_ARCHIVE"
 )
 
 func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {

@@ -26,7 +26,7 @@ import (
 const (
 	FUCHSIA_SDK_GS_BUCKET      = "fuchsia"
 	FUCHSIA_SDK_GS_PATH        = "sdk"
-	FUCHSIA_SDK_GS_LATEST_PATH = "linux-amd64/sdk/LATEST_ARCHIVE"
+	FUCHSIA_SDK_GS_LATEST_PATH = "sdk/linux-amd64/LATEST_ARCHIVE"
 
 	FUCHSIA_SDK_VERSION_FILE_PATH = "build/fuchsia/sdk.sha1"
 
