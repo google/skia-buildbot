@@ -94,6 +94,30 @@
       "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75536527_6b22c64a",
+        "filename": "autoroll/config/catapult-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-13T14:34:39Z",
+      "side": 1,
+      "message": "SGTM, done.",
+      "parentUuid": "0c34d6b3_457f667b",
+      "range": {
+        "startLine": 7,
+        "startChar": 17,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
