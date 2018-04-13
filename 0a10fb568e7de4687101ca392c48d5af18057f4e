@@ -46,6 +46,30 @@
       "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a774832_6d302779",
+        "filename": "autoroll/config/catapult-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-13T12:36:18Z",
+      "side": 1,
+      "message": "We don\u0027t yet have notifications for those events, so unfortunately the only way to get that information would be to use \"info\" and receive all of the notifications about every roll, ie. when it\u0027s uploaded and whether it succeeds or fails.  I\u0027ll work on adding those events and will leave it up to you whether you want to turn on the notifications before that is done.\n\nA mode change is when someone starts or stops the roller or puts it into dry run mode.",
+      "parentUuid": "27bd15d5_7b2d1031",
+      "range": {
+        "startLine": 7,
+        "startChar": 17,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "0a10fb568e7de4687101ca392c48d5af18057f4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
