@@ -6,7 +6,7 @@
     {
       "filter": "info",
       "chat": {
-        "room": ["speed-operations"]
+        "room": "speed-operations"
       }
     }
   ],
