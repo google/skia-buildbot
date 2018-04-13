@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e74d9628_069365e6",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-13T19:51:06Z",
+      "side": 1,
+      "message": "Or we could make this its own status type.  But I think mishap makes sense.",
+      "range": {
+        "startLine": 276,
+        "startChar": 126,
+        "endLine": 276,
+        "endChar": 153
+      },
+      "revId": "cf5fd3c9b306e03a0b9d6c81c333f70d71d9a94f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
