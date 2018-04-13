@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a debian package for prober.
+set -x -e
+
+APPNAME=configmap-reload
+
+CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo github.com/jimmidyson/configmap-reload
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose"
+${INSTALL} --mode=644 -T docker/Dockerfile              ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/configmap-reload ${ROOT}/configmap-reload
+}
+
+source ../bash/docker_push.sh
