@@ -69,7 +69,7 @@ type Issue struct {
 	Status          string            `json:"status"`
 	PatchsetDetails []*PatchsetDetail `json:"patchsets"`
 	Commited        bool              `json:"commited"`
-	QueryPatchsets  []int64           `json:"queryPatchsets"    datastore:"-"`
+	QueryPatchset   int64             `json:"queryPatchsets"    datastore:"-"`
 
 	clean bool
 }
