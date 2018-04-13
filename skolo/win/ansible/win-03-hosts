@@ -29,6 +29,7 @@ all:
     nvidia:
       hosts:
         skia-e-win-301:
+        skia-e-win-302:
         skia-e-win-304:
         skia-e-win-305:
         skia-e-win-313:
