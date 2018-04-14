@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "174e630f_2f6cf421",
+        "filename": "autoroll/go/repo_manager/direct_roll_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2018-04-14T12:37:00Z",
+      "side": 1,
+      "message": "version.sha1?",
+      "parentUuid": "e90653be_9bd68ac3",
+      "range": {
+        "startLine": 31,
+        "startChar": 28,
+        "endLine": 31,
+        "endChar": 38
+      },
+      "revId": "42b099a02e6e1c69af01b7e74aac7deba5235013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "849013e1_bf3f58fd",
         "filename": "autoroll/go/repo_manager/direct_roll_repo_manager.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2018-04-13T18:56:45Z",
       "side": 1,
       "message": "So I\u0027m not in love with this name.  But I don\u0027t know what to call it when the child repo is copied directly into the parent repo rather than referenced by a hash in a file.  I\u0027m open to suggestions.",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 21
+      },
+      "revId": "42b099a02e6e1c69af01b7e74aac7deba5235013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e048591f_69ce2616",
+        "filename": "autoroll/go/repo_manager/direct_roll_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2018-04-14T12:37:00Z",
+      "side": 1,
+      "message": "We\u0027ve been calling it a \"hard roll\".  Something with \"copy\" in the name might work too.",
+      "parentUuid": "849013e1_bf3f58fd",
       "range": {
         "startLine": 37,
         "startChar": 1,
