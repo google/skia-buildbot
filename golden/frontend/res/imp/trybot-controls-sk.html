@@ -23,6 +23,9 @@
 <link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="shared-styles.html">
@@ -84,6 +87,16 @@
         <span class="triagelogLink">(<a href$="/triagelog?issue=[[_issue.id]]">Triagelog</a>)</span>
       </div>
 
+      <paper-dropdown-menu id="patchsetDropDown" label="Sort By" horizontal-align="left">
+        <paper-listbox id="itemMenu" class="dropdown-content" selected="{{_currPatchSet}}" attr-for-selected="value">
+          <template is="dom-repeat" items="{{_groupedPatchsets}}">
+            <paper-item value="[[item.val]]">[[item.label]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-toggle-button checked="{{_master}}">Include Master</paper-toggle-button>
+
+      <!--
       <table class="issueTable">
         <thead>
           <tr>
@@ -106,7 +119,7 @@
             </tr>
           </template>
         </tbody>
-      </table>
+      </table> -->
     </template>
   </template>
 
@@ -128,6 +141,7 @@
       },
 
       setIssue: function(issue) {
+        this._setPatchsetInfo(issue);
         this.set("_issue", issue);
 
         // Get a baseURL that we can customize with pageset ids.
@@ -136,6 +150,24 @@
         var q = gold.queryFromState(state);
         q += ((q === '') ? '?' : '&') + 'patchsets=';
         this._baseUrl = window.location.pathname + q;
+      },
+
+      _setPatchsetInfo: function(issue) {
+        if (!issue || !issue.patchsets) {
+          return;
+        }
+        var currSelected = (issue.queryPatchsets && issue.queryPatchsets.length && issue.queryPatchsets[0]) || -1;
+        var patchsets = [];
+        var curr = [];
+        for(var i=0; i < issue.patchsets.length; i++) {
+          curr.push(issue.patchsets[i]);
+          if (issue.patchsets[i].tryjobs) {
+            patchsets.push({
+              label: 'Patchset ' + curr[0].id + (curr.length>1) ? '-' +curr[curr.length-1].id:'',
+              val: issue.patchsets[i].id
+            });
+          }
+        }
       },
 
       _patchsetHref: function(patchset) {
