@@ -94,6 +94,30 @@
       "revId": "7cad34b0209090c3e21112082ea30fb849e9985a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f54aca1d_9b2ab90b",
+        "filename": "skolo/raspberry-pi/start_serving_image.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-16T14:28:31Z",
+      "side": 1,
+      "message": "It\u0027s not a frequent event - once since we started using the RPIs.",
+      "parentUuid": "2e3644e0_ea9d3870",
+      "range": {
+        "startLine": 19,
+        "startChar": 6,
+        "endLine": 19,
+        "endChar": 13
+      },
+      "revId": "7cad34b0209090c3e21112082ea30fb849e9985a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
