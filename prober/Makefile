@@ -12,3 +12,10 @@ push: default
 
 release:
 	build_release
+
+push_docker: default
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/prober
+	./build_docker_release
+
+push_config: default
+	kubectl create configmap prober-config --from-file=allprobers.json5 -o yaml --dry-run | kubectl replace -f -
