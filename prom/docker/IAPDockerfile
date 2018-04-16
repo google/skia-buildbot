@@ -1,0 +1,5 @@
+FROM alpine
+
+ADD . /
+
+CMD ["/iap_proxy", "--logtostderr", "--aud=/projects/145247227042/global/backendServices/6445551453049026560", "--port=:8080", "--target_port=:9090"]
