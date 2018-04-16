@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdcdb283_a76ad122",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-16T16:34:37Z",
+      "side": 1,
+      "message": "nit: Is this for performance? I wonder if it makes much difference -- I would expect a compiled regex for a fixed string would be pretty fast.",
+      "range": {
+        "startLine": 325,
+        "startChar": 6,
+        "endLine": 325,
+        "endChar": 39
+      },
+      "revId": "1ed7b83c10bfc6377656dd60246e98bd29f9087a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a69af1b_e2c54005",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-16T16:34:37Z",
+      "side": 1,
+      "message": "nit: compile outside the loop",
+      "range": {
+        "startLine": 328,
+        "startChar": 15,
+        "endLine": 328,
+        "endChar": 37
+      },
+      "revId": "1ed7b83c10bfc6377656dd60246e98bd29f9087a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c931cf19_a789abf9",
+        "filename": "task_scheduler/go/db/search_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-16T16:34:37Z",
+      "side": 1,
+      "message": "nit: maybe also do a regex checkNoMatch.",
+      "revId": "1ed7b83c10bfc6377656dd60246e98bd29f9087a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
