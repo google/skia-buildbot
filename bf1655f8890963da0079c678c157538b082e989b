@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35903445_47efb258",
+        "filename": "common/modules/app-sk/app-sk-partial.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-16T14:29:25Z",
+      "side": 1,
+      "message": "Use CSS grid, it is supported everywhere now and will make this much easier to reason about:\n\nfooter { grid-area: footer; }\nmain { grid-area: main; }\nheader { grid-area: header; }\nnav { grid-area: nav; }\n\napp-sk {\n  grid-template-columns: $sidebar-width 1fr;\n  grid-template-areas: \n    \"header  header\"\n    \"nav     main\"\n    \"footer  footer\";\n}",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87fae9ec_498a8a4a",
+        "filename": "common/modules/app-sk/app-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-16T14:29:25Z",
+      "side": 1,
+      "message": "Do the construction of the button via template element:\n\nconst button_template \u003d document.createElement(\u0027template\u0027);\nbutton_template.innerHTML \u003d`\n  \u003cbutton class\u003dtoggle-button\u003e\n   \u003cicon-menu-sk\u003e\n   \u003c/icon-menu-sk\u003e\n  \u003c/button\u003e\n`;",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "281fc0ca_f813228a",
+        "filename": "common/modules/app-sk/app-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-16T14:29:25Z",
+      "side": 1,
+      "message": "Then this code becomes much simpler:\n\nlet btn \u003d button_template.content.cloneNode(true);\nbtn.addEventListener(\u0027click\u0027, (e) \u003d\u003e this._toggleMenu(e));\nheader.insertBefore(btn, header.firstElementChild)",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aed3a51d_023c7829",
+        "filename": "common/modules/app-sk/app-sk_demo.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-16T14:29:25Z",
+      "side": 1,
+      "message": "the values properly",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cdb4fe7_9fe39660",
+        "filename": "common/modules/app-sk/app-sk_demo.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-16T14:29:25Z",
+      "side": 1,
+      "message": "Yeah, that shouldn\u0027t happen, are we missing some flags in our SCSS processing?",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
