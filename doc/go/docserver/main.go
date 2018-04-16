@@ -58,8 +58,9 @@ func loadTemplates() {
 }
 
 func Init() {
+
 	// Initialize the SSI package which needs access to GCS.
-	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", "", storage.ScopeFullControl)
+	tokenSrc, err := auth.NewDefaultTokenSource(*local)
 	if err != nil {
 		sklog.Fatalf("Unable to obtain auth token source: %s", err)
 	}
@@ -187,11 +188,13 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		body := blackfriday.MarkdownCommon(b)
 
-		// Resolve the serve side includes if there are any.
-		if body, err = ssi.ProcessSSI(body); err != nil {
-			httputils.ReportError(w, r, err, "Failed to load file")
-			return
-		}
+		/*
+			// Resolve the serve side includes if there are any.
+			if body, err = ssi.ProcessSSI(body); err != nil {
+				httputils.ReportError(w, r, err, "Failed to load file")
+				return
+			}
+		*/
 
 		if bodyOnly {
 			if _, err := w.Write(body); err != nil {
@@ -224,24 +227,27 @@ func main() {
 	opts := []common.Opt{
 		common.PrometheusOpt(promPort),
 	}
-	if !*local {
-		opts = append(opts, common.CloudLoggingOpt())
-	}
+	/*
+		if !*local {
+			opts = append(opts, common.CloudLoggingOpt())
+		}
+	*/
 	common.InitWithMust(
 		"docserver",
 		opts...,
 	)
-	if !*local {
-		login.SimpleInitMust(*port, *local)
-	}
+	/*
+		  // TODO(jcgregorio) Update to load from secrets.
+			if !*local {
+				login.SimpleInitMust(*port, *local)
+			}
+	*/
 
 	Init()
 
 	// Resources are served directly.
 	if !*local {
-		http.HandleFunc("/logout/", login.LogoutHandler)
 		http.HandleFunc("/loginstatus/", login.StatusHandler)
-		http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	}
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
