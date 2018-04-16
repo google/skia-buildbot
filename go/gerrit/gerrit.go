@@ -152,6 +152,7 @@ type Revision struct {
 }
 
 type GerritInterface interface {
+	Initialized() bool
 	TurnOnAuthenticatedGets()
 	Url(int64) string
 	GetUserEmail() (string, error)
@@ -255,6 +256,12 @@ func getCredentials(gitCookiesPath string) (map[string]string, error) {
 func parseTime(t string) time.Time {
 	parsed, _ := time.Parse(TIME_FORMAT, t)
 	return parsed
+}
+
+// TurnOnAuthenticatedGets makes all GET requests contain authentication
+// cookies. By default only POST requests are automatically authenticated.
+func (g *Gerrit) Initialized() bool {
+	return g != nil
 }
 
 // TurnOnAuthenticatedGets makes all GET requests contain authentication
