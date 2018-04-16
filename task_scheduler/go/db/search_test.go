@@ -16,6 +16,7 @@ func TestJobSearch(t *testing.T) {
 	now := time.Now()
 
 	j := makeFullJob(now)
+	j.Name = "Build-Win-Clang-x86_64-Debug-Vulkan"
 
 	emptyParams := func() *JobSearchParams {
 		return &JobSearchParams{
@@ -124,6 +125,8 @@ func TestJobSearch(t *testing.T) {
 	// Name
 	p = emptyParams()
 	p.Name = j.Name
+	checkMatches(p)
+	p.Name = j.Name[:3] + ".*"
 	checkMatches(p)
 	p = matchParams()
 	p.Name = "bogus"

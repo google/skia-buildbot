@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"io"
+	"regexp"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
@@ -318,11 +319,19 @@ func matchJobs(jobs []*Job, p *JobSearchParams) []*Job {
 			searchStringEqual(p.Server, j.Server) &&
 			searchStringEqual(p.Repo, j.Repo) &&
 			searchStringEqual(p.Revision, j.Revision) &&
-			searchStringEqual(p.Name, j.Name) &&
 			searchStringEqual(string(p.Status), string(j.Status)) &&
 			searchBoolEqual(p.IsForce, j.IsForce) &&
 			searchInt64Equal(p.BuildbucketBuildId, j.BuildbucketBuildId) {
-			rv = append(rv, j)
+			if searchStringEqual(p.Name, j.Name) {
+				rv = append(rv, j)
+			} else {
+				re, err := regexp.Compile(p.Name)
+				if err != nil {
+					// Just ignore the error and fail to match names.
+				} else if re.MatchString(j.Name) {
+					rv = append(rv, j)
+				}
+			}
 		}
 	}
 	return rv
