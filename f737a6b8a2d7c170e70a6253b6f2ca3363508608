@@ -22,6 +22,30 @@
       "revId": "f737a6b8a2d7c170e70a6253b6f2ca3363508608",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dec4be2_6fc58fab",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-16T17:08:21Z",
+      "side": 1,
+      "message": "I need more coffee.  Changed to return the error.  At least this way the user will know why we failed to match anything.",
+      "parentUuid": "586fea54_50f4c8a9",
+      "range": {
+        "startLine": 314,
+        "startChar": 2,
+        "endLine": 314,
+        "endChar": 51
+      },
+      "revId": "f737a6b8a2d7c170e70a6253b6f2ca3363508608",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
