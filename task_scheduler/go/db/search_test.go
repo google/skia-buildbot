@@ -16,6 +16,7 @@ func TestJobSearch(t *testing.T) {
 	now := time.Now()
 
 	j := makeFullJob(now)
+	j.Name = "Build-Win-Clang-x86_64-Debug-Vulkan"
 
 	emptyParams := func() *JobSearchParams {
 		return &JobSearchParams{
@@ -46,12 +47,14 @@ func TestJobSearch(t *testing.T) {
 	}
 
 	checkMatches := func(p *JobSearchParams) {
-		jobs := matchJobs([]*Job{j}, p)
+		jobs, err := matchJobs([]*Job{j}, p)
+		assert.NoError(t, err)
 		assert.Equal(t, 1, len(jobs))
 		testutils.AssertDeepEqual(t, j, jobs[0])
 	}
 	checkNoMatch := func(p *JobSearchParams) {
-		jobs := matchJobs([]*Job{j}, p)
+		jobs, err := matchJobs([]*Job{j}, p)
+		assert.NoError(t, err)
 		assert.Equal(t, 0, len(jobs))
 	}
 
@@ -125,9 +128,17 @@ func TestJobSearch(t *testing.T) {
 	p = emptyParams()
 	p.Name = j.Name
 	checkMatches(p)
+	p.Name = j.Name[:3] + ".*"
+	checkMatches(p)
 	p = matchParams()
 	p.Name = "bogus"
 	checkNoMatch(p)
+	p = matchParams()
+	p.Name = "^T.*"
+	checkNoMatch(p)
+	p.Name = "((("
+	_, err := matchJobs([]*Job{}, p)
+	assert.EqualError(t, err, "error parsing regexp: missing closing ): `(((`")
 
 	// Status
 	p = emptyParams()

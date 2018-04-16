@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"io"
+	"regexp"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
@@ -306,7 +307,13 @@ func searchStringEqual(search, test string) bool {
 }
 
 // matchJobs returns Jobs which match the given search parameters.
-func matchJobs(jobs []*Job, p *JobSearchParams) []*Job {
+func matchJobs(jobs []*Job, p *JobSearchParams) ([]*Job, error) {
+	// We accept a regex for the job name.
+	nameRe, err := regexp.Compile(p.Name)
+	if err != nil {
+		return nil, err
+	}
+
 	rv := []*Job{}
 	for _, j := range jobs {
 		// Compare all attributes which are provided.
@@ -318,14 +325,14 @@ func matchJobs(jobs []*Job, p *JobSearchParams) []*Job {
 			searchStringEqual(p.Server, j.Server) &&
 			searchStringEqual(p.Repo, j.Repo) &&
 			searchStringEqual(p.Revision, j.Revision) &&
-			searchStringEqual(p.Name, j.Name) &&
+			nameRe.MatchString(j.Name) &&
 			searchStringEqual(string(p.Status), string(j.Status)) &&
 			searchBoolEqual(p.IsForce, j.IsForce) &&
 			searchInt64Equal(p.BuildbucketBuildId, j.BuildbucketBuildId) {
 			rv = append(rv, j)
 		}
 	}
-	return rv
+	return rv, nil
 }
 
 // SearchJobs returns Jobs in the given time range which match the given search
@@ -339,7 +346,7 @@ func SearchJobs(db JobReader, p *JobSearchParams) ([]*Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	return matchJobs(jobs, p), nil
+	return matchJobs(jobs, p)
 }
 
 // matchTasks returns Tasks which match the given search parameters.
