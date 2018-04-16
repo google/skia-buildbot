@@ -1,0 +1,5 @@
+FROM alpine
+
+ADD . /
+
+CMD ["/iap_proxy", "--logtostderr", "--backend_service_id=k8s-be-32071--e03569f20c11b77d", "--project_number=145247227042", "--port=:8080", "--target_port=:9090"]
