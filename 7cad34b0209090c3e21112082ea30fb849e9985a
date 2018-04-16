@@ -46,6 +46,30 @@
       "revId": "7cad34b0209090c3e21112082ea30fb849e9985a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83d7bcb0_55f23fe1",
+        "filename": "skolo/raspberry-pi/start_serving_image.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-16T14:00:26Z",
+      "side": 1,
+      "message": "Gotcha - so if the root image gets resized, then this will need to be updated.",
+      "parentUuid": "b5a448a3_eedfbf97",
+      "range": {
+        "startLine": 19,
+        "startChar": 6,
+        "endLine": 19,
+        "endChar": 13
+      },
+      "revId": "7cad34b0209090c3e21112082ea30fb849e9985a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
