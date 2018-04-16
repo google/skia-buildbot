@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "586fea54_50f4c8a9",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-16T16:58:59Z",
+      "side": 1,
+      "message": "nameRe will probably be nil, so this probably won\u0027t work",
+      "range": {
+        "startLine": 314,
+        "startChar": 2,
+        "endLine": 314,
+        "endChar": 51
+      },
+      "revId": "f737a6b8a2d7c170e70a6253b6f2ca3363508608",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
