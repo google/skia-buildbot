@@ -22,6 +22,30 @@
       "revId": "7cad34b0209090c3e21112082ea30fb849e9985a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5a448a3_eedfbf97",
+        "filename": "skolo/raspberry-pi/start_serving_image.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-16T13:58:39Z",
+      "side": 1,
+      "message": "Same as the numbers from 13 and 15:\n\n$ fdisk -l /opt/rpi_img/prod.img \nDisk /opt/rpi_img/prod.img: 2.3 GiB, 2434793472 bytes, 4755456 sectors\nUnits: sectors of 1 * 512 \u003d 512 bytes\nSector size (logical/physical): 512 bytes / 512 bytes\nI/O size (minimum/optimal): 512 bytes / 512 bytes\nDisklabel type: dos\nDisk identifier: 0xe256d969\n\nDevice                 Boot  Start     End Sectors  Size Id Type\n/opt/rpi_img/prod.img1        8192  131071  122880   60M  c W95 FAT32 (LBA)\n/opt/rpi_img/prod.img2      131072 4755455 4624384  2.2G 83 Linux",
+      "parentUuid": "2021b9f5_2d81d66a",
+      "range": {
+        "startLine": 19,
+        "startChar": 6,
+        "endLine": 19,
+        "endChar": 13
+      },
+      "revId": "7cad34b0209090c3e21112082ea30fb849e9985a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
