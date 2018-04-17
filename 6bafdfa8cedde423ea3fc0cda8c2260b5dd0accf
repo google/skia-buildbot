@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "dcf72484_48cc316d",
+        "filename": "go/travisci/travisci.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-17T13:59:02Z",
+      "side": 1,
+      "message": "GitHub apps are like chrome apps, i.e. apps you run on Github to improve workflows: https://github.com/marketplace e.g. Travis CI is a github app and it probably uses a service account when it is talking to github that is not exposed to us.\n\nYes, I believe using a service account is not possible for the roller. Added comments here and in the github CL.",
+      "parentUuid": "bf20da28_cc7d3126",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 19
+      },
+      "revId": "6bafdfa8cedde423ea3fc0cda8c2260b5dd0accf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b358aa0e_c76537c4",
         "filename": "go/travisci/travisci.go",
         "patchSetId": 1
