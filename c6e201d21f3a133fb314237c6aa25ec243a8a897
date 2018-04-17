@@ -46,6 +46,30 @@
       "revId": "c6e201d21f3a133fb314237c6aa25ec243a8a897",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76f2b2f3_69f081c4",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-17T18:28:46Z",
+      "side": 1,
+      "message": "Sure, let\u0027s see what happens!",
+      "parentUuid": "e2f7da8f_8e6ade85",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 23
+      },
+      "revId": "c6e201d21f3a133fb314237c6aa25ec243a8a897",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
