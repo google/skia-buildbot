@@ -3,14 +3,13 @@
 package taskname
 
 var SCHEMA_FROM_GIT = map[string][]string{
-	"Build":       {"os", "compiler", "target_arch", "configuration"},
-	"Calmbench":   {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
-	"Canary":      {"project", "os", "compiler", "target_arch", "configuration"},
-	"Housekeeper": {"frequency"},
-	"Infra":       {"frequency"},
-	"Perf":        {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
-	"Test":        {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
-	"Upload":      {"orig_role", "os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
+	"Build":       &main.configSchema{Keys: []string{"os", "compiler", "target_arch", "configuration"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Calmbench":   &main.configSchema{Keys: []string{"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Housekeeper": &main.configSchema{Keys: []string{"frequency"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Infra":       &main.configSchema{Keys: []string{"frequency"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Perf":        &main.configSchema{Keys: []string{"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Test":        &main.configSchema{Keys: []string{"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Upload":      &main.configSchema{Keys: []string(nil), OptionalKeys: []string(nil), RecurseRoles: []string{"Build", "Calmbench", "Perf", "Test"}},
 }
 
 var SEPARATOR_FROM_GIT = "-"
