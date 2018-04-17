@@ -11,8 +11,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -21,6 +22,7 @@ var (
 	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort   = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 	targetPort = flag.String("target_port", ":10116", "The port we are proxying to.")
+	aud        = flag.String("aud", "", "The aud value, from the Identity-Aware Proxy JWT Audience for the given backend.")
 )
 
 type Proxy struct {
@@ -34,14 +36,7 @@ func NewProxy(target *url.URL) *Proxy {
 }
 
 func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Check if it's a GET request from the whitelisted IPs for "/", and if so
-	// then return a 200 with no body.
-	// From 130.211.0.0/22 and 35.191.0.0/16
-	sklog.Infof("Requesting: %s", r.RequestURI)
-	if login.LoggedInAs(r) == "" {
-		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
-		return
-	}
+	sklog.Infof("Requesting: %s As: %s", r.RequestURI, r.Header.Get("x-user-email"))
 	p.reverseProxy.ServeHTTP(w, r)
 }
 
@@ -50,16 +45,24 @@ func main() {
 	common.InitWithMust(
 		filepath.Base(os.Args[0]),
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
-	login.SimpleInitMust(*port, *local)
-
 	target, err := url.Parse(fmt.Sprintf("http://localhost%s", *targetPort))
 	if err != nil {
 		sklog.Fatalf("Unable to parse target URL %q: %s", targetPort, err)
 	}
 
-	http.Handle("/", NewProxy(target))
-	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	var h http.Handler = NewProxy(target)
+	if !*local {
+		client, err := auth.NewJWTServiceAccountClient("", "/var/secrets/skia-public-auth/key.json", nil, "https://www.googleapis.com/auth/userinfo.email")
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		allowed, err := iap.NewAllowedFromInfraAuth(client, "google/skia-root@google.com")
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		h = iap.New(h, *aud, allowed)
+	}
+	http.Handle("/", h)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
