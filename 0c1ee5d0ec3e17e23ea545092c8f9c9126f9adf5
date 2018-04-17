@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "570d5043_8babc72f",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-17T19:35:48Z",
+      "side": 1,
+      "message": "It might be nicer to just display whatever was there before, ie. initialize these to UNKNOWN but when we get an error from the XHR, we just leave the display alone.  It\u0027d be out of date but IMO that\u0027s better than unusable.",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 34
+      },
+      "revId": "0c1ee5d0ec3e17e23ea545092c8f9c9126f9adf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
