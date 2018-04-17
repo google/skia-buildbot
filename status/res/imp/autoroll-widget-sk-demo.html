@@ -12,13 +12,19 @@
     var modes = ["running", "stopped", "dry run"];
     sk.get = function(url) {
       return new Promise(function (resolve, reject) {
-        resolve(JSON.stringify({
-          currentRollRev: "abc123",
-          lastRollRev: "def456",
-          mode: modes[i % modes.length],
-          numFailed: i % 4,
-          numBehind: i++,
-        }));
+        if (i % 10 === 4) {
+          i++;
+          reject("nope error");
+        } else {
+          resolve(JSON.stringify({
+            currentRollRev: "abc123",
+            lastRollRev: "def456",
+            mode: modes[i % modes.length],
+            numFailed: i % 4,
+            numBehind: i++,
+          }));
+        }
+
       });
     };
   </script>
