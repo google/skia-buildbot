@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/taskname"
 )
 
 const (
@@ -25,20 +26,27 @@ const (
 
 package taskname
 
-var SCHEMA_FROM_GIT = map[string][]string{
+var SCHEMA_FROM_GIT = map[string]*SchemaDetails{
 %s}
 
 var SEPARATOR_FROM_GIT = "%s"
 `
 )
 
-type taskNameSchema struct {
-	// Schema maps a config (e.g. Build) to the ordered list of keys in the name
-	// Note, the json names are a carryover from Buildbot days, where builder == task
-	Schema map[string][]string `json:"builder_name_schema"`
-	// TaskNameSep specifies how the various keys will be seperated, e.g. "-"
-	TaskNameSep string `json:"builder_name_sep"`
-}
+// // configSchema is a sub-struct of taskNameSchema
+// type configSchema struct {
+// 	Keys         []string `json:"keys"`
+// 	OptionalKeys []string `json:"optional_keys"`
+// 	RecurseRoles []string `json:"recurse_roles"`
+// }
+
+// type taskNameSchema struct {
+// 	// Schema maps a config (e.g. Build) to a configSchema.
+// 	// Note, the json names are a carryover from Buildbot days, where builder == task
+// 	Schema map[string]*configSchema `json:"builder_name_schema"`
+// 	// TaskNameSep specifies how the various keys will be seperated, e.g. "-"
+// 	TaskNameSep string `json:"builder_name_sep"`
+// }
 
 func main() {
 	_, filename, _, _ := runtime.Caller(0)
@@ -50,19 +58,20 @@ func main() {
 	if err := r.ReadFile("infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json", buf); err != nil {
 		sklog.Fatalf("Could not read schema file: %s\n", err)
 	}
-	schema := new(taskNameSchema)
+	schema := new(taskname.JobNameSchema)
 	if err := json.NewDecoder(buf).Decode(schema); err != nil {
 		sklog.Fatalf("Could not decode schema file: %s\n", err)
 	}
 
 	schemaLines := []string{}
 	for key, value := range schema.Schema {
-		line := fmt.Sprintf("\t\"%s\": %#v,\n", key, value)
+		valStr := strings.Replace(fmt.Sprintf("%#v", value), "taskname.", "", 1)
+		line := fmt.Sprintf("\t\"%s\": %s,\n", key, valStr)
 		schemaLines = append(schemaLines, line)
 	}
 	sort.Strings(schemaLines)
 	assetsStr := strings.Join(schemaLines, "")
-	fileContents := []byte(fmt.Sprintf(TMPL, assetsStr, schema.TaskNameSep))
+	fileContents := []byte(fmt.Sprintf(TMPL, assetsStr, schema.Sep))
 	targetFile := path.Join(pkgDir, TARGET_FILE)
 	if err := ioutil.WriteFile(targetFile, fileContents, os.ModePerm); err != nil {
 		sklog.Fatal(err)
