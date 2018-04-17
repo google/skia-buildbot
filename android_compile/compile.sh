@@ -37,6 +37,6 @@ mmma_cmd="mmma -j32 frameworks/base/core/jni"
 log_step "Running $mmma_cmd"
 eval $mmma_cmd
 
-# mmm_skia_cmd="mmm -j32 external/skia"
-# log_step "Running $mmm_skia_cmd"
-# eval $mmm_skia_cmd
+mmm_skia_cmd="mmm -j32 external/skia"
+log_step "Running $mmm_skia_cmd"
+eval $mmm_skia_cmd
