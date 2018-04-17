@@ -111,7 +111,11 @@
         this.fire("update");
       }.bind(this)).catch(function(msg) {
         sk.errorMessage("Failed to load autoroll data: " + msg);
-      });
+        this.set("roller.mode", "UNKNOWN");
+        this.set("roller.numBehind", "?");
+        this.set("roller.numFailed", "?");
+        this.class = "bg-failure";
+      }.bind(this));
     },
   });
   </script>
