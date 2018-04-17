@@ -47,3 +47,24 @@
     win_file:
       path: c:\Temp\skolo.pow
       state: absent
+  # Auto-login is enabled in the base image (using Netplwiz method here:
+  # http://www.intowindows.com/how-to-automatically-login-in-windows-10/), however, for unknown
+  # reasons, occasionally Windows will have trouble logging in and say "We can’t sign in to your
+  # account." Using the Autologon tool seems to avoid this error.
+  # https://docs.microsoft.com/en-us/sysinternals/downloads/autologon
+  - name: Copy Autologon.zip to host
+    win_copy:
+      src: "{{ win_package_src }}/AutoLogon v3.10.zip"
+      dest: c:\Temp\Autologon.zip
+  - name: Extract Autologon.zip
+    win_unzip:
+      src: c:\Temp\Autologon.zip
+      dest: C:\Temp
+      delete_archive: yes
+  - name: Run Autologon
+    win_command: "C:\Temp\Autologon.exe \
+      {{ ansible_user }} {{ ansible_host | upper }} {{ ansible_password }}"
+  - name: Cleanup Autologon.exe
+    win_file:
+      path: c:\Temp\Autologon.exe
+      state: absent
