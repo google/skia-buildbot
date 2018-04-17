@@ -4,12 +4,13 @@ toast-sk {
   position: fixed;
   left: 10px;
   bottom: 0;
-  color: white;
-  fill: white;
+  color: #FFF;
+  fill: #FFF;
   background: #175A87;
   border-radius: 4px;
   padding: 10px 15px;
   opacity: 0;
+  z-index: 20;
 }
 
 toast-sk[shown] {

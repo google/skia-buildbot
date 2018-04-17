@@ -1,0 +1,21 @@
+
+$header-background-color: #5ba17f;
+$sidebar-width: 250px !default
+
+/* Import this after setting the above variables
+to let the values properly propagate */
+@import '~common/app-sk/app-sk';
+
+.no-decorate {
+  list-style-type: none;
+  padding-left: 10px;
+}
+
+.small-image {
+  max-height: 400px;
+  display: inline-block;
+}
+
+.narrow {
+  width: 20vw;
+}

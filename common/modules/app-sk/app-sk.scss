@@ -1,0 +1,118 @@
+/* By default, the app-sk does not include this scss.  It is up to the client to import
+it as part of their scss files, after they have set any variables they like.
+
+For example, in your app's scss, do something like:
+
+$header-background-color: #5ba17f;
+$sidebar-width: 250px !default
+
+@import '~common/app-sk/app-sk';
+
+*/
+
+$sidebar-width: 200px !default;
+$sidebar-horiz-padding: 5px !default;
+$sidebar-background-color: #FFF !default;
+
+$header-height: 50px !default;
+$header-background-color: #1F78B4 !default;
+$header-font-color: #FFF !default;
+
+$content-horiz-padding: 5px !default
+
+$footer-height: 0 !default;
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+app-sk {
+  display: grid;
+  grid-template-columns: $sidebar-width 1fr;
+  grid-template-rows: $header-height 1fr $footer-height;
+}
+
+app-sk > {
+  header {
+    background: $header-background-color;
+    padding: 0 .5em;
+    display: flex;
+    flex-flow: row;
+    justify-content: flex-start;
+    color: $header-font-color;
+
+    grid-column: 1 / span 2;
+    grid-row: 1;
+  }
+
+  header > * {
+    margin: auto; /* Center things vertically */
+  }
+
+  aside {
+    border-right: 1px solid #ddd;
+    padding: 0 $sidebar-horiz-padding;
+    z-index: 2;
+    background-color: $sidebar-background-color;
+
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  main {
+    padding: 0 $content-horiz-padding;
+    overflow-y: auto;
+
+    grid-row: 2;
+  }
+
+  footer {
+    grid-area: footer;
+
+    grid-column: -1;
+    grid-row: 3;
+  }
+
+  @media screen and (min-width: 480px) {
+    header > .toggle-button {
+      display: none
+    }
+
+    main {
+      grid-column: 2;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    header > .toggle-button {
+      display: block;
+      background-color: transparent;
+      border: none;
+    }
+
+    /* Hide the sidebar just off screen. Then, when it is toggled on and off,
+       the transitions will make it slide between the two states. */
+    aside {
+      position: relative;
+      left: -$sidebar-width - 2*$sidebar-horiz-padding;
+      transition: 0.5s;
+    }
+
+    aside.shown {
+      left: 0;
+      transition: 0.5s;
+    }
+
+    main {
+      grid-column: 1 / span 2;
+    }
+  }
+
+}
+
+app-sk {
+  .spacer {
+    flex-grow: 1;
+  }
+}
