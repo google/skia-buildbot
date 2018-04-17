@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -61,59 +60,6 @@ type ShardOutputFormat struct {
 
 type TaskOutputFormat struct {
 	Shards []ShardOutputFormat `json:"shards"`
-}
-
-func getSupportedGceDimensions() []map[string]string {
-	// NOTE: All dimensions below must be kept updated with the GCE bots in
-	//       Skia's pools.
-	linuxGceDimensions := map[string]string{
-		"cpu": "x86-64-avx2",
-		"gpu": "none",
-		"os":  "Ubuntu-14.04",
-	}
-	linuxGceDimensionsUbuntu16 := map[string]string{
-		"cpu": "x86-64-avx2",
-		"gpu": "none",
-		"os":  "Ubuntu-16.04",
-	}
-	linuxGceDimensionsDebian9 := map[string]string{
-		"cpu": "x86-64-avx2",
-		"gpu": "none",
-		"os":  "Debian-9.0",
-	}
-	skiaCTDimensions := map[string]string{
-		"pool": "SkiaCT",
-	}
-	windowsGceDimensions := map[string]string{
-		"os": "Windows-2008ServerR2-SP1",
-	}
-	return []map[string]string{linuxGceDimensions, linuxGceDimensionsUbuntu16, linuxGceDimensionsDebian9, skiaCTDimensions, windowsGceDimensions}
-}
-
-// GetServiceAccountFromTaskDims returns the service account for swarming tasks to use.
-// If the dimensions match GCE dimensions then "bot" is used (see skbug.com/6611).
-// TODO(rmistry): Once go/swarming-service-accounts is implemented we should be
-// able to specify the same service account email for all bots and remove this
-// hackery.
-func GetServiceAccountFromTaskDims(dimsMap map[string]string) string {
-	serviceAccount := ""
-	if util.ContainsAnyMap(dimsMap, getSupportedGceDimensions()...) {
-		serviceAccount = "bot"
-	}
-	return serviceAccount
-}
-
-// GetServiceAccountFromBotDims returns the service account for swarming tasks to use.
-// If the dimensions match GCE dimensions then "bot" is used (see skbug.com/6611).
-// TODO(rmistry): Once go/swarming-service-accounts is implemented we should be
-// able to specify the same service account email for all bots and remove this
-// hackery.
-func GetServiceAccountFromBotDims(dimsMap map[string][]string) string {
-	serviceAccount := ""
-	if util.ContainsAnyMapInSliceValues(dimsMap, getSupportedGceDimensions()...) {
-		serviceAccount = "bot"
-	}
-	return serviceAccount
 }
 
 func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeout, ioTimeout time.Duration) error {

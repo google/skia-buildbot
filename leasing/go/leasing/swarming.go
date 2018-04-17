@@ -330,8 +330,7 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, arch,
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
 		},
-		ServiceAccount: swarming.GetServiceAccountFromTaskDims(dimsMap),
-		User:           "skiabot@google.com",
+		User: "skiabot@google.com",
 	}
 
 	swarmingClient := *GetSwarmingClient(pool)
