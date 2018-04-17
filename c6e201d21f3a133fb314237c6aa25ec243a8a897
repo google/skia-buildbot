@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c08ce7d6_ba3a49a6",
+        "filename": "go/swarming/swarming.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-17T17:57:51Z",
+      "side": 1,
+      "message": "Do we still need any of these?  From what I can tell, none of them (except SkiaCT) actually match our dimensions any more, and they seem to cause problems when they do.",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 23
+      },
+      "revId": "c6e201d21f3a133fb314237c6aa25ec243a8a897",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
