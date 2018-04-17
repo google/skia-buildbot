@@ -46,6 +46,8 @@ type RepoManager interface {
 	RolledPast(context.Context, string) (bool, error)
 	Update(context.Context) error
 	User() string
+	GetFullHistoryUrl() string
+	GetIssueUrlBase() string
 }
 
 // CommonRepoManagerConfig provides configuration for commonRepoManager.
@@ -194,6 +196,18 @@ func (r *commonRepoManager) NextRollRev() string {
 // roll is performed but before a CL is uploaded for it.
 func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 	return r.preUploadSteps
+}
+
+// GetFullHistoryUrl returns a url that contains all changes uploaded by the
+// user.
+func (r *commonRepoManager) GetFullHistoryUrl() string {
+	return r.g.Url(0) + "/q/owner:" + r.User()
+}
+
+// GetIssueUrlBase returns a partial url that needs an issue number suffix to
+// complete.
+func (r *commonRepoManager) GetIssueUrlBase() string {
+	return r.g.Url(0) + "/c/"
 }
 
 // Start makes the RepoManager begin the periodic update process.

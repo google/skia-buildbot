@@ -259,3 +259,11 @@ func (r *MockRepoManager) PreUploadSteps() []repo_manager.PreUploadStep {
 func (r *MockRepoManager) CommitsNotRolled() int {
 	return -1
 }
+
+func (r *MockRepoManager) GetFullHistoryUrl() string {
+	return "http://test/url/q/owner:" + r.User()
+}
+
+func (r *MockRepoManager) GetIssueUrlBase() string {
+	return "http://test/url/c/"
+}
