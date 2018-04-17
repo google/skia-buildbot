@@ -16,7 +16,7 @@ type TaskNameParser interface {
 // taskNameParser fulfills the TaskNameParser interface. See gen_schema.go
 // for more information on the two parts.
 type taskNameParser struct {
-	Schema map[string][]string
+	Schema map[string]*SchemaDetails
 
 	TaskNameSep string
 }
@@ -38,24 +38,24 @@ func (b *taskNameParser) ParseTaskName(name string) (map[string]string, error) {
 	}
 	role := split[0]
 	split = split[1:]
-	keys, ok := b.Schema[role]
+	details, ok := b.Schema[role]
 	if !ok {
 		return nil, fmt.Errorf("Invalid task name; %q is not a valid role.", role)
 	}
 	extraConfig := ""
-	if len(split) == len(keys)+1 {
+	if len(split) == len(details.Keys)+1 {
 		extraConfig = split[len(split)-1]
 		split = split[:len(split)-1]
 	}
-	if len(split) != len(keys) {
+	if len(split) != len(details.Keys) {
 		return nil, fmt.Errorf("Invalid task name: %q has incorrect number of parts.", name)
 	}
-	rv := make(map[string]string, len(keys)+2)
+	rv := make(map[string]string, len(details.Keys)+2)
 	rv["role"] = role
 	if extraConfig != "" {
 		rv["extra_config"] = extraConfig
 	}
-	for i, k := range keys {
+	for i, k := range details.Keys {
 		rv[k] = split[i]
 	}
 	return rv, nil
