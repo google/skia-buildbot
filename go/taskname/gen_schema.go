@@ -32,10 +32,17 @@ var SEPARATOR_FROM_GIT = "%s"
 `
 )
 
+// configSchema is a sub-struct of taskNameSchema
+type configSchema struct {
+	Keys         []string `json:"keys"`
+	OptionalKeys []string `json:"optional_keys"`
+	RecurseRoles []string `json:"recurse_roles"`
+}
+
 type taskNameSchema struct {
-	// Schema maps a config (e.g. Build) to the ordered list of keys in the name
+	// Schema maps a config (e.g. Build) to a configSchema.
 	// Note, the json names are a carryover from Buildbot days, where builder == task
-	Schema map[string][]string `json:"builder_name_schema"`
+	Schema map[string]*configSchema `json:"builder_name_schema"`
 	// TaskNameSep specifies how the various keys will be seperated, e.g. "-"
 	TaskNameSep string `json:"builder_name_sep"`
 }
