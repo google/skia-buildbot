@@ -22,6 +22,30 @@
       "revId": "0c1ee5d0ec3e17e23ea545092c8f9c9126f9adf5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8d8679e_3dd6999f",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-17T19:38:20Z",
+      "side": 1,
+      "message": "I think I\u0027d prefer to make it clearer things are broken.  Happy to revisit this later.",
+      "parentUuid": "570d5043_8babc72f",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 34
+      },
+      "revId": "0c1ee5d0ec3e17e23ea545092c8f9c9126f9adf5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
