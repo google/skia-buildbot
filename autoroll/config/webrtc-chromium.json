@@ -3,7 +3,6 @@
   "cqExtraTrybots": [
     "master.tryserver.chromium.linux:linux_chromium_archive_rel_ng",
     "master.tryserver.chromium.mac:mac_chromium_archive_rel_ng",
-    "master.tryserver.chromium.win:win-msvc-dbg"
   ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "maxRollFrequency": "0m",
