@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "971e8fbb_689c39da",
+        "filename": "common/modules/app-sk/app-sk-partial.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-17T16:57:39Z",
+      "side": 1,
+      "message": "I ended up using rows/columns because the areas were harder to deal with the collapsing sidebar",
+      "parentUuid": "35903445_47efb258",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "87fae9ec_498a8a4a",
         "filename": "common/modules/app-sk/app-sk.js",
         "patchSetId": 4
@@ -33,6 +51,24 @@
       "revId": "bf1655f8890963da0079c678c157538b082e989b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf5dec91_36330eab",
+        "filename": "common/modules/app-sk/app-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-17T16:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87fae9ec_498a8a4a",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "a89b3a8d_02921d21",
+        "filename": "common/modules/app-sk/app-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-17T16:57:39Z",
+      "side": 1,
+      "message": "Done, although it needed a tweak to actually add the event listener.",
+      "parentUuid": "281fc0ca_f813228a",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aed3a51d_023c7829",
         "filename": "common/modules/app-sk/app-sk_demo.scss",
         "patchSetId": 4
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "65cacadb_46d79476",
+        "filename": "common/modules/app-sk/app-sk_demo.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-17T16:57:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aed3a51d_023c7829",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0cdb4fe7_9fe39660",
         "filename": "common/modules/app-sk/app-sk_demo.scss",
         "patchSetId": 4
@@ -84,6 +156,24 @@
       "revId": "bf1655f8890963da0079c678c157538b082e989b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5810c88_8fa10751",
+        "filename": "common/modules/app-sk/app-sk_demo.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-17T16:57:39Z",
+      "side": 1,
+      "message": "Removed, as we discussed offline",
+      "parentUuid": "0cdb4fe7_9fe39660",
+      "revId": "bf1655f8890963da0079c678c157538b082e989b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
