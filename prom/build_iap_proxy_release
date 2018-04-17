@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a container that trigger prometheus to reload its config file.
+set -x -e
+
+APPNAME=iap_proxy
+
+CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/iap_proxy
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose"
+${INSTALL} --mode=644 -T docker/IAPDockerfile    ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/iap_proxy ${ROOT}/iap_proxy
+}
+
+source ../bash/docker_push.sh
