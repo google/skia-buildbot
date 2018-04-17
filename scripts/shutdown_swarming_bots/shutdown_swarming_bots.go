@@ -135,6 +135,7 @@ func main() {
 	sklog.Error("Continue?")
 	if conf, err := askForConfirmation(); err != nil || !conf {
 		sklog.Errorf("Not continuing (Error: %v)", err)
+		return
 	}
 
 	for _, m := range matched {
