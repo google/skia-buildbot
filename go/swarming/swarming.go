@@ -84,10 +84,7 @@ func getSupportedGceDimensions() []map[string]string {
 	skiaCTDimensions := map[string]string{
 		"pool": "SkiaCT",
 	}
-	windowsGceDimensions := map[string]string{
-		"os": "Windows-2008ServerR2-SP1",
-	}
-	return []map[string]string{linuxGceDimensions, linuxGceDimensionsUbuntu16, linuxGceDimensionsDebian9, skiaCTDimensions, windowsGceDimensions}
+	return []map[string]string{linuxGceDimensions, linuxGceDimensionsUbuntu16, linuxGceDimensionsDebian9, skiaCTDimensions}
 }
 
 // GetServiceAccountFromTaskDims returns the service account for swarming tasks to use.
