@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8a926dbe_dd4f88f2",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:04:14Z",
+      "side": 1,
+      "message": "Super-nit: Can we please name this \"rm\" so that all of the RepoManagers look the same? It makes searching a lot easier.",
+      "range": {
+        "startLine": 81,
+        "startChar": 6,
+        "endLine": 81,
+        "endChar": 8
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e931f72d_6819f842",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:04:14Z",
+      "side": 1,
+      "message": "Nit: would slightly prefer to match a full line exactly.",
+      "range": {
+        "startLine": 109,
+        "startChar": 1,
+        "endLine": 109,
+        "endChar": 66
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2a022f8_d660d3f7",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:04:14Z",
+      "side": 1,
+      "message": "Is this necessary?  I would\u0027ve expected something more like: git push origin ROLL_BRANCH:master",
+      "range": {
+        "startLine": 176,
+        "startChar": 83,
+        "endLine": 176,
+        "endChar": 87
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b77b95ed_f6a19b2c",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:04:14Z",
+      "side": 1,
+      "message": "Nit: where possible, let\u0027s use methods from the git package, eg. gr.parentRepo.Git(\"log\", ....) or even gr.parentRepo.Details(\"HEAD\") here and elsewhere.",
+      "range": {
+        "startLine": 204,
+        "startChar": 19,
+        "endLine": 204,
+        "endChar": 93
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35622320_9f67623e",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:04:14Z",
+      "side": 1,
+      "message": "These don\u0027t belong in the config, since we shouldn\u0027t check credentials into the repo.",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 46
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0663b373_840b1cad",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:04:14Z",
+      "side": 1,
+      "message": "I assume we don\u0027t need/want this behavior yet?  It seems best to add another state if/when we do this.",
+      "range": {
+        "startLine": 339,
+        "startChar": 3,
+        "endLine": 340,
+        "endChar": 72
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b96728bb_0bae5720",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:04:14Z",
+      "side": 1,
+      "message": "Does this need to stay?",
+      "range": {
+        "startLine": 342,
+        "startChar": 0,
+        "endLine": 351,
+        "endChar": 6
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
