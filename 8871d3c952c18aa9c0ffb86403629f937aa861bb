@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "96e65b81_b129e57a",
+        "filename": "go/taskname/gen_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T14:46:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aad3152e_f3a23b68",
+      "range": {
+        "startLine": 37,
+        "startChar": 38,
+        "endLine": 37,
+        "endChar": 77
+      },
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e4e2a2f_4e6803be",
         "filename": "go/taskname/gen_schema.go",
         "patchSetId": 1
@@ -39,6 +63,24 @@
       "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3b19582_d239eb20",
+        "filename": "go/taskname/gen_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T14:46:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e4e2a2f_4e6803be",
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "2330b56c_09d3e329",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T14:46:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "54cd0c19_d81fcd58",
+      "range": {
+        "startLine": 16,
+        "startChar": 3,
+        "endLine": 16,
+        "endChar": 28
+      },
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ccf07c4b_822b90f5",
         "filename": "go/taskname/task_name_schema.go",
         "patchSetId": 1
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "21724a5f_bf97e8c3",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T14:46:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ccf07c4b_822b90f5",
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9bf73718_81604dd0",
         "filename": "go/taskname/task_name_schema.go",
         "patchSetId": 1
@@ -93,6 +177,24 @@
       "writtenOn": "2018-04-18T14:36:32Z",
       "side": 1,
       "message": "IIUC, we also have a Python impl of this. Could we possibly make Python shell out to this Go impl or vice-versa? (Maybe I should file as a FR on Monorail instead.)",
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59f07d5d_3f479c3f",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T14:46:53Z",
+      "side": 1,
+      "message": "That would be nice.  Please file a bug.  This was hastily done in order to make Kitchen work, and is far from an optimal solution.",
+      "parentUuid": "9bf73718_81604dd0",
       "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -119,6 +221,30 @@
       "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd457038_6c7e9d0d",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T14:46:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5bab52bb_f7159474",
+      "range": {
+        "startLine": 43,
+        "startChar": 39,
+        "endLine": 43,
+        "endChar": 42
+      },
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
