@@ -1,0 +1,524 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c0042be_cb5aff54",
+        "filename": "go/iap/allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: RWMutex would allow multiple goroutines to call Member concurrently.",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f297df5_aee6681b",
+        "filename": "go/iap/allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: maybe mention in docs that we assume this is called in main and any error returned will be fatal, and continues to run until the process dies. (In which case you can ignore the leaks below.)",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4baae45_990fdb0b",
+        "filename": "go/iap/allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 71,
+        "startChar": 17,
+        "endLine": 71,
+        "endChar": 21
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bcbfdf5_0bd79874",
+        "filename": "go/iap/allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: \"w\" is easily confused with \"watcher\"",
+      "range": {
+        "startLine": 86,
+        "startChar": 1,
+        "endLine": 86,
+        "endChar": 2
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f083694d_1a742712",
+        "filename": "go/iap/allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: watcher.Close() on error",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adc41a8e_34bb91e9",
+        "filename": "go/iap/allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: add filename to log message",
+      "range": {
+        "startLine": 100,
+        "startChar": 18,
+        "endLine": 100,
+        "endChar": 31
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67863b8b_0a81d3fe",
+        "filename": "go/iap/allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: leaks watcher and goroutine",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a860fdb_f624732a",
+        "filename": "go/iap/allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "Just to confirm: we\u0027ll probably get blank lines, which will be interpreted as allowing the empty domain, but we don\u0027t care because Member will never be passed an email address with an empty domain.",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e70e426_80e9d7fc",
+        "filename": "go/iap/allowed_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: defer testutils.RemoveAll(t, dirname)",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "930458e4_8fbdd8ee",
+        "filename": "go/iap/allowed_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": ":-( Maybe instead loop for e.g. 10 seconds waiting for w.Member(\"barney@example.com\") to return false?",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bbd62762_2169666c",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "uber-nit: \"verify a JWT signed by iap\"",
+      "range": {
+        "startLine": 31,
+        "startChar": 58,
+        "endLine": 31,
+        "endChar": 80
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "022fedfc_2a12ae91",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: doc makes it seem like this is the header supplied by iap, but actually this is the header added by this package.",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "379c5d9a_9ceb7656",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: doc",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd0be672_dd5d9a69",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: RWMutex would allow multiple goroutines to call getEmail concurrently.",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90ce0c7a_dd87d815",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: doc",
+      "range": {
+        "startLine": 61,
+        "startChar": 25,
+        "endLine": 61,
+        "endChar": 35
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca2bd604_74141b26",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "typo dumb",
+      "range": {
+        "startLine": 77,
+        "startChar": 61,
+        "endLine": 77,
+        "endChar": 65
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c16b0c25_5ec25466",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: include value of kid in error",
+      "range": {
+        "startLine": 132,
+        "startChar": 57,
+        "endLine": 132,
+        "endChar": 58
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea0d5c48_c0f74cd6",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: httputils.ReportError logs both the error and the message, so no need to repeat the message in the error. (A couple instances in this file.)",
+      "range": {
+        "startLine": 141,
+        "startChar": 31,
+        "endLine": 141,
+        "endChar": 103
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e06732da_1278420a",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: This will always be nil",
+      "range": {
+        "startLine": 146,
+        "startChar": 87,
+        "endLine": 146,
+        "endChar": 90
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4cc92e8_c8fa765b",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: move before check for resp.StatusCode",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f53db68_7b1feeb0",
+        "filename": "go/iap/iap_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: move to a const",
+      "range": {
+        "startLine": 21,
+        "startChar": 16,
+        "endLine": 21,
+        "endChar": 94
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70b6c2e5_f4181202",
+        "filename": "go/iap/iap_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "typo no",
+      "range": {
+        "startLine": 41,
+        "startChar": 42,
+        "endLine": 41,
+        "endChar": 44
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b588496_c857db61",
+        "filename": "go/iap/iap_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit redundant",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0ef8765_9dc70d4a",
+        "filename": "go/iap/iap_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "Maybe test request for root that\u0027s not a healthcheck.",
+      "range": {
+        "startLine": 80,
+        "startChar": 34,
+        "endLine": 80,
+        "endChar": 53
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be93cbfd_7e5f8d52",
+        "filename": "go/iap/iap_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "nit: probably overkill",
+      "range": {
+        "startLine": 180,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 45
+      },
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e831e79_424d2840",
+        "filename": "go/iap/iap_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T15:57:56Z",
+      "side": 1,
+      "message": "Should also test a novel email, since those are two different code paths.",
+      "revId": "2ccbfe8a4a7aa713262adb1e10edff921c652213",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
