@@ -152,6 +152,7 @@ type Revision struct {
 }
 
 type GerritInterface interface {
+	Initialized() bool
 	TurnOnAuthenticatedGets()
 	Url(int64) string
 	GetUserEmail() (string, error)
@@ -255,6 +256,12 @@ func getCredentials(gitCookiesPath string) (map[string]string, error) {
 func parseTime(t string) time.Time {
 	parsed, _ := time.Parse(TIME_FORMAT, t)
 	return parsed
+}
+
+// Initialized returns false if the implementation of GerritInterface has not
+// been initialized (i.e. it is a pointer to nil).
+func (g *Gerrit) Initialized() bool {
+	return g != nil
 }
 
 // TurnOnAuthenticatedGets makes all GET requests contain authentication

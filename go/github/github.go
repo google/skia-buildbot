@@ -79,8 +79,13 @@ func (g *GitHub) AddComment(pullRequestNum int, msg string) error {
 	return nil
 }
 
+<<<<<<< HEAD
+//// See https://developer.github.com/v3/users/#get-the-authenticated-user
+//// for the API documentation.
+=======
 // See https://developer.github.com/v3/users/#get-the-authenticated-user
 // for the API documentation.
+>>>>>>> f433d58a856a363f89d019128d12c01a76f5c31b
 func (g *GitHub) GetAuthenticatedUser() (*github.User, error) {
 	user, resp, err := g.client.Users.Get(g.ctx, "")
 	if err != nil {
