@@ -1,0 +1,78 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: "prometheus"
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.1.0
+          securityContext:
+            runAsUser: 0
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus/"
+            - "--web.enable-lifecycle"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /etc/prometheus/
+            - name: prometheus-storage-volume
+              mountPath: /prometheus/
+        - name: configmap-reload
+          args:
+            - "--volume-dir=/etc/prometheus/"
+            - "--webhook-method=POST"
+            - "--webhook-url=http://localhost:9090/-/reload"
+          image: gcr.io/skia-public/configmap-reload:2018-04-13T13_40_07Z-jcgregorio-ab82379967ec3ffbcfb7152b6e0002a3f182ed43-dirty
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /etc/prometheus/
+            - name: prometheus-storage-volume
+              mountPath: /prometheus/
+        - name: iap-proxy
+          image: gcr.io/skia-public/iap_proxy:2018-04-18T15_55_02Z-jcgregorio-5f0d48cfebef17acd4d0392be97087a413ba41c0-dirty
+          volumeMounts:
+            - name: skia-public-auth
+              mountPath: /var/secrets/skia-public-auth
+      volumes:
+        - name: prometheus-config-volume
+          configMap:
+            defaultMode: 420
+            name: prometheus-server-conf
+        - name: skia-public-auth
+          secret:
+            secretName: skia-public-auth
+  volumeClaimTemplates:
+  - metadata:
+      name: prometheus-storage-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1000Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/path:   /
+      prometheus.io/port:   '8080'
+spec:
+  selector:
+    app: prometheus
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080

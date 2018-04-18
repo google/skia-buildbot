@@ -2,7 +2,7 @@
 // placed in the applications top level directory in a file called
 // 'probers.json5'.
 {
-   "timelapse_camera": {
+   "timelapse_cameras": {
      "urls": [
        "https://storage.googleapis.com/skia-timelapse/public/today_1.webm",
        "https://storage.googleapis.com/skia-timelapse/public/today_2.webm"
