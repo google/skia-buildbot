@@ -145,7 +145,7 @@ func (mr *manifestRepoManager) CreateNewRoll(ctx context.Context, from, to strin
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
 
-	if _, err := exec.RunCwd(ctx, mr.parentDir, "git", "config", "user.name", mr.user); err != nil {
+	if _, err := exec.RunCwd(ctx, mr.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(mr.user)); err != nil {
 		return 0, err
 	}
 	if _, err := exec.RunCwd(ctx, mr.parentDir, "git", "config", "user.email", mr.user); err != nil {

@@ -134,6 +134,10 @@ func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
 	return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (no entry for %s):\n\n%s\n", childPath, output)
 }
 
+func getLocalPartOfEmailAddress(emailAddress string) string {
+	return strings.SplitN(emailAddress, "@", 2)[0]
+}
+
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
 func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
@@ -160,7 +164,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
 
-	if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.name", dr.user); err != nil {
+	if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(dr.user)); err != nil {
 		return 0, err
 	}
 	if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.email", dr.user); err != nil {
