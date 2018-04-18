@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "be8afe1a_c9c3a175",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:16:05Z",
+      "side": 1,
+      "message": "Weird. Yes it does. But given the comment that\u0027s already on line 146, I think I\u0027ll just change this one to apply to what\u0027s below it.",
+      "parentUuid": "5d9050db_b62c3636",
+      "range": {
+        "startLine": 160,
+        "startChar": 1,
+        "endLine": 160,
+        "endChar": 27
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1a8df4eb_10175e32",
         "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
         "patchSetId": 3
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "153c674b_5953fe4f",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:16:05Z",
+      "side": 1,
+      "message": "Yep, there could be anything in that directory, so we want to ensure that only the expected contents make it through.",
+      "parentUuid": "1a8df4eb_10175e32",
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "54924cb8_bcb88178",
         "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
         "patchSetId": 3
@@ -53,6 +95,30 @@
       "writtenOn": "2018-04-18T18:41:38Z",
       "side": 1,
       "message": "What does -T do here?",
+      "range": {
+        "startLine": 210,
+        "startChar": 54,
+        "endLine": 210,
+        "endChar": 55
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0ec473e_3f97f550",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:16:05Z",
+      "side": 1,
+      "message": "It\u0027s short for \"target\", meaning that the specified destination is exactly where the source ends up.  Contrast with the default behavior which is that, if the specified destination is a directory, the source gets copied INTO that directory, rather than replacing it (actually, I think you get an error with -T if the destination already exists).",
+      "parentUuid": "54924cb8_bcb88178",
       "range": {
         "startLine": 210,
         "startChar": 54,
@@ -135,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "0b287187_4241842b",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:16:05Z",
+      "side": 1,
+      "message": "I like having it spelled out for future me.  I\u0027ll add includeLog as a member of the struct, and move this comment up to where it\u0027s set.",
+      "parentUuid": "7e9244cf_6062e5de",
+      "range": {
+        "startLine": 231,
+        "startChar": 29,
+        "endLine": 231,
+        "endChar": 83
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "28d2852d_e7d345dc",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 3
@@ -146,6 +236,30 @@
       "writtenOn": "2018-04-18T18:35:27Z",
       "side": 1,
       "message": "I thought this was renamed to NewCopyRepoManager ?",
+      "range": {
+        "startLine": 82,
+        "startChar": 25,
+        "endLine": 82,
+        "endChar": 45
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61e37f73_baadaf07",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T19:16:05Z",
+      "side": 1,
+      "message": "That would be why the tests are failing :P",
+      "parentUuid": "28d2852d_e7d345dc",
       "range": {
         "startLine": 82,
         "startChar": 25,
