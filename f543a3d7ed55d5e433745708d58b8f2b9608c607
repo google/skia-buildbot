@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c0b650a_9264990b",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-18T18:21:36Z",
+      "side": 1,
+      "message": "I\u0027m not sure of the best way to test this, since we don\u0027t actually upload CLs in the tests, and this function immediately cleans up all of the local git diffs.  There\u0027s probably a way to mock out the git commands and look at the local diffs, but I haven\u0027t bothered with that yet.",
+      "range": {
+        "startLine": 203,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 3
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
