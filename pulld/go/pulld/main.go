@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/go-systemd/dbus"
 	"go.skia.org/infra/go/auth"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/push/go/types"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -54,7 +56,6 @@ var (
 	bucketName            = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
 	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	onGCE                 = flag.Bool("on_gce", true, "Running on GCE.  Could be running on some external machine, e.g. in the Skolo.")
 	port                  = flag.String("port", ":10000", "HTTP service address (e.g., ':8000')")
 	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
@@ -243,7 +244,6 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 	for _, unit := range units {
 		props, err := dbc.GetUnitTypeProperties(unit.Status.Name, "Service")
 		if err != nil {
-			sklog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
 			continue
 		}
 		// Props are huge, only pass along the value(s) we use.
@@ -271,6 +271,76 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// pubOneStatus publishes the current status of the units via pubsub.
+func pubOneStatus(ctx context.Context, ps *pubsub.Client, topic *pubsub.Topic) {
+	sklog.Infof("Publishing status.")
+	units, err := listUnits()
+	if err != nil {
+		sklog.Errorf("Failed to list units: %s", err)
+		return
+	}
+	resp := &types.ListResponse{
+		Hostname: hostname,
+		Units:    units,
+	}
+	b, err := json.Marshal(resp)
+	if err != nil {
+		sklog.Errorf("Failed to encode output: %s", err)
+		return
+	}
+	pr := topic.Publish(ctx, &pubsub.Message{
+		Data: b,
+	})
+	<-pr.Ready()
+}
+
+// pubStatusWait periodically publishes the current status of the units via pubsub.
+func pubStatusWait(ctx context.Context, ps *pubsub.Client) {
+	topic := ps.Topic("push_status")
+	pubOneStatus(ctx, ps, topic)
+	for _ = range time.Tick(15 * time.Second) {
+		pubOneStatus(ctx, ps, topic)
+	}
+}
+
+// Only returns on error.
+func subCommandWait(ctx context.Context, ps *pubsub.Client) {
+	sub := ps.Subscription(fmt.Sprintf("pulld-%s", hostname))
+	ok, err := sub.Exists(ctx)
+	if err != nil {
+		sklog.Errorf("Can't even check if subscription exists, probably misconfigured auth: %s", err)
+		return
+	}
+	if !ok {
+		if sub, err = ps.CreateSubscription(ctx, sub.ID(), pubsub.SubscriptionConfig{
+			Topic:       ps.Topic("push_command"),
+			AckDeadline: 10 * time.Second,
+		}); err != nil {
+			sklog.Errorf("Failed to create subscription for %s", err)
+			return
+		}
+	}
+	err = sub.Receive(ctx, func(innerCtx context.Context, m *pubsub.Message) {
+		sklog.Infof("Got Pub/Sub command")
+		m.Ack()
+		var cmd types.Command
+		if err := json.Unmarshal(m.Data, &cmd); err != nil {
+			sklog.Errorf("Failed to decode command: %s", err)
+			return
+		}
+		if cmd.Hostname != hostname {
+			sklog.Infof("Command not for us: %#v", cmd)
+			return
+		}
+
+		// TODO(jcgregorio) Do something with status.
+		_ = executeCommand(&cmd)
+	})
+	if err != nil {
+		sklog.Errorf("Can't access subscription, no pub/sub support: %s", err)
+	}
+}
+
 func main() {
 	defer common.LogPanic()
 	flag.Parse()
@@ -285,10 +355,17 @@ func main() {
 	}
 	client := auth.ClientFromTokenSource(tokenSource)
 
-	Init()
 	ctx := context.Background()
+	ps, err := pubsub.NewClient(ctx, "google.com:skia-buildbots", option.WithTokenSource(tokenSource))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	Init()
 	pullInit(ctx, client, triggerPullCh)
 	rebootMonitoringInit()
+	go subCommandWait(ctx, ps)
+	go pubStatusWait(ctx, ps)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
