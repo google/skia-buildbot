@@ -1,0 +1,22 @@
+{
+    "githubRepoOwner": "flutter",
+    "githubRepoName": "engine",
+    "githubToken": "6fccee30a0b28be5108d076ae2f1da8596f36c91",
+    "travisciToken": "L9vMIc-AvTSVLJwkdD1O3A",
+    "childName": "Skia",
+    "maxRollFrequency": "0m",
+    "parentName": "Flutter",
+    "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+    "sheriff": ["rmistry@google.com"],
+    "githubRepoManager": {
+      "childBranch": "master",
+      "childPath": "src/third_party/skia",
+      "githubParentPath": "src/flutter",
+      "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:rmistry/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
+      "includeLog": true,
+      "parentBranch": "master",
+      "parentRepo": "git@github.com:flutter/engine.git",
+      "preUploadSteps": ["FlutterLicenseScripts"],
+      "strategy": "batch"
+    }
+}

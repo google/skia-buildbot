@@ -46,6 +46,8 @@ type RepoManager interface {
 	RolledPast(context.Context, string) (bool, error)
 	Update(context.Context) error
 	User() string
+	GetFullHistoryUrl() string
+	GetIssueUrlBase() string
 }
 
 // CommonRepoManagerConfig provides configuration for commonRepoManager.
@@ -140,9 +142,12 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 	if err != nil {
 		return nil, err
 	}
-	user, err := g.GetUserEmail()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
+	user := ""
+	if g.Initialized() {
+		user, err = g.GetUserEmail()
+		if err != nil {
+			return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
+		}
 	}
 	sklog.Infof("Repo Manager user: %s", user)
 	return &commonRepoManager{
@@ -194,6 +199,14 @@ func (r *commonRepoManager) NextRollRev() string {
 // roll is performed but before a CL is uploaded for it.
 func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 	return r.preUploadSteps
+}
+
+func (r *commonRepoManager) GetFullHistoryUrl() string {
+	return r.g.Url(0) + "/q/owner:" + r.User()
+}
+
+func (r *commonRepoManager) GetIssueUrlBase() string {
+	return r.g.Url(0) + "/c/"
 }
 
 // Start makes the RepoManager begin the periodic update process.
@@ -287,11 +300,15 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 
 // cleanParent forces the parent checkout into a clean state.
 func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
+	return r.cleanParentWithRemote(ctx, "origin")
+}
+
+func (r *depotToolsRepoManager) cleanParentWithRemote(ctx context.Context, remote string) error {
 	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
 	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "rebase", "--abort")
-	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "checkout", fmt.Sprintf("origin/%s", r.parentBranch), "-f"); err != nil {
+	if _, err := exec.RunCwd(ctx, r.parentDir, "git", "checkout", fmt.Sprintf("%s/%s", remote, r.parentBranch), "-f"); err != nil {
 		return err
 	}
 	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
@@ -307,6 +324,10 @@ func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
 }
 
 func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
+	return r.createAndSyncParentWithRemote(ctx, "origin")
+}
+
+func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Context, remote string) error {
 	// Create the working directory if needed.
 	if _, err := os.Stat(r.workdir); err != nil {
 		if err := os.MkdirAll(r.workdir, 0755); err != nil {
@@ -315,14 +336,14 @@ func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
 	}
 
 	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
-		if err := r.cleanParent(ctx); err != nil {
+		if err := r.cleanParentWithRemote(ctx, remote); err != nil {
 			return err
 		}
 		// Update the repo.
-		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "fetch"); err != nil {
+		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "fetch", remote); err != nil {
 			return err
 		}
-		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "reset", "--hard", fmt.Sprintf("origin/%s", r.parentBranch)); err != nil {
+		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "reset", "--hard", fmt.Sprintf("%s/%s", remote, r.parentBranch)); err != nil {
 			return err
 		}
 	}
