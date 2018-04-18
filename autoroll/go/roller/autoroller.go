@@ -69,19 +69,21 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	// Create the RepoManager.
 	var rm repo_manager.RepoManager
 	var err error
-	if c.AndroidRepoManager != nil {
+	if c.AFDORepoManager != nil {
+		rm, err = repo_manager.NewAFDORepoManager(ctx, c.AFDORepoManager, workdir, g, recipesCfgFile, serverURL, nil)
+	} else if c.AndroidRepoManager != nil {
 		retrieveRoll = func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
 			return newGerritAndroidRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
 		}
 		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL)
 	} else if c.DEPSRepoManager != nil {
 		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, workdir, g, recipesCfgFile, serverURL)
-	} else if c.ManifestRepoManager != nil {
-		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL)
-	} else if c.AFDORepoManager != nil {
-		rm, err = repo_manager.NewAFDORepoManager(ctx, c.AFDORepoManager, workdir, g, recipesCfgFile, serverURL, nil)
+	} else if c.DirectRepoManager != nil {
+		rm, err = repo_manager.NewDirectRepoManager(ctx, c.DirectRepoManager, workdir, g, recipesCfgFile, serverURL)
 	} else if c.FuchsiaSDKRepoManager != nil {
 		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, recipesCfgFile, serverURL, nil)
+	} else if c.ManifestRepoManager != nil {
+		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL)
 	} else {
 		return nil, errors.New("Invalid roller config; no repo manager defined!")
 	}
