@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "5d9050db_b62c3636",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-18T18:35:27Z",
+      "side": 1,
+      "message": "This comment belongs above",
+      "range": {
+        "startLine": 160,
+        "startChar": 1,
+        "endLine": 160,
+        "endChar": 27
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a8df4eb_10175e32",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-18T18:35:27Z",
+      "side": 1,
+      "message": "This is to start from a clean slate?",
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5c0b650a_9264990b",
         "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
         "patchSetId": 3
@@ -18,6 +58,76 @@
         "startChar": 0,
         "endLine": 213,
         "endChar": 3
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41e96bf7_62600479",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-18T18:35:27Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5c0b650a_9264990b",
+      "range": {
+        "startLine": 203,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 3
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7e9244cf_6062e5de",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-18T18:35:27Z",
+      "side": 1,
+      "message": "Optional: Leave the TODO but remove the if true",
+      "range": {
+        "startLine": 231,
+        "startChar": 29,
+        "endLine": 231,
+        "endChar": 83
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28d2852d_e7d345dc",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-18T18:35:27Z",
+      "side": 1,
+      "message": "I thought this was renamed to NewCopyRepoManager ?",
+      "range": {
+        "startLine": 82,
+        "startChar": 25,
+        "endLine": 82,
+        "endChar": 45
       },
       "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
