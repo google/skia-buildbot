@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aad3152e_f3a23b68",
+        "filename": "go/taskname/gen_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T14:36:32Z",
+      "side": 1,
+      "message": "nit: update doc",
+      "range": {
+        "startLine": 37,
+        "startChar": 38,
+        "endLine": 37,
+        "endChar": 77
+      },
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e4e2a2f_4e6803be",
+        "filename": "go/taskname/gen_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T14:36:32Z",
+      "side": 1,
+      "message": "nit: Could you add a comment about this? I don\u0027t really understand what\u0027s going on.",
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54cd0c19_d81fcd58",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T14:36:32Z",
+      "side": 1,
+      "message": "nit: doc",
+      "range": {
+        "startLine": 16,
+        "startChar": 3,
+        "endLine": 16,
+        "endChar": 28
+      },
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccf07c4b_822b90f5",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T14:36:32Z",
+      "side": 1,
+      "message": "nit: doc (or if this is documented elsewhere, pointer to that doc)",
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bf73718_81604dd0",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T14:36:32Z",
+      "side": 1,
+      "message": "IIUC, we also have a Python impl of this. Could we possibly make Python shell out to this Go impl or vice-versa? (Maybe I should file as a FR on Monorail instead.)",
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bab52bb_f7159474",
+        "filename": "go/taskname/task_name_schema.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-18T14:36:32Z",
+      "side": 1,
+      "message": "nit: s/job/task/g",
+      "range": {
+        "startLine": 43,
+        "startChar": 39,
+        "endLine": 43,
+        "endChar": 42
+      },
+      "revId": "8871d3c952c18aa9c0ffb86403629f937aa861bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
