@@ -2,15 +2,14 @@
 
 package taskname
 
-var SCHEMA_FROM_GIT = map[string][]string{
-	"Build":       {"os", "compiler", "target_arch", "configuration"},
-	"Calmbench":   {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
-	"Canary":      {"project", "os", "compiler", "target_arch", "configuration"},
-	"Housekeeper": {"frequency"},
-	"Infra":       {"frequency"},
-	"Perf":        {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
-	"Test":        {"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
-	"Upload":      {"orig_role", "os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"},
+var SCHEMA_FROM_GIT = map[string]*Schema{
+	"Build":       {Keys: []string{"os", "compiler", "target_arch", "configuration"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Calmbench":   {Keys: []string{"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Housekeeper": {Keys: []string{"frequency"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Infra":       {Keys: []string{"frequency"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Perf":        {Keys: []string{"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Test":        {Keys: []string{"os", "compiler", "model", "cpu_or_gpu", "cpu_or_gpu_value", "arch", "configuration", "test_filter"}, OptionalKeys: []string{"extra_config"}, RecurseRoles: []string(nil)},
+	"Upload":      {Keys: []string(nil), OptionalKeys: []string(nil), RecurseRoles: []string{"Build", "Calmbench", "Perf", "Test"}},
 }
 
 var SEPARATOR_FROM_GIT = "-"
