@@ -240,7 +240,7 @@ func (rm *afdoRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}()
 
 	// Create the roll CL.
-	if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.name", rm.user); err != nil {
+	if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(rm.user)); err != nil {
 		return 0, err
 	}
 	if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.email", rm.user); err != nil {
