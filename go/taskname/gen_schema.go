@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/taskname"
 )
 
 const (
@@ -25,7 +26,7 @@ const (
 
 package taskname
 
-var SCHEMA_FROM_GIT = map[string][]string{
+var SCHEMA_FROM_GIT = map[string]*Schema{
 %s}
 
 var SEPARATOR_FROM_GIT = "%s"
@@ -33,9 +34,9 @@ var SEPARATOR_FROM_GIT = "%s"
 )
 
 type taskNameSchema struct {
-	// Schema maps a config (e.g. Build) to the ordered list of keys in the name
+	// Schema maps a role (e.g. Build) to a taskname.Schema instance.
 	// Note, the json names are a carryover from Buildbot days, where builder == task
-	Schema map[string][]string `json:"builder_name_schema"`
+	Schema map[string]*taskname.Schema `json:"builder_name_schema"`
 	// TaskNameSep specifies how the various keys will be seperated, e.g. "-"
 	TaskNameSep string `json:"builder_name_sep"`
 }
@@ -58,6 +59,11 @@ func main() {
 	schemaLines := []string{}
 	for key, value := range schema.Schema {
 		line := fmt.Sprintf("\t\"%s\": %#v,\n", key, value)
+		// "%#v" includes the package name, ie "taskname.Schema",
+		// but since the generated file is part of the taskname
+		// package, that results in a circular import. So we remove it
+		// here.
+		line = strings.Replace(line, "taskname.", "", -1)
 		schemaLines = append(schemaLines, line)
 	}
 	sort.Strings(schemaLines)
