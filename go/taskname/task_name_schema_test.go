@@ -39,7 +39,7 @@ func TestTaskNameSchema(t *testing.T) {
 		},
 		"Upload-Test-Android-Clang-Nexus6p-GPU-Adreno430-arm64-Release-All-Android_Vulkan": {
 			"role":             "Upload",
-			"orig_role":        "Test",
+			"sub-role-1":       "Test",
 			"os":               "Android",
 			"compiler":         "Clang",
 			"model":            "Nexus6p",
@@ -69,8 +69,7 @@ func TestBadTaskNameSchema(t *testing.T) {
 	}
 	p := DefaultTaskNameParser()
 	for _, builderName := range tc {
-		res, err := p.ParseTaskName(builderName)
+		_, err := p.ParseTaskName(builderName)
 		assert.Error(t, err)
-		assert.Nil(t, res)
 	}
 }
