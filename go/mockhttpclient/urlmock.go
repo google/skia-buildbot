@@ -145,6 +145,18 @@ func MockPostDialogue(requestType string, requestBody, responseBody []byte) Mock
 	}
 }
 
+func MockPostDialogueWithResponseCode(requestType string, requestBody, responseBody []byte, responseCode int) MockDialogue {
+	return MockDialogue{
+		requestMethod:  "POST",
+		requestType:    requestType,
+		requestPayload: requestBody,
+
+		responseStatus:  "OK",
+		responseCode:    responseCode,
+		responsePayload: responseBody,
+	}
+}
+
 func MockPostError(requestType string, requestBody []byte, responseStatus string, responseCode int) MockDialogue {
 	return MockDialogue{
 		requestMethod:  "POST",
@@ -160,6 +172,18 @@ func MockPostError(requestType string, requestBody []byte, responseStatus string
 func MockPutDialogue(requestType string, requestBody, responseBody []byte) MockDialogue {
 	return MockDialogue{
 		requestMethod:  "PUT",
+		requestType:    requestType,
+		requestPayload: requestBody,
+
+		responseStatus:  "OK",
+		responseCode:    http.StatusOK,
+		responsePayload: responseBody,
+	}
+}
+
+func MockPatchDialogue(requestType string, requestBody, responseBody []byte) MockDialogue {
+	return MockDialogue{
+		requestMethod:  "PATCH",
 		requestType:    requestType,
 		requestPayload: requestBody,
 
