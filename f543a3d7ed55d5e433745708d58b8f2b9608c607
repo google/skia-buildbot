@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "4064a731_ac31ddf4",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2018-04-18T19:24:25Z",
+      "side": 1,
+      "message": "Oh, I see.  We need -T because of dst :\u003d path.Join(...) above.  This is the same as\n\n   \"cp\", \"-r\", path.Join(rm.childRepo.Dir(), w), childFullPath\n\nright?",
+      "parentUuid": "b0ec473e_3f97f550",
+      "range": {
+        "startLine": 210,
+        "startChar": 54,
+        "endLine": 210,
+        "endChar": 55
+      },
+      "revId": "f543a3d7ed55d5e433745708d58b8f2b9608c607",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5c0b650a_9264990b",
         "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
         "patchSetId": 3
