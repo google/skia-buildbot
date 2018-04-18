@@ -58,7 +58,7 @@ var (
 	port                  = flag.String("port", ":10000", "HTTP service address (e.g., ':8000')")
 	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	pullPeriod            = flag.Duration("pull_period", 5*time.Minute, "How often to check the configuration. On GCE, the metadata update will likely happen first")
+	pullPeriod            = flag.Duration("pull_period", 15*time.Second, "How often to check the configuration. On GCE, the metadata update will likely happen first")
 )
 
 type UnitStatusSlice []*systemd.UnitStatus
