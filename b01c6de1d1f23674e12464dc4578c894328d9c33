@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b04f0ceb_b0d333f5",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-19T18:57:50Z",
+      "side": 1,
+      "message": "Nit: sort",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 248,
+        "endChar": 42
+      },
+      "revId": "b01c6de1d1f23674e12464dc4578c894328d9c33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
