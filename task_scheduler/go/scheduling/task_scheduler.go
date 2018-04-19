@@ -1861,6 +1861,13 @@ func (s *TaskScheduler) HandleSwarmingPubSub(swarmingTaskId string) bool {
 	if res.CompletedTs == "" {
 		return true
 	}
+
+	// Temporary logging to make sure we're receiving pub/sub messages for
+	// de-duped tasks.
+	if res.DedupedFrom != "" {
+		sklog.Warningf("Received pub/sub message about de-duped task https://chromium-swarm.appspot.com/task?id=%s", res.TaskId)
+	}
+
 	// Update the task in the DB.
 	if err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
 		if err == db.ErrNotFound {
