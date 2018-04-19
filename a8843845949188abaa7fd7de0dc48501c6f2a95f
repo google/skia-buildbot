@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc85ba60_7027ff90",
+        "filename": "skolo/win/ansible/default-profile-auto-reboot.bat",
+        "patchSetId": 8
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-19T15:05:50Z",
+      "side": 1,
+      "message": "eww... but I guess we do what we must because we can.",
+      "range": {
+        "startLine": 4,
+        "startChar": 35,
+        "endLine": 4,
+        "endChar": 73
+      },
+      "revId": "a8843845949188abaa7fd7de0dc48501c6f2a95f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
