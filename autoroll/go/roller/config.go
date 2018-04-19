@@ -23,6 +23,7 @@ const (
 
 	ROLLER_TYPE_AFDO        = "afdo"
 	ROLLER_TYPE_ANDROID     = "android"
+	ROLLER_TYPE_GITHUB      = "github"
 	ROLLER_TYPE_GOOGLE3     = "google3"
 	ROLLER_TYPE_DEPS        = "deps"
 	ROLLER_TYPE_FUCHSIA_SDK = "fuchsiaSDK"
@@ -97,11 +98,16 @@ type AutoRollerConfig struct {
 	// email address.
 	Sheriff []string `json:"sheriff"`
 
+	// Github code review flags.
+	GithubRepoOwner string `json:"githubRepoOwner"`
+	GithubRepoName  string `json:"githubRepoName"`
+
 	// RepoManager configs. Exactly one must be provided.
 	DEPSRepoManager       *repo_manager.DEPSRepoManagerConfig       `json:"depsRepoManager"`
 	AndroidRepoManager    *repo_manager.AndroidRepoManagerConfig    `json:"androidRepoManager"`
 	AFDORepoManager       *repo_manager.AFDORepoManagerConfig       `json:"afdoRepoManager"`
 	FuchsiaSDKRepoManager *repo_manager.FuchsiaSDKRepoManagerConfig `json:"fuchsiaSDKRepoManager"`
+	GithubRepoManager     *repo_manager.GithubRepoManagerConfig     `json:"githubRepoManager"`
 	Google3RepoManager    *google3FakeRepoManagerConfig             `json:"google3"`
 	ManifestRepoManager   *repo_manager.ManifestRepoManagerConfig   `json:"manifestRepoManager"`
 
@@ -127,8 +133,8 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.ChildName == "" {
 		return errors.New("ChildName is required.")
 	}
-	if c.GerritURL == "" {
-		return errors.New("GerritURL is required.")
+	if c.GerritURL == "" && (c.GithubRepoOwner == "" || c.GithubRepoName == "") {
+		return errors.New("Either GerritURL OR both GithubRepoOwner/GithubRepoName is required.")
 	}
 	if c.ParentName == "" {
 		return errors.New("ParentName is required.")
@@ -152,6 +158,9 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.FuchsiaSDKRepoManager != nil {
 		rm = append(rm, c.FuchsiaSDKRepoManager)
+	}
+	if c.GithubRepoManager != nil {
+		rm = append(rm, c.GithubRepoManager)
 	}
 	if c.Google3RepoManager != nil {
 		rm = append(rm, c.Google3RepoManager)
@@ -187,6 +196,8 @@ func (c *AutoRollerConfig) RollerType() string {
 			c.rollerType = ROLLER_TYPE_AFDO
 		} else if c.FuchsiaSDKRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_FUCHSIA_SDK
+		} else if c.GithubRepoManager != nil {
+			c.rollerType = ROLLER_TYPE_GITHUB
 		} else if c.Google3RepoManager != nil {
 			c.rollerType = ROLLER_TYPE_GOOGLE3
 		} else if c.ManifestRepoManager != nil {

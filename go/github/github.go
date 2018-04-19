@@ -30,6 +30,9 @@ import (
 const (
 	GITHUB_TOKEN_METADATA_KEY   = "github_token"
 	TRAVISCI_TOKEN_METADATA_KEY = "travisci_token"
+
+	GITHUB_TOKEN_LOCAL_FILENAME   = "github_token"
+	TRAVISCI_TOKEN_LOCAL_FILENAME = "travisci_token"
 )
 
 var (
