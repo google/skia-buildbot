@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ecc307d2_b838474e",
+        "filename": "go/iap/infra_auth_allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-19T15:18:40Z",
+      "side": 1,
+      "message": "nit: consider RWMutex",
+      "revId": "499b49960fe4a34fc8979c9c269b0fd5bef7d93d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b4a59f3_4fcd2cc3",
+        "filename": "go/iap/infra_auth_allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-19T15:18:40Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 51,
+        "startChar": 13,
+        "endLine": 51,
+        "endChar": 15
+      },
+      "revId": "499b49960fe4a34fc8979c9c269b0fd5bef7d93d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "021aa8f7_f72e09dc",
+        "filename": "go/iap/infra_auth_allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-19T15:18:40Z",
+      "side": 1,
+      "message": "nit: gofmt simplify would remove this",
+      "range": {
+        "startLine": 61,
+        "startChar": 6,
+        "endLine": 61,
+        "endChar": 10
+      },
+      "revId": "499b49960fe4a34fc8979c9c269b0fd5bef7d93d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cce49a74_af6f84f5",
+        "filename": "go/iap/infra_auth_allowed.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-19T15:18:40Z",
+      "side": 1,
+      "message": "nit: name \u003d strings.TrimPrefix(name, \"*@\")",
+      "range": {
+        "startLine": 82,
+        "startChar": 3,
+        "endLine": 84,
+        "endChar": 4
+      },
+      "revId": "499b49960fe4a34fc8979c9c269b0fd5bef7d93d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
