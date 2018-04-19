@@ -1,6 +1,9 @@
 ---
 # Adjust time, power management, and auto-login settings.
 - hosts: all
+  vars:
+    default_profile_startup_path:
+      C:\Users\Default\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\
   tasks:
   - name: Set time zone to EST
     win_timezone:
@@ -47,3 +50,15 @@
     win_file:
       path: c:\Temp\skolo.pow
       state: absent
+  # For unknown reasons, occasionally Windows will have trouble logging in and say "We can't sign in
+  # to your account." When this happens, the Default profile is used instead. Despite many attempts,
+  # I have not found a way to avoid this problem; instead, just reboot when the Default profile
+  # opens.
+  - name: Create Default profile Startup folder
+    win_file:
+      path: "{{ default_profile_startup_path }}"
+      state: directory
+  - name: Copy default-profile-auto-reboot.bat to Default profile Startup folder
+    win_copy:
+      src: default-profile-auto-reboot.bat
+      dest: "{{ default_profile_startup_path }}"
