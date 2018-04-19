@@ -11,10 +11,11 @@
   <script src="../js/gold.js"></script>
   <script src="testdata.js"></script>
 
+
   <link rel="import" href="bower_components/polymer/polymer.html">
   <link rel="import" href="trybot-controls-sk.html">
   <link rel="import" href="bower_components/paper-button/paper-button.html">
-  
+
 </head>
 <body>
   <h1>trybot-controls-sk demo</h1>
@@ -22,6 +23,14 @@
   <dom-module id="main-document-element">
     <template>
       <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
+      <br>
+      <br>
+      <br>
+      <pre>
+        Event: [[_eventDetail]]
+        State Update: '[[_stateUpdateDetail]]'
+      </pre>
+
     </template>
 
     <script>
@@ -31,21 +40,39 @@
 
           properties: {
             _eventDetail: {
-              type: String, 
+              type: String,
               value: ''
             }
           },
 
           ready: function() {
-            var q = "?unt=true&query=source_type%3Dgm&master=false&issue=1953533002";
+            this.listen(this.$.trybotControls, 'state-change', '_handleStateChange');
+            this.listen(this.$.trybotControls, 'state-update', '_handleStateUpdate');
+            var state = {
+              master: false,
+              pagesets: ''
+            };
+            this.$.trybotControls.setState(state);
             this.$.trybotControls.setIssue(testdata.trybotResults.issue);
+          },
+
+          _handleStateChange: function(ev) {
+            ev.stopPropagation();
+            var x = JSON.stringify(ev.detail);
+            this.set('_eventDetail', x);
+          },
+
+          _handleStateUpdate: function(ev) {
+            ev.stopPropagation();
+            this.set('_stateUpdateDetail', JSON.stringify(ev.detail));
+            this.$.trybotControls.setState(ev.detail);
           }
         });
       });
     </script>
   </dom-module>
-  
-  <!-- Instantite the element defined above --> 
+
+  <!-- Instantite the element defined above -->
   <main-document-element></main-document-element>
 
 </body>

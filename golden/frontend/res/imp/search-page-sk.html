@@ -207,6 +207,8 @@
 
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+        this.listen(this.$.trybotControls, 'state-change', '_handleStateChange');
+        this.listen(this.$.trybotControls, 'state-update', '_handleStateUpdate');
         this.listen(this.$.triggerSearchButton, 'tap', '_handleSearchButton');
         this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
         this.listen(this.$.actionBulkTriage, 'tap', '_handleBulkButton');
@@ -224,6 +226,7 @@
         // Initialize the state and set values of the controls.
         this._initState(ctx, this._getDefaultStateWithCorpus());
         this.$.searchControls.setState(this._state);
+        this.$.trybotControls.setState(this._state);
 
         // load the commits, parameters and data.
         this._loadCommits();
@@ -243,6 +246,14 @@
       _handleStateChange: function(ev) {
         // Reload the page with the new  state in the query parameters.
         this._redirectToState(ev.detail);
+      },
+
+      _handleStateUpdate: function(ev) {
+        // Update the state and the URL and then distribute the new state to
+        // the control elements.
+        this._replaceState(ev.detail);
+        this.$.searchControls.setState(this._state);
+        this.$.trybotControls.setState(this._state);
       },
 
       _handleSwitchToByTest: function() {
