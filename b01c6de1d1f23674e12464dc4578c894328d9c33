@@ -22,6 +22,30 @@
       "revId": "b01c6de1d1f23674e12464dc4578c894328d9c33",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f40a07c_4e728e12",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T19:01:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b04f0ceb_b0d333f5",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 248,
+        "endChar": 42
+      },
+      "revId": "b01c6de1d1f23674e12464dc4578c894328d9c33",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
