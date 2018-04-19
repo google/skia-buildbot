@@ -1,3 +1,4 @@
 *.pdf binary
+skolo/win/**/*.bat text eol=crlf
 skolo/win/templates/*.xml text eol=crlf
 skolo/go/win/gen-unattend/testdata/TestTemplates/*.xml text eol=crlf
