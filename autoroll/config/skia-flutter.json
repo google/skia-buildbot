@@ -1,0 +1,20 @@
+{
+    "githubRepoOwner": "flutter",
+    "githubRepoName": "engine",
+    "childName": "Skia",
+    "maxRollFrequency": "0m",
+    "parentName": "Flutter",
+    "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+    "sheriff": ["rmistry@google.com"],
+    "githubRepoManager": {
+      "childBranch": "master",
+      "childPath": "src/third_party/skia",
+      "githubParentPath": "src/flutter",
+      "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
+      "includeLog": true,
+      "parentBranch": "master",
+      "parentRepo": "git@github.com:flutter/engine.git",
+      "preUploadSteps": ["FlutterLicenseScripts"],
+      "strategy": "batch"
+    }
+}
