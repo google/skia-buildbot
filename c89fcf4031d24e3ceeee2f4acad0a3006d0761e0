@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bdc7ddf9_c585ad97",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T13:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a926dbe_dd4f88f2",
+      "range": {
+        "startLine": 81,
+        "startChar": 6,
+        "endLine": 81,
+        "endChar": 8
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e931f72d_6819f842",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 44
@@ -45,6 +69,30 @@
       "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bde57c7_3eb562ca",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T13:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e931f72d_6819f842",
+      "range": {
+        "startLine": 109,
+        "startChar": 1,
+        "endLine": 109,
+        "endChar": 66
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c4e03996_8ecdccdd",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T13:17:35Z",
+      "side": 1,
+      "message": "This is necessary to get the forked repo to be the same as the target repo to prepare it for the pull request. It is especially useful if the forked repo contains changes that were never merged into the target repo and needs to be thrown away. This step basically resets the forked repo.\n\nWithout it the push command fails with:\ngit push origin roll_branch; Stdout+Stderr:\\nTo github.com:rmistry/engine.git\\n ! [rejected]            roll_branch -\u003e roll_branch (non-fast-forward)\\nerror: failed to push some refs to \u0027git@github.com:rmistry/engine.git\u0027\\nhint: Updates were rejected because the tip of your current branch is behind\\nhint: its remote counterpart. Integrate the remote changes (e.g.\\nhint: \u0027git pull ...\u0027) before pushing again.\\nhint: See the \u0027Note about fast-forwards\u0027 in \u0027git push --help\u0027 for details.\\n\"",
+      "parentUuid": "e2a022f8_d660d3f7",
+      "range": {
+        "startLine": 176,
+        "startChar": 83,
+        "endLine": 176,
+        "endChar": 87
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b77b95ed_f6a19b2c",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 44
@@ -91,6 +163,30 @@
       "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b52725bf_209ef1d9",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T13:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b77b95ed_f6a19b2c",
+      "range": {
+        "startLine": 204,
+        "startChar": 19,
+        "endLine": 204,
+        "endChar": 93
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "86e00227_4020b484",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T13:17:35Z",
+      "side": 1,
+      "message": "Agreed. I did not intend to submit this into prod, was using for testing. Removed.",
+      "parentUuid": "35622320_9f67623e",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 46
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0663b373_840b1cad",
         "filename": "autoroll/go/roller/roll.go",
         "patchSetId": 44
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "c31817fc_2ae084d0",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T13:17:35Z",
+      "side": 1,
+      "message": "Yes, adding a state sounds like the best way to do this. Will discuss with you when we get there.",
+      "parentUuid": "0663b373_840b1cad",
+      "range": {
+        "startLine": 339,
+        "startChar": 3,
+        "endLine": 340,
+        "endChar": 72
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b96728bb_0bae5720",
         "filename": "autoroll/go/roller/roll.go",
         "patchSetId": 44
@@ -160,6 +304,30 @@
       "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17e9d4fc_23558ade",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T13:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b96728bb_0bae5720",
+      "range": {
+        "startLine": 342,
+        "startChar": 0,
+        "endLine": 351,
+        "endChar": 6
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
