@@ -118,6 +118,12 @@
         "pulld",
       ],
     },
+    "skia-flutter-autoroll": {
+      "AppNames": [
+        "skia-flutter-autorolld",
+        "pulld",
+      ],
+    },
     "skia-internal-autoroll": {
       "AppNames": [
         "skia-internal-autorolld",

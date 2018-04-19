@@ -154,6 +154,16 @@ func SkCMS_Skia() *gce.Instance {
 	return vm
 }
 
+func Skia_Flutter() *gce.Instance {
+	vm := AutoRollBase("skia-flutter-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"rmistry@google.com",
+		"brianosman@google.com",
+	}
+	vm.ServiceAccount = "skia-flutter-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func SrcInternal_Chromium() *gce.Instance {
 	vm := AutoRollBase("src-internal-chromium-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -243,6 +253,7 @@ func main() {
 		"pdfium":                PDFium(),
 		"skcms-skia":            SkCMS_Skia(),
 		"skia":                  Skia(),
+		"skia-flutter":          Skia_Flutter(),
 		"skia-internal":         SkiaInternal(),
 		"src-internal-chromium": SrcInternal_Chromium(),
 		"webrtc-chromium":       WebRTC_Chromium(),
