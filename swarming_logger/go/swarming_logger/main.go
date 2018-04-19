@@ -149,9 +149,9 @@ type taskLogger struct {
 	s swarming.ApiClient
 }
 
-func (tl *taskLogger) HandleSwarmingPubSub(taskId string) bool {
+func (tl *taskLogger) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
 	// Obtain the Swarming task data.
-	t, err := tl.s.GetTask(taskId, false)
+	t, err := tl.s.GetTask(msg.SwarmingTaskId, false)
 	if err != nil {
 		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
 		return false
@@ -162,8 +162,8 @@ func (tl *taskLogger) HandleSwarmingPubSub(taskId string) bool {
 	}
 
 	// Get the task stdout.
-	sklog.Infof("Got task %s", taskId)
-	output, err := tl.s.SwarmingService().Task.Stdout(taskId).Do()
+	sklog.Infof("Got task %s", msg.SwarmingTaskId)
+	output, err := tl.s.SwarmingService().Task.Stdout(msg.SwarmingTaskId).Do()
 	if err != nil {
 		sklog.Errorf("Failed to obtain Swarming task output: %s", err)
 		return false
@@ -175,13 +175,13 @@ func (tl *taskLogger) HandleSwarmingPubSub(taskId string) bool {
 		sklog.Errorf("Failed to parse timestamp: %s", err)
 		return false
 	}
-	entries, sizes, err := splitOutput(taskId, output.Output, startedTs)
+	entries, sizes, err := splitOutput(msg.SwarmingTaskId, output.Output, startedTs)
 	if err != nil {
 		sklog.Errorf("Failed to create log entries: %s", err)
 		return false
 	}
 	reqLabels := map[string]string{
-		"id": taskId,
+		"id": msg.SwarmingTaskId,
 	}
 
 	// Get the base request size without any entries.
@@ -246,7 +246,7 @@ func (tl *taskLogger) HandleSwarmingPubSub(taskId string) bool {
 		}
 		return false
 	}
-	sklog.Infof("Successfully uploaded logs for %s", taskId)
+	sklog.Infof("Successfully uploaded logs for %s", msg.SwarmingTaskId)
 	return true
 }
 
