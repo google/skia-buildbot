@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "80cca8fb_91649720",
+        "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-19T13:00:56Z",
+      "side": 1,
+      "message": "Perhaps a comment is in order specifying that observer.value can be falsey (e.g. 0) which is why we compare to null?  Else, use !observer.value",
+      "range": {
+        "startLine": 214,
+        "startChar": 13,
+        "endLine": 214,
+        "endChar": 36
+      },
+      "revId": "713dbbe01724228f40eab735f90e37971ed8d8eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
