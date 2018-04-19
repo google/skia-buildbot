@@ -22,6 +22,30 @@
       "revId": "8bfe2d2a40f8ad5506bfa2c60ff5d2a01cd32eba",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9db1d99d_fe7773c6",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 45
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-19T16:20:16Z",
+      "side": 1,
+      "message": "That is much better. Done.",
+      "parentUuid": "41110305_652b112e",
+      "range": {
+        "startLine": 110,
+        "startChar": 1,
+        "endLine": 110,
+        "endChar": 87
+      },
+      "revId": "8bfe2d2a40f8ad5506bfa2c60ff5d2a01cd32eba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
