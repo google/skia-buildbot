@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41110305_652b112e",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 45
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-19T15:27:27Z",
+      "side": 1,
+      "message": "This is vulnerable to the output order changing, right? I was thinking more along the lines of:\n\nfound :\u003d false\nlines :\u003d strings.Split(remoteOutput, \"\\n\")\nfor _, line :\u003d range lines {\n    if line \u003d\u003d GITHUB_UPSTREAM_REMOTE_NAME {\n        found \u003d true\n        break\n    }\n}\nif !found {\n    ...\n\n\nUnless we\u0027re sure that the order will never change.",
+      "range": {
+        "startLine": 110,
+        "startChar": 1,
+        "endLine": 110,
+        "endChar": 87
+      },
+      "revId": "8bfe2d2a40f8ad5506bfa2c60ff5d2a01cd32eba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "b56f26c7_abfabe1a",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-19T15:27:27Z",
+      "side": 1,
+      "message": "Okay. \"git push -f\" is normally a giant red flag, something that should never need to be done except under extreme circumstances (eg. rewriting history).  But since this is only the fork I guess it makes sense.",
+      "parentUuid": "c4e03996_8ecdccdd",
+      "range": {
+        "startLine": 176,
+        "startChar": 83,
+        "endLine": 176,
+        "endChar": 87
+      },
+      "revId": "c89fcf4031d24e3ceeee2f4acad0a3006d0761e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b77b95ed_f6a19b2c",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 44
