@@ -49,7 +49,12 @@ func TestConfigs(t *testing.T) {
 
 	testErr(func(c *AutoRollerConfig) {
 		c.GerritURL = ""
-	}, "GerritURL is required.")
+	}, "Either GerritURL OR both GithubRepoOwner/GithubRepoName is required.")
+
+	testErr(func(c *AutoRollerConfig) {
+		c.GerritURL = ""
+		c.GithubRepoOwner = "superman"
+	}, "Either GerritURL OR both GithubRepoOwner/GithubRepoName is required.")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.ParentName = ""

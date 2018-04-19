@@ -12,6 +12,9 @@ type MockedGerrit struct {
 	IssueID int64
 }
 
+func (g *MockedGerrit) Initialized() bool {
+	return true
+}
 func (g *MockedGerrit) TurnOnAuthenticatedGets() {
 }
 func (g *MockedGerrit) Url(issueID int64) string {

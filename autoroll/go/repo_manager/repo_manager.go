@@ -142,9 +142,12 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 	if err != nil {
 		return nil, err
 	}
-	user, err := g.GetUserEmail()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
+	user := ""
+	if g.Initialized() {
+		user, err = g.GetUserEmail()
+		if err != nil {
+			return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
+		}
 	}
 	sklog.Infof("Repo Manager user: %s", user)
 	return &commonRepoManager{

@@ -17,27 +17,30 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"text/template"
 	"time"
 
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/chatbot"
-	"go.skia.org/infra/go/cleanup"
-	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/webhook"
+	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/autoroll/go/google3"
 	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/go/chatbot"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webhook"
 )
 
 const (
@@ -266,24 +269,54 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
+	// TODO(borenet/rmistry): Create a code review sub-config as described in
+	// https://skia-review.googlesource.com/c/buildbot/+/116980/6/autoroll/go/autoroll/main.go#261
+	// so that we can get rid of these vars and the various conditionals.
 	var g *gerrit.Gerrit
+	var githubClient *github.GitHub
 	if cfg.RollerType() == roller.ROLLER_TYPE_GOOGLE3 {
 		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master")
 	} else {
-		// Create the code review API client.
-		if cfg.RollerType() == roller.ROLLER_TYPE_ANDROID {
-			cfg.GerritURL = androidInternalGerritUrl
+		if cfg.GerritURL != "" {
+			// Create the code review API client.
+			if cfg.RollerType() == roller.ROLLER_TYPE_ANDROID {
+				cfg.GerritURL = androidInternalGerritUrl
+			}
+			g, err = gerrit.NewGerrit(cfg.GerritURL, gitcookiesPath, nil)
+			if err != nil {
+				sklog.Fatalf("Failed to create Gerrit client: %s", err)
+			}
+			g.TurnOnAuthenticatedGets()
+		} else {
+			gToken := ""
+			tToken := ""
+			if *local {
+				gBody, err := ioutil.ReadFile(path.Join(user.HomeDir, github.GITHUB_TOKEN_LOCAL_FILENAME))
+				if err != nil {
+					sklog.Fatalf("Couldn't find githubToken in the local file %s: %s.", github.GITHUB_TOKEN_LOCAL_FILENAME, err)
+				}
+				gToken = strings.TrimSpace(string(gBody))
+
+				tBody, err := ioutil.ReadFile(path.Join(user.HomeDir, github.TRAVISCI_TOKEN_LOCAL_FILENAME))
+				if err != nil {
+					sklog.Fatalf("Couldn't find travisciToken in the local file %s: %s.", github.TRAVISCI_TOKEN_LOCAL_FILENAME, err)
+				}
+				tToken = strings.TrimSpace(string(tBody))
+			} else {
+				gToken = metadata.Must(metadata.ProjectGet(github.GITHUB_TOKEN_METADATA_KEY))
+				tToken = metadata.Must(metadata.ProjectGet(github.TRAVISCI_TOKEN_METADATA_KEY))
+			}
+			githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
+			githubClient, err = github.NewGitHub(ctx, cfg.GithubRepoOwner, cfg.GithubRepoName, githubHttpClient, tToken)
+			if err != nil {
+				sklog.Fatalf("Could not create Github client: %s", err)
+			}
 		}
-		g, err = gerrit.NewGerrit(cfg.GerritURL, gitcookiesPath, nil)
-		if err != nil {
-			sklog.Fatalf("Failed to create Gerrit client: %s", err)
-		}
-		g.TurnOnAuthenticatedGets()
 
 		if *recipesCfgFile == "" {
 			*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 		}
-		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, *workdir, *recipesCfgFile, serverURL)
+		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL)
 	}
 	if err != nil {
 		sklog.Fatal(err)
