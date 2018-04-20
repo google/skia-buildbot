@@ -186,8 +186,13 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 	// Make third_party/ match the new DEPS.
-	if _, err := exec.RunCwd(ctx, rm.depsRepoManager.parentDir, filepath.Join(rm.depotTools, "gclient"), "sync"); err != nil {
-		return 0, fmt.Errorf("Error when running gclient sync: %s", err)
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Dir:  rm.depsRepoManager.parentDir,
+		Env:  depot_tools.Env(rm.depotTools),
+		Name: "python",
+		Args: []string{rm.gclient, "sync"},
+	}); err != nil {
+		return 0, fmt.Errorf("Error when running gclient sync to make third_party/ match the new DEPS: %s", err)
 	}
 
 	// Make sure the right name and email are set.
