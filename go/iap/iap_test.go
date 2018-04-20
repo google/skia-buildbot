@@ -248,3 +248,22 @@ lMgnmZhQXYTaxTcUmaV2zxD/U3fSoPyzliWdVHK6Zc5wW6kYVYuT5e9/Kg==
 	ih.ServeHTTP(w, r)
 	assert.Equal(t, 401, w.Result().StatusCode)
 }
+
+func TestNone(t *testing.T) {
+	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.WriteString(w, "<html><body>Hello World!</body></html>")
+		assert.NoError(t, err)
+	})
+	r := httptest.NewRequest("GET", "http://example.com/foo", nil)
+	r.Header.Set(SCHEME_AT_LOAD_BALANCER_HEADER, "http")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	assert.Equal(t, 200, w.Result().StatusCode)
+	assert.Equal(t, "", w.Result().Header.Get("Location"))
+
+	h = None(h)
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	assert.Equal(t, 301, w.Result().StatusCode)
+	assert.Equal(t, "https://example.com/foo", w.Result().Header.Get("Location"))
+}
