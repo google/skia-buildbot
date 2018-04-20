@@ -112,7 +112,6 @@ func setupFakeGithub(t *testing.T, wd string, childCommits []string) *github.Git
 	})
 	assert.NoError(t, err)
 	reqType := "application/json"
-
 	issueTitle := fmt.Sprintf("Roll path/to/child/ %s..%s (%d commits)", childCommits[0][:9], childCommits[len(childCommits)-1][:9], len(childCommits)-1)
 	headBranch := fmt.Sprintf("%s:%s", mockGithubUser, ROLL_BRANCH)
 	baseBranch := "master"
@@ -120,6 +119,13 @@ func setupFakeGithub(t *testing.T, wd string, childCommits []string) *github.Git
 `)
 	md := mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, serializedPull, http.StatusCreated)
 	urlMock.MockOnce(gUrl+"/repos/superman/krypton/pulls", md)
+
+	// Mock /comments endpoint.
+	reqType = "application/json"
+	reqBody = []byte(`{"body":"@reviewer : New roll has been created by the roller"}
+`)
+	md = mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, nil, http.StatusCreated)
+	urlMock.MockOnce(gUrl+"/repos/superman/krypton/issues/12345/comments", md)
 
 	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client(), "")
 	assert.NoError(t, err)

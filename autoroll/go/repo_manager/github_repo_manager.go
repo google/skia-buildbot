@@ -186,8 +186,13 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 	// Make third_party/ match the new DEPS.
-	if _, err := exec.RunCwd(ctx, rm.depsRepoManager.parentDir, filepath.Join(rm.depotTools, "gclient"), "sync"); err != nil {
-		return 0, fmt.Errorf("Error when running gclient sync: %s", err)
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Dir:  rm.depsRepoManager.parentDir,
+		Env:  depot_tools.Env(rm.depotTools),
+		Name: rm.gclient,
+		Args: []string{"sync"},
+	}); err != nil {
+		return 0, fmt.Errorf("Error when running gclient sync to make third_party/ match the new DEPS: %s", err)
 	}
 
 	// Make sure the right name and email are set.
@@ -244,6 +249,17 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		if err := rm.githubClient.AddComment(pr.GetNumber(), fmt.Sprintf("Error: %s", preUploadErr.Error())); err != nil {
 			return 0, err
 		}
+	}
+
+	// Mention the sheriffs on the pull request so that they are automatically
+	// subscribed to it.
+	mentions := []string{}
+	for _, e := range emails {
+		m := fmt.Sprintf("@%s", strings.Split(e, "@")[0])
+		mentions = append(mentions, m)
+	}
+	if err := rm.githubClient.AddComment(pr.GetNumber(), fmt.Sprintf("%s : New roll has been created by the roller", strings.Join(mentions, " "))); err != nil {
+		return 0, err
 	}
 
 	return int64(pr.GetNumber()), nil
