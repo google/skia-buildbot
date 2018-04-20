@@ -1,0 +1,43 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: prober
+spec:
+  template:
+    metadata:
+      labels:
+        app: prober
+    spec:
+      containers:
+      - name: prober
+        image: gcr.io/skia-public/proberd:2018-04-12T20_05_25Z-jcgregorio-b79e0a0942d9cc2314a0983a4e0e08a75eca9137-dirty
+        ports:
+          - name: metrics
+            containerPort: 20000
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+        resources:
+          requests:
+            memory: "300Mi"
+            cpu: "25m"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prober-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prober
+  name: prober
+spec:
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 20000
+  selector:
+    app: prober
+  type: NodePort
+
