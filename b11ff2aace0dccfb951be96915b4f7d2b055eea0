@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56ca8cb7_1b34c74c",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-20T22:15:26Z",
+      "side": 1,
+      "message": "Test failure is because this check should be in the first branch of the if.",
+      "range": {
+        "startLine": 106,
+        "startChar": 45,
+        "endLine": 107,
+        "endChar": 16
+      },
+      "revId": "b11ff2aace0dccfb951be96915b4f7d2b055eea0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec05e1c1_9edf2cd1",
+        "filename": "go/iap/iap_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-20T22:15:26Z",
+      "side": 1,
+      "message": "nit: Maybe test normal path with None (i.e. response is \"Hello World\").",
+      "range": {
+        "startLine": 285,
+        "startChar": 0,
+        "endLine": 285,
+        "endChar": 1
+      },
+      "revId": "b11ff2aace0dccfb951be96915b4f7d2b055eea0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
