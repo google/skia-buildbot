@@ -1,0 +1,81 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: alertmanager
+spec:
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.14.0
+        ports:
+          - name: http
+            containerPort: 8080
+        args:
+          - "--web.listen-address=:8080"
+          - "--config.file=/etc/alertmanager/alertmanager-config.yml"
+          - "--storage.path=/alertmanager"
+        volumeMounts:
+        - name: alertmanager-volume
+          mountPath: /etc/alertmanager
+        - name: alertmanager
+          mountPath: /alertmanager
+        resources:
+          requests:
+            memory: "30Mi"
+            cpu: "100m"
+      - name: configmap-reload
+        args:
+          - "--volume-dir=/etc/alertmanager/"
+          - "--webhook-method=POST"
+          - "--webhook-url=http://localhost:8080/-/reload"
+        image: gcr.io/skia-public/configmap-reload:2018-04-18T16_15_25Z-jcgregorio-902841b54f87115df952f3c0cf97a1668d8453d2-dirty
+        volumeMounts:
+        - name: alertmanager-volume
+          mountPath: /etc/alertmanager
+        resources:
+          requests:
+            memory: "30Mi"
+            cpu: "20m"
+      - name: iap-proxy
+        args:
+          - "--logtostderr"
+          - "--aud=/projects/145247227042/global/backendServices/8317823226037848949"
+          - "--port=:8081"
+          - "--target_port=:8080"
+        image: gcr.io/skia-public/iap_proxy:2018-04-18T16_35_29Z-jcgregorio-7db56c3f7466649efb80d522079bcf01f0fd9279-dirty
+        volumeMounts:
+          - name: skia-public-auth
+            mountPath: /var/secrets/skia-public-auth
+        resources:
+          requests:
+            memory: "30Mi"
+            cpu: "200m"
+      volumes:
+        - name: alertmanager-volume
+          configMap:
+            name: alertmanager-conf
+        - name: skia-public-auth
+          secret:
+            secretName: skia-public-auth
+        - name: alertmanager
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: alertmanager
+  name: alertmanager
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8081
+  selector:
+    app: alertmanager
+  type: NodePort
+
