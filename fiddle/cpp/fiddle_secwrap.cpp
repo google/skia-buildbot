@@ -232,6 +232,7 @@ const char *readonly_allowed_prefixes[] = {
     "/usr/lib/",
     "/usr/local/share/fonts",
     "/usr/share/",
+    "/usr/X11R6/lib/X11/fonts",
     "/var/cache/fontconfig",
     "skia.conf",
     NULL,
