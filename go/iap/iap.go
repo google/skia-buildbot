@@ -77,6 +77,32 @@ func New(h http.Handler, aud string, allow Allow) *IAPHandler {
 	}
 }
 
+// None looks like the IAPHandler, but is used in cases where the IAP is turned
+// off for a website, but we still want to force traffic to go over HTTPS.
+// See: https://github.com/kubernetes/ingress-gce#redirecting-http-to-https
+//
+// h - The http.Handler to wrap.
+//
+// Example:
+//    if !*local {
+//      h := iap.None(h)
+//    }
+//    http.Handle("/", h)
+//
+func None(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if "http" == r.Header.Get("X-Forwarded-Proto") {
+			u := *r.URL
+			u.Host = r.Host
+			u.Scheme = "https"
+			http.Redirect(w, r, u.String(), http.StatusMovedPermanently)
+		} else {
+			h.ServeHTTP(w, r)
+		}
+	}
+	return http.HandlerFunc(s)
+}
+
 func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Only this func is allowed to set x-user-email.
 	r.Header.Set(EMAIL_HEADER, "")
