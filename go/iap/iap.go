@@ -34,6 +34,10 @@ const (
 	// EMAIL_HEADER is the header added by this module that will contain the
 	// user's email address once the IAP signed JWT has been verified.
 	EMAIL_HEADER = "x-user-email"
+
+	// SCHEME_AT_LOAD_BALANCER_HEADER is the header, added by the load balancer,
+	// the has the scheme [http|https] that the original request was made under.
+	SCHEME_AT_LOAD_BALANCER_HEADER = "x-forwarded-proto"
 )
 
 // IAPHandler implements an http.Handler that validates x-goog-iap-jwt-asssertion
@@ -75,6 +79,40 @@ func New(h http.Handler, aud string, allow Allow) *IAPHandler {
 		client:     httputils.NewTimeoutClient(),
 		handler:    h,
 	}
+}
+
+// None looks like the IAPHandler, but is used in cases where the IAP is turned
+// off for a website, but we still want to force traffic to go over HTTPS.
+// See: https://github.com/kubernetes/ingress-gce#redirecting-http-to-https
+//
+// h - The http.Handler to wrap.
+//
+// Example:
+//    if !*local {
+//      h := iap.None(h)
+//    }
+//    http.Handle("/", h)
+//
+func None(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if "http" == r.Header.Get(SCHEME_AT_LOAD_BALANCER_HEADER) {
+			u := *r.URL
+			u.Host = r.Host
+			u.Scheme = "https"
+			http.Redirect(w, r, u.String(), http.StatusMovedPermanently)
+		} else {
+			// We are running in Kubernetes as a Service so the requesting IP address
+			// isn't available, the only indicators that this is a healthcheck is the
+			// User-Agent, the request path, and that SCHEME_AT_LOAD_BALANCER_HEADER
+			// isn't set.
+			if r.URL.Path == "/" && r.Header.Get("User-Agent") == "GoogleHC/1.0" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			h.ServeHTTP(w, r)
+		}
+	}
+	return http.HandlerFunc(s)
 }
 
 func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
