@@ -248,3 +248,39 @@ lMgnmZhQXYTaxTcUmaV2zxD/U3fSoPyzliWdVHK6Zc5wW6kYVYuT5e9/Kg==
 	ih.ServeHTTP(w, r)
 	assert.Equal(t, 401, w.Result().StatusCode)
 }
+
+func TestNone(t *testing.T) {
+	testutils.SmallTest(t)
+	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.WriteString(w, "Hello World!")
+		assert.NoError(t, err)
+	})
+	// Test w/o None in place.
+	r := httptest.NewRequest("GET", "http://example.com/foo", nil)
+	r.Header.Set(SCHEME_AT_LOAD_BALANCER_HEADER, "http")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	assert.Equal(t, 200, w.Result().StatusCode)
+	assert.Equal(t, "", w.Result().Header.Get("Location"))
+	b, err := ioutil.ReadAll(w.Result().Body)
+	assert.NoError(t, err)
+	assert.Len(t, b, 12)
+
+	// Add in None behavior.
+	h = None(h)
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	assert.Equal(t, 301, w.Result().StatusCode)
+	assert.Equal(t, "https://example.com/foo", w.Result().Header.Get("Location"))
+
+	// Test the healthcheck handling.
+	r = httptest.NewRequest("GET", "http://example.com/", nil)
+	r.Header.Set("User-Agent", "GoogleHC/1.0")
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	assert.Equal(t, 200, w.Result().StatusCode)
+	assert.Equal(t, "", w.Result().Header.Get("Location"))
+	b, err = ioutil.ReadAll(w.Result().Body)
+	assert.NoError(t, err)
+	assert.Len(t, b, 0)
+}
