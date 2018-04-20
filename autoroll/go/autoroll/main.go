@@ -303,8 +303,8 @@ func main() {
 				}
 				tToken = strings.TrimSpace(string(tBody))
 			} else {
-				gToken = metadata.Must(metadata.ProjectGet(github.GITHUB_TOKEN_METADATA_KEY))
-				tToken = metadata.Must(metadata.ProjectGet(github.TRAVISCI_TOKEN_METADATA_KEY))
+				gToken = metadata.Must(metadata.Get(github.GITHUB_TOKEN_METADATA_KEY))
+				tToken = metadata.Must(metadata.Get(github.TRAVISCI_TOKEN_METADATA_KEY))
 			}
 			githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
 			githubClient, err = github.NewGitHub(ctx, cfg.GithubRepoOwner, cfg.GithubRepoName, githubHttpClient, tToken)
