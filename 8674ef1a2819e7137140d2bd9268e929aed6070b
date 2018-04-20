@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4d5716e1_0c5a3579",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-20T21:49:40Z",
+      "side": 1,
+      "message": "Maybe, but I\u0027d prefer to keep the two alternatives (New and None) close to each other.",
+      "parentUuid": "970c2e4f_e84bbdfe",
+      "range": {
+        "startLine": 84,
+        "startChar": 66,
+        "endLine": 85,
+        "endChar": 6
+      },
+      "revId": "8674ef1a2819e7137140d2bd9268e929aed6070b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "241b0806_7458bf30",
         "filename": "go/iap/iap.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "6b5cb962_d5471466",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-20T21:49:40Z",
+      "side": 1,
+      "message": "Added healtcheck path.",
+      "parentUuid": "241b0806_7458bf30",
+      "range": {
+        "startLine": 88,
+        "startChar": 3,
+        "endLine": 88,
+        "endChar": 32
+      },
+      "revId": "8674ef1a2819e7137140d2bd9268e929aed6070b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7c08ded5_828e7c5e",
         "filename": "go/iap/iap.go",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "8674ef1a2819e7137140d2bd9268e929aed6070b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5e61dea_d93950b5",
+        "filename": "go/iap/iap.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-20T21:49:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7c08ded5_828e7c5e",
+      "range": {
+        "startLine": 98,
+        "startChar": 5,
+        "endLine": 98,
+        "endChar": 14
+      },
+      "revId": "8674ef1a2819e7137140d2bd9268e929aed6070b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
