@@ -20,17 +20,14 @@ import (
 	"strconv"
 	"strings"
 
-	"cloud.google.com/go/storage"
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/gorilla/mux"
 	"github.com/russross/blackfriday"
 	"go.skia.org/infra/doc/go/docset"
-	"go.skia.org/infra/doc/go/ssi"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/sklog"
-	"google.golang.org/api/option"
 )
 
 var (
@@ -58,17 +55,19 @@ func loadTemplates() {
 }
 
 func Init() {
-	// Initialize the SSI package which needs access to GCS.
-	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", "", storage.ScopeFullControl)
-	if err != nil {
-		sklog.Fatalf("Unable to obtain auth token source: %s", err)
-	}
 
-	storageClient, err := storage.NewClient(context.Background(), option.WithTokenSource(tokenSrc))
-	if err != nil {
-		sklog.Fatalf("Unable to instantiate GCS client: %s", err)
-	}
-	ssi.Init(*docRepo, storageClient)
+	/*
+		tokenSrc, err := auth.NewDefaultTokenSource(*local)
+		if err != nil {
+			sklog.Fatalf("Unable to obtain auth token source: %s", err)
+		}
+
+		storageClient, err := storage.NewClient(context.Background(), option.WithTokenSource(tokenSrc))
+		if err != nil {
+			sklog.Fatalf("Unable to instantiate GCS client: %s", err)
+		}
+		ssi.Init(*docRepo, storageClient)
+	*/
 
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
@@ -76,6 +75,7 @@ func Init() {
 	}
 	loadTemplates()
 
+	var err error
 	if err = docset.Init(); err != nil {
 		sklog.Fatalf("Failed to initialize docset: %s", err)
 	}
@@ -187,11 +187,13 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		body := blackfriday.MarkdownCommon(b)
 
-		// Resolve the serve side includes if there are any.
-		if body, err = ssi.ProcessSSI(body); err != nil {
-			httputils.ReportError(w, r, err, "Failed to load file")
-			return
-		}
+		/*
+			// Resolve the serve side includes if there are any.
+			if body, err = ssi.ProcessSSI(body); err != nil {
+				httputils.ReportError(w, r, err, "Failed to load file")
+				return
+			}
+		*/
 
 		if bodyOnly {
 			if _, err := w.Write(body); err != nil {
@@ -220,31 +222,20 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	flag.Parse()
-	opts := []common.Opt{
-		common.PrometheusOpt(promPort),
-	}
-	if !*local {
-		opts = append(opts, common.CloudLoggingOpt())
-	}
 	common.InitWithMust(
 		"docserver",
-		opts...,
+		common.PrometheusOpt(promPort),
 	)
-	if !*local {
-		login.SimpleInitMust(*port, *local)
-	}
 
 	Init()
 
+	router := mux.NewRouter()
 	// Resources are served directly.
-	if !*local {
-		http.HandleFunc("/logout/", login.LogoutHandler)
-		http.HandleFunc("/loginstatus/", login.StatusHandler)
-		http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	}
-	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
-	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
+	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+	router.PathPrefix("/").HandlerFunc(autogzip.HandleFunc(mainHandler))
+
+	h := iap.None(router)
+	http.Handle("/", h)
 
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))

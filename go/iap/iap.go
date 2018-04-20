@@ -11,6 +11,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -75,6 +76,26 @@ func New(h http.Handler, aud string, allow Allow) *IAPHandler {
 		client:     httputils.NewTimeoutClient(),
 		handler:    h,
 	}
+}
+
+// None looks like the IAPHandler, but is used in cases where the IAP is turned
+// off for a website, but we still want traffic to go over HTTPS.
+func None(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if "http" == r.Header.Get("X-Forwarded-Proto") {
+			sklog.Infof("http only: %v", r.URL.String())
+			sklog.Infof("http only request: %#v", *r)
+			sklog.Infof("http only headers: %v", r.Header)
+			u := *r.URL
+			u.Host = r.Host
+			u.Scheme = "https"
+			sklog.Infof("Redirect to: %s", u.String())
+			http.Redirect(w, r, u.String(), http.StatusMovedPermanently)
+		} else {
+			h.ServeHTTP(w, r)
+		}
+	}
+	return http.HandlerFunc(s)
 }
 
 func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

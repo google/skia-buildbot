@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: docserver2
+  name: docserver2
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+    - name: metrics
+      protocol: TCP
+      port: 20000
+  selector:
+    app: docserver2
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: docserver2
+spec:
+  selector:
+    matchLabels:
+      app: docserver2 # Label selector that determines which Pods belong to the StatefulSet
+                 # Must match spec: template: metadata: labels
+  serviceName: "docserver2"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: docserver2 # Pod template's label selector
+    spec:
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: skia-docs-key
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: docserver2
+        image: gcr.io/skia-public/docserver:2018-04-20T16_03_47Z-jcgregorio-389d935ccafee2a14f86ea3a02d0b94c92f5d860-dirty
+        args:
+          - "--logtostderr"
+          - "--resources_dir=/usr/local/share/docserver/"
+          - "--work_dir=/mnt/pd0"
+        ports:
+          - name: http
+            containerPort: 8000
+          - name: metrics
+            containerPort: 20000
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "200Mi"
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+        - name: docserver2-storage
+          mountPath: /mnt/pd0
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
+  volumeClaimTemplates:
+  - metadata:
+      name: docserver2-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 500Mi

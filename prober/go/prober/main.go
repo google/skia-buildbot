@@ -5,21 +5,19 @@
 package main
 
 import (
+	"crypto/md5"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/flynn/json5"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -28,8 +26,8 @@ import (
 
 // flags
 var (
-	config   = flag.String("config", "probers.json5", "Comma separated names of prober config files.")
-	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
+	config   = flag.String("config", "probers.json5", "Name of prober config files")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 	validate = flag.Bool("validate", false, "Validate the config file and then exit.")
 )
@@ -43,6 +41,8 @@ var (
 		"skfiddleJSONSecViolation": skfiddleJSONSecViolation,
 		"validJSON":                validJSON,
 	}
+
+	configFileHash = ""
 )
 
 const (
@@ -51,31 +51,29 @@ const (
 	ISSUE_TRACKER_PERIOD = 15 * time.Minute
 )
 
-func readConfigFiles(filenames string) (types.Probes, error) {
+func readConfigFile(filename string) (types.Probes, error) {
 	allProbes := types.Probes{}
 	errs := []string{}
-	for _, filename := range strings.Split(filenames, ",") {
-		file, err := os.Open(filename)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to open config file: %s", err)
-		}
-		d := json5.NewDecoder(file)
-		p := &types.Probes{}
-		if err := d.Decode(p); err != nil {
-			return nil, fmt.Errorf("Failed to decode JSON in config file: %s", err)
-		}
-		for k, v := range *p {
-			v.Failure = map[string]metrics2.Int64Metric{}
-			v.Latency = map[string]metrics2.Int64Metric{}
-			if v.ResponseTestName != "" {
-				if f, ok := responseTesters[v.ResponseTestName]; ok {
-					v.ResponseTest = f
-				} else {
-					errs = append(errs, fmt.Sprintf("ResponseTestName Not Found %q", k))
-				}
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open config file: %s", err)
+	}
+	d := json5.NewDecoder(file)
+	p := &types.Probes{}
+	if err := d.Decode(p); err != nil {
+		return nil, fmt.Errorf("Failed to decode JSON in config file: %s", err)
+	}
+	for k, v := range *p {
+		v.Failure = map[string]metrics2.Int64Metric{}
+		v.Latency = map[string]metrics2.Int64Metric{}
+		if v.ResponseTestName != "" {
+			if f, ok := responseTesters[v.ResponseTestName]; ok {
+				v.ResponseTest = f
+			} else {
+				errs = append(errs, fmt.Sprintf("ResponseTestName Not Found %q", k))
 			}
-			allProbes[k] = v
 		}
+		allProbes[k] = v
 	}
 	if len(errs) != 0 {
 		return nil, fmt.Errorf("%s", strings.Join(errs, "\n  "))
@@ -175,58 +173,6 @@ func hasKeys(obj map[string]interface{}, keys []string) bool {
 	return true
 }
 
-// monitorIssueTracker reads the counts for all the types of issues in the Skia
-// issue tracker (bugs.chromium.org/p/skia) and stuffs the counts into Graphite.
-func monitorIssueTracker(c *http.Client) {
-	// IssueStatus has all the info we need to capture and record a single issue status. I.e. capture
-	// the count of all issues with a status of "New".
-	type IssueStatus struct {
-		Name   string
-		Metric metrics2.Int64Metric
-		URL    string
-	}
-
-	allIssueStatusLabels := []string{
-		"New", "Accepted", "Unconfirmed", "Started", "Fixed", "Verified", "Invalid", "WontFix", "Done", "Available", "Assigned",
-	}
-
-	issueStatus := []*IssueStatus{}
-	for _, issueName := range allIssueStatusLabels {
-		q := url.Values{}
-		q.Set("fields", "totalResults")
-		q.Set("status", issueName)
-		issueStatus = append(issueStatus, &IssueStatus{
-			Name:   issueName,
-			Metric: metrics2.GetInt64Metric("issues", map[string]string{"status": strings.ToLower(issueName)}),
-			URL:    issues.MONORAIL_BASE_URL + "?" + q.Encode(),
-		})
-	}
-
-	liveness := metrics2.NewLiveness("issue_tracker")
-	for range time.Tick(ISSUE_TRACKER_PERIOD) {
-		for _, issue := range issueStatus {
-			resp, err := c.Get(issue.URL)
-			if err != nil {
-				sklog.Errorf("Failed to retrieve response from %s: %s", issue.URL, err)
-				continue
-			}
-			jsonResp := map[string]int64{}
-			dec := json5.NewDecoder(resp.Body)
-			if err := dec.Decode(&jsonResp); err != nil {
-				sklog.Warningf("Failed to decode JSON response: %s", err)
-				util.Close(resp.Body)
-				continue
-			}
-			issue.Metric.Update(jsonResp["totalResults"])
-			sklog.Infof("Num Issues: %s - %d", issue.Name, jsonResp["totalResults"])
-			if err == nil && resp.Body != nil {
-				util.Close(resp.Body)
-			}
-		}
-		liveness.Reset()
-	}
-}
-
 func probeOneRound(cfg types.Probes, c *http.Client) {
 	var resp *http.Response
 	var begin time.Time
@@ -277,14 +223,27 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 	}
 }
 
+func getConfigFileHash(filename string) (string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer util.Close(file)
+
+	hash := md5.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+}
+
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
-		"probeserver",
+		"prober",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
-	cfg, err := readConfigFiles(*config)
+	cfg, err := readConfigFile(*config)
 	if *validate {
 		if err != nil {
 			fmt.Printf("Validation Failed:\n  %s\n", err)
@@ -296,11 +255,6 @@ func main() {
 	if err != nil {
 		sklog.Fatalln("Failed to read config file: ", err)
 	}
-	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
-	if err != nil {
-		sklog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
-	}
-	go monitorIssueTracker(client)
 
 	liveness := metrics2.NewLiveness("probes")
 
@@ -319,8 +273,22 @@ func main() {
 		return http.ErrUseLastResponse
 	}
 
+	configFileHash, err = getConfigFileHash(*config)
+	if err != nil {
+		sklog.Fatalf("Failed to load config file: %s", err)
+	}
+
 	probeOneRound(cfg, c)
 	for range time.Tick(*runEvery) {
+		newHash, err := getConfigFileHash(*config)
+		if err != nil {
+			sklog.Fatalf("Can no longer read config file: %s", err)
+			os.Exit(1)
+		}
+		if newHash != configFileHash {
+			sklog.Infof("Config file has changed, restarting.")
+			os.Exit(0)
+		}
 		probeOneRound(cfg, c)
 		liveness.Reset()
 	}
