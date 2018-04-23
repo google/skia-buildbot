@@ -1,0 +1,46 @@
+package gcr
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/testutils"
+)
+
+func TestTags(t *testing.T) {
+	testutils.SmallTest(t)
+	url := "https://gcr.io/v2/skia-public/docserver/tags/list"
+	m := mockhttpclient.NewURLMock()
+	m.Mock(url, mockhttpclient.MockGetDialogue([]byte(`{"tags": ["foo", "bar"]}`)))
+	c := &Client{
+		client: m.Client(),
+		scope:  "skia-public/docserver",
+	}
+	tags, err := c.Tags()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"foo", "bar"}, tags)
+
+	c.scope = "skia-public/unknown"
+	tags, err = c.Tags()
+	assert.Error(t, err)
+}
+
+func TestGcrTokenSource(t *testing.T) {
+	m := mockhttpclient.NewURLMock()
+	url := "https://gcr.io/v2/token?scope=repository:skia-public/docserver:pull"
+	m.Mock(url, mockhttpclient.MockGetDialogue([]byte(`{"token": "foo", "expires_in": 3600}`)))
+
+	ts := &gcrTokenSource{
+		client: m.Client(),
+		scope:  "skia-public/docserver",
+	}
+	token, err := ts.Token()
+	assert.NoError(t, err)
+	assert.Equal(t, "foo", token.AccessToken)
+	assert.Equal(t, "Bearer", token.TokenType)
+
+	ts.scope = "skia-public/unknown"
+	token, err = ts.Token()
+	assert.Error(t, err)
+}
