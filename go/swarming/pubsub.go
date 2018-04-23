@@ -82,11 +82,12 @@ type PubSubRequest struct {
 // Task.
 type PubSubTaskMessage struct {
 	SwarmingTaskId string `json:"task_id"`
+	UserData       string `json:"userdata"`
 }
 
 // PubSubHandler is an interface used for handling pub/sub messages.
 type PubSubHandler interface {
-	HandleSwarmingPubSub(string) bool
+	HandleSwarmingPubSub(*PubSubTaskMessage) bool
 }
 
 // RegisterPubSubServer adds handler to r that handle pub/sub push
@@ -105,7 +106,7 @@ func RegisterPubSubServer(h PubSubHandler, r *mux.Router) {
 			return
 		}
 
-		ack := h.HandleSwarmingPubSub(t.SwarmingTaskId)
+		ack := h.HandleSwarmingPubSub(&t)
 		if ack {
 			w.WriteHeader(http.StatusOK)
 		} else {
