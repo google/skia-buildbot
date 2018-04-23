@@ -362,7 +362,7 @@ func (c *cloudTryjobStore) UpdateTryjobResult(tryjob *Tryjob, results []*TryjobR
 }
 
 // AddChange implements the TryjobStore interface.
-func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.TestClassification, userID string) (err error) {
+func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.TestClassification, userID string) error {
 	// Write the change record.
 	ctx := context.Background()
 	expChange := &ExpChange{
