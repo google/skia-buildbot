@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f90da714_48b74e6b",
+        "filename": "go/gcr/gcr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-23T22:11:41Z",
+      "side": 1,
+      "message": "Done. Split into projectId and imageName.",
+      "parentUuid": "29ef9fe1_ecf811fa",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 9
+      },
+      "revId": "d2dc69824bb1e253586accf82c0d282c80549a35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8000f99f_0025d895",
         "filename": "go/gcr/gcr.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9bdbae93_318ed8cc",
+        "filename": "go/gcr/gcr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-23T22:11:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8000f99f_0025d895",
+      "range": {
+        "startLine": 41,
+        "startChar": 48,
+        "endLine": 41,
+        "endChar": 54
+      },
+      "revId": "d2dc69824bb1e253586accf82c0d282c80549a35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d58e6e6_3f8cda36",
         "filename": "go/gcr/gcr.go",
         "patchSetId": 1
@@ -59,6 +107,24 @@
       "writtenOn": "2018-04-23T17:42:57Z",
       "side": 1,
       "message": "Probably not a good idea to log the full auth token. 2 instances in this function",
+      "revId": "d2dc69824bb1e253586accf82c0d282c80549a35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "876ab191_e3de3738",
+        "filename": "go/gcr/gcr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-23T22:11:41Z",
+      "side": 1,
+      "message": "Leftover debugging, deleted.",
+      "parentUuid": "7d58e6e6_3f8cda36",
       "revId": "d2dc69824bb1e253586accf82c0d282c80549a35",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "65da260b_4fb9dbaa",
+        "filename": "go/gcr/gcr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-23T22:11:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "020646cb_aec7035b",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 2
+      },
+      "revId": "d2dc69824bb1e253586accf82c0d282c80549a35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5936f9e_ff796ca8",
         "filename": "go/gcr/gcr.go",
         "patchSetId": 1
@@ -99,6 +189,30 @@
       "writtenOn": "2018-04-23T17:42:57Z",
       "side": 1,
       "message": "nit: Seems like we usually pass in the http.Client rather than the oauth2.TokenSource.",
+      "range": {
+        "startLine": 82,
+        "startChar": 15,
+        "endLine": 82,
+        "endChar": 45
+      },
+      "revId": "d2dc69824bb1e253586accf82c0d282c80549a35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd17ad07_df878521",
+        "filename": "go/gcr/gcr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-23T22:11:41Z",
+      "side": 1,
+      "message": "We should be transitioning to oauth2.TokenSource\u0027s since more APIs are under grpc, and that\u0027s what they use, not an http.Client.",
+      "parentUuid": "c5936f9e_ff796ca8",
       "range": {
         "startLine": 82,
         "startChar": 15,
