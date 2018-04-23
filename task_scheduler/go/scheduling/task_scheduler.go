@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -1850,9 +1851,31 @@ func validateAndUpdateTask(d db.TaskDB, task *db.Task) error {
 // HandleSwarmingPubSub loads the given Swarming task ID from Swarming and
 // updates the associated db.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
-func (s *TaskScheduler) HandleSwarmingPubSub(swarmingTaskId string) bool {
+func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
+	// First, make sure we have the task in our DB.
+	if msg.UserData != "" {
+		// We use ID of the task in our DB for the UserData field.
+		t, err := s.db.GetTaskById(msg.UserData)
+		if err != nil {
+			sklog.Errorf("Swarming Pub/Sub: Failed to retrieve task %q by ID: %s", msg.SwarmingTaskId, msg.UserData)
+			return true
+		} else if t == nil {
+			ts, _, err := local_db.ParseId(msg.UserData)
+			if err != nil {
+				sklog.Errorf("Failed to parse userdata as task ID: %s", err)
+				return true
+			} else if time.Now().Sub(ts) < 2*time.Minute {
+				sklog.Infof("Failed to update task %q from pub/sub: no such task ID: %q. Less than two minutes old; try again later.", msg.SwarmingTaskId, msg.UserData)
+				return false
+			} else {
+				sklog.Errorf("Failed to update task %q from pub/sub: no such task ID: %q", msg.SwarmingTaskId, msg.UserData)
+				return true
+			}
+		}
+	}
+
 	// Obtain the Swarming task data.
-	res, err := s.swarming.GetTask(swarmingTaskId, false)
+	res, err := s.swarming.GetTask(msg.SwarmingTaskId, false)
 	if err != nil {
 		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
 		return true
@@ -1863,6 +1886,8 @@ func (s *TaskScheduler) HandleSwarmingPubSub(swarmingTaskId string) bool {
 	}
 	// Update the task in the DB.
 	if err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
+		// TODO(borenet): Some of these cases should never be hit, after all tasks
+		// start supplying the ID in msg.UserData. We should be able to remove the logic.
 		if err == db.ErrNotFound {
 			id, err := swarming.GetTagValue(res, db.SWARMING_TAG_ID)
 			if err != nil {
@@ -1874,10 +1899,10 @@ func (s *TaskScheduler) HandleSwarmingPubSub(swarmingTaskId string) bool {
 				return true
 			}
 			if time.Now().Sub(created) < 2*time.Minute {
-				sklog.Infof("Failed to update task %q: No such task ID: %q. Less than two minutes old; try again later.", swarmingTaskId, id)
+				sklog.Infof("Failed to update task %q: No such task ID: %q. Less than two minutes old; try again later.", msg.SwarmingTaskId, id)
 				return false
 			}
-			sklog.Errorf("Failed to update task %q: No such task ID: %q", swarmingTaskId, id)
+			sklog.Errorf("Failed to update task %q: No such task ID: %q", msg.SwarmingTaskId, id)
 			return true
 		} else if err == db.ErrUnknownId {
 			expectedSwarmingTaskId := "<unknown>"
@@ -1887,16 +1912,16 @@ func (s *TaskScheduler) HandleSwarmingPubSub(swarmingTaskId string) bool {
 			} else {
 				t, err := s.db.GetTaskById(id)
 				if err != nil {
-					sklog.Errorf("Failed to update task %q; mismatched ID and failed to retrieve task from DB: %s", swarmingTaskId, err)
+					sklog.Errorf("Failed to update task %q; mismatched ID and failed to retrieve task from DB: %s", msg.SwarmingTaskId, err)
 					return true
 				} else {
 					expectedSwarmingTaskId = t.SwarmingTaskId
 				}
 			}
-			sklog.Errorf("Failed to update task %q: Task %s has a different Swarming task ID associated with it: %s", swarmingTaskId, id, expectedSwarmingTaskId)
+			sklog.Errorf("Failed to update task %q: Task %s has a different Swarming task ID associated with it: %s", msg.SwarmingTaskId, id, expectedSwarmingTaskId)
 			return true
 		} else {
-			sklog.Errorf("Failed to update task %q: %s", swarmingTaskId, err)
+			sklog.Errorf("Failed to update task %q: %s", msg.SwarmingTaskId, err)
 			return true
 		}
 	}
