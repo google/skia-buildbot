@@ -148,14 +148,6 @@ type ExpectationsStore interface {
 	// undone.
 	UndoChange(changeID int, userID string) (map[string]types.TestClassification, error)
 
-	// CanonicalTraceIDs returns the canonical trace IDs for the given list
-	// of test names.
-	CanonicalTraceIDs(testNames []string) (map[string]string, error)
-
-	// CanonicalTraceIDs sets the canonical trace IDs for the mapping of
-	// test names to trace IDs.
-	SetCanonicalTraceIDs(traceIDs map[string]string) error
-
 	// removeChange removes the given digests from the expectations store.
 	// The key in changes is the test name which maps to a list of digests
 	// to remove. Used for testing only.
@@ -262,16 +254,4 @@ func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*Tria
 func (m *MemExpectationsStore) UndoChange(changeID int, userID string) (map[string]types.TestClassification, error) {
 	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
-}
-
-// See ExpectationsStore interface.
-// TODO(stephana): Implement once API is defined.
-func (m *MemExpectationsStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
-	return nil, nil
-}
-
-// See ExpectationsStore interface.
-// TODO(stephana): Implement once API is defined.
-func (m *MemExpectationsStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
-	return nil
 }

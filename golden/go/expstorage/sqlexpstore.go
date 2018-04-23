@@ -393,16 +393,6 @@ func (s *SQLExpectationsStore) loadChangeEntry(changeID int) (*TriageLogEntry, e
 	return changeInfo[0], nil
 }
 
-// See ExpectationsStore interface.
-func (s *SQLExpectationsStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
-	return nil, nil
-}
-
-// See ExpectationsStore interface.
-func (s *SQLExpectationsStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
-	return nil
-}
-
 // Wraps around an ExpectationsStore and caches the expectations using
 // MemExpecationsStore.
 type CachingExpectationStore struct {
@@ -530,16 +520,4 @@ func (c *CachingExpectationStore) UndoChange(changeID int, userID string) (map[s
 	// Fire an event that will trigger the addition to the cache.
 	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedTests, true)
 	return changedTests, nil
-}
-
-// See ExpectationsStore interface.
-// TODO(stephana): Implement once API is defined.
-func (c *CachingExpectationStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
-	return nil, nil
-}
-
-// See ExpectationsStore interface.
-// TODO(stephana): Implement once API is defined.
-func (c *CachingExpectationStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
-	return nil
 }
