@@ -37,11 +37,11 @@ const (
 // used if running in Skolo.
 func NewDefaultTokenSource(local bool) (oauth2.TokenSource, error) {
 	if local {
-		return NewMimicTokenSourceFromFile(DEFAULT_MIMIC_FILE)
+		return NewGCloundTokenSource(), nil
 	} else {
 		// Are we running on GCE?
 		if cloud_metadata.OnGCE() {
-			return google.ComputeTokenSource(""), nil
+			return google.DefaultTokenSource(context.Background())
 		} else {
 			// Create and use a token provider for skolo service account access tokens.
 			return newSkoloTokenSource(), nil
@@ -105,6 +105,48 @@ func NewMimicTokenSource(project, instance, zone string) oauth2.TokenSource {
 		Instance: instance,
 		Zone:     zone,
 	})
+}
+
+type gcloudTokenSource struct {
+}
+
+func NewGCloundTokenSource() oauth2.TokenSource {
+	return &gcloudTokenSource{}
+}
+
+func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
+	buf := bytes.Buffer{}
+	errBuf := bytes.Buffer{}
+	gcloudCmd := &exec.Command{
+		Name:        "gcloud",
+		Args:        []string{"auth", "print-access-token", "--format=json"},
+		InheritPath: true,
+		InheritEnv:  true,
+		Stdout:      &buf,
+		Stderr:      &errBuf,
+	}
+	if err := exec.Run(context.Background(), gcloudCmd); err != nil {
+		return nil, fmt.Errorf("Failed fetching access token: %s - %s", err, errBuf.String())
+	}
+	type TokenResponse struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresInSec int    `json:"expires_in"`
+		TokenType    string `json:"token_type"`
+	}
+	var res struct {
+		TokenResponse TokenResponse `json:"token_response"`
+	}
+	if err := json.NewDecoder(&buf).Decode(&res); err != nil {
+		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
+	}
+	if res.TokenResponse.ExpiresInSec == 0 || res.TokenResponse.AccessToken == "" {
+		return nil, fmt.Errorf("Incomplete token received from metadata")
+	}
+	return &oauth2.Token{
+		AccessToken: res.TokenResponse.AccessToken,
+		TokenType:   res.TokenResponse.TokenType,
+		Expiry:      time.Now().Add(time.Duration(res.TokenResponse.ExpiresInSec) * time.Second),
+	}, nil
 }
 
 // NewMimicTokenSourceFromFile creates a TokenSource that impersonates the
