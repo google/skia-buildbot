@@ -339,6 +339,26 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 	}
 	a.TryResults = tryResults
 
+	if len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE {
+		if !pullRequest.GetMergeable() {
+			// Add a comment and close the roll.
+			if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
+				return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+			}
+			if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
+				return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
+			}
+			a.Result = autoroll.ROLL_RESULT_FAILURE
+		}
+		// Github and travisci do not have a "commit queue". So changes must be
+		// merged via the API after travisci successfully completes.
+
+		// TODO(rmistry): Uncomment after the bot has merge access.
+		//if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging."); err != nil {
+		//	return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
+		//}
+	}
+
 	return pullRequest, a, nil
 }
 
@@ -420,7 +440,6 @@ func (r *githubRoll) Update(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsFinished() bool {
-	//trybotsRanAndSucceeded := len(r.issue.TryResults) > 0 && r.issue.AllTrybotsSucceeded()
 	return r.pullRequest.GetState() == github.CLOSED_STATE || r.pullRequest.GetMerged() || !r.issue.CommitQueue
 }
 
