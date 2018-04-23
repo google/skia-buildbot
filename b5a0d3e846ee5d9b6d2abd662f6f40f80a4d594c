@@ -46,6 +46,30 @@
       "revId": "b5a0d3e846ee5d9b6d2abd662f6f40f80a4d594c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa6a5286_dc9aa3eb",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-23T18:55:48Z",
+      "side": 1,
+      "message": "Yeah, this is what I was thinking.  If we don\u0027t store the result in the DB, the roll will always show up as \"in progress\".",
+      "parentUuid": "de04ad3d_c4acc9ca",
+      "range": {
+        "startLine": 350,
+        "startChar": 3,
+        "endLine": 350,
+        "endChar": 4
+      },
+      "revId": "b5a0d3e846ee5d9b6d2abd662f6f40f80a4d594c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
