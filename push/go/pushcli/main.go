@@ -62,7 +62,7 @@ func main() {
 	serverName := args[1] // "skia-debugger" or "*"
 
 	// Create the needed clients.
-	tokenSource := auth.NewMimicTokenSource("google.com:skia-buildbots", "skia-push", "us-central1-c")
+	tokenSource := auth.NewGCloundTokenSource()
 	client := auth.ClientFromTokenSource(tokenSource)
 	store, err := storage.New(client)
 	if err != nil {
