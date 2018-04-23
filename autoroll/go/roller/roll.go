@@ -340,7 +340,8 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 	a.TryResults = tryResults
 
 	if len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE {
-		if !pullRequest.GetMergeable() {
+		sklog.Infof("pullRequest.Mergeable is: %s", *pullRequest.Mergeable)
+		if *pullRequest.Mergeable == false {
 			// Add a comment and close the roll.
 			if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
 				return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
