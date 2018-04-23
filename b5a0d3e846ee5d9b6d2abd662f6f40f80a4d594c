@@ -22,6 +22,30 @@
       "revId": "b5a0d3e846ee5d9b6d2abd662f6f40f80a4d594c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de04ad3d_c4acc9ca",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-23T18:52:04Z",
+      "side": 1,
+      "message": "Like this?\nI figured not doing that would work too because IsSuccess is:\nreturn r.pullRequest.GetMerged()",
+      "parentUuid": "c281e61a_942d0ec3",
+      "range": {
+        "startLine": 350,
+        "startChar": 3,
+        "endLine": 350,
+        "endChar": 4
+      },
+      "revId": "b5a0d3e846ee5d9b6d2abd662f6f40f80a4d594c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
