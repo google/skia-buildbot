@@ -28,20 +28,26 @@ const (
 	DEFAULT_JWT_FILENAME           = "service-account.json"
 	DEFAULT_CLIENT_SECRET_FILENAME = "client_secret.json"
 	DEFAULT_TOKEN_STORE_FILENAME   = "google_storage_token.data"
-	DEFAULT_MIMIC_FILE             = "client_mimic.json"
 )
 
 // NewDefaultTokenSource creates a new OAuth 2.0 token source. If local is true
-// then it looks for a client_mimic.json file, otherwise the GCE Service
-// Account is used if running in GCE, and the Skolo access token provider is
-// used if running in Skolo.
+// then it uses the credentials it gets from running:
+//
+//    gcloud auth print-access-token
+//
+// otherwise the GCE Service Account is used if running in GCE, and the Skolo
+// access token provider is used if running in Skolo.
+//
+// Note: The default project for gcloud is used, and can be changed by running
+//
+//    $ gcloud config set project [project name]
 func NewDefaultTokenSource(local bool) (oauth2.TokenSource, error) {
 	if local {
-		return NewMimicTokenSourceFromFile(DEFAULT_MIMIC_FILE)
+		return NewGCloundTokenSource(), nil
 	} else {
 		// Are we running on GCE?
 		if cloud_metadata.OnGCE() {
-			return google.ComputeTokenSource(""), nil
+			return google.DefaultTokenSource(context.Background())
 		} else {
 			// Create and use a token provider for skolo service account access tokens.
 			return newSkoloTokenSource(), nil
@@ -82,97 +88,50 @@ func NewClient(local bool, oauthCacheFile string, scopes ...string) (*http.Clien
 	return NewClientWithTransport(local, oauthCacheFile, "", nil, scopes...)
 }
 
-// mimicTokenSource points to a specific server we want to impersonate, i.e.
-// to use credentials as the service account of that machine.
-type mimicTokenSource struct {
-	Project  string `json:"project"`
-	Instance string `json:"instance"`
-	Zone     string `json:"zone"`
+type gcloudTokenSource struct {
 }
 
-// NewMimicTokenSource creates a TokenSource that impersonates the service account associated
-// with the specified GCE instance.
+// NewGCloundTokenSource creates an oauth2.TokenSource that returns tokens from
+// the locally authorized gcloud command line tool, i.e. it gets them from
+// running:
 //
-// project - The id of the project.
-// instance - The name of the instance in the project.
-// zone - The zone that the instance resides in.
-//
-// To use this TokenSource the `gcloud` command line tool must be installed, on
-// the path, and authorized.
-func NewMimicTokenSource(project, instance, zone string) oauth2.TokenSource {
-	return oauth2.ReuseTokenSource(nil, &mimicTokenSource{
-		Project:  project,
-		Instance: instance,
-		Zone:     zone,
-	})
+//    gcloud auth print-access-token
+func NewGCloundTokenSource() oauth2.TokenSource {
+	return &gcloudTokenSource{}
 }
 
-// NewMimicTokenSourceFromFile creates a TokenSource that impersonates the
-// service account associated with a particular GCE instance.
-//
-// filename - The name of a JSON file with information on which instance
-//   to impersonate. The format of the file is:
-//
-//  {
-//    "project": "google.com:skia-buildbots",
-//    "instance": "skia-push",
-//    "zone": "us-central1-c"
-//  }
-//
-// To use this TokenSource the `gcloud` command line tool must be installed, on
-// the path, and authorized.
-func NewMimicTokenSourceFromFile(filename string) (oauth2.TokenSource, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to open mimicTokenSource file: %s", err)
-	}
-	defer util.Close(f)
-	var ret mimicTokenSource
-	if err = json.NewDecoder(f).Decode(&ret); err != nil {
-		return nil, fmt.Errorf("Failed to decode mimicTokenSource file: %s", err)
-	}
-	return oauth2.ReuseTokenSource(nil, &ret), nil
-}
-
-func (i *mimicTokenSource) Token() (*oauth2.Token, error) {
+func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
 	buf := bytes.Buffer{}
 	errBuf := bytes.Buffer{}
-	args := []string{
-		"compute", "ssh",
-		fmt.Sprintf("default@%s", i.Instance),
-		fmt.Sprintf("--zone=%s", i.Zone),
-		fmt.Sprintf("--project=%s", i.Project),
-		fmt.Sprintf("--ssh-flag=-T"), // Disable TTY.
-		"--command=curl http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -H Metadata-Flavor:Google --silent",
-	}
 	gcloudCmd := &exec.Command{
 		Name:        "gcloud",
-		Args:        args,
+		Args:        []string{"auth", "print-access-token", "--format=json"},
 		InheritPath: true,
 		InheritEnv:  true,
 		Stdout:      &buf,
 		Stderr:      &errBuf,
 	}
-
 	if err := exec.Run(context.Background(), gcloudCmd); err != nil {
 		return nil, fmt.Errorf("Failed fetching access token: %s - %s", err, errBuf.String())
 	}
-
-	var res struct {
+	type TokenResponse struct {
 		AccessToken  string `json:"access_token"`
 		ExpiresInSec int    `json:"expires_in"`
 		TokenType    string `json:"token_type"`
 	}
+	var res struct {
+		TokenResponse TokenResponse `json:"token_response"`
+	}
 	if err := json.NewDecoder(&buf).Decode(&res); err != nil {
 		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
 	}
-	if res.ExpiresInSec == 0 || res.AccessToken == "" {
+	if res.TokenResponse.ExpiresInSec == 0 || res.TokenResponse.AccessToken == "" {
 		return nil, fmt.Errorf("Incomplete token received from metadata")
 	}
 	return &oauth2.Token{
-		AccessToken: res.AccessToken,
-		TokenType:   res.TokenType,
-		Expiry:      time.Now().Add(time.Duration(res.ExpiresInSec) * time.Second),
+		AccessToken: res.TokenResponse.AccessToken,
+		TokenType:   res.TokenResponse.TokenType,
+		Expiry:      time.Now().Add(time.Duration(res.TokenResponse.ExpiresInSec) * time.Second),
 	}, nil
 }
 
