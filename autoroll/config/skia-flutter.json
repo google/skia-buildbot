@@ -2,7 +2,7 @@
     "githubRepoOwner": "flutter",
     "githubRepoName": "engine",
     "childName": "Skia",
-    "maxRollFrequency": "0m",
+    "maxRollFrequency": "3h",
     "parentName": "Flutter",
     "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
     "sheriff": ["rmistry@google.com", "brianosman@google.com"],

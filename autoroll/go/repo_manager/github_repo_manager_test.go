@@ -122,7 +122,7 @@ func setupFakeGithub(t *testing.T, wd string, childCommits []string) *github.Git
 
 	// Mock /comments endpoint.
 	reqType = "application/json"
-	reqBody = []byte(`{"body":"@reviewer : New roll has been created by the roller"}
+	reqBody = []byte(`{"body":"@reviewer : New roll has been created by fake.server.com"}
 `)
 	md = mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, nil, http.StatusCreated)
 	urlMock.MockOnce(gUrl+"/repos/superman/krypton/issues/12345/comments", md)

@@ -258,7 +258,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		m := fmt.Sprintf("@%s", strings.Split(e, "@")[0])
 		mentions = append(mentions, m)
 	}
-	if err := rm.githubClient.AddComment(pr.GetNumber(), fmt.Sprintf("%s : New roll has been created by the roller", strings.Join(mentions, " "))); err != nil {
+	if err := rm.githubClient.AddComment(pr.GetNumber(), fmt.Sprintf("%s : New roll has been created by %s", strings.Join(mentions, " "), rm.serverURL)); err != nil {
 		return 0, err
 	}
 
