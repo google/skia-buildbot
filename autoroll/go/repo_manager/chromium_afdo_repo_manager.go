@@ -148,7 +148,7 @@ func (s *afdoStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, _ st
 		if _, err := parseAFDOVersion(name); err == nil {
 			available = append(available, name)
 		} else if err == errInvalidAFDOVersion {
-			sklog.Warningf("Found AFDO file with improperly formatted name: %s", name)
+			// There are files we don't care about in this bucket. Just ignore.
 		} else {
 			sklog.Error(err)
 		}
