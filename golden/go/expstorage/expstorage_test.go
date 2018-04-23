@@ -3,16 +3,23 @@ package expstorage
 import (
 	"fmt"
 	"math/rand"
+	"os"
+	"os/user"
 	"sort"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database/testutil"
+	ds_testutil "go.skia.org/infra/go/ds/testutil"
+
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/types"
+	"google.golang.org/api/option"
 )
 
 func TestMySQLExpectationsStore(t *testing.T) {
@@ -27,12 +34,55 @@ func TestMySQLExpectationsStore(t *testing.T) {
 
 	// Test the MySQL backed store
 	sqlStore := NewSQLExpectationStore(vdb)
-	// testExpectationStore(t, sqlStore, nil)
+	testExpectationStore(t, sqlStore, nil)
 
 	// Test the caching version of the MySQL store.
 	eventBus := eventbus.New()
 	cachingStore := NewCachingExpectationStore(sqlStore, eventBus)
 	testExpectationStore(t, cachingStore, eventBus)
+}
+
+func TestCloudExpectationsStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	os.Setenv("DATASTORE_DATASET", "skia-infra")
+	os.Setenv("DATASTORE_EMULATOR_HOST", "localhost:8888")
+	os.Setenv("DATASTORE_EMULATOR_HOST_PATH", "localhost:8888/datastore")
+	os.Setenv("DATASTORE_HOST", "http://localhost:8888")
+	os.Setenv("DATASTORE_PROJECT_ID", "skia-infra")
+
+	// If a service account file is in the environment then connect to the real datastore.
+	serviceAccountFile := os.Getenv("DS_SERVICE_ACCOUNT_FILE")
+	if serviceAccountFile != "" {
+		// Construct a namespace based on the user.
+		currUser, err := user.Current()
+		assert.NoError(t, err)
+		nameSpace := fmt.Sprintf("gold-localhost-%s-testing", currUser.Username)
+		assert.NoError(t, ds.InitWithOpt(common.PROJECT_ID, nameSpace, option.WithServiceAccountFile(serviceAccountFile)))
+	} else {
+		// Otherwise try and connect to a locally running emulator.
+		cleanup := ds_testutil.InitDatastore(t,
+			ds.ISSUE,
+			ds.TRYJOB,
+			ds.TRYJOB_RESULT,
+			ds.TRYJOB_EXP_CHANGE,
+			ds.TEST_DIGEST_EXP)
+		defer cleanup()
+	}
+
+	// Test the DS backed store for master and issues.
+	issueEventBus := eventbus.New()
+	cloudStore, issueStoreFactory, err := NewCloudExpectationsStore(ds.DS, issueEventBus)
+	assert.NoError(t, err)
+	testExpectationStore(t, cloudStore, nil)
+
+	// Test the caching version of the DS store.
+	eventBus := eventbus.New()
+	cachingStore := NewCachingExpectationStore(cloudStore, eventBus)
+	testExpectationStore(t, cachingStore, eventBus)
+
+	issueStore := issueStoreFactory(1234567)
+	testExpectationStore(t, issueStore, issueEventBus)
 }
 
 const hexLetters = "0123456789abcdef"
