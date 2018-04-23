@@ -1503,6 +1503,13 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 				errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
 				return
 			}
+
+			// Temporary logging to make sure we're receiving pub/sub messages for
+			// de-duped tasks.
+			if swarmTask.DedupedFrom != "" {
+				sklog.Debugf("updateUnfinishedTasks found de-duped task https://chromium-swarm.appspot.com/task?id=%s", swarmTask.TaskId)
+			}
+
 			if err := db.UpdateDBFromSwarmingTask(s.db, swarmTask); err != nil {
 				errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
 				return
@@ -1854,6 +1861,7 @@ func validateAndUpdateTask(d db.TaskDB, task *db.Task) error {
 func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
 	// First, make sure we have the task in our DB.
 	if msg.UserData != "" {
+		sklog.Debugf("Got pub/sub message with task ID %q", msg.UserData)
 		// We use ID of the task in our DB for the UserData field.
 		t, err := s.db.GetTaskById(msg.UserData)
 		if err != nil {
@@ -1884,6 +1892,13 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	if res.CompletedTs == "" {
 		return true
 	}
+
+	// Temporary logging to make sure we're receiving pub/sub messages for
+	// de-duped tasks.
+	if res.DedupedFrom != "" {
+		sklog.Debugf("Received pub/sub message about de-duped task https://chromium-swarm.appspot.com/task?id=%s", res.TaskId)
+	}
+
 	// Update the task in the DB.
 	if err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
 		// TODO(borenet): Some of these cases should never be hit, after all tasks
