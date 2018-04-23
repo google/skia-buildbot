@@ -5,13 +5,19 @@
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
-  "depsRepoManager": {
+  "copyRepoManager": {
     "childBranch": "master",
-    "childPath": "third_party/externals/skcms",
-    "childSubdir": "skia",
-    "includeLog": true,
+    "childPath": "skia/third_party/skcms",
+    "childRepo": "https://skia.googlesource.com/skcms.git",
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",
-    "strategy": "single"
+    "strategy": "single",
+    "whitelist": [
+      "BUILD.gn",
+      "LICENSE",
+      "skcms.h",
+      "skcms.c",
+      "src"
+    ]
   }
 }

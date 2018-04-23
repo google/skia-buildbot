@@ -23,10 +23,11 @@ const (
 
 	ROLLER_TYPE_AFDO        = "afdo"
 	ROLLER_TYPE_ANDROID     = "android"
-	ROLLER_TYPE_GITHUB      = "github"
-	ROLLER_TYPE_GOOGLE3     = "google3"
+	ROLLER_TYPE_COPY        = "copy"
 	ROLLER_TYPE_DEPS        = "deps"
 	ROLLER_TYPE_FUCHSIA_SDK = "fuchsiaSDK"
+	ROLLER_TYPE_GITHUB      = "github"
+	ROLLER_TYPE_GOOGLE3     = "google3"
 	ROLLER_TYPE_INVALID     = "INVALID"
 	ROLLER_TYPE_MANIFEST    = "manifest"
 )
@@ -103,9 +104,10 @@ type AutoRollerConfig struct {
 	GithubRepoName  string `json:"githubRepoName"`
 
 	// RepoManager configs. Exactly one must be provided.
-	DEPSRepoManager       *repo_manager.DEPSRepoManagerConfig       `json:"depsRepoManager"`
-	AndroidRepoManager    *repo_manager.AndroidRepoManagerConfig    `json:"androidRepoManager"`
 	AFDORepoManager       *repo_manager.AFDORepoManagerConfig       `json:"afdoRepoManager"`
+	AndroidRepoManager    *repo_manager.AndroidRepoManagerConfig    `json:"androidRepoManager"`
+	CopyRepoManager       *repo_manager.CopyRepoManagerConfig       `json:"copyRepoManager"`
+	DEPSRepoManager       *repo_manager.DEPSRepoManagerConfig       `json:"depsRepoManager"`
 	FuchsiaSDKRepoManager *repo_manager.FuchsiaSDKRepoManagerConfig `json:"fuchsiaSDKRepoManager"`
 	GithubRepoManager     *repo_manager.GithubRepoManagerConfig     `json:"githubRepoManager"`
 	Google3RepoManager    *google3FakeRepoManagerConfig             `json:"google3"`
@@ -147,14 +149,17 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 
 	rm := []util.Validator{}
-	if c.DEPSRepoManager != nil {
-		rm = append(rm, c.DEPSRepoManager)
+	if c.AFDORepoManager != nil {
+		rm = append(rm, c.AFDORepoManager)
 	}
 	if c.AndroidRepoManager != nil {
 		rm = append(rm, c.AndroidRepoManager)
 	}
-	if c.AFDORepoManager != nil {
-		rm = append(rm, c.AFDORepoManager)
+	if c.CopyRepoManager != nil {
+		rm = append(rm, c.CopyRepoManager)
+	}
+	if c.DEPSRepoManager != nil {
+		rm = append(rm, c.DEPSRepoManager)
 	}
 	if c.FuchsiaSDKRepoManager != nil {
 		rm = append(rm, c.FuchsiaSDKRepoManager)
@@ -188,12 +193,14 @@ func (c *AutoRollerConfig) RollerName() string {
 // Return the "type" of this roller.
 func (c *AutoRollerConfig) RollerType() string {
 	if c.rollerType == "" {
-		if c.DEPSRepoManager != nil {
-			c.rollerType = ROLLER_TYPE_DEPS
+		if c.AFDORepoManager != nil {
+			c.rollerType = ROLLER_TYPE_AFDO
 		} else if c.AndroidRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_ANDROID
-		} else if c.AFDORepoManager != nil {
-			c.rollerType = ROLLER_TYPE_AFDO
+		} else if c.CopyRepoManager != nil {
+			c.rollerType = ROLLER_TYPE_COPY
+		} else if c.DEPSRepoManager != nil {
+			c.rollerType = ROLLER_TYPE_DEPS
 		} else if c.FuchsiaSDKRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_FUCHSIA_SDK
 		} else if c.GithubRepoManager != nil {
