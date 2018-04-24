@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ba879c3_026e9665",
+        "filename": "skolo/raspberry-pi/start_serving_image.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-24T15:15:34Z",
+      "side": 1,
+      "message": "1. Try double quotes\n2. Flip the logic (default to \"2\" and use \"1\" for when \u003d\u003d /opt/prod)",
+      "range": {
+        "startLine": 25,
+        "startChar": 34,
+        "endLine": 25,
+        "endChar": 48
+      },
+      "revId": "7c3e9a7da46d0b460aa0678c8303ef4728a184b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a98da22e_0c28c164",
+        "filename": "skolo/raspberry-pi/start_serving_image.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-24T15:15:34Z",
+      "side": 1,
+      "message": "to if the fsids are the same.  To avoid this, use different fsids.",
+      "range": {
+        "startLine": 46,
+        "startChar": 57,
+        "endLine": 46,
+        "endChar": 60
+      },
+      "revId": "7c3e9a7da46d0b460aa0678c8303ef4728a184b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
