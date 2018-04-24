@@ -37,6 +37,8 @@
       apt: name=ntpdate
     - name: Install python-pip
       apt: name=python-pip
+    - name: Install ethtool
+      apt: name=ethtool
 
     # These are needed to run our swarming tests
 
@@ -45,9 +47,6 @@
       apt: name=git
     - name: Install collectd, without the JDK
       apt: name=collectd install_recommends=no
-
-    - name: generate chrome-bot ssh
-      user: name=chrome-bot generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
 
     - name: Get collectd config situated
       copy: src=../../common/collectd.conf dest=/etc/collectd/collectd.conf owner=root group=root mode=0644
@@ -79,6 +78,9 @@
 
     - name: disable wifi
       command: nmcli radio wifi off
+
+    - name: Creates lightdm directory if it doesn't exist
+      file: path=/etc/lightdm/lightdm.conf.d/ state=directory
 
     - name: enable auto-login
       blockinfile:
