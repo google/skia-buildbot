@@ -46,6 +46,30 @@
       "revId": "5430b4e76e7d6d4d56d0956586f66b0c0c046cfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3406d596_849afd18",
+        "filename": "chromeextensions/skia-dev/manifest.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-24T13:49:03Z",
+      "side": 1,
+      "message": "I think part of the complains is that the extension gives us magical things that people without the extension miss out on. So minimizing them as much as possible would be a good idea.",
+      "parentUuid": "97a3272f_b7808cba",
+      "range": {
+        "startLine": 28,
+        "startChar": 4,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "5430b4e76e7d6d4d56d0956586f66b0c0c046cfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
