@@ -82,6 +82,10 @@ func setupGithub(t *testing.T) (context.Context, string, *git_testutils.GitBuild
 		if strings.Contains(cmd.Name, "gclient") && (cmd.Args[0] == "sync" || cmd.Args[0] == "runhooks") {
 			return nil
 		}
+		if cmd.Name == "git" && cmd.Args[0] == "log" {
+			return nil
+		}
+
 		return exec.DefaultRun(cmd)
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
@@ -112,10 +116,9 @@ func setupFakeGithub(t *testing.T, wd string, childCommits []string) *github.Git
 	})
 	assert.NoError(t, err)
 	reqType := "application/json"
-	issueTitle := fmt.Sprintf("Roll path/to/child/ %s..%s (%d commits)", childCommits[0][:9], childCommits[len(childCommits)-1][:9], len(childCommits)-1)
 	headBranch := fmt.Sprintf("%s:%s", mockGithubUser, ROLL_BRANCH)
 	baseBranch := "master"
-	reqBody := []byte(`{"title":"` + issueTitle + `","head":"` + headBranch + `","base":"` + baseBranch + `"}
+	reqBody := []byte(`{"title":"","head":"` + headBranch + `","base":"` + baseBranch + `","body":"The AutoRoll server is located here: fake.server.com\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\nIf the roll is causing failures, please contact the current sheriff, who should\nbe CC'd on the roll, and stop the roller if necessary.\n\n"}
 `)
 	md := mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, serializedPull, http.StatusCreated)
 	urlMock.MockOnce(gUrl+"/repos/superman/krypton/pulls", md)

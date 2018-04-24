@@ -236,9 +236,15 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	// Grab the first line of the commit msg to use as the title of the pull request.
 	title := strings.Split(commitMsg, "\n")[0]
+	// Shorten the child path in the title for brevity.
+	childPathTokens := strings.Split(rm.childPath, "/")
+	shortenedChildName := childPathTokens[len(childPathTokens)-1]
+	title = strings.Replace(title, rm.childPath+"/", shortenedChildName, 1)
+	// Use the remaining part of the commit message as the pull request description.
+	descComment := strings.Split(commitMsg, "\n")[1:]
 	// Create a pull request.
 	headBranch := fmt.Sprintf("%s:%s", strings.Split(rm.user, "@")[0], ROLL_BRANCH)
-	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch)
+	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
 	if err != nil {
 		return 0, err
 	}
