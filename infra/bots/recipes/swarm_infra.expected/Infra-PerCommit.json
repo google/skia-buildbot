@@ -81,7 +81,8 @@
       "--output_json",
       "/path/to/tmp/json",
       "--revision",
-      "infra@origin/master"
+      "infra@origin/master",
+      "--apply-patch-on-gclient"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org",
     "env_prefixes": {
@@ -257,7 +258,8 @@
       "--output_json",
       "/path/to/tmp/json",
       "--revision",
-      "infra@origin/master"
+      "infra@origin/master",
+      "--apply-patch-on-gclient"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org",
     "env_prefixes": {
