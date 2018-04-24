@@ -16,6 +16,24 @@
       "revId": "4db6809868a4fe60d01e98df385d498e924e2386",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "67d1780b_b65ecac3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-24T19:16:20Z",
+      "side": 1,
+      "message": "Sure, but python\u0027s JSON parser chokes on them.  If we\u0027re not making use of JSON5 features (to be honest, I don\u0027t know what it buys us), then I\u0027d prefer not to break that.",
+      "parentUuid": "55a96a00_93307b8d",
+      "revId": "4db6809868a4fe60d01e98df385d498e924e2386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
