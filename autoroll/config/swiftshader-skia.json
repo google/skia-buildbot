@@ -1,0 +1,20 @@
+{
+  "childName": "SwiftShader",
+  "cqExtraTrybots": [
+    "skia.primary:Test-Debian9-Clang-GCE-CPU-AVX2-x86_64-Debug-All-SwiftShader"
+  ],
+  "gerritURL": "https://skia-review.googlesource.com",
+  "maxRollFrequency": "0m",
+  "parentName": "Skia",
+  "parentWaterfall": "https://status.skia.org",
+  "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
+  "depsRepoManager": {
+    "childBranch": "master",
+    "childPath": "third_party/externals/swiftshader",
+    "childSubdir": "skia",
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://skia.googlesource.com/skia.git",
+    "strategy": "batch"
+  }
+}

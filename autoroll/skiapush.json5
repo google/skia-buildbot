@@ -138,6 +138,13 @@
         "pulld",
       ],
     },
+    "swiftshader-skia-autoroll": {
+      "AppNames": [
+        "swiftshader-skia-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "webrtc-chromium-autoroll": {
       "AppNames": [
         "webrtc-chromium-autorolld",
