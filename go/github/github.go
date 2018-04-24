@@ -110,11 +110,12 @@ func (g *GitHub) GetPullRequest(pullRequestNum int) (*github.PullRequest, error)
 
 // See https://developer.github.com/v3/pulls/#create-a-pull-request
 // for the API documentation.
-func (g *GitHub) CreatePullRequest(title, baseBranch, headBranch string) (*github.PullRequest, error) {
+func (g *GitHub) CreatePullRequest(title, baseBranch, headBranch, body string) (*github.PullRequest, error) {
 	newPullRequest := &github.NewPullRequest{
 		Title: &title,
 		Base:  &baseBranch,
 		Head:  &headBranch,
+		Body:  &body,
 	}
 	pullRequest, resp, err := g.client.PullRequests.Create(g.ctx, g.RepoOwner, g.RepoName, newPullRequest)
 	if err != nil {
