@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	netpprof "net/http/pprof"
 	"os"
@@ -99,6 +100,7 @@ const (
 
 func main() {
 	defer common.LogPanic()
+	rand.Seed(time.Now().UnixNano())
 	var err error
 
 	mainTimer := timer.New("main init")

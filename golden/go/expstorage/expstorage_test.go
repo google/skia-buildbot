@@ -3,16 +3,23 @@ package expstorage
 import (
 	"fmt"
 	"math/rand"
+	"os"
+	"os/user"
 	"sort"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database/testutil"
+	ds_testutil "go.skia.org/infra/go/ds/testutil"
+
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/types"
+	"google.golang.org/api/option"
 )
 
 func TestMySQLExpectationsStore(t *testing.T) {
@@ -27,12 +34,59 @@ func TestMySQLExpectationsStore(t *testing.T) {
 
 	// Test the MySQL backed store
 	sqlStore := NewSQLExpectationStore(vdb)
-	// testExpectationStore(t, sqlStore, nil)
+	testExpectationStore(t, sqlStore, nil)
 
 	// Test the caching version of the MySQL store.
 	eventBus := eventbus.New()
 	cachingStore := NewCachingExpectationStore(sqlStore, eventBus)
 	testExpectationStore(t, cachingStore, eventBus)
+}
+
+func TestCloudExpectationsStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	os.Setenv("DATASTORE_DATASET", "skia-infra")
+	os.Setenv("DATASTORE_EMULATOR_HOST", "localhost:8888")
+	os.Setenv("DATASTORE_EMULATOR_HOST_PATH", "localhost:8888/datastore")
+	os.Setenv("DATASTORE_HOST", "http://localhost:8888")
+	os.Setenv("DATASTORE_PROJECT_ID", "skia-infra")
+
+	// If a service account file is in the environment then connect to the real datastore.
+	serviceAccountFile := os.Getenv("DS_SERVICE_ACCOUNT_FILE")
+	if serviceAccountFile != "" {
+		// Construct a namespace based on the user.
+		currUser, err := user.Current()
+		assert.NoError(t, err)
+		nameSpace := fmt.Sprintf("gold-localhost-%s-testing", currUser.Username)
+		assert.NoError(t, ds.InitWithOpt(common.PROJECT_ID, nameSpace, option.WithServiceAccountFile(serviceAccountFile)))
+	} else {
+		// Otherwise try and connect to a locally running emulator.
+		cleanup := ds_testutil.InitDatastore(t,
+			ds.MASTER_EXP_CHANGE,
+			ds.MASTER_TEST_DIGEST_EXP,
+			ds.MASTER_EXP_SUMMARY,
+			ds.TRYJOB_EXP_CHANGE,
+			ds.TRYJOB_TEST_DIGEST_EXP,
+			ds.ISSUE_EXP_SUMMARY)
+		defer cleanup()
+	}
+
+	// Test the DS backed store for master.
+	masterEventBus := eventbus.New()
+	cloudStore, issueStoreFactory, err := NewCloudExpectationsStore(ds.DS, masterEventBus)
+	assert.NoError(t, err)
+	testExpectationStore(t, cloudStore, masterEventBus)
+
+	// // Test the caching version of the DS store.
+	// eventBus := eventbus.New()
+	// cachingStore := NewCachingExpectationStore(cloudStore, eventBus)
+	// testExpectationStore(t, cachingStore, eventBus)
+
+	if true {
+		return
+	}
+	issueStore := issueStoreFactory(1234567)
+	testExpectationStore(t, issueStore, masterEventBus)
 }
 
 const hexLetters = "0123456789abcdef"
@@ -135,7 +189,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.Equal(t, expChange_1, foundExps.Tests)
 	assert.False(t, &expChange_1 == &foundExps.Tests)
-	checkLogEntry(t, store, expChange_1)
+	checkLogEntry(t, store, expChange_1, "add expchange_1")
 
 	// Update digests.
 	expChange_2 := map[string]types.TestClassification{
@@ -162,7 +216,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	assert.NoError(t, err)
 	assert.Equal(t, types.NEGATIVE, foundExps.Tests[TEST_1][DIGEST_11])
 	assert.Equal(t, types.UNTRIAGED, foundExps.Tests[TEST_2][DIGEST_22])
-	checkLogEntry(t, store, expChange_2)
+	checkLogEntry(t, store, expChange_2, "add expchange_2")
 
 	// Send empty changes to test the event bus.
 	emptyChanges := map[string]types.TestClassification{}
@@ -172,7 +226,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{}, <-callbackCh)
 	}
-	checkLogEntry(t, store, emptyChanges)
+	checkLogEntry(t, store, emptyChanges, "add emptyChanges")
 
 	foundExps, err = store.Get()
 	assert.NoError(t, err)
@@ -236,11 +290,11 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	// Undo the latest version and make sure the corresponding record is correct.
 	changes, err := store.UndoChange(lastRec.ID, "user-1")
 	assert.NoError(t, err)
-	checkLogEntry(t, store, changes)
+	checkLogEntry(t, store, changes, "undo lastRec")
 
 	changes, err = store.UndoChange(secondToLastRec.ID, "user-1")
 	assert.NoError(t, err)
-	checkLogEntry(t, store, changes)
+	checkLogEntry(t, store, changes, "undo secondToLastRec")
 
 	addedRecs += 2
 	logEntries, total, err = store.QueryLog(0, 2, true)
@@ -294,7 +348,7 @@ func checkExpectationsAt(t *testing.T, sqlStore *SQLExpectationsStore, changeInf
 	}
 }
 
-func checkLogEntry(t *testing.T, store ExpectationsStore, changes map[string]types.TestClassification) {
+func checkLogEntry(t *testing.T, store ExpectationsStore, changes map[string]types.TestClassification, idStr string) {
 	logEntries, _, err := store.QueryLog(0, 1, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
@@ -309,4 +363,5 @@ func checkLogEntry(t *testing.T, store ExpectationsStore, changes map[string]typ
 		assert.True(t, ok)
 		assert.Equal(t, changes[d.TestName][d.Digest].String(), d.Label)
 	}
+	fmt.Printf("checked id %s: %d  %d\n", idStr, logEntries[0].ID, logEntries[0].UndoChangeID)
 }
