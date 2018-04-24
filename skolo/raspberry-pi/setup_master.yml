@@ -39,15 +39,6 @@
     - name: Start collectd
       service: name=collectd state=restarted enabled=true
 
-    # It is very important to specify different fsids for these two different entries.
-    # It seems that if this is not done, both directories end up with the same fsid, which
-    # means they are indistinguishable to any nfs client.  This means in practice that the
-    # first nfs rule listed will be what all RPIs attach to.
-    - name: make prod nfs sharing rule
-      lineinfile: dest=/etc/exports line="/opt/prod/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check,fsid=1)"
-    - name: make stage nfs sharing rule
-      lineinfile: dest=/etc/exports line="/opt/stage/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check,fsid=2)"
-
     - name: make sudo passwordless
       lineinfile: "dest=/etc/sudoers line='chrome-bot ALL=(ALL) NOPASSWD: ALL'"
 
