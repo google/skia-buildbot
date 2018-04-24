@@ -129,8 +129,11 @@ func (g *GitHub) CreatePullRequest(title, baseBranch, headBranch, body string) (
 
 // See https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
 // for the API documentation.
-func (g *GitHub) MergePullRequest(pullRequestNum int, msg string) error {
-	_, resp, err := g.client.PullRequests.Merge(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum, msg, &github.PullRequestOptions{})
+func (g *GitHub) MergePullRequest(pullRequestNum int, msg, mergeMethod string) error {
+	options := &github.PullRequestOptions{
+		MergeMethod: mergeMethod,
+	}
+	_, resp, err := g.client.PullRequests.Merge(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum, msg, options)
 	if err != nil {
 		return fmt.Errorf("Failed doing pullrequests.merge: %s", err)
 	}
