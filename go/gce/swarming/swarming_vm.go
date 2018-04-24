@@ -45,6 +45,7 @@ const (
 
 	DEBIAN_SOURCE_IMAGE_EXTERNAL = "skia-swarming-base-v2018-04-06-000"
 	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2018-04-09-000"
+	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2016-dc-v20180410"
 )
 
 var (
@@ -136,15 +137,8 @@ func SkiaCTBot(num int) *gce.Instance {
 }
 
 // Configs for Windows GCE instances.
-func AddWinConfigs(vm *gce.Instance, opsys, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+func AddWinConfigs(vm *gce.Instance, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm.BootDisk.SizeGb = 300
-	switch opsys {
-	case OS_WIN_2016:
-		vm.BootDisk.SourceImage = "projects/windows-cloud/global/images/windows-server-2016-dc-v20171114"
-	default:
-		// Shouldn't happen.
-		sklog.Fatalf("Invalid os %q", opsys)
-	}
 	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.DataDisks = nil
 	// Most of the Windows setup, including the gitconfig/netrc, occurs in
@@ -158,15 +152,15 @@ func AddWinConfigs(vm *gce.Instance, opsys, setupScriptPath, startupScriptPath, 
 }
 
 // Windows GCE instances.
-func WinSwarmingBot(num int, opsys, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	vm := Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, "")
-	return AddWinConfigs(vm, opsys, setupScriptPath, startupScriptPath, chromebotScript)
+func WinSwarmingBot(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	vm := Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, WIN_SOURCE_IMAGE)
+	return AddWinConfigs(vm, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // Internal Windows GCE instances.
-func InternalWinSwarmingBot(num int, opsys, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	vm := Swarming20180406(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING, "")
-	return AddWinConfigs(vm, opsys, setupScriptPath, startupScriptPath, chromebotScript)
+func InternalWinSwarmingBot(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	vm := Swarming20180406(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING, WIN_SOURCE_IMAGE)
+	return AddWinConfigs(vm, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // GCE instances with GPUs.
@@ -308,9 +302,9 @@ func main() {
 			vm = SkiaCTBot(num)
 		} else if windows {
 			if *internal {
-				vm = InternalWinSwarmingBot(num, *opsys, setupScript, startupScript, chromebotScript)
+				vm = InternalWinSwarmingBot(num, setupScript, startupScript, chromebotScript)
 			} else {
-				vm = WinSwarmingBot(num, *opsys, setupScript, startupScript, chromebotScript)
+				vm = WinSwarmingBot(num, setupScript, startupScript, chromebotScript)
 			}
 		} else {
 			if *internal {
