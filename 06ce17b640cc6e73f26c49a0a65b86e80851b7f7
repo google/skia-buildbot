@@ -22,6 +22,30 @@
       "revId": "06ce17b640cc6e73f26c49a0a65b86e80851b7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "531c0465_6634ceba",
+        "filename": "skolo/skiapush.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-24T15:13:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f6e36096_2e98be90",
+      "range": {
+        "startLine": 70,
+        "startChar": 6,
+        "endLine": 70,
+        "endChar": 7
+      },
+      "revId": "06ce17b640cc6e73f26c49a0a65b86e80851b7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
