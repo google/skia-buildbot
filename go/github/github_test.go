@@ -78,7 +78,7 @@ func TestCreatePullRequest(t *testing.T) {
 func TestMergePullRequest(t *testing.T) {
 	testutils.SmallTest(t)
 	reqType := "application/json"
-	reqBody := []byte(`{"commit_message":"test comment"}
+	reqBody := []byte(`{"commit_message":"test comment","merge_method":"squash"}
 `)
 	r := mux.NewRouter()
 	md := mockhttpclient.MockPutDialogue(reqType, reqBody, nil)
@@ -87,7 +87,7 @@ func TestMergePullRequest(t *testing.T) {
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
 	assert.NoError(t, err)
-	mergePullErr := githubClient.MergePullRequest(1234, "test comment")
+	mergePullErr := githubClient.MergePullRequest(1234, "test comment", "squash")
 	assert.NoError(t, mergePullErr)
 }
 
