@@ -1,4 +1,5 @@
 ---
+# Requires Ansible 2.4 or newer
 # Do all the things to set up a Skolo bot.
 # Machine settings.
 - import_playbook: skolo-settings.yml
