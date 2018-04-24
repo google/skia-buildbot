@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f35603ff_bfa74ebd",
+        "filename": "skolo/raspberry-pi/start_serving_image.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-24T15:24:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6a6a8755_a711857e",
+      "range": {
+        "startLine": 25,
+        "startChar": 34,
+        "endLine": 25,
+        "endChar": 48
+      },
+      "revId": "7c3e9a7da46d0b460aa0678c8303ef4728a184b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a98da22e_0c28c164",
         "filename": "skolo/raspberry-pi/start_serving_image.yml",
         "patchSetId": 4
@@ -93,6 +117,30 @@
       "revId": "7c3e9a7da46d0b460aa0678c8303ef4728a184b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5de2ff1c_9ce1242b",
+        "filename": "skolo/raspberry-pi/start_serving_image.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-24T15:24:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8d59230e_547c4fce",
+      "range": {
+        "startLine": 46,
+        "startChar": 57,
+        "endLine": 46,
+        "endChar": 60
+      },
+      "revId": "7c3e9a7da46d0b460aa0678c8303ef4728a184b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
