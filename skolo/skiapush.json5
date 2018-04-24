@@ -1,17 +1,5 @@
 {
   "Servers": {
-    "skia-rpi-master": {
-      "AppNames": [
-        "pulld-not-gce",
-        "rpi-backup",
-      ],
-    },
-    "skia-rpi-master-spare": {
-      "AppNames": [
-        "hotspare",
-        "pulld-not-gce",
-      ],
-    },
     "jumphost-internal-01": {
       "AppNames": [
         "get-oauth2-token",
@@ -19,18 +7,8 @@
         "prometheus-jumphost-internal-01",
         "pulld-not-gce",
         "router-backup",
-        "trooper-tools-internal-01",
-      ],
-    },
-    "jumphost-rpi-01": {
-      "AppNames": [
-        "get-oauth2-token",
-        "metadata-server",
-        "prometheus-jumphost-rpi-01",
-        "pulld-not-gce",
-        "router-backup",
-        "trooper-tools-rpi-01",
-      ],
+        "trooper-tools-internal-01"
+      ]
     },
     "jumphost-linux-01": {
       "AppNames": [
@@ -39,8 +17,18 @@
         "prometheus-jumphost-linux-01",
         "pulld-not-gce",
         "router-backup",
-        "trooper-tools-linux-01",
-      ],
+        "trooper-tools-linux-01"
+      ]
+    },
+    "jumphost-rpi-01": {
+      "AppNames": [
+        "get-oauth2-token",
+        "metadata-server",
+        "prometheus-jumphost-rpi-01",
+        "pulld-not-gce",
+        "router-backup",
+        "trooper-tools-rpi-01"
+      ]
     },
     "jumphost-win-02": {
       "AppNames": [
@@ -49,8 +37,8 @@
         "prometheus-jumphost-win-02",
         "pulld-not-gce",
         "router-backup",
-        "trooper-tools-win-02",
-      ],
+        "trooper-tools-win-02"
+      ]
     },
     "jumphost-win-03": {
       "AppNames": [
@@ -59,9 +47,32 @@
         "prometheus-jumphost-win-03",
         "pulld-not-gce",
         "router-backup",
-        "trooper-tools-win-03",
-      ],
+        "trooper-tools-win-03"
+      ]
     },
+    "skia-i-rpi-master": {
+      "AppNames": [
+        "pulld-not-gce",
+        "rpi-backup"
+      ]
+    },
+    "skia-i-rpi-master-spare": {
+      "AppNames": [
+        "hotspare",
+        "pulld-not-gce"
+      ]
+    },
+    "skia-rpi-master": {
+      "AppNames": [
+        "pulld-not-gce",
+        "rpi-backup"
+      ]
+    },
+    "skia-rpi-master-spare": {
+      "AppNames": [
+        "hotspare",
+        "pulld-not-gce"
+      ]
+    }
   }
 }
-
