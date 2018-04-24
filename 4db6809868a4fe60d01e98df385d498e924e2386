@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55a96a00_93307b8d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-24T19:13:37Z",
+      "side": 1,
+      "message": "This is JSON5, as you can tell from the filename. Trailing commas are allowed.",
+      "revId": "4db6809868a4fe60d01e98df385d498e924e2386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
