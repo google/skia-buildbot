@@ -94,6 +94,30 @@
       "revId": "5430b4e76e7d6d4d56d0956586f66b0c0c046cfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a367ee2_f29f5bea",
+        "filename": "chromeextensions/skia-dev/manifest.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-24T13:59:22Z",
+      "side": 1,
+      "message": "What about making a generic prefix tag like make_link_xyz that displays xyz on the main page with it\u0027s value as a link (or a better suggestion than that).\nSomething generic like that would be useful for all teams that want to display something there.",
+      "parentUuid": "03e65267_81722de0",
+      "range": {
+        "startLine": 28,
+        "startChar": 4,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "5430b4e76e7d6d4d56d0956586f66b0c0c046cfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
