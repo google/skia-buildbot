@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dec70b7_b5c87a59",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-24T17:51:09Z",
+      "side": 1,
+      "message": "Can we make this a constant, eg. github.MERGE_METHOD_SQUASH ?",
+      "range": {
+        "startLine": 355,
+        "startChar": 89,
+        "endLine": 355,
+        "endChar": 97
+      },
+      "revId": "b9070c229900c5d3e06d93b70ae07aa79b7251c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
