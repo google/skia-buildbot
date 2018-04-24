@@ -46,6 +46,7 @@ scrape_configs:
       - targets: ['skia-flutter-autoroll:20000']
       - targets: ['skia-internal-autoroll:20000']
       - targets: ['src-internal-chromium-autoroll:20000']
+      - targets: ['swiftshader-skia-autoroll:20000']
       - targets: ['webrtc-chromium-autoroll:20000']
 
   - job_name: 'collectd'
@@ -273,6 +274,7 @@ scrape_configs:
       - targets: ['skia-task-scheduler:11000']
       - targets: ['skia-tracedb:11000']
       - targets: ['src-internal-chromium-autoroll:11000']
+      - targets: ['swiftshader-skia-autoroll:11000']
       - targets: ['webrtc-chromium-autoroll:11000']
 
   # Prometheus self monitoring.
