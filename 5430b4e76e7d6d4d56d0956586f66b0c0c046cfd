@@ -118,6 +118,30 @@
       "revId": "5430b4e76e7d6d4d56d0956586f66b0c0c046cfd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0b733b1a_d1b28e1d",
+        "filename": "chromeextensions/skia-dev/manifest.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-24T14:00:22Z",
+      "side": 1,
+      "message": "That\u0027s an idea worth exploring.",
+      "parentUuid": "1a367ee2_f29f5bea",
+      "range": {
+        "startLine": 28,
+        "startChar": 4,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "5430b4e76e7d6d4d56d0956586f66b0c0c046cfd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
