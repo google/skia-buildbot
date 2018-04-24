@@ -59,7 +59,7 @@ func TestGetPullRequest(t *testing.T) {
 func TestCreatePullRequest(t *testing.T) {
 	testutils.SmallTest(t)
 	reqType := "application/json"
-	reqBody := []byte(`{"title":"title","head":"headBranch","base":"baseBranch"}
+	reqBody := []byte(`{"title":"title","head":"headBranch","base":"baseBranch","body":"testBody"}
 `)
 	number := 12345
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Number: &number}))
@@ -70,7 +70,7 @@ func TestCreatePullRequest(t *testing.T) {
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
 	assert.NoError(t, err)
-	pullRequest, createPullErr := githubClient.CreatePullRequest("title", "baseBranch", "headBranch")
+	pullRequest, createPullErr := githubClient.CreatePullRequest("title", "baseBranch", "headBranch", "testBody")
 	assert.NoError(t, createPullErr)
 	assert.Equal(t, number, *pullRequest.Number)
 }
