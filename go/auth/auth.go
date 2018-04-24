@@ -43,7 +43,7 @@ const (
 //    $ gcloud config set project [project name]
 func NewDefaultTokenSource(local bool) (oauth2.TokenSource, error) {
 	if local {
-		return NewGCloundTokenSource(), nil
+		return NewGCloudTokenSource(""), nil
 	} else {
 		// Are we running on GCE?
 		if cloud_metadata.OnGCE() {
@@ -89,23 +89,33 @@ func NewClient(local bool, oauthCacheFile string, scopes ...string) (*http.Clien
 }
 
 type gcloudTokenSource struct {
+	projectId string
 }
 
-// NewGCloundTokenSource creates an oauth2.TokenSource that returns tokens from
+// NewGCloudTokenSource creates an oauth2.TokenSource that returns tokens from
 // the locally authorized gcloud command line tool, i.e. it gets them from
 // running:
 //
 //    gcloud auth print-access-token
-func NewGCloundTokenSource() oauth2.TokenSource {
-	return &gcloudTokenSource{}
+//
+// projectId - The name of the GCP project, e.g. 'skia-public'. If empty, "", then
+//    the default project id for gcloud is used.
+func NewGCloudTokenSource(projectId string) oauth2.TokenSource {
+	return &gcloudTokenSource{
+		projectId: projectId,
+	}
 }
 
 func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
 	buf := bytes.Buffer{}
 	errBuf := bytes.Buffer{}
+	args := []string{"auth", "print-access-token", "--format=json"}
+	if g.projectId != "" {
+		args = append(args, fmt.Sprintf("--project=%s", g.projectId))
+	}
 	gcloudCmd := &exec.Command{
 		Name:        "gcloud",
-		Args:        []string{"auth", "print-access-token", "--format=json"},
+		Args:        args,
 		InheritPath: true,
 		InheritEnv:  true,
 		Stdout:      &buf,

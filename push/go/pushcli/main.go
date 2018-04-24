@@ -62,7 +62,7 @@ func main() {
 	serverName := args[1] // "skia-debugger" or "*"
 
 	// Create the needed clients.
-	tokenSource := auth.NewGCloundTokenSource()
+	tokenSource := auth.NewGCloudTokenSource("")
 	client := auth.ClientFromTokenSource(tokenSource)
 	store, err := storage.New(client)
 	if err != nil {
