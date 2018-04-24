@@ -173,6 +173,16 @@ func SrcInternal_Chromium() *gce.Instance {
 	return vm
 }
 
+func SwiftShader_Skia() *gce.Instance {
+	vm := AutoRollBase("swiftshader-skia-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"benjaminwagner@google.com",
+		"halcanary@google.com",
+	}
+	vm.ServiceAccount = "swiftshader-skia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func WebRTC_Chromium() *gce.Instance {
 	vm := AutoRollBase("webrtc-chromium-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -256,6 +266,7 @@ func main() {
 		"skia-flutter":          Skia_Flutter(),
 		"skia-internal":         SkiaInternal(),
 		"src-internal-chromium": SrcInternal_Chromium(),
+		"swiftshader-skia":      SwiftShader_Skia(),
 		"webrtc-chromium":       WebRTC_Chromium(),
 	})
 }
