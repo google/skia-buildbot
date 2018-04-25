@@ -22,6 +22,30 @@
       "revId": "3e36ad991224f4352e1caa59dd2f67230e0ea090",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8702f0e0_3992fa6d",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-25T11:20:57Z",
+      "side": 1,
+      "message": "It is needed because it could be nil when it is still calculating: https://developer.github.com/v3/pulls/#get-a-single-pull-request",
+      "parentUuid": "e6188bd5_be5f052e",
+      "range": {
+        "startLine": 351,
+        "startChar": 112,
+        "endLine": 351,
+        "endChar": 142
+      },
+      "revId": "3e36ad991224f4352e1caa59dd2f67230e0ea090",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
