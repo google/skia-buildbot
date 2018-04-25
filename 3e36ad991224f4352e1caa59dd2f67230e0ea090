@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6188bd5_be5f052e",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T11:19:20Z",
+      "side": 1,
+      "message": "Not needed.",
+      "range": {
+        "startLine": 351,
+        "startChar": 112,
+        "endLine": 351,
+        "endChar": 142
+      },
+      "revId": "3e36ad991224f4352e1caa59dd2f67230e0ea090",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
