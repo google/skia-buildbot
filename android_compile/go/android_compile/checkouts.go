@@ -11,6 +11,7 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -80,9 +81,47 @@ var (
 	}
 
 	gerritClient *gerrit.Gerrit
+
+	repoToolPath string
+	pathToMirror string
+
+	// RWMutex for handling checkouts. The mirror will acquire a Lock()
+	// while the other local checkouts will acquire a RLock().
+	checkoutsMutex sync.RWMutex
 )
 
-func CheckoutsInit(numCheckouts int, workdir string) error {
+func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Duration) error {
+	user, err := user.Current()
+	if err != nil {
+		return err
+	}
+	repoToolPath = path.Join(user.HomeDir, "bin", "repo")
+	ctx := context.Background()
+
+	// Make sure the mirror directory is created and initialized.
+	pathToMirror = filepath.Join(workdir, CHECKOUTS_TOPLEVEL_DIR, "mirror")
+	if _, err := os.Stat(pathToMirror); err != nil {
+		if os.IsNotExist(err) {
+			if _, err := fileutil.EnsureDirExists(pathToMirror); err != nil {
+				return fmt.Errorf("Error creating %s: %s", pathToMirror, err)
+			}
+			if err := runInit(ctx, pathToMirror, ANDROID_MANIFEST_URL, true); err != nil {
+				return fmt.Errorf("Error running init on %s: %s", pathToMirror, err)
+			}
+		}
+	}
+	// Update mirror here and then periodically.
+	if err := updateCheckout(ctx, pathToMirror, true); err != nil {
+		return fmt.Errorf("Failed to update the mirror %s: %s", pathToMirror, err)
+	}
+	go func() {
+		for range time.Tick(repoUpdateDuration) {
+			if err := updateCheckout(ctx, pathToMirror, true); err != nil {
+				sklog.Errorf("Failed to update the mirror %s: %s", pathToMirror, err)
+			}
+		}
+	}()
+
 	// Slice that will be used to update all checkouts in parallel.
 	checkoutsToUpdate := []string{}
 	// Channel that will be used to determine which checkouts are available.
@@ -90,15 +129,22 @@ func CheckoutsInit(numCheckouts int, workdir string) error {
 	// Populate the channel with available checkouts.
 	for i := 1; i <= numCheckouts; i++ {
 		checkoutPath := filepath.Join(workdir, CHECKOUTS_TOPLEVEL_DIR, fmt.Sprintf("%s_%d", CHECKOUT_DIR_PREFIX, i))
-		if _, err := fileutil.EnsureDirExists(checkoutPath); err != nil {
-			return fmt.Errorf("Error creating %s: %s", checkoutPath, err)
+		if _, err := os.Stat(checkoutPath); err != nil {
+			if os.IsNotExist(err) {
+				if _, err := fileutil.EnsureDirExists(checkoutPath); err != nil {
+					return fmt.Errorf("Error creating %s: %s", checkoutPath, err)
+				}
+				if err := runInit(ctx, checkoutPath, pathToMirror, false); err != nil {
+					return fmt.Errorf("Error running init on %s: %s", checkoutPath, err)
+				}
+			}
 		}
 		checkoutsToUpdate = append(checkoutsToUpdate, checkoutPath)
 		addToCheckoutsChannel(checkoutPath)
 	}
 
 	// Update all checkouts simultaneously.
-	if err := updateCheckoutsInParallel(checkoutsToUpdate); err != nil {
+	if err := updateCheckoutsInParallel(ctx, checkoutsToUpdate); err != nil {
 		return fmt.Errorf("Error when updating checkouts in parallel: %s", err)
 	}
 
@@ -112,7 +158,7 @@ func CheckoutsInit(numCheckouts int, workdir string) error {
 		return fmt.Errorf("Failed to create a Gerrit client: %s", err)
 	}
 	// Get a handle to the Google Storage bucket that logs will be stored in.
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		return fmt.Errorf("Failed to create a Google Storage API client: %s", err)
 	}
@@ -121,10 +167,9 @@ func CheckoutsInit(numCheckouts int, workdir string) error {
 }
 
 // UpdateCheckoutsInParallel updates all specified checkouts in parallel.
-func updateCheckoutsInParallel(checkouts []string) error {
+func updateCheckoutsInParallel(ctx context.Context, checkouts []string) error {
 	sklog.Infof("About to update %d checkouts in parallel.", len(checkouts))
 	sklog.Info("If the server has no existing checkouts then this step could take a while...")
-	ctx := context.Background()
 	group := util.NewNamedErrGroup()
 	for _, checkout := range checkouts {
 		c := checkout // https://golang.org/doc/faq#closures_and_goroutines
@@ -143,7 +188,7 @@ func updateCheckoutsInParallel(checkouts []string) error {
 				}
 			}
 			// Now update the Android checkout.
-			if err := updateCheckout(ctx, c); err != nil {
+			if err := updateCheckout(ctx, c, false); err != nil {
 				return fmt.Errorf("Error when updating checkout in %s: %s", c, err)
 			}
 			return nil
@@ -156,10 +201,30 @@ func updateCheckoutsInParallel(checkouts []string) error {
 	return nil
 }
 
+func runInit(ctx context.Context, checkoutPath, initRepo string, isMirror bool) error {
+	initCmd := []string{repoToolPath, "init", "-u", initRepo, "-g", "all,-notdefault,-darwin", "-b", "master"}
+	if isMirror {
+		initCmd = append(initCmd, "--mirror")
+	}
+	if _, err := sk_exec.RunCwd(ctx, checkoutPath, initCmd...); err != nil {
+		errMsg := fmt.Sprintf("Failed to init the repo at %s: %s", checkoutPath, err)
+		sklog.Errorln(errMsg)
+		return errors.New(errMsg)
+	}
+	return nil
+}
+
 // updateCheckout updates the Android checkout using the repo tool in the
 // specified checkout. Errors are retried with exponential backoff using the
 // values in constants.
-func updateCheckout(ctx context.Context, checkoutPath string) error {
+func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) error {
+	if isMirror {
+		checkoutsMutex.Lock()
+		defer checkoutsMutex.Unlock()
+	} else {
+		checkoutsMutex.RLock()
+		defer checkoutsMutex.RUnlock()
+	}
 
 	updateFunc := func() error {
 		checkoutBase := path.Base(checkoutPath)
@@ -168,20 +233,9 @@ func updateCheckout(ctx context.Context, checkoutPath string) error {
 		syncTimesMetric := metrics2.GetFloat64Metric(fmt.Sprintf("android_sync_time_%s", checkoutBase))
 		defer timer.NewWithMetric(fmt.Sprintf("Time taken to update %s:", checkoutBase), syncTimesMetric).Stop()
 
-		user, err := user.Current()
-		if err != nil {
-			return err
-		}
-		repoToolPath := path.Join(user.HomeDir, "bin", "repo")
-		// Run repo init and sync commands.
-		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "init", "-u", ANDROID_MANIFEST_URL, "-g", "all,-notdefault,-darwin", "-b", "master"); err != nil {
-			errMsg := fmt.Sprintf("Failed to init the repo at %s: %s", checkoutBase, err)
-			sklog.Errorln(errMsg)
-			return errors.New(errMsg)
-		}
 		// Sync the current branch, only fetch projects fixed to sha1 if revision
 		// does not exist locally, and delete refs that no longer exist on server.
-		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j32", "--optimized-fetch", "--prune"); err != nil {
+		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j10", "--optimized-fetch", "--prune", "-f"); err != nil {
 			errMsg := fmt.Sprintf("Failed to sync the repo at %s: %s", checkoutBase, err)
 			sklog.Errorln(errMsg)
 			return errors.New(errMsg)
@@ -351,7 +405,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 	}
 
 	// Step 3: Update the Android checkout.
-	if err := updateCheckout(ctx, checkoutPath); err != nil {
+	if err := updateCheckout(ctx, checkoutPath, false); err != nil {
 		return fmt.Errorf("Error when updating checkout in %s: %s", checkoutPath, err)
 	}
 
@@ -430,7 +484,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 
 	// Step 8: Do the with patch or with hash compilation and update CompileTask
 	// with link to logs and whether it was successful.
-	withPatchSuccess, gsWithPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_withpatch_", datastoreKey.ID), pathToCompileScript)
+	withPatchSuccess, gsWithPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_withpatch_", datastoreKey.ID), pathToCompileScript, skiaCheckout)
 	if err != nil {
 		return fmt.Errorf("Error when compiling checkout withpatch at %s: %s", checkoutPath, err)
 	}
@@ -456,7 +510,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 			return fmt.Errorf("Could not prepare Skia checkout for compile: %s", err)
 		}
 		// Do the no patch compilation.
-		noPatchSuccess, gsNoPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_nopatch_", datastoreKey.ID), pathToCompileScript)
+		noPatchSuccess, gsNoPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_nopatch_", datastoreKey.ID), pathToCompileScript, skiaCheckout)
 		if err != nil {
 			return fmt.Errorf("Error when compiling checkout nopatch at %s: %s", checkoutPath, err)
 		}
@@ -478,7 +532,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 // We do the compilation via compile.sh and not via exec because
 // ./build/envsetup.sh needs to be sournced before running lunch and mma
 // commands and this was much simpler to do via a bash script.
-func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCompileScript string) (bool, string, error) {
+func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCompileScript string, skiaCheckout *git.Checkout) (bool, string, error) {
 	checkoutBase := path.Base(checkoutPath)
 	sklog.Infof("Started compiling %s", checkoutBase)
 	// Create metric and send it to a timer.
