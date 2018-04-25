@@ -34,6 +34,7 @@ const (
 	TRIGGER_ANY_BRANCH  = ""
 	TRIGGER_MASTER_ONLY = "master"
 	TRIGGER_NIGHTLY     = "nightly"
+	TRIGGER_ONDEMAND    = "on demand"
 	TRIGGER_WEEKLY      = "weekly"
 
 	VARIABLE_SYNTAX = "<(%s)"
