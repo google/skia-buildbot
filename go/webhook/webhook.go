@@ -139,5 +139,5 @@ func AuthenticateRequest(r *http.Request) ([]byte, error) {
 	if headerHashBase64 == dataHashBase64 {
 		return data, nil
 	}
-	return data, fmt.Errorf("Authentication header %s: %s did not match.", REQUEST_AUTH_HASH_HEADER, headerHashBase64)
+	return data, fmt.Errorf("Authentication header %s: %s did not match %s.", REQUEST_AUTH_HASH_HEADER, headerHashBase64, dataHashBase64)
 }
