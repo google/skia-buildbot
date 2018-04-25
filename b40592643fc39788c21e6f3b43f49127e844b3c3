@@ -198,6 +198,30 @@
       "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3b3d6c4_b1ab7446",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-25T18:43:10Z",
+      "side": 1,
+      "message": "/shruggie Or add a single \"extra_args\" param. The most confusing thing is that above you pass in \"infra\" as the recipe, and then you override that here.",
+      "parentUuid": "270c3081_de6d7789",
+      "range": {
+        "startLine": 256,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 39
+      },
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
