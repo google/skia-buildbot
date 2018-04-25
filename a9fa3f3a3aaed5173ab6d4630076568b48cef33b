@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d685ab19_c90802ae",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-25T14:40:04Z",
+      "side": 1,
+      "message": "nit: ON_DEMAND (based on ANY_BRANCH and MASTER_ONLY)",
+      "range": {
+        "startLine": 37,
+        "startChar": 9,
+        "endLine": 37,
+        "endChar": 17
+      },
+      "revId": "a9fa3f3a3aaed5173ab6d4630076568b48cef33b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4746d915_83ec3ae1",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-25T14:40:04Z",
+      "side": 1,
+      "message": "Just to clarify, this is the only change needed because we filter out other triggers, correct?\n\nMaybe would be good to add comments to each of the TRIGGER_* values giving a short pointer to how each is implemented.",
+      "revId": "a9fa3f3a3aaed5173ab6d4630076568b48cef33b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
