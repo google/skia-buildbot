@@ -39,6 +39,48 @@
       "revId": "a9fa3f3a3aaed5173ab6d4630076568b48cef33b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8f8d68b_847504fc",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T14:45:10Z",
+      "side": 1,
+      "message": "I\u0027m just adding it so that client repos have something to point to when they want this functionality.  I think they could otherwise use any string which doesn\u0027t match the others.  It might be good to add some validation, but at the moment that would just result in errors in the task scheduler logs, rather than any useful feedback.",
+      "parentUuid": "4746d915_83ec3ae1",
+      "revId": "a9fa3f3a3aaed5173ab6d4630076568b48cef33b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16ddbe31_63320778",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T14:45:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d685ab19_c90802ae",
+      "range": {
+        "startLine": 37,
+        "startChar": 9,
+        "endLine": 37,
+        "endChar": 17
+      },
+      "revId": "a9fa3f3a3aaed5173ab6d4630076568b48cef33b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
