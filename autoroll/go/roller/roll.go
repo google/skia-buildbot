@@ -339,7 +339,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 	}
 	a.TryResults = tryResults
 
-	if *pullRequest.Mergeable == false {
+	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
 		// Add a comment and close the roll.
 		if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
 			return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
@@ -348,7 +348,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
 		a.Result = autoroll.ROLL_RESULT_FAILURE
-	} else if len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && *pullRequest.Mergeable == true {
+	} else if len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
 		if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging.", github.MERGE_METHOD_SQUASH); err != nil {
