@@ -356,7 +356,7 @@
          this.$.desc.focus();
          return;
        }
-       if (ctfe.moreThanOneActiveTask($$$("drawer-sk").sizeOfUserQueue)) {
+       if (ctfe.moreThanThreeActiveTasks($$$("drawer-sk").sizeOfUserQueue)) {
          return;
        }
        this.$.confirm_dialog.open("Proceed with queueing task?")
