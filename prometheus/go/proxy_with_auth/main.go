@@ -34,6 +34,9 @@ func NewProxy(target *url.URL) *Proxy {
 }
 
 func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Check if it's a GET request from the whitelisted IPs for "/", and if so
+	// then return a 200 with no body.
+	// From 130.211.0.0/22 and 35.191.0.0/16
 	sklog.Infof("Requesting: %s", r.RequestURI)
 	if login.LoggedInAs(r) == "" {
 		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)

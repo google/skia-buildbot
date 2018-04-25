@@ -20,8 +20,6 @@ release: default
 
 .PHONY: push
 push: default
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli docserver skia-docs
+	./build_docker_release
 
 include ../webtools/webtools.mk
