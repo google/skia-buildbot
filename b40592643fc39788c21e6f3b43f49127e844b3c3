@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da14a582_899605b0",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-25T18:07:05Z",
+      "side": 1,
+      "message": "Did you mean to add the \"on demand\" trigger?",
+      "range": {
+        "startLine": 43,
+        "startChar": 15,
+        "endLine": 43,
+        "endChar": 23
+      },
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6f6ed6e_e0c1a3ac",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-25T18:07:05Z",
+      "side": 1,
+      "message": "What does 0 mean? No IO timeout? Probably should make this the default for Kitchen.",
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18cf635d_aad7a7d6",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-25T18:07:05Z",
+      "side": 1,
+      "message": "This is the recipe repo?",
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b5f5a0b_49dcd9ba",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-25T18:07:05Z",
+      "side": 1,
+      "message": "Is this the same as what would happen locally? I guess if it ends up being a problem, we can set up some kind of roller...",
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "708bf254_ab37d992",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-25T18:07:05Z",
+      "side": 1,
+      "message": "This seems odd. What\u0027s the reason for creating the task with the wrong args and then fixing it after?",
+      "range": {
+        "startLine": 256,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 39
+      },
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
