@@ -24,10 +24,15 @@ const (
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.4"
 
+	// Swarming output dirs.
+	OUTPUT_NONE = "output_ignored" // This will result in outputs not being isolated.
+
 	// Pool for Skia bots.
 	POOL_SKIA = "Skia"
 
 	PROJECT = "skia"
+
+	SERVICE_ACCOUNT_COMPILE = "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
 )
 
 var (
@@ -35,6 +40,7 @@ var (
 
 	// Top-level list of all Jobs to run at each commit.
 	JOBS = []string{
+		"Housekeeper-OnDemand-Presubmit",
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
@@ -91,14 +97,6 @@ var (
 			Name:    "infra/gsutil",
 			Path:    "cipd_bin_packages",
 			Version: "version:4.28",
-		},
-	}
-
-	CIPD_PKGS_NODE = []*specs.CipdPackage{
-		&specs.CipdPackage{
-			Name:    "skia/bots/node",
-			Path:    "cipd_bin_packages",
-			Version: "0",
 		},
 	}
 
@@ -160,21 +158,29 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	return BUNDLE_RECIPES_NAME
 }
 
-// infra generates an infra test Task. Returns the name of the last Task in the
-// generated chain of Tasks, which the Job should add as a dependency.
-func infra(b *specs.TasksCfgBuilder, name string) string {
-	bundle := bundleRecipes(b)
-
-	pkgs := append([]*specs.CipdPackage{b.MustGetCipdPackageFromAsset("go"), b.MustGetCipdPackageFromAsset("node")}, CIPD_PKGS_GSUTIL...)
-	if strings.Contains(name, "Large") {
-		pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
+// kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a
+// recipe.
+func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
+	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_KITCHEN...)
+	properties := map[string]string{
+		"buildername":   name,
+		"patch_issue":   specs.PLACEHOLDER_ISSUE,
+		"patch_repo":    specs.PLACEHOLDER_PATCH_REPO,
+		"patch_set":     specs.PLACEHOLDER_PATCHSET,
+		"patch_storage": specs.PLACEHOLDER_PATCH_STORAGE,
+		"repository":    specs.PLACEHOLDER_REPO,
+		"revision":      specs.PLACEHOLDER_REVISION,
+		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
 	}
-	attempts := 2
-	if strings.Contains(name, "Race") {
-		attempts = 1
+	for k, v := range extraProps {
+		properties[k] = v
 	}
-	task := &specs.TaskSpec{
-		CipdPackages: cipd(pkgs),
+	var outputs []string = nil
+	if outputDir != OUTPUT_NONE {
+		outputs = []string{outputDir}
+	}
+	return &specs.TaskSpec{
+		CipdPackages: cipd,
 		Command: []string{
 			"./kitchen${EXECUTABLE_SUFFIX}", "cook",
 			"-checkout-dir", "recipe_bundle",
@@ -194,20 +200,12 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 			"-known-gerrit-host", "webrtc.googlesource.com",
 			"-output-result-json", "${ISOLATED_OUTDIR}/build_result_filename",
 			"-workdir", ".",
-			"-recipe", "swarm_infra",
-			"-properties", props(map[string]string{
-				"buildername":   name,
-				"repository":    specs.PLACEHOLDER_REPO,
-				"revision":      specs.PLACEHOLDER_REVISION,
-				"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
-				"patch_storage": specs.PLACEHOLDER_PATCH_STORAGE,
-				"patch_issue":   specs.PLACEHOLDER_ISSUE,
-				"patch_set":     specs.PLACEHOLDER_PATCHSET,
-			}),
+			"-recipe", recipe,
+			"-properties", props(properties),
 			"-logdog-annotation-url", LOGDOG_ANNOTATION_URL,
 		},
-		Dependencies: []string{bundle},
-		Dimensions:   linuxGceDimensions(),
+		Dependencies: []string{BUNDLE_RECIPES_NAME},
+		Dimensions:   dimensions,
 		EnvPrefixes: map[string][]string{
 			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
 			"VPYTHON_VIRTUALENV_ROOT": []string{"${cache_dir}/vpython"},
@@ -215,13 +213,61 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		ExtraTags: map[string]string{
 			"log_location": LOGDOG_ANNOTATION_URL,
 		},
-		Isolate:     "infrabots.isolate",
-		Priority:    0.8,
-		MaxAttempts: attempts,
+		Isolate:        isolate,
+		Outputs:        outputs,
+		Priority:       0.8,
+		ServiceAccount: serviceAccount,
 	}
+}
+
+// infra generates an infra test Task. Returns the name of the last Task in the
+// generated chain of Tasks, which the Job should add as a dependency.
+func infra(b *specs.TasksCfgBuilder, name string) string {
+	task := kitchenTask(name, "swarm_infra", "infrabots.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(), nil, OUTPUT_NONE)
+	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
+	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
+	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
+	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GSUTIL...)
+	if strings.Contains(name, "Large") {
+		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
+	}
+	task.MaxAttempts = 2
 	if strings.Contains(name, "Race") {
+		task.MaxAttempts = 1
 		task.IoTimeout = 40 * time.Minute
 	}
+	b.MustAddTask(name, task)
+	return name
+}
+
+// Run the presubmit.
+func presubmit(b *specs.TasksCfgBuilder, name string) string {
+	extraProps := map[string]string{
+		"category":         "cq",
+		"patch_gerrit_url": "https://skia-review.googlesource.com",
+		"patch_project":    "skiabuildbot",
+		"patch_ref":        fmt.Sprintf("refs/changes/%s/%s/%s", specs.PLACEHOLDER_ISSUE_SHORT, specs.PLACEHOLDER_ISSUE, specs.PLACEHOLDER_PATCHSET),
+		"reason":           "CQ",
+		"repo_name":        "skia_buildbot",
+	}
+	task := kitchenTask(name, "run_presubmit", "empty.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(), extraProps, OUTPUT_NONE)
+
+	replaceArg := func(key, value string) {
+		found := false
+		for idx, arg := range task.Command {
+			if arg == key {
+				task.Command[idx+1] = value
+				found = true
+			}
+		}
+		if !found {
+			task.Command = append(task.Command, key, value)
+		}
+	}
+	replaceArg("-repository", "https://chromium.googlesource.com/chromium/tools/build")
+	replaceArg("-revision", "HEAD")
+	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
+	task.Dependencies = []string{} // No bundled recipes for this one.
 	b.MustAddTask(name, task)
 	return name
 }
@@ -234,11 +280,20 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	if strings.Contains(name, "Infra-PerCommit") {
 		deps = append(deps, infra(b, name))
 	}
+	// Presubmit.
+	if strings.Contains(name, "Presubmit") {
+		deps = append(deps, presubmit(b, name))
+	}
 
 	// Add the Job spec.
+	trigger := specs.TRIGGER_ANY_BRANCH
+	if strings.Contains(name, "OnDemand") {
+		trigger = specs.TRIGGER_ON_DEMAND
+	}
 	b.MustAddJob(name, &specs.JobSpec{
 		Priority:  0.8,
 		TaskSpecs: deps,
+		Trigger:   trigger,
 	})
 }
 
@@ -247,6 +302,7 @@ func main() {
 	b := specs.MustNewTasksCfgBuilder()
 
 	// Create Tasks and Jobs.
+	bundleRecipes(b)
 	for _, name := range JOBS {
 		process(b, name)
 	}
