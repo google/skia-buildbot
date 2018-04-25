@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ceb1a06_b0258b52",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T18:37:18Z",
+      "side": 1,
+      "message": "Yes, thanks.",
+      "parentUuid": "da14a582_899605b0",
+      "range": {
+        "startLine": 43,
+        "startChar": 15,
+        "endLine": 43,
+        "endChar": 23
+      },
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a6f6ed6e_e0c1a3ac",
         "filename": "infra/bots/gen_tasks.go",
         "patchSetId": 5
@@ -36,6 +60,24 @@
       "writtenOn": "2018-04-25T18:07:05Z",
       "side": 1,
       "message": "What does 0 mean? No IO timeout? Probably should make this the default for Kitchen.",
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd584590_ca521dcc",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T18:37:18Z",
+      "side": 1,
+      "message": "We use omitempty, so setting to zero just gets us the default value from Swarming. Removed this line for less confusion.",
+      "parentUuid": "a6f6ed6e_e0c1a3ac",
       "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "caf18e2d_7d2645ce",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T18:37:18Z",
+      "side": 1,
+      "message": "Yes, the presubmit recipe is in the build repo.",
+      "parentUuid": "18cf635d_aad7a7d6",
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3b5f5a0b_49dcd9ba",
         "filename": "infra/bots/gen_tasks.go",
         "patchSetId": 5
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "f67d2bf0_4f47a146",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T18:37:18Z",
+      "side": 1,
+      "message": "This is the same as the current presubmit task.  It syncs build.git to HEAD.  I guess we could pin it but I don\u0027t think the recipe should change often enough to matter.",
+      "parentUuid": "3b5f5a0b_49dcd9ba",
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "708bf254_ab37d992",
         "filename": "infra/bots/gen_tasks.go",
         "patchSetId": 5
@@ -87,6 +165,30 @@
       "writtenOn": "2018-04-25T18:07:05Z",
       "side": 1,
       "message": "This seems odd. What\u0027s the reason for creating the task with the wrong args and then fixing it after?",
+      "range": {
+        "startLine": 256,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 39
+      },
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "270c3081_de6d7789",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T18:37:18Z",
+      "side": 1,
+      "message": "I guess the alternative is to pass all of these in as parameters?  That seemed wasteful when only the presubmit task needs to change them.",
+      "parentUuid": "708bf254_ab37d992",
       "range": {
         "startLine": 256,
         "startChar": 0,
