@@ -163,14 +163,14 @@ this.ctfe = this.ctfe || function() {
   }
 
   /**
-   * Returns true and displays an error if user has more than 1 active task.
+   * Returns true and displays an error if user has more than 3 active tasks.
    */
-  ctfe.moreThanOneActiveTask = function(sizeOfUserQueue) {
-    if (sizeOfUserQueue > 1) {
+  ctfe.moreThanThreeActiveTasks = function(sizeOfUserQueue) {
+    if (sizeOfUserQueue > 3) {
         sk.errorMessage("You have " + sizeOfUserQueue + " currently running tasks. Please wait " +
                         "for them to complete before scheduling more CT tasks.");
     }
-    return sizeOfUserQueue > 1;
+    return sizeOfUserQueue > 3;
   }
 
   /**
