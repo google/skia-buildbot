@@ -36,6 +36,11 @@ const (
 
 	MERGE_METHOD_SQUASH = "squash"
 	MERGE_METHOD_REBASE = "rebase"
+
+	MERGEABLE_STATE_DIRTY    = "dirty"    // Merge conflict.
+	MERGEABLE_STATE_CLEAN    = "clean"    // No conflicts.
+	MERGEABLE_STATE_UNKNOWN  = "unknown"  // Mergeablility was not checked yet.
+	MERGEABLE_STATE_UNSTABLE = "unstable" // Failing or pending commit status.
 )
 
 var (

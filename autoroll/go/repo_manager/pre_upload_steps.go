@@ -160,5 +160,6 @@ func FlutterLicenseScripts(ctx context.Context, parentRepoDir string) error {
 		return err
 	}
 
+	sklog.Info("Done running flutter license scripts.")
 	return nil
 }
