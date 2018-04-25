@@ -222,6 +222,30 @@
       "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa88a2fe_a7292ba1",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-25T18:59:07Z",
+      "side": 1,
+      "message": "Err, right. Changed to just pass the correct recipe.",
+      "parentUuid": "f3b3d6c4_b1ab7446",
+      "range": {
+        "startLine": 256,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 39
+      },
+      "revId": "b40592643fc39788c21e6f3b43f49127e844b3c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
