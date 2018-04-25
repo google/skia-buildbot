@@ -31,10 +31,21 @@ const (
 
 	TASKS_CFG_FILE = "infra/bots/tasks.json"
 
-	TRIGGER_ANY_BRANCH  = ""
+	// Triggering configuration for jobs.
+
+	// By default, all jobs trigger on any branch for which they are
+	// defined.
+	TRIGGER_ANY_BRANCH = ""
+	// Run this job on the master branch only, even if it is defined on
+	// others.
 	TRIGGER_MASTER_ONLY = "master"
-	TRIGGER_NIGHTLY     = "nightly"
-	TRIGGER_WEEKLY      = "weekly"
+	// Trigger this job every night.
+	TRIGGER_NIGHTLY = "nightly"
+	// Don't trigger this job automatically. It will only be run when
+	// explicitly triggered via a try job or a force trigger.
+	TRIGGER_ON_DEMAND = "on demand"
+	// Trigger this job weekly.
+	TRIGGER_WEEKLY = "weekly"
 
 	VARIABLE_SYNTAX = "<(%s)"
 
