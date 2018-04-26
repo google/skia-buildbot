@@ -167,6 +167,16 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
 func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
+	var caches []*swarming_api.SwarmingRpcsCacheEntry
+	if len(c.TaskSpec.Caches) > 0 {
+		caches = make([]*swarming_api.SwarmingRpcsCacheEntry, 0, len(c.TaskSpec.Caches))
+		for _, cache := range c.TaskSpec.Caches {
+			caches = append(caches, &swarming_api.SwarmingRpcsCacheEntry{
+				Name: cache.Name,
+				Path: cache.Path,
+			})
+		}
+	}
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
 	if len(c.TaskSpec.CipdPackages) > 0 {
 		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
@@ -249,6 +259,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		Name:           c.Name,
 		Priority:       int64(100.0 * c.TaskSpec.Priority),
 		Properties: &swarming_api.SwarmingRpcsTaskProperties{
+			Caches:               caches,
 			CipdInput:            cipdInput,
 			Command:              cmd,
 			Dimensions:           dims,
