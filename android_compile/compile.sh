@@ -25,6 +25,12 @@ fi
 checkout=$1
 cd $checkout
 
+# Set ccache env variables.
+export CCACHE_DIR=/mnt/pd0/ccache
+export USE_CCACHE=1
+export CCACHE_EXEC=/usr/bin/ccache
+ccache -M 200G
+
 source_cmd="source ./build/envsetup.sh"
 log_step "Running $source_cmd"
 eval $source_cmd
@@ -33,10 +39,16 @@ lunch_cmd="lunch gce_x86_phone-eng"
 log_step "Running $lunch_cmd"
 eval $lunch_cmd
 
-mmma_cmd="mmma -j32 frameworks/base/core/jni"
+log_step "ccache stats before compilations"
+ccache -s
+
+mmma_cmd="time mmma -j10 frameworks/base/core/jni"
 log_step "Running $mmma_cmd"
 eval $mmma_cmd
 
-mmm_skia_cmd="mmm -j32 external/skia"
+mmm_skia_cmd="time mmm -j10 external/skia"
 log_step "Running $mmm_skia_cmd"
 eval $mmm_skia_cmd
+
+log_step "ccache stats after compilations"
+ccache -s
