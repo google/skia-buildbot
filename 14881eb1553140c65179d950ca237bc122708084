@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "d807677a_cce08654",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-26T19:38:37Z",
+      "side": 1,
+      "message": "You probably want cleanup.Repeat()",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 4
+      },
+      "revId": "14881eb1553140c65179d950ca237bc122708084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7118cdce_cb973584",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-26T19:38:37Z",
+      "side": 1,
+      "message": "There is no queuing in these locks, so as long as any goroutine holds a read lock on checkoutsMutex, we can\u0027t lock it here, and new compile tasks may still be triggered and obtain new read locks during that time.  That means that, if the bots are busy, this may not happen for hours.  Is that acceptable?",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 31
+      },
+      "revId": "14881eb1553140c65179d950ca237bc122708084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "07b64dba_72e236be",
         "filename": "android_compile/go/android_compile/checkouts.go",
         "patchSetId": 18
