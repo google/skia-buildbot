@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+//
 package main
 
 /*
@@ -180,6 +181,12 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 		outputs = []string{outputDir}
 	}
 	return &specs.TaskSpec{
+		Caches: []*specs.Cache{
+			&specs.Cache{
+				Name: "vpython",
+				Path: "cache/vpython",
+			},
+		},
 		CipdPackages: cipd,
 		Command: []string{
 			"./kitchen${EXECUTABLE_SUFFIX}", "cook",
@@ -266,6 +273,16 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	}
 	replaceArg("-repository", "https://chromium.googlesource.com/chromium/tools/build")
 	replaceArg("-revision", "HEAD")
+	task.Caches = append(task.Caches, []*specs.Cache{
+		&specs.Cache{
+			Name: "git",
+			Path: "cache/git",
+		},
+		&specs.Cache{
+			Name: "git_cache",
+			Path: "cache/git_cache",
+		},
+	}...)
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
 	task.Dependencies = []string{} // No bundled recipes for this one.
 	b.MustAddTask(name, task)
