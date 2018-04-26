@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 16s
+
+# Comments
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets:
+        - alertmanager:8080
+
+scrape_configs:
+  - job_name: 'prober'
+    static_configs:
+      - targets: ['prober:20000']
+  - job_name: 'docserver2'
+    static_configs:
+      - targets: ['docserver2:20000']
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+

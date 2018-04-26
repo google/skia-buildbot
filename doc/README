@@ -1,0 +1,42 @@
+https://github.com/kubernetes/ingress-nginx/issues/396
+
+$ gcloud compute ssl-certificates create skiatest-cert --certificate=skiatest.cert --private-key=skiatest.key --project=my-project --project=skia-public
+Created [https://www.googleapis.com/compute/v1/projects/skia-public/global/sslCertificates/skiatest-cert].
+NAME           CREATION_TIMESTAMP
+skiatest-cert  2018-04-09T10:18:17.698-07:00
+jcgregorio@jcgregorio ~/cert
+$ gcloud compute addresses create skiatest-ip --global
+Created [https://www.googleapis.com/compute/v1/projects/skia-public/global/addresses/skiatest-ip].
+jcgregorio@jcgregorio ~/cert
+
+skiatest-cert
+skiatest-ip
+
+
+kubectl run docs --image=gcr.io/skia-public/docserver:1.0 --port=8000
+kubectl expose deployment docs --target-port=8000 --type=NodePort
+kubectl describe ingress
+kubectl apply -f basic-ingress.yaml
+
+gcloud compute ssl-certificates create skiatest --certificate=skiatest.cert --private-key=skiatest.key
+
+kubectl run curl --image=radial/busyboxplus:curl -i --tty
+
+gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public \
+ && kubectl port-forward $(kubectl get pod --selector="app=docserver2" -o jsonpath='{.items[0].metadata.name}') 8080:8000
+
+
+https://cloud.google.com/logging/docs/access-control#best_practices
+
+   Create with https://www.googleapis.com/auth/cloud-platform scope since
+   access is controlled via IAM roles now.
+
+https://stackoverflow.com/questions/34037256/does-google-container-registry-support-docker-remote-api-v2/34046435#34046435
+
+down vote
+Just got answer from google support, hope this helps others:
+
+$ export NAME=project-id/image
+$ export BEARER=$(curl -u _token:$(gcloud auth print-access-token)
+https://gcr.io/v2/token?scope=repository:$NAME:pull | cut -d'"' -f 10)
+$ curl -H "Authorization: Bearer $BEARER" https://gcr.io/v2/$NAME/tags/list
