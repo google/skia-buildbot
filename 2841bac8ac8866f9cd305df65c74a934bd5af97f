@@ -22,6 +22,30 @@
       "revId": "2841bac8ac8866f9cd305df65c74a934bd5af97f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cd53146_e1e2aa96",
+        "filename": "kube/create-skia-doc-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-26T16:39:25Z",
+      "side": 1,
+      "message": "These two are very similar, but other service accounts might have added scopes, or might be added as readers to a GCS bucket, or writers to a pub/sub topic, so I left it in this format. We can roll up functionality when we get further down the road.",
+      "parentUuid": "f88164a7_0c7d3a44",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 1
+      },
+      "revId": "2841bac8ac8866f9cd305df65c74a934bd5af97f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
