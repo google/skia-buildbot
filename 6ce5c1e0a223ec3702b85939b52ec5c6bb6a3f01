@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f433b4c7_e44c58b5",
+        "filename": "kube/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-26T16:35:44Z",
+      "side": 1,
+      "message": "Gotcha.",
+      "parentUuid": "78c49087_aebad888",
+      "range": {
+        "startLine": 5,
+        "startChar": 26,
+        "endLine": 5,
+        "endChar": 38
+      },
+      "revId": "6ce5c1e0a223ec3702b85939b52ec5c6bb6a3f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b56922cd_717b2f3e",
         "filename": "kube/create-skia-public-auth-sa.sh",
         "patchSetId": 1

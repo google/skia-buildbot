@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f88164a7_0c7d3a44",
+        "filename": "kube/create-skia-doc-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-26T16:35:44Z",
+      "side": 1,
+      "message": "I was hoping this file would look more like:\n\n./create-sa.sh skia-docs \"Read only access to GCS for skia docs server side includes.\"\n\nThe rest can be in create-sa.sh, right?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 1
+      },
+      "revId": "2841bac8ac8866f9cd305df65c74a934bd5af97f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
