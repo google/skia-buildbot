@@ -5,11 +5,23 @@
 # cluster as a secret.
 
 set -e -x
+
 source ./config.sh
-source ./create-sa.sh
+
+function finish {
+  cd -
+  sleep 1
+  sudo umount /tmp/ramdisk
+  rmdir /tmp/ramdisk
+}
+trap finish EXIT
 
 # New service account we will create.
 SA_NAME=skia-docs
+
+mkdir /tmp/ramdisk
+sudo mount  -t tmpfs -o size=10m tmpfs /tmp/ramdisk
+cd /tmp/ramdisk
 
 gcloud iam service-accounts create "${SA_NAME}" --display-name="Read-only access to GCS for skia docs server side includes."
 
