@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0ba2cf9a_23e3f462",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-26T16:49:12Z",
+      "side": 1,
+      "message": "Would \"bot_update\" be a better name? Or maybe \"repo\"? I assume this is the checkout of the buildbot repo.",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 278,
+        "endChar": 21
+      },
+      "revId": "cf220e380fef7251efe2980985217858143ae5f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
