@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5f6db3f1_30d2a14d",
+        "filename": "bash/docker_build.sh",
+        "patchSetId": 6
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-26T18:06:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22433246_bb19d978",
+      "range": {
+        "startLine": 15,
+        "startChar": 4,
+        "endLine": 15,
+        "endChar": 6
+      },
+      "revId": "90a2001111c1b6cd8abc613405936d0463d7f544",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bdc6ddf_e7dc48ae",
         "filename": "kube/Makefile",
         "patchSetId": 6
