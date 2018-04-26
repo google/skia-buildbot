@@ -22,6 +22,30 @@
       "revId": "cf220e380fef7251efe2980985217858143ae5f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d521847_7c16ff47",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-26T16:53:42Z",
+      "side": 1,
+      "message": "I copied the cache names and paths from the old presubmit tasks.  They match what is expected by all of the upstream Swarming+Recipes code.",
+      "parentUuid": "0ba2cf9a_23e3f462",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 278,
+        "endChar": 21
+      },
+      "revId": "cf220e380fef7251efe2980985217858143ae5f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
