@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f72d73a6_e755bf9a",
+        "filename": "kube/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-26T16:16:12Z",
+      "side": 1,
+      "message": "This doesn\u0027t currently seem to be the case.",
+      "range": {
+        "startLine": 5,
+        "startChar": 26,
+        "endLine": 5,
+        "endChar": 38
+      },
+      "revId": "6ce5c1e0a223ec3702b85939b52ec5c6bb6a3f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b56922cd_717b2f3e",
+        "filename": "kube/create-skia-public-auth-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-26T16:16:12Z",
+      "side": 1,
+      "message": "Can we put this in a shared create-sa.sh script and source/call it from create-X-sa.sh?  That\u0027d make it harder to mess this up using copy/paste",
+      "revId": "6ce5c1e0a223ec3702b85939b52ec5c6bb6a3f01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
