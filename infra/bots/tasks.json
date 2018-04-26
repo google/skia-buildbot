@@ -34,6 +34,20 @@
   },
   "tasks": {
     "Housekeeper-OnDemand-Presubmit": {
+      "caches": [
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
+        },
+        {
+          "name": "git",
+          "path": "cache/git"
+        },
+        {
+          "name": "git_cache",
+          "path": "cache/git_cache"
+        }
+      ],
       "cipd_packages": [
         {
           "name": "infra/tools/luci/kitchen/${platform}",
@@ -190,6 +204,12 @@
       "priority": 0.7
     },
     "Infra-PerCommit-Large": {
+      "caches": [
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
+        }
+      ],
       "cipd_packages": [
         {
           "name": "infra/tools/luci/kitchen/${platform}",
@@ -318,6 +338,12 @@
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Medium": {
+      "caches": [
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
+        }
+      ],
       "cipd_packages": [
         {
           "name": "infra/tools/luci/kitchen/${platform}",
@@ -441,6 +467,12 @@
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Race": {
+      "caches": [
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
+        }
+      ],
       "cipd_packages": [
         {
           "name": "infra/tools/luci/kitchen/${platform}",
@@ -565,6 +597,12 @@
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Small": {
+      "caches": [
+        {
+          "name": "vpython",
+          "path": "cache/vpython"
+        }
+      ],
       "cipd_packages": [
         {
           "name": "infra/tools/luci/kitchen/${platform}",
