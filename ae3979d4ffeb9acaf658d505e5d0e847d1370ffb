@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c28f8fff_ef478893",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-26T15:05:54Z",
+      "side": 1,
+      "message": "Do we want this to work more like prober or push where the config files live with the app?\n\nE.g. instead of infra/kube/skia-public/android-skiaperfd.yaml where we look for \"image:gcr.io/skia-public/android-skiaperfd\", we would have infra/perf/kube/android-skiaperfd.yaml where we look for \"image:gcr.io/([^/]+)/android-skiaperfd\".",
+      "range": {
+        "startLine": 62,
+        "startChar": 37,
+        "endLine": 62,
+        "endChar": 44
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d068677a_05568638",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-26T15:05:54Z",
+      "side": 1,
+      "message": "nit: maybe mention that return value is sorted.",
+      "range": {
+        "startLine": 72,
+        "startChar": 57,
+        "endLine": 72,
+        "endChar": 58
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5fcd490_da68bc2e",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-26T15:05:54Z",
+      "side": 1,
+      "message": "Please add a comment.",
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f0fb867_a77abd45",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-26T15:05:54Z",
+      "side": 1,
+      "message": "Should this be \u0027indent\u0027?",
+      "range": {
+        "startLine": 107,
+        "startChar": 38,
+        "endLine": 107,
+        "endChar": 44
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96999bbc_4f257bcc",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-26T15:05:54Z",
+      "side": 1,
+      "message": "I don\u0027t understand what the backslash is escaping here.",
+      "range": {
+        "startLine": 109,
+        "startChar": 65,
+        "endLine": 109,
+        "endChar": 67
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02318e95_8ea2af13",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-26T15:05:54Z",
+      "side": 1,
+      "message": "Would it make sense to use a YAML parsing/unparsing lib? YAML allows newlines between keys and values, as well as escaping newlines within values.",
+      "range": {
+        "startLine": 149,
+        "startChar": 2,
+        "endLine": 149,
+        "endChar": 41
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
