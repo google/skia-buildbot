@@ -1,0 +1,15 @@
+#!/bin/bash
+# The base alpine image that includes the skia user and group setup.
+set -x -e
+
+APPNAME=basealpine
+TAG=1.0
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose"
+${INSTALL} --mode=644 -T basealpine/Dockerfile    ${ROOT}/Dockerfile
+}
+
+source ../bash/docker_build.sh
