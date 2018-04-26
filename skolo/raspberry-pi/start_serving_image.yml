@@ -6,6 +6,7 @@
   become: yes
   become_method: sudo
   vars:
+    net: 192.168.1.0
     # override with --extra-vars "nfs_mount_point=/opt/stage"
     nfs_mount_point: /opt/prod
     # override with --extra-vars "image=/opt/rpi_img/stage.img"

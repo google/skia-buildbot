@@ -4,8 +4,6 @@
   become_user: root
   become: yes
   become_method: sudo
-  vars:
-    net: 192.168.1.0
   tasks:
     - name: Update and Upgrade
       apt: upgrade=dist update_cache=yes
