@@ -29,4 +29,11 @@ fi
 # Set git configs required for the repo tool to not prompt.
 sudo -u default git config --global color.ui true
 
+# Create a 200G ram disk for ccache.
+mkdir /mnt/pd0/ccache
+sudo mount -t tmpfs -o size=200G,nr_inodes=10M,mode=1777 tmpfs /mnt/pd0/ccache
+sudo chown default:default -R /mnt/pd0/ccache
+# Add mounting instructions to fstab so that the ram disk remounts on reboot.
+echo "tmpfs /mnt/pd0/ccache tmpfs nodev,nosuid,noexec,nodiratime,size=200G 0 0" | sudo tee -a /etc/fstab
+
 popd
