@@ -159,6 +159,9 @@ func (c *TasksCfg) Validate() error {
 // TaskSpec is a struct which describes a Swarming task to run.
 // Be sure to add any new fields to the Copy() method.
 type TaskSpec struct {
+	// Caches are named Swarming caches which should be used for this task.
+	Caches []*Cache `json:"caches,omitempty"`
+
 	// CipdPackages are CIPD packages which should be installed for the task.
 	CipdPackages []*CipdPackage `json:"cipd_packages,omitempty"`
 
@@ -247,6 +250,15 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 
 // Copy returns a copy of the TaskSpec.
 func (t *TaskSpec) Copy() *TaskSpec {
+	var caches []*Cache
+	if len(t.Caches) > 0 {
+		cachesDup := make([]Cache, len(t.Caches))
+		caches = make([]*Cache, 0, len(t.Caches))
+		for i, c := range t.Caches {
+			cachesDup[i] = *c
+			caches = append(caches, &cachesDup[i])
+		}
+	}
 	var cipdPackages []*CipdPackage
 	if len(t.CipdPackages) > 0 {
 		cipdPackages = make([]*CipdPackage, 0, len(t.CipdPackages))
@@ -271,6 +283,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 	extraTags := util.CopyStringMap(t.ExtraTags)
 	outputs := util.CopyStringSlice(t.Outputs)
 	return &TaskSpec{
+		Caches:           caches,
 		CipdPackages:     cipdPackages,
 		Command:          cmd,
 		Dependencies:     deps,
@@ -288,6 +301,12 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		Priority:         t.Priority,
 		ServiceAccount:   t.ServiceAccount,
 	}
+}
+
+// Cache is a struct representing a named cache which is used by a task.
+type Cache struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
 }
 
 // CipdPackage is a struct representing a CIPD package which needs to be

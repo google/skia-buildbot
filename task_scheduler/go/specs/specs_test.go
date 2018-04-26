@@ -30,6 +30,12 @@ var (
 func TestCopyTaskSpec(t *testing.T) {
 	testutils.SmallTest(t)
 	v := &TaskSpec{
+		Caches: []*Cache{
+			&Cache{
+				Name: "cache-me",
+				Path: "if/you/can",
+			},
+		},
 		CipdPackages: []*CipdPackage{
 			{
 				Name:    "pkg",
