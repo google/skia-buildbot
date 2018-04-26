@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07b64dba_72e236be",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-26T19:15:54Z",
+      "side": 1,
+      "message": "This is to continue syncing even if a project fails to sync so that at end we have a complete list of projects that failed.",
+      "range": {
+        "startLine": 239,
+        "startChar": 118,
+        "endLine": 239,
+        "endChar": 120
+      },
+      "revId": "14881eb1553140c65179d950ca237bc122708084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
