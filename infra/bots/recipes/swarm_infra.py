@@ -62,7 +62,7 @@ def git_checkout(api, url, dest, ref=None):
   api.path['checkout'] = dest
 
   # Run bot_update, just to apply patches.
-  cfg_kwargs = {'CACHE_DIR': '/b/cache'}
+  cfg_kwargs = {}
   gclient_cfg = api.gclient.make_config(**cfg_kwargs)
   dirname = api.path['start_dir'].join('gopath', 'src', 'go.skia.org')
   basename = 'infra'
