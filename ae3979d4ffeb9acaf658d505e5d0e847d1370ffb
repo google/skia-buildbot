@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "090ce188_3b646ce7",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-26T16:37:00Z",
+      "side": 1,
+      "message": "Could also do \"kubectl apply -f **/kube/*\", right?",
+      "parentUuid": "7b9ff4f2_cdcb2e8e",
+      "range": {
+        "startLine": 62,
+        "startChar": 37,
+        "endLine": 62,
+        "endChar": 44
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d068677a_05568638",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
