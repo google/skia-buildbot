@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7b9ff4f2_cdcb2e8e",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-26T15:37:56Z",
+      "side": 1,
+      "message": "The advantage here is that you can run \"kubectl apply -f ../kube\" and the while cluster will be brought up to date with HEAD.",
+      "parentUuid": "c28f8fff_ef478893",
+      "range": {
+        "startLine": 62,
+        "startChar": 37,
+        "endLine": 62,
+        "endChar": 44
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d068677a_05568638",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "cd6bae9e_a18cd040",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-26T15:37:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d068677a_05568638",
+      "range": {
+        "startLine": 72,
+        "startChar": 57,
+        "endLine": 72,
+        "endChar": 58
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b5fcd490_da68bc2e",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
@@ -62,6 +110,24 @@
       "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a2a86a5_2ae983ec",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-26T15:37:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b5fcd490_da68bc2e",
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "a4d83ea3_8105dfe1",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-26T15:37:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f0fb867_a77abd45",
+      "range": {
+        "startLine": 107,
+        "startChar": 38,
+        "endLine": 107,
+        "endChar": 44
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "96999bbc_4f257bcc",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "82dcc77e_6afab999",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-26T15:37:56Z",
+      "side": 1,
+      "message": "Leftover from when I was using a \"\" string and not a `` string.",
+      "parentUuid": "96999bbc_4f257bcc",
+      "range": {
+        "startLine": 109,
+        "startChar": 65,
+        "endLine": 109,
+        "endChar": 67
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "02318e95_8ea2af13",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
@@ -122,6 +236,30 @@
       "writtenOn": "2018-04-26T15:05:54Z",
       "side": 1,
       "message": "Would it make sense to use a YAML parsing/unparsing lib? YAML allows newlines between keys and values, as well as escaping newlines within values.",
+      "range": {
+        "startLine": 149,
+        "startChar": 2,
+        "endLine": 149,
+        "endChar": 41
+      },
+      "revId": "ae3979d4ffeb9acaf658d505e5d0e847d1370ffb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "547104d0_94167ae9",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-26T15:37:56Z",
+      "side": 1,
+      "message": "No,a yaml parser, which I initially tried, would make this code much more complex, because there are multiple formats, such as Deployments and StatefulSet, that have the \u0027image:\u0027 at different locations.",
+      "parentUuid": "02318e95_8ea2af13",
       "range": {
         "startLine": 149,
         "startChar": 2,
