@@ -1,0 +1,15 @@
+#!/bin/bash
+# Builds and uploads a container that proxies web traffic while enforcing IAP.
+set -x -e
+
+APPNAME=iap_proxy
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose"
+${INSTALL} --mode=644 -T iap_proxy/Dockerfile    ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/iap_proxy ${ROOT}/iap_proxy
+}
+
+source ../bash/docker_build.sh
