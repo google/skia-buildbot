@@ -22,6 +22,30 @@
       "revId": "ca5b2c904f631dcc6e40c61027ce334778dca25c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12b14d37_5585d407",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 730,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-27T18:15:18Z",
+      "side": 1,
+      "message": "Yes, that\u0027s my understanding.",
+      "parentUuid": "f9ec7968_10a46836",
+      "range": {
+        "startLine": 730,
+        "startChar": 20,
+        "endLine": 730,
+        "endChar": 21
+      },
+      "revId": "ca5b2c904f631dcc6e40c61027ce334778dca25c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
