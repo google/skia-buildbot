@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19c16175_64639f65",
+        "filename": "kube/build_basealpine_release",
+        "patchSetId": 8
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-04-27T14:25:32Z",
+      "side": 1,
+      "message": "Won\u0027t this cause the alpine image to always have the same tag ?",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 7
+      },
+      "revId": "87a1d173395896c8ded9af61d0c12696353f9009",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
