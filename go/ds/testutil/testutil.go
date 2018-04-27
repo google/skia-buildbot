@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/ds"
+	assert "github.com/stretchr/testify/require"
 	"google.golang.org/api/iterator"
+
+	"go.skia.org/infra/go/ds"
 )
 
 type CleanupFunc func()
@@ -37,9 +39,9 @@ func cleanup(t *testing.T, kinds ...ds.Kind) {
 // the given 'kinds' from the datastore.
 func InitDatastore(t *testing.T, kinds ...ds.Kind) CleanupFunc {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	if os.Getenv("DATASTORE_EMULATOR_HOST") == "" {
-		t.Skip(`Skipping tests that require a local Cloud Datastore emulator.
+	emulatorHost := os.Getenv("DATASTORE_EMULATOR_HOST")
+	if emulatorHost == "" {
+		assert.Fail(t, `Running tests that require a local Cloud Datastore emulator.
 
 Run
 
@@ -55,7 +57,12 @@ to set the environment variables. When done running tests you can unset the env 
 
 `)
 	}
-	err := ds.InitForTesting("test-project", fmt.Sprintf("test-namespace-%d", r.Uint64()))
+
+	// Do a quick healthcheck against the host, which will fail immediately if it's down.
+	_, err := http.Get("http://" + emulatorHost + "/")
+	assert.NoError(t, err, fmt.Sprintf("Host %s appears to be down or not accessible.", emulatorHost))
+
+	err = ds.InitForTesting("test-project", fmt.Sprintf("test-namespace-%d", r.Uint64()))
 	assert.NoError(t, err)
 	cleanup(t, kinds...)
 	return func() {

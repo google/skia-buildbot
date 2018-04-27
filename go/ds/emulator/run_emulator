@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -x
+
+if ! type "dockerx" > /dev/null; then
+  echo "Docker not installed."
+  exit 1
+fi
+
+# Starts and stops the cloud datastore emulator.
+case "$1" in
+  "start")
+    # stop the container if it's running and remove it.
+    docker stop cloud-datastore-emulator
+    docker container rm -f  cloud-datastore-emulator
+
+    set -e
+    # Pull down the lastest image and start the container.
+    docker pull google/cloud-sdk:latest
+    docker run -d  -p 8888:8888/tcp --name cloud-datastore-emulator \
+           google/cloud-sdk:latest \
+           gcloud beta emulators datastore start \
+                --no-store-on-disk \
+                --host-port=0.0.0.0:8888 \
+                --project google.com:skia-buildbots
+
+    echo "Docker container started."
+    ;;
+  "stop")
+    # stop the container if it's running and remove it.
+    docker stop cloud-datastore-emulator
+    docker container rm -f  cloud-datastore-emulator
+    echo "Docker container stopped."
+    ;;
+  *)
+    echo "Error: argument must be {start|stop}"
+    exit 1
+    ;;
+esac
