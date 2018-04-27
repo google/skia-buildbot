@@ -22,6 +22,30 @@
       "revId": "87a1d173395896c8ded9af61d0c12696353f9009",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13ea3931_c3b4102c",
+        "filename": "kube/build_basealpine_release",
+        "patchSetId": 8
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-04-27T15:58:19Z",
+      "side": 1,
+      "message": "Good point, I updated it to use the same tag as the alpine base image, which I also changed to explicitly reference a tag. Also added comments to keep the two in sync.",
+      "parentUuid": "19c16175_64639f65",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 7
+      },
+      "revId": "87a1d173395896c8ded9af61d0c12696353f9009",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
