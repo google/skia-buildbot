@@ -77,6 +77,7 @@ const (
 	BENCHMARK_USECOUNTER        = "usecounter_ct"
 	BENCHMARK_LEAK_DETECTION    = "leak_detection.cluster_telemetry"
 	BENCHMARK_MEMORY            = "memory.cluster_telemetry"
+	BENCHMARK_METRICS_ANALYSIS  = "analysis_metrics_ct"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -163,6 +164,7 @@ const (
 	CHROMIUM_ANALYSIS_ISOLATE      = "chromium_analysis.isolate"
 	CHROMIUM_PERF_ISOLATE          = "chromium_perf.isolate"
 	PIXEL_DIFF_ISOLATE             = "pixel_diff.isolate"
+	METRICS_ANALYSIS_ISOLATE       = "metrics_analysis.isolate"
 	BUILD_REPO_ISOLATE             = "build_repo.isolate"
 	// Swarming links and params.
 	// TODO(rmistry): The below link contains "st=1262304000000" which is from 2010. This is done so
@@ -184,6 +186,7 @@ type PagesetTypeInfo struct {
 	CreatePagesetsTimeoutSecs  int
 	CaptureSKPsTimeoutSecs     int
 	PixelDiffTimeoutSecs       int
+	MetricsAnalysisTimeoutSecs int
 	RunChromiumPerfTimeoutSecs int
 	Description                string
 }
@@ -239,6 +242,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1M (with desktop user-agent)",
 		},
@@ -250,6 +254,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with desktop user-agent)",
 		},
@@ -261,6 +266,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with mobile user-agent)",
 		},
@@ -272,6 +278,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with desktop user-agent)",
 		},
@@ -283,6 +290,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with mobile user-agent)",
 		},
@@ -294,6 +302,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
 		},
@@ -305,6 +314,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 400M",
 		},
@@ -316,6 +326,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 1M",
 		},
@@ -327,6 +338,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 1K",
 		},
