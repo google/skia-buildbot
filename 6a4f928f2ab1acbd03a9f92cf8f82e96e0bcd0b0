@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43fa6f02_af6d7771",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-27T14:01:56Z",
+      "side": 1,
+      "message": "nit: long line",
+      "range": {
+        "startLine": 75,
+        "startChar": 99,
+        "endLine": 75,
+        "endChar": 101
+      },
+      "revId": "6a4f928f2ab1acbd03a9f92cf8f82e96e0bcd0b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "252b51f1_02cc11aa",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-27T14:01:56Z",
+      "side": 1,
+      "message": "The other option is to manually edit the boot line before starting the installer, or add more boot options to the menu with different network interfaces specified. You\u0027d have to look at the preseed docs for exactly how to do that.",
+      "range": {
+        "startLine": 77,
+        "startChar": 40,
+        "endLine": 79,
+        "endChar": 42
+      },
+      "revId": "6a4f928f2ab1acbd03a9f92cf8f82e96e0bcd0b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
