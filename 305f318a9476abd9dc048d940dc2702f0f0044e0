@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7c07e3f6_3cc9d9b9",
+        "filename": "kube/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-27T19:17:21Z",
+      "side": 1,
+      "message": "nit: \".PHONY:\" for all these",
+      "revId": "305f318a9476abd9dc048d940dc2702f0f0044e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1fdedcd_23c2341b",
+        "filename": "kube/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-27T19:17:21Z",
+      "side": 1,
+      "message": "I thought pushk needed a something.yml file?",
+      "range": {
+        "startLine": 15,
+        "startChar": 16,
+        "endLine": 15,
+        "endChar": 21
+      },
+      "revId": "305f318a9476abd9dc048d940dc2702f0f0044e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
