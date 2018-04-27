@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
+	compute "google.golang.org/api/compute/v1"
 )
 
 var (
@@ -64,7 +65,7 @@ func main() {
 		sklog.Fatalf("--dest is required.")
 	}
 
-	src, err := auth.NewJWTServiceAccountTokenSource("#bogus", *serviceAccountFile, auth.SCOPE_USERINFO_EMAIL)
+	src, err := auth.NewJWTServiceAccountTokenSource("#bogus", *serviceAccountFile, compute.CloudPlatformScope, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
 		sklog.Fatal(err)
 	}
