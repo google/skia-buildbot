@@ -81,6 +81,30 @@
       "revId": "305f318a9476abd9dc048d940dc2702f0f0044e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09909bc1_240a3ae6",
+        "filename": "kube/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-27T19:43:47Z",
+      "side": 1,
+      "message": "Sorry, I should have commented 3 lines below.",
+      "parentUuid": "c39fe18e_c287dd68",
+      "range": {
+        "startLine": 15,
+        "startChar": 16,
+        "endLine": 15,
+        "endChar": 21
+      },
+      "revId": "305f318a9476abd9dc048d940dc2702f0f0044e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
