@@ -600,7 +600,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 			if stealingFrom.Id != c.RetryOf && stealingFrom.ForcedJobId == "" {
 				sklog.Errorf("Candidate %v is a retry of %s but is stealing commits from %s!", c.TaskKey, c.RetryOf, stealingFrom.Id)
 			}
-		} else {
+		} else if stealingFrom.ForcedJobId == c.ForcedJobId {
 			stoleFromCommits = len(stealingFrom.Commits)
 		}
 	}

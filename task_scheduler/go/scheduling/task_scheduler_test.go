@@ -725,8 +725,9 @@ func TestProcessTaskCandidates(t *testing.T) {
 				assert.Equal(t, 2.0, c.Score)
 				assert.Equal(t, 1, len(c.Commits))
 			} else if c.Name == specs_testutils.BuildTask {
-				assert.Equal(t, 0.0, c.Score) // Already covered by the forced job.
-				assert.Equal(t, 1, len(c.Commits))
+				// Already covered by the forced job, but we don't steal scores.
+				assert.Equal(t, 3.5, c.Score)
+				assert.Equal(t, 2, len(c.Commits))
 			} else {
 				assert.Equal(t, 3.5, c.Score)
 				assert.Equal(t, 2, len(c.Commits))
