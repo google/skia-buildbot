@@ -56,13 +56,13 @@ func (m *SQLIgnoreStore) Create(rule *IgnoreRule) error {
 	if err != nil {
 		return err
 	}
-	rule.ID = int(createdId)
+	rule.ID = createdId
 	m.inc()
 	return nil
 }
 
 // Update, see IgnoreStore interface.
-func (m *SQLIgnoreStore) Update(id int, rule *IgnoreRule) error {
+func (m *SQLIgnoreStore) Update(id int64, rule *IgnoreRule) error {
 	stmt := `UPDATE ignorerule SET updated_by=?, expires=?, query=?, note=? WHERE id=?`
 
 	res, err := m.vdb.DB.Exec(stmt, rule.UpdatedBy, rule.Expires.Unix(), rule.Query, rule.Note, rule.ID)
@@ -143,7 +143,7 @@ func (m *SQLIgnoreStore) addIgnoreCounts(rules []*IgnoreRule) error {
 
 	// Count the untriaged digests in HEAD.
 	// matchingDigests[rule.ID]map[digest]bool
-	matchingDigests := make(map[int]map[string]bool, len(rules))
+	matchingDigests := make(map[int64]map[string]bool, len(rules))
 	rulesByDigest := map[string]map[int]bool{}
 	for _, trace := range tilePair.TileWithIgnores.Traces {
 		gTrace := trace.(*types.GoldenTrace)
@@ -184,7 +184,7 @@ func (m *SQLIgnoreStore) addIgnoreCounts(rules []*IgnoreRule) error {
 }
 
 // Delete, see IgnoreStore interface.
-func (m *SQLIgnoreStore) Delete(id int, userId string) (int, error) {
+func (m *SQLIgnoreStore) Delete(id int64, userId string) (int, error) {
 	stmt := "DELETE FROM ignorerule WHERE id=?"
 	ret, err := m.vdb.DB.Exec(stmt, id)
 	if err != nil {

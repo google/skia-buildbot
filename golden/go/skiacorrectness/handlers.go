@@ -543,17 +543,14 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 		tc[test] = labeledDigests
 	}
 
-	// If it's an issue set the expectations for the given issue.
+	expStore := storages.ExpectationsStore
 	if req.Issue > 0 {
-		if err := storages.TryjobStore.AddChange(req.Issue, tc, user); err != nil {
-			httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
-			return
-		}
-	} else {
-		if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
-			httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
-			return
-		}
+		expStore = expstorage.WithIssue(expStore, req.Issue)
+	}
+
+	if err := expStore.AddChange(req.Issue, tc, user); err != nil {
+		httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

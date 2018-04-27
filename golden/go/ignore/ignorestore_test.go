@@ -5,7 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/db"
 
 	assert "github.com/stretchr/testify/require"
 )
@@ -14,6 +16,22 @@ func TestTestMemIgnoreStore(t *testing.T) {
 	testutils.SmallTest(t)
 	memStore := NewMemIgnoreStore()
 	testIgnoreStore(t, memStore)
+}
+
+func TestSQLIgnoreStore(t *testing.T) {
+	testutils.LargeTest(t)
+	// Set up the database. This also locks the db until this test is finished
+	// causing similar tests to wait.
+	migrationSteps := db.MigrationSteps()
+	mysqlDB := testutil.SetupMySQLTestDatabase(t, migrationSteps)
+	defer mysqlDB.Close(t)
+
+	vdb, err := testutil.LocalTestDatabaseConfig(migrationSteps).NewVersionedDB()
+	assert.NoError(t, err)
+	defer testutils.AssertCloses(t, vdb)
+
+	store := NewSQLIgnoreStore(vdb, nil, nil)
+	testIgnoreStore(t, store)
 }
 
 func testIgnoreStore(t *testing.T, store IgnoreStore) {

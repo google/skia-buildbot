@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"sync"
 	"time"
+
+	"cloud.google.com/go/datastore"
 )
 
 // RuleMatcher returns a list of rules in the IgnoreStore that match the given
@@ -22,10 +24,10 @@ type IgnoreStore interface {
 	List(addCounts bool) ([]*IgnoreRule, error)
 
 	// Updates an IgnoreRule.
-	Update(id int, rule *IgnoreRule) error
+	Update(id int64, rule *IgnoreRule) error
 
 	// Removes an IgnoreRule from the store.
-	Delete(id int, userId string) (int, error)
+	Delete(id int64, userId string) (int, error)
 
 	// Revision returns a monotonically increasing int64 that goes up each time
 	// the ignores have been changed. It will not persist nor will it be the same
@@ -40,14 +42,15 @@ type IgnoreStore interface {
 
 // IgnoreRule is the GUI struct for dealing with Ignore rules.
 type IgnoreRule struct {
-	ID             int       `json:"id"`
-	Name           string    `json:"name"`
-	UpdatedBy      string    `json:"updatedBy"`
-	Expires        time.Time `json:"expires"`
-	Query          string    `json:"query"`
-	Note           string    `json:"note"`
-	Count          int       `json:"count"`
-	ExclusiveCount int       `json:"exclusiveCount"`
+	Key            *datastore.Key `json:"-"              datastore:"__key__"`
+	ID             int64          `json:"id"             datastore:"-"`
+	Name           string         `json:"name"           datastore:",noindex"`
+	UpdatedBy      string         `json:"updatedBy"      datastore:",noindex"`
+	Expires        time.Time      `json:"expires"        datastore:",noindex"`
+	Query          string         `json:"query"          datastore:",noindex"`
+	Note           string         `json:"note"           datastore:",noindex"`
+	Count          int            `json:"count"          datastore:",noindex"`
+	ExclusiveCount int            `json:"exclusiveCount" datastore:",noindex"`
 }
 
 // ToQuery makes a slice of url.Values from the given slice of IngoreRules.
@@ -77,7 +80,7 @@ func NewIgnoreRule(name string, expires time.Time, queryStr string, note string)
 type MemIgnoreStore struct {
 	rules    []*IgnoreRule
 	mutex    sync.Mutex
-	nextId   int
+	nextId   int64
 	revision int64
 }
 
@@ -115,7 +118,7 @@ func (m *MemIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 }
 
 // Update, see IgnoreStore interface.
-func (m *MemIgnoreStore) Update(id int, updated *IgnoreRule) error {
+func (m *MemIgnoreStore) Update(id int64, updated *IgnoreRule) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -131,7 +134,7 @@ func (m *MemIgnoreStore) Update(id int, updated *IgnoreRule) error {
 }
 
 // Delete, see IgnoreStore interface.
-func (m *MemIgnoreStore) Delete(id int, userId string) (int, error) {
+func (m *MemIgnoreStore) Delete(id int64, userId string) (int, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
