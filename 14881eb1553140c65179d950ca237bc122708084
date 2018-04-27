@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "a61c8f7c_9f5714ea",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-27T12:04:20Z",
+      "side": 1,
+      "message": "Great! TIL.  RWMutex must be fairly expensive in comparison to Mutex then.",
+      "parentUuid": "7f320a50_d4a72f2c",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 31
+      },
+      "revId": "14881eb1553140c65179d950ca237bc122708084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "07b64dba_72e236be",
         "filename": "android_compile/go/android_compile/checkouts.go",
         "patchSetId": 18
