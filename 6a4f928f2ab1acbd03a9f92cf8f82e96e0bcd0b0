@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "458a270d_780c15bb",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-27T15:05:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43fa6f02_af6d7771",
+      "range": {
+        "startLine": 75,
+        "startChar": 99,
+        "endLine": 75,
+        "endChar": 101
+      },
+      "revId": "6a4f928f2ab1acbd03a9f92cf8f82e96e0bcd0b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "252b51f1_02cc11aa",
         "filename": "skolo/linux/debian9-preseed.cfg",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "6a4f928f2ab1acbd03a9f92cf8f82e96e0bcd0b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5211e011_f652163d",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-27T15:05:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "252b51f1_02cc11aa",
+      "range": {
+        "startLine": 77,
+        "startChar": 40,
+        "endLine": 79,
+        "endChar": 42
+      },
+      "revId": "6a4f928f2ab1acbd03a9f92cf8f82e96e0bcd0b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
