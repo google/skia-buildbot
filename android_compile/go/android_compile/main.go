@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -39,13 +40,14 @@ const (
 
 var (
 	// Flags
-	host         = flag.String("host", "localhost", "HTTP service host")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	port         = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	workdir      = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir = flag.String("resources_dir", "", "The directory to find compile.sh, templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
-	numCheckouts = flag.Int("num_checkouts", 10, "The number of checkouts the Android compile server should maintain.")
+	host               = flag.String("host", "localhost", "HTTP service host")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	port               = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	workdir            = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir       = flag.String("resources_dir", "", "The directory to find compile.sh, templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
+	numCheckouts       = flag.Int("num_checkouts", 10, "The number of checkouts the Android compile server should maintain.")
+	repoUpdateDuration = flag.Duration("repo_update_duration", 15*time.Minute, "How often to update the main Android repository.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "android-compile", "The Cloud Datastore namespace, such as 'android-compile'.")
@@ -59,6 +61,9 @@ var (
 	indexTemplate *template.Template = nil
 
 	serverURL string
+
+	// Used to signal when checkouts are ready to serve requests.
+	checkoutsReadyMutex sync.RWMutex
 )
 
 func reloadTemplates() {
@@ -201,6 +206,8 @@ func registerRunHandler(w http.ResponseWriter, r *http.Request) {
 // completion the task is marked as Done and updated in the Datastore.
 func triggerCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datastore.Key) {
 	go func() {
+		checkoutsReadyMutex.RLock()
+		defer checkoutsReadyMutex.RUnlock()
 		pathToCompileScript := filepath.Join(*resourcesDir, "compile.sh")
 		if err := RunCompileTask(ctx, task, datastoreKey, pathToCompileScript); err != nil {
 			task.InfraFailure = true
@@ -272,10 +279,14 @@ func main() {
 		sklog.Fatalf("Failed to init cloud datastore: %s", err)
 	}
 
-	// Initialize checkouts.
-	if err := CheckoutsInit(*numCheckouts, *workdir); err != nil {
-		sklog.Fatalf("Failed to init checkouts: %s", err)
-	}
+	// Initialize checkouts but do not block bringing up the server.
+	go func() {
+		checkoutsReadyMutex.Lock()
+		defer checkoutsReadyMutex.Unlock()
+		if err := CheckoutsInit(*numCheckouts, *workdir, *repoUpdateDuration); err != nil {
+			sklog.Fatalf("Failed to init checkouts: %s", err)
+		}
+	}()
 
 	// Initialize webhooks.
 	if *local {
