@@ -1,0 +1,18 @@
+#!/bin/bash
+# The base alpine image that includes the skia user and group setup.
+set -x -e
+
+APPNAME=basealpine
+
+# Keep in sync with the version of alpine we are depending on, i.e.
+# make this match the tag  in basealpine/Dockerfile.
+TAG=3.7
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose"
+${INSTALL} --mode=644 -T basealpine/Dockerfile    ${ROOT}/Dockerfile
+}
+
+source ../bash/docker_build.sh
