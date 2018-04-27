@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "259af1de_80a7ed93",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-27T12:01:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d807677a_cce08654",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 4
+      },
+      "revId": "14881eb1553140c65179d950ca237bc122708084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7118cdce_cb973584",
         "filename": "android_compile/go/android_compile/checkouts.go",
         "patchSetId": 18
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7f320a50_d4a72f2c",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-27T12:01:44Z",
+      "side": 1,
+      "message": "From the docs at https://golang.org/pkg/sync/#RWMutex\n\n\"If a goroutine holds a RWMutex for reading and another goroutine might call Lock, no goroutine should expect to be able to acquire a read lock until the initial read lock is released. In particular, this prohibits recursive read locking. This is to ensure that the lock eventually becomes available; a blocked Lock call excludes new readers from acquiring the lock.\"",
+      "parentUuid": "7118cdce_cb973584",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 31
+      },
+      "revId": "14881eb1553140c65179d950ca237bc122708084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "07b64dba_72e236be",
         "filename": "android_compile/go/android_compile/checkouts.go",
         "patchSetId": 18
@@ -68,6 +116,30 @@
       "revId": "14881eb1553140c65179d950ca237bc122708084",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ced2b8bd_cb7a0e2a",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-04-27T12:01:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "07b64dba_72e236be",
+      "range": {
+        "startLine": 239,
+        "startChar": 118,
+        "endLine": 239,
+        "endChar": 120
+      },
+      "revId": "14881eb1553140c65179d950ca237bc122708084",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
