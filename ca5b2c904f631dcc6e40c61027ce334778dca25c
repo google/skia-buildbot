@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f9ec7968_10a46836",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 730,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-27T18:14:03Z",
+      "side": 1,
+      "message": "I assume this changed because this task is now higher-scoring than the task at rs1.Revision?",
+      "range": {
+        "startLine": 730,
+        "startChar": 20,
+        "endLine": 730,
+        "endChar": 21
+      },
+      "revId": "ca5b2c904f631dcc6e40c61027ce334778dca25c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
