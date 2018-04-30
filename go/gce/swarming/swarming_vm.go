@@ -34,10 +34,6 @@ import (
 )
 
 const (
-	GS_URL_GITCONFIG      = "gs://skia-buildbots/artifacts/bots/.gitconfig"
-	GS_URL_NETRC_EXTERNAL = "gs://skia-buildbots/artifacts/bots/.netrc_bots"
-	GS_URL_NETRC_INTERNAL = "gs://skia-buildbots/artifacts/bots/.netrc_bots-internal"
-
 	USER_CHROME_BOT = "chrome-bot"
 
 	OS_DEBIAN_9 = "Debian9"
@@ -101,16 +97,7 @@ func Swarming20180406(name, serviceAccount, sourceImage string) *gce.Instance {
 }
 
 // Configs for Linux GCE instances.
-func AddLinuxConfigs(vm *gce.Instance, netrcUrl string) *gce.Instance {
-	vm.GSDownloads = append(vm.GSDownloads, &gce.GSDownload{
-		Source: GS_URL_GITCONFIG,
-		Dest:   "/home/chrome-bot/.gitconfig",
-	}, &gce.GSDownload{
-		Source: netrcUrl,
-		Dest:   "/home/chrome-bot/.netrc",
-		Mode:   "600",
-	})
-
+func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
 	vm.SetupScript = path.Join(dir, "setup-script-linux.sh")
@@ -119,17 +106,17 @@ func AddLinuxConfigs(vm *gce.Instance, netrcUrl string) *gce.Instance {
 
 // Linux GCE instances.
 func LinuxSwarmingBot(num int) *gce.Instance {
-	return AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, DEBIAN_SOURCE_IMAGE_EXTERNAL), GS_URL_NETRC_EXTERNAL)
+	return AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, DEBIAN_SOURCE_IMAGE_EXTERNAL))
 }
 
 // Internal Linux GCE instances.
 func InternalLinuxSwarmingBot(num int) *gce.Instance {
-	return AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING, DEBIAN_SOURCE_IMAGE_INTERNAL), GS_URL_NETRC_INTERNAL)
+	return AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING, DEBIAN_SOURCE_IMAGE_INTERNAL))
 }
 
 // Skia CT bots.
 func SkiaCTBot(num int) *gce.Instance {
-	vm := AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-ct-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, DEBIAN_SOURCE_IMAGE_EXTERNAL), GS_URL_NETRC_EXTERNAL)
+	vm := AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-ct-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, DEBIAN_SOURCE_IMAGE_EXTERNAL))
 	vm.DataDisks[0].SizeGb = 3000
 	// SkiaCT bots use a datadisk with a snapshot that is prepopulated with 1M SKPS.
 	vm.DataDisks[0].SourceSnapshot = "skia-ct-skps-snapshot-3"
@@ -193,17 +180,6 @@ func getWindowsScripts(ctx context.Context, workdir string) (string, string, str
 	}
 	setupScript := strings.Replace(string(setupBytes), "CHROME_BOT_PASSWORD", pw, -1)
 
-	netrcContents, err := exec.RunCwd(ctx, ".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.netrc_bots")
-	if err != nil {
-		return "", "", "", err
-	}
-	setupScript = strings.Replace(setupScript, "INSERTFILE(/tmp/.netrc)", string(netrcContents), -1)
-
-	gitconfigContents, err := exec.RunCwd(ctx, ".", "gsutil", "cat", "gs://skia-buildbots/artifacts/bots/.gitconfig")
-	if err != nil {
-		return "", "", "", err
-	}
-	setupScript = strings.Replace(setupScript, "INSERTFILE(/tmp/.gitconfig)", string(gitconfigContents), -1)
 	setupPath := path.Join(workdir, "setup-script.ps1")
 	if err := ioutil.WriteFile(setupPath, []byte(setupScript), os.ModePerm); err != nil {
 		return "", "", "", err

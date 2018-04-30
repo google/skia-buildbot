@@ -40,7 +40,7 @@ If the device has built in wifi, we want to disable it with `sudo nmcli radio wi
 
 
 ## Loading a pre-existing image
-  - Downoad the image from https://console.cloud.google.com/storage/browser/skia-images/Swarming/?project=google.com:skia-buildbots
+  - Download the image from https://console.cloud.google.com/storage/browser/skia-backups/rpi_image/?project=google.com:skia-buildbots
   - Place it in `/opt/rpi_img/`.  Rename it to `prod.img` or `stage.img` or similar.
   - See "Begin serving the image"
 
