@@ -275,14 +275,27 @@ func newSkoloTokenSource() oauth2.TokenSource {
 func (s *skoloTokenSource) Token() (*oauth2.Token, error) {
 	resp, err := s.client.Get(metadata.TOKEN_URL)
 	if err != nil {
+		sklog.Errorf("Failed to retrieve token:  %s", err)
 		return nil, fmt.Errorf("Failed to retrieve token: %s", err)
 	}
 	defer util.Close(resp.Body)
-	var tok oauth2.Token
-	if err := json.NewDecoder(resp.Body).Decode(&tok); err != nil {
-		return nil, fmt.Errorf("Failed to decode token: %s", err)
+	type TokenResponse struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresInSec int    `json:"expires_in"`
+		TokenType    string `json:"token_type"`
 	}
-	return &tok, nil
+	var res TokenResponse
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
+	}
+	if res.ExpiresInSec == 0 || res.AccessToken == "" {
+		return nil, fmt.Errorf("Incomplete token received from metadata")
+	}
+	return &oauth2.Token{
+		AccessToken: res.AccessToken,
+		TokenType:   res.TokenType,
+		Expiry:      time.Now().Add(time.Duration(res.ExpiresInSec) * time.Second),
+	}, nil
 }
 
 // SkoloServiceAccountClient creates an oauth client that uses the auth token
