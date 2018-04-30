@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fa72f637_b2c9e587",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-30T15:28:44Z",
+      "side": 1,
+      "message": "I think we can just get rid of this.  When I was setting up the linux bots, I would ssh in from the jumphost, use the temp password to authenticate, then copy the proper authorized keys in anyway.\n\nBen, what do you think?",
+      "range": {
+        "startLine": 209,
+        "startChar": 2,
+        "endLine": 209,
+        "endChar": 39
+      },
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "21a529e2_09c6b4ed",
         "filename": "skolo/raspberry-pi/README.md",
         "patchSetId": 1
@@ -31,6 +54,70 @@
       "side": 1,
       "message": "Oh, this was a mistake.  I saw skia-buildbots below and just pasted the comment.",
       "parentUuid": "21a529e2_09c6b4ed",
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69f804d0_ff1e286a",
+        "filename": "skolo/raspberry-pi/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-30T15:28:44Z",
+      "side": 1,
+      "message": "No.  I think bucket should be kept private/locked down.",
+      "parentUuid": "21a529e2_09c6b4ed",
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69ca5980_633d281c",
+        "filename": "skolo/raspberry-pi/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-30T15:28:44Z",
+      "side": 1,
+      "message": "This is out of date.  Please change to skia-backups/rpi_image",
+      "range": {
+        "startLine": 43,
+        "startChar": 76,
+        "endLine": 43,
+        "endChar": 96
+      },
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3653ca3_f60ede4e",
+        "filename": "skolo/raspberry-pi/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-30T15:28:44Z",
+      "side": 1,
+      "message": "What do you mean by remove? To automate this?  If so, I don\u0027t see how that\u0027s feasible.",
+      "range": {
+        "startLine": 72,
+        "startChar": 27,
+        "endLine": 72,
+        "endChar": 39
+      },
       "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true

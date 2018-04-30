@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79101f5a_062b48a9",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-30T15:28:44Z",
+      "side": 0,
+      "message": "Don\u0027t we need a .boto file for swarming?  Even if it\u0027s an empty file?",
+      "range": {
+        "startLine": 51,
+        "startChar": 13,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "0787e7b7e6cc7f30a54be2b6779fd83fd7e6c20f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
