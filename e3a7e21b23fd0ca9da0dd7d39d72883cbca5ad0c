@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25a543f5_ff32abf3",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-30T20:05:50Z",
+      "side": 1,
+      "message": "Ravi should verify.",
+      "revId": "e3a7e21b23fd0ca9da0dd7d39d72883cbca5ad0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
