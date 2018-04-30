@@ -8,6 +8,7 @@
 #   ansible_winrm_server_cert_validation: ignore
 #   win_package_src: /home/chrome-bot/ansible/win_package_src/
 #
+# TODO(borenet): How do we remove this?
 # Contents of win_package_src are on GCS at gs://skia-buildbots/skolo/win/win_package_src
 #
 # Example command:

@@ -40,7 +40,7 @@ If the device has built in wifi, we want to disable it with `sudo nmcli radio wi
 
 
 ## Loading a pre-existing image
-  - Downoad the image from https://console.cloud.google.com/storage/browser/skia-images/Swarming/?project=google.com:skia-buildbots
+  - Downoad the image from https://console.cloud.google.com/storage/browser/skia-backups/rpi_image/?project=google.com:skia-buildbots
   - Place it in `/opt/rpi_img/`.  Rename it to `prod.img` or `stage.img` or similar.
   - See "Begin serving the image"
 
@@ -69,6 +69,7 @@ adduser chrome-bot
 chrome-bot ALL=NOPASSWD: /sbin/shutdown -r now, /bin/umount *
 
 # Load some android public/private keys for python-adb to use into /home/chrome-bot/.android
+# TODO(borenet): How do we remove this?
 # Download from https://console.cloud.google.com/storage/browser/skia-buildbots/rpi_auth/?project=google.com:skia-buildbots
 # then use chown to make chrome-bot own them.
 
