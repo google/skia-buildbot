@@ -273,15 +273,19 @@ func newSkoloTokenSource() oauth2.TokenSource {
 }
 
 func (s *skoloTokenSource) Token() (*oauth2.Token, error) {
+	sklog.Infof("skolo tokensource start")
 	resp, err := s.client.Get(metadata.TOKEN_URL)
 	if err != nil {
+		sklog.Errorf("Failed to retrieve token:  %s", err)
 		return nil, fmt.Errorf("Failed to retrieve token: %s", err)
 	}
 	defer util.Close(resp.Body)
 	var tok oauth2.Token
 	if err := json.NewDecoder(resp.Body).Decode(&tok); err != nil {
+		sklog.Errorf("Failed to decode token:  %s", err)
 		return nil, fmt.Errorf("Failed to decode token: %s", err)
 	}
+	sklog.Infof("skolo tokensource finish")
 	return &tok, nil
 }
 
