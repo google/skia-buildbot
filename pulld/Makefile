@@ -16,8 +16,6 @@ release: prod
 	./build_release "$(MESSAGE)"
 
 release_not_gce: default
-	go install -v ../get_service_account/go/get_service_account
-	get_service_account
 	./build_release_not_gce "$(MESSAGE)"
 
 release_arm: default
