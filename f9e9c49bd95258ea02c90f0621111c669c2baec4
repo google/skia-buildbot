@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21a529e2_09c6b4ed",
+        "filename": "skolo/raspberry-pi/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-30T15:20:07Z",
+      "side": 1,
+      "message": "Do we need to open access to skia-images also?",
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
