@@ -10,10 +10,6 @@ import (
 )
 
 const (
-	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig_ct"
-	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc_ct"
-	GS_URL_BOTO      = "gs://skia-buildbots/artifacts/bots/.boto_ct"
-
 	CT_WORKER_PREFIX = "ct-gce-"
 )
 
@@ -35,22 +31,7 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 			SourceImage: "skia-swarming-v3",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
-		DataDisks: []*gce.Disk{dataDisk},
-		GSDownloads: []*gce.GSDownload{
-			{
-				Source: GS_URL_GITCONFIG,
-				Dest:   "/home/chrome-bot/.gitconfig",
-			},
-			{
-				Source: GS_URL_NETRC,
-				Dest:   "/home/chrome-bot/.netrc",
-				Mode:   "600",
-			},
-			{
-				Source: GS_URL_BOTO,
-				Dest:   "/home/chrome-bot/.boto",
-			},
-		},
+		DataDisks:         []*gce.Disk{dataDisk},
 		MachineType:       gce.MACHINE_TYPE_HIGHMEM_2,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
