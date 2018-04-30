@@ -1599,3 +1599,25 @@ server {
     server_name jsdoc.skia.org;
     return 301 https://jsdoc.skia.org$request_uri;
 }
+
+# A test proxy_pass for an application running in skia-public.
+#####   prom2.skia.org   ###########################
+server {
+    listen      443;
+    server_name prom2.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/prom2.access.log;
+    error_log /var/log/nginx/prom2.error.log error;
+
+    location / {
+        proxy_pass http://35.201.76.220:443;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name prom2.skia.org;
+    return 301 https://prom2.skia.org$request_uri;
+}
