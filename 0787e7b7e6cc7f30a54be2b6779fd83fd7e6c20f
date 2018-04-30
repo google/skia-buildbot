@@ -22,6 +22,30 @@
       "revId": "0787e7b7e6cc7f30a54be2b6779fd83fd7e6c20f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "413d8770_a43da4ae",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-30T17:15:13Z",
+      "side": 0,
+      "message": "Is that still a requirement?  Seems like we could just \"touch ~/.boto\".",
+      "parentUuid": "79101f5a_062b48a9",
+      "range": {
+        "startLine": 51,
+        "startChar": 13,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "0787e7b7e6cc7f30a54be2b6779fd83fd7e6c20f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

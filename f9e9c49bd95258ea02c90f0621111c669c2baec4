@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "8c869d83_0be10dab",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-30T17:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "914a3a0d_145a4593",
+      "range": {
+        "startLine": 209,
+        "startChar": 2,
+        "endLine": 209,
+        "endChar": 39
+      },
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "21a529e2_09c6b4ed",
         "filename": "skolo/raspberry-pi/README.md",
         "patchSetId": 1
@@ -125,6 +149,30 @@
     },
     {
       "key": {
+        "uuid": "89802784_7f04cef3",
+        "filename": "skolo/raspberry-pi/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-30T17:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69ca5980_633d281c",
+      "range": {
+        "startLine": 43,
+        "startChar": 76,
+        "endLine": 43,
+        "endChar": 96
+      },
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3653ca3_f60ede4e",
         "filename": "skolo/raspberry-pi/README.md",
         "patchSetId": 1
@@ -184,6 +232,30 @@
       "side": 1,
       "message": "Ok, please make comment more clear.",
       "parentUuid": "cffc0101_4baefcca",
+      "range": {
+        "startLine": 72,
+        "startChar": 27,
+        "endLine": 72,
+        "endChar": 39
+      },
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5843722d_5ecfb827",
+        "filename": "skolo/raspberry-pi/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-04-30T17:15:13Z",
+      "side": 1,
+      "message": "These comments were intended to point out places where we use secrets in gs://skia-buildbots.  Ideally, I want to remove those in this CL, rather than leaving TODO\u0027s.",
+      "parentUuid": "4c6b59be_c9ec4097",
       "range": {
         "startLine": 72,
         "startChar": 27,
