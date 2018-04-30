@@ -265,6 +265,30 @@
       "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f3bc56b_4de6f6c7",
+        "filename": "skolo/raspberry-pi/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-04-30T17:56:15Z",
+      "side": 1,
+      "message": "Gotcha.  We can move these keys to literally anywhere.  Maybe move them to skia-backups also?  It\u0027s a one-time thing to do, only if making the image from scratch (which I hope never has to happen).",
+      "parentUuid": "5843722d_5ecfb827",
+      "range": {
+        "startLine": 72,
+        "startChar": 27,
+        "endLine": 72,
+        "endChar": 39
+      },
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
