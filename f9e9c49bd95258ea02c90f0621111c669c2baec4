@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "914a3a0d_145a4593",
+        "filename": "skolo/linux/debian9-preseed.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-04-30T16:06:50Z",
+      "side": 1,
+      "message": "Sure. Originally I had preseed settings to disable SSH password authentication, but for some reason that setting was being ignored. Given that the bot will initially have password authentication enabled, there\u0027s no reason to add the temp authorized_keys, since we\u0027re assuming it will be overwritten later anyway.\n\nI think we still need \"apt-install openssh-server\".",
+      "parentUuid": "fa72f637_b2c9e587",
+      "range": {
+        "startLine": 209,
+        "startChar": 2,
+        "endLine": 209,
+        "endChar": 39
+      },
+      "revId": "f9e9c49bd95258ea02c90f0621111c669c2baec4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "21a529e2_09c6b4ed",
         "filename": "skolo/raspberry-pi/README.md",
         "patchSetId": 1
