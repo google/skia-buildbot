@@ -174,6 +174,11 @@ def RunSteps(api):
         'setup database',
         cmd=['./setup_test_db'])
 
+  with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
+    api.step(
+        'start the cloud data store emulator',
+        cmd=['./run_emulator', 'start'])
+
   # Run tests.
   karma_port = '9876'
   env['KARMA_PORT'] = karma_port
@@ -191,9 +196,13 @@ def RunSteps(api):
     cmd.append('--medium')
   else:
     cmd.append('--small')
-  with api.context(cwd=infra_dir, env=env):
-    api.step('run_unittests', cmd)
-
+  try:
+    with api.context(cwd=infra_dir, env=env):
+      api.step('run_unittests', cmd)
+  finally:
+    with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
+      api.step('stop the cloud data store emulator',
+          cmd=['./run_emulator', 'stop'])
 
 def GenTests(api):
   yield (
