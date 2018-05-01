@@ -4,6 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
+Environment=GCE_METADATA_HOST=metadata
 ExecStart=/usr/local/bin/pulld-not-gce \
   --port=:10114 \
   --on_gce=false \
