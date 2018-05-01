@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4fc0f655_28b820c6",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-01T19:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9d6eecc_16e176a5",
+      "revId": "7f3a4f715df34072ba80fba519d1c87f7597bb2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed49dbc4_a78e8d3c",
         "filename": "kube/skia-public/prom.yaml",
         "patchSetId": 4
@@ -39,6 +57,30 @@
       "revId": "7f3a4f715df34072ba80fba519d1c87f7597bb2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4009267c_0aba98e4",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-01T19:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed49dbc4_a78e8d3c",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 33
+      },
+      "revId": "7f3a4f715df34072ba80fba519d1c87f7597bb2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "2759d487_6c2780a4",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-01T19:36:10Z",
+      "side": 1,
+      "message": "That is the correct indentation, the markup is odd:\n\n https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#components",
+      "parentUuid": "759569c7_9d4404e1",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 25
+      },
+      "revId": "7f3a4f715df34072ba80fba519d1c87f7597bb2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a3deb823_097a01ee",
         "filename": "prom/Makefile",
         "patchSetId": 4
@@ -76,6 +142,24 @@
       "writtenOn": "2018-05-01T19:00:35Z",
       "side": 1,
       "message": "I think it will be confusing to have directories \"prom\" and \"prometheus\". I think it would be better either to find a way to put both the new world and the old world in the same dir or to name this dir \"kprometheus\" or something like that.",
+      "revId": "7f3a4f715df34072ba80fba519d1c87f7597bb2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "434d36c7_ad4bff30",
+        "filename": "prom/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-01T19:36:10Z",
+      "side": 1,
+      "message": "Renamed to promk.",
+      "parentUuid": "a3deb823_097a01ee",
       "revId": "7f3a4f715df34072ba80fba519d1c87f7597bb2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
