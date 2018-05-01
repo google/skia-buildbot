@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f368bc14_adeb4374",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-01T12:21:35Z",
+      "side": 1,
+      "message": "Do you mind making this struct public in go/metadata package? https://skia.googlesource.com/buildbot/+/master/go/metadata/server.go#183  Then we could just reuse it here.",
+      "range": {
+        "startLine": 282,
+        "startChar": 6,
+        "endLine": 282,
+        "endChar": 19
+      },
+      "revId": "79f2afdccf5eef9ddae189a0bfbad8beb4f512db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
