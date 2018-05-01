@@ -19,6 +19,15 @@ const (
 	subjectThrottled     = "The {{.ChildName}} into {{.ParentName}} AutoRoller is throttled"
 	bodySafetyThrottled  = "The roller is throttled because it attempted to upload too many CLs in too short a time.  The roller will unthrottle at {{.ThrottledUntil}}."
 	bodySuccessThrottled = "The roller is throttled because it is configured not to land too many rolls within a time period. The roller will unthrottle at {{.ThrottledUntil}}."
+
+	subjectNewFailure = "The {{.ChildName}} into {{.ParentName}} roll has failed (issue {{.IssueID}})"
+	bodyNewFailure    = "The most recent roll attempt failed, while the previous attempt succeeded: {{.IssueURL}}"
+
+	subjectNewSuccess = "The {{.ChildName}} into {{.ParentName}} roll is successful again (issue {{.IssueID}})"
+	bodyNewSuccess    = "The most recent roll attempt succeeded, while the previous attempt failed: {{.IssueURL}}"
+
+	subjectLastNFailed = "The last {{.N}} {{.ChildName}} into {{.ParentName}} rolls have failed"
+	bodyLastNFailed    = "The roll is failing consistently. Time to investigate. The most recent roll attempt is here: {{.IssueURL}}"
 )
 
 var (
@@ -30,6 +39,15 @@ var (
 	subjectTmplThrottled     = template.Must(template.New("subjectThrottled").Parse(subjectThrottled))
 	bodyTmplSafetyThrottled  = template.Must(template.New("bodySafetyThrottled").Parse(bodySafetyThrottled))
 	bodyTmplSuccessThrottled = template.Must(template.New("bodySuccessThrottled").Parse(bodySuccessThrottled))
+
+	subjectTmplNewFailure = template.Must(template.New("subjectNewFailure").Parse(subjectNewFailure))
+	bodyTmplNewFailure    = template.Must(template.New("bodyNewFailure").Parse(bodyNewFailure))
+
+	subjectTmplNewSuccess = template.Must(template.New("subjectNewSuccess").Parse(subjectNewSuccess))
+	bodyTmplNewSuccess    = template.Must(template.New("bodyNewSuccess").Parse(bodyNewSuccess))
+
+	subjectTmplLastNFailed = template.Must(template.New("subjectLastNFailed").Parse(subjectLastNFailed))
+	bodyTmplLastNFailed    = template.Must(template.New("bodyLastNFailed").Parse(bodyLastNFailed))
 )
 
 // tmplVars is a struct which contains information used to fill
@@ -40,6 +58,7 @@ type tmplVars struct {
 	IssueURL       string
 	Mode           string
 	Message        string
+	N              int
 	ParentName     string
 	ThrottledUntil string
 	User           string
@@ -120,4 +139,30 @@ func (a *AutoRollNotifier) SendSuccessThrottled(ctx context.Context, until time.
 	return a.send(ctx, &tmplVars{
 		ThrottledUntil: until.Format(time.RFC1123),
 	}, subjectTmplThrottled, bodyTmplSuccessThrottled, notifier.SEVERITY_WARNING)
+}
+
+// Send a notification that the most recent roll succeeded when the roll before
+// it failed.
+func (a *AutoRollNotifier) SendNewSuccess(ctx context.Context, id, url string) error {
+	return a.send(ctx, &tmplVars{
+		IssueID:  id,
+		IssueURL: url,
+	}, subjectTmplNewSuccess, bodyTmplNewSuccess, notifier.SEVERITY_WARNING)
+}
+
+// Send a notification that the most recent roll failed when the roll before
+// it succeeded.
+func (a *AutoRollNotifier) SendNewFailure(ctx context.Context, id, url string) error {
+	return a.send(ctx, &tmplVars{
+		IssueID:  id,
+		IssueURL: url,
+	}, subjectTmplNewFailure, bodyTmplNewFailure, notifier.SEVERITY_WARNING)
+}
+
+// Send a notification that the last N roll attempts have failed.
+func (a *AutoRollNotifier) SendLastNFailed(ctx context.Context, n int, url string) error {
+	return a.send(ctx, &tmplVars{
+		IssueURL: url,
+		N:        n,
+	}, subjectTmplLastNFailed, bodyTmplLastNFailed, notifier.SEVERITY_ERROR)
 }

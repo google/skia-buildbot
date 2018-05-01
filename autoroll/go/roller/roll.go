@@ -45,27 +45,29 @@ func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.
 
 // gerritRoll is an implementation of RollImpl.
 type gerritRoll struct {
-	ci           *gerrit.ChangeInfo
-	issue        *autoroll.AutoRollIssue
-	g            *gerrit.Gerrit
-	recent       *recent_rolls.RecentRolls
-	retrieveRoll func(context.Context, int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error)
-	result       string
-	rm           repo_manager.RepoManager
+	ci               *gerrit.ChangeInfo
+	issue            *autoroll.AutoRollIssue
+	finishedCallback func(context.Context, RollImpl) error
+	g                *gerrit.Gerrit
+	recent           *recent_rolls.RecentRolls
+	retrieveRoll     func(context.Context, int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error)
+	result           string
+	rm               repo_manager.RepoManager
 }
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
+func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	ci, issue, err := retrieveGerritIssue(ctx, g, rm, false, issueNum)
 	if err != nil {
 		return nil, err
 	}
 	return &gerritRoll{
-		ci:     ci,
-		issue:  issue,
-		g:      g,
-		recent: recent,
+		ci:               ci,
+		issue:            issue,
+		finishedCallback: cb,
+		g:                g,
+		recent:           recent,
 		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
 			return retrieveGerritIssue(ctx, g, rm, false, issueNum)
 		},
@@ -180,7 +182,13 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 		issue.Result = r.result
 	}
 	r.issue = issue
-	return r.recent.Update(r.issue)
+	if err := r.recent.Update(r.issue); err != nil {
+		return err
+	}
+	if r.IsFinished() && r.finishedCallback != nil {
+		return r.finishedCallback(ctx, r)
+	}
+	return nil
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -199,16 +207,17 @@ type gerritAndroidRoll struct {
 }
 
 // newGerritAndroidRoll obtains a gerritAndroidRoll instance from the given Gerrit issue number.
-func newGerritAndroidRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64) (RollImpl, error) {
+func newGerritAndroidRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	ci, issue, err := retrieveGerritIssue(ctx, g, rm, true, issueNum)
 	if err != nil {
 		return nil, err
 	}
 	return &gerritAndroidRoll{&gerritRoll{
-		ci:     ci,
-		issue:  issue,
-		g:      g,
-		recent: recent,
+		ci:               ci,
+		issue:            issue,
+		finishedCallback: cb,
+		g:                g,
+		recent:           recent,
 		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
 			return retrieveGerritIssue(ctx, g, rm, true, issueNum)
 		},
@@ -275,14 +284,15 @@ func (r *gerritAndroidRoll) RetryDryRun(ctx context.Context) error {
 // githubRoll is an implementation of RollImpl.
 // TODO(rmistry): Add tests after a code-review abstraction later exists.
 type githubRoll struct {
-	pullRequest  *github_api.PullRequest
-	issue        *autoroll.AutoRollIssue
-	g            *github.GitHub
-	t            *travisci.TravisCI
-	recent       *recent_rolls.RecentRolls
-	retrieveRoll func(context.Context, int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error)
-	result       string
-	rm           repo_manager.RepoManager
+	finishedCallback func(context.Context, RollImpl) error
+	g                *github.GitHub
+	issue            *autoroll.AutoRollIssue
+	pullRequest      *github_api.PullRequest
+	recent           *recent_rolls.RecentRolls
+	result           string
+	retrieveRoll     func(context.Context, int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error)
+	rm               repo_manager.RepoManager
+	t                *travisci.TravisCI
 }
 
 func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisci.TravisCI, rm repo_manager.RepoManager, issueNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
@@ -360,7 +370,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64) (RollImpl, error) {
+func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, g.TravisCi, rm, pullRequestNum)
 	if err != nil {
 		return nil, err
@@ -432,7 +442,13 @@ func (r *githubRoll) Update(ctx context.Context) error {
 		issue.Result = r.result
 	}
 	r.issue = issue
-	return r.recent.Update(r.issue)
+	if err := r.recent.Update(r.issue); err != nil {
+		return err
+	}
+	if r.IsFinished() && r.finishedCallback != nil {
+		return r.finishedCallback(ctx, r)
+	}
+	return nil
 }
 
 // See documentation for state_machine.RollCLImpl interface.
