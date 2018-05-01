@@ -101,7 +101,7 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 func (s *StatusWatcher) calcAndWatchStatus() error {
 	expChanges := make(chan map[string]types.TestClassification)
 	s.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
-		expChanges <- e.(map[string]types.TestClassification)
+		expChanges <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
 	tileStream := s.storages.GetTileStreamNow(2 * time.Minute)
