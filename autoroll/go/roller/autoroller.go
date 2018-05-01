@@ -28,6 +28,11 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	// We'll send a notification if this many rolls fail in a row.
+	NOTIFY_IF_LAST_N_FAILED = 3
+)
+
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
@@ -64,7 +69,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 
 	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
-		return newGerritRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
+		return newGerritRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue, arb.rollFinished)
 	}
 
 	// Create the RepoManager.
@@ -74,7 +79,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewAFDORepoManager(ctx, c.AFDORepoManager, workdir, g, recipesCfgFile, serverURL, nil)
 	} else if c.AndroidRepoManager != nil {
 		retrieveRoll = func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
-			return newGerritAndroidRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue)
+			return newGerritAndroidRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue, arb.rollFinished)
 		}
 		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL)
 	} else if c.CopyRepoManager != nil {
@@ -87,7 +92,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	} else if c.GithubRepoManager != nil {
 		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL)
 		retrieveRoll = func(ctx context.Context, arb *AutoRoller, pullRequestNum int64) (RollImpl, error) {
-			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum)
+			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum, arb.rollFinished)
 		}
 	} else if c.ManifestRepoManager != nil {
 		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL)
@@ -435,3 +440,60 @@ func (r *AutoRoller) AddComment(issueNum int64, message, user string, timestamp 
 
 // Required for main.AutoRollerI. No specific HTTP handlers.
 func (r *AutoRoller) AddHandlers(*mux.Router) {}
+
+// Callback function which runs when roll CLs are closed.
+func (r *AutoRoller) rollFinished(ctx context.Context, currentRoll RollImpl) error {
+	recent := r.recent.GetRecentRolls()
+	// Sanity check: pop any rolls which occurred after the one which just
+	// finished.
+	idx := -1
+	for i, roll := range recent {
+		if string(roll.Issue) == currentRoll.IssueID() {
+			idx = i
+			break
+		}
+	}
+	if idx == -1 {
+		return fmt.Errorf("Unable to find just-finished roll %q in recent list!", currentRoll.IssueID())
+	}
+	recent = recent[idx:]
+	var lastRoll *autoroll.AutoRollIssue
+	if len(recent) > 1 {
+		lastRoll = recent[1]
+	}
+
+	// Send notifications if this roll had a different result from the last
+	// roll, ie. success -> failure or failure -> success.
+	currentSuccess := currentRoll.IsSuccess() || currentRoll.IsDryRunSuccess()
+	lastSuccess := util.In(lastRoll.Result, autoroll.FAILURE_RESULTS)
+	if lastRoll != nil {
+		if currentSuccess && !lastSuccess {
+			if err := r.notifier.SendNewSuccess(ctx, currentRoll.IssueID(), currentRoll.IssueURL()); err != nil {
+				return err
+			}
+		} else if !currentSuccess && lastSuccess {
+			if err := r.notifier.SendNewFailure(ctx, currentRoll.IssueID(), currentRoll.IssueURL()); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Send a notification if the last N rolls failed in a row.
+	lastNFailed := false
+	if len(recent) >= NOTIFY_IF_LAST_N_FAILED {
+		lastNFailed = true
+		for _, roll := range recent[:NOTIFY_IF_LAST_N_FAILED] {
+			if util.In(roll.Result, autoroll.SUCCESS_RESULTS) {
+				lastNFailed = false
+				break
+			}
+		}
+	}
+	if lastNFailed {
+		if err := r.notifier.SendLastNFailed(ctx, NOTIFY_IF_LAST_N_FAILED, currentRoll.IssueURL()); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
