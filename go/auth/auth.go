@@ -41,17 +41,20 @@ const (
 // Note: The default project for gcloud is used, and can be changed by running
 //
 //    $ gcloud config set project [project name]
-func NewDefaultTokenSource(local bool) (oauth2.TokenSource, error) {
+//
+// local  - If true then use the gcloud command line tool.
+// scopes - The scopes requested.
+//
+// When run on GCE the scopes are ignored in favor of the scopes
+// set on the instance, see:
+//
+//    https://cloud.google.com/sdk/gcloud/reference/compute/instances/set-service-account
+//
+func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
 	if local {
 		return NewGCloudTokenSource(""), nil
 	} else {
-		// Are we running on GCE?
-		if cloud_metadata.OnGCE() {
-			return google.DefaultTokenSource(context.Background())
-		} else {
-			// Create and use a token provider for skolo service account access tokens.
-			return newSkoloTokenSource(), nil
-		}
+		return google.DefaultTokenSource(context.Background(), scopes...)
 	}
 }
 
