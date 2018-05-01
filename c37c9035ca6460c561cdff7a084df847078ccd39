@@ -34,6 +34,24 @@
       "revId": "c37c9035ca6460c561cdff7a084df847078ccd39",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "619bad00_c00c845a",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-01T16:52:52Z",
+      "side": 1,
+      "message": "Optional: log errors if idx!\u003d0, not needed if you think that we will probably know via other alerts if we ever get in this broken state",
+      "parentUuid": "b2bdd804_45063cc3",
+      "revId": "c37c9035ca6460c561cdff7a084df847078ccd39",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
