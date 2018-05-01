@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fb8a7c4a_80d322c5",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-01T16:40:21Z",
+      "side": 1,
+      "message": "Can you explain what this is checking for? when would rolls happen after the one that just finished and invoked this callback?",
+      "revId": "c37c9035ca6460c561cdff7a084df847078ccd39",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
