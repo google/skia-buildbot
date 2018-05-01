@@ -1,5 +1,8 @@
 {
   "childName": "skcms",
+  "cqExtraTrybots": [
+    "master.tryserver.blink:linux_trusty_blink_rel"
+  ],
   "gerritURL": "https://skia-review.googlesource.com",
   "maxRollFrequency": "0m",
   "parentName": "Skia",
