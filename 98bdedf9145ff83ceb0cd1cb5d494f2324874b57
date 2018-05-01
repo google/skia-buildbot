@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "69fbe69e_487b0dbb",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-01T20:14:44Z",
+      "side": 1,
+      "message": "nit: indentation wrong (or at least doesn\u0027t match prom.yaml)",
+      "revId": "98bdedf9145ff83ceb0cd1cb5d494f2324874b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5daab79a_a3e65d19",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-01T20:14:44Z",
+      "side": 1,
+      "message": "Doesn\u0027t this mean that our silences and silence history will disappear if a node dies?",
+      "range": {
+        "startLine": 65,
+        "startChar": 10,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "98bdedf9145ff83ceb0cd1cb5d494f2324874b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abecea17_f3b1a76a",
+        "filename": "promk/alertmanager-config.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-01T20:14:44Z",
+      "side": 1,
+      "message": "nit: either \"alertmanager-config.yml\" and \"prometheus-config.yml\" or \"alertmanager.yml\" and \"prometheus.yml\"",
+      "revId": "98bdedf9145ff83ceb0cd1cb5d494f2324874b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
