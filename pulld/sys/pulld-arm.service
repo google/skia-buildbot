@@ -6,7 +6,6 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/pulld-arm \
   --port=:10114 \
-  --on_gce=false \
   --resources_dir=/usr/local/share/pulld-arm/ \
   --logtostderr \
   --installed_packages_file=/var/pulld-arm/installed_packages.json \

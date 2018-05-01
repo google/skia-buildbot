@@ -18,4 +18,3 @@ push_iap_proxy: pushk
 	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/iap_proxy
 	./build_iap_proxy_release
 	pushk iap_proxy
-
