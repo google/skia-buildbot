@@ -29,6 +29,7 @@ const (
 	PIXEL_DIFF_TASKS_DIR_NAME        = "pixel_diff_runs"
 	CHROMIUM_PERF_TASKS_DIR_NAME     = "chromium_perf_runs"
 	CHROMIUM_ANALYSIS_TASKS_DIR_NAME = "chromium_analysis_runs"
+	METRICS_ANALYSIS_TASKS_DIR_NAME  = "metrics_analysis_runs"
 	FIX_ARCHIVE_TASKS_DIR_NAME       = "fix_archive_runs"
 	TRACE_DOWNLOADS_DIR_NAME         = "trace_downloads"
 	CHROMIUM_BUILD_ZIP_NAME          = "chromium_build.zip"
@@ -231,6 +232,7 @@ var (
 	PixelDiffRunsDir        = filepath.Join(TASKS_DIR_NAME, PIXEL_DIFF_TASKS_DIR_NAME)
 	ChromiumPerfRunsDir     = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 	ChromiumAnalysisRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_ANALYSIS_TASKS_DIR_NAME)
+	MetricsAnalysisRunsDir  = filepath.Join(TASKS_DIR_NAME, METRICS_ANALYSIS_TASKS_DIR_NAME)
 	FixArchivesRunsDir      = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
 	TraceDownloadsDir       = filepath.Join(TASKS_DIR_NAME, TRACE_DOWNLOADS_DIR_NAME)
 
