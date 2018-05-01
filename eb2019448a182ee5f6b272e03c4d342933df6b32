@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c02cd0d_419e9ad2",
+        "filename": "go/gitauth/gitauth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-01T15:20:50Z",
+      "side": 1,
+      "message": "Style nit: camelCase",
+      "range": {
+        "startLine": 37,
+        "startChar": 24,
+        "endLine": 37,
+        "endChar": 26
+      },
+      "revId": "eb2019448a182ee5f6b272e03c4d342933df6b32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "045346dc_d6fcbe82",
+        "filename": "go/gitauth/gitauth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-01T15:20:50Z",
+      "side": 1,
+      "message": "Let\u0027s go ahead and write ~/.gitconfig as part of this CL, so that we\u0027re fully replicating the behavior of git-cookie-authdaemon.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 73
+      },
+      "revId": "eb2019448a182ee5f6b272e03c4d342933df6b32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
