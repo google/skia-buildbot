@@ -16,6 +16,24 @@
       "revId": "c37c9035ca6460c561cdff7a084df847078ccd39",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2bdd804_45063cc3",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-01T16:47:06Z",
+      "side": 1,
+      "message": "I\u0027m just being defensive here.  We\u0027d have to be in some kind of bizarre broken state, but if we somehow had multiple in-progress rolls, we want to just include everything up to the current one.",
+      "parentUuid": "fb8a7c4a_80d322c5",
+      "revId": "c37c9035ca6460c561cdff7a084df847078ccd39",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
