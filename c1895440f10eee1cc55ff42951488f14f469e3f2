@@ -22,6 +22,30 @@
       "revId": "c1895440f10eee1cc55ff42951488f14f469e3f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e16383b2_dda7f3d4",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-01T13:22:14Z",
+      "side": 1,
+      "message": "Now just calling google.DefaultTokenSource for everywhere but local.\n\nThe trick is to set the GCE_METADATA_HOST variable, which has been added to the service file.",
+      "parentUuid": "4aab5ff8_05120527",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 89
+      },
+      "revId": "c1895440f10eee1cc55ff42951488f14f469e3f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
