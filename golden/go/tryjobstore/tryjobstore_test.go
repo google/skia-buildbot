@@ -23,6 +23,7 @@ import (
 
 func TestCloudTryjobStore(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	// If a service account file is in the environment then connect to the real datastore.
 	serviceAccountFile := os.Getenv("DS_SERVICE_ACCOUNT_FILE")
