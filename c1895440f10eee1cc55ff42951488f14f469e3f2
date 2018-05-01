@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4aab5ff8_05120527",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-01T12:47:06Z",
+      "side": 1,
+      "message": "This seems contrary to the code below; if the scopes are ignored in GCE, why do we have to pass them to google.DefaultTokenSource() when we\u0027re running on GCE?",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 89
+      },
+      "revId": "c1895440f10eee1cc55ff42951488f14f469e3f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
