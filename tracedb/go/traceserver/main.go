@@ -10,7 +10,6 @@ import (
 
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/sharedb"
 	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/trace/service"
@@ -24,7 +23,6 @@ var (
 	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port       = flag.String("port", ":9090", "The port to serve the gRPC endpoint on.")
 	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	sharedbDir = flag.String("sharedb_dir", "", "Directory used by shareDB. If empty shareDB service will not enabled.")
 	noCloudLog = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
 )
 
@@ -54,11 +52,6 @@ func main() {
 	}
 	s := grpc.NewServer(grpc.MaxSendMsgSize(tracedb.MAX_MESSAGE_SIZE), grpc.MaxRecvMsgSize(tracedb.MAX_MESSAGE_SIZE))
 	traceservice.RegisterTraceServiceServer(s, ts)
-
-	// If a directory for sharedb was registered add a the sharedb service.
-	if *sharedbDir != "" {
-		sharedb.RegisterShareDBServer(s, sharedb.NewServer(*sharedbDir))
-	}
 
 	go func() {
 		if *cpuprofile != "" {

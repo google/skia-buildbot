@@ -4,7 +4,6 @@ import (
 	"net"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/sharedb"
 	"google.golang.org/grpc"
 
 	"go.skia.org/infra/go/trace/service"
@@ -24,10 +23,6 @@ func StartTraceDBTestServer(t assert.TestingT, traceDBFileName, shareDBDir strin
 
 	server := grpc.NewServer()
 	traceservice.RegisterTraceServiceServer(server, traceDBServer)
-
-	if shareDBDir != "" {
-		sharedb.RegisterShareDBServer(server, sharedb.NewServer(shareDBDir))
-	}
 
 	go func() {
 		// We ignore the error, because calling the Stop() function always causes
