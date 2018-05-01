@@ -22,6 +22,30 @@
       "revId": "79f2afdccf5eef9ddae189a0bfbad8beb4f512db",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae5440eb_7adc9446",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-01T12:43:25Z",
+      "side": 1,
+      "message": "Will break this out as a separate func in a follow-on CL.",
+      "parentUuid": "f368bc14_adeb4374",
+      "range": {
+        "startLine": 282,
+        "startChar": 6,
+        "endLine": 282,
+        "endChar": 19
+      },
+      "revId": "79f2afdccf5eef9ddae189a0bfbad8beb4f512db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
