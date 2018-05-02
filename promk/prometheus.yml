@@ -1,6 +1,12 @@
 global:
   scrape_interval: 15s
 
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets:
+        - alertmanager:8080
+
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
