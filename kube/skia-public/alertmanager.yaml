@@ -34,6 +34,7 @@ spec:
       labels:
         app: alertmanager # Pod template's label selector
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
@@ -43,14 +44,14 @@ spec:
           args:
             - "--web.listen-address=:9090"
             - "--config.file=/etc/alertmanager/alertmanager.yml"
-            - "--storage.path=/alertmanager"
+            - "--storage.path=/mnt/alertmanager"
           ports:
             - containerPort: 9090
           volumeMounts:
             - name: alertmanager-volume
               mountPath: /etc/alertmanager
             - name: alertmanager-storage-volume
-              mountPath: /alertmanager
+              mountPath: /mnt/alertmanager
           resources:
             requests:
               memory: "30Mi"
