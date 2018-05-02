@@ -31,9 +31,9 @@ var data = {
       silenced: false,
     },
     {
-      host_id: 'jumphost-win-01',
-      bot_id: 'skia-e-win-032',
-      dimensions: [{'value': ['4'], 'key': 'cores'}, {'value': ['x86', 'x86-64'], 'key': 'cpu'}, {'value': ['8086', '8086:1926'], 'key': 'gpu'}, {'value': ['skia-e-win-032'], 'key': 'id'}, {'value': ['n1-standard-4'], 'key': 'machine_type'}, {'value': ['Windows', 'Windows-10', 'Windows-10-14393'], 'key': 'os'}, {'value': ['Skia'], 'key': 'pool'}],
+      host_id: 'jumphost-win-02',
+      bot_id: 'skia-e-win-232',
+      dimensions: [{'value': ['4'], 'key': 'cores'}, {'value': ['x86', 'x86-64'], 'key': 'cpu'}, {'value': ['8086', '8086:1926'], 'key': 'gpu'}, {'value': ['skia-e-win-232'], 'key': 'id'}, {'value': ['n1-standard-4'], 'key': 'machine_type'}, {'value': ['Windows', 'Windows-10', 'Windows-10-14393'], 'key': 'os'}, {'value': ['Skia'], 'key': 'pool'}],
       status: 'Host Missing',
       since: new Date(new Date().getTime() - 68*60*1000),
       silenced: true,
