@@ -22,3 +22,11 @@ ramdrive and unmount the ramdrive after they have been uploaded. See
 Reserving a named global IP address:
 
     gcloud compute addresses create skia-org --global
+
+Admins
+------
+
+Before deploying yaml files with service accounts you need to give yourself
+cluster-admin rights:
+
+    kubectl create clusterrolebinding ${USER}-cluster-admin-binding --clusterrole=cluster-admin --user=${USER}@google.com
