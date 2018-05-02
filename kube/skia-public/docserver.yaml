@@ -42,7 +42,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
         - name: docserverk
-          image: gcr.io/skia-public/docserverk:2018-05-02T12_28_52Z-jcgregorio-56877516e8e9bb8042b134cf9954d49b3d63ffcc-dirty
+          image: gcr.io/skia-public/docserverk:2018-05-02T18_05_47Z-jcgregorio-6007925fbe21131d04f53f9b6ef495401a648da6-clean
           args:
             - "--logtostderr"
             - "--resources_dir=/usr/local/share/docserverk/"

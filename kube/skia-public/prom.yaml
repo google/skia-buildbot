@@ -44,7 +44,7 @@ spec:
           volumeMounts:
             - name: prometheus-config-volume
               mountPath: /etc/prometheus/
-            - name: prometheus-storage-volume-claim
+            - name: prometheus-storage-volume-claim2
               mountPath: /prometheus/
           resources:
             requests:
@@ -66,7 +66,7 @@ spec:
         - name: iap-proxy
           args:
             - "--logtostderr"
-            - "--aud=/projects/145247227042/global/backendServices/2149745727889480323"
+            - "--aud=/projects/145247227042/global/backendServices/3869109797488191543"
             - "--port=:8080"
             - "--target_port=:9090"
             - "--prom_port=:10000"
@@ -91,7 +91,7 @@ spec:
             secretName: skia-public-auth
   volumeClaimTemplates:
     - metadata:
-        name: prometheus-storage-volume-claim
+       name: prometheus-storage-volume-claim2
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
