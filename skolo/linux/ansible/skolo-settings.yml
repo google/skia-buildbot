@@ -43,8 +43,6 @@
     # These are needed to run our swarming tests
 
     # These are needed for general use
-    - name: Install git
-      apt: name=git
     - name: Install collectd, without the JDK
       apt: name=collectd install_recommends=no
 
