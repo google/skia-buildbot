@@ -1,3 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  selector:
+    app: prometheus
+  type: NodePort
+  ports:
+    - port: 8080
+      name: http
+    - port: 9090
+      name: internal-http
+    - port: 10000
+      name: iap-proxy-metrics
+---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
@@ -12,6 +28,9 @@ spec:
       labels:
         app: prometheus
     spec:
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
       containers:
         - name: prometheus
           image: prom/prometheus:v2.1.0
@@ -20,13 +39,12 @@ spec:
             - "--storage.tsdb.path=/prometheus/"
             - "--web.enable-lifecycle"
             - "--web.listen-address=:9090"
-          securityContext:
-            # TODO(jcgregorio) Figure out how to chmod volume claims.
-            runAsUser: 0
+          ports:
+            - containerPort: 9090
           volumeMounts:
             - name: prometheus-config-volume
               mountPath: /etc/prometheus/
-            - name: prometheus-storage-volume-skia
+            - name: prometheus-storage-volume-claim
               mountPath: /prometheus/
           resources:
             requests:
@@ -48,13 +66,14 @@ spec:
         - name: iap-proxy
           args:
             - "--logtostderr"
-            - "--aud=/projects/145247227042/global/backendServices/977992939173693172"
+            - "--aud=/projects/145247227042/global/backendServices/2149745727889480323"
             - "--port=:8080"
             - "--target_port=:9090"
             - "--prom_port=:10000"
           image: gcr.io/skia-public/iap_proxy:2018-04-28T12_10_31Z-jcgregorio-5c1a004783716177b6bc2126cd375919b33fcef8-dirty
           ports:
             - containerPort: 8080
+            - containerPort: 10000
           volumeMounts:
             - name: skia-public-auth
               mountPath: /var/secrets/skia-public-auth
@@ -71,22 +90,10 @@ spec:
           secret:
             secretName: skia-public-auth
   volumeClaimTemplates:
-  - metadata:
-      name: prometheus-storage-volume-skia
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1000Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: prometheus
-spec:
-  selector:
-    app: prometheus
-  type: NodePort
-  ports:
-    - port: 8080
-      targetPort: 8080
+    - metadata:
+        name: prometheus-storage-volume-claim
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1000Gi

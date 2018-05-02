@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: docserverk
+  name: docserverk
+spec:
+  ports:
+    - name: http
+      port: 8000
+    - name: docserverk-metrics
+      port: 20000
+  selector:
+    app: docserverk
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: docserverk
+spec:
+  selector:
+    matchLabels:
+      app: docserverk # Label selector that determines which Pods belong to the StatefulSet
+                      # Must match spec: template: metadata: labels
+  serviceName: "docserverk"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: docserverk # Pod template's label selector
+    spec:
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      volumes:
+        - name: skia-docs-sa
+          secret:
+            secretName: skia-docs
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: docserverk
+          image: gcr.io/skia-public/docserverk:2018-05-02T12_28_52Z-jcgregorio-56877516e8e9bb8042b134cf9954d49b3d63ffcc-dirty
+          args:
+            - "--logtostderr"
+            - "--resources_dir=/usr/local/share/docserverk/"
+            - "--work_dir=/mnt/pd0"
+            - "--port=:8000"
+            - "--prom_port=:20000"
+          ports:
+            - name: http
+              containerPort: 8000
+            - name: metrics
+              containerPort: 20000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
+          volumeMounts:
+            - name: skia-docs-sa
+              mountPath: /var/secrets/google
+            - name: docserverk-storage2
+              mountPath: /mnt/pd0
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
+  volumeClaimTemplates:
+    - metadata:
+        name: docserverk-storage2
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 500Gi

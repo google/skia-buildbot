@@ -1,0 +1,164 @@
+/*
+  Only edit main.css.
+  Do not edit docs.css, it is generaed from main.css.
+*/
+
+body {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: #1f78b4;
+}
+
+#page {
+  display: flex;
+}
+
+#body {
+  padding: 1em;
+  padding-left: 2em;
+  overflow-y: auto;
+  max-width: 90em;
+}
+
+#content {
+  padding: 2em;
+  margin-left: 280px;
+}
+
+#content ul {
+  margin-top: 0.2em;
+}
+
+pre {
+  margin-left: 1em;
+  padding: 1em;
+  background: #fafafa;
+  overflow-x: auto;
+}
+
+pre code {
+  color: #000;
+}
+
+code {
+  color: darkgreen;
+}
+
+h1, h2, h3, h4 {
+  font-weight: normal;
+}
+
+h2 {
+  margin-top: 1em;
+  margin-bottom: 0.2em;
+}
+
+#drawer {
+  min-width: 250px;
+  background: #fafafa;
+  padding: 10px;
+  overflow-y: scroll;
+  height: 98vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+img {
+  margin: 1em;
+}
+
+#drawer ul {
+  padding-left: 1em;
+}
+
+#drawer li {
+  list-style-type: none;
+  margin-top: 8px;
+  font-size: 13px;
+  padding-top: 0.5em;
+}
+
+#drawer li a.selected {
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+#drawer li a {
+  text-decoration: none;
+}
+
+#drawer ul.depth0>li,
+#drawer ul.depth1>li {
+  font-weight: bold;
+  font-size: 110%;
+  font-variant: small-caps;
+}
+
+#drawer ul.depth0>li {
+  font-size: 120%;
+}
+
+#drawer ul.depth2>li {
+  font-weight: bold;
+}
+
+#menu {
+  display: none;
+}
+
+div#___gcse_0 {
+  width: 260px;
+}
+
+.float {
+  position: fixed;
+  top: 0;
+  right: 0;
+  border: 2px solid;
+  padding: 1em;
+}
+
+.float li {
+  list-style-type: none;
+}
+
+.float ul {
+  padding: 0;
+}
+
+@media (max-width: 900px) {
+  #menu {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: white;
+    display: block;
+  }
+
+  #drawer {
+    left: -100%;
+    position: absolute;
+    transition: left 0.5s;
+  }
+
+  #menu:hover {
+    background: lightgray;
+  }
+
+  #drawer.opened {
+    left: 0%;
+  }
+
+  #content {
+    margin-left: 10px;
+  }
+}
