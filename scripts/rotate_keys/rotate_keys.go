@@ -54,9 +54,6 @@ var (
 		"rpi-01.skolo": []*serviceAccount{
 			chromiumSwarm,
 		},
-		"win-01.skolo": []*serviceAccount{
-			chromiumSwarm,
-		},
 		"win-02.skolo": []*serviceAccount{
 			chromiumSwarm,
 		},
