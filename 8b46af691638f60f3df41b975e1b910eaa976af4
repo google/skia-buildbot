@@ -59,6 +59,30 @@
     },
     {
       "key": {
+        "uuid": "9fda6413_bb3e8732",
+        "filename": "docserverk/build_docker_release",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e12ad8c9_4872c2c4",
+      "range": {
+        "startLine": 13,
+        "startChar": 75,
+        "endLine": 13,
+        "endChar": 84
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47ebee00_4a2323c9",
         "filename": "docserverk/go/config/config.go",
         "patchSetId": 11
@@ -99,6 +123,30 @@
     },
     {
       "key": {
+        "uuid": "e6d70398_0de5eb57",
+        "filename": "docserverk/go/docserverk/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "82858b77_d74d8cc4",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 38
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "19341349_ee2de8cd",
         "filename": "docserverk/go/docserverk/main.go",
         "patchSetId": 11
@@ -110,6 +158,30 @@
       "writtenOn": "2018-05-02T17:05:13Z",
       "side": 1,
       "message": "Am I understanding correctly that we\u0027re removing login from docserver?",
+      "range": {
+        "startLine": 237,
+        "startChar": 6,
+        "endLine": 237,
+        "endChar": 17
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "111e4fb1_35acbef7",
+        "filename": "docserverk/go/docserverk/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "The only reason docserver had login was to handle login for all the other sites, but that now falls to IAP to handle.",
+      "parentUuid": "19341349_ee2de8cd",
       "range": {
         "startLine": 237,
         "startChar": 6,
@@ -298,6 +370,30 @@
     },
     {
       "key": {
+        "uuid": "19c3a07b_1234c969",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Default is TCP so we should only specify if its not TCP. Removed.",
+      "parentUuid": "ea865ca5_796ead8b",
+      "range": {
+        "startLine": 10,
+        "startChar": 6,
+        "endLine": 10,
+        "endChar": 19
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "45db9c1e_7f809d1a",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 11
@@ -321,6 +417,30 @@
     },
     {
       "key": {
+        "uuid": "6738b4e4_2b1b5f32",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "45db9c1e_7f809d1a",
+      "range": {
+        "startLine": 12,
+        "startChar": 12,
+        "endLine": 12,
+        "endChar": 19
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ceb45a9a_d27d5b86",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 11
@@ -335,6 +455,24 @@
       "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3925ced2_9026f7da",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ceb45a9a_d27d5b86",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -355,6 +493,24 @@
     },
     {
       "key": {
+        "uuid": "b8af6754_9665be0c",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4de00bfa_c223d2f4",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d40da552_40240ad2",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 11
@@ -372,6 +528,24 @@
     },
     {
       "key": {
+        "uuid": "c0cc9325_ebc2273e",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d40da552_40240ad2",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa728dcb_9c3c1c4f",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 11
@@ -383,6 +557,30 @@
       "writtenOn": "2018-05-02T17:05:13Z",
       "side": 1,
       "message": "Why \"2\"?",
+      "range": {
+        "startLine": 66,
+        "startChar": 16,
+        "endLine": 66,
+        "endChar": 35
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a45d7891_48987216",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "If you delete and recreate a StatefulSet and also delete the persistent volume then you end up in a situation where kubernetes doesn\u0027t recreate the disk, so the volume can\u0027t be mounted, so the pod won\u0027t start. Not sure yet how to work around that except by renaming the persistent volume, which then gets created because the name is new.",
+      "parentUuid": "fa728dcb_9c3c1c4f",
       "range": {
         "startLine": 66,
         "startChar": 16,
@@ -418,6 +616,30 @@
     },
     {
       "key": {
+        "uuid": "a4038b4b_90e02f74",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "/alertserver and /prometheus were where the images expected them, for most of our apps we expect /mnt/pd0.",
+      "parentUuid": "0454683f_9251e850",
+      "range": {
+        "startLine": 67,
+        "startChar": 21,
+        "endLine": 67,
+        "endChar": 29
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b169f173_e3616e74",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 11
@@ -441,6 +663,30 @@
     },
     {
       "key": {
+        "uuid": "567b64cd_acdef237",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b169f173_e3616e74",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 45
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "52f90e76_2be6cf5b",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 11
@@ -452,6 +698,30 @@
       "writtenOn": "2018-05-02T17:05:13Z",
       "side": 1,
       "message": "nit: use consistent naming -- below you named the \"data disk\" \"prometheus-storage-volume-claim\"",
+      "range": {
+        "startLine": 73,
+        "startChar": 12,
+        "endLine": 73,
+        "endChar": 31
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86557d83_dffd1149",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Agreed, we need a naming convention. I don\u0027t have one yet.",
+      "parentUuid": "52f90e76_2be6cf5b",
       "range": {
         "startLine": 73,
         "startChar": 12,
@@ -487,6 +757,30 @@
     },
     {
       "key": {
+        "uuid": "3f4498e0_4e673d0b",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d99f259f_ed409943",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 24
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "82d8433c_7f41988b",
         "filename": "kube/skia-public/prom.yaml",
         "patchSetId": 11
@@ -510,6 +804,30 @@
     },
     {
       "key": {
+        "uuid": "b3b6eeec_1d35a643",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "82d8433c_7f41988b",
+      "range": {
+        "startLine": 13,
+        "startChar": 12,
+        "endLine": 13,
+        "endChar": 24
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f350e34a_c0e2e77c",
         "filename": "kube/skia-public/prom.yaml",
         "patchSetId": 11
@@ -521,6 +839,30 @@
       "writtenOn": "2018-05-02T17:05:13Z",
       "side": 1,
       "message": "nit: include container name\n\n(I\u0027m assuming you\u0027re including this for consistency, since this shouldn\u0027t need to be exposed outside of the pod.)",
+      "range": {
+        "startLine": 15,
+        "startChar": 12,
+        "endLine": 15,
+        "endChar": 19
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fc25347_20093730",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:44:56Z",
+      "side": 1,
+      "message": "It has to be exposed outside the pod so that prometheus can get to it.",
+      "parentUuid": "f350e34a_c0e2e77c",
       "range": {
         "startLine": 15,
         "startChar": 12,
