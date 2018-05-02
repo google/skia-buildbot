@@ -85,6 +85,7 @@ func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, rev string) {
 
 func TestFuchsiaSDKRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, gb, _, urlmock, cleanup := setupFuchsiaSDK(t)
 	defer cleanup()

@@ -80,6 +80,7 @@ func setupCopy(t *testing.T) (context.Context, string, *git_testutils.GitBuilder
 // TestCopyRepoManager tests all aspects of the CopyRepoManager.
 func TestCopyRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, child, childCommits, parent, _, cleanup := setupCopy(t)
 	defer cleanup()
@@ -123,6 +124,7 @@ func TestCopyRepoManager(t *testing.T) {
 
 func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, child, childCommits, parent, _, cleanup := setupCopy(t)
 	defer cleanup()

@@ -207,6 +207,7 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path stri
 
 func TestAFDORepoManager(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, parent, _, urlmock, cleanup := setupAfdo(t)
 	defer cleanup()

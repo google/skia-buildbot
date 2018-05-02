@@ -1906,6 +1906,7 @@ func (s *spyDB) PutTasks(tasks []*db.Task) error {
 }
 
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*db.Task), func()) {
+	t.Skip()
 	testutils.LargeTest(t)
 
 	ctx := context.Background()
@@ -2259,6 +2260,7 @@ func TestBlacklist(t *testing.T) {
 }
 
 func TestTrybots(t *testing.T) {
+	t.Skip()
 	ctx, gb, d, swarmingClient, s, mock, cleanup := setup(t)
 	defer cleanup()
 
