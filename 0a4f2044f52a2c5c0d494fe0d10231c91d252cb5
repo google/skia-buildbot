@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3024ac8a_a0c9b009",
+        "filename": "kube/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:27:38Z",
+      "side": 1,
+      "message": "nit: \"have been created and named\", since I don\u0027t understand \"reserve\" as a verb for \"certs.\"",
+      "range": {
+        "startLine": 11,
+        "startChar": 58,
+        "endLine": 12,
+        "endChar": 44
+      },
+      "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43303b6c_dd7a5b81",
+        "filename": "kube/skia-public/skia-ingress.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:27:38Z",
+      "side": 1,
+      "message": "Is there a reason that some servers are on 8000 and others on 8080? Is this related to IAP?",
+      "range": {
+        "startLine": 11,
+        "startChar": 17,
+        "endLine": 11,
+        "endChar": 21
+      },
+      "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78528fa4_975a35fb",
+        "filename": "kube/skia-public/skia-ingress.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:27:38Z",
+      "side": 1,
+      "message": "nit: I assume this is not in a rule because \"skia.org\" and \"*.skia.org\" are routed to docserver. Please comment.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 21
+      },
+      "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "001fc750_5705a0a0",
+        "filename": "kube/skia-public/skiatest-ingress.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:27:38Z",
+      "side": 1,
+      "message": "nit: include \"skiatest\" in the name",
+      "range": {
+        "startLine": 4,
+        "startChar": 8,
+        "endLine": 4,
+        "endChar": 21
+      },
+      "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
