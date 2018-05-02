@@ -664,6 +664,30 @@
     },
     {
       "key": {
+        "uuid": "931a0819_045d5c80",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T18:11:26Z",
+      "side": 1,
+      "message": "SGTM, I propose that data disks are made available at\n\n/mnt/[appname]\n\ni.e. /mnt/prometheus, or /mnt/docserverk.",
+      "parentUuid": "2fd47bd4_49ad3bcc",
+      "range": {
+        "startLine": 67,
+        "startChar": 21,
+        "endLine": 67,
+        "endChar": 29
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b169f173_e3616e74",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 11
@@ -911,6 +935,30 @@
       "side": 1,
       "message": "Prometheus is inside this pod.",
       "parentUuid": "1fc25347_20093730",
+      "range": {
+        "startLine": 15,
+        "startChar": 12,
+        "endLine": 15,
+        "endChar": 19
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5f8e71b_63698c1c",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T18:11:26Z",
+      "side": 1,
+      "message": "But the scrape rule in prometheus.yml refers to prometheus:10000, otherwise it would just refer to localhost:10000 which would be confusing.",
+      "parentUuid": "ae9cae43_151dbefe",
       "range": {
         "startLine": 15,
         "startChar": 12,
