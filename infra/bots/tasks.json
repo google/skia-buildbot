@@ -318,7 +318,8 @@
         "pool:Skia",
         "os:Debian-9.4",
         "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
+        "cpu:x86-64-Haswell_GCE",
+        "id:skia-gce-025"
       ],
       "env_prefixes": {
         "PATH": [
@@ -447,7 +448,8 @@
         "pool:Skia",
         "os:Debian-9.4",
         "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
+        "cpu:x86-64-Haswell_GCE",
+        "id:skia-gce-025"
       ],
       "env_prefixes": {
         "PATH": [
@@ -576,7 +578,8 @@
         "pool:Skia",
         "os:Debian-9.4",
         "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
+        "cpu:x86-64-Haswell_GCE",
+        "id:skia-gce-025"
       ],
       "env_prefixes": {
         "PATH": [
@@ -706,7 +709,8 @@
         "pool:Skia",
         "os:Debian-9.4",
         "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
+        "cpu:x86-64-Haswell_GCE",
+        "id:skia-gce-025"
       ],
       "env_prefixes": {
         "PATH": [
