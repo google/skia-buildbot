@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: alertmanager
+  name: alertmanager
+spec:
+  ports:
+    - name: http
+      port: 8080
+    - name: internalhttp
+      port: 9090
+    - name: metrics
+      port: 10000
+  selector:
+    app: alertmanager
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: alertmanager
+spec:
+  selector:
+    matchLabels:
+      app: alertmanager # Label selector that determines which Pods belong to the StatefulSet
+                        # Must match spec: template: metadata: labels
+  serviceName: "alertmanager"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: alertmanager # Pod template's label selector
+    spec:
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.14.0
+          args:
+            - "--web.listen-address=:9090"
+            - "--config.file=/etc/alertmanager/alertmanager.yml"
+            - "--storage.path=/alertmanager"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+          - name: alertmanager-volume
+            mountPath: /etc/alertmanager
+          - name: alertmanager-storage-volume
+            mountPath: /alertmanager
+          resources:
+            requests:
+              memory: "30Mi"
+              cpu: "100m"
+        - name: configmap-reload
+          args:
+            - "--volume-dir=/etc/alertmanager/"
+            - "--webhook-method=POST"
+            - "--webhook-url=http://localhost:9090/-/reload"
+          image: gcr.io/skia-public/configmap-reload:2018-04-27T17_36_11Z-jcgregorio-0a104d82b21f0c2b40bf5182890c5eab412c8a1b-dirty
+          volumeMounts:
+          - name: alertmanager-volume
+            mountPath: /etc/alertmanager
+          resources:
+            requests:
+              memory: "30Mi"
+              cpu: "20m"
+        - name: iap-proxy
+          args:
+            - "--logtostderr"
+            - "--aud=/projects/145247227042/global/backendServices/4151973156736992737"
+            - "--port=:8080"
+            - "--target_port=:9090"
+            - "--prom_port=:10000"
+          image: gcr.io/skia-public/iap_proxy:2018-04-27T17_38_38Z-jcgregorio-8fd51e30cdd9748f7446ec34bb1bdfcbeb7af9ba-dirty
+          ports:
+            - containerPort: 8080
+            - containerPort: 10000
+          volumeMounts:
+            - name: skia-public-auth
+              mountPath: /var/secrets/skia-public-auth
+          resources:
+            requests:
+              memory: "30Mi"
+              cpu: "100m"
+      volumes:
+        - name: alertmanager-volume
+          configMap:
+            name: alertmanager-conf
+        - name: skia-public-auth
+          secret:
+            secretName: skia-public-auth
+  volumeClaimTemplates:
+    - metadata:
+        name: alertmanager-storage-volume
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
