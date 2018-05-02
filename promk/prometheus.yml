@@ -8,18 +8,16 @@ alerting:
         - alertmanager:8080
 
 scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-  - job_name: 'iap-proxy'
-    static_configs:
-      - targets: ['localhost:10000']
   - job_name: 'alertmanager'
     static_configs:
       - targets: ['alertmanager:9090']
-  - job_name: 'alertmanager-iap-proxy'
-    static_configs:
-      - targets: ['alertmanager:10000']
   - job_name: 'docserverk'
     static_configs:
       - targets: ['docserverk:20000']
+  - job_name: 'iap-proxy'
+    static_configs:
+      - targets: ['prometheus:10000']
+      - targets: ['alertmanager:10000']
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
