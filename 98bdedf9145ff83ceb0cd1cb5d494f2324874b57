@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8816125b_a45e7299",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T13:44:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69fbe69e_487b0dbb",
+      "revId": "98bdedf9145ff83ceb0cd1cb5d494f2324874b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5daab79a_a3e65d19",
         "filename": "kube/skia-public/alertmanager.yaml",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2018-05-01T20:14:44Z",
       "side": 1,
       "message": "Doesn\u0027t this mean that our silences and silence history will disappear if a node dies?",
+      "range": {
+        "startLine": 65,
+        "startChar": 10,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "98bdedf9145ff83ceb0cd1cb5d494f2324874b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3949254f_852be4b9",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T13:44:41Z",
+      "side": 1,
+      "message": "Right, fixed by moving this to a StatefulSet that has a persistent volume.",
+      "parentUuid": "5daab79a_a3e65d19",
       "range": {
         "startLine": 65,
         "startChar": 10,
@@ -56,6 +98,24 @@
       "revId": "98bdedf9145ff83ceb0cd1cb5d494f2324874b57",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d92119e0_341b82f5",
+        "filename": "promk/alertmanager-config.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T13:44:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "abecea17_f3b1a76a",
+      "revId": "98bdedf9145ff83ceb0cd1cb5d494f2324874b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
