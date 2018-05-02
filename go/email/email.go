@@ -10,6 +10,8 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	gmail "google.golang.org/api/gmail/v1"
 )
 
@@ -77,6 +79,10 @@ func GetViewActionMarkup(link, name, description string) (string, error) {
 // NewGMail returns a new GMail object which is authorized to send email.
 func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 	client, err := auth.NewClientFromIdAndSecret(clientId, clientSecret, tokenCacheFile, gmail.GmailComposeScope)
+	oauth2.TokenSource
+	oauth2.Config
+	google.ConfigFromJSON()
+
 	if err != nil {
 		return nil, err
 	}

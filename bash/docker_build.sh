@@ -18,14 +18,11 @@
 # unique tag is generated from the time/date, user, git hash and repo state.
 # This should never be set for application images, i.e. ones that will
 # participate in pushk, which expects the auto generated tag format.
-
 set -x -e
-
 ROOT=`mktemp -d`
 PROJECT="${PROJECT:-skia-public}"
 DATETIME=`date --utc "+%Y-%m-%dT%H_%M_%SZ"`
 HASH=`git rev-parse HEAD`
-
 # Detect if we have unchecked in local changes, or if we're not on the master
 # branch (possibly at an older revision).
 git fetch
@@ -42,13 +39,10 @@ elif ! git merge-base --is-ancestor HEAD origin/master ; then
   echo "Setting DIRTY=true due to current branch: " \
     "$(git rev-parse --abbrev-ref HEAD)"
 fi
-
 if [ -z "$TAG" ]; then
   TAG=${DATETIME}-${USER}-${HASH}-${REPO_STATE}
 fi
-
 copy_release_files
-
 docker build -t ${APPNAME} ${ROOT}
 docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
 docker push gcr.io/${PROJECT}/${APPNAME}:${TAG}
