@@ -154,6 +154,7 @@ func setupManifestFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 // TestRepoManager tests all aspects of the ManifestRepoManager except for CreateNewRoll.
 func TestManifestRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, child, childCommits, parent, cleanup := setupManifest(t)
 	defer cleanup()
@@ -180,6 +181,7 @@ func TestManifestRepoManager(t *testing.T) {
 // the git cl upload call.
 func TestCreateNewManifestRoll(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, _, _, parent, cleanup := setupManifest(t)
 	defer cleanup()
@@ -200,6 +202,7 @@ func TestCreateNewManifestRoll(t *testing.T) {
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsManifest(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, _, _, parent, cleanup := setupManifest(t)
 	defer cleanup()

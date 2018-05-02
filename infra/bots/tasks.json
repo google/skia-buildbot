@@ -257,6 +257,11 @@
           "version": "version:0"
         },
         {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:6"
+        },
+        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
@@ -318,7 +323,8 @@
         "pool:Skia",
         "os:Debian-9.4",
         "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
+        "cpu:x86-64-Haswell_GCE",
+        "id:skia-gce-025"
       ],
       "env_prefixes": {
         "PATH": [
@@ -391,6 +397,11 @@
           "version": "version:0"
         },
         {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:6"
+        },
+        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
@@ -447,7 +458,8 @@
         "pool:Skia",
         "os:Debian-9.4",
         "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
+        "cpu:x86-64-Haswell_GCE",
+        "id:skia-gce-025"
       ],
       "env_prefixes": {
         "PATH": [
@@ -520,6 +532,11 @@
           "version": "version:0"
         },
         {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:6"
+        },
+        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
@@ -576,7 +593,8 @@
         "pool:Skia",
         "os:Debian-9.4",
         "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
+        "cpu:x86-64-Haswell_GCE",
+        "id:skia-gce-025"
       ],
       "env_prefixes": {
         "PATH": [
@@ -650,6 +668,11 @@
           "version": "version:0"
         },
         {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:6"
+        },
+        {
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
@@ -706,7 +729,8 @@
         "pool:Skia",
         "os:Debian-9.4",
         "gpu:none",
-        "cpu:x86-64-Haswell_GCE"
+        "cpu:x86-64-Haswell_GCE",
+        "id:skia-gce-025"
       ],
       "env_prefixes": {
         "PATH": [
