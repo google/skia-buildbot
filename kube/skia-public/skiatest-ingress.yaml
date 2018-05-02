@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: basic-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: skiatest-org-central1
+    ingress.gcp.kubernetes.io/pre-shared-cert: skiatest
+spec:
+  backend:
+    serviceName: docserverk
+    servicePort: 8000
+  rules:
+    - host: docs.skiatest.org
+      http:
+        paths:
+        - backend:
+            serviceName: docserverk
+            servicePort: 8000
+    - host: prom.skiatest.org
+      http:
+        paths:
+        - backend:
+            serviceName: prometheus
+            servicePort: 8080
+    - host: alerts.skiatest.org
+      http:
+        paths:
+        - backend:
+            serviceName: alertmanager
+            servicePort: 8080
