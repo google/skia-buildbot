@@ -1,0 +1,535 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "920d4a10_dc2be43e",
+        "filename": "docserverk/README.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66ea0e61_2c2da751",
+        "filename": "docserverk/bower.json",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e12ad8c9_4872c2c4",
+        "filename": "docserverk/build_docker_release",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit: s/docserverk?/${APPNAME}/g (except {GOPATH}/bin/docserverk)\n\nI.e. if APPNAME and binary name are docserverk, resources should also go in /user/local/share/docserverk",
+      "range": {
+        "startLine": 13,
+        "startChar": 75,
+        "endLine": 13,
+        "endChar": 84
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47ebee00_4a2323c9",
+        "filename": "docserverk/go/config/config.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "82858b77_d74d8cc4",
+        "filename": "docserverk/go/docserverk/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit: either use old packages or new, not a mix.\n\n(I don\u0027t see a need to copy the packages if they didn\u0027t change.)",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 38
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19341349_ee2de8cd",
+        "filename": "docserverk/go/docserverk/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "Am I understanding correctly that we\u0027re removing login from docserver?",
+      "range": {
+        "startLine": 237,
+        "startChar": 6,
+        "endLine": 237,
+        "endChar": 17
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e46cb748_d09dbedd",
+        "filename": "docserverk/go/docset/docset.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c01a831d_a07928c3",
+        "filename": "docserverk/go/ssi/ssi.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d9c0b09f_0430b9bb",
+        "filename": "docserverk/go/ssi/ssi_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "05f1b7c1_2765b187",
+        "filename": "docserverk/package-lock.json",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "af504a66_48bb3200",
+        "filename": "docserverk/package.json",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30ade179_52a801ba",
+        "filename": "docserverk/res/css/docs.css",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9014479_ba7bf85e",
+        "filename": "docserverk/res/css/main.css",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef817c89_8e3d82e1",
+        "filename": "docserverk/res/js/docs.js",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "84852129_06a5a760",
+        "filename": "docserverk/templates/index.html",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "did not review",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea865ca5_796ead8b",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "I think you removed this in alertserver.yaml -- is there a guideline for when this should be present or absent?",
+      "range": {
+        "startLine": 10,
+        "startChar": 6,
+        "endLine": 10,
+        "endChar": 19
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45db9c1e_7f809d1a",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit: include container name",
+      "range": {
+        "startLine": 12,
+        "startChar": 12,
+        "endLine": 12,
+        "endChar": 19
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ceb45a9a_d27d5b86",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit indentation",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4de00bfa_c223d2f4",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit indentation",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d40da552_40240ad2",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit indentation",
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa728dcb_9c3c1c4f",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "Why \"2\"?",
+      "range": {
+        "startLine": 66,
+        "startChar": 16,
+        "endLine": 66,
+        "endChar": 35
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0454683f_9251e850",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit: For alertserver and prometheus, you mounted the \"data disk\" at \"/alertserver/\" and \"/prometheus/\" resp. Would be nice to be consistent across apps.\n\n(OTOH, seems like it would be a good idea to follow FHS conventions and mount data under \"/var/\u003cappname\u003e/\" and put the binary at \"/usr/bin/\u003cappname\u003e\".)",
+      "range": {
+        "startLine": 67,
+        "startChar": 21,
+        "endLine": 67,
+        "endChar": 29
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b169f173_e3616e74",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit indentation",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 45
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52f90e76_2be6cf5b",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit: use consistent naming -- below you named the \"data disk\" \"prometheus-storage-volume-claim\"",
+      "range": {
+        "startLine": 73,
+        "startChar": 12,
+        "endLine": 73,
+        "endChar": 31
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d99f259f_ed409943",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit: indentation",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 24
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82d8433c_7f41988b",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit: use same name as in alertserver.yaml",
+      "range": {
+        "startLine": 13,
+        "startChar": 12,
+        "endLine": 13,
+        "endChar": 24
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f350e34a_c0e2e77c",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T17:05:13Z",
+      "side": 1,
+      "message": "nit: include container name\n\n(I\u0027m assuming you\u0027re including this for consistency, since this shouldn\u0027t need to be exposed outside of the pod.)",
+      "range": {
+        "startLine": 15,
+        "startChar": 12,
+        "endLine": 15,
+        "endChar": 19
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
