@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3166a81a_b6f4112c",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 8
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T14:26:07Z",
+      "side": 1,
+      "message": "nit: include container name, since we could (will?) have multiple containers producing metrics for a single service",
+      "range": {
+        "startLine": 13,
+        "startChar": 12,
+        "endLine": 13,
+        "endChar": 19
+      },
+      "revId": "ce2a8a85a9f00515298cfce6b2d3b2597b0025e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93b7dbda_8d35a4bb",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T14:26:07Z",
+      "side": 1,
+      "message": "nit indentation",
+      "revId": "ce2a8a85a9f00515298cfce6b2d3b2597b0025e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ece259a8_82d1a3d6",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 8
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T14:26:07Z",
+      "side": 1,
+      "message": "nit indentation",
+      "revId": "ce2a8a85a9f00515298cfce6b2d3b2597b0025e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
