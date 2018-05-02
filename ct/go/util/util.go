@@ -414,9 +414,11 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	numTasks := int(math.Ceil(float64(numPages) / float64(numPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
 		isolateArgs := map[string]string{
-			"START_RANGE":  strconv.Itoa(GetStartRange(i, numPagesPerBot)),
-			"NUM":          strconv.Itoa(numPagesPerBot),
-			"PAGESET_TYPE": pagesetType,
+			"START_RANGE": strconv.Itoa(GetStartRange(i, numPagesPerBot)),
+			"NUM":         strconv.Itoa(numPagesPerBot),
+		}
+		if pagesetType != "" {
+			isolateArgs["PAGESET_TYPE"] = pagesetType
 		}
 		// Add isolateExtraArgs (if specified) into the isolateArgs.
 		for k, v := range isolateExtraArgs {
@@ -573,7 +575,7 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 	}
 	// Call csv_merger.py to merge all results into a single results CSV.
 	pathToCsvMerger := filepath.Join(pathToPyFiles, "csv_merger.py")
-	outputFileName := runID + ".output"
+	outputFileName := GetCsvRemoteFileName(runID)
 	args := []string{
 		pathToCsvMerger,
 		"--csv_dir=" + localOutputDir,
@@ -587,11 +589,23 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 		return noOutputSlaves, fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
 	// Copy the output file to Google Storage.
-	remoteOutputDir := filepath.Join(BenchmarkRunsDir, runID, "consolidated_outputs")
+	remoteOutputDir := GetCsvRemoteOutputDir(runID)
 	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
 		return noOutputSlaves, fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
 	}
 	return noOutputSlaves, nil
+}
+
+// GetCsvRemoteFileName returns the name of the CSV output file stored in Google
+// Storage.
+func GetCsvRemoteFileName(runID string) string {
+	return runID + ".output"
+}
+
+// GetCsvRemoteOutputDir returns the remote directory the consolidated CSV should
+// be kept in.
+func GetCsvRemoteOutputDir(runID string) string {
+	return filepath.Join(BenchmarkRunsDir, runID, "consolidated_outputs")
 }
 
 // GetRepeatValue returns the defaultValue if "--pageset-repeat" is not specified in benchmarkArgs.
@@ -762,7 +776,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 			sklog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
 			continue
 		}
-		headers, values, err := getRowsFromCSV(newFile)
+		headers, values, err := GetRowsFromCSV(newFile)
 		if err != nil {
 			sklog.Errorf("Could not read %s: %s", newFile, err)
 			continue
@@ -824,7 +838,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 	return nil
 }
 
-func getRowsFromCSV(csvPath string) ([]string, [][]string, error) {
+func GetRowsFromCSV(csvPath string) ([]string, [][]string, error) {
 	csvFile, err := os.Open(csvPath)
 	defer util.Close(csvFile)
 	if err != nil {
