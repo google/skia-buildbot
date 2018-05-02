@@ -8,9 +8,9 @@ spec:
   ports:
     - name: http
       port: 8080
-    - name: internalhttp
+    - name: internal-http
       port: 9090
-    - name: metrics
+    - name: iap-proxy-metrics
       port: 10000
   selector:
     app: alertmanager
@@ -47,10 +47,10 @@ spec:
           ports:
             - containerPort: 9090
           volumeMounts:
-          - name: alertmanager-volume
-            mountPath: /etc/alertmanager
-          - name: alertmanager-storage-volume
-            mountPath: /alertmanager
+            - name: alertmanager-volume
+              mountPath: /etc/alertmanager
+            - name: alertmanager-storage-volume
+              mountPath: /alertmanager
           resources:
             requests:
               memory: "30Mi"
@@ -62,8 +62,8 @@ spec:
             - "--webhook-url=http://localhost:9090/-/reload"
           image: gcr.io/skia-public/configmap-reload:2018-04-27T17_36_11Z-jcgregorio-0a104d82b21f0c2b40bf5182890c5eab412c8a1b-dirty
           volumeMounts:
-          - name: alertmanager-volume
-            mountPath: /etc/alertmanager
+            - name: alertmanager-volume
+              mountPath: /etc/alertmanager
           resources:
             requests:
               memory: "30Mi"
