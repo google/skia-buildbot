@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "283e63c9_95cd8fe6",
+        "filename": "kube/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:52:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3024ac8a_a0c9b009",
+      "range": {
+        "startLine": 11,
+        "startChar": 58,
+        "endLine": 12,
+        "endChar": 44
+      },
+      "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43303b6c_dd7a5b81",
         "filename": "kube/skia-public/skia-ingress.yaml",
         "patchSetId": 2
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "2be716e1_f440a819",
+        "filename": "kube/skia-public/skia-ingress.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:52:57Z",
+      "side": 1,
+      "message": "The service under \"backend:\" is the fallback service, i.e. the service that is served up if the domain name is unknown. Serves the docserver for now, it could be replaced with a small app that just redirected to \"skia.org\".",
+      "parentUuid": "78528fa4_975a35fb",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 21
+      },
+      "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e73c16db_94d6fb63",
+        "filename": "kube/skia-public/skia-ingress.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:52:57Z",
+      "side": 1,
+      "message": "No reason, besides prom and alerts default to 9090, so having them flow through iap_proxy to 8080 seemed nice, and we use 8000 for almost everything we write. I could go back and move prom and alerts to 8000.",
+      "parentUuid": "43303b6c_dd7a5b81",
+      "range": {
+        "startLine": 11,
+        "startChar": 17,
+        "endLine": 11,
+        "endChar": 21
+      },
+      "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "001fc750_5705a0a0",
         "filename": "kube/skia-public/skiatest-ingress.yaml",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b6c17ec_8fab3312",
+        "filename": "kube/skia-public/skiatest-ingress.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-02T17:52:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "001fc750_5705a0a0",
+      "range": {
+        "startLine": 4,
+        "startChar": 8,
+        "endLine": 4,
+        "endChar": 21
+      },
+      "revId": "0a4f2044f52a2c5c0d494fe0d10231c91d252cb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
