@@ -640,6 +640,30 @@
     },
     {
       "key": {
+        "uuid": "2fd47bd4_49ad3bcc",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T18:02:22Z",
+      "side": 1,
+      "message": "ISTM that no one has hardcoded the data directory. Since we\u0027re telling the apps where to find their data directory in this file, only this file cares where the data directory lives. Would be nice to be consistent and not pull along legacy cruft like \"pd0\".",
+      "parentUuid": "a4038b4b_90e02f74",
+      "range": {
+        "startLine": 67,
+        "startChar": 21,
+        "endLine": 67,
+        "endChar": 29
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b169f173_e3616e74",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 11
@@ -863,6 +887,30 @@
       "side": 1,
       "message": "It has to be exposed outside the pod so that prometheus can get to it.",
       "parentUuid": "f350e34a_c0e2e77c",
+      "range": {
+        "startLine": 15,
+        "startChar": 12,
+        "endLine": 15,
+        "endChar": 19
+      },
+      "revId": "8b46af691638f60f3df41b975e1b910eaa976af4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae9cae43_151dbefe",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 11
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-02T18:02:22Z",
+      "side": 1,
+      "message": "Prometheus is inside this pod.",
+      "parentUuid": "1fc25347_20093730",
       "range": {
         "startLine": 15,
         "startChar": 12,
