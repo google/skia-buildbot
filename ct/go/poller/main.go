@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
@@ -184,6 +185,44 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context) error {
 			"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 			"--target_platform=" + task.Platform,
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
+			"--run_id=" + runId,
+			"--logtostderr",
+			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
+		},
+	})
+}
+
+// Define frontend.MetricsAnalysisDBTask here so we can add methods.
+type MetricsAnalysisTask struct {
+	metrics_analysis.DBTask
+}
+
+func (task *MetricsAnalysisTask) Execute(ctx context.Context) error {
+	runId := runId(task)
+	for fileSuffix, patch := range map[string]string{
+		".chromium.patch": task.ChromiumPatch,
+		".catapult.patch": task.CatapultPatch,
+		".traces.csv":     task.CustomTraces,
+	} {
+		// Add an extra newline at the end because git sometimes rejects patches due to
+		// missing newlines.
+		patch = patch + "\n"
+		patchPath := filepath.Join(os.TempDir(), runId+fileSuffix)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return err
+		}
+		defer skutil.Remove(patchPath)
+	}
+	return exec.Run(ctx, &exec.Command{
+		Name: "metrics_analysis_on_workers",
+		Args: []string{
+			"--emails=" + task.Username,
+			"--description=" + task.Description,
+			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--metric_name=" + task.MetricName,
+			"--analysis_output_link=" + task.AnalysisOutputLink,
+			"--benchmark_extra_args=" + task.BenchmarkArgs,
 			"--run_id=" + runId,
 			"--logtostderr",
 			"--log_id=" + runId,
@@ -375,22 +414,24 @@ func asPollerTask(ctx context.Context, otherTask task_common.Task) Task {
 		return nil
 	}
 	switch t := otherTask.(type) {
-	case *chromium_perf.DBTask:
-		return &ChromiumPerfTask{DBTask: *t}
-	case *pixel_diff.DBTask:
-		return &PixelDiffTask{DBTask: *t}
-	case *capture_skps.DBTask:
-		return &CaptureSkpsTask{DBTask: *t}
-	case *lua_scripts.DBTask:
-		return &LuaScriptTask{DBTask: *t}
-	case *chromium_builds.DBTask:
-		return &ChromiumBuildTask{DBTask: *t}
 	case *admin_tasks.RecreatePageSetsDBTask:
 		return &RecreatePageSetsTask{RecreatePageSetsDBTask: *t}
 	case *admin_tasks.RecreateWebpageArchivesDBTask:
 		return &RecreateWebpageArchivesTask{RecreateWebpageArchivesDBTask: *t}
+	case *capture_skps.DBTask:
+		return &CaptureSkpsTask{DBTask: *t}
 	case *chromium_analysis.DBTask:
 		return &ChromiumAnalysisTask{DBTask: *t}
+	case *chromium_builds.DBTask:
+		return &ChromiumBuildTask{DBTask: *t}
+	case *chromium_perf.DBTask:
+		return &ChromiumPerfTask{DBTask: *t}
+	case *lua_scripts.DBTask:
+		return &LuaScriptTask{DBTask: *t}
+	case *metrics_analysis.DBTask:
+		return &MetricsAnalysisTask{DBTask: *t}
+	case *pixel_diff.DBTask:
+		return &PixelDiffTask{DBTask: *t}
 	default:
 		sklog.Errorf("Missing case for %T in asPollerTask", otherTask)
 		return nil

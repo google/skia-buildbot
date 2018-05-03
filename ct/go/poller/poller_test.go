@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -150,6 +151,45 @@ func TestPixelDiffExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--logtostderr")
 	expect.Contains(t, cmd.Args, "--local=false")
 	expect.Contains(t, cmd.Args, "--run_on_gce="+strconv.FormatBool(task.RunsOnGCEWorkers()))
+	runId := getRunId(t, cmd)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
+	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.NotNil(t, cmd.Timeout)
+}
+
+func pendingMetricsAnalysisTask() MetricsAnalysisTask {
+	return MetricsAnalysisTask{
+		DBTask: metrics_analysis.DBTask{
+			CommonCols:         pendingCommonCols(),
+			MetricName:         "loadingMetric",
+			AnalysisOutputLink: "http://test/outputlink",
+			BenchmarkArgs:      "benchmarkargs",
+			Description:        "description",
+			ChromiumPatch:      "chromiumpatch",
+			CatapultPatch:      "catapultpatch",
+		},
+	}
+}
+
+func TestMetricsAnalysisExecute(t *testing.T) {
+	testutils.SmallTest(t)
+	mockRun := exec.CommandCollector{}
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	task := pendingMetricsAnalysisTask()
+	err := task.Execute(ctx)
+	assert.NoError(t, err)
+	assert.Len(t, mockRun.Commands(), 1)
+	cmd := mockRun.Commands()[0]
+	expect.Equal(t, "metrics_analysis_on_workers", cmd.Name)
+	expect.Equal(t, len(cmd.Args), 10)
+	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--description=description")
+	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+	expect.Contains(t, cmd.Args, "--metric_name=loadingMetric")
+	expect.Contains(t, cmd.Args, "--analysis_output_link=http://test/outputlink")
+	expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
+	expect.Contains(t, cmd.Args, "--logtostderr")
+	expect.Contains(t, cmd.Args, "--local=false")
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.Contains(t, cmd.Args, "--log_id="+runId)
