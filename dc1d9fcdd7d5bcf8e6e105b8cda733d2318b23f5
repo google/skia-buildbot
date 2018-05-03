@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "755cc87f_239be50a",
+        "filename": "skolo/sys/metadata-server.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-03T17:34:53Z",
+      "side": 1,
+      "message": "This actually doesn\u0027t work.  The metadata server sees the jumphost IP as eg. 192.168.1.51.  We probably need to make the server look up the latter address and add it to the map.  WDYT?",
+      "range": {
+        "startLine": 12,
+        "startChar": 15,
+        "endLine": 12,
+        "endChar": 24
+      },
+      "revId": "dc1d9fcdd7d5bcf8e6e105b8cda733d2318b23f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
