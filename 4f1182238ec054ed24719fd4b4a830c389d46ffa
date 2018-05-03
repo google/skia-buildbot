@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b30d677_8923c75d",
+        "filename": "skolo/go/metadata_server/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-03T18:10:27Z",
+      "side": 1,
+      "message": "Drive-by: this prevents us from spinning up multiple goroutines to read the same file.",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 42
+      },
+      "revId": "4f1182238ec054ed24719fd4b4a830c389d46ffa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
