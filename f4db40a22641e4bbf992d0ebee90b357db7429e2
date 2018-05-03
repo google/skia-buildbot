@@ -22,6 +22,53 @@
       "revId": "f4db40a22641e4bbf992d0ebee90b357db7429e2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4a9ebae_702b9665",
+        "filename": "go/metadata/server.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-03T14:43:02Z",
+      "side": 1,
+      "message": "Looks ok to me, at least okay enough to push and see if anything breaks.",
+      "parentUuid": "7fd2e913_e8b30457",
+      "range": {
+        "startLine": 178,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 3
+      },
+      "revId": "f4db40a22641e4bbf992d0ebee90b357db7429e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbfeb4ed_29da4674",
+        "filename": "skolo/sys/metadata-server.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-03T14:43:02Z",
+      "side": 1,
+      "message": "98",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 28
+      },
+      "revId": "f4db40a22641e4bbf992d0ebee90b357db7429e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
