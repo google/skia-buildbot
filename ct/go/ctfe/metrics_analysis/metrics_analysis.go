@@ -44,13 +44,15 @@ func ReloadTemplates(resourcesDir string) {
 type DBTask struct {
 	task_common.CommonCols
 
-	CustomTraces  string         `db:"custom_traces"`
-	AnalysisRunId int            `db:"analysis_run_id"`
-	BenchmarkArgs string         `db:"benchmark_args"`
-	Description   string         `db:"description"`
-	ChromiumPatch string         `db:"chromium_patch"`
-	CatapultPatch string         `db:"catapult_patch"`
-	RawOutput     sql.NullString `db:"raw_output"`
+	MetricName         string         `db:"metric_name"`
+	CustomTraces       string         `db:"custom_traces"`
+	AnalysisTaskId     string         `db:"analysis_task_id"`
+	AnalysisOutputLink string         `db:"analysis_output_link"`
+	BenchmarkArgs      string         `db:"benchmark_args"`
+	Description        string         `db:"description"`
+	ChromiumPatch      string         `db:"chromium_patch"`
+	CatapultPatch      string         `db:"catapult_patch"`
+	RawOutput          sql.NullString `db:"raw_output"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -62,8 +64,10 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.Username = dbTask.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
+	taskVars.MetricName = dbTask.MetricName
 	taskVars.CustomTraces = dbTask.CustomTraces
-	taskVars.AnalysisRunId = dbTask.AnalysisRunId
+	taskVars.AnalysisTaskId = dbTask.AnalysisTaskId
+	taskVars.AnalysisOutputLink = dbTask.AnalysisOutputLink
 	taskVars.BenchmarkArgs = dbTask.BenchmarkArgs
 	taskVars.Description = dbTask.Description
 	taskVars.ChromiumPatch = dbTask.ChromiumPatch
@@ -104,18 +108,25 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	CustomTraces  string `json:"custom_traces"`
-	AnalysisRunId int    `json:"analysis_run_id"`
-	BenchmarkArgs string `json:"benchmark_args"`
-	Description   string `json:"desc"`
-	ChromiumPatch string `json:"chromium_patch"`
-	CatapultPatch string `json:"catapult_patch"`
+	MetricName         string `json:"metric_name"`
+	CustomTraces       string `json:"custom_traces"`
+	AnalysisTaskId     string `json:"analysis_task_id"`
+	AnalysisOutputLink string `json:"analysis_output_link"`
+	BenchmarkArgs      string `json:"benchmark_args"`
+	Description        string `json:"desc"`
+	ChromiumPatch      string `json:"chromium_patch"`
+	CatapultPatch      string `json:"catapult_patch"`
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
-	if (task.CustomTraces == "" && task.AnalysisRunId == 0) ||
-		task.Description == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
+	if task.MetricName == "" {
+		return "", nil, fmt.Errorf("Must specify metric name")
+	}
+	if task.CustomTraces == "" && task.AnalysisTaskId == "" {
+		return "", nil, fmt.Errorf("Must specify one of custom traces or analysis task id")
+	}
+	if task.Description == "" {
+		return "", nil, fmt.Errorf("Must specify description")
 	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
 		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
@@ -126,12 +137,27 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	}); err != nil {
 		return "", nil, err
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,custom_traces,analysis_run_id,benchmark_args,description,chromium_patch,catapult_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?);",
-			db.TABLE_CHROMIUM_ANALYSIS_TASKS),
+	if task.AnalysisTaskId != "" {
+		// Get analysis output link from analysis task id.
+		outputLinks := []string{}
+		query := fmt.Sprintf("SELECT raw_output FROM %s WHERE id = ?", db.TABLE_CHROMIUM_ANALYSIS_TASKS)
+		if err := db.DB.Select(&outputLinks, query, task.AnalysisTaskId); err != nil || len(outputLinks) < 1 {
+			return "", nil, fmt.Errorf("Unable to validate analysis task id parameter %v", task.AnalysisTaskId)
+		}
+		if len(outputLinks) != 1 {
+			return "", nil, fmt.Errorf("Unable to find requested analysis task id.")
+		}
+		task.AnalysisOutputLink = outputLinks[0]
+	}
+
+	return fmt.Sprintf("INSERT INTO %s (username,metric_name,custom_traces,analysis_task_id,analysis_output_link,benchmark_args,description,chromium_patch,catapult_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
+			db.TABLE_METRICS_ANALYSIS_TASKS),
 		[]interface{}{
 			task.Username,
+			task.MetricName,
 			task.CustomTraces,
-			task.AnalysisRunId,
+			task.AnalysisTaskId,
+			task.AnalysisOutputLink,
 			task.BenchmarkArgs,
 			task.Description,
 			task.ChromiumPatch,
