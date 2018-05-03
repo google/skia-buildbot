@@ -40,6 +40,7 @@ spec:
             - "--storage.tsdb.path=/mnt/prometheus/"
             - "--web.enable-lifecycle"
             - "--web.listen-address=:9090"
+            - "--web.external-url=https://prom2.skia.org"
           ports:
             - containerPort: 9090
           volumeMounts:

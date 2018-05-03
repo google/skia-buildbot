@@ -45,6 +45,7 @@ spec:
             - "--web.listen-address=:9090"
             - "--config.file=/etc/alertmanager/alertmanager.yml"
             - "--storage.path=/mnt/alertmanager"
+            - "--web.external-url=https://alerts2.skia.org"
           ports:
             - containerPort: 9090
           volumeMounts:
