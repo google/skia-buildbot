@@ -22,6 +22,30 @@
       "revId": "f0917efa865e5a3e16b531d7167c0405647c8911",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d6e0c1d_eba7ca9b",
+        "filename": "power/sys/power-controller.service",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-03T19:04:20Z",
+      "side": 1,
+      "message": "jumphost@skia-swarming-bots.iam.gserviceaccount.com",
+      "parentUuid": "a63d0754_2e007061",
+      "range": {
+        "startLine": 14,
+        "startChar": 22,
+        "endLine": 14,
+        "endChar": 84
+      },
+      "revId": "f0917efa865e5a3e16b531d7167c0405647c8911",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
