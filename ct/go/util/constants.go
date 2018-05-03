@@ -77,6 +77,7 @@ const (
 	BENCHMARK_USECOUNTER        = "usecounter_ct"
 	BENCHMARK_LEAK_DETECTION    = "leak_detection.cluster_telemetry"
 	BENCHMARK_MEMORY            = "memory.cluster_telemetry"
+	BENCHMARK_METRICS_ANALYSIS  = "analysis_metrics_ct"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -163,6 +164,7 @@ const (
 	CHROMIUM_ANALYSIS_ISOLATE      = "chromium_analysis.isolate"
 	CHROMIUM_PERF_ISOLATE          = "chromium_perf.isolate"
 	PIXEL_DIFF_ISOLATE             = "pixel_diff.isolate"
+	METRICS_ANALYSIS_ISOLATE       = "metrics_analysis.isolate"
 	BUILD_REPO_ISOLATE             = "build_repo.isolate"
 	// Swarming links and params.
 	// TODO(rmistry): The below link contains "st=1262304000000" which is from 2010. This is done so
