@@ -4,6 +4,9 @@ package ds
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	"google.golang.org/api/option"
@@ -122,7 +125,23 @@ func Init(project string, ns string) error {
 func InitForTesting(project string, ns string) error {
 	Namespace = ns
 	var err error
-	DS, err = datastore.NewClient(context.Background(), project)
+
+	var transport http.RoundTripper = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	httpClient := &http.Client{Transport: transport}
+
+	DS, err = datastore.NewClient(context.Background(), project, option.WithHTTPClient(httpClient))
 	if err != nil {
 		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
 	}
