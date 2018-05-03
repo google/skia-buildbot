@@ -1,0 +1,15 @@
+{
+  "timelapse_camera": {
+    "urls": [
+      "https://storage.googleapis.com/skia-timelapse/public/today_1.webm",
+      "https://storage.googleapis.com/skia-timelapse/public/today_2.webm"
+    ],
+    "method": "HEAD",
+    "expected": [
+      200
+    ],
+    "body": "",
+    "mimetype": "video/webm",
+    "responsetest": "nonZeroContentLength"
+  }
+}
