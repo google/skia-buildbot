@@ -8,4 +8,4 @@ ADD . /
 
 USER skia
 
-ENTRYPOINT ["/docserverk"]
+ENTRYPOINT ["/bin/docserverk"]

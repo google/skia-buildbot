@@ -28,6 +28,6 @@ push: release
 .PHONY: run
 run:
 	# Runs the latest built release.
-	docker run -ti -p8000:8000 docserverk --resources_dir=/usr/local/share/docserver/ --alsologtostderr
+	docker run -ti -p8000:8000 docserverk --resources_dir=/usr/local/share/docserverk/ --alsologtostderr --local
 
 include ../webtools/webtools.mk
