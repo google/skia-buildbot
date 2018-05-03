@@ -187,6 +187,7 @@ type PagesetTypeInfo struct {
 	CreatePagesetsTimeoutSecs  int
 	CaptureSKPsTimeoutSecs     int
 	PixelDiffTimeoutSecs       int
+	MetricsAnalysisTimeoutSecs int
 	RunChromiumPerfTimeoutSecs int
 	Description                string
 }
@@ -243,6 +244,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1M (with desktop user-agent)",
 		},
@@ -254,6 +256,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with desktop user-agent)",
 		},
@@ -265,6 +268,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with mobile user-agent)",
 		},
@@ -276,6 +280,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with desktop user-agent)",
 		},
@@ -287,6 +292,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with mobile user-agent)",
 		},
@@ -298,6 +304,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
 		},
@@ -309,6 +316,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 400M",
 		},
@@ -320,6 +328,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 1M",
 		},
@@ -331,6 +340,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			PixelDiffTimeoutSecs:       300,
+			MetricsAnalysisTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "PDF 1K",
 		},

@@ -34,6 +34,11 @@
         Analysis
       </paper-item>
 
+      <paper-item data-href="/metrics_analysis/">
+        <iron-icon icon="icons:assessment" class="right_padded"></iron-icon>
+        Metrics Analysis
+      </paper-item>
+
       <paper-item data-href="/pixel_diff/">
         <iron-icon icon="icons:picture-in-picture" class="right_padded"></iron-icon>
         Correctness
@@ -107,6 +112,8 @@
                     get_url: "/_/get_chromium_perf_tasks"},
                    {type: "ChromiumAnalysis",
                     get_url: "/_/get_chromium_analysis_tasks"},
+                   {type: "MetricsAnalysis",
+                    get_url: "/_/get_metrics_analysis_tasks"},
                    {type: "PixelDiff",
                     get_url: "/_/get_pixel_diff_tasks"},
                    {type: "CaptureSkps",

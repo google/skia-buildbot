@@ -124,10 +124,12 @@ func main() {
 	}
 
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *gaeTaskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Metrics analysis", *runID, *description))
-	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
-	defer sendEmail(emailsArr, gs)
+	//if !*master_common.Local {
+	//	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Metrics analysis", *runID, *description))
+	//	// Ensure webapp is updated and email is sent even if task fails.
+	//	defer updateWebappTask()
+	//	defer sendEmail(emailsArr, gs)
+	//}
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.

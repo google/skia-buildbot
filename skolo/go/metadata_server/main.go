@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
@@ -20,9 +19,9 @@ var (
 	APP_NAME = "metadata_server"
 
 	// Flags.
-	port       = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
-	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	tokenFiles = common.NewMultiStringFlag("token_file", nil, "Mapping of IP address to token file, eg. \"127.0.0.1:/path/to/token.json\"")
+	port      = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
+	promPort  = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	tokenFile = flag.String("token_file", "", "Path to a file containing a valid OAuth2 token for the service account.")
 )
 
 type instanceMetadataMap map[string]map[string]string
@@ -64,27 +63,14 @@ func main() {
 		},
 	}
 
-	if *tokenFiles == nil {
-		sklog.Fatal("At least one --token_file must be specified.")
+	tok, err := metadata.NewServiceAccountToken(*tokenFile)
+	if err != nil {
+		sklog.Fatal(err)
 	}
-	tokenMapping := make(map[string]*metadata.ServiceAccountToken, len(*tokenFiles))
-	for _, f := range *tokenFiles {
-		split := strings.Split(f, ":")
-		if len(split) != 2 {
-			sklog.Fatalf("Invalid value for --token_file: %s", f)
-		}
-		ipAddr := split[0]
-		tokenFile := split[1]
-		tok, err := metadata.NewServiceAccountToken(tokenFile)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		go tok.UpdateLoop(context.Background())
-		tokenMapping[ipAddr] = tok
-	}
+	go tok.UpdateLoop(context.Background())
 
 	r := mux.NewRouter()
-	metadata.SetupServer(r, pm, im, tokenMapping)
+	metadata.SetupServer(r, pm, im, tok)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on http://localhost%s", *port)
 	sklog.Fatal(http.ListenAndServe(*port, nil))

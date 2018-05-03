@@ -41,20 +41,17 @@ const (
 // Note: The default project for gcloud is used, and can be changed by running
 //
 //    $ gcloud config set project [project name]
-//
-// local  - If true then use the gcloud command line tool.
-// scopes - The scopes requested.
-//
-// When run on GCE the scopes are ignored in favor of the scopes
-// set on the instance, see:
-//
-//    https://cloud.google.com/sdk/gcloud/reference/compute/instances/set-service-account
-//
-func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
+func NewDefaultTokenSource(local bool) (oauth2.TokenSource, error) {
 	if local {
 		return NewGCloudTokenSource(""), nil
 	} else {
-		return google.DefaultTokenSource(context.Background(), scopes...)
+		// Are we running on GCE?
+		if cloud_metadata.OnGCE() {
+			return google.DefaultTokenSource(context.Background())
+		} else {
+			// Create and use a token provider for skolo service account access tokens.
+			return newSkoloTokenSource(), nil
+		}
 	}
 }
 
@@ -278,27 +275,14 @@ func newSkoloTokenSource() oauth2.TokenSource {
 func (s *skoloTokenSource) Token() (*oauth2.Token, error) {
 	resp, err := s.client.Get(metadata.TOKEN_URL)
 	if err != nil {
-		sklog.Errorf("Failed to retrieve token:  %s", err)
 		return nil, fmt.Errorf("Failed to retrieve token: %s", err)
 	}
 	defer util.Close(resp.Body)
-	type TokenResponse struct {
-		AccessToken  string `json:"access_token"`
-		ExpiresInSec int    `json:"expires_in"`
-		TokenType    string `json:"token_type"`
+	var tok oauth2.Token
+	if err := json.NewDecoder(resp.Body).Decode(&tok); err != nil {
+		return nil, fmt.Errorf("Failed to decode token: %s", err)
 	}
-	var res TokenResponse
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
-	}
-	if res.ExpiresInSec == 0 || res.AccessToken == "" {
-		return nil, fmt.Errorf("Incomplete token received from metadata")
-	}
-	return &oauth2.Token{
-		AccessToken: res.AccessToken,
-		TokenType:   res.TokenType,
-		Expiry:      time.Now().Add(time.Duration(res.ExpiresInSec) * time.Second),
-	}, nil
+	return &tok, nil
 }
 
 // SkoloServiceAccountClient creates an oauth client that uses the auth token
