@@ -414,9 +414,11 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	numTasks := int(math.Ceil(float64(numPages) / float64(numPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
 		isolateArgs := map[string]string{
-			"START_RANGE":  strconv.Itoa(GetStartRange(i, numPagesPerBot)),
-			"NUM":          strconv.Itoa(numPagesPerBot),
-			"PAGESET_TYPE": pagesetType,
+			"START_RANGE": strconv.Itoa(GetStartRange(i, numPagesPerBot)),
+			"NUM":         strconv.Itoa(numPagesPerBot),
+		}
+		if pagesetType != "" {
+			isolateArgs["PAGESET_TYPE"] = pagesetType
 		}
 		// Add isolateExtraArgs (if specified) into the isolateArgs.
 		for k, v := range isolateExtraArgs {
@@ -762,7 +764,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 			sklog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
 			continue
 		}
-		headers, values, err := getRowsFromCSV(newFile)
+		headers, values, err := GetRowsFromCSV(newFile)
 		if err != nil {
 			sklog.Errorf("Could not read %s: %s", newFile, err)
 			continue
@@ -824,7 +826,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 	return nil
 }
 
-func getRowsFromCSV(csvPath string) ([]string, [][]string, error) {
+func GetRowsFromCSV(csvPath string) ([]string, [][]string, error) {
 	csvFile, err := os.Open(csvPath)
 	defer util.Close(csvFile)
 	if err != nil {
