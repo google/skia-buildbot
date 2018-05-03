@@ -234,7 +234,9 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 // infra generates an infra test Task. Returns the name of the last Task in the
 // generated chain of Tasks, which the Job should add as a dependency.
 func infra(b *specs.TasksCfgBuilder, name string) string {
-	task := kitchenTask(name, "swarm_infra", "infrabots.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_LARGE), nil, OUTPUT_NONE)
+	dimensions := linuxGceDimensions(MACHINE_TYPE_LARGE)
+	dimensions = append(dimensions, "id:skia-gce-237")
+	task := kitchenTask(name, "swarm_infra", "infrabots.isolate", SERVICE_ACCOUNT_COMPILE, dimensions, nil, OUTPUT_NONE)
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))

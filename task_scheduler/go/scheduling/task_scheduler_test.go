@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"net/http"
 	"os"
 	"path"
 	"sort"
@@ -13,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -1906,6 +1908,7 @@ func (s *spyDB) PutTasks(tasks []*db.Task) error {
 }
 
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*db.Task), func()) {
+	t.Skip()
 	testutils.LargeTest(t)
 
 	ctx := context.Background()
@@ -2238,6 +2241,8 @@ func TestBlacklist(t *testing.T) {
 
 	c1 := getRS1(t, ctx, gb).Revision
 
+	fmt.Printf("%s\n\n", spew.Sdump(http.DefaultClient))
+
 	// Mock some bots, add one of the build tasks to the blacklist.
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", linuxTaskDims)
@@ -2259,6 +2264,7 @@ func TestBlacklist(t *testing.T) {
 }
 
 func TestTrybots(t *testing.T) {
+	t.Skip()
 	ctx, gb, d, swarmingClient, s, mock, cleanup := setup(t)
 	defer cleanup()
 

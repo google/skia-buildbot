@@ -321,7 +321,8 @@
         "os:Debian-9.4",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highcpu-64"
+        "machine_type:n1-highcpu-64",
+        "id:skia-gce-237"
       ],
       "env_prefixes": {
         "PATH": [
@@ -451,7 +452,8 @@
         "os:Debian-9.4",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highcpu-64"
+        "machine_type:n1-highcpu-64",
+        "id:skia-gce-237"
       ],
       "env_prefixes": {
         "PATH": [
@@ -581,7 +583,8 @@
         "os:Debian-9.4",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highcpu-64"
+        "machine_type:n1-highcpu-64",
+        "id:skia-gce-237"
       ],
       "env_prefixes": {
         "PATH": [
@@ -712,7 +715,8 @@
         "os:Debian-9.4",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highcpu-64"
+        "machine_type:n1-highcpu-64",
+        "id:skia-gce-237"
       ],
       "env_prefixes": {
         "PATH": [
