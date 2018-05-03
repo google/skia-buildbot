@@ -71,6 +71,7 @@ func setupAndroid(t *testing.T) (context.Context, string, func()) {
 // TestAndroidRepoManager tests all aspects of the RepoManager except for CreateNewRoll.
 func TestAndroidRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
+
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
@@ -85,6 +86,7 @@ func TestAndroidRepoManager(t *testing.T) {
 // TestCreateNewAndroidRoll tests creating a new roll.
 func TestCreateNewAndroidRoll(t *testing.T) {
 	testutils.LargeTest(t)
+
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
@@ -151,6 +153,7 @@ here
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsAndroid(t *testing.T) {
 	testutils.LargeTest(t)
+
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
