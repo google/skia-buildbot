@@ -1,0 +1,244 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "678372de_0f548366",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "We don\u0027t need BenchmarkPatch here?",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "341a1dc5_b5e6f2c0",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "Do you think someone will ask for MatchStdoutTxt?",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2994184_12bf3485",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "nit: should probably check metric_name",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08262100_088b9648",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": ":-)",
+      "range": {
+        "startLine": 41,
+        "startChar": 68,
+        "endLine": 41,
+        "endChar": 78
+      },
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a24b26e8_8bcc14b4",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "nit: Comment doesn\u0027t seem to match code. The next line triggers swarming tasks.",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c61bfcd_2e28ab22",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "Doesn\u0027t this need to match the value used above?",
+      "range": {
+        "startLine": 206,
+        "startChar": 149,
+        "endLine": 206,
+        "endChar": 168
+      },
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e18f528_4c45dae5",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "nit: might be useful to mention *analysisOutputLink",
+      "range": {
+        "startLine": 245,
+        "startChar": 45,
+        "endLine": 245,
+        "endChar": 57
+      },
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "795e6367_412624b2",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "nit: move outside of values loop",
+      "range": {
+        "startLine": 251,
+        "startChar": 3,
+        "endLine": 251,
+        "endChar": 31
+      },
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfd247c8_c3877cfc",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "nit: traceURLs \u003d append(traceURLs, strings.Split(values[j][i], \",\")...)\n\n(Also, since you\u0027re just going to do strings.Join below, you don\u0027t really need strings.Split.)",
+      "range": {
+        "startLine": 252,
+        "startChar": 0,
+        "endLine": 254,
+        "endChar": 5
+      },
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66066ba4_733081cf",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "nit: *analysisOutputLink might be more useful",
+      "range": {
+        "startLine": 259,
+        "startChar": 59,
+        "endLine": 259,
+        "endChar": 72
+      },
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae907527_1f93c0a8",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "nit: add documentation",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85c5a32d_517dbbfe",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 829,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T22:05:43Z",
+      "side": 1,
+      "message": "nit: add documentation",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
