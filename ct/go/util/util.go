@@ -725,12 +725,12 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 			// Kill the port-forwarder to start from a clean slate.
 			util.LogErr(ExecuteCmdWithConfigurableLogging(ctx, "pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))
 		}
-		output, getErr := getRunBenchmarkOutput(b, pagesetPath)
+		output, getErr := GetRunBenchmarkOutput(b)
 		util.LogErr(getErr)
 		fmt.Println(output)
 		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
-	output, err := getRunBenchmarkOutput(b, pagesetPath)
+	output, err := GetRunBenchmarkOutput(b)
 	if err != nil {
 		return "", fmt.Errorf("Could not get run benchmark output: %s", err)
 	}
@@ -739,14 +739,14 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	return output, nil
 }
 
-func getRunBenchmarkOutput(b bytes.Buffer, pagesetPath string) (string, error) {
+func GetRunBenchmarkOutput(b bytes.Buffer) (string, error) {
 	if _, err := b.WriteString("===================="); err != nil {
 		return "", fmt.Errorf("Error writing to output buffer: %s", err)
 	}
 	return b.String(), nil
 }
 
-func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GcsUtil, startRange int, handleStrings bool, pageRankToAdditionalFields map[string]map[string]string) error {
+func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GcsUtil, startRange int, handleStrings, addRanks bool, pageRankToAdditionalFields map[string]map[string]string) error {
 	// Move all results into a single directory.
 	fileInfos, err := ioutil.ReadDir(localOutputDir)
 	if err != nil {
@@ -762,17 +762,17 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 			sklog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
 			continue
 		}
-		// Add the rank of the page to the CSV file.
 		headers, values, err := getRowsFromCSV(newFile)
 		if err != nil {
 			sklog.Errorf("Could not read %s: %s", newFile, err)
 			continue
 		}
+		// Add the rank of the page to the CSV file.
 		pageRank := fileInfo.Name()
 		pageNameWithRank := ""
 		for i := range headers {
 			for j := range values {
-				if headers[i] == "stories" {
+				if headers[i] == "stories" && addRanks {
 					pageNameWithRank = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
 					values[j][i] = pageNameWithRank
 				}
@@ -787,7 +787,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 						valueLine[i] = h
 					} else if headers[i] == "avg" {
 						valueLine[i] = v
-					} else if headers[i] == "stories" {
+					} else if headers[i] == "stories" && addRanks {
 						valueLine[i] = pageNameWithRank
 					} else {
 						valueLine[i] = ""
