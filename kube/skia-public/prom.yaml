@@ -28,6 +28,7 @@ spec:
       labels:
         app: prometheus
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
@@ -36,7 +37,7 @@ spec:
           image: prom/prometheus:v2.1.0
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
-            - "--storage.tsdb.path=/prometheus/"
+            - "--storage.tsdb.path=/mnt/prometheus/"
             - "--web.enable-lifecycle"
             - "--web.listen-address=:9090"
           ports:
@@ -45,7 +46,7 @@ spec:
             - name: prometheus-config-volume
               mountPath: /etc/prometheus/
             - name: prometheus-storage-volume-claim2
-              mountPath: /prometheus/
+              mountPath: /mnt/prometheus/
           resources:
             requests:
               memory: "300Mi"

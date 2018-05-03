@@ -44,8 +44,8 @@ const (
 2018-03-05T12:32:53Z:https://storage.cloud.google.com/skia-infra-testdata/skqp-testing/skqp-universal-002-debug.apk:skqp-universal-002-debug.apk: 2018-03-05T12:32:58Z:95a7b76a44edd2f25423a4d395df553b80fe06d7:https://example.com/+/95a7b76a44edd2f25423a4d395df553b80fe06d7:Add new feature to dm`
 )
 
+/* Test assumes a local JWT service account.
 func TestGCEListing(t *testing.T) {
-	/* Test assumes a local JWT service account.
 
 	testutils.MediumTest(t)
 
@@ -64,8 +64,8 @@ func TestGCEListing(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, doc)
 	assert.Equal(t, expOutput, strings.TrimSpace(string(doc)))
-	*/
 }
+*/
 
 func checkSSI(t *testing.T, tag, expDoc string) {
 	doc, err := ProcessSSI([]byte(tag))
