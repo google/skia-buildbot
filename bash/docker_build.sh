@@ -28,10 +28,10 @@ HASH=`git rev-parse HEAD`
 
 # Detect if we have unchecked in local changes, or if we're not on the master
 # branch (possibly at an older revision).
-git fetch
+# git fetch
 # diff-index requires update-index --refresh; see:
 # https://stackoverflow.com/questions/36367190/git-diff-files-output-changes-after-git-status/36439778#36439778
-git update-index --refresh
+#git update-index --refresh
 REPO_STATE=clean
 if ! git diff-index --quiet HEAD -- ; then
   REPO_STATE=dirty
