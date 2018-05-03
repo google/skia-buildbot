@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -166,23 +167,64 @@ func mdHandler(r *mux.Router, level string, handler http.HandlerFunc) {
 	sklog.Infof("%s: %s", level, path)
 }
 
+// retrieve this server's IP address(es).
+func getMyIP() ([]string, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+	rv := []string{}
+	for _, iface := range ifaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return nil, err
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			rv = append(rv, ip.String())
+		}
+	}
+	return rv, nil
+}
+
 // SetupServer adds handlers to the given router which mimic the API of the GCE
 // metadata server.
 func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMapping map[string]*ServiceAccountToken) {
 	mdHandler(r, LEVEL_INSTANCE, makeInstanceMetadataHandler(im))
 	mdHandler(r, LEVEL_PROJECT, makeProjectMetadataHandler(pm))
 
+	myIpAddrs, err := getMyIP()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	// The service account token path does not quite follow the pattern of
 	// the other two metadata types.
 	r.HandleFunc(TOKEN_PATH, func(w http.ResponseWriter, r *http.Request) {
+		// Find the token for this requester.
 		ipAddr := strings.Split(r.RemoteAddr, ":")[0]
-		tok, ok := tokenMapping[ipAddr]
-		if !ok {
-			tok, ok = tokenMapping["*"]
-			if !ok {
-				httputils.ReportError(w, r, fmt.Errorf("Unknown IP address %s and no default token provided.", ipAddr), "Failed to retrieve token.")
-				return
-			}
+		var tok *ServiceAccountToken
+		if t, ok := tokenMapping[ipAddr]; ok {
+			// 1. We have a token specifically for this IP address.
+			tok = t
+		} else if t, ok := tokenMapping["self"]; ok && util.In(ipAddr, myIpAddrs) {
+			// 2. The request is coming from this machine, and we
+			// have a token specifically for that case.
+			tok = t
+		} else if t, ok := tokenMapping["*"]; ok {
+			// 3. We don't know about this IP address specifically,
+			// but we have a default token.
+			tok = t
+		} else {
+			// 4. None of the above. Return an error.
+			httputils.ReportError(w, r, fmt.Errorf("Unknown IP address %s and no default token provided.", ipAddr), "Failed to retrieve token.")
+			return
 		}
 
 		t, err := tok.Get()
