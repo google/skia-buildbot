@@ -24,9 +24,6 @@ const (
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.4"
 
-	MACHINE_TYPE_SMALL = "n1-highmem-2"
-	MACHINE_TYPE_LARGE = "n1-highcpu-64"
-
 	// Swarming output dirs.
 	OUTPUT_NONE = "output_ignored" // This will result in outputs not being isolated.
 
@@ -107,13 +104,12 @@ var (
 )
 
 // Dimensions for Linux GCE instances.
-func linuxGceDimensions(machineType string) []string {
+func linuxGceDimensions() []string {
 	return []string{
 		"pool:Skia",
 		fmt.Sprintf("os:%s", DEFAULT_OS_LINUX),
 		"gpu:none",
 		"cpu:x86-64-Haswell_GCE",
-		fmt.Sprintf("machine_type:%s", machineType),
 	}
 }
 
@@ -152,7 +148,7 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
-		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
+		Dimensions: linuxGceDimensions(),
 		EnvPrefixes: map[string][]string{
 			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
 		},
@@ -234,7 +230,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 // infra generates an infra test Task. Returns the name of the last Task in the
 // generated chain of Tasks, which the Job should add as a dependency.
 func infra(b *specs.TasksCfgBuilder, name string) string {
-	task := kitchenTask(name, "swarm_infra", "infrabots.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_LARGE), nil, OUTPUT_NONE)
+	task := kitchenTask(name, "swarm_infra", "infrabots.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(), nil, OUTPUT_NONE)
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
@@ -261,7 +257,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		"reason":           "CQ",
 		"repo_name":        "skia_buildbot",
 	}
-	task := kitchenTask(name, "run_presubmit", "empty.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_LARGE), extraProps, OUTPUT_NONE)
+	task := kitchenTask(name, "run_presubmit", "empty.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(), extraProps, OUTPUT_NONE)
 
 	replaceArg := func(key, value string) {
 		found := false
