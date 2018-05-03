@@ -1,0 +1,45 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: proberk
+spec:
+  template:
+    metadata:
+      labels:
+        app: proberk
+    spec:
+      containers:
+      - name: proberk
+        image: gcr.io/skia-public/proberk:2018-04-12T20_05_25Z-jcgregorio-b79e0a0942d9cc2314a0983a4e0e08a75eca9137-dirty
+        args:
+            - "--logtostderr"
+            - "--config=/etc/proberk/probersk.json"
+            - "--prom_port=:20000"
+        ports:
+          - name: metrics
+            containerPort: 20000
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/proberk
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "25m"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: proberk-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: proberk
+  name: proberk
+spec:
+  ports:
+    - name: metrics
+      port: 20000
+  selector:
+    app: proberk
+  type: NodePort
