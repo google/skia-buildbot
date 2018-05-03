@@ -165,6 +165,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 	properties := map[string]string{
 		"buildername":   name,
 		"patch_issue":   specs.PLACEHOLDER_ISSUE,
+		"patch_ref":     specs.PLACEHOLDER_PATCH_REF,
 		"patch_repo":    specs.PLACEHOLDER_PATCH_REPO,
 		"patch_set":     specs.PLACEHOLDER_PATCHSET,
 		"patch_storage": specs.PLACEHOLDER_PATCH_STORAGE,
