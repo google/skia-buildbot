@@ -1,0 +1,176 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5b3b292_e61eb4a9",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T20:25:39Z",
+      "side": 1,
+      "message": "Is this the same as \"metric_name\" in ct/go/worker_scripts/metrics_analysis/main.go? If yes, maybe add a comment, e.g. \"Passed as metric_name to worker script.\"",
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80ba6a35_528ac594",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T20:25:39Z",
+      "side": 1,
+      "message": "It\u0027s \"analysis_metrics\" not \"metrics_analysis\"?",
+      "range": {
+        "startLine": 81,
+        "startChar": 32,
+        "endLine": 81,
+        "endChar": 48
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54baaca2_cf3c1926",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T20:25:39Z",
+      "side": 1,
+      "message": "Why put this under PagesetsDir?",
+      "range": {
+        "startLine": 91,
+        "startChar": 31,
+        "endLine": 91,
+        "endChar": 47
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae6a70d0_113ac126",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T20:25:39Z",
+      "side": 1,
+      "message": "Is this the correct location?",
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58099089_569230b8",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T20:25:39Z",
+      "side": 1,
+      "message": "nit: move 2 lines up",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 2
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba46a39b_0fc320e5",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T20:25:39Z",
+      "side": 1,
+      "message": "nit: Elsewhere you say it does not run Chrome, so this seems inconsistent.",
+      "range": {
+        "startLine": 136,
+        "startChar": 59,
+        "endLine": 136,
+        "endChar": 75
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1451db8b_804c6a0c",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T20:25:39Z",
+      "side": 1,
+      "message": "nit: copy/pasto",
+      "range": {
+        "startLine": 155,
+        "startChar": 45,
+        "endLine": 155,
+        "endChar": 65
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f295a0bd_33a8acca",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T20:25:39Z",
+      "side": 1,
+      "message": "nit: pretty sure this is missing a slash. file URIs have three slashes after \"file:\" for localhost, and I\u0027m guessing that downloadedTrace starts with a slash, so you need to add two more.",
+      "range": {
+        "startLine": 212,
+        "startChar": 37,
+        "endLine": 212,
+        "endChar": 43
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
