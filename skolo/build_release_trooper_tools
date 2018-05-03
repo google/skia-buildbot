@@ -46,7 +46,6 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
 
   # Install the powercycle daemon
   ${INSTALL} --mode=755 -T ${GOPATH}/bin/powercycle-daemon ${ROOT}/usr/local/bin/powercycle-daemon
-  ${INSTALL} --mode=644 -T ./service-account.json          ${ROOT}/usr/local/share/trooper_tools/service-account.json
   ${INSTALL} --mode=644 -T ./sys/powercycle-daemon.service  ${ROOT}/etc/systemd/system/powercycle-daemon.service
   }
 
