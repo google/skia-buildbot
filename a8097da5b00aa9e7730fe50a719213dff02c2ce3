@@ -22,6 +22,30 @@
       "revId": "a8097da5b00aa9e7730fe50a719213dff02c2ce3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57b83665_e4089f50",
+        "filename": "task_scheduler/go/scheduling/task_candidate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-03T12:27:25Z",
+      "side": 1,
+      "message": "Currently used in Skia\u0027s gen_tasks.go to build the same gerrit ref for the presubmit task.  I\u0027ll be able to remove that after this change, though due to old branches we may have to keep all of these variables around.",
+      "parentUuid": "67ec86c1_572910d3",
+      "range": {
+        "startLine": 162,
+        "startChar": 8,
+        "endLine": 162,
+        "endChar": 28
+      },
+      "revId": "a8097da5b00aa9e7730fe50a719213dff02c2ce3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
