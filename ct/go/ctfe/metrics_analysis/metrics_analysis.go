@@ -44,13 +44,13 @@ func ReloadTemplates(resourcesDir string) {
 type DBTask struct {
 	task_common.CommonCols
 
-	CustomTraces  string         `db:"custom_traces"`
-	AnalysisRunId int            `db:"analysis_run_id"`
-	BenchmarkArgs string         `db:"benchmark_args"`
-	Description   string         `db:"description"`
-	ChromiumPatch string         `db:"chromium_patch"`
-	CatapultPatch string         `db:"catapult_patch"`
-	RawOutput     sql.NullString `db:"raw_output"`
+	CustomTraces       string         `db:"custom_traces"`
+	AnalysisOutputLink string         `db:"analysis_output_link"`
+	BenchmarkArgs      string         `db:"benchmark_args"`
+	Description        string         `db:"description"`
+	ChromiumPatch      string         `db:"chromium_patch"`
+	CatapultPatch      string         `db:"catapult_patch"`
+	RawOutput          sql.NullString `db:"raw_output"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -63,7 +63,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
 	taskVars.CustomTraces = dbTask.CustomTraces
-	taskVars.AnalysisRunId = dbTask.AnalysisRunId
+	taskVars.AnalysisOutputLink = dbTask.AnalysisOutputLink
 	taskVars.BenchmarkArgs = dbTask.BenchmarkArgs
 	taskVars.Description = dbTask.Description
 	taskVars.ChromiumPatch = dbTask.ChromiumPatch
@@ -104,17 +104,21 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	CustomTraces  string `json:"custom_traces"`
-	AnalysisRunId int    `json:"analysis_run_id"`
-	BenchmarkArgs string `json:"benchmark_args"`
-	Description   string `json:"desc"`
-	ChromiumPatch string `json:"chromium_patch"`
-	CatapultPatch string `json:"catapult_patch"`
+	CustomTraces       string `json:"custom_traces"`
+	AnalysisOutputLink string `json:"analysis_output_link"`
+	BenchmarkArgs      string `json:"benchmark_args"`
+	Description        string `json:"desc"`
+	ChromiumPatch      string `json:"chromium_patch"`
+	CatapultPatch      string `json:"catapult_patch"`
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
-	if (task.CustomTraces == "" && task.AnalysisRunId == 0) ||
+	if (task.CustomTraces == "" && task.AnalysisOutputLink == "") ||
 		task.Description == "" {
+		fmt.Println("here here")
+		fmt.Println(task.CustomTraces)
+		fmt.Println(task.AnalysisOutputLink)
+		fmt.Println(task.Description)
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
 	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
@@ -126,12 +130,12 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	}); err != nil {
 		return "", nil, err
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,custom_traces,analysis_run_id,benchmark_args,description,chromium_patch,catapult_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,custom_traces,analysis_output_link,benchmark_args,description,chromium_patch,catapult_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_ANALYSIS_TASKS),
 		[]interface{}{
 			task.Username,
 			task.CustomTraces,
-			task.AnalysisRunId,
+			task.AnalysisOutputLink,
 			task.BenchmarkArgs,
 			task.Description,
 			task.ChromiumPatch,

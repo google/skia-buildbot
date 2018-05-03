@@ -6,6 +6,7 @@ package chromium_analysis
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -20,6 +21,7 @@ import (
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -196,6 +198,52 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		nil
 }
 
+func taskToOutputLinkHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := struct {
+		TaskId int `json:"task_id"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse task to run id request")
+		return
+	}
+	defer skutil.Close(r.Body)
+
+	rawOutputs := []string{}
+	query := fmt.Sprintf("SELECT raw_output FROM %s WHERE id = ?", db.TABLE_CHROMIUM_ANALYSIS_TASKS)
+	if err := db.DB.Select(&rawOutputs, query, vars.TaskId); err != nil || len(rawOutputs) < 1 {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Unable to validate task Id parameter %v", vars.TaskId))
+		return
+	}
+
+	if len(rawOutputs) != 1 {
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Unable to find requested task."))
+		return
+	}
+
+	fmt.Println(rawOutputs)
+	fmt.Println(rawOutputs[0])
+
+	data := map[string]string{
+		"output_link": rawOutputs[0],
+	}
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+
+	//addTaskVars := tasks[0].GetPopulatedAddTaskVars()
+	//// Replace the username with the new requester.
+	//addTaskVars.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
+	//// Do not preserve repeat_after_days for retried tasks. Carrying over
+	//// repeat_after_days causes the same task to be unknowingly repeated.
+	//addTaskVars.GetAddTaskCommonVars().RepeatAfterDays = "0"
+	//if _, err := AddTask(addTaskVars); err != nil {
+	//	httputils.ReportError(w, r, err, "Could not redo the task.")
+	//	return
+	//}
+}
+
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
@@ -256,4 +304,7 @@ func AddHandlers(r *mux.Router) {
 
 	// Do not add force login handler for update methods. They use webhooks for authentication.
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_ANALYSIS_TASK_POST_URI, updateTaskHandler).Methods("POST")
+
+	r.HandleFunc("/"+ctfeutil.CHROMIUM_ANALYSIS_TASK_TO_OUTPUT_LINK_POST_URI, taskToOutputLinkHandler).Methods("POST")
+	// ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CHROMIUM_ANALYSIS_TASK_TO_RUN_ID_POST_URI, "GET", taskToRunIdHandler)
 }
