@@ -27,7 +27,7 @@ backup:
 	go install -v ./go/file-backup
 
 .PHONY: rpi_backup_release
-rpi_backup_release: backup service_account
+rpi_backup_release: backup
 	./build_release_rpi_backup "`git log -n1 --format=%s`"
 
 .PHONY: rpi_backup_push
@@ -37,7 +37,7 @@ rpi_backup_push: backup service_account
 	pushcli rpi-backup skia-rpi-master
 
 .PHONY: router_backup_release
-router_backup_release: backup service_account
+router_backup_release: backup
 	./build_release_router_backup "`git log -n1 --format=%s`"
 
 .PHONY: router_backup_push_all

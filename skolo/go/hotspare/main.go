@@ -39,6 +39,8 @@ var (
 
 	startServingPlaybook = flag.String("start_serving_playbook", "", "The Ansible playbook that, when run locally, will start serving the image.  This should be idempotent.")
 	stopServingPlaybook  = flag.String("stop_serving_playbook", "", "The Ansible playbook that, when run locally, will stop serving the image.  This should be idempotent.")
+
+	local = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
 const FORGIVENESS_THRESHOLD = 100
@@ -215,7 +217,7 @@ func main() {
 	common.InitWithMust(
 		"hotspare",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingJWTOpt(serviceAccountPath),
+		common.CloudLoggingDefaultAuthOpt(local),
 	)
 	ctx := context.Background()
 	lt := NewVirtualIPManager(*livenessAddr, *livenessPeriod, *livenessTimeout, *livenessThreshold)
