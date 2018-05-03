@@ -67,7 +67,8 @@ func main() {
 	if *tokenFiles == nil {
 		sklog.Fatal("At least one --token_file must be specified.")
 	}
-	tokenMapping := make(map[string]*metadata.ServiceAccountToken, len(*tokenFiles))
+	tokens := make(map[string]*metadata.ServiceAccountToken, len(*tokenFiles))
+	tokenIpMapping := make(map[string]string, len(*tokenFiles))
 	for _, f := range *tokenFiles {
 		split := strings.Split(f, ":")
 		if len(split) != 2 {
@@ -75,12 +76,20 @@ func main() {
 		}
 		ipAddr := split[0]
 		tokenFile := split[1]
-		tok, err := metadata.NewServiceAccountToken(tokenFile)
-		if err != nil {
-			sklog.Fatal(err)
+
+		tokenIpMapping[ipAddr] = tokenFile
+		if _, ok := tokens[tokenFile]; !ok {
+			tok, err := metadata.NewServiceAccountToken(tokenFile)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			go tok.UpdateLoop(context.Background())
+			tokens[tokenFile] = tok
 		}
-		go tok.UpdateLoop(context.Background())
-		tokenMapping[ipAddr] = tok
+	}
+	tokenMapping := make(map[string]*metadata.ServiceAccountToken, len(tokenIpMapping))
+	for ipAddr, tokenFile := range tokenIpMapping {
+		tokenMapping[ipAddr] = tokens[tokenFile]
 	}
 
 	r := mux.NewRouter()
