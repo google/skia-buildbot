@@ -138,6 +138,7 @@ func setupFakeGithub(t *testing.T, wd string, childCommits []string) *github.Git
 // TestGithubRepoManager tests all aspects of the GithubRepoManager except for CreateNewRoll.
 func TestGithubRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, child, childCommits, parent, _, cleanup := setupGithub(t)
 	defer cleanup()
@@ -177,6 +178,7 @@ func TestGithubRepoManager(t *testing.T) {
 
 func TestCreateNewGithubRoll(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, child, childCommits, parent, _, cleanup := setupGithub(t)
 	defer cleanup()
@@ -205,6 +207,7 @@ func TestCreateNewGithubRoll(t *testing.T) {
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsGithub(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	ctx, wd, _, childCommits, parent, _, cleanup := setupGithub(t)
 	defer cleanup()
