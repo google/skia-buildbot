@@ -12,8 +12,11 @@ import (
 	"time"
 
 	admin "cloud.google.com/go/iam/admin/apiv1"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 	adminpb "google.golang.org/genproto/googleapis/iam/admin/v1"
 )
 
@@ -21,8 +24,8 @@ var (
 	// Default service account used for bots which connect to
 	// chrome-swarming.appspot.com.
 	chromeSwarming = &serviceAccount{
-		project:  "skia-buildbots",
-		email:    "chrome-swarming-bots@skia-buildbots.iam.gserviceaccount.com",
+		project:  "google.com:skia-buildbots",
+		email:    "chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com",
 		nickname: "swarming",
 	}
 
@@ -34,31 +37,44 @@ var (
 		nickname: "swarming",
 	}
 
+	// Service account used by the jumphost itself.
+	jumphost = &serviceAccount{
+		project:  "google.com:skia-buildbots",
+		email:    "jumphost@skia-buildbots.google.com.iam.gserviceaccount.com",
+		nickname: "jumphost",
+	}
+
+	// Service account used by the RPi masters.
+	rpiMaster = &serviceAccount{
+		project:  "google.com:skia-buildbots",
+		email:    "rpi-master@skia-buildbots.google.com.iam.gserviceaccount.com",
+		nickname: "rpi-master",
+	}
+
 	// Determines which keys go on which machines:
 	// map[jumphost_name][]*serviceAccount
 	jumphostServiceAccountMapping = map[string][]*serviceAccount{
-		// TODO(borenet): I get the following error when attempting to
-		// list the keys for this account, even though I'm auth'd as
-		// myself and I can do it via the UI:
-		//
-		// Permission iam.serviceAccountKeys.list is required to perform
-		// this operation on service account X.
-		//
-		// For now, I'll do it manually.
-		/*"internal-01.skolo": []*serviceAccount{
+		"internal-01.skolo": []*serviceAccount{
 			chromeSwarming,
-		},*/
+			jumphost,
+			rpiMaster,
+		},
 		"linux-01.skolo": []*serviceAccount{
 			chromiumSwarm,
+			jumphost,
 		},
 		"rpi-01.skolo": []*serviceAccount{
 			chromiumSwarm,
+			jumphost,
+			rpiMaster,
 		},
 		"win-02.skolo": []*serviceAccount{
 			chromiumSwarm,
+			jumphost,
 		},
 		"win-03.skolo": []*serviceAccount{
 			chromiumSwarm,
+			jumphost,
 		},
 	}
 )
@@ -96,23 +112,33 @@ func main() {
 	// Setup.
 	common.Init()
 	ctx := context.Background()
-	c, err := admin.NewIamClient(ctx)
-	if err != nil {
-		sklog.Fatalf("Failed to create IAM client: %s", err)
-	}
 
 	// Create new keys for all service accounts. Track the previous keys so
 	// that we can delete them later.
 	fmt.Println("Generating new keys.")
+	clients := map[string]*admin.IamClient{}
 	serviceAccounts := map[*serviceAccount]bool{}
 	for _, accounts := range jumphostServiceAccountMapping {
 		for _, acc := range accounts {
 			serviceAccounts[acc] = true
+			if _, ok := clients[acc.project]; !ok {
+				tokenSource := auth.NewGCloudTokenSource(acc.project)
+				creds := &google.Credentials{
+					ProjectID:   acc.project,
+					TokenSource: tokenSource,
+				}
+				c, err := admin.NewIamClient(ctx, option.WithCredentials(creds))
+				if err != nil {
+					sklog.Fatalf("Failed to create IAM client: %s", err)
+				}
+				clients[acc.project] = c
+			}
 		}
 	}
-	deleteKeys := []string{}
+	deleteKeys := map[string][]string{}
 	for acc, _ := range serviceAccounts {
 		serviceAccountPath := admin.IamServiceAccountPath(acc.project, acc.email)
+		c := clients[acc.project]
 		resp, err := c.ListServiceAccountKeys(ctx, &adminpb.ListServiceAccountKeysRequest{
 			Name: serviceAccountPath,
 		})
@@ -128,7 +154,7 @@ func main() {
 				// expirations. These do not show up on the UI.
 				// Don't mess with them and only delete the
 				// longer-lived keys which we've created.
-				deleteKeys = append(deleteKeys, key.Name)
+				deleteKeys[acc.project] = append(deleteKeys[acc.project], key.Name)
 			}
 		}
 
@@ -151,12 +177,15 @@ func main() {
 	}
 
 	// Delete the old keys.
-	for _, key := range deleteKeys {
-		fmt.Println("Deleting", key)
-		if err := c.DeleteServiceAccountKey(ctx, &adminpb.DeleteServiceAccountKeyRequest{
-			Name: key,
-		}); err != nil {
-			sklog.Fatalf("Failed to delete service account key %q: %s", key, err)
+	for project, keys := range deleteKeys {
+		for _, key := range keys {
+			fmt.Println("Deleting", key)
+			c := clients[project]
+			if err := c.DeleteServiceAccountKey(ctx, &adminpb.DeleteServiceAccountKeyRequest{
+				Name: key,
+			}); err != nil {
+				sklog.Fatalf("Failed to delete service account key %q: %s", key, err)
+			}
 		}
 	}
 }
