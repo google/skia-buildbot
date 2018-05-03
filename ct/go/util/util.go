@@ -715,6 +715,11 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		env = append(env, e)
 	}
 
+	if targetPlatform == PLATFORM_ANDROID {
+		// Reset android logcat prior to the run so that we can examine the logs later.
+		util.LogErr(ExecuteCmd(ctx, BINARY_ADB, []string{"logcat", "-c"}, []string{}, ADB_ROOT_TIMEOUT, nil, nil))
+	}
+
 	// Create buffer for capturing the stdout and stderr of the benchmark run.
 	var b bytes.Buffer
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", pagesetPath)); err != nil {
@@ -730,6 +735,14 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		fmt.Println(output)
 		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
+
+	// Append logcat output if we ran on Android.
+	if targetPlatform == PLATFORM_ANDROID {
+		if err := ExecuteCmdWithConfigurableLogging(ctx, BINARY_ADB, []string{"logcat", "-d"}, env, ADB_ROOT_TIMEOUT, &b, &b, false, false); err != nil {
+			return "", fmt.Errorf("Error running logcat -d: %s", err)
+		}
+	}
+
 	output, err := getRunBenchmarkOutput(b, pagesetPath)
 	if err != nil {
 		return "", fmt.Errorf("Could not get run benchmark output: %s", err)
