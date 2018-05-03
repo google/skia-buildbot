@@ -1,0 +1,58 @@
+groups:
+- name: general
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} has been down
+        for more than 5 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{
+        reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{
+        $labels.job }}'
+  - alert: CrashLoop
+    expr: max_over_time(liveness_uptime_s[6m]) < 60 * 3
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} is crashing on
+        startup. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{
+        reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{
+        $labels.job }}'
+  - alert: TooManyGoRoutines
+    expr: go_goroutines > 3000
+    for: 2m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      description: 'Too many Go routines in {{ $labels.job }} running on {{ $labels.instance
+        }}. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=400&expandAll=false&resource=logging_log%2Fname%2F{{
+        reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{
+        $labels.job }}'
+      summary: Too many Go routines in {{ $labels.job }}
+  - alert: ProbeFailure
+    expr: prober{type="failure"} > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.probename }} {{ $labels.url }}'
+      description: Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to
+        respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{
+        $labels.probename }}+filename%3Aprobers.json5 for the endpoint URL.
+  - alert: TooManyOpenFDs
+    expr: process_open_fds > 2000
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.host }}'
+      description: Too many open file handles on {{ $labels.host }}.

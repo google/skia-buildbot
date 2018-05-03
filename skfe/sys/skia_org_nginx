@@ -1600,7 +1600,14 @@ server {
     return 301 https://jsdoc.skia.org$request_uri;
 }
 
-# A test proxy_pass for an application running in skia-public.
+#
+#
+#
+# Entries below here are running on skia-public
+#
+#
+#
+
 #####   prom2.skia.org   ###########################
 server {
     listen      443;
@@ -1620,4 +1627,25 @@ server {
     listen      80;
     server_name prom2.skia.org;
     return 301 https://prom2.skia.org$request_uri;
+}
+
+#####   alerts2.skia.org   ###########################
+server {
+    listen      443;
+    server_name alerts2.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/alerts2.access.log;
+    error_log /var/log/nginx/alerts2.error.log error;
+
+    location / {
+        proxy_pass https://35.201.76.220;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name alerts2.skia.org;
+    return 301 https://alerts2.skia.org$request_uri;
 }
