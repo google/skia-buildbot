@@ -69,6 +69,30 @@
       "revId": "f4db40a22641e4bbf992d0ebee90b357db7429e2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83ed4c2d_0b19c369",
+        "filename": "skolo/sys/metadata-server.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-03T14:44:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dbfeb4ed_29da4674",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 28
+      },
+      "revId": "f4db40a22641e4bbf992d0ebee90b357db7429e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
