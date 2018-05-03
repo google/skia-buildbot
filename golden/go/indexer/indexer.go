@@ -231,7 +231,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	expCh := make(chan map[string]types.TestClassification)
 	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
-		expCh <- e.(map[string]types.TestClassification)
+		expCh <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
 	// When the expectations of a Gerrit issue change then trigger pushing the

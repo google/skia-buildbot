@@ -19,7 +19,7 @@ const (
 
 func init() {
 	// Register the codec for EV_EXPSTORAGE_CHANGED so we can have distributed events.
-	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.JSONCodec(map[string]types.TestClassification{}))
+	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.JSONCodec(&EventExpectationChange{}))
 }
 
 // Wraps the set of expectations and provides methods to manipulate them.
@@ -146,15 +146,7 @@ type ExpectationsStore interface {
 	// original change to the label they had before the change was applied.
 	// A new entry is added to the log with a reference to the change that was
 	// undone.
-	UndoChange(changeID int, userID string) (map[string]types.TestClassification, error)
-
-	// CanonicalTraceIDs returns the canonical trace IDs for the given list
-	// of test names.
-	CanonicalTraceIDs(testNames []string) (map[string]string, error)
-
-	// CanonicalTraceIDs sets the canonical trace IDs for the mapping of
-	// test names to trace IDs.
-	SetCanonicalTraceIDs(traceIDs map[string]string) error
+	UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error)
 
 	// removeChange removes the given digests from the expectations store.
 	// The key in changes is the test name which maps to a list of digests
@@ -172,12 +164,12 @@ type TriageDetail struct {
 
 // TriageLogEntry represents one change in the expectation store.
 type TriageLogEntry struct {
-	ID           int             `json:"id"`
+	ID           int64           `json:"id"`
 	Name         string          `json:"name"`
 	TS           int64           `json:"ts"`
 	ChangeCount  int             `json:"changeCount"`
 	Details      []*TriageDetail `json:"details"`
-	UndoChangeID int             `json:"undoChangeId"`
+	UndoChangeID int64           `json:"undoChangeId"`
 }
 
 // Implements ExpectationsStore in memory for prototyping and testing.
@@ -223,7 +215,7 @@ func (m *MemExpectationsStore) AddChange(changedTests map[string]types.TestClass
 	}
 
 	if m.eventBus != nil {
-		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedTests, true)
+		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, 0), true)
 	}
 
 	m.readCopy = m.expectations.DeepCopy()
@@ -245,7 +237,7 @@ func (m *MemExpectationsStore) removeChange(changedDigests map[string]types.Test
 	}
 
 	if m.eventBus != nil {
-		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedDigests, true)
+		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedDigests, 0), true)
 	}
 
 	m.readCopy = m.expectations.DeepCopy()
@@ -259,19 +251,7 @@ func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*Tria
 }
 
 // See  ExpectationsStore interface.
-func (m *MemExpectationsStore) UndoChange(changeID int, userID string) (map[string]types.TestClassification, error) {
+func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error) {
 	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
-}
-
-// See ExpectationsStore interface.
-// TODO(stephana): Implement once API is defined.
-func (m *MemExpectationsStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
-	return nil, nil
-}
-
-// See ExpectationsStore interface.
-// TODO(stephana): Implement once API is defined.
-func (m *MemExpectationsStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
-	return nil
 }
