@@ -110,6 +110,7 @@ func linuxGceDimensions() []string {
 		fmt.Sprintf("os:%s", DEFAULT_OS_LINUX),
 		"gpu:none",
 		"cpu:x86-64-Haswell_GCE",
+		"machine_type:n1-standard-16",
 	}
 }
 
