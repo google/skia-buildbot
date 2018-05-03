@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -168,23 +167,13 @@ func mdHandler(r *mux.Router, level string, handler http.HandlerFunc) {
 
 // SetupServer adds handlers to the given router which mimic the API of the GCE
 // metadata server.
-func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMapping map[string]*ServiceAccountToken) {
+func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tok *ServiceAccountToken) {
 	mdHandler(r, LEVEL_INSTANCE, makeInstanceMetadataHandler(im))
 	mdHandler(r, LEVEL_PROJECT, makeProjectMetadataHandler(pm))
 
 	// The service account token path does not quite follow the pattern of
 	// the other two metadata types.
 	r.HandleFunc(TOKEN_PATH, func(w http.ResponseWriter, r *http.Request) {
-		ipAddr := strings.Split(r.RemoteAddr, ":")[0]
-		tok, ok := tokenMapping[ipAddr]
-		if !ok {
-			tok, ok = tokenMapping["*"]
-			if !ok {
-				httputils.ReportError(w, r, fmt.Errorf("Unknown IP address %s and no default token provided.", ipAddr), "Failed to retrieve token.")
-				return
-			}
-		}
-
 		t, err := tok.Get()
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to obtain key.")

@@ -575,7 +575,7 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 	}
 	// Call csv_merger.py to merge all results into a single results CSV.
 	pathToCsvMerger := filepath.Join(pathToPyFiles, "csv_merger.py")
-	outputFileName := runID + ".output"
+	outputFileName := GetCsvRemoteFileName(runID)
 	args := []string{
 		pathToCsvMerger,
 		"--csv_dir=" + localOutputDir,
@@ -589,11 +589,23 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 		return noOutputSlaves, fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
 	// Copy the output file to Google Storage.
-	remoteOutputDir := filepath.Join(BenchmarkRunsDir, runID, "consolidated_outputs")
+	remoteOutputDir := GetCsvRemoteOutputDir(runID)
 	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
 		return noOutputSlaves, fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
 	}
 	return noOutputSlaves, nil
+}
+
+// GetCsvRemoteFileName returns the name of the CSV output file stored in Google
+// Storage.
+func GetCsvRemoteFileName(runID string) string {
+	return runID + ".output"
+}
+
+// GetCsvRemoteOutputDir returns the remote directory the consolidated CSV should
+// be kept in.
+func GetCsvRemoteOutputDir(runID string) string {
+	return filepath.Join(BenchmarkRunsDir, runID, "consolidated_outputs")
 }
 
 // GetRepeatValue returns the defaultValue if "--pageset-repeat" is not specified in benchmarkArgs.
