@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6804d7e3_68795d0c",
+        "filename": "promk/prometheus/alert.rules.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T14:05:27Z",
+      "side": 1,
+      "message": "nit: not a fan of dots within filenames",
+      "revId": "76b714b7deca106861d7ca776d4dc9468d8315ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5153828_5905263b",
+        "filename": "promk/prometheus/alert.rules.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T14:05:27Z",
+      "side": 1,
+      "message": "50 seems very low. Current alert is for 3000.",
+      "range": {
+        "startLine": 29,
+        "startChar": 26,
+        "endLine": 29,
+        "endChar": 28
+      },
+      "revId": "76b714b7deca106861d7ca776d4dc9468d8315ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
