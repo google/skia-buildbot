@@ -49,7 +49,6 @@ var (
 	chromiumHash       = flag.String("chromium_hash", "", "The chromium commit hash to sync the local checkout to. Done so that all slaves operate on the same revision.")
 )
 
-// TODO(rmistry): Make sure all downloaded artifacts and directories are cleaned up at the end of the run.
 func metricsAnalysis() error {
 	defer common.LogPanic()
 	worker_common.Init()
@@ -76,7 +75,6 @@ func metricsAnalysis() error {
 	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
 		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
-	// Parse out the Chromium and Skia hashes.
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{"src": *chromiumHash}, []string{}); err != nil {
 		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
@@ -90,8 +88,6 @@ func metricsAnalysis() error {
 
 	// Download the trace URLs for this run from Google storage.
 	tracesFilename := *runID + ".traces.csv"
-	// TODO(rmistry): This should not be in the tmp dir, could run out of memory!
-	// TODO(rmistry): Remove this directory later.
 	tmpDir, err := ioutil.TempDir(util.PagesetsDir, "traces")
 	defer skutil.RemoveAll(tmpDir)
 	remotePatchesDir := filepath.Join(util.BenchmarkRunsDir, *runID)
@@ -103,6 +99,12 @@ func metricsAnalysis() error {
 	catapultPatchName := *runID + ".catapult.patch"
 	if err := util.DownloadAndApplyPatch(ctx, catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
 		return fmt.Errorf("Could not apply %s: %s", catapultPatchName, err)
+	}
+
+	// Download the chromium patch for this run from Google storage.
+	chromiumPatchName := *runID + ".chromium.patch"
+	if err := util.DownloadAndApplyPatch(ctx, chromiumPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
+		return fmt.Errorf("Could not apply %s: %s", chromiumPatchName, err)
 	}
 
 	// Download traces.
@@ -194,7 +196,6 @@ func metricsAnalysis() error {
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		// Construct path to CT's python scripts.
 		pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
-		// TODO(rmistry): Can map[string]map[string]string{} be nil instead?
 		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, gs, *startRange, true /* handleStrings */, false /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
@@ -203,7 +204,7 @@ func metricsAnalysis() error {
 	return nil
 }
 
-// Return error and check for atleast one successful run to see...
+// runMetricsAnalysisBenchmark runs the analysis_metrics_ct benchmark on the provided trace.
 func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrace, cloudTraceLink string) error {
 	args := []string{
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
