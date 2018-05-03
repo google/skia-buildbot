@@ -4,7 +4,7 @@
 // completion.
 //
 // Can be tested locally with:
-// $ go run go/master_scripts/metrics_analysis_on_workers/main.go --run_id=rmistry-test1 --benchmark_extra_args="--output-format=csv" --logtostderr=true --description=testing --metric_name=loadingMetric --analysis_run_id=rmistry-20180502115012
+// $ go run go/master_scripts/metrics_analysis_on_workers/main.go --run_id=rmistry-test1 --benchmark_extra_args="--output-format=csv" --logtostderr=true --description=testing --metric_name=loadingMetric --analysis_output_link="https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-20180502115012/consolidated_outputs/rmistry-20180502115012.output"
 //
 package main
 
@@ -42,8 +42,8 @@ var (
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the analysis_metrics_ct benchmark.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
-	metricName    = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
-	analysisRunId = flag.String("analysis_run_id", "", "Cloud trace links will be gathered from this specified CT analysis run Id.")
+	metricName         = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
+	analysisOutputLink = flag.String("analysis_output_link", "", "Cloud trace links will be gathered from this specified CT analysis run Id.")
 
 	taskCompletedSuccessfully = false
 
@@ -147,9 +147,9 @@ func main() {
 
 	tracesFileName := *runID + ".traces.csv"
 	tracesFilePath := filepath.Join(os.TempDir(), tracesFileName)
-	if *analysisRunId != "" {
+	if *analysisOutputLink != "" {
 		if err := extractTracesFromAnalysisRun(tracesFilePath, gs); err != nil {
-			sklog.Errorf("Error when extracting traces from run %s to %s: %s", *analysisRunId, tracesFilePath, err)
+			sklog.Errorf("Error when extracting traces from run %s to %s: %s", *analysisOutputLink, tracesFilePath, err)
 			return
 		}
 	}
@@ -230,8 +230,8 @@ func main() {
 // extractTracesFromAnalysisRuns gathers all traceURLs from the specified analysis
 // run and writes to the specified outputPath.
 func extractTracesFromAnalysisRun(outputPath string, gs *util.GcsUtil) error {
-	// Construct path to the analysis run and download it locally.
-	remoteCsvPath := filepath.Join(util.GetCsvRemoteOutputDir(*analysisRunId), util.GetCsvRemoteFileName(*analysisRunId))
+	// Construct path to the google storage locations and download it locally.
+	remoteCsvPath := strings.Split(*analysisOutputLink, util.GCSBucketName+"/")[1]
 	localDownloadPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID, "downloads")
 	localCsvPath := filepath.Join(localDownloadPath, *runID+".csv")
 	if err := fileutil.EnsureDirPathExists(localCsvPath); err != nil {
@@ -241,8 +241,6 @@ func extractTracesFromAnalysisRun(outputPath string, gs *util.GcsUtil) error {
 	if err := gs.DownloadRemoteFile(remoteCsvPath, localCsvPath); err != nil {
 		return fmt.Errorf("Error downloading %s to %s: %s", remoteCsvPath, localCsvPath, err)
 	}
-	fmt.Println(remoteCsvPath)
-	fmt.Println(localCsvPath)
 
 	headers, values, err := util.GetRowsFromCSV(localCsvPath)
 	if err != nil {

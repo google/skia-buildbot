@@ -142,6 +142,8 @@ func AddTask(task AddTaskVars) (int64, error) {
 	}
 	result, err := db.DB.Exec(query, binds...)
 	if err != nil {
+		fmt.Println("---------------------------------------------------------------------------------")
+		fmt.Println(err.Error())
 		return -1, fmt.Errorf("Failed to insert %T task: %v", task, err)
 	}
 	return result.LastInsertId()
@@ -260,6 +262,12 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Running %s", query)
 	data, err := prototype.Select(query, args...)
 	if err != nil {
+		fmt.Println("XXXXXXXXXXXXXXXXXX")
+		fmt.Println(query)
+		fmt.Println(args...)
+		fmt.Println(prototype.GetTaskName())
+		fmt.Println(err)
+		fmt.Println(prototype)
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
 		return
 	}
@@ -299,6 +307,8 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
+	fmt.Println("xxxxxxxxxxxxx")
+	fmt.Println(jsonResponse)
 }
 
 // Data included in all update requests.
@@ -371,6 +381,9 @@ func getUpdateQueryAndBinds(vars UpdateTaskVars, tableName string) (string, []in
 	clauses = append(clauses, additionalClauses...)
 	args = append(args, additionalArgs...)
 	if len(clauses) == 0 {
+		fmt.Println("HERE HERE HERE HERE")
+		fmt.Println(args)
+
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
 	query += strings.Join(clauses, ", ")

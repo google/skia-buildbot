@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
 	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
@@ -64,14 +65,15 @@ func reloadTemplates() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
-	chromium_analysis.ReloadTemplates(*resourcesDir)
-	chromium_perf.ReloadTemplates(*resourcesDir)
-	pixel_diff.ReloadTemplates(*resourcesDir)
-	capture_skps.ReloadTemplates(*resourcesDir)
-	lua_scripts.ReloadTemplates(*resourcesDir)
-	chromium_builds.ReloadTemplates(*resourcesDir)
 	admin_tasks.ReloadTemplates(*resourcesDir)
+	capture_skps.ReloadTemplates(*resourcesDir)
+	chromium_analysis.ReloadTemplates(*resourcesDir)
+	chromium_builds.ReloadTemplates(*resourcesDir)
+	chromium_perf.ReloadTemplates(*resourcesDir)
+	lua_scripts.ReloadTemplates(*resourcesDir)
+	metrics_analysis.ReloadTemplates(*resourcesDir)
 	pending_tasks.ReloadTemplates(*resourcesDir)
+	pixel_diff.ReloadTemplates(*resourcesDir)
 }
 
 func Init() {
@@ -100,14 +102,16 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
-	chromium_analysis.AddHandlers(r)
-	chromium_perf.AddHandlers(r) // Note: chromium_perf adds a handler for "/".
-	pixel_diff.AddHandlers(r)
-	capture_skps.AddHandlers(r)
-	lua_scripts.AddHandlers(r)
-	chromium_builds.AddHandlers(r)
 	admin_tasks.AddHandlers(r)
+	capture_skps.AddHandlers(r)
+	chromium_analysis.AddHandlers(r)
+	chromium_builds.AddHandlers(r)
+	chromium_perf.AddHandlers(r) // Note: chromium_perf adds a handler for "/".
+	lua_scripts.AddHandlers(r)
+	metrics_analysis.AddHandlers(r)
 	pending_tasks.AddHandlers(r)
+	pixel_diff.AddHandlers(r)
+
 	task_common.AddHandlers(r)
 
 	// Handler for displaying results stored in Google Storage.
@@ -271,7 +275,9 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	ctutil.MailInit(filepath.Join(usr.HomeDir, "email.data"))
+	if !*local {
+		ctutil.MailInit(filepath.Join(usr.HomeDir, "email.data"))
+	}
 
 	redirectURL := serverURL + ctfeutil.OAUTH2_CALLBACK_PATH
 	if err := login.Init(redirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " ")); err != nil {

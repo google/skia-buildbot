@@ -426,8 +426,10 @@ var v26_up = []string{
 	`CREATE TABLE IF NOT EXISTS MetricsAnalysisTasks (
 		id                       INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
 		username                 VARCHAR(255) NOT NULL,
+		metric_name              VARCHAR(255) NOT NULL DEFAULT "",
 		custom_traces            LONGTEXT     NOT NULL DEFAULT "",
-		analysis_task_id	     INT          NOT NULL DEFAULT 0,
+		analysis_task_id         INT          NOT NULL DEFAULT 0,
+		analysis_output_link	 VARCHAR(255) NOT NULL DEFAULT "",
 		benchmark_args           VARCHAR(255),
 		description              VARCHAR(255),
 		repeat_after_days        BIGINT       NOT NULL DEFAULT 0,
@@ -438,7 +440,7 @@ var v26_up = []string{
 		ts_completed             BIGINT,
 		failure                  TINYINT(1),
 		swarming_logs            VARCHAR(255),
-		results                  VARCHAR(255)
+		raw_output               VARCHAR(255)
 	)`,
 }
 
