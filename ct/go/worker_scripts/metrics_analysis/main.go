@@ -49,7 +49,7 @@ var (
 	chromiumHash       = flag.String("chromium_hash", "", "The chromium commit hash to sync the local checkout to. Done so that all slaves operate on the same revision.")
 )
 
-// TODO(rmistry): Make sure all downloaded artifacts and directories are cleaned up at the end of the run.
+// TODO(rmistry): Add chromium patch and catapult patch support here as well!
 func metricsAnalysis() error {
 	defer common.LogPanic()
 	worker_common.Init()
@@ -90,8 +90,6 @@ func metricsAnalysis() error {
 
 	// Download the trace URLs for this run from Google storage.
 	tracesFilename := *runID + ".traces.csv"
-	// TODO(rmistry): This should not be in the tmp dir, could run out of memory!
-	// TODO(rmistry): Remove this directory later.
 	tmpDir, err := ioutil.TempDir(util.PagesetsDir, "traces")
 	defer skutil.RemoveAll(tmpDir)
 	remotePatchesDir := filepath.Join(util.BenchmarkRunsDir, *runID)
@@ -103,6 +101,12 @@ func metricsAnalysis() error {
 	catapultPatchName := *runID + ".catapult.patch"
 	if err := util.DownloadAndApplyPatch(ctx, catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
 		return fmt.Errorf("Could not apply %s: %s", catapultPatchName, err)
+	}
+
+	// Download the chromium patch for this run from Google storage.
+	chromiumPatchName := *runID + ".chromium.patch"
+	if err := util.DownloadAndApplyPatch(ctx, chromiumPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
+		return fmt.Errorf("Could not apply %s: %s", chromiumPatchName, err)
 	}
 
 	// Download traces.

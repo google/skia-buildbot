@@ -72,6 +72,10 @@ run_chromium_perf_on_workers:
 run_chromium_analysis_on_workers:
 	go install -v ./go/master_scripts/run_chromium_analysis_on_workers/
 
+.PHONY: metrics_analysis_on_workers
+metrics_analysis_on_workers:
+	go install -v ./go/master_scripts/metrics_analysis_on_workers/
+
 # Worker scripts.
 .PHONY: create_pagesets
 create_pagesets:
@@ -109,6 +113,10 @@ run_chromium_perf:
 run_chromium_analysis:
 	go install -v ./go/worker_scripts/run_chromium_analysis/
 
+.PHONY: metrics_analysis
+metrics_analysis:
+	go install -v ./go/worker_scripts/metrics_analysis/
+
 .PHONY: poller
 poller:
 	go install -v ./go/poller/
@@ -127,12 +135,12 @@ master_scripts: build_chromium \
 	create_pagesets_on_workers capture_archives_on_workers \
 	run_lua_on_workers capture_skps_on_workers \
         pixel_diff_on_workers run_chromium_perf_on_workers poller \
-        run_chromium_analysis_on_workers
+        run_chromium_analysis_on_workers metrics_analysis_on_workers
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
                 pixel_diff capture_skps_from_pdfs run_chromium_perf \
-                run_chromium_analysis build_repo
+                run_chromium_analysis build_repo metrics_analysis
 
 .PHONY: all
 all: master_scripts worker_scripts testgo

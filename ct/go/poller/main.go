@@ -207,7 +207,7 @@ func (task *PixelDiffTask) Execute(ctx context.Context) error {
 		// Add an extra newline at the end because git sometimes rejects patches due to
 		// missing newlines.
 		patch = patch + "\n"
-		patchPath := filepath.Join(os.TempDir(), runId+fileSuffix)
+		patchPath := filepath.Join(os.TempDir(), runId+fileSuffix) // do not use os.TempDir for Metrics task...
 		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
 			return err
 		}
