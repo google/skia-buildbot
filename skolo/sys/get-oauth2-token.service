@@ -7,8 +7,8 @@ After=network-online.target
 Type=oneshot
 ExecStart=/usr/local/bin/get-oauth2-token \
   --logtostderr \
-  --service_account_file=/etc/service_account_swarming.json \
-  --dest=/var/local/token_swarming.json
+  --service_account=/etc/service_account_swarming.json:/var/local/token_swarming.json \
+  --service_account=/etc/service_account_rpi_master.json:/var/local/token_rpi_master.json
 User=root
 Group=root
 LimitNOFILE=10000
