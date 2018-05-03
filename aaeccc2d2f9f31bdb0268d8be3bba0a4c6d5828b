@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75591836_fff80405",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-03T17:08:47Z",
+      "side": 1,
+      "message": "(Both internal and external)",
+      "range": {
+        "startLine": 47,
+        "startChar": 43,
+        "endLine": 47,
+        "endChar": 44
+      },
+      "revId": "aaeccc2d2f9f31bdb0268d8be3bba0a4c6d5828b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "528a6d83_0f98d95d",
+        "filename": "scripts/rotate_keys/rotate_keys.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-03T17:08:47Z",
+      "side": 1,
+      "message": "Why not sklog?  (or was this a debugging statement?)",
+      "range": {
+        "startLine": 182,
+        "startChar": 3,
+        "endLine": 182,
+        "endChar": 14
+      },
+      "revId": "aaeccc2d2f9f31bdb0268d8be3bba0a4c6d5828b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
