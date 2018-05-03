@@ -448,7 +448,8 @@ func (r *AutoRoller) rollFinished(ctx context.Context, currentRoll RollImpl) err
 	// finished.
 	idx := -1
 	for i, roll := range recent {
-		if string(roll.Issue) == currentRoll.IssueID() {
+		issue := fmt.Sprintf("%d", roll.Issue)
+		if issue == currentRoll.IssueID() {
 			idx = i
 			break
 		}
