@@ -65,7 +65,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	// Find which Chromium commit hash should be used.
 	var err error
 	if chromiumHash == "" {
-		chromiumHash, err = getChromiumHash(ctx)
+		chromiumHash, err = GetChromiumHash(ctx)
 		if err != nil {
 			return "", "", fmt.Errorf("Error while finding Chromium's Hash: %s", err)
 		}
@@ -158,7 +158,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	return getTruncatedHash(chromiumHash), getTruncatedHash(skiaHash), nil
 }
 
-func getChromiumHash(ctx context.Context) (string, error) {
+func GetChromiumHash(ctx context.Context) (string, error) {
 	// Find Chromium's Tot commit hash.
 	stdoutFilePath := filepath.Join(os.TempDir(), "chromium-tot")
 	stdoutFile, err := os.Create(stdoutFilePath)
