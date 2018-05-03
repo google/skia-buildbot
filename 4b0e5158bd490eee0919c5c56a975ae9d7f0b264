@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "93391afe_f9548057",
+        "filename": "bash/docker_build.sh",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T21:00:12Z",
+      "side": 0,
+      "message": "nit: also remove from release.sh for consistency.",
+      "revId": "4b0e5158bd490eee0919c5c56a975ae9d7f0b264",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2761a76b_6433869a",
+        "filename": "bash/docker_build.sh",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T21:00:12Z",
+      "side": 0,
+      "message": "Why is this no longer needed?",
+      "revId": "4b0e5158bd490eee0919c5c56a975ae9d7f0b264",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

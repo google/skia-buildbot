@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c30fa8a6_2f0dc09d",
+        "filename": "proberk/Makefile",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T21:00:12Z",
+      "side": 1,
+      "message": "nit: Doesn\u0027t agree with comment.",
+      "range": {
+        "startLine": 22,
+        "startChar": 98,
+        "endLine": 22,
+        "endChar": 104
+      },
+      "revId": "ae1e860f374a9dfadbbd9c3d476cacad560cd85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55596d65_a6efb259",
+        "filename": "proberk/allprobersk.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-03T21:00:12Z",
+      "side": 1,
+      "message": "Your gitignore doesn\u0027t seem to work.",
+      "revId": "ae1e860f374a9dfadbbd9c3d476cacad560cd85d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
