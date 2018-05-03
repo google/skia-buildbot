@@ -6,10 +6,10 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"syscall"
 
 	"go.skia.org/infra/go/auth"
@@ -20,8 +20,7 @@ import (
 
 var (
 	// Flags.
-	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
-	dest               = flag.String("dest", "", "Destination path to write the token file.")
+	serviceAccounts = common.NewMultiStringFlag("service_account", nil, "Mapping of \"/path/to/service_account.key:/path/to/token.file\"")
 )
 
 // checkFilePerms returns an error if the given file is not owned and readable
@@ -47,25 +46,24 @@ func checkFilePerms(fp string) error {
 	return nil
 }
 
-func main() {
-	common.Init()
-
-	sklog.Infof("Obtaining new auth token.")
-
-	if *serviceAccountFile == "" {
-		sklog.Fatalf("--service_account_file is required.")
+func processServiceAccount(sa string) error {
+	split := strings.Split(sa, ":")
+	if len(split) != 2 {
+		return fmt.Errorf("Invalid argument for --service_account: %s", sa)
 	}
+	serviceAccountFile := split[0]
+	dest := split[1]
 
 	// Verify that the key file is owned and readable only by root.
-	if err := checkFilePerms(*serviceAccountFile); err != nil {
+	if err := checkFilePerms(serviceAccountFile); err != nil {
 		sklog.Fatal(err)
 	}
 
-	if *dest == "" {
+	if dest == "" {
 		sklog.Fatalf("--dest is required.")
 	}
 
-	src, err := auth.NewJWTServiceAccountTokenSource("#bogus", *serviceAccountFile, compute.CloudPlatformScope, auth.SCOPE_USERINFO_EMAIL)
+	src, err := auth.NewJWTServiceAccountTokenSource("#bogus", serviceAccountFile, compute.CloudPlatformScope, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -78,9 +76,25 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := ioutil.WriteFile(*dest, b, 0644); err != nil {
+	if err := ioutil.WriteFile(dest, b, 0644); err != nil {
 		sklog.Fatal(err)
 	}
 
 	sklog.Infof("Wrote new auth token: %s", tok.AccessToken[len(tok.AccessToken)-8:])
+	return nil
+}
+
+func main() {
+	common.Init()
+
+	sklog.Infof("Obtaining new auth token.")
+
+	if *serviceAccounts == nil {
+		sklog.Fatalf("At least one --service_account is required.")
+	}
+	for _, sa := range *serviceAccounts {
+		if err := processServiceAccount(sa); err != nil {
+			sklog.Fatal(err)
+		}
+	}
 }
