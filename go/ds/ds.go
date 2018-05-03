@@ -122,6 +122,12 @@ func Init(project string, ns string) error {
 func InitForTesting(project string, ns string) error {
 	Namespace = ns
 	var err error
+
+	// client, err := grpc.Dial("")
+	// if err != nil {
+	// 	return err
+	// }
+
 	DS, err = datastore.NewClient(context.Background(), project)
 	if err != nil {
 		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
