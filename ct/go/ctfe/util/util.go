@@ -54,6 +54,14 @@ const (
 	DELETE_PIXEL_DIFF_TASK_POST_URI = "_/delete_pixel_diff_task"
 	REDO_PIXEL_DIFF_TASK_POST_URI   = "_/redo_pixel_diff_task"
 
+	METRICS_ANALYSIS_URI                  = "metrics_analysis/"
+	METRICS_ANALYSIS_RUNS_URI             = "metrics_analysis_runs/"
+	ADD_METRICS_ANALYSIS_TASK_POST_URI    = "_/add_metrics_analysis_task"
+	GET_METRICS_ANALYSIS_TASKS_POST_URI   = "_/get_metrics_analysis_tasks"
+	UPDATE_METRICS_ANALYSIS_TASK_POST_URI = "_/update_metrics_analysis_task"
+	DELETE_METRICS_ANALYSIS_TASK_POST_URI = "_/delete_metrics_analysis_task"
+	REDO_METRICS_ANALYSIS_TASK_POST_URI   = "_/redo_metrics_analysis_task"
+
 	LUA_SCRIPT_URI                  = "lua_script/"
 	LUA_SCRIPT_RUNS_URI             = "lua_script_runs/"
 	ADD_LUA_SCRIPT_TASK_POST_URI    = "_/add_lua_script_task"
