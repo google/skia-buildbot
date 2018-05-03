@@ -130,6 +130,15 @@ func (c *taskCandidate) MakeIsolateTask(infraBotsDir, baseDir string) *isolate.T
 	}
 }
 
+// getPatchRef returns a ref name for the patch if applicable, or the empty
+// string.
+func getPatchRef(issue, issueShort, patchSet string) string {
+	if issue != "" && issueShort != "" && patchSet != "" {
+		return fmt.Sprintf("refs/changes/%s/%s/%s", issueShort, issue, patchSet)
+	}
+	return ""
+}
+
 // getPatchStorage returns "gerrit" or "" based on the Server URL.
 func getPatchStorage(server string) string {
 	if server == "" {
@@ -151,6 +160,7 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 		specs.VARIABLE_CODEREVIEW_SERVER:    c.Server,
 		specs.VARIABLE_ISSUE:                c.Issue,
 		specs.VARIABLE_ISSUE_SHORT:          issueShort,
+		specs.VARIABLE_PATCH_REF:            getPatchRef(c.Issue, issueShort, c.Patchset),
 		specs.VARIABLE_PATCH_REPO:           c.PatchRepo,
 		specs.VARIABLE_PATCH_STORAGE:        getPatchStorage(c.Server),
 		specs.VARIABLE_PATCHSET:             c.Patchset,

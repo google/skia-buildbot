@@ -92,4 +92,10 @@ func TestReplaceVar(t *testing.T) {
 	assert.Equal(t, "<(REVISION", replaceVars(c, "<(REVISION", dummyId))
 	assert.Equal(t, "my-repo_my-task_abc123", replaceVars(c, "<(REPO)_<(TASK_NAME)_<(REVISION)", dummyId))
 	assert.Equal(t, dummyId, replaceVars(c, "<(TASK_ID)", dummyId))
+	assert.Equal(t, "", replaceVars(c, "<(PATCH_REF)", dummyId))
+
+	c.Issue = "12345"
+	c.Patchset = "3"
+	c.Server = "https://server"
+	assert.Equal(t, "refs/changes/45/12345/3", replaceVars(c, "<(PATCH_REF)", dummyId))
 }
