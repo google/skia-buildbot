@@ -2,7 +2,7 @@ Google Cloud Datastore
 ======================
 
 We use the Namespace in Cloud Datastore to differentiate applications (Perf,
-Gold) and different installations of the same application (Perf, Perf-Android,
+Gold)    and different installations of the same application (Perf, Perf-Android,
 Gold, Gold-PDFium). Since there may end up being many namespaces, a naming
 convention has been established:
 
