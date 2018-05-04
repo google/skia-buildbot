@@ -466,7 +466,7 @@ func (r *AutoRoller) rollFinished(ctx context.Context, currentRoll RollImpl) err
 	// Send notifications if this roll had a different result from the last
 	// roll, ie. success -> failure or failure -> success.
 	currentSuccess := currentRoll.IsSuccess() || currentRoll.IsDryRunSuccess()
-	lastSuccess := util.In(lastRoll.Result, autoroll.FAILURE_RESULTS)
+	lastSuccess := util.In(lastRoll.Result, autoroll.SUCCESS_RESULTS)
 	if lastRoll != nil {
 		if currentSuccess && !lastSuccess {
 			if err := r.notifier.SendNewSuccess(ctx, currentRoll.IssueID(), currentRoll.IssueURL()); err != nil {
