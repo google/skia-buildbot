@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c2d950d6_f8961ccc",
+        "filename": "bash/docker_build.sh",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-04T14:35:36Z",
+      "side": 0,
+      "message": "Not needed as release.sh doesn\u0027t run with \"set -e\".",
+      "parentUuid": "93391afe_f9548057",
+      "revId": "4b0e5158bd490eee0919c5c56a975ae9d7f0b264",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2761a76b_6433869a",
         "filename": "bash/docker_build.sh",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2018-05-03T21:00:12Z",
       "side": 0,
       "message": "Why is this no longer needed?",
+      "revId": "4b0e5158bd490eee0919c5c56a975ae9d7f0b264",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b14616f6_69a62746",
+        "filename": "bash/docker_build.sh",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-04T14:35:36Z",
+      "side": 0,
+      "message": "These commands require there be no uncommitted changes in the repo, otherwise they error out of the script, which can get super annoying when trying to iterate quickly to get an app up and running. But I found a better way do this than remove the code, just put it in an \u0027if\u0027 block.",
+      "parentUuid": "2761a76b_6433869a",
       "revId": "4b0e5158bd490eee0919c5c56a975ae9d7f0b264",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
