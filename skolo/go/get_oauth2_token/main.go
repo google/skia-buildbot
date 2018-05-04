@@ -9,18 +9,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"syscall"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/skolo/go/service_accounts"
 	compute "google.golang.org/api/compute/v1"
-)
-
-var (
-	// Flags.
-	serviceAccounts = common.NewMultiStringFlag("service_account", nil, "Mapping of \"/path/to/service_account.key:/path/to/token.file\"")
 )
 
 // checkFilePerms returns an error if the given file is not owned and readable
@@ -46,13 +41,9 @@ func checkFilePerms(fp string) error {
 	return nil
 }
 
-func processServiceAccount(sa string) error {
-	split := strings.Split(sa, ":")
-	if len(split) != 2 {
-		return fmt.Errorf("Invalid argument for --service_account: %s", sa)
-	}
-	serviceAccountFile := split[0]
-	dest := split[1]
+func processServiceAccount(nickname string) error {
+	serviceAccountFile := fmt.Sprintf("/etc/service_account_%s.json", nickname)
+	dest := fmt.Sprintf("/var/local/token_%s.json", nickname)
 
 	// Verify that the key file is owned and readable only by root.
 	if err := checkFilePerms(serviceAccountFile); err != nil {
@@ -87,13 +78,19 @@ func processServiceAccount(sa string) error {
 func main() {
 	common.Init()
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	serviceAccounts, ok := service_accounts.JumphostServiceAccountMapping[hostname]
+	if !ok {
+		sklog.Fatalf("Hostname not in jumphost mapping: %s", hostname)
+	}
+
 	sklog.Infof("Obtaining new auth token.")
 
-	if *serviceAccounts == nil {
-		sklog.Fatalf("At least one --service_account is required.")
-	}
-	for _, sa := range *serviceAccounts {
-		if err := processServiceAccount(sa); err != nil {
+	for _, sa := range serviceAccounts {
+		if err := processServiceAccount(sa.Nickname); err != nil {
 			sklog.Fatal(err)
 		}
 	}
