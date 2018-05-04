@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"time"
@@ -20,7 +19,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -28,15 +26,15 @@ import (
 )
 
 var (
-	gceBucket          = flag.String("gce_bucket", "skia-backups", "GCS Bucket backups should be stored in")
-	gceFolder          = flag.String("gce_folder", "Swarming", "Folder in the bucket that should hold the backup files")
-	localFilePath      = flag.String("local_file_path", "", "Where the file is stored locally on disk. Cannot use with remote_file_path")
-	period             = flag.Duration("period", 24*time.Hour, "How often to do the file backup.")
-	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	remoteCopyCommand  = flag.String("remote_copy_command", "scp", "rsync or scp.  The router does not have rsync installed.")
-	remoteFilePath     = flag.String("remote_file_path", "", "Remote location for a file, to be used by remote_copy_command.  E.g. foo@127.0.0.1:/etc/bar.conf Cannot use with local_file_path")
-	serviceAccountPath = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
-	addHostname        = flag.Bool("add_hostname", false, "If the hostname should be included in the backup file name")
+	gceBucket         = flag.String("gce_bucket", "skia-backups", "GCS Bucket backups should be stored in")
+	gceFolder         = flag.String("gce_folder", "Swarming", "Folder in the bucket that should hold the backup files")
+	localFilePath     = flag.String("local_file_path", "", "Where the file is stored locally on disk. Cannot use with remote_file_path")
+	period            = flag.Duration("period", 24*time.Hour, "How often to do the file backup.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	remoteCopyCommand = flag.String("remote_copy_command", "scp", "rsync or scp.  The router does not have rsync installed.")
+	remoteFilePath    = flag.String("remote_file_path", "", "Remote location for a file, to be used by remote_copy_command.  E.g. foo@127.0.0.1:/etc/bar.conf Cannot use with local_file_path")
+	addHostname       = flag.Bool("add_hostname", false, "If the hostname should be included in the backup file name")
+	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 
 	backupMetric metrics2.Liveness
 )
@@ -109,7 +107,7 @@ func main() {
 	common.InitWithMust(
 		"file-backup",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingJWTOpt(serviceAccountPath),
+		common.CloudLoggingDefaultAuthOpt(local),
 	)
 	ctx := context.Background()
 	if *localFilePath == "" && *remoteFilePath == "" {
@@ -119,11 +117,11 @@ func main() {
 		sklog.Fatalf("You must specify a local_file_path OR a remote_file_path, not both")
 	}
 
-	// We use the plain old http Transport, because the default one doesn't like uploading big files.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, auth.SCOPE_READ_WRITE, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	tokenSource, err := auth.NewDefaultTokenSource(*local)
 	if err != nil {
-		sklog.Fatalf("Could not setup credentials: %s", err)
+		sklog.Fatal(err)
 	}
+	client := auth.ClientFromTokenSource(tokenSource)
 
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
