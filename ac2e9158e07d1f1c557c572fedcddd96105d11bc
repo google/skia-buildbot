@@ -22,6 +22,30 @@
       "revId": "ac2e9158e07d1f1c557c572fedcddd96105d11bc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dc78756_c2ac6032",
+        "filename": "bash/docker_build.sh",
+        "patchSetId": 11
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-04T14:49:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32d86c81_9f8c98ad",
+      "range": {
+        "startLine": 53,
+        "startChar": 32,
+        "endLine": 53,
+        "endChar": 36
+      },
+      "revId": "ac2e9158e07d1f1c557c572fedcddd96105d11bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
