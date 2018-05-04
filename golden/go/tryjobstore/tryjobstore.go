@@ -483,12 +483,12 @@ func (c *cloudTryjobStore) QueryLog(issueID int64, offset, size int, details boo
 	ret := make([]*expstorage.TriageLogEntry, 0, len(expChanges))
 	for _, change := range expChanges {
 		ret = append(ret, &expstorage.TriageLogEntry{
-			ID:           int(change.ChangeID.ID),
+			ID:           change.ChangeID.ID,
 			Name:         change.UserID,
 			TS:           change.TimeStamp,
 			ChangeCount:  int(change.Count),
 			Details:      nil,
-			UndoChangeID: int(change.UndoChangeID),
+			UndoChangeID: change.UndoChangeID,
 		})
 	}
 
