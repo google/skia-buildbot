@@ -431,9 +431,9 @@ func jsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
-	ignoreRule.ID = int(id)
+	ignoreRule.ID = id
 
-	err = storages.IgnoreStore.Update(int(id), ignoreRule)
+	err = storages.IgnoreStore.Update(id, ignoreRule)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to update ignore rule.")
 		return
@@ -456,7 +456,7 @@ func jsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = storages.IgnoreStore.Delete(int(id), user); err != nil {
+	if _, err = storages.IgnoreStore.Delete(id, user); err != nil {
 		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
 	} else {
 		// If delete worked just list the current ignores and return them.
@@ -894,7 +894,7 @@ func jsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extract the id to undo.
-	changeID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	changeID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Invalid change id.")
 		return
