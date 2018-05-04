@@ -22,6 +22,30 @@
       "revId": "34a37fcaa0ae118a6859937f44cd6ee0170cfc3b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b69bbc1_9494e34e",
+        "filename": "skolo/go/metadata_server/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-04T15:07:24Z",
+      "side": 1,
+      "message": "Right, the code below uses the set of service accounts which are supposed to be on the instance from the service_accounts package to pull out just the relevant accounts and invert the mapping to \"ip: service-account-token\"",
+      "parentUuid": "88742ab9_c70d5a3f",
+      "range": {
+        "startLine": 30,
+        "startChar": 19,
+        "endLine": 30,
+        "endChar": 33
+      },
+      "revId": "34a37fcaa0ae118a6859937f44cd6ee0170cfc3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
