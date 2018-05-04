@@ -27,7 +27,7 @@ backup:
 	go install -v ./go/file-backup
 
 .PHONY: rpi_backup_release
-rpi_backup_release: backup service_account
+rpi_backup_release: backup
 	./build_release_rpi_backup "`git log -n1 --format=%s`"
 
 .PHONY: rpi_backup_push
@@ -37,7 +37,7 @@ rpi_backup_push: backup service_account
 	pushcli rpi-backup skia-rpi-master
 
 .PHONY: router_backup_release
-router_backup_release: backup service_account
+router_backup_release: backup
 	./build_release_router_backup "`git log -n1 --format=%s`"
 
 .PHONY: router_backup_push_all
@@ -56,7 +56,7 @@ cloudlogger:
 	go install -v ./go/cloudlogger
 
 .PHONY: cloudlogger_release
-cloudlogger_release: service_account
+cloudlogger_release:
 	GOOS=linux GOARCH=arm GOARM=7 go build -o out/cloudlogger -v ./go/cloudlogger
 	./build_release_cloudlogger "`git log -n1 --format=%s`"
 
@@ -67,7 +67,7 @@ trooper_tools:
 	go install -v ./go/censustaker
 
 .PHONY: trooper_tools_release
-trooper_tools_release: trooper_tools service_account
+trooper_tools_release: trooper_tools
 	./build_release_trooper_tools "`git log -n1 --format=%s`" "linux-01 rpi-01 win-02 win-03"
 
 .PHONY: trooper_tools_push_all

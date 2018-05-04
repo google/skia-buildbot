@@ -4,14 +4,14 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
+Environment=GCE_METADATA_HOST=metadata
 ExecStart=/usr/local/bin/router-backup \
   --logtostderr \
   --prom_port=:20002 \
   --gce_bucket skia-backups\
   --gce_folder router_config \
   --add_hostname \
-  --remote_file_path "admin@192.168.1.1:/config/config.boot" \
-  --service_account_path=/usr/local/share/router-backup/service-account.json
+  --remote_file_path "admin@192.168.1.1:/config/config.boot"
 
 Restart=always
 User=chrome-bot

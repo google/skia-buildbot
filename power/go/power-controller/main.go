@@ -111,6 +111,7 @@ func powercycledBotsHandler(w http.ResponseWriter, r *http.Request) {
 	// We know the token is valid, make sure the bearer of the token is
 	// on the whitelist of entities who we allow to post.
 	if !util.In(ti.Email, *authorizedEmails) {
+		sklog.Warningf("Validated user %s is not on the whitelist", ti.Email)
 		http.Error(w, "Not on authorized whitelist", 403)
 		return
 	}

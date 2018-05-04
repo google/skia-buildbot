@@ -114,15 +114,6 @@ func CloudLoggingDefaultAuthOpt(local *bool) Opt {
 	}
 }
 
-// CloudLoggingJWTOpt creates an Opt to initialize cloud logging when passed to InitWith().
-//
-// Instead of using metadata, this uses a local service account file.
-func CloudLoggingJWTOpt(serviceAccountPath *string) Opt {
-	return &cloudLoggingInitOpt{
-		serviceAccountPath: serviceAccountPath,
-	}
-}
-
 func (o *cloudLoggingInitOpt) preinit(appName string) error {
 	glog.Info("cloudlogging preinit")
 	if o.local != nil && *o.local {

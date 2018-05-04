@@ -19,11 +19,10 @@ import (
 )
 
 var (
-	port               = flag.String("port", ":9210", "HTTP service address (e.g., ':8000')")
-	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort           = flag.String("prom_port", ":20004", "Metrics service address (e.g., ':10110')")
-	serviceAccountPath = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
-	powerServer        = flag.String("power_server", "https://power.skia.org", "")
+	port        = flag.String("port", ":9210", "HTTP service address (e.g., ':8000')")
+	local       = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort    = flag.String("prom_port", ":20004", "Metrics service address (e.g., ':10110')")
+	powerServer = flag.String("power_server", "https://power.skia.org", "")
 )
 
 var authedClient *http.Client
@@ -62,15 +61,15 @@ func main() {
 		common.InitWithMust(
 			"powercycle-daemon",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingJWTOpt(serviceAccountPath),
+			common.CloudLoggingDefaultAuthOpt(local),
 		)
 	}
 
-	var err error
-	authedClient, err = auth.NewJWTServiceAccountClient("", *serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, auth.SCOPE_USERINFO_EMAIL)
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
-		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
+		sklog.Fatal(err)
 	}
+	authedClient = auth.ClientFromTokenSource(tokenSource)
 	sklog.Info("Got authenticated client.")
 
 	r := mux.NewRouter()
