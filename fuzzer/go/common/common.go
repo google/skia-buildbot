@@ -27,8 +27,8 @@ const (
 // The list of architectures we fuzz on
 var ARCHITECTURES = []string{"linux_x64"}
 
-// By default, allow a generous amount of RAM, and let afl-fuzz deal with the timeouts.
-var defaultGenerationArgs = []string{"-m", "5000"}
+// By default, allow a generous amount of RAM and set a flexible approach to timeouts.
+var defaultGenerationArgs = []string{"-m", "5000", "-t", "500+"}
 
 var commonImpl CommonImpl
 
@@ -89,7 +89,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"api_path_measure": {
 		PrettyName:          "API - PathMeasure",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "caryclark",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "PathMeasure", "--bytes"},
@@ -127,6 +127,14 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "filter_fuzz", "--bytes"},
 		GenerationArgs:      []string{"-m", "5000", "-t", "200+"},
 	},
+	"jpeg_encoder": {
+		PrettyName:          "JPEG encoder",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "scroggo",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "JPEGEncoder", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
 	"mock_gpu_canvas": {
 		PrettyName:          "Canvas to mock GL backend",
 		Status:              EXPERIMENTAL_FUZZER,
@@ -141,7 +149,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"n32_canvas": {
 		PrettyName:          "Canvas to raster n32 backend",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "halcanary",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "RasterN32Canvas", "--bytes"},
@@ -149,7 +157,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"null_canvas": {
 		PrettyName:          "Canvas to null canvas backend",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "halcanary",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "NullCanvas", "--bytes"},
@@ -179,6 +187,14 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "PDFCanvas", "--bytes"},
 		GenerationArgs:      []string{"-m", "5000", "-t", "500+"},
 	},
+	"png_encoder": {
+		PrettyName:          "PNG encoder",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "scroggo",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "PNGEncoder", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
 	"region_deserialize": {
 		PrettyName:          "SkRegion deserialize",
 		Status:              STABLE_FUZZER,
@@ -189,7 +205,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"region_set_path": {
 		PrettyName:          "SkRegion set_path",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "reed",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "region_set_path", "--bytes"},
@@ -219,6 +235,14 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "sksl2glsl", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
+	"skottie_json": {
+		PrettyName:          "Skottie from JSON",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "fmalita",
+		ExtraBugLabels:      []string{},
+		ArgsAfterExecutable: []string{"--type", "skottie_json", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
 	"skp": {
 		PrettyName:          "SKP from ReadBuffer",
 		Status:              EXPERIMENTAL_FUZZER,
@@ -233,6 +257,14 @@ var fuzzers = map[string]FuzzerInfo{
 		Groomer:             "fmalita",
 		ExtraBugLabels:      []string{},
 		ArgsAfterExecutable: []string{"--type", "textblob", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
+	"webp_encoder": {
+		PrettyName:          "WEBP encoder",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "scroggo",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "WEBPEncoder", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
 }
