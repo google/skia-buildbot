@@ -7,7 +7,8 @@
       "filter": "info",
       "chat": {
         "room": "speed-operations"
-      }
+      },
+      "subject": "Catapult into Chromium AutoRoller"
     }
   ],
   "parentName": "Chromium",
