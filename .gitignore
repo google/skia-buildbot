@@ -86,6 +86,7 @@ prometheus/tmp
 .ipynb_checkpoints
 # Prober
 prober/allprobers.json5
+proberk/allprobersk.json
 # Push
 push/allskiapush.json5
 # AP

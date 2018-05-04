@@ -21,6 +21,9 @@ scrape_configs:
     static_configs:
       - targets: ['prometheus:10000']
       - targets: ['alertmanager:10000']
+  - job_name: 'proberk'
+    static_configs:
+      - targets: ['proberk:20000']
   - job_name: 'prometheus'
     static_configs:
       - targets: ['prometheus:9090']
