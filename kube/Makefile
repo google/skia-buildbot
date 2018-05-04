@@ -1,4 +1,4 @@
-.PHONY: build test pushk push_configmap_reload push_iap_proxy
+.PHONY: build test pushk release_configmap_reload release_iap_proxy push
 
 build:
 	go install  ./go/...
@@ -9,13 +9,14 @@ test:
 pushk:
 	go install ./go/pushk
 
-push_configmap_reload: pushk
+release_configmap_reload: pushk
 	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo github.com/jimmidyson/configmap-reload
 	./build_configmap_reload_release
-	pushk configmap-reload
 
-push_iap_proxy: pushk
+release_iap_proxy: pushk
 	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/iap_proxy
 	./build_iap_proxy_release
-	pushk iap_proxy
+
+push:
+	pushk iap_proxy configmap-reload
 
