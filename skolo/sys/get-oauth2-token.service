@@ -6,10 +6,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 ExecStart=/usr/local/bin/get-oauth2-token \
-  --logtostderr \
-  --service_account=/etc/service_account_jumphost.json:/var/local/token_jumphost.json \
-  --service_account=/etc/service_account_rpi-master.json:/var/local/token_rpi-master.json \
-  --service_account=/etc/service_account_swarming.json:/var/local/token_swarming.json
+  --logtostderr
 User=root
 Group=root
 LimitNOFILE=10000
