@@ -4,9 +4,9 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
+Environment=GCE_METADATA_HOST=metadata
 ExecStart=/usr/local/bin/powercycle-daemon \
-  --logtostderr \
-  --service_account_path=/usr/local/share/trooper_tools/service-account.json
+  --logtostderr
 
 Restart=always
 User=chrome-bot

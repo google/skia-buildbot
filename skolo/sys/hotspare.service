@@ -4,6 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
+Environment=GCE_METADATA_HOST=metadata
 ExecStart=/usr/local/bin/hotspare \
   --logtostderr \
   --prom_port=:20003 \
@@ -14,8 +15,7 @@ ExecStart=/usr/local/bin/hotspare \
   --sync_remote_path "chrome-bot@192.168.1.99:/opt/rpi_img/prod.img" \
   --sync_local_path "/opt/rpi_img/prod.img" \
   --start_serving_playbook=/usr/local/share/hotspare/start_serving_image.yml \
-  --stop_serving_playbook=/usr/local/share/hotspare/stop_serving_image.yml \
-  --service_account_path=/usr/local/share/hotspare/service-account.json
+  --stop_serving_playbook=/usr/local/share/hotspare/stop_serving_image.yml
 
 Restart=always
 User=chrome-bot
