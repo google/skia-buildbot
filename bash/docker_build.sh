@@ -26,12 +26,7 @@ PROJECT="${PROJECT:-skia-public}"
 DATETIME=`date --utc "+%Y-%m-%dT%H_%M_%SZ"`
 HASH=`git rev-parse HEAD`
 
-# Detect if we have unchecked in local changes, or if we're not on the master
-# branch (possibly at an older revision).
-git fetch
-# diff-index requires update-index --refresh; see:
-# https://stackoverflow.com/questions/36367190/git-diff-files-output-changes-after-git-status/36439778#36439778
-git update-index --refresh
+# Determine repo state.
 REPO_STATE=clean
 if ! git diff-index --quiet HEAD -- ; then
   REPO_STATE=dirty
@@ -43,6 +38,7 @@ elif ! git merge-base --is-ancestor HEAD origin/master ; then
     "$(git rev-parse --abbrev-ref HEAD)"
 fi
 
+# Calculate the tag.
 if [ -z "$TAG" ]; then
   TAG=${DATETIME}-${USER}-${HASH}-${REPO_STATE}
 fi
