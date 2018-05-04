@@ -22,6 +22,30 @@
       "revId": "b9675bd48f115a9d4a2b0702208fc2eac9b14ff3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "386e8746_74bb2454",
+        "filename": "skolo/go/service_accounts/service_accounts.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-04T13:11:20Z",
+      "side": 1,
+      "message": "I\u0027m not sure what you mean.  It\u0027s in the ip_map along with the other jumphosts: https://skia.googlesource.com/buildbot/+/master/skolo/ip_map.json#2",
+      "parentUuid": "7cd568f5_40c707d2",
+      "range": {
+        "startLine": 70,
+        "startChar": 27,
+        "endLine": 70,
+        "endChar": 44
+      },
+      "revId": "b9675bd48f115a9d4a2b0702208fc2eac9b14ff3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
