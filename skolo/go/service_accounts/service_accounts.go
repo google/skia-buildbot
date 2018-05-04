@@ -10,7 +10,7 @@ package service_accounts
 var (
 	// Default service account used for bots which connect to
 	// chrome-swarming.appspot.com.
-	chromeSwarming = &ServiceAccount{
+	ChromeSwarming = &ServiceAccount{
 		Project:  "google.com:skia-buildbots",
 		Email:    "chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com",
 		Nickname: "swarming",
@@ -18,21 +18,21 @@ var (
 
 	// Default service account used for bots which connect to
 	// chromium-swarm.appspot.com.
-	chromiumSwarm = &ServiceAccount{
+	ChromiumSwarm = &ServiceAccount{
 		Project:  "skia-swarming-bots",
 		Email:    "chromium-swarm-bots@skia-swarming-bots.iam.gserviceaccount.com",
 		Nickname: "swarming",
 	}
 
 	// Service account used by the jumphost itself.
-	jumphost = &ServiceAccount{
+	Jumphost = &ServiceAccount{
 		Project:  "google.com:skia-buildbots",
 		Email:    "jumphost@skia-buildbots.google.com.iam.gserviceaccount.com",
 		Nickname: "jumphost",
 	}
 
 	// Service account used by the RPi masters.
-	rpiMaster = &ServiceAccount{
+	RpiMaster = &ServiceAccount{
 		Project:  "google.com:skia-buildbots",
 		Email:    "rpi-master@skia-buildbots.google.com.iam.gserviceaccount.com",
 		Nickname: "rpi-master",
@@ -42,26 +42,26 @@ var (
 	// map[hostname][]*ServiceAccount
 	JumphostServiceAccountMapping = map[string][]*ServiceAccount{
 		"jumphost-internal-01": []*ServiceAccount{
-			chromeSwarming,
-			jumphost,
-			rpiMaster,
+			ChromeSwarming,
+			Jumphost,
+			RpiMaster,
 		},
 		"jumphost-linux-01": []*ServiceAccount{
-			chromiumSwarm,
-			jumphost,
+			ChromiumSwarm,
+			Jumphost,
 		},
 		"jumphost-rpi-01": []*ServiceAccount{
-			chromiumSwarm,
-			jumphost,
-			rpiMaster,
+			ChromiumSwarm,
+			Jumphost,
+			RpiMaster,
 		},
 		"jumphost-win-02": []*ServiceAccount{
-			chromiumSwarm,
-			jumphost,
+			ChromiumSwarm,
+			Jumphost,
 		},
 		"jumphost-win-03": []*ServiceAccount{
-			chromiumSwarm,
-			jumphost,
+			ChromiumSwarm,
+			Jumphost,
 		},
 	}
 

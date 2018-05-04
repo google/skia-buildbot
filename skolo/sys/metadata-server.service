@@ -7,11 +7,7 @@ After=network-online.target
 ExecStart=/usr/local/bin/metadata-server \
   --logtostderr \
   --port=:80 \
-  --prom_port=:20003 \
-  --token_file=*:/var/local/token_swarming.json \
-  --token_file=self:/var/local/token_jumphost.json \
-  --token_file=192.168.1.98:/var/local/token_rpi-master.json \
-  --token_file=192.168.1.99:/var/local/token_rpi-master.json
+  --prom_port=:20003
 
 Restart=always
 User=chrome-bot
