@@ -26,25 +26,31 @@ PROJECT="${PROJECT:-skia-public}"
 DATETIME=`date --utc "+%Y-%m-%dT%H_%M_%SZ"`
 HASH=`git rev-parse HEAD`
 
+# Determine repo state.
+REPO_STATE=clean
 # Detect if we have unchecked in local changes, or if we're not on the master
 # branch (possibly at an older revision).
 git fetch
 # diff-index requires update-index --refresh; see:
 # https://stackoverflow.com/questions/36367190/git-diff-files-output-changes-after-git-status/36439778#36439778
-git update-index --refresh
-REPO_STATE=clean
-if ! git diff-index --quiet HEAD -- ; then
+if git update-index --refresh ; then
+  if ! git diff-index --quiet HEAD -- ; then
+    REPO_STATE=dirty
+    echo "Setting DIRTY=true due to modified files:"
+    echo "$(git diff-index --name-status HEAD --)"
+  elif ! git merge-base --is-ancestor HEAD origin/master ; then
+    REPO_STATE=dirty
+    echo "Setting DIRTY=true due to current branch: " \
+      "$(git rev-parse --abbrev-ref HEAD)"
+  fi
+else
+  echo "Setting DIRTY=true due to checked out files."
   REPO_STATE=dirty
-  echo "Setting DIRTY=true due to modified files:"
-  echo "$(git diff-index --name-status HEAD --)"
-elif ! git merge-base --is-ancestor HEAD origin/master ; then
-  REPO_STATE=dirty
-  echo "Setting DIRTY=true due to current branch: " \
-    "$(git rev-parse --abbrev-ref HEAD)"
 fi
 
+# Calculate the tag.
 if [ -z "$TAG" ]; then
-  TAG=${DATETIME}-${USER}-${HASH}-${REPO_STATE}
+  TAG=${DATETIME}-${USER}-${HASH:0:7}-${REPO_STATE}
 fi
 
 copy_release_files
