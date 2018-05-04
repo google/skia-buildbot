@@ -57,7 +57,7 @@ spec:
             - "--volume-dir=/etc/prometheus/"
             - "--webhook-method=POST"
             - "--webhook-url=http://localhost:9090/-/reload"
-          image: gcr.io/skia-public/configmap-reload:2018-05-03T15_35_42Z-jcgregorio-391a2d74b3ec77e2a1b4c68e8107085d34d171f4-clean
+          image: gcr.io/skia-public/configmap-reload:2018-05-04T15_07_13Z-jcgregorio-018615b-clean
           volumeMounts:
             - name: prometheus-config-volume
               mountPath: /etc/prometheus/
@@ -72,7 +72,7 @@ spec:
             - "--port=:8080"
             - "--target_port=:9090"
             - "--prom_port=:10000"
-          image: gcr.io/skia-public/iap_proxy:2018-05-03T15_43_07Z-jcgregorio-391a2d74b3ec77e2a1b4c68e8107085d34d171f4-clean
+          image: gcr.io/skia-public/iap_proxy:2018-05-04T15_09_43Z-jcgregorio-018615b-clean
           ports:
             - containerPort: 8080
             - containerPort: 10000
