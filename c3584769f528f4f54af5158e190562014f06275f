@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8e59eee_0d97b8cb",
+        "filename": "kube/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T22:09:12Z",
+      "side": 1,
+      "message": "I don\u0027t understand these changes. Why wouldn\u0027t the release targets also update the kube config files?",
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d109c8af_b591f79f",
+        "filename": "kube/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T22:09:12Z",
+      "side": 1,
+      "message": "It seems that release_configmap_reload and release_iap_proxy shouldn\u0027t depend on pushk, but push should.",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 31
+      },
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "905c20a3_d70870e3",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T22:09:12Z",
+      "side": 1,
+      "message": "nit: This variable name sounds like a set of filenames, but it\u0027s a set of image names.",
+      "range": {
+        "startLine": 107,
+        "startChar": 1,
+        "endLine": 107,
+        "endChar": 12
+      },
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd858781_090d1e04",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T22:09:12Z",
+      "side": 1,
+      "message": "You used multiline mode above, presumably to match an image field that has a newline. Doesn\u0027t this need the same thing if you want to match the same line?",
+      "range": {
+        "startLine": 159,
+        "startChar": 47,
+        "endLine": 159,
+        "endChar": 48
+      },
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2979e84c_4cb20899",
+        "filename": "kube/go/pushk/testdata/file1.yaml",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T22:09:12Z",
+      "side": 1,
+      "message": "Would be nice to test the multiline regex is correctly matching multiple lines.",
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
