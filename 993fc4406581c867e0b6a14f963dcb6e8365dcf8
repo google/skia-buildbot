@@ -76,6 +76,23 @@
     },
     {
       "key": {
+        "uuid": "47a01778_69e5ca13",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:26:15Z",
+      "side": 1,
+      "message": "nit: \"... If not specified, trace links will be read from ${TMPDIR}/\u003crun_id\u003e.traces.csv.\"",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a24b26e8_8bcc14b4",
         "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
         "patchSetId": 16
