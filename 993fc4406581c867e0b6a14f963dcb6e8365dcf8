@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3033fae0_ff53a236",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:58:38Z",
+      "side": 1,
+      "message": "IIUC, ChromiumPatch is actually BenchmarkPatch, since metrics analysis doesn\u0027t actually run the Chromium binary at all. Would it make sense to rename ChromiumPatch everywhere to make that clearer?",
+      "parentUuid": "678372de_0f548366",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "341a1dc5_b5e6f2c0",
         "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
         "patchSetId": 16
@@ -33,6 +51,24 @@
       "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "115fa58d_45e224e2",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:58:38Z",
+      "side": 1,
+      "message": "IIUC, MatchStdoutTxt doesn\u0027t make much sense, because it would only be the stdout from the analysis_metrics benchmark, not from Chrome or the original benchmark.",
+      "parentUuid": "341a1dc5_b5e6f2c0",
+      "revId": "993fc4406581c867e0b6a14f963dcb6e8365dcf8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
