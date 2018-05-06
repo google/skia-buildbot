@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7fff39c0_924ed16a",
+        "filename": "ct/res/imp/custom-webpages-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:53:34Z",
+      "side": 1,
+      "message": "nit: rename element and rename webpages attribute (maybe in another CL)",
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "166279f0_183538fc",
+        "filename": "ct/res/imp/custom-webpages-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:53:34Z",
+      "side": 1,
+      "message": "nit: maybe generalize?",
+      "range": {
+        "startLine": 49,
+        "startChar": 113,
+        "endLine": 49,
+        "endChar": 148
+      },
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "369425f9_48e11649",
+        "filename": "ct/res/imp/metrics-analysis-runs-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:53:34Z",
+      "side": 1,
+      "message": "nit: seems misnamed",
+      "range": {
+        "startLine": 65,
+        "startChar": 60,
+        "endLine": 65,
+        "endChar": 68
+      },
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97912437_0f374ad7",
+        "filename": "ct/res/imp/metrics-analysis-runs-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:53:34Z",
+      "side": 1,
+      "message": "nit: Do you think it will be confusing if \"Analysis Task Id\" doesn\u0027t appear until after the task starts, even though it\u0027s specified when creating the task?",
+      "range": {
+        "startLine": 157,
+        "startChar": 42,
+        "endLine": 157,
+        "endChar": 80
+      },
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "611e715b_31621721",
+        "filename": "ct/res/imp/metrics-analysis-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:53:34Z",
+      "side": 1,
+      "message": "nit: Currently we don\u0027t put much emphasis on the task ID in the UI or notification emails. It\u0027s also slightly confusing whether this means the CTFE task ID or the Run ID that\u0027s in the email subject line.\n\nIf we can avoid using the SQL ID, that might be helpful in the long run if/when we switch to different storage.\n\nIf it becomes a problem, we could have CTFE assign Run ID rather than poller. At this point, I don\u0027t think that\u0027s necessary since we really only care about IDs of tasks that have completed.",
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f18b3ba1_d6b2692f",
+        "filename": "ct/res/imp/metrics-analysis-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-06T19:53:34Z",
+      "side": 1,
+      "message": "nit: Would it make sense to mention these are arguments to the analysis-metrics benchmark?",
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
