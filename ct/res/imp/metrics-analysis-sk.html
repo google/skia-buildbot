@@ -1,0 +1,234 @@
+<!--
+  The <metrics-analysis-sk> custom element declaration. Displays a form that allows the user to
+  queue a task to do metrics analysis on trace URLs.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+
+<dom-module id="metrics-analysis-sk">
+  <style>
+    paper-input {
+      width: 20em;
+    }
+
+    .iron-selected {
+      background-color: #D6ECF2;
+    }
+
+    .long-field {
+      width: 40em;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .smaller-font {
+      font-size: 80%;
+    }
+
+    iron-selector.long-field > div {
+      width: 40em;
+    }
+
+    iron-selector.medium-field > div {
+      width: 20em;
+    }
+
+    table.options td {
+      padding: 1em 2em;
+    }
+
+    td.center {
+      text-align:center;
+      padding-top:2em;
+    }
+
+    .panel {
+      @apply(--shadow-elevation-2dp);
+    }
+  </style>
+  <template>
+
+    <confirm-dialog-sk id="confirm_dialog"></confirm-dialog-sk>
+
+    <table class="options panel">
+
+      <tr>
+        <td>Metric Name</td>
+        <td>
+          <paper-input value="" id="metric_name" class="medium-field"></paper-input>
+          <span class="smaller-font">The metric to parse the provided traces with. Eg: loadingMetric</span>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Source of traces</td>
+        <td>
+          <paper-input value="" id="analysis_task_id" class="medium-field" label="Analysis Task Id"></paper-input>
+          <custom-webpages-sk id="custom_traces" display-text="Specify custom list of traces"></custom-webpages-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Benchmark Arguments</td>
+        <td>
+          <paper-input value="--output-format=csv" id="benchmark_args" class="long-field"></paper-input>
+          <span class="smaller-font">These will be the arguments to the analysis_metrics_ct benchmark</span>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Chromium Git patch (optional)<br/>
+          Applied to Chromium ToT
+        </td>
+        <td>
+          <patch-sk id="chromium_patch"
+                    patch-type="chromium"
+                    cl-description="{{chromiumClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Catapult Git patch (optional)<br/>
+          Applied to Catapult Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
+        </td>
+        <td>
+          <patch-sk id="catapult_patch"
+                    patch-type="catapult"
+                    cl-description="{{catapultClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Repeat this task</td>
+        <td>
+          <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Description</td>
+        <td>
+          <paper-input value="" id="desc" label="Description is required"></paper-input>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2" class="center">
+          <paper-button raised id="submit_task">Queue Task</paper-button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="center">
+          <paper-button raised id="view_history">View runs history</paper-button>
+        </td>
+      </tr>
+    </table>
+
+    <br/><br/>
+
+  </template>
+</dom-module>
+
+<script>
+   Polymer({
+     is: "metrics-analysis-sk",
+     properties: {
+       chromiumClDescription: String,
+       catapultClDescription: String,
+     },
+
+     observers: [
+       "clDescriptionChanged(chromiumClDescription, catapultClDescription)"
+     ],
+
+     ready: function() {
+       var that = this;
+       this.$.submit_task.addEventListener('click', function(e) {
+         that.validateTask();
+       });
+       this.$.view_history.addEventListener('click', function(e) {
+         that.gotoRunsHistory();
+       });
+       this.$.custom_traces.addEventListener('click', function(e) {
+         // Do not display the analysis task id field if custom traces is open.
+         that.$.analysis_task_id.hidden = that.$.custom_traces.webpagesOpened;
+         if (that.$.custom_traces.webpagesOpened) {
+           // Clear out analysis task id if custom traces is open.
+           that.$.analysis_task_id.value = '';
+         } else {
+           // Clear out traces if it is no longer open.
+           that.$.custom_traces.webpages = '';
+         }
+       });
+     },
+
+     clDescriptionChanged: function(chromiumClDesc, catapultClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, '', '', catapultClDesc);
+     },
+
+     validateTask: function() {
+       if (!this.$.metric_name.value) {
+         sk.errorMessage("Please specify a metric name");
+         this.$.metric_name.focus();
+         return;
+       }
+       if (!this.$.analysis_task_id.value && !this.$.custom_traces.webpages) {
+         sk.errorMessage("Please specify an analysis task id or custom traces");
+         this.$.analysis_task_id.focus();
+         return;
+       };
+       if (!this.$.chromium_patch.validate() ||
+           !this.$.catapult_patch.validate()) {
+         return;
+       }
+       if (!this.$.desc.value) {
+         sk.errorMessage("Please specify a description");
+         this.$.desc.focus();
+         return;
+       }
+       if (ctfe.moreThanThreeActiveTasks($$$("drawer-sk").sizeOfUserQueue)) {
+         return;
+       }
+       this.$.confirm_dialog.open("Proceed with queueing task?")
+         .then(this.queueTask.bind(this))
+         .catch(function(err) {
+           console.log(err);
+           sk.errorMessage("Did not queue");
+         })
+     },
+
+     queueTask: function() {
+       var params = {};
+       params["metric_name"] = this.$.metric_name.value;
+       params["analysis_task_id"] = this.$.analysis_task_id.value;
+       params["custom_traces"] = this.$.custom_traces.webpages;
+       params["benchmark_args"] = this.$.benchmark_args.value;
+       params["desc"] = this.$.desc.value;
+       params["chromium_patch"] = this.$.chromium_patch.patch;
+       params["catapult_patch"] = this.$.catapult_patch.patch;
+       params["repeat_after_days"] = this.$.repeat_after_days.selected;
+
+       var that = this;
+       sk.post("/_/add_metrics_analysis_task", JSON.stringify(params)).then(function(resp) {
+         that.gotoRunsHistory();
+       }).catch(sk.errorMessage);
+     },
+
+     gotoRunsHistory: function() {
+       window.location.href = "/metrics_analysis_runs/";
+     },
+   });
+</script>
