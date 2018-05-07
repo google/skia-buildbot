@@ -69,7 +69,7 @@ func BuildFuzzingHarness(ctx context.Context, buildType buildskia.ReleaseType, i
 // build.  buildArgs are the arguments passed to GN.
 func buildOrGetCachedHarness(ctx context.Context, buildName string, buildType buildskia.ReleaseType, isClean bool, buildArgs []string) (string, error) {
 	if buildType == buildskia.RELEASE_BUILD {
-		buildArgs = append(buildArgs, "is_debug=false")
+		buildArgs = append(buildArgs, "is_debug=false", "skia_enable_skottie=true")
 	}
 	// This makes crashing because we ran out of memory or because someone called SK_ABORT turn
 	// into an exit(1), so we don't count it as a "crash".
