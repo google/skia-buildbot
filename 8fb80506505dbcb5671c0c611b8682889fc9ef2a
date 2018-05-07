@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5b30a256_c75fe838",
+        "filename": "ct/res/imp/custom-webpages-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T18:27:21Z",
+      "side": 1,
+      "message": "expanding-textarea-sk?",
+      "parentUuid": "53835426_d0a8d041",
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "166279f0_183538fc",
         "filename": "ct/res/imp/custom-webpages-sk.html",
         "patchSetId": 12
@@ -72,6 +90,30 @@
       "side": 1,
       "message": "element1,element2,element3,element4 ?",
       "parentUuid": "166279f0_183538fc",
+      "range": {
+        "startLine": 49,
+        "startChar": 113,
+        "endLine": 49,
+        "endChar": 148
+      },
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19c0fa2e_4ef1ac8c",
+        "filename": "ct/res/imp/custom-webpages-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T18:27:21Z",
+      "side": 1,
+      "message": "\"element\" is a bit overloaded in Chrome-land. \"item1,item2,item3\" \"foo,bar,baz\" or make it another attribute.",
+      "parentUuid": "c14734bc_aa5c7256",
       "range": {
         "startLine": 49,
         "startChar": 113,
