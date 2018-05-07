@@ -173,6 +173,30 @@
     },
     {
       "key": {
+        "uuid": "0912cc0e_179bab6c",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T13:55:52Z",
+      "side": 1,
+      "message": "Sorry, I misunderstood multiline mode.",
+      "parentUuid": "2c09998b_96f629e7",
+      "range": {
+        "startLine": 106,
+        "startChar": 50,
+        "endLine": 106,
+        "endChar": 54
+      },
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "905c20a3_d70870e3",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
