@@ -154,8 +154,8 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 
 	// We are running locally, so we need to use the Compute API to read the
 	// values of project level metadata. This closure will be passed to
-	// chatbot.SendUsingMetadataGet().
-	metadataGet := func(key string, defaultValue string) string {
+	// chatbot.SendUsingConfig(configReader).
+	configReader := func() string {
 		prj, err := comp.Projects.Get(*project).Do()
 		if err != nil {
 			sklog.Warningf("Failed to retrieve metadata needed for chatbot: %s", err)
@@ -177,7 +177,7 @@ func installOnServer(client *http.Client, store *storage.Service, comp *compute.
 		username = userinfo.Username
 	}
 	body := fmt.Sprintf(CHAT_MSG, username, appName, serverName)
-	if err := chatbot.SendUsingMetadataGet(body, "push", "", metadataGet); err != nil {
+	if err := chatbot.SendUsingConfig(body, "push", "", configReader); err != nil {
 		sklog.Warningf("Failed to send chat notification: %s", err)
 	}
 
