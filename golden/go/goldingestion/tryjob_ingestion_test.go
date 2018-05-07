@@ -28,6 +28,7 @@ const (
 // Tests the processor in conjunction with the vcs.
 func TestTryjobGoldProcessor(t *testing.T) {
 	testutils.LargeTest(t)
+	t.Skip()
 
 	cleanup := testutil.InitDatastore(t,
 		ds.ISSUE,

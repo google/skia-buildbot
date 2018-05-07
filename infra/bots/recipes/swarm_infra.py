@@ -119,6 +119,7 @@ def RunSteps(api):
       'PATH': api.path.pathsep.join([
           str(go_bin),
           str(go_dir.join('bin')),
+          str(api.path['start_dir'].join('gcloud_linux', 'bin')),
           str(api.path['start_dir'].join('protoc', 'bin')),
           str(api.path['start_dir'].join('node', 'node', 'bin')),
           '%(PATH)s',
@@ -166,6 +167,11 @@ def RunSteps(api):
         'setup database',
         cmd=['./setup_test_db'])
 
+  with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
+    api.step(
+        'start the cloud data store emulator',
+        cmd=['./run_emulator', 'start'])
+
   # Run tests.
   karma_port = '9876'
   env['KARMA_PORT'] = karma_port
@@ -173,6 +179,7 @@ def RunSteps(api):
   env['TMPDIR'] = None
   env['PATH'] = api.path.pathsep.join([
       env['PATH'], str(api.path['depot_tools'])])
+  env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
 
   cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
   if 'Race' in api.properties['buildername']:
@@ -183,9 +190,13 @@ def RunSteps(api):
     cmd.append('--medium')
   else:
     cmd.append('--small')
-  with api.context(cwd=infra_dir, env=env):
-    api.step('run_unittests', cmd)
-
+  try:
+    with api.context(cwd=infra_dir, env=env):
+      api.step('run_unittests', cmd)
+  finally:
+    with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
+      api.step('stop the cloud data store emulator',
+          cmd=['./run_emulator', 'stop'])
 
 def GenTests(api):
   yield (
