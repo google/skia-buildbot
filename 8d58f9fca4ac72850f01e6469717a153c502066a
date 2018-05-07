@@ -1,0 +1,573 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05132142_8c4200b8",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "Make UPPER_CASE to indicate it is a constant.  Can it be const, actually?",
+      "range": {
+        "startLine": 167,
+        "startChar": 4,
+        "endLine": 167,
+        "endChar": 21
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f954d0bc_3ebe8871",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "mask with the",
+      "range": {
+        "startLine": 169,
+        "startChar": 23,
+        "endLine": 169,
+        "endChar": 36
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97d4a20e_6fb41543",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "UPPER_CASE",
+      "range": {
+        "startLine": 171,
+        "startChar": 6,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5972d7f1_2cca5b53",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "update to the actual variable name",
+      "range": {
+        "startLine": 203,
+        "startChar": 27,
+        "endLine": 203,
+        "endChar": 49
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46e39f5a_51f0ffe5",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "Is this sortableIDMask?",
+      "range": {
+        "startLine": 214,
+        "startChar": 5,
+        "endLine": 214,
+        "endChar": 21
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9491f689_cfd8f175",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "the",
+      "range": {
+        "startLine": 27,
+        "startChar": 65,
+        "endLine": 27,
+        "endChar": 70
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b0e0d97_f0c93ce4",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "difference",
+      "range": {
+        "startLine": 29,
+        "startChar": 13,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04e4efc7_b560e899",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "You may want to include the key in the error message",
+      "range": {
+        "startLine": 161,
+        "startChar": 54,
+        "endLine": 161,
+        "endChar": 61
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52538a6d_2713e75a",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "sklog.FmtErrorf",
+      "range": {
+        "startLine": 189,
+        "startChar": 17,
+        "endLine": 189,
+        "endChar": 20
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62fbfef4_2c416e93",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "sklog.FmtErrorf",
+      "range": {
+        "startLine": 219,
+        "startChar": 10,
+        "endLine": 219,
+        "endChar": 13
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52ff4ffa_509aa64c",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "sklog.FmtErrorf",
+      "range": {
+        "startLine": 241,
+        "startChar": 14,
+        "endLine": 241,
+        "endChar": 17
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6defa5b_57670135",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "Do you mean \"without\" here?",
+      "range": {
+        "startLine": 285,
+        "startChar": 36,
+        "endLine": 285,
+        "endChar": 52
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98a52e65_eeabd454",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "This feels weird/racy.  Maybe defer func(*error){...}(\u0026err) to be more explicit?",
+      "range": {
+        "startLine": 331,
+        "startChar": 7,
+        "endLine": 332,
+        "endChar": 15
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfcf51b8_fbae4dad",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "sklog.FmtErrorf",
+      "range": {
+        "startLine": 374,
+        "startChar": 9,
+        "endLine": 374,
+        "endChar": 12
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69569196_fe64cf76",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "More sklog.FmtErrorf() here and elsewhere in the file.",
+      "range": {
+        "startLine": 389,
+        "startChar": 9,
+        "endLine": 389,
+        "endChar": 12
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0e0a486_02874b8b",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "its limits and a new what?",
+      "range": {
+        "startLine": 47,
+        "startChar": 57,
+        "endLine": 48,
+        "endChar": 27
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "271313ab_9f514c29",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "adds",
+      "range": {
+        "startLine": 53,
+        "startChar": 7,
+        "endLine": 53,
+        "endChar": 12
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab80bd84_cce278b9",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "ends abrubptly?",
+      "range": {
+        "startLine": 85,
+        "startChar": 55,
+        "endLine": 85,
+        "endChar": 76
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3aebfdef_0a13041e",
+        "filename": "golden/go/expstorage/expstorage_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "delete?  Also line 48",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 6
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b39dbff_f9a3b387",
+        "filename": "golden/go/expstorage/expstorage_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "These almost seem like 3 different tests.  Maybe use t.Run()? https://github.com/golang/go/wiki/TableDrivenTests",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 95,
+        "endChar": 84
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6230e007_0d1fbb5b",
+        "filename": "golden/go/expstorage/sqlexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "Is this still valid?  Any bitrot?",
+      "range": {
+        "startLine": 493,
+        "startChar": 0,
+        "endLine": 503,
+        "endChar": 5
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0caba9a_79e191c7",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "nit: group blocks of imports together, especially go.skia.org ones",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e009010b_27b22108",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "What\u0027s the reason for having this be done concurrently?  Shouldn\u0027t the listHelper be done after the put? or before the put?  As it stands, it could happen in either order, which makes it hard for me to reason about.",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 59,
+        "endChar": 4
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a1bbbd2_9d665cd6",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "sklog.FmtErrorf",
+      "range": {
+        "startLine": 93,
+        "startChar": 14,
+        "endLine": 93,
+        "endChar": 17
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "164d9042_9365518d",
+        "filename": "golden/go/skiacorrectness/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-07T18:06:17Z",
+      "side": 1,
+      "message": "Why is this needed?",
+      "range": {
+        "startLine": 103,
+        "startChar": 1,
+        "endLine": 103,
+        "endChar": 33
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
