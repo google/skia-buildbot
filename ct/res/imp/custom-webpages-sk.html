@@ -4,6 +4,7 @@
 
   Attributes:
     webpages: The string of custom webpages.
+    displayText: The clickable text that will open/close the textarea.
 
   Events:
     None.
@@ -41,11 +42,11 @@
   <template>
     <a href="javascript:void(0);" id="webpages_expander">
       <iron-icon icon="{{webpagesExpanderIcon(webpagesOpened)}}"></iron-icon>
-      Specify custom list of web pages
+      {{displayText}}
     </a>
     <span class="long-field">
       <iron-collapse id="webpages_collapse" opened="{{webpagesOpened}}">
-        <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 bind-value="{{webpages}}" placeholder="Eg: webpage1,webpage2,webpage3,webpage4">
+        <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 bind-value="{{webpages}}" placeholder="Eg: item1,item2,item3,item4">
         </iron-autogrow-textarea>
       </iron-collapse>
     </span>
@@ -61,6 +62,10 @@
         webpages: {
           type: String,
           notify: true,
+        },
+        displayText: {
+          type: String,
+          value: "Specify custom list of web pages",
         },
       },
 

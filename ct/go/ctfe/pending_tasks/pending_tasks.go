@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
+	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/pixel_diff"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
@@ -117,12 +118,13 @@ func TerminateRunningTasks() error {
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
 // should be non-nil when serialized as JSON.
 type oldestPendingTask struct {
-	ChromiumAnalysis        *chromium_analysis.DBTask
-	ChromiumPerf            *chromium_perf.DBTask
-	PixelDiff               *pixel_diff.DBTask
 	CaptureSkps             *capture_skps.DBTask
-	LuaScript               *lua_scripts.DBTask
+	ChromiumAnalysis        *chromium_analysis.DBTask
 	ChromiumBuild           *chromium_builds.DBTask
+	ChromiumPerf            *chromium_perf.DBTask
+	LuaScript               *lua_scripts.DBTask
+	MetricsAnalysis         *metrics_analysis.DBTask
+	PixelDiff               *pixel_diff.DBTask
 	RecreatePageSets        *admin_tasks.RecreatePageSetsDBTask
 	RecreateWebpageArchives *admin_tasks.RecreateWebpageArchivesDBTask
 }
@@ -135,22 +137,24 @@ func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
 	switch task := oldestTask.(type) {
 	case nil:
 		// No fields set.
-	case *chromium_analysis.DBTask:
-		oldestTaskJsonRepr.ChromiumAnalysis = task
-	case *chromium_perf.DBTask:
-		oldestTaskJsonRepr.ChromiumPerf = task
-	case *pixel_diff.DBTask:
-		oldestTaskJsonRepr.PixelDiff = task
-	case *capture_skps.DBTask:
-		oldestTaskJsonRepr.CaptureSkps = task
-	case *lua_scripts.DBTask:
-		oldestTaskJsonRepr.LuaScript = task
-	case *chromium_builds.DBTask:
-		oldestTaskJsonRepr.ChromiumBuild = task
 	case *admin_tasks.RecreatePageSetsDBTask:
 		oldestTaskJsonRepr.RecreatePageSets = task
 	case *admin_tasks.RecreateWebpageArchivesDBTask:
 		oldestTaskJsonRepr.RecreateWebpageArchives = task
+	case *capture_skps.DBTask:
+		oldestTaskJsonRepr.CaptureSkps = task
+	case *chromium_analysis.DBTask:
+		oldestTaskJsonRepr.ChromiumAnalysis = task
+	case *chromium_builds.DBTask:
+		oldestTaskJsonRepr.ChromiumBuild = task
+	case *chromium_perf.DBTask:
+		oldestTaskJsonRepr.ChromiumPerf = task
+	case *lua_scripts.DBTask:
+		oldestTaskJsonRepr.LuaScript = task
+	case *metrics_analysis.DBTask:
+		oldestTaskJsonRepr.MetricsAnalysis = task
+	case *pixel_diff.DBTask:
+		oldestTaskJsonRepr.PixelDiff = task
 	default:
 		return fmt.Errorf("Missing case for %T", oldestTask)
 	}
@@ -166,18 +170,20 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 		return nil, err
 	}
 	switch {
-	case pending.ChromiumAnalysis != nil:
-		return pending.ChromiumAnalysis, nil
-	case pending.ChromiumPerf != nil:
-		return pending.ChromiumPerf, nil
-	case pending.PixelDiff != nil:
-		return pending.PixelDiff, nil
 	case pending.CaptureSkps != nil:
 		return pending.CaptureSkps, nil
-	case pending.LuaScript != nil:
-		return pending.LuaScript, nil
+	case pending.ChromiumAnalysis != nil:
+		return pending.ChromiumAnalysis, nil
 	case pending.ChromiumBuild != nil:
 		return pending.ChromiumBuild, nil
+	case pending.ChromiumPerf != nil:
+		return pending.ChromiumPerf, nil
+	case pending.LuaScript != nil:
+		return pending.LuaScript, nil
+	case pending.MetricsAnalysis != nil:
+		return pending.MetricsAnalysis, nil
+	case pending.PixelDiff != nil:
+		return pending.PixelDiff, nil
 	case pending.RecreatePageSets != nil:
 		return pending.RecreatePageSets, nil
 	case pending.RecreateWebpageArchives != nil:
