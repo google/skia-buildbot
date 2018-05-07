@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "b6ec9e7f_638ba2d2",
+        "filename": "ct/res/imp/custom-webpages-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-07T18:57:07Z",
+      "side": 1,
+      "message": "Will do in another CL.",
+      "parentUuid": "5b30a256_c75fe838",
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "166279f0_183538fc",
         "filename": "ct/res/imp/custom-webpages-sk.html",
         "patchSetId": 12
@@ -123,6 +141,30 @@
       "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbc5c315_31ebb14a",
+        "filename": "ct/res/imp/custom-webpages-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-07T18:57:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19c0fa2e_4ef1ac8c",
+      "range": {
+        "startLine": 49,
+        "startChar": 113,
+        "endLine": 49,
+        "endChar": 148
+      },
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
