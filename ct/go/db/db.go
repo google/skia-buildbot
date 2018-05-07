@@ -23,6 +23,7 @@ const (
 	TABLE_CHROMIUM_BUILD_TASKS            = "ChromiumBuildTasks"
 	TABLE_RECREATE_PAGE_SETS_TASKS        = "RecreatePageSetsTasks"
 	TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS = "RecreateWebpageArchivesTasks"
+	TABLE_METRICS_ANALYSIS_TASKS          = "MetricsAnalysisTasks"
 
 	// From https://dev.mysql.com/doc/refman/5.0/en/storage-requirements.html
 	TEXT_MAX_LENGTH      = 1<<16 - 1
@@ -421,6 +422,32 @@ var v25_down = []string{
 	`ALTER TABLE ChromiumAnalysisTasks CHANGE match_stdout_txt count_stdout_txt longtext NOT NULL DEFAULT ""`,
 }
 
+var v26_up = []string{
+	`CREATE TABLE IF NOT EXISTS MetricsAnalysisTasks (
+		id                       INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		username                 VARCHAR(255) NOT NULL,
+		metric_name              VARCHAR(255) NOT NULL DEFAULT "",
+		custom_traces            LONGTEXT     NOT NULL DEFAULT "",
+		analysis_task_id         INT          NOT NULL DEFAULT 0,
+		analysis_output_link     VARCHAR(255) NOT NULL DEFAULT "",
+		benchmark_args           VARCHAR(255),
+		description              VARCHAR(255),
+		repeat_after_days        BIGINT       NOT NULL DEFAULT 0,
+		chromium_patch           LONGTEXT,
+		catapult_patch           LONGTEXT,
+		ts_added                 BIGINT       NOT NULL,
+		ts_started               BIGINT,
+		ts_completed             BIGINT,
+		failure                  TINYINT(1),
+		swarming_logs            VARCHAR(255),
+		raw_output               VARCHAR(255)
+	)`,
+}
+
+var v26_down = []string{
+	`DROP TABLE IF EXISTS MetricsAnalysisTasks`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -549,6 +576,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v25_up,
 		MySQLDown: v25_down,
+	},
+	// version 26: Add new table MetricsAnalysisTasks.
+	{
+		MySQLUp:   v26_up,
+		MySQLDown: v26_down,
 	},
 }
 
