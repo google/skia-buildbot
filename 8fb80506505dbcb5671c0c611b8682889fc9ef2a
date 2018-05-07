@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "53835426_d0a8d041",
+        "filename": "ct/res/imp/custom-webpages-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-07T17:59:38Z",
+      "side": 1,
+      "message": "What do you recommends? elements?",
+      "parentUuid": "7fff39c0_924ed16a",
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "166279f0_183538fc",
         "filename": "ct/res/imp/custom-webpages-sk.html",
         "patchSetId": 12
@@ -30,6 +48,30 @@
       "writtenOn": "2018-05-06T19:53:34Z",
       "side": 1,
       "message": "nit: maybe generalize?",
+      "range": {
+        "startLine": 49,
+        "startChar": 113,
+        "endLine": 49,
+        "endChar": 148
+      },
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c14734bc_aa5c7256",
+        "filename": "ct/res/imp/custom-webpages-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-07T17:59:38Z",
+      "side": 1,
+      "message": "element1,element2,element3,element4 ?",
+      "parentUuid": "166279f0_183538fc",
       "range": {
         "startLine": 49,
         "startChar": 113,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "ef6dd6ea_5240a810",
+        "filename": "ct/res/imp/metrics-analysis-runs-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-07T17:59:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "369425f9_48e11649",
+      "range": {
+        "startLine": 65,
+        "startChar": 60,
+        "endLine": 65,
+        "endChar": 68
+      },
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "97912437_0f374ad7",
         "filename": "ct/res/imp/metrics-analysis-runs-sk.html",
         "patchSetId": 12
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "923faafc_97a9556d",
+        "filename": "ct/res/imp/metrics-analysis-runs-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-07T17:59:38Z",
+      "side": 1,
+      "message": "It will show up right away because AnalyaisOutputLink is populated in addTaskHandler.",
+      "parentUuid": "97912437_0f374ad7",
+      "range": {
+        "startLine": 157,
+        "startChar": 42,
+        "endLine": 157,
+        "endChar": 80
+      },
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "611e715b_31621721",
         "filename": "ct/res/imp/metrics-analysis-sk.html",
         "patchSetId": 12
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "ca4a4396_35ca23d4",
+        "filename": "ct/res/imp/metrics-analysis-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-07T17:59:38Z",
+      "side": 1,
+      "message": "\u003e nit: Currently we don\u0027t put much emphasis on the task ID in the UI or notification emails. It\u0027s also slightly confusing whether this means the CTFE task ID or the Run ID that\u0027s in the email subject line.\n\nThe RunID is something that is used internal to CT and one of the main reasons it was specified in the email subject line was to thread per run. The taskID should probably have been used there instead.\nAlso, the RunID is not stored in the DB by itself (maybe it should have been).\n\nI went back and forth about either using task ID or directly the analysis output link.\nWe may have to eventually support either one here based on feedback.\n\n\n\u003e \n\u003e If we can avoid using the SQL ID, that might be helpful in the long run if/when we switch to different storage.\n\nWe will need an ID for a different storage as well. It is useful for people to say look at my run 4123.\n\n\u003e \n\u003e If it becomes a problem, we could have CTFE assign Run ID rather than poller. At this point, I don\u0027t think that\u0027s necessary since we really only care about IDs of tasks that have completed.",
+      "parentUuid": "611e715b_31621721",
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f18b3ba1_d6b2692f",
         "filename": "ct/res/imp/metrics-analysis-sk.html",
         "patchSetId": 12
@@ -119,6 +227,24 @@
       "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ecf137f_d5ce2863",
+        "filename": "ct/res/imp/metrics-analysis-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-07T17:59:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f18b3ba1_d6b2692f",
+      "revId": "8fb80506505dbcb5671c0c611b8682889fc9ef2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
