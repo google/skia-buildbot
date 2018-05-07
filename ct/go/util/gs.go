@@ -85,10 +85,16 @@ func getRespBody(res *storage.Object, client *http.Client) (io.ReadCloser, error
 	return nil, fmt.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
 }
 
+// Returns the response body of the specified GCS file from the default CT
+// bucket. Client must close the response body when finished with it.
+func (gs *GcsUtil) GetRemoteFileContents(filePath string) (io.ReadCloser, error) {
+	return gs.GetRemoteFileContentsFromBucket(GCSBucketName, filePath)
+}
+
 // Returns the response body of the specified GCS file. Client must close the
 // response body when finished with it.
-func (gs *GcsUtil) GetRemoteFileContents(filePath string) (io.ReadCloser, error) {
-	res, err := gs.service.Objects.Get(GCSBucketName, filePath).Do()
+func (gs *GcsUtil) GetRemoteFileContentsFromBucket(bucket, filePath string) (io.ReadCloser, error) {
+	res, err := gs.service.Objects.Get(bucket, filePath).Do()
 	if err != nil {
 		return nil, fmt.Errorf("Could not get %s from GCS: %s", filePath, err)
 	}
@@ -497,11 +503,17 @@ func (gs *GcsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 	return nil
 }
 
-// DownloadRemoteFile downloads the specified remote path into the specified local file.
-// This function has been tested to download very large files (~33GB).
-// TODO(rmistry): Update all code that downloads remote files to use this method.
+// DownloadRemoteFile calls DownloadRemoteFileFromBucket with CT's default bucket.
 func (gs *GcsUtil) DownloadRemoteFile(remotePath, localPath string) error {
-	respBody, err := gs.GetRemoteFileContents(remotePath)
+	return gs.DownloadRemoteFileFromBucket(GCSBucketName, remotePath, localPath)
+}
+
+// DownloadRemoteFileFromBucket downloads the specified remote path into the specified
+// local file. This function has been tested to download very large files (~33GB).
+// TODO(rmistry): Update all code that downloads remote files to use this or the
+// DownloadRemoteFile method.
+func (gs *GcsUtil) DownloadRemoteFileFromBucket(bucket, remotePath, localPath string) error {
+	respBody, err := gs.GetRemoteFileContentsFromBucket(bucket, remotePath)
 	if err != nil {
 		return err
 	}
