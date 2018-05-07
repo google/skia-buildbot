@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "592476b2_d73dd3ac",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T19:01:43Z",
+      "side": 1,
+      "message": "(this is a nit)",
+      "parentUuid": "22ff46a5_923a705d",
+      "range": {
+        "startLine": 38,
+        "startChar": 32,
+        "endLine": 38,
+        "endChar": 51
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2895427e_1227a333",
         "filename": "go/ds/ds.go",
         "patchSetId": 37
@@ -346,6 +370,24 @@
     },
     {
       "key": {
+        "uuid": "b0d9f681_7a1d9a50",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T19:01:43Z",
+      "side": 1,
+      "message": "#4 should be\nm.RecentChanges \u003d append(m.RecentChanges, nil)\nm.RecentChanges \u003d m.RecentChanges[:lastIndex+1]\ncopy(m.RecentChanges[keyToUpdateIndex+1:], m.RecentChanges[keyToUpdateIndex:])\nm.RecentChanges[keyToUpdateIndex] \u003d keyToUpdate",
+      "parentUuid": "b786553b_f20917ce",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0d79cfa8_854d9aa2",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 37
@@ -426,6 +468,30 @@
       "writtenOn": "2018-05-07T18:19:54Z",
       "side": 1,
       "message": "nit:\nidx :\u003d sort.Search(len(m.RecentChanges), func(i int) bool {\n  return m.RecentChanges[i].ID \u003e\u003d keyToUpdate.ID // \u003e\u003d and \u003e should be equivalent\n})\n// If it\u0027s possible that keyToUpdate is already is RecentChanges, check m.RecentChanges[idx].ID !\u003d keyToUpdate.ID\nm.RecentChanges \u003d append(append(m.RecentChanges[:idx], keyToUpdate), m.RecentChanges[idx:]...)\n\nMaybe also make a helper function for the sort.Search.",
+      "range": {
+        "startLine": 161,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 106
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4cebb850_036219f7",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T19:01:43Z",
+      "side": 1,
+      "message": "See previous comment for correct way to update m.RecentChanges.",
+      "parentUuid": "6543d26b_f9c18191",
       "range": {
         "startLine": 161,
         "startChar": 0,
@@ -524,6 +590,30 @@
     },
     {
       "key": {
+        "uuid": "fd7bc960_343f050c",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T19:01:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7a1a413b_a90b8e81",
+      "range": {
+        "startLine": 169,
+        "startChar": 23,
+        "endLine": 169,
+        "endChar": 36
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "97d4a20e_6fb41543",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 37
@@ -547,6 +637,30 @@
     },
     {
       "key": {
+        "uuid": "5ac27a7c_8f51cbf1",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T19:01:43Z",
+      "side": 1,
+      "message": "Package-private constants shouldn\u0027t be uppercase.\n\n(Actually, our Go code is not following the Go style guide when we use UPPER_CASE_CONSTANTS. Go convention is CamelCasePublicConstants and camelCasePrivateConstants.)",
+      "parentUuid": "97d4a20e_6fb41543",
+      "range": {
+        "startLine": 171,
+        "startChar": 6,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5972d7f1_2cca5b53",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 37
@@ -558,6 +672,30 @@
       "writtenOn": "2018-05-07T18:06:17Z",
       "side": 1,
       "message": "update to the actual variable name",
+      "range": {
+        "startLine": 203,
+        "startChar": 27,
+        "endLine": 203,
+        "endChar": 49
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68461526_fc79074c",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T19:01:43Z",
+      "side": 1,
+      "message": "IMO, just make it clearer that this section is a quote from the above Python impl.",
+      "parentUuid": "5972d7f1_2cca5b53",
       "range": {
         "startLine": 203,
         "startChar": 27,
