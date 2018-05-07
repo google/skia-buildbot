@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c669d4b5_e4afefbb",
+        "filename": "kube/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-07T13:21:11Z",
+      "side": 1,
+      "message": "Creating a release just adds a new image version to the docker container repository, but running pushk modifies the .yaml files, so if you want to push more than one application, for example, both iap_proxy and configmap-reload, then one of them will get marked as \u0027dirty\u0027 since a file has changed.\n\nThe solution is to break it into two steps: build releases, then \u0027pushk\u0027 so that all the .yaml updates are done at once.",
+      "parentUuid": "a8e59eee_0d97b8cb",
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d109c8af_b591f79f",
         "filename": "kube/Makefile",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2018-05-06T22:09:12Z",
       "side": 1,
       "message": "It seems that release_configmap_reload and release_iap_proxy shouldn\u0027t depend on pushk, but push should.",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 31
+      },
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d16f33a_58ef1a16",
+        "filename": "kube/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-07T13:21:11Z",
+      "side": 1,
+      "message": "Good catch, will fix in follow-on CL.",
+      "parentUuid": "d109c8af_b591f79f",
       "range": {
         "startLine": 12,
         "startChar": 25,
@@ -88,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "9581ea6d_28c23e57",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-07T13:21:11Z",
+      "side": 1,
+      "message": "Here I\u0027m setting up to substitute the contents of the line, which keeping the indent the same.",
+      "parentUuid": "cd858781_090d1e04",
+      "range": {
+        "startLine": 159,
+        "startChar": 47,
+        "endLine": 159,
+        "endChar": 48
+      },
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2979e84c_4cb20899",
         "filename": "kube/go/pushk/testdata/file1.yaml",
         "patchSetId": 5
@@ -99,6 +165,24 @@
       "writtenOn": "2018-05-06T22:09:12Z",
       "side": 1,
       "message": "Would be nice to test the multiline regex is correctly matching multiple lines.",
+      "revId": "c3584769f528f4f54af5158e190562014f06275f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2cb0d8d_66f09cee",
+        "filename": "kube/go/pushk/testdata/file1.yaml",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-07T13:21:11Z",
+      "side": 1,
+      "message": "lines 19 and 21 match the regex.",
+      "parentUuid": "2979e84c_4cb20899",
       "revId": "c3584769f528f4f54af5158e190562014f06275f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
