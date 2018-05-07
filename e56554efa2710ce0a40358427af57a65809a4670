@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "339a5f94_16a560cb",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T14:28:03Z",
+      "side": 1,
+      "message": "I guess I\u0027m wondering why you want make a temp dir under /b/storage rather than /tmp.",
+      "parentUuid": "55bef704_ecdbb877",
+      "range": {
+        "startLine": 91,
+        "startChar": 31,
+        "endLine": 91,
+        "endChar": 47
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ae6a70d0_113ac126",
         "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
         "patchSetId": 9
@@ -342,6 +366,30 @@
       "side": 1,
       "message": "Did you mean one more? If yes then done.",
       "parentUuid": "f295a0bd_33a8acca",
+      "range": {
+        "startLine": 212,
+        "startChar": 37,
+        "endLine": 212,
+        "endChar": 43
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "044b1f8f_9222742b",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T14:28:03Z",
+      "side": 1,
+      "message": "Sorry for saying it in a confusing way.",
+      "parentUuid": "e0e7ef80_06da7de0",
       "range": {
         "startLine": 212,
         "startChar": 37,
