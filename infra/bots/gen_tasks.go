@@ -238,6 +238,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
+		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 	}
 	task.MaxAttempts = 2
 	if strings.Contains(name, "Race") {
