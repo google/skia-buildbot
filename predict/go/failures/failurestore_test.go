@@ -89,7 +89,8 @@ func taskListProvider(since time.Duration) ([]*swarmingv1.SwarmingRpcsTaskReques
 }
 
 func TestStore(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
+	t.Skip()
 
 	now := time.Now()
 
