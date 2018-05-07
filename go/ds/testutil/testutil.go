@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net"
+	"net/http"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/ds"
+	assert "github.com/stretchr/testify/require"
 	"google.golang.org/api/iterator"
+
+	"go.skia.org/infra/go/ds"
 )
 
 type CleanupFunc func()
@@ -37,9 +40,9 @@ func cleanup(t *testing.T, kinds ...ds.Kind) {
 // the given 'kinds' from the datastore.
 func InitDatastore(t *testing.T, kinds ...ds.Kind) CleanupFunc {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	if os.Getenv("DATASTORE_EMULATOR_HOST") == "" {
-		t.Skip(`Skipping tests that require a local Cloud Datastore emulator.
+	emulatorHost := os.Getenv("DATASTORE_EMULATOR_HOST")
+	if emulatorHost == "" {
+		assert.Fail(t, `Running tests that require a running Cloud Datastore emulator.
 
 Run
 
@@ -55,7 +58,28 @@ to set the environment variables. When done running tests you can unset the env 
 
 `)
 	}
-	err := ds.InitForTesting("test-project", fmt.Sprintf("test-namespace-%d", r.Uint64()))
+
+	// Copied from net/http to create a fresh http client. In some tests the
+	// httpmock replaces the default http client and the healthcheck below fails.
+	var transport http.RoundTripper = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+	httpClient := &http.Client{Transport: transport}
+
+	// Do a quick healthcheck against the host, which will fail immediately if it's down.
+	_, err := httpClient.Get("http://" + emulatorHost + "/")
+	assert.NoError(t, err, fmt.Sprintf("Cloud emulator host %s appears to be down or not accessible.", emulatorHost))
+
+	err = ds.InitForTesting("test-project", fmt.Sprintf("test-namespace-%d", r.Uint64()))
 	assert.NoError(t, err)
 	cleanup(t, kinds...)
 	return func() {
