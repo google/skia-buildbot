@@ -34,7 +34,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: prometheus
-          image: prom/prometheus:v2.1.0
+          image: prom/prometheus:v2.2.1
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/mnt/prometheus/"
