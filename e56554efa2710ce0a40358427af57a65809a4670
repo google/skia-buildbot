@@ -179,6 +179,30 @@
     },
     {
       "key": {
+        "uuid": "9d7f1a76_87929397",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-07T15:06:50Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "df6207ee_efcad2ad",
+      "range": {
+        "startLine": 91,
+        "startChar": 31,
+        "endLine": 91,
+        "endChar": 47
+      },
+      "revId": "e56554efa2710ce0a40358427af57a65809a4670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ae6a70d0_113ac126",
         "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
         "patchSetId": 9
