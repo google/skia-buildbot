@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "307ba6f6_03ea5ff3",
+        "filename": "kube/backup-secrets.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-07T13:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "628c0f46_472494cd",
+      "range": {
+        "startLine": 3,
+        "startChar": 66,
+        "endLine": 3,
+        "endChar": 75
+      },
+      "revId": "152613890177638a03bfedd1eb4d2920eba4b33c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc3bb70b_876a50fa",
         "filename": "kube/backup-secrets.sh",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2018-05-07T13:46:45Z",
       "side": 1,
       "message": "note from \u0027gsutil help cp\u0027:\n  WARNING: When performing streaming transfers gsutil does not compute a\n  checksum of the uploaded or downloaded data. Therefore, we recommend that\n  users either perform their own validation of the data or use non-streaming\n  transfers (which perform integrity checking automatically).\n\nI\u0027m not that worried about it, but maybe you know of a reason we should be worried.",
+      "range": {
+        "startLine": 19,
+        "startChar": 38,
+        "endLine": 19,
+        "endChar": 39
+      },
+      "revId": "152613890177638a03bfedd1eb4d2920eba4b33c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "57d71fdd_868703e8",
+        "filename": "kube/backup-secrets.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-07T13:52:15Z",
+      "side": 1,
+      "message": "Yeah, I\u0027m not worried, if the file is corrupted it will fail to decrypt, and since we are backing up once a day, we can just go to the previous days until we find one that does decrypt if we are doing a restore.",
+      "parentUuid": "fc3bb70b_876a50fa",
       "range": {
         "startLine": 19,
         "startChar": 38,
