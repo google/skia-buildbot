@@ -20,7 +20,7 @@ import (
 
 var (
 	emails         = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	gaeTaskID      = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	taskID         = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	targetPlatform = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
 	chromiumHash   = flag.String("chromium_hash", "", "The Chromium commit hash the checkout should be synced to. If not specified then Chromium's ToT hash is used.")
@@ -52,7 +52,7 @@ func sendEmail(recipients []string) {
 
 func updateWebappTask() {
 	vars := chromium_builds.UpdateVars{}
-	vars.Id = *gaeTaskID
+	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
@@ -70,8 +70,8 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_builds.UpdateVars{}, *gaeTaskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Build chromium", *runID, ""))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_builds.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Build chromium", *runID, ""))
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
