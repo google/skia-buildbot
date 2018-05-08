@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ce219c2b_3498024b",
+        "filename": "ct/res/imp/expanding-textarea-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:32:47Z",
+      "side": 1,
+      "message": "nit: There\u0027s nothing in this element that limits it to comma-separated items except maybe the placeholder text.",
+      "range": {
+        "startLine": 3,
+        "startChar": 12,
+        "endLine": 3,
+        "endChar": 33
+      },
+      "revId": "39f901cf9469679ab02ef151299a845a71d6723d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ccfc269_f280107f",
+        "filename": "ct/res/imp/expanding-textarea-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:32:47Z",
+      "side": 1,
+      "message": "nit: Maybe call this \"value\" like paper-input element. (\"items\" is slightly confusing since it is a string, not an array.)",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 13
+      },
+      "revId": "39f901cf9469679ab02ef151299a845a71d6723d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
