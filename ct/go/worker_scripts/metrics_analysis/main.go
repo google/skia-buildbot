@@ -119,7 +119,7 @@ func metricsAnalysis() error {
 		return errors.New(fmt.Sprintf("No traces found in %s", tracesFilename))
 	}
 	traces = util.GetCustomPagesWithinRange(*startRange, *num, traces)
-	sklog.Info("Using %d traces", len(traces))
+	sklog.Infof("Using %d traces", len(traces))
 
 	// Establish output paths for pdf downloads and metrics.
 	traceDownloadDir := filepath.Join(util.StorageDir, util.TraceDownloadsDir, *runID)
