@@ -5,15 +5,49 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/testutils"
-
 	assert "github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/ds"
+	ds_testutil "go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/db"
 )
 
 func TestTestMemIgnoreStore(t *testing.T) {
 	testutils.SmallTest(t)
 	memStore := NewMemIgnoreStore()
 	testIgnoreStore(t, memStore)
+}
+
+func TestSQLIgnoreStore(t *testing.T) {
+	testutils.LargeTest(t)
+	// Set up the database. This also locks the db until this test is finished
+	// causing similar tests to wait.
+	migrationSteps := db.MigrationSteps()
+	mysqlDB := testutil.SetupMySQLTestDatabase(t, migrationSteps)
+	defer mysqlDB.Close(t)
+
+	vdb, err := testutil.LocalTestDatabaseConfig(migrationSteps).NewVersionedDB()
+	assert.NoError(t, err)
+	defer testutils.AssertCloses(t, vdb)
+
+	store := NewSQLIgnoreStore(vdb, nil, nil)
+	testIgnoreStore(t, store)
+}
+
+func TestCloudIgnoreStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	// Run to the locally running emulator.
+	cleanup := ds_testutil.InitDatastore(t,
+		ds.IGNORE_RULE,
+		ds.HELPER_RECENT_KEYS)
+	defer cleanup()
+
+	store, err := NewCloudIgnoreStore(ds.DS, nil, nil)
+	assert.NoError(t, err)
+	testIgnoreStore(t, store)
 }
 
 func testIgnoreStore(t *testing.T, store IgnoreStore) {
@@ -61,6 +95,10 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	delCount, err := store.Delete(r3.ID, "jon@example.com")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, delCount)
+	allRules, err = store.List(false)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(allRules))
+
 	delCount, err = store.Delete(r4.ID, "jon@example.com")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, delCount)
