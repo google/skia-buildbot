@@ -99,6 +99,12 @@
         </paper-dialog-scrollable>
       </paper-dialog>
 
+      <paper-dialog heading="Skia Patch" id="{{ getSkiaPatchId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{chromiumAnalysisTask.SkiaPatch}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
       <paper-dialog heading="V8 Patch" id="{{ getV8PatchId(index) }}">
         <paper-dialog-scrollable>
           <pre>{{chromiumAnalysisTask.V8Patch}}</pre>
@@ -258,6 +264,10 @@
               <a href="javascript:void(0);" data-index$="{{index}}"   data-type="chromiumPatch">Chromium</a>
               <br/>
             </template>
+            <template is="dom-if" if="{{chromiumAnalysisTask.SkiaPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="skiaPatch">Skia</a>
+              <br/>
+            </template>
             <template is="dom-if" if="{{chromiumAnalysisTask.V8Patch}}">
               <a href="javascript:void(0);" data-index$="{{index}}"   data-type="v8Patch">V8</a>
               <br/>
@@ -345,6 +355,8 @@
              that.toggleDialog(that.getMatchStdoutTxtId(id));
            } else if (anchor.dataset.type == "chromiumPatch") {
              that.toggleDialog(that.getChromiumPatchId(id));
+           } else if (anchor.dataset.type == "skiaPatch") {
+             that.toggleDialog(that.getSkiaPatchId(id));
            } else if (anchor.dataset.type == "v8Patch") {
              that.toggleDialog(that.getV8PatchId(id));
            } else if (anchor.dataset.type == "catapultPatch") {
@@ -407,6 +419,10 @@
 
      getChromiumPatchId: function(index) {
        return "chromium_patch" + index;
+     },
+
+     getSkiaPatchId: function(index) {
+       return "skia_patch" + index;
      },
 
      getV8PatchId: function(index) {

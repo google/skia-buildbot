@@ -448,6 +448,14 @@ var v26_down = []string{
 	`DROP TABLE IF EXISTS MetricsAnalysisTasks`,
 }
 
+var v27_up = []string{
+	`ALTER TABLE ChromiumAnalysisTasks ADD skia_patch longtext NOT NULL DEFAULT ""`,
+}
+
+var v27_down = []string{
+	`ALTER TABLE ChromiumAnalysisTasks DROP skia_patch`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -581,6 +589,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v26_up,
 		MySQLDown: v26_down,
+	},
+	// version 27: Add skia_patch to ChromiumAnalysisTasks.
+	{
+		MySQLUp:   v27_up,
+		MySQLDown: v27_down,
 	},
 }
 
