@@ -18,6 +18,7 @@
     "whitelist": [
       "BUILD.gn",
       "LICENSE",
+      "README.chromium",
       "skcms.h",
       "skcms.c",
       "src"
