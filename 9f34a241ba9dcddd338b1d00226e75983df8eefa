@@ -1,0 +1,291 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "078e2dc6_9cf86966",
+        "filename": "go/chatbot/bot.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit: given that this function immediately calls configReader, I don\u0027t see why we want a callback rather than just having the caller pass in the config.",
+      "range": {
+        "startLine": 54,
+        "startChar": 48,
+        "endLine": 54,
+        "endChar": 73
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7e8fa76_d60c4532",
+        "filename": "go/chatbot/bot.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit: redundant?",
+      "range": {
+        "startLine": 55,
+        "startChar": 74,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c877ba4c_fec1c22c",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 14
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "Is this needed? It seems that only alertmanager needs to connect to this port, and it\u0027s running in the same pod.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 16
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd3a09ba_f3ced8b7",
+        "filename": "promk/Dockerfile",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit: file path makes it seem like this is the Dockerfile for Prometheus rather than alertmanager_webhooks",
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b364b30_b6adbcdd",
+        "filename": "promk/Makefile",
+        "patchSetId": 14
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit: ... release push",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 13
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57c00c25_a64fac0e",
+        "filename": "promk/create-chat-secrets.sh",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "Should this be create-email-secrets.sh?",
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89697407_a2934700",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit alertmanager_webhooks",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bdd05ab_9325c7e7",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "decode?",
+      "range": {
+        "startLine": 58,
+        "startChar": 46,
+        "endLine": 58,
+        "endChar": 52
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b88b9c4_ea859d56",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 83,
+        "startChar": 46,
+        "endLine": 83,
+        "endChar": 52
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9cb4fe1_66e3cf35",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit: \"\" so that TMPDIR env var is honored.",
+      "range": {
+        "startLine": 132,
+        "startChar": 31,
+        "endLine": 132,
+        "endChar": 37
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a06b215f_c5782080",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit: including this filename will be confusing, since this error is unrelated to emailTokenCacheFile",
+      "range": {
+        "startLine": 134,
+        "startChar": 53,
+        "endLine": 134,
+        "endChar": 73
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "116bcf26_8d520247",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit: Don\u0027t ignore errors from closing files when writing. \"fout.Close()\" should be within the WithReadFile callback.",
+      "range": {
+        "startLine": 144,
+        "startChar": 2,
+        "endLine": 144,
+        "endChar": 18
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b62b4221_76c05857",
+        "filename": "promk/prometheus/prometheus.yml",
+        "patchSetId": 14
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-08T19:23:03Z",
+      "side": 1,
+      "message": "nit: alertmanager_webhooks to match log name, or alertmanager-webhooks to match pod name. (The idea is that we should be able to use this name to derive log links for the job being monitored. I\u0027m not sure which components are needed for that.)",
+      "range": {
+        "startLine": 30,
+        "startChar": 15,
+        "endLine": 30,
+        "endChar": 23
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
