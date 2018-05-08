@@ -26,7 +26,7 @@ const (
 
 var (
 	emails      = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	gaeTaskID   = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	taskID      = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	pagesetType = flag.String("pageset_type", "", "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
 	runOnGCE    = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
 	runID       = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
@@ -57,7 +57,7 @@ func sendEmail(recipients []string) {
 
 func updateWebappTask() {
 	vars := admin_tasks.RecreatePageSetsUpdateVars{}
-	vars.Id = *gaeTaskID
+	vars.Id = *taskID
 	vars.SetCompleted(*taskCompletedSuccessfully)
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
@@ -75,8 +75,8 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreatePageSetsUpdateVars{}, *gaeTaskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Creating pagesets", *runID, ""))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreatePageSetsUpdateVars{}, *taskID, *runID))
+	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Creating pagesets", *runID, ""))
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)

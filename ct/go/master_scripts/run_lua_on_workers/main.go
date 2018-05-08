@@ -32,7 +32,7 @@ const (
 var (
 	emails        = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
 	description   = flag.String("description", "", "The description of the run as entered by the requester.")
-	gaeTaskID     = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	taskID        = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	pagesetType   = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
 	runOnGCE      = flag.Bool("run_on_gce", true, "Run on Linux GCE instances.")
@@ -77,7 +77,7 @@ func sendEmail(recipients []string) {
 
 func updateWebappTask() {
 	vars := lua_scripts.UpdateVars{}
-	vars.Id = *gaeTaskID
+	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	if luaOutputRemoteLink != "" {
 		vars.ScriptOutput = sql.NullString{String: luaOutputRemoteLink, Valid: true}
@@ -101,8 +101,8 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *gaeTaskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script", *runID, *description))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Lua script", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)

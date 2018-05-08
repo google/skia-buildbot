@@ -107,7 +107,6 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":      task.ChromiumPatch,
-		".skia.patch":          task.SkiaPatch,
 		".v8.patch":            task.V8Patch,
 		".catapult.patch":      task.CatapultPatch,
 		".benchmark.patch":     task.BenchmarkPatch,
@@ -127,7 +126,7 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
 		Args: []string{
 			"--emails=" + task.Username,
 			"--description=" + task.Description,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--benchmark_name=" + task.Benchmark,
 			"--benchmark_extra_args=" + task.BenchmarkArgs,
@@ -176,7 +175,7 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context) error {
 		Args: []string{
 			"--emails=" + task.Username,
 			"--description=" + task.Description,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--benchmark_name=" + task.Benchmark,
 			"--benchmark_extra_args=" + task.BenchmarkArgs,
@@ -220,7 +219,7 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context) error {
 		Args: []string{
 			"--emails=" + task.Username,
 			"--description=" + task.Description,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--metric_name=" + task.MetricName,
 			"--analysis_output_link=" + task.AnalysisOutputLink,
 			"--benchmark_extra_args=" + task.BenchmarkArgs,
@@ -258,7 +257,7 @@ func (task *PixelDiffTask) Execute(ctx context.Context) error {
 		Args: []string{
 			"--emails=" + task.Username,
 			"--description=" + task.Description,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--benchmark_extra_args=" + task.BenchmarkArgs,
 			"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
@@ -285,7 +284,7 @@ func (task *CaptureSkpsTask) Execute(ctx context.Context) error {
 		Args: []string{
 			"--emails=" + task.Username,
 			"--description=" + task.Description,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--chromium_build=" + chromiumBuildDir,
 			"--target_platform=Linux",
@@ -328,7 +327,7 @@ func (task *LuaScriptTask) Execute(ctx context.Context) error {
 		Args: []string{
 			"--emails=" + task.Username,
 			"--description=" + task.Description,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--chromium_build=" + chromiumBuildDir,
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
@@ -353,7 +352,7 @@ func (task *ChromiumBuildTask) Execute(ctx context.Context) error {
 		Name: "build_chromium",
 		Args: []string{
 			"--emails=" + task.Username,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--run_id=" + runId,
 			"--target_platform=Linux",
 			"--chromium_hash=" + task.ChromiumRev,
@@ -376,7 +375,7 @@ func (task *RecreatePageSetsTask) Execute(ctx context.Context) error {
 		Name: "create_pagesets_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
@@ -398,7 +397,7 @@ func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context) error {
 		Name: "capture_archives_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
-			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--task_id=" + strconv.FormatInt(task.Id, 10),
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
