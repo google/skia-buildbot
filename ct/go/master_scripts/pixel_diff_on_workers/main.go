@@ -33,7 +33,7 @@ const (
 var (
 	emails                    = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
 	description               = flag.String("description", "", "The description of the run as entered by the requester.")
-	gaeTaskID                 = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	taskID                    = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	pagesetType               = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	benchmarkExtraArgs        = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgsNoPatch   = flag.String("browser_extra_args_nopatch", "", "The extra arguments that are passed to the browser while running the benchmark for the nopatch case.")
@@ -95,7 +95,7 @@ func sendEmail(recipients []string) {
 
 func updateWebappTask() {
 	vars := pixel_diff.UpdateVars{}
-	vars.Id = *gaeTaskID
+	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.Results = sql.NullString{String: pixelDiffResultsLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
@@ -114,8 +114,8 @@ func main() {
 		sklog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&pixel_diff.UpdateVars{}, *gaeTaskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Pixel diff", *runID, *description))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&pixel_diff.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Pixel diff", *runID, *description))
 
 	// Ensure webapp is updated and completion email is sent even if task
 	// fails.

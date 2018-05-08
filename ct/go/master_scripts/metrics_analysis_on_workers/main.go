@@ -38,7 +38,7 @@ const (
 var (
 	emails             = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
 	description        = flag.String("description", "", "The description of the run as entered by the requester.")
-	gaeTaskID          = flag.Int64("gae_task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
+	taskID             = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the analysis_metrics_ct benchmark.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
@@ -97,7 +97,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 
 func updateWebappTask() {
 	vars := metrics_analysis.UpdateVars{}
-	vars.Id = *gaeTaskID
+	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.RawOutput = sql.NullString{String: outputLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
@@ -123,8 +123,8 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *gaeTaskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Metrics analysis", *runID, *description))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Metrics analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr, gs)

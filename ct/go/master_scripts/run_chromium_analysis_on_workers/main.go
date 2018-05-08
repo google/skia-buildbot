@@ -31,7 +31,7 @@ const (
 var (
 	emails             = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
 	description        = flag.String("description", "", "The description of the run as entered by the requester.")
-	gaeTaskID          = flag.Int64("gae_task_id", -1, "The key of the task. This task will be updated when the task is started and completed.")
+	taskID             = flag.Int64("task_id", -1, "The key of the CT task in CTFE. The task will be updated when it is started and also when it completes.")
 	pagesetType        = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	benchmarkName      = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
@@ -107,7 +107,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 
 func updateWebappTask() {
 	vars := chromium_analysis.UpdateVars{}
-	vars.Id = *gaeTaskID
+	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.RawOutput = sql.NullString{String: outputLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
@@ -133,8 +133,8 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr, gs)

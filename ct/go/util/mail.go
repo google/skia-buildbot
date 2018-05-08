@@ -76,8 +76,8 @@ func GetFailureEmailHtml(runID string) string {
 		fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), CtAdmins)
 }
 
-func SendTaskStartEmail(recipients []string, taskName, runID, description string) error {
-	emailSubject := fmt.Sprintf("%s cluster telemetry task has started (%s)", taskName, runID)
+func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, description string) error {
+	emailSubject := fmt.Sprintf("%s cluster telemetry task has started (%d)", taskName, taskId)
 	swarmingLogsLink := fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
 
 	viewActionMarkup, err := email.GetViewActionMarkup(swarmingLogsLink, "View Logs", "Direct link to the swarming logs")
