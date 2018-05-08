@@ -107,6 +107,7 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":      task.ChromiumPatch,
+		".skia.patch":          task.SkiaPatch,
 		".v8.patch":            task.V8Patch,
 		".catapult.patch":      task.CatapultPatch,
 		".benchmark.patch":     task.BenchmarkPatch,

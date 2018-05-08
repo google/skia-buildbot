@@ -52,6 +52,7 @@ type DBTask struct {
 	BrowserArgs    string         `db:"browser_args"`
 	Description    string         `db:"description"`
 	ChromiumPatch  string         `db:"chromium_patch"`
+	SkiaPatch      string         `db:"skia_patch"`
 	CatapultPatch  string         `db:"catapult_patch"`
 	BenchmarkPatch string         `db:"benchmark_patch"`
 	V8Patch        string         `db:"v8_patch"`
@@ -78,6 +79,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.BrowserArgs = dbTask.BrowserArgs
 	taskVars.Description = dbTask.Description
 	taskVars.ChromiumPatch = dbTask.ChromiumPatch
+	taskVars.SkiaPatch = dbTask.SkiaPatch
 	taskVars.CatapultPatch = dbTask.CatapultPatch
 	taskVars.BenchmarkPatch = dbTask.BenchmarkPatch
 	taskVars.V8Patch = dbTask.V8Patch
@@ -128,6 +130,7 @@ type AddTaskVars struct {
 	BrowserArgs    string `json:"browser_args"`
 	Description    string `json:"desc"`
 	ChromiumPatch  string `json:"chromium_patch"`
+	SkiaPatch      string `json:"skia_patch"`
 	CatapultPatch  string `json:"catapult_patch"`
 	BenchmarkPatch string `json:"benchmark_patch"`
 	V8Patch        string `json:"v8_patch"`
@@ -157,6 +160,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		{Name: "desc", Value: task.Description, Limit: 255},
 		{Name: "custom_webpages", Value: strings.Join(customWebpages, ","), Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+		{Name: "skia_patch", Value: task.SkiaPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "benchmark_patch", Value: task.BenchmarkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
 		{Name: "v8_patch", Value: task.V8Patch, Limit: db.LONG_TEXT_MAX_LENGTH},
@@ -172,7 +176,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	if task.RunOnGCE {
 		runOnGCE = 1
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,custom_webpages,benchmark_args,browser_args,description,chromium_patch,catapult_patch,benchmark_patch,v8_patch,ts_added,repeat_after_days,run_in_parallel,platform,run_on_gce,match_stdout_txt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,custom_webpages,benchmark_args,browser_args,description,chromium_patch,skia_patch,catapult_patch,benchmark_patch,v8_patch,ts_added,repeat_after_days,run_in_parallel,platform,run_on_gce,match_stdout_txt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_ANALYSIS_TASKS),
 		[]interface{}{
 			task.Username,
@@ -183,6 +187,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 			task.BrowserArgs,
 			task.Description,
 			task.ChromiumPatch,
+			task.SkiaPatch,
 			task.CatapultPatch,
 			task.BenchmarkPatch,
 			task.V8Patch,
