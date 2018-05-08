@@ -41,7 +41,7 @@ var (
 
 func sendEmail(recipients []string) {
 	// Send completion email.
-	emailSubject := fmt.Sprintf("Capture SKPs cluster telemetry task has completed (%d)", *taskID)
+	emailSubject := fmt.Sprintf("Capture SKPs cluster telemetry task has completed (#%d)", *taskID)
 	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"

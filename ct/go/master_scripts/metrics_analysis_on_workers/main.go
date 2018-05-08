@@ -55,7 +55,7 @@ var (
 
 func sendEmail(recipients []string, gs *util.GcsUtil) {
 	// Send completion email.
-	emailSubject := fmt.Sprintf("Metrics analysis cluster telemetry task has completed (%d)", *taskID)
+	emailSubject := fmt.Sprintf("Metrics analysis cluster telemetry task has completed (#%d)", *taskID)
 	failureHtml := ""
 	viewActionMarkup := ""
 	var err error
@@ -78,7 +78,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	The metrics analysis task has completed. %s.<br/>
 	Run description: %s<br/>
 	%s
-	The CSV output is <a href='%s'>here</a>.%s<br/>
+	The CSV output is <a href='%s'>here</a>.<br/>
 	The patch(es) you specified are here:
 	<a href='%s'>chromium</a>/<a href='%s'>catapult</a>
 	<br/>

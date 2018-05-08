@@ -60,7 +60,7 @@ var (
 
 func sendEmail(recipients []string) {
 	// Send completion email.
-	emailSubject := fmt.Sprintf("Cluster telemetry chromium perf task has completed (%d)", *taskID)
+	emailSubject := fmt.Sprintf("Cluster telemetry chromium perf task has completed (#%d)", *taskID)
 	failureHtml := ""
 	viewActionMarkup := ""
 	var err error
