@@ -45,7 +45,7 @@ var (
 
 func sendEmail(recipients []string) {
 	// Send completion email.
-	emailSubject := fmt.Sprintf("Run lua script Cluster telemetry task has completed (%d)", *taskID)
+	emailSubject := fmt.Sprintf("Run lua script Cluster telemetry task has completed (#%d)", *taskID)
 	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"

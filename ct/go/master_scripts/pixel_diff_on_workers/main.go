@@ -51,7 +51,7 @@ var (
 
 func sendEmail(recipients []string) {
 	// Send completion email.
-	emailSubject := fmt.Sprintf("Pixel diff cluster telemetry task has completed (%d)", *taskID)
+	emailSubject := fmt.Sprintf("Pixel diff cluster telemetry task has completed (#%d)", *taskID)
 	failureHtml := ""
 	viewActionMarkup := ""
 	var err error
