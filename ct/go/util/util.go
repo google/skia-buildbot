@@ -414,9 +414,11 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	numTasks := int(math.Ceil(float64(numPages) / float64(numPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
 		isolateArgs := map[string]string{
-			"START_RANGE":  strconv.Itoa(GetStartRange(i, numPagesPerBot)),
-			"NUM":          strconv.Itoa(numPagesPerBot),
-			"PAGESET_TYPE": pagesetType,
+			"START_RANGE": strconv.Itoa(GetStartRange(i, numPagesPerBot)),
+			"NUM":         strconv.Itoa(numPagesPerBot),
+		}
+		if pagesetType != "" {
+			isolateArgs["PAGESET_TYPE"] = pagesetType
 		}
 		// Add isolateExtraArgs (if specified) into the isolateArgs.
 		for k, v := range isolateExtraArgs {
@@ -735,6 +737,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		fmt.Println(output)
 		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
+<<<<<<< HEAD
 
 	// Append logcat output if we ran on Android.
 	if targetPlatform == PLATFORM_ANDROID {
@@ -743,6 +746,8 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		}
 	}
 
+=======
+>>>>>>> fba7f19a9d5f30be95876b3623816df1d77f018d
 	output, err := GetRunBenchmarkOutput(b)
 	if err != nil {
 		return "", fmt.Errorf("Could not get run benchmark output: %s", err)
@@ -775,7 +780,11 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 			sklog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
 			continue
 		}
+<<<<<<< HEAD
 		headers, values, err := getRowsFromCSV(newFile)
+=======
+		headers, values, err := GetRowsFromCSV(newFile)
+>>>>>>> fba7f19a9d5f30be95876b3623816df1d77f018d
 		if err != nil {
 			sklog.Errorf("Could not read %s: %s", newFile, err)
 			continue
@@ -837,7 +846,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 	return nil
 }
 
-func getRowsFromCSV(csvPath string) ([]string, [][]string, error) {
+func GetRowsFromCSV(csvPath string) ([]string, [][]string, error) {
 	csvFile, err := os.Open(csvPath)
 	defer util.Close(csvFile)
 	if err != nil {

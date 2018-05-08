@@ -89,11 +89,19 @@ func metricsAnalysis() error {
 	// Download the trace URLs for this run from Google storage.
 	tracesFilename := *runID + ".traces.csv"
 	tmpDir, err := ioutil.TempDir(util.PagesetsDir, "traces")
+<<<<<<< HEAD
 	if err != nil {
 		return fmt.Errorf("Could not create tmpdir: %s", err)
 	}
 	defer skutil.RemoveAll(tmpDir)
 	remotePatchesDir := filepath.Join(util.BenchmarkRunsDir, *runID)
+=======
+	defer skutil.RemoveAll(tmpDir)
+	remotePatchesDir := filepath.Join(util.BenchmarkRunsDir, *runID)
+	if err != nil {
+		return fmt.Errorf("Could not create tmpdir: %s", err)
+	}
+>>>>>>> fba7f19a9d5f30be95876b3623816df1d77f018d
 
 	// Download the catapult patch for this run from Google storage.
 	catapultPatchName := *runID + ".catapult.patch"
@@ -133,7 +141,11 @@ func metricsAnalysis() error {
 	defer skutil.RemoveAll(localOutputDir)
 	remoteDir := filepath.Join(util.BenchmarkRunsDir, *runID)
 
+<<<<<<< HEAD
 	sklog.Infof("===== Going to run the task with %d parallel goroutines =====", WORKER_POOL_SIZE)
+=======
+	sklog.Infof("===== Going to run the task with %d parallel chrome processes =====", WORKER_POOL_SIZE)
+>>>>>>> fba7f19a9d5f30be95876b3623816df1d77f018d
 	// Create channel that contains all trace ULs. This channel will
 	// be consumed by the worker pool.
 	traceRequests := getClosedChannelOfTraces(traces)
@@ -152,7 +164,11 @@ func metricsAnalysis() error {
 		// Increment the WaitGroup counter.
 		wg.Add(1)
 
+<<<<<<< HEAD
 		// Create and run a goroutine closure that runs the analysis benchmark.
+=======
+		// Create and run a goroutine closure that captures screenshots.
+>>>>>>> fba7f19a9d5f30be95876b3623816df1d77f018d
 		go func() {
 			// Decrement the WaitGroup counter when the goroutine completes.
 			defer wg.Done()
@@ -209,7 +225,11 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 	args := []string{
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
 		util.BENCHMARK_METRICS_ANALYSIS,
+<<<<<<< HEAD
 		"--local-trace-path", fmt.Sprintf("file://%s", downloadedTrace),
+=======
+		"--local-trace-path", fmt.Sprintf("file:/%s", downloadedTrace),
+>>>>>>> fba7f19a9d5f30be95876b3623816df1d77f018d
 		"--cloud-trace-link", cloudTraceLink,
 		"--metric-name", *metricName,
 		"--browser", "system", // No browser is brought up but unfortunately this is needed by the framework.
