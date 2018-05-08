@@ -1,3 +1,13 @@
+.PHONY: build
+build:
+	go install  ./go/...
+
+release:
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/alertmanager_webhooks
+	./build_docker_release
+
+push:
+	pushk alertmanager_webhooks
 
 .PHONY: validate
 validate: ./tmp/promtool
@@ -9,7 +19,7 @@ validate: ./tmp/promtool
 	cp ./tmp/prometheus-2.2.1.linux-amd64/promtool ./tmp/promtool
 
 .PHONY: push_config
-push: validate
+push_config: validate
 	# Need to use replace so that the configmap gets updated. Change "replace"
 	# to "create" if this is the first time the configmap has been uploaded.
 	kubectl create configmap prometheus-server-conf --from-file=./prometheus -o yaml --dry-run | kubectl replace -f -
