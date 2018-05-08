@@ -172,6 +172,19 @@
 
       <tr>
         <td>
+          Skia Git patch (optional)<br/>
+          Applied to Skia Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
+        </td>
+        <td>
+          <patch-sk id="skia_patch"
+                    patch-type="skia"
+                    cl-description="{{skiaClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
           V8 Git patch (optional)<br/>
           Applied to V8 Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
         </td>
@@ -252,13 +265,14 @@
          value: "",
        },
        chromiumClDescription: String,
+       skiaClDescription: String,
        v8ClDescription: String,
        catapultClDescription: String,
        selectedBenchmarkName: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, v8ClDescription, catapultClDescription)"
+       "clDescriptionChanged(chromiumClDescription, skiaClDescription, v8ClDescription, catapultClDescription)"
      ],
 
      ready: function() {
@@ -336,8 +350,8 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDesc, v8ClDesc, catapultClDesc) {
-       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, '', v8ClDesc, catapultClDesc)
+     clDescriptionChanged: function(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc)
      },
 
      validateTask: function() {
@@ -347,6 +361,7 @@
          return;
        }
        if (!this.$.chromium_patch.validate() ||
+           !this.$.skia_patch.validate() ||
            !this.$.v8_patch.validate() ||
            !this.$.catapult_patch.validate()) {
          return;
@@ -376,6 +391,7 @@
        params["browser_args"] = this.$.browser_args.value;
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
+       params["skia_patch"] = this.$.skia_patch.patch;
        params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
        if (this.$.benchmark_patch.checked) {
