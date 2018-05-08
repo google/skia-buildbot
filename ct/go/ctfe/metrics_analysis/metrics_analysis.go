@@ -203,7 +203,7 @@ func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_ANALYSIS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_METRICS_ANALYSIS_TASKS, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
