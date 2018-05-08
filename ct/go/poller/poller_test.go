@@ -100,7 +100,7 @@ func TestChromiumPerfExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "run_chromium_perf_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--benchmark_name=benchmark")
@@ -141,7 +141,7 @@ func TestPixelDiffExecute(t *testing.T) {
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "pixel_diff_on_workers", cmd.Name)
 	expect.Equal(t, len(cmd.Args), 12)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
@@ -182,7 +182,7 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "metrics_analysis_on_workers", cmd.Name)
 	expect.Equal(t, len(cmd.Args), 10)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--metric_name=loadingMetric")
@@ -218,7 +218,7 @@ func TestCaptureSkpsExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "capture_skps_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
@@ -260,7 +260,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "run_lua_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
@@ -298,7 +298,7 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "run_lua_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
@@ -328,7 +328,7 @@ func TestChromiumBuildExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "build_chromium", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args,
 		"--chromium_hash=c14d891d44f0afff64e56ed7c9702df1d807b1ee")
@@ -358,7 +358,7 @@ func TestRecreatePageSetsExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "create_pagesets_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	runId := getRunId(t, cmd)
@@ -387,7 +387,7 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "capture_archives_on_workers", cmd.Name)
-	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	runId := getRunId(t, cmd)

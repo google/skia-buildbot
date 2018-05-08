@@ -31,7 +31,7 @@ const (
 var (
 	emails             = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
 	description        = flag.String("description", "", "The description of the run as entered by the requester.")
-	gaeTaskID          = flag.Int64("gae_task_id", -1, "The key of the task. This task will be updated when the task is started and completed.")
+	taskID             = flag.Int64("task_id", -1, "The key of the task. This task will be updated when the task is started and completed.")
 	pagesetType        = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	benchmarkName      = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
@@ -45,7 +45,6 @@ var (
 	taskCompletedSuccessfully = false
 
 	chromiumPatchLink  = util.MASTER_LOGSERVER_LINK
-	skiaPatchLink      = util.MASTER_LOGSERVER_LINK
 	v8PatchLink        = util.MASTER_LOGSERVER_LINK
 	catapultPatchLink  = util.MASTER_LOGSERVER_LINK
 	benchmarkPatchLink = util.MASTER_LOGSERVER_LINK
@@ -90,7 +89,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	%s
 	The CSV output is <a href='%s'>here</a>.%s<br/>
 	The patch(es) you specified are here:
-	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>/<a href='%s'>telemetry</a>
+	<a href='%s'>chromium</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>/<a href='%s'>telemetry</a>
 	<br/>
 	Custom webpages (if specified) are <a href='%s'>here</a>.
 	<br/><br/>
@@ -98,7 +97,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, benchmarkPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, v8PatchLink, catapultPatchLink, benchmarkPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -107,7 +106,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 
 func updateWebappTask() {
 	vars := chromium_analysis.UpdateVars{}
-	vars.Id = *gaeTaskID
+	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	vars.RawOutput = sql.NullString{String: outputLink, Valid: true}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
@@ -133,8 +132,8 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
+	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr, gs)
@@ -161,26 +160,24 @@ func main() {
 
 	// Copy the patches and custom webpages to Google Storage.
 	chromiumPatchName := *runID + ".chromium.patch"
-	skiaPatchName := *runID + ".skia.patch"
 	v8PatchName := *runID + ".v8.patch"
 	catapultPatchName := *runID + ".catapult.patch"
 	benchmarkPatchName := *runID + ".benchmark.patch"
 	customWebpagesName := *runID + ".custom_webpages.csv"
-	for _, patchName := range []string{chromiumPatchName, v8PatchName, skiaPatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
+	for _, patchName := range []string{chromiumPatchName, v8PatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			sklog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
 		}
 	}
 	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
-	skiaPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, skiaPatchName)
 	v8PatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, v8PatchName)
 	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
 	benchmarkPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, benchmarkPatchName)
 	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
 	// Create the required chromium build.
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return
