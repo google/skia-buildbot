@@ -55,7 +55,7 @@ var (
 
 func sendEmail(recipients []string, gs *util.GcsUtil) {
 	// Send completion email.
-	emailSubject := fmt.Sprintf("Cluster telemetry chromium analysis task has completed (%s)", *runID)
+	emailSubject := fmt.Sprintf("Cluster telemetry chromium analysis task has completed (%d)", *taskID)
 	failureHtml := ""
 	viewActionMarkup := ""
 	var err error
