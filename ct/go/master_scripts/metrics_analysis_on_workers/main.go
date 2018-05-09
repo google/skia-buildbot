@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT = 50
+	MAX_PAGES_PER_SWARMING_BOT = 100
 )
 
 var (
