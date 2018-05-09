@@ -777,43 +777,46 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 			sklog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
 			continue
 		}
-		headers, values, err := GetRowsFromCSV(newFile)
-		if err != nil {
-			sklog.Errorf("Could not read %s: %s", newFile, err)
-			continue
-		}
-		// Add the rank of the page to the CSV file.
-		pageRank := fileInfo.Name()
-		pageNameWithRank := ""
-		for i := range headers {
-			for j := range values {
-				if headers[i] == "stories" && addRanks {
-					pageNameWithRank = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
-					values[j][i] = pageNameWithRank
-				}
+
+		if addRanks || len(pageRankToAdditionalFields) != 0 {
+			headers, values, err := GetRowsFromCSV(newFile)
+			if err != nil {
+				sklog.Errorf("Could not read %s: %s", newFile, err)
+				continue
 			}
-		}
-		// Add additionalFields (if any) to the output CSV.
-		if additionalFields, ok := pageRankToAdditionalFields[fileInfo.Name()]; ok {
-			for h, v := range additionalFields {
-				valueLine := make([]string, len(headers))
-				for i := range headers {
-					if headers[i] == "name" {
-						valueLine[i] = h
-					} else if headers[i] == "avg" {
-						valueLine[i] = v
-					} else if headers[i] == "stories" && addRanks {
-						valueLine[i] = pageNameWithRank
-					} else {
-						valueLine[i] = ""
+			// Add the rank of the page to the CSV file.
+			pageRank := fileInfo.Name()
+			pageNameWithRank := ""
+			for i := range headers {
+				for j := range values {
+					if headers[i] == "stories" && addRanks {
+						pageNameWithRank = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
+						values[j][i] = pageNameWithRank
 					}
 				}
-				values = append(values, valueLine)
 			}
-		}
-		if err := writeRowsToCSV(newFile, headers, values); err != nil {
-			sklog.Errorf("Could not write to %s: %s", newFile, err)
-			continue
+			// Add additionalFields (if any) to the output CSV.
+			if additionalFields, ok := pageRankToAdditionalFields[fileInfo.Name()]; ok {
+				for h, v := range additionalFields {
+					valueLine := make([]string, len(headers))
+					for i := range headers {
+						if headers[i] == "name" {
+							valueLine[i] = h
+						} else if headers[i] == "avg" {
+							valueLine[i] = v
+						} else if headers[i] == "stories" && addRanks {
+							valueLine[i] = pageNameWithRank
+						} else {
+							valueLine[i] = ""
+						}
+					}
+					values = append(values, valueLine)
+				}
+			}
+			if err := writeRowsToCSV(newFile, headers, values); err != nil {
+				sklog.Errorf("Could not write to %s: %s", newFile, err)
+				continue
+			}
 		}
 	}
 	// Call csv_pivot_table_merger.py to merge all results into a single results CSV.
