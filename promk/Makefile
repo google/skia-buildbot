@@ -10,7 +10,9 @@ push:
 	pushk --apply alertmanager-webhooks
 
 validate: ./tmp/promtool
-	./tmp/promtool check config ./prometheus/prometheus.yml
+	# If the only error is "FAILED: error checking bearer token file..." then you should be good.
+	-./tmp/promtool check config ./prometheus/prometheus.yml
+	./tmp/promtool check rules ./prometheus/alert_rules.yml
 
 ./tmp/promtool:
 	-mkdir -p tmp
