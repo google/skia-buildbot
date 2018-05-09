@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "aed8ca1b_597e001a",
+        "filename": "kube/skia-public/grafana.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T18:32:40Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3cbb6fb3_9624745e",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 16
+      },
+      "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f753e9a2_7852b5bb",
         "filename": "promk/grafana/grafana.ini",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "bd4434f4_e7fb8a20",
+        "filename": "promk/grafana/grafana.ini",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T18:32:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f753e9a2_7852b5bb",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 0
+      },
+      "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "36142352_18fa5548",
         "filename": "promk/grafana/grafana.ini",
         "patchSetId": 6
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "05e9877a_6e9c13a2",
+        "filename": "promk/grafana/grafana.ini",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T18:32:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36142352_18fa5548",
+      "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7eb62f92_70b5612d",
         "filename": "promk/prometheus/prometheus.yml",
         "patchSetId": 6
@@ -76,6 +142,24 @@
       "writtenOn": "2018-05-09T17:31:14Z",
       "side": 1,
       "message": "Do we also need to add config here for the grafana container? If not, seems like internal-http port 3000 doesn\u0027t need to be a service port in kube/skia-public/grafana.yaml.",
+      "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39ecd7a9_463a7e7d",
+        "filename": "promk/prometheus/prometheus.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T18:32:40Z",
+      "side": 1,
+      "message": "oh, grafana also exports prometheus metrics, added here.",
+      "parentUuid": "7eb62f92_70b5612d",
       "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
