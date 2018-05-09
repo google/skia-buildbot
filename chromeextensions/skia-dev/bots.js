@@ -53,7 +53,7 @@ window.addEventListener("WebComponentsReady", function(e) {
   tbody.appendChild(newRow);
 
   window.setInterval(function(){
-    var id = document.getElementById("input").value;
+    var id = document.querySelector(".swarming-app input").value;
     var state = document.getElementsByClassName("bot_state")[0];
     state = state.textContent.trim();
     if (!state || !id) {

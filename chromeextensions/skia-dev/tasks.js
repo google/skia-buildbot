@@ -44,11 +44,8 @@ function drawExtraTableEntries(jobID, gerritIssue, gerritPatchSet, sourceRepo, s
   }
 
   elem = document.getElementById("extra_commit");
-  if (sourceRepo && sourceRevision) {
-    var key = "Associated Commit";
-    if (gerritIssue && gerritPatchSet) {
-      key = "Commit Patchset Was Applied To";
-    }
+  if (sourceRepo && sourceRevision && gerritIssue && gerritPatchSet) {
+    var key = "Commit Patchset Was Applied To";
     var link = sourceRepo.replace("%s", sourceRevision);
     var shortRevision = sourceRevision.substring(0, 12);
     addTableEntry(elem, key, link, shortRevision);
@@ -99,7 +96,7 @@ window.addEventListener("WebComponentsReady", function(e) {
   createExtraRow(moreDetails.parentNode, "extra_dependents");
 
   window.setInterval(function(){
-    var id = document.getElementById("input").value;
+    var id = document.querySelector(".swarming-app input").value;
 
     if (!id) {
       return;
