@@ -31,8 +31,7 @@ import (
 )
 
 const (
-	// TODO(rmistry): What is the sweet spot here?
-	MAX_PAGES_PER_SWARMING_BOT = 200
+	MAX_PAGES_PER_SWARMING_BOT = 100
 )
 
 var (
