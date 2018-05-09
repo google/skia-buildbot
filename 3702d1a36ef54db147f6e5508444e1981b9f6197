@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3cbb6fb3_9624745e",
+        "filename": "kube/skia-public/grafana.yaml",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-09T17:31:14Z",
+      "side": 1,
+      "message": "nit: Would be nice to keep the ports consistent across services.\nkube/skia-public/prom.yaml:\n    - port: 8080\n      name: http\n    - port: 9090\n      name: internal-http\nkube/skia-public/alertmanager.yaml:\n    - name: http\n      port: 8080\n    - name: internal-http\n      port: 9090\nkube/skia-public/docserver.yaml:\n    - name: http\n      port: 8000",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 16
+      },
+      "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f753e9a2_7852b5bb",
+        "filename": "promk/grafana/grafana.ini",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-09T17:31:14Z",
+      "side": 1,
+      "message": "nit: just omit this, since they don\u0027t do anything and it could be confusing to the next person that comes along.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 0
+      },
+      "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36142352_18fa5548",
+        "filename": "promk/grafana/grafana.ini",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-09T17:31:14Z",
+      "side": 1,
+      "message": "nit: comment is confusing since it disagrees with the setting",
+      "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7eb62f92_70b5612d",
+        "filename": "promk/prometheus/prometheus.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-09T17:31:14Z",
+      "side": 1,
+      "message": "Do we also need to add config here for the grafana container? If not, seems like internal-http port 3000 doesn\u0027t need to be a service port in kube/skia-public/grafana.yaml.",
+      "revId": "3702d1a36ef54db147f6e5508444e1981b9f6197",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
