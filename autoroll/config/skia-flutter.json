@@ -5,7 +5,7 @@
     "maxRollFrequency": "3h",
     "parentName": "Flutter",
     "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
-    "sheriff": ["rmistry@google.com", "brianosman@google.com"],
+    "sheriff": ["brianosman@google.com"],
     "githubRepoManager": {
       "childBranch": "master",
       "childPath": "src/third_party/skia",
