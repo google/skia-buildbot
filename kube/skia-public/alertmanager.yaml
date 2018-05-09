@@ -62,7 +62,7 @@ spec:
               memory: "30Mi"
               cpu: "100m"
         - name: alertmanager-webhooks
-          image: gcr.io/skia-public/alertmanager-webhooks:2018-05-09T12_48_49Z-jcgregorio-7bcf9ea-dirty
+          image: gcr.io/skia-public/alertmanager-webhooks:2018-05-09T19_42_12Z-jcgregorio-b40f8f1-clean
           args:
             - "--logtostderr"
             - "--port=:9000"
