@@ -28,3 +28,9 @@ spec:
         - backend:
             serviceName: alertmanager
             servicePort: 8080
+    - host: grafana.skiatest.org
+      http:
+        paths:
+        - backend:
+            serviceName: grafana
+            servicePort: 8000
