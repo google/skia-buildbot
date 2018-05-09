@@ -12,6 +12,10 @@ spec:
       port: 9090
     - name: iap-proxy-metrics
       port: 10000
+    - name: alertmanager-webhooks-metrics
+      port: 20000
+    - name: alertmanager-webhooks
+      port: 9000
   selector:
     app: alertmanager
   type: NodePort
@@ -57,6 +61,29 @@ spec:
             requests:
               memory: "30Mi"
               cpu: "100m"
+        - name: alertmanager-webhooks
+          image: gcr.io/skia-public/alertmanager-webhooks:2018-05-09T12_48_49Z-jcgregorio-7bcf9ea-dirty
+          args:
+            - "--logtostderr"
+            - "--port=:9000"
+            - "--prom_port=:20000"
+            - "--email_client_secret_file=/etc/alertmanager_webhooks_client_secret/client_secret.json"
+            - "--email_token_cache_file=/var/alertmanager_webhooks_client_token/client_token.json"
+            - "--chat_webhooks_file=/etc/alertmanager_webhook_chat_config/chat_config.txt"
+          ports:
+            - containerPort: 20000
+            - containerPort: 9000
+          volumeMounts:
+            - name: alertmanager-webhook-client-secret
+              mountPath: /etc/alertmanager_webhooks_client_secret
+            - name: alertmanager-webhook-client-token
+              mountPath: /var/alertmanager_webhooks_client_token
+            - name: alertmanager-webhook-chat-config
+              mountPath: /etc/alertmanager_webhook_chat_config/
+          resources:
+            requests:
+              memory: "30Mi"
+              cpu: "20m"
         - name: configmap-reload
           args:
             - "--volume-dir=/etc/alertmanager/"
@@ -73,7 +100,7 @@ spec:
         - name: iap-proxy
           args:
             - "--logtostderr"
-            - "--aud=/projects/145247227042/global/backendServices/4151973156736992737"
+            - "--aud=/projects/145247227042/global/backendServices/5748528005215674783"
             - "--port=:8080"
             - "--target_port=:9090"
             - "--prom_port=:10000"
@@ -95,6 +122,15 @@ spec:
         - name: skia-public-auth
           secret:
             secretName: skia-public-auth
+        - name: alertmanager-webhook-client-secret
+          secret:
+            secretName: alertmanager-webhook-client-secret
+        - name: alertmanager-webhook-client-token
+          secret:
+            secretName: alertmanager-webhook-client-token
+        - name: alertmanager-webhook-chat-config
+          secret:
+            secretName: alertmanager-webhook-chat-config
   volumeClaimTemplates:
     - metadata:
         name: alertmanager-storage-volume

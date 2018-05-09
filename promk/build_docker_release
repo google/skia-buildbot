@@ -1,0 +1,15 @@
+#!/bin/bash
+# Builds and uploads a docker package for alertmanager-webhooks.
+APPNAME=alertmanager-webhooks
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+${INSTALL} --mode=644 -T alertmanager-webhooks/Dockerfile    ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/alertmanager-webhooks ${ROOT}/bin/alertmanager-webhooks
+}
+
+source ../bash/docker_build.sh
