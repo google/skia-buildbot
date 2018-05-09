@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0d2e52b0_914b200b",
+        "filename": "ct/res/imp/expanding-textarea-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-09T12:39:02Z",
+      "side": 1,
+      "message": "Done. Also extracted out the placeholderText.",
+      "parentUuid": "ce219c2b_3498024b",
+      "range": {
+        "startLine": 3,
+        "startChar": 12,
+        "endLine": 3,
+        "endChar": 33
+      },
+      "revId": "39f901cf9469679ab02ef151299a845a71d6723d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ccfc269_f280107f",
         "filename": "ct/res/imp/expanding-textarea-sk.html",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "39f901cf9469679ab02ef151299a845a71d6723d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38f88469_698e91c0",
+        "filename": "ct/res/imp/expanding-textarea-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-09T12:39:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ccfc269_f280107f",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 13
+      },
+      "revId": "39f901cf9469679ab02ef151299a845a71d6723d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
