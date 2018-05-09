@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "580cf47b_8b9a80b0",
+        "filename": "go/chatbot/bot.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "078e2dc6_9cf86966",
+      "range": {
+        "startLine": 54,
+        "startChar": 48,
+        "endLine": 54,
+        "endChar": 73
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c7e8fa76_d60c4532",
         "filename": "go/chatbot/bot.go",
         "patchSetId": 14
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "98347ed3_44121cb3",
+        "filename": "go/chatbot/bot.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7e8fa76_d60c4532",
+      "range": {
+        "startLine": 55,
+        "startChar": 74,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c877ba4c_fec1c22c",
         "filename": "kube/skia-public/alertmanager.yaml",
         "patchSetId": 14
@@ -59,6 +107,30 @@
       "writtenOn": "2018-05-08T19:23:03Z",
       "side": 1,
       "message": "Is this needed? It seems that only alertmanager needs to connect to this port, and it\u0027s running in the same pod.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 16
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c36934fd_225216cc",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 14
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "I used this for port-forwarding to the desktop so I could test the webhook server.",
+      "parentUuid": "c877ba4c_fec1c22c",
       "range": {
         "startLine": 17,
         "startChar": 0,
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "007a28cc_e0428b3c",
+        "filename": "promk/Dockerfile",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd3a09ba_f3ced8b7",
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3b364b30_b6adbcdd",
         "filename": "promk/Makefile",
         "patchSetId": 14
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "2ec8652d_9ba38f4d",
+        "filename": "promk/Makefile",
+        "patchSetId": 14
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b364b30_b6adbcdd",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 13
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "57c00c25_a64fac0e",
         "filename": "promk/create-chat-secrets.sh",
         "patchSetId": 14
@@ -125,6 +239,24 @@
       "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "658b76e0_a4b3907b",
+        "filename": "promk/create-chat-secrets.sh",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "57c00c25_a64fac0e",
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "1dd91401_676f866d",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "89697407_a2934700",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bdd05ab_9325c7e7",
         "filename": "promk/go/alertmanager_webhooks/main.go",
         "patchSetId": 14
@@ -162,6 +318,30 @@
       "writtenOn": "2018-05-08T19:23:03Z",
       "side": 1,
       "message": "decode?",
+      "range": {
+        "startLine": 58,
+        "startChar": 46,
+        "endLine": 58,
+        "endChar": 52
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7efa1db0_1492c561",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "The json could fail to be decoded, or the template could fail to encode the output, either way we didn\u0027t get an outgoing email. Renamed to \u0027generate\u0027.",
+      "parentUuid": "1bdd05ab_9325c7e7",
       "range": {
         "startLine": 58,
         "startChar": 46,
@@ -197,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "5ad4def5_18c0f5a6",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Same.",
+      "parentUuid": "5b88b9c4_ea859d56",
+      "range": {
+        "startLine": 83,
+        "startChar": 46,
+        "endLine": 83,
+        "endChar": 52
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e9cb4fe1_66e3cf35",
         "filename": "promk/go/alertmanager_webhooks/main.go",
         "patchSetId": 14
@@ -217,6 +421,30 @@
       "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a855f59_639c7a07",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9cb4fe1_66e3cf35",
+      "range": {
+        "startLine": 132,
+        "startChar": 31,
+        "endLine": 132,
+        "endChar": 37
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -243,6 +471,30 @@
     },
     {
       "key": {
+        "uuid": "ca835d8e_8ad2aaa9",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a06b215f_c5782080",
+      "range": {
+        "startLine": 134,
+        "startChar": 53,
+        "endLine": 134,
+        "endChar": 73
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "116bcf26_8d520247",
         "filename": "promk/go/alertmanager_webhooks/main.go",
         "patchSetId": 14
@@ -266,6 +518,30 @@
     },
     {
       "key": {
+        "uuid": "999770c8_50b50e74",
+        "filename": "promk/go/alertmanager_webhooks/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "116bcf26_8d520247",
+      "range": {
+        "startLine": 144,
+        "startChar": 2,
+        "endLine": 144,
+        "endChar": 18
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b62b4221_76c05857",
         "filename": "promk/prometheus/prometheus.yml",
         "patchSetId": 14
@@ -286,6 +562,30 @@
       "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a269c242_d42992f3",
+        "filename": "promk/prometheus/prometheus.yml",
+        "patchSetId": 14
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-09T12:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b62b4221_76c05857",
+      "range": {
+        "startLine": 30,
+        "startChar": 15,
+        "endLine": 30,
+        "endChar": 23
+      },
+      "revId": "9f34a241ba9dcddd338b1d00226e75983df8eefa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
