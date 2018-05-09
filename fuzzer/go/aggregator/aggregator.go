@@ -444,14 +444,14 @@ func (agg *Aggregator) analysisHelper(ctx context.Context, executableDir string,
 		return nil
 	}
 	if err != nil {
-		return err
+		return sklog.FmtErrorf("Unexpected error while hashing contents of %#v: %s", badFuzz, err)
 	}
 	newFuzzPath := filepath.Join(config.Aggregator.FuzzPath, hash)
 	if err := ioutil.WriteFile(newFuzzPath, data, 0644); err != nil {
-		return err
+		return sklog.FmtErrorf("Could not copy %s to %s: %s", badFuzz.FilePath, newFuzzPath, err)
 	}
 	if upload, err := analyze(ctx, executableDir, hash, badFuzz.Category); err != nil {
-		return fmt.Errorf("Problem analyzing %s, terminating: %s", newFuzzPath, err)
+		return sklog.FmtErrorf("Problem analyzing %s (originally %s), terminating: %s", newFuzzPath, badFuzz.FilePath, err)
 	} else {
 		agg.forUpload <- upload
 	}
