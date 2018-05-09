@@ -22,3 +22,4 @@ push_config: validate
 	# to "create" if this is the first time the configmap has been uploaded.
 	kubectl create configmap prometheus-server-conf --from-file=./prometheus -o yaml --dry-run | kubectl replace -f -
 	kubectl create configmap alertmanager-conf --from-file=./alertmanager -o yaml --dry-run | kubectl replace -f -
+	kubectl create configmap grafana-conf --from-file=./grafana -o yaml --dry-run | kubectl replace -f -
