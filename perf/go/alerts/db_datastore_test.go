@@ -11,7 +11,7 @@ import (
 )
 
 func TestDS(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	cleanup := testutil.InitDatastore(t, ds.ALERT)
 
 	defer cleanup()

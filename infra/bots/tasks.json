@@ -267,6 +267,11 @@
           "name": "skia/bots/protoc",
           "path": "protoc",
           "version": "version:0"
+        },
+        {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:10"
         }
       ],
       "command": [

@@ -12,7 +12,7 @@ import (
 )
 
 func TestShortcut(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	cleanup := testutil.InitDatastore(t, ds.SHORTCUT)
 
 	defer cleanup()
