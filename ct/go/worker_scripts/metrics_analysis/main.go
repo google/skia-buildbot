@@ -30,12 +30,9 @@ import (
 const (
 	// The number of goroutines that will run in parallel to download traces and
 	// run metrics analysis.
-	// TODO(rmistry): Find the sweet spot here. Try 50?
-	WORKER_POOL_SIZE = 20
+	WORKER_POOL_SIZE = 10
 
-	// Other benchmarks use 5 mins. The metrics analysis benchmark should be much
-	// faster because it does not bring up a local browser.
-	METRICS_BENCHMARK_TIMEOUT_SECS = 60
+	METRICS_BENCHMARK_TIMEOUT_SECS = 300
 
 	TRACE_OUTPUT_BUCKET = "chrome-telemetry-output"
 )
