@@ -21,13 +21,13 @@ spec:
         paths:
         - backend:
             serviceName: prometheus
-            servicePort: 8080
+            servicePort: 8000
     - host: alerts.skiatest.org
       http:
         paths:
         - backend:
             serviceName: alertmanager
-            servicePort: 8080
+            servicePort: 8000
     - host: grafana.skiatest.org
       http:
         paths:
