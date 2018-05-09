@@ -10,3 +10,11 @@ it run `get-chat-config.sh` to download the config file.
 Manually edit the resulting `chat_config.txt` then upload
 the new config by running `put-chat-config.sh`.
 
+grafana
+=======
+
+The grafana.ini file should almost never change, so if it does,
+just delete the pod and have kubernetes restart it so the config
+gets read.
+
+TODO(jcgregorio) Backup the sqlite database.

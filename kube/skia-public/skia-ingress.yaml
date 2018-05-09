@@ -22,3 +22,9 @@ spec:
         - backend:
             serviceName: alertmanager
             servicePort: 8080
+    - host: grafana2.skia.org
+      http:
+        paths:
+        - backend:
+            serviceName: grafana
+            servicePort: 8000
