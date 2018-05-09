@@ -30,7 +30,7 @@ import (
 const (
 	// The number of goroutines that will run in parallel to download traces and
 	// run metrics analysis.
-	WORKER_POOL_SIZE = 20
+	WORKER_POOL_SIZE = 10
 
 	METRICS_BENCHMARK_TIMEOUT_SECS = 300
 
