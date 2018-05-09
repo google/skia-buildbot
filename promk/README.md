@@ -10,3 +10,15 @@ it run `get-chat-config.sh` to download the config file.
 Manually edit the resulting `chat_config.txt` then upload
 the new config by running `put-chat-config.sh`.
 
+
+Admins
+------
+
+Before deploying yaml files with service accounts you need to give yourself
+cluster-admin rights:
+
+      kubectl create clusterrolebinding \
+        ${USER}-cluster-admin-binding \
+        --clusterrole=cluster-admin \
+        --user=${USER}@google.com
+
