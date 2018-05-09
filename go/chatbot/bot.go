@@ -41,30 +41,30 @@ func Init(name string) {
 
 // Send the 'body' as a message to the given chat 'room' name.
 func Send(body, room, thread string) error {
-	return SendUsingMetadataGet(body, room, thread, metadata.ProjectGetWithDefault)
+	return SendUsingConfig(body, room, thread, func() string {
+		return metadata.ProjectGetWithDefault(BOT_WEBHOOK_METADATA_KEY, "")
+	})
 }
 
-// GetWithDefault is a func that returns metadata.
-type GetWithDefault func(key string, defaultValue string) string
+// ConfigReader is a func that returns the config for SendUsingConfig.
+type ConfigReader func() string
 
-// SendUsingMetadataGet is just like Send(), but the metadata retrieved is
-// abstracted.
-func SendUsingMetadataGet(body, room, thread string, metadataGet GetWithDefault) error {
-	// First look up the chat room webhook address as stored in project level
-	// metadata.  The list of supported webhooks is stored at
-	// BOT_WEBHOOK_METADATA_KEY in the metadata, and is a multiline string of the
-	// form:
+// SendUsingConfig is just like Send(), but the config retrieved is
+// provided by the configReader.
+func SendUsingConfig(body, room, thread string, configReader ConfigReader) error {
+	// First look up the chat room webhook address as stored in the config.  The
+	// list of supported webhooks is a multiline string of the form:
 	//
 	//    botname_1 webhook_url_1 \n
 	//    botname_2 webhook_url_2 \n
 	//    botname_3 webhook_url_3 \n
 	//
-	// Note that we load the metadata every time through this func, since loading
-	// metadata is very fast, and we expect the message rate to be very low. This
+	// Note that we load the config every time through this func, since loading
+	// config is very fast, and we expect the message rate to be very low. This
 	// ensures we always have a fresh set of bots.
-	botWebhooks := metadataGet(BOT_WEBHOOK_METADATA_KEY, "")
+	botWebhooks := configReader()
 	if botWebhooks == "" {
-		return fmt.Errorf("Failed to find project metadata for %s", BOT_WEBHOOK_METADATA_KEY)
+		return fmt.Errorf("Got empty config.")
 	}
 	lines := strings.Split(botWebhooks, "\n")
 	u := ""

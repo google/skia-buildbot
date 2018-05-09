@@ -1,0 +1,11 @@
+FROM gcr.io/skia-public/basealpine:3.7
+
+USER root
+
+RUN apk add --no-cache tzdata
+
+ADD . /
+
+USER skia
+
+ENTRYPOINT ["/bin/alertmanager-webhooks"]

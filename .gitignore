@@ -100,3 +100,5 @@ jsdoc/out
 lottiecap/filmstrip.png
 # promk
 promk/tmp
+# kube
+**/chat_config.txt
