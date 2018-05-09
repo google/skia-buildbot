@@ -73,7 +73,7 @@
         <td>Source of traces</td>
         <td>
           <paper-input value="" id="analysis_task_id" class="medium-field" label="Analysis Task Id"></paper-input>
-          <custom-webpages-sk id="custom_traces" display-text="Specify custom list of traces"></custom-webpages-sk>
+          <expanding-textarea-sk id="custom_traces" display-text="Specify custom list of traces" placeholder-text="Eg: trace1,trace2,trace3"></expanding-textarea-sk>
         </td>
       </tr>
 
@@ -164,13 +164,13 @@
        });
        this.$.custom_traces.addEventListener('click', function(e) {
          // Do not display the analysis task id field if custom traces is open.
-         that.$.analysis_task_id.hidden = that.$.custom_traces.webpagesOpened;
-         if (that.$.custom_traces.webpagesOpened) {
+         that.$.analysis_task_id.hidden = that.$.custom_traces.opened;
+         if (that.$.custom_traces.opened) {
            // Clear out analysis task id if custom traces is open.
            that.$.analysis_task_id.value = '';
          } else {
            // Clear out traces if it is no longer open.
-           that.$.custom_traces.webpages = '';
+           that.$.custom_traces.value = '';
          }
        });
      },
@@ -185,7 +185,7 @@
          this.$.metric_name.focus();
          return;
        }
-       if (!this.$.analysis_task_id.value && !this.$.custom_traces.webpages) {
+       if (!this.$.analysis_task_id.value && !this.$.custom_traces.value) {
          sk.errorMessage("Please specify an analysis task id or custom traces");
          this.$.analysis_task_id.focus();
          return;
@@ -214,7 +214,7 @@
        var params = {};
        params["metric_name"] = this.$.metric_name.value;
        params["analysis_task_id"] = this.$.analysis_task_id.value;
-       params["custom_traces"] = this.$.custom_traces.webpages;
+       params["custom_traces"] = this.$.custom_traces.value;
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;

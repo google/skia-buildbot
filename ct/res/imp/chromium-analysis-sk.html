@@ -110,7 +110,7 @@
         <td>PageSets Type</td>
         <td>
           <page-set-selector-sk id="page_sets" page-sets="{{pageSets}}"></page-set-selector-sk>
-          <custom-webpages-sk id="custom_webpages"></custom-webpages-sk>
+          <expanding-textarea-sk id="custom_webpages" display-text="Specify custom list of web pages" placeholder-text="Eg: webpage1,webpage2,webpage3"></expanding-textarea-sk>
         </td>
       </tr>
 
@@ -291,10 +291,10 @@
        });
        this.$.custom_webpages.addEventListener('click', function(e) {
          // Do not display the pagesets selector if custom webpages is open.
-         that.$.page_sets.hidden = that.$.custom_webpages.webpagesOpened;
-         if (!that.$.custom_webpages.webpagesOpened) {
+         that.$.page_sets.hidden = that.$.custom_webpages.opened;
+         if (!that.$.custom_webpages.opened) {
            // Clear out webpages if it is no longer open.
-           that.$.custom_webpages.webpages = '';
+           that.$.custom_webpages.value = '';
          }
        });
      },
@@ -385,7 +385,7 @@
        var params = {};
        params["benchmark"] = this.selectedBenchmarkName;
        params["page_sets"] = this.$.page_sets.selected;
-       params["custom_webpages"] = this.$.custom_webpages.webpages;
+       params["custom_webpages"] = this.$.custom_webpages.value;
        params["match_stdout_txt"] = this.$.match_stdout_txt.value;
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["browser_args"] = this.$.browser_args.value;
