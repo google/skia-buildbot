@@ -47,7 +47,7 @@ spec:
     app: prometheus
   type: NodePort
   ports:
-    - port: 8080
+    - port: 8000
       name: http
     - port: 9090
       name: internal-http
@@ -109,13 +109,13 @@ spec:
         - name: iap-proxy
           args:
             - "--logtostderr"
-            - "--aud=/projects/145247227042/global/backendServices/3869109797488191543"
-            - "--port=:8080"
+            - "--aud=/projects/145247227042/global/backendServices/3673878988148635811"
+            - "--port=:8000"
             - "--target_port=:9090"
             - "--prom_port=:10000"
           image: gcr.io/skia-public/iap_proxy:2018-05-04T15_09_43Z-jcgregorio-018615b-clean
           ports:
-            - containerPort: 8080
+            - containerPort: 8000
             - containerPort: 10000
           volumeMounts:
             - name: skia-public-auth
