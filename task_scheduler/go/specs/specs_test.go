@@ -1,10 +1,13 @@
 package specs
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"fmt"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -282,7 +285,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	}
 	_, err = cache.GetTaskSpecsForRepoStates(ctx, []db.RepoState{rs1, rs2})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(cache.cache))
+	assert.Equal(t, 2, len(cache.byRepoState))
 	_, err = cache.GetAddedTaskSpecsForRepoStates(ctx, []db.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(cache.addedTasksCache))
@@ -297,7 +300,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	now := time.Now()
 	period := now.Sub(d2.Timestamp) + (diff / 2)
 	assert.NoError(t, cache.Cleanup(period))
-	assert.Equal(t, 1, len(cache.cache))
+	assert.Equal(t, 1, len(cache.byRepoState))
 	assert.Equal(t, 1, len(cache.addedTasksCache))
 }
 
@@ -624,7 +627,7 @@ func TestGetTaskSpecDAG(t *testing.T) {
 func TestTaskCfgCacheSerialization(t *testing.T) {
 	testutils.LargeTest(t)
 
-	ctx, gb, c1, c2 := specs_testutils.SetupTestRepo(t)
+	ctx, gb, r1, r2 := specs_testutils.SetupTestRepo(t)
 	defer gb.Cleanup()
 
 	tmp, err := ioutil.TempDir("", "")
@@ -663,27 +666,72 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 	// Insert one commit's worth of specs into the cache.
 	_, err = c.ReadTasksCfg(ctx, db.RepoState{
 		Repo:     gb.RepoUrl(),
-		Revision: c1,
+		Revision: r1,
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(c.cache))
+	assert.Equal(t, 1, len(c.byRepoState))
 	check()
 
 	// Cleanup() the cache to remove the entries.
 	assert.NoError(t, c.Cleanup(time.Duration(0)))
-	assert.Equal(t, 0, len(c.cache))
+	assert.Equal(t, 0, len(c.byRepoState))
 	check()
 
 	// Insert an error into the cache.
 	rs2 := db.RepoState{
 		Repo:     gb.RepoUrl(),
-		Revision: c2,
+		Revision: r2,
 	}
-	c.cache[rs2] = &cacheEntry{
+	c.byRepoState[rs2] = &cacheEntry{
 		c:   c,
-		Cfg: nil,
-		Err: "fail!",
-		Rs:  rs2,
+		cfg: nil,
+		err: "fail!",
+		rs:  rs2,
 	}
 	assert.NoError(t, c.write())
+
+	// Add two commits with identical tasks.json hash and check serialization.
+	r3 := gb.CommitGen(ctx, "otherfile.txt")
+	rs3 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: r3,
+	}
+	r4 := gb.CommitGen(ctx, "otherfile.txt")
+	rs4 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: r4,
+	}
+	assert.NoError(t, repos.Update(ctx))
+	_, err = c.GetTaskSpecsForRepoStates(ctx, []db.RepoState{rs3, rs4})
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(c.byRepoState))
+	check()
+
+	fileName := filepath.Join(tmp, "taskCfgCache.gob")
+	{
+		// Check that rs3 and rs4 share a gobCacheEntry.
+		file, err := ioutil.ReadFile(fileName)
+		assert.NoError(t, err)
+		var gobCache gobTaskCfgCache
+		assert.NoError(t, gob.NewDecoder(bytes.NewReader(file)).Decode(&gobCache))
+		assert.Len(t, gobCache.Entries, 2)
+		assert.Equal(t, gobCache.RepoStates[rs3], gobCache.RepoStates[rs4])
+	}
+
+	// Check that different errors get different gobCacheEntry's.
+	c.byRepoState[rs4] = &cacheEntry{
+		c:   c,
+		cfg: nil,
+		err: "To err is human.",
+		rs:  rs4,
+	}
+	assert.NoError(t, c.write())
+	{
+		file, err := ioutil.ReadFile(fileName)
+		assert.NoError(t, err)
+		var gobCache gobTaskCfgCache
+		assert.NoError(t, gob.NewDecoder(bytes.NewReader(file)).Decode(&gobCache))
+		assert.Len(t, gobCache.Entries, 3)
+		assert.NotEqual(t, gobCache.RepoStates[rs2], gobCache.RepoStates[rs4])
+	}
 }
