@@ -152,12 +152,6 @@ func pixelDiff() error {
 		return fmt.Errorf("Could not figure out the base remote dir: %s", err)
 	}
 
-	// Download telemetry binaries to get the numpy image impl which is faster than the pure python
-	// png decoder.
-	if err := downloadTelemetryDependencies(ctx); err != nil {
-		return fmt.Errorf("Could not download telemetry dependencies: %s", err)
-	}
-
 	// Establish nopatch output paths.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	localOutputDirNoPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch)
@@ -289,23 +283,6 @@ func pixelDiff() error {
 	return nil
 }
 
-func downloadTelemetryDependencies(ctx context.Context) error {
-	if err := os.Chdir(util.ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not chdir to %s: %s", util.ChromiumSrcDir, err)
-	}
-	hookCmd := []string{
-		"runhook",
-		"fetch_telemetry_binary_dependencies",
-	}
-	env := []string{
-		"GYP_DEFINES=fetch_telemetry_dependencies=1",
-	}
-	if err := util.ExecuteCmd(ctx, util.BINARY_GCLIENT, hookCmd, env, util.GCLIENT_SYNC_TIMEOUT, nil, nil); err != nil {
-		return fmt.Errorf("Error running gclient runhook: %s", err)
-	}
-	return nil
-}
-
 func runScreenshotBenchmark(ctx context.Context, outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs, rank int) {
 
 	args := []string{
@@ -325,9 +302,9 @@ func runScreenshotBenchmark(ctx context.Context, outputPath, chromiumBinary, pag
 	if *benchmarkExtraArgs != "" {
 		args = append(args, strings.Fields(*benchmarkExtraArgs)...)
 	}
-	// Set the PYTHONPATH to the pagesets and the telemetry dirs.
+	// Set Display to the env. Cannot pass PYTHONPATH because it interferes
+	// with vpython. See crbug.com/826424.
 	env := []string{
-		fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir, util.CatapultSrcDir),
 		"DISPLAY=:0",
 	}
 	// Append the original environment as well.
@@ -336,7 +313,9 @@ func runScreenshotBenchmark(ctx context.Context, outputPath, chromiumBinary, pag
 	}
 
 	// Execute run_benchmark and log if there are any errors.
-	err := util.ExecuteCmd(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+	// Note: util.BENCHMARK_SCREENSHOT needs to be run with vpython because it
+	// requires numpy and cv2. See crbug.com/826424.
+	err := util.ExecuteCmd(ctx, "vpython", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 	if err != nil {
 		sklog.Errorf("Error during run_benchmark: %s", err)
 	}
