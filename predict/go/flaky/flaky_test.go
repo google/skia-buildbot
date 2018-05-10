@@ -167,9 +167,17 @@ func TestBuilder(t *testing.T) {
 	// 3 - Two open ranges.
 	err = fb.Update(ctx)
 	assert.NoError(t, err)
-	flakes, err = fb.Build(ctx, 24*time.Hour, now)
+
+	err = testutils.EventuallyConsistent(time.Second, func() error {
+		flakes, err = fb.Build(ctx, 24*time.Hour, now)
+		assert.NoError(t, err)
+		if len(flakes) == 2 {
+			return nil
+		}
+		return testutils.TryAgainErr
+	})
 	assert.NoError(t, err)
-	assert.Len(t, flakes, 2)
+
 	assert.True(t, flakes.WasFlaky("Bot-1", now.Add(-8*time.Hour)))
 	assert.False(t, flakes.WasFlaky("Bot-1", now.Add(-11*time.Hour)))
 	assert.True(t, flakes.WasFlaky("Bot-2", now.Add(-4*time.Hour)))
