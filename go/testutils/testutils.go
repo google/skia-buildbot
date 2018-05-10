@@ -3,6 +3,7 @@ package testutils
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
@@ -50,6 +52,9 @@ var (
 		MEDIUM_TEST,
 		LARGE_TEST,
 	}
+
+	// TryAgainErr use used by TryUntil.
+	TryAgainErr = errors.New("Trying Again")
 )
 
 // ShouldRun determines whether the test should run based on the provided flags.
@@ -267,4 +272,21 @@ func GetRepoRoot(t *testing.T) string {
 	root, err := repo_root.Get()
 	assert.NoError(t, err)
 	return root
+}
+
+// TryUntil tries a test repeatedly until either the test passes
+// or time expires.
+//
+// duration - The amount of time to keep trying.
+// f - The func to run the tests, should return TryAgainErr if
+//     we should keep trying, otherwise TryUntil will return
+//     with the err that f() returns.
+func TryUntil(duration time.Duration, f func() error) error {
+	begin := time.Now()
+	for time.Now().Sub(begin) < duration {
+		if err := f(); err != TryAgainErr {
+			return err
+		}
+	}
+	return nil
 }
