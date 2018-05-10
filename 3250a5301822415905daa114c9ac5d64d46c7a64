@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "6029ca84_090d9ae6",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fbc5acb4_212b292b",
+      "range": {
+        "startLine": 55,
+        "startChar": 77,
+        "endLine": 55,
+        "endChar": 83
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e7d59933_38625422",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 40
@@ -56,6 +80,24 @@
       "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65dc8fc2_b1bef58f",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7d59933_38625422",
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +124,30 @@
     },
     {
       "key": {
+        "uuid": "ff202342_aa250fd2",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4e058805_2d4690d0",
+      "range": {
+        "startLine": 98,
+        "startChar": 3,
+        "endLine": 99,
+        "endChar": 76
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "91af3420_35905fc8",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 40
@@ -102,6 +168,30 @@
       "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e7dca6c_7cbc201c",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91af3420_35905fc8",
+      "range": {
+        "startLine": 100,
+        "startChar": 3,
+        "endLine": 100,
+        "endChar": 7
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -128,6 +218,30 @@
     },
     {
       "key": {
+        "uuid": "e2f63d54_39982960",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2237de7f_c0057490",
+      "range": {
+        "startLine": 107,
+        "startChar": 4,
+        "endLine": 107,
+        "endChar": 9
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26829628_89583584",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 40
@@ -148,6 +262,30 @@
       "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a176079_88347c4c",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26829628_89583584",
+      "range": {
+        "startLine": 112,
+        "startChar": 23,
+        "endLine": 112,
+        "endChar": 59
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -174,6 +312,30 @@
     },
     {
       "key": {
+        "uuid": "872cd41c_44c1352a",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dbcaf2f4_e8eae63d",
+      "range": {
+        "startLine": 243,
+        "startChar": 36,
+        "endLine": 243,
+        "endChar": 48
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a6a48a56_8dd322bf",
         "filename": "golden/go/dsutil/dsutil_test.go",
         "patchSetId": 40
@@ -194,6 +356,30 @@
       "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4c3c7c9_b25d9d3a",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a6a48a56_8dd322bf",
+      "range": {
+        "startLine": 28,
+        "startChar": 5,
+        "endLine": 28,
+        "endChar": 21
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -220,6 +406,30 @@
     },
     {
       "key": {
+        "uuid": "85926ae9_919a69b8",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "491d0cb5_7f42c466",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 40
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a964c3b_26872acf",
         "filename": "golden/go/dsutil/dsutil_test.go",
         "patchSetId": 40
@@ -234,6 +444,24 @@
       "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "667b889e_2df2c9e8",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a964c3b_26872acf",
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -260,6 +488,30 @@
     },
     {
       "key": {
+        "uuid": "c1587802_77141fcc",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56e9a651_c8b8636e",
+      "range": {
+        "startLine": 41,
+        "startChar": 41,
+        "endLine": 41,
+        "endChar": 42
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c817737_3aac75f4",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 40
@@ -283,6 +535,30 @@
     },
     {
       "key": {
+        "uuid": "f3ecf830_9303cc3c",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c817737_3aac75f4",
+      "range": {
+        "startLine": 75,
+        "startChar": 19,
+        "endLine": 75,
+        "endChar": 21
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6f28223c_d317e858",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 40
@@ -294,6 +570,30 @@
       "writtenOn": "2018-05-10T03:02:39Z",
       "side": 1,
       "message": "nit: Bool args like this are notoriously hard to understand when reading code. There are two approaches I like to make it easier to read:\n1. Add an enum for the possibilities. This is particularly easy in Go:\ntype getTestDigestsExpsKeysOnly bool\nconst getEntities getTestDigestsExpsKeysOnly \u003d false\nconst getKeysOnly getTestDigestsExpsKeysOnly \u003d true\n\n2. Add a comment to each call site, e.g.:\n_, expColl, err :\u003d c.getTestDigestExps(nil, parentKey, /* keysOnly */ false)",
+      "range": {
+        "startLine": 198,
+        "startChar": 58,
+        "endLine": 198,
+        "endChar": 65
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d0c2633_90791654",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "I disagree. Yes it requires to look what that flag means, but any solution also imposes overhead. If this was a public function I\u0027d change it, but it\u0027s an internal function that has the flag to avoid code duplication and the \"_\" also indicates that we don\u0027t want the keys.",
+      "parentUuid": "6f28223c_d317e858",
       "range": {
         "startLine": 198,
         "startChar": 58,
@@ -329,6 +629,30 @@
     },
     {
       "key": {
+        "uuid": "87eed188_49c9def7",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17cbaf3c_c8dfb222",
+      "range": {
+        "startLine": 459,
+        "startChar": 9,
+        "endLine": 459,
+        "endChar": 21
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b9441c21_50781acb",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 40
@@ -349,6 +673,30 @@
       "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "958e85b5_7c6d249a",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9441c21_50781acb",
+      "range": {
+        "startLine": 512,
+        "startChar": 3,
+        "endLine": 512,
+        "endChar": 28
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -375,6 +723,30 @@
     },
     {
       "key": {
+        "uuid": "e8fa08c4_bc1f580f",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90589500_dadc4081",
+      "range": {
+        "startLine": 544,
+        "startChar": 2,
+        "endLine": 553,
+        "endChar": 2
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "acf21cc6_cf4937b5",
         "filename": "golden/go/expstorage/exps_types.go",
         "patchSetId": 40
@@ -386,6 +758,24 @@
       "writtenOn": "2018-05-10T03:02:39Z",
       "side": 1,
       "message": "See also https://cloud.google.com/datastore/docs/concepts/storage-size\n\n(Doesn\u0027t really affect the calculation, but digest takes 33 chars, not 32.)",
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d991b07_accb3c45",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "acf21cc6_cf4937b5",
       "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -415,6 +805,30 @@
     },
     {
       "key": {
+        "uuid": "358797d6_4a2d925d",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "Moving to labels actually buys us almost nothing here since integers are 8 bytes, but not changing it back :-)",
+      "parentUuid": "1b1ef7c4_74fb875f",
+      "range": {
+        "startLine": 36,
+        "startChar": 64,
+        "endLine": 36,
+        "endChar": 74
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a69f506_30f823b3",
         "filename": "golden/go/expstorage/exps_types.go",
         "patchSetId": 40
@@ -435,6 +849,30 @@
       "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca019681_a6015a65",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T14:20:11Z",
+      "side": 1,
+      "message": "I imposed a limit on the size of the test of 256 (which is long enough IMO) and I am enforcing it on ingestion. I am sure that will work for a very long time. \nDone",
+      "parentUuid": "8a69f506_30f823b3",
+      "range": {
+        "startLine": 37,
+        "startChar": 19,
+        "endLine": 37,
+        "endChar": 49
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
