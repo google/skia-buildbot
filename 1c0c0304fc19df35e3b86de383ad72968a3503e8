@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d47d56bc_7fe9dc6b",
+        "filename": "kube/create-node-pool.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T18:15:59Z",
+      "side": 1,
+      "message": "nit: maybe include ${PROJECT_ID} in the name so that it\u0027s clear it\u0027s something created by us not a built-in GCE thing.",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 9
+      },
+      "revId": "1c0c0304fc19df35e3b86de383ad72968a3503e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
