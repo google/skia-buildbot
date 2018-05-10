@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6134acb2_19099bf8",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 45
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T23:11:44Z",
+      "side": 1,
+      "message": "Are there other places this is serialized or deserialized as JSON where it\u0027s spelled commited?",
+      "revId": "b2c8d89fbc758eae7e5ac15009817f808e6e654a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
