@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eb3ee225_8f1bcb66",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T15:19:32Z",
+      "side": 1,
+      "message": "Unless you find it confusing, I am inclined to keep the name, because it\u0027s very descriptive and easy to grep for.",
+      "parentUuid": "01ad27eb_d1a5e610",
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fbc5acb4_212b292b",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 40
