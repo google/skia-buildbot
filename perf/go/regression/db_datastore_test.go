@@ -69,9 +69,15 @@ func TestDS(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Confirm regression is triaged.
-	ranges, err = st.Range(0, 0, UNTRIAGED_SUBSET)
+	err = testutils.EventuallyConsistent(time.Second, func() error {
+		ranges, err = st.Range(0, 0, UNTRIAGED_SUBSET)
+		assert.NoError(t, err)
+		if len(ranges) == 0 {
+			return nil
+		}
+		return testutils.TryAgainErr
+	})
 	assert.NoError(t, err)
-	assert.Len(t, ranges, 0)
 
 	count, err = st.Untriaged()
 	assert.Equal(t, count, 0)
