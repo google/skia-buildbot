@@ -202,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "7e3fdb69_b147b3ed",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Sorry, my comment was that \"5 * time.Minute\" is much easier to understand than \"5 * 60 * 1000 * time.Millisecond\".",
+      "parentUuid": "075c7c89_a23c7e61",
+      "range": {
+        "startLine": 17,
+        "startChar": 41,
+        "endLine": 17,
+        "endChar": 74
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "646ad5f4_b937e864",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 37
@@ -1313,6 +1337,24 @@
     },
     {
       "key": {
+        "uuid": "bc6491ec_4917271c",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "We can discuss more, but if you read the second link, I think it\u0027s pretty clear that the problem exists whenever all new keys are clustered around a particular value.\n\nOTOH, it also says, \"Generally speaking, you don’t have to worry about this sort of thing until your application hits 100s of queries per second.\"",
+      "parentUuid": "af2518a0_eeb3efd3",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5972d7f1_2cca5b53",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 37
@@ -1630,6 +1672,24 @@
     },
     {
       "key": {
+        "uuid": "cfc1c653_665ca759",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "nit: put remainder of this function into a new function TestRecentlyCombine",
+      "parentUuid": "909590b3_5ac31b77",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "126074b4_de03b35a",
         "filename": "golden/go/dsutil/dsutil_test.go",
         "patchSetId": 37
@@ -1712,6 +1772,24 @@
     },
     {
       "key": {
+        "uuid": "16d93a97_19cfdbdd",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "dc2f929a_d596b851",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aebd9f19_95778331",
         "filename": "golden/go/dsutil/dsutil_test.go",
         "patchSetId": 37
@@ -1779,6 +1857,24 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b38a8191_d11b6991",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "My suggestion for \"assert.NotEqual(t, getSortableTimeID(ts), getSortableTimeID(ts))\" was to ensure that the random part of the ID works as advertised. Using a different timestamp defeats the test.",
+      "parentUuid": "f9dd3704_e8961c91",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -2169,6 +2265,30 @@
     },
     {
       "key": {
+        "uuid": "a896971c_afdc21be",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fc55e0ca_ab218ee4",
+      "range": {
+        "startLine": 189,
+        "startChar": 17,
+        "endLine": 189,
+        "endChar": 20
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "afa6b072_6cfd72fb",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 37
@@ -2307,6 +2427,30 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ac810d3_7dd8042c",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b1295600_4ec41082",
+      "range": {
+        "startLine": 241,
+        "startChar": 14,
+        "endLine": 241,
+        "endChar": 17
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -2486,6 +2630,30 @@
     },
     {
       "key": {
+        "uuid": "8b479b75_b621724b",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Yeah, I don\u0027t expect anyone to care about the history of changes more than 1 month old (probably only rarely more than 1 day old).",
+      "parentUuid": "f9ed5842_21e312a1",
+      "range": {
+        "startLine": 254,
+        "startChar": 0,
+        "endLine": 263,
+        "endChar": 2
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a6defa5b_57670135",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 37
@@ -2568,6 +2736,24 @@
     },
     {
       "key": {
+        "uuid": "3e01bc9e_f6827463",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "I see -- we can write the child records of changeKey outside of the transaction.\n\nI don\u0027t think that\u0027s a majority of the data -- it seems that c.updateExpectations always writes at least as much data (which must happen inside the transaction).\n\nI\u0027m happy if you leave this as-is, but my guess is that the two-phase commit doesn\u0027t reduce the transaction time by much, but it does increase the code complexity.",
+      "parentUuid": "518d31a2_44374483",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "98a52e65_eeabd454",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 37
@@ -2639,6 +2825,30 @@
     },
     {
       "key": {
+        "uuid": "914e2239_55a4bea4",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "437c696f_02b8c8d1",
+      "range": {
+        "startLine": 331,
+        "startChar": 7,
+        "endLine": 332,
+        "endChar": 15
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "01a39ed2_d9dd03eb",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 37
@@ -2671,6 +2881,24 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf253885_c41b20f9",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fffa6121_53a402f6",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -2862,6 +3090,30 @@
     },
     {
       "key": {
+        "uuid": "57f3189f_dd6f68c9",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "I don\u0027t understand your first statement: \"It doesn\u0027t rewrite the entire store only the union of all expectation changes.\" I think what you\u0027re saying is that only the entities that have changed will be written, but I don\u0027t see where that\u0027s implemented.\n\nAnyway, I think there are a variety of optimizations you could make if this turns out to be a bottleneck.",
+      "parentUuid": "120b9855_0fcc64f2",
+      "range": {
+        "startLine": 392,
+        "startChar": 10,
+        "endLine": 392,
+        "endChar": 50
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f52e2adc_e482b045",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 37
@@ -2906,6 +3158,30 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "135f43f1_76157dbd",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Wow, I didn\u0027t realize that\u0027s what the current system is doing. I suppose with caching it\u0027s only a startup cost (but still seems like a pretty high cost).",
+      "parentUuid": "5d0a2b85_f939831b",
+      "range": {
+        "startLine": 398,
+        "startChar": 16,
+        "endLine": 398,
+        "endChar": 35
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -3167,6 +3443,24 @@
     },
     {
       "key": {
+        "uuid": "50da070e_940e020a",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack. I made my comment when it was a one-line function. Current code makes more sense.",
+      "parentUuid": "a662eb9e_6e247f11",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a31a15e4_ec74f41f",
         "filename": "golden/go/expstorage/exps_types.go",
         "patchSetId": 37
@@ -3331,6 +3625,24 @@
     },
     {
       "key": {
+        "uuid": "ac4075b8_a58a0b85",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "de6f9520_21a149fe",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f81918ea_8976ffce",
         "filename": "golden/go/expstorage/exps_types.go",
         "patchSetId": 37
@@ -3360,6 +3672,24 @@
       "side": 1,
       "message": "Agreed, I had a reason for not doing that, but cannot remember what it was and maybe it has gone away. Changed to using types.Label directly.",
       "parentUuid": "f81918ea_8976ffce",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "deb4edbb_713f9e3f",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "I was wrong. At least for storage size, string is more efficient than int for Datastore. Maybe for parsing/unparsing the int is still better though.",
+      "parentUuid": "44390834_d0a55a4d",
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -3504,6 +3834,30 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09187aae_d945f4c2",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4bdafcea_5af15626",
+      "range": {
+        "startLine": 63,
+        "startChar": 5,
+        "endLine": 63,
+        "endChar": 13
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -3671,6 +4025,24 @@
     },
     {
       "key": {
+        "uuid": "61aaa127_c532ac5f",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3d31b314_ffef1eb3",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "75e0c7d0_628701c6",
         "filename": "golden/go/expstorage/exps_types.go",
         "patchSetId": 37
@@ -3785,6 +4157,30 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ae58c8aa_84997764",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "You have two more int64s here.",
+      "parentUuid": "7b019922_5dc50250",
+      "range": {
+        "startLine": 167,
+        "startChar": 14,
+        "endLine": 167,
+        "endChar": 19
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -4176,6 +4572,30 @@
     },
     {
       "key": {
+        "uuid": "1733e1e0_f47769e2",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0123a21f_33bfb8b9",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 59,
+        "endChar": 4
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aa2c5386_f1300000",
         "filename": "golden/go/ignore/cloud_ignorestore.go",
         "patchSetId": 37
@@ -4270,6 +4690,30 @@
     },
     {
       "key": {
+        "uuid": "6f6436b5_788f8ee7",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fd56765c_0457a08e",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 2
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f508a8e_ea7cddf9",
         "filename": "golden/go/ignore/cloud_ignorestore.go",
         "patchSetId": 37
@@ -4314,6 +4758,30 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5192ace1_d62eba37",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e3730467_8114619f",
+      "range": {
+        "startLine": 73,
+        "startChar": 32,
+        "endLine": 73,
+        "endChar": 46
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -4505,6 +4973,30 @@
     },
     {
       "key": {
+        "uuid": "311fcf6d_25e97ae0",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Oh, sorry, I assumed Delete would work like Update rather than Upsert.\n\nOTOH, is that OK anyway? Are we worried about adding invalid keys to recentKeysList?",
+      "parentUuid": "6c3b500b_9b98eb59",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 152,
+        "endChar": 3
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b3566994_849eeb8f",
         "filename": "golden/go/ignore/cloud_ignorestore.go",
         "patchSetId": 37
@@ -4549,6 +5041,30 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e76004e_548657f6",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "613af554_0d525361",
+      "range": {
+        "startLine": 163,
+        "startChar": 0,
+        "endLine": 166,
+        "endChar": 3
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -4681,6 +5197,24 @@
     },
     {
       "key": {
+        "uuid": "96d137b6_8f62b06d",
+        "filename": "golden/go/ignore/sqlignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bf3000a8_07d27986",
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28278bb1_db6ab715",
         "filename": "golden/go/ignore/sqlignorestore.go",
         "patchSetId": 37
@@ -4725,6 +5259,30 @@
       "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ab26920_11cb32a1",
+        "filename": "golden/go/ignore/sqlignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ed1f6c8c_4ccffb1e",
+      "range": {
+        "startLine": 189,
+        "startChar": 0,
+        "endLine": 195,
+        "endChar": 2
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

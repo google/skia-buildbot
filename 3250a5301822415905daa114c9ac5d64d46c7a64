@@ -1,0 +1,440 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "01ad27eb_d1a5e610",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Do you want to rename this now that the struct name has changed?",
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbc5acb4_212b292b",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "typo?",
+      "range": {
+        "startLine": 55,
+        "startChar": 77,
+        "endLine": 55,
+        "endChar": 83
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7d59933_38625422",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Maybe a good idea to check that newKey.ID is set.",
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e058805_2d4690d0",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "nit: \"Recently contains recently added and deleted keys that can be combined with an eventually-consistent query result to produce a complete list of valid keys.\"",
+      "range": {
+        "startLine": 98,
+        "startChar": 3,
+        "endLine": 99,
+        "endChar": 76
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91af3420_35905fc8",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "typo Its",
+      "range": {
+        "startLine": 100,
+        "startChar": 3,
+        "endLine": 100,
+        "endChar": 7
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2237de7f_c0057490",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "typo Deleted",
+      "range": {
+        "startLine": 107,
+        "startChar": 4,
+        "endLine": 107,
+        "endChar": 9
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26829628_89583584",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "nit: \"It merges \u0027queried\u0027 with the added and deleted keys...\"",
+      "range": {
+        "startLine": 112,
+        "startChar": 23,
+        "endLine": 112,
+        "endChar": 59
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbcaf2f4_e8eae63d",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "uber-nit: this can be omitted since copy uses the length of the shorter slice.",
+      "range": {
+        "startLine": 243,
+        "startChar": 36,
+        "endLine": 243,
+        "endChar": 48
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6a48a56_8dd322bf",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "nit TestRecentlyUpdate",
+      "range": {
+        "startLine": 28,
+        "startChar": 5,
+        "endLine": 28,
+        "endChar": 21
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "491d0cb5_7f42c466",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "ts2 :\u003d ts + 2\n\nYou don\u0027t need time.Sleep.",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 40
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a964c3b_26872acf",
+        "filename": "golden/go/dsutil/dsutil_test.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "This comparison doesn\u0027t make sense -- you are asserting timestamp !\u003d ID.\n\nI think what you probably want is \nassert.True(t, keyID2 \u003c keyID)",
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56e9a651_c8b8636e",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "nit: insert \"both\"",
+      "range": {
+        "startLine": 41,
+        "startChar": 41,
+        "endLine": 41,
+        "endChar": 42
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c817737_3aac75f4",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "typo or",
+      "range": {
+        "startLine": 75,
+        "startChar": 19,
+        "endLine": 75,
+        "endChar": 21
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f28223c_d317e858",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "nit: Bool args like this are notoriously hard to understand when reading code. There are two approaches I like to make it easier to read:\n1. Add an enum for the possibilities. This is particularly easy in Go:\ntype getTestDigestsExpsKeysOnly bool\nconst getEntities getTestDigestsExpsKeysOnly \u003d false\nconst getKeysOnly getTestDigestsExpsKeysOnly \u003d true\n\n2. Add a comment to each call site, e.g.:\n_, expColl, err :\u003d c.getTestDigestExps(nil, parentKey, /* keysOnly */ false)",
+      "range": {
+        "startLine": 198,
+        "startChar": 58,
+        "endLine": 198,
+        "endChar": 65
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17cbaf3c_c8dfb222",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 459,
+        "startChar": 9,
+        "endLine": 459,
+        "endChar": 21
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9441c21_50781acb",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "nit: getTestDigestExps",
+      "range": {
+        "startLine": 512,
+        "startChar": 3,
+        "endLine": 512,
+        "endChar": 28
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90589500_dadc4081",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "nit:\nif err :\u003d c.client.DeleteMulti(ctx, append(children, key)); ...",
+      "range": {
+        "startLine": 544,
+        "startChar": 2,
+        "endLine": 553,
+        "endChar": 2
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acf21cc6_cf4937b5",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "See also https://cloud.google.com/datastore/docs/concepts/storage-size\n\n(Doesn\u0027t really affect the calculation, but digest takes 33 chars, not 32.)",
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1b1ef7c4_74fb875f",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "bytes? (Label is an int.)",
+      "range": {
+        "startLine": 36,
+        "startChar": 64,
+        "endLine": 36,
+        "endChar": 74
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a69f506_30f823b3",
+        "filename": "golden/go/expstorage/exps_types.go",
+        "patchSetId": 40
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "I\u0027m OK with using the average size rather than the max size if you can tell me how things will degrade gracefully if the size limit is exceeded. My expectation is that no one will be able to triage anything until you push a new version of Gold with this limit reduced.",
+      "range": {
+        "startLine": 37,
+        "startChar": 19,
+        "endLine": 37,
+        "endChar": 49
+      },
+      "revId": "3250a5301822415905daa114c9ac5d64d46c7a64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
