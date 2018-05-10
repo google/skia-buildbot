@@ -14,9 +14,9 @@ release_configmap_reload:
 	./build_configmap_reload_release
 
 release_iap_proxy:
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/iap_proxy
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/iap-proxy
 	./build_iap_proxy_release
 
 push: pushk
-	pushk iap_proxy configmap-reload
+	pushk iap-proxy configmap-reload
 

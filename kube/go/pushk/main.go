@@ -52,8 +52,8 @@ Examples:
   # Push the latest version of docserver.
   pushk docserver
 
-  # Push the latest version of docserver and iap_proxy
-  pushk docserver iap_proxy
+  # Push the latest version of docserver and iap-proxy
+  pushk docserver iap-proxy
 
   # Rollback docserver.
   pushk --rollback docserver
