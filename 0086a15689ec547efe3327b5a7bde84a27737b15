@@ -45,6 +45,30 @@
       "revId": "0086a15689ec547efe3327b5a7bde84a27737b15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b905540_0d565c60",
+        "filename": "perf/go/regression/db_datastore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-10T20:25:15Z",
+      "side": 1,
+      "message": "Per offline discussion, renaming to testutils.EventuallyConsistent with a warning in the docs to use sparingly.",
+      "parentUuid": "3a50e9b2_31891f65",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 53
+      },
+      "revId": "0086a15689ec547efe3327b5a7bde84a27737b15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
