@@ -9,9 +9,6 @@ set -x -e
 
 source ./config.sh
 
-# New service account we will create.
-SA_NAME=skia-public-k8s
-
 gcloud iam service-accounts create "${SA_NAME}" \
   --display-name="${SA_NAME}"
 
@@ -32,15 +29,12 @@ gcloud container clusters create "${CLUSTER_NAME}" \
   --addons HorizontalPodAutoscaling,HttpLoadBalancing \
   --cluster-version "1.9.6-gke.1" \
   --disk-size "100" \
-  --enable-autoscaling \
-  --enable-autoupgrade \
   --enable-autoupgrade \
   --enable-cloud-logging \
   --enable-cloud-monitoring \
   --image-type "COS" \
   --machine-type "n1-standard-8" \
   --maintenance-window "07:00" \
-  --min-nodes "3" --max-nodes "100" \
   --network "default" \
   --no-enable-basic-auth \
   --no-enable-legacy-authorization \
