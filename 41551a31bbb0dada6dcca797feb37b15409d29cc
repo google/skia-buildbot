@@ -16,6 +16,24 @@
       "revId": "41551a31bbb0dada6dcca797feb37b15409d29cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef2155e1_2976b06e",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 41
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T16:03:15Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7f56c6db_1ed91c63",
+      "revId": "41551a31bbb0dada6dcca797feb37b15409d29cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
