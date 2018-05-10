@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ce93d9a9_8123d6a3",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T19:22:39Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 56,
+        "startChar": 16,
+        "endLine": 56,
+        "endChar": 25
+      },
+      "revId": "0086a15689ec547efe3327b5a7bde84a27737b15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a50e9b2_31891f65",
+        "filename": "perf/go/regression/db_datastore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-10T19:22:39Z",
+      "side": 1,
+      "message": "I think this is dangerous, I\u0027d would rather skip the test for now and figure out a stable solution later. If we use this on a broad scale I would lose a lot of confidence in our tests.\nI\u0027d prefer adding a time.Sleep(...) if it would guarantee stability.",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 53
+      },
+      "revId": "0086a15689ec547efe3327b5a7bde84a27737b15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
