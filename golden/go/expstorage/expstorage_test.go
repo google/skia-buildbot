@@ -8,6 +8,9 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/database/testutil"
+
+	"go.skia.org/infra/go/ds"
+	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -27,12 +30,64 @@ func TestMySQLExpectationsStore(t *testing.T) {
 
 	// Test the MySQL backed store
 	sqlStore := NewSQLExpectationStore(vdb)
-	// testExpectationStore(t, sqlStore, nil)
+	testExpectationStore(t, sqlStore, nil, 0, EV_EXPSTORAGE_CHANGED)
 
 	// Test the caching version of the MySQL store.
 	eventBus := eventbus.New()
 	cachingStore := NewCachingExpectationStore(sqlStore, eventBus)
-	testExpectationStore(t, cachingStore, eventBus)
+	testExpectationStore(t, cachingStore, eventBus, 0, EV_EXPSTORAGE_CHANGED)
+}
+
+func TestMasterCloudExpectationsStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	cleanup := initDS(t)
+	defer cleanup()
+
+	// Test the DS backed store for master.
+	masterEventBus := eventbus.New()
+	cloudStore, _, err := NewCloudExpectationsStore(ds.DS, masterEventBus)
+	assert.NoError(t, err)
+	testExpectationStore(t, cloudStore, masterEventBus, 0, EV_EXPSTORAGE_CHANGED)
+}
+
+func TestCachingCloudExpectationsStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	cleanup := initDS(t)
+	defer cleanup()
+
+	// Test the caching version of the DS store.
+	cachingEventBus := eventbus.New()
+	cloudStore, _, err := NewCloudExpectationsStore(ds.DS, nil)
+	assert.NoError(t, err)
+	cachingStore := NewCachingExpectationStore(cloudStore, cachingEventBus)
+	testExpectationStore(t, cachingStore, cachingEventBus, 0, EV_EXPSTORAGE_CHANGED)
+}
+
+func TestIssueCloudExpectationsStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	cleanup := initDS(t)
+	defer cleanup()
+
+	// Test the expectation store for an individual issue.
+	masterEventBus := eventbus.New()
+	_, issueStoreFactory, err := NewCloudExpectationsStore(ds.DS, masterEventBus)
+	assert.NoError(t, err)
+	issueID := int64(1234567)
+	issueStore := issueStoreFactory(issueID)
+	testExpectationStore(t, issueStore, masterEventBus, issueID, EV_TRYJOB_EXP_CHANGED)
+}
+
+// initDS initializes the datastore for testing.
+func initDS(t *testing.T) func() {
+	return ds_testutil.InitDatastore(t,
+		ds.MASTER_EXP_CHANGE,
+		ds.MASTER_TEST_DIGEST_EXP,
+		ds.TRYJOB_EXP_CHANGE,
+		ds.TRYJOB_TEST_DIGEST_EXP,
+		ds.HELPER_RECENT_KEYS)
 }
 
 const hexLetters = "0123456789abcdef"
@@ -78,7 +133,7 @@ func TestBigSQLChange(t *testing.T) {
 }
 
 // Test against the expectation store interface.
-func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventbus.EventBus) {
+func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventbus.EventBus, issueID int64, eventType string) {
 	// Get the initial log size. This is necessary because we
 	// call this function multiple times with the same underlying
 	// SQLExpectationStore.
@@ -89,10 +144,14 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	// If we have an event bus then keep gathering events.
 	callbackCh := make(chan []string, 3)
 	if eventBus != nil {
-		eventBus.SubscribeAsync(EV_EXPSTORAGE_CHANGED, func(e interface{}) {
-			changes := e.(map[string]types.TestClassification)
-			testNames := make([]string, 0, len(changes))
-			for testName := range changes {
+		eventBus.SubscribeAsync(eventType, func(e interface{}) {
+			evData := e.(*EventExpectationChange)
+			if (issueID > 0) && (evData.IssueID != issueID) {
+				return
+			}
+
+			testNames := make([]string, 0, len(evData.TestChanges))
+			for testName := range evData.TestChanges {
 				testNames = append(testNames, testName)
 			}
 			sort.Strings(testNames)
@@ -125,7 +184,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.NoError(t, store.AddChange(expChange_1, "user-0"))
 	if eventBus != nil {
-		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(eventType)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
 	}
@@ -153,7 +212,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.NoError(t, store.AddChange(expChange_2, "user-1"))
 	if eventBus != nil {
-		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(eventType)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
 	}
@@ -168,7 +227,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	emptyChanges := map[string]types.TestClassification{}
 	assert.NoError(t, store.AddChange(emptyChanges, "user-2"))
 	if eventBus != nil {
-		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(eventType)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{}, <-callbackCh)
 	}
@@ -185,7 +244,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.NoError(t, store.removeChange(removeDigests_1))
 	if eventBus != nil {
-		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(eventType)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
 	}
@@ -199,7 +258,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	removeDigests_2 := map[string]types.TestClassification{TEST_1: {DIGEST_12: types.UNTRIAGED}}
 	assert.NoError(t, store.removeChange(removeDigests_2))
 	if eventBus != nil {
-		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(eventType)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{TEST_1}, <-callbackCh)
 	}
@@ -210,7 +269,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.NoError(t, store.removeChange(map[string]types.TestClassification{}))
 	if eventBus != nil {
-		eventBus.(*eventbus.MemEventBus).Wait(EV_EXPSTORAGE_CHANGED)
+		eventBus.(*eventbus.MemEventBus).Wait(eventType)
 		assert.Equal(t, 1, len(callbackCh))
 		assert.Equal(t, []string{}, <-callbackCh)
 	}
@@ -234,11 +293,11 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	assert.Equal(t, 0, len(logEntries))
 
 	// Undo the latest version and make sure the corresponding record is correct.
-	changes, err := store.UndoChange(lastRec.ID, "user-1")
+	changes, err := store.UndoChange(int64(lastRec.ID), "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
-	changes, err = store.UndoChange(secondToLastRec.ID, "user-1")
+	changes, err = store.UndoChange(int64(secondToLastRec.ID), "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
@@ -264,7 +323,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	logEntries, _, err = store.QueryLog(0, 1, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
-	_, err = store.UndoChange(logEntries[0].ID, "user-1")
+	_, err = store.UndoChange(int64(logEntries[0].ID), "user-1")
 	assert.NotNil(t, err)
 
 	// Make sure getExpectationsAt works correctly.

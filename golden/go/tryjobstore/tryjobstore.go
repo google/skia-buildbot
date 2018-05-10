@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/jsonutils"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/sklog"
@@ -56,7 +57,7 @@ type TryjobStore interface {
 
 	// CommitIssueExp commits the expecations of the given issue. The writeFn
 	// is expected to make the changes to the master baseline. An issue is
-	// marked as commited if the writeFn runs without error.
+	// marked as committed if the writeFn runs without error.
 	CommitIssueExp(issueID int64, writeFn func() error) error
 
 	// DeleteIssue deletes the given issue and related information.
@@ -194,7 +195,7 @@ func (c *cloudTryjobStore) UpdateIssue(details *Issue) error {
 
 // CommitIssueExp implements the TryjobStore interface.
 func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) error {
-	// setCommittedFn is the exee
+	// setCommittedFn is executed in a transaction below
 	setCommittedFn := func(tx *datastore.Transaction) error {
 		issue := &Issue{}
 		key := c.getIssueKey(issueID)
@@ -208,7 +209,7 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 		}
 
 		// If this is already committed then we are done.
-		if issue.Commited {
+		if issue.Committed {
 			return nil
 		}
 
@@ -217,7 +218,7 @@ func (c *cloudTryjobStore) CommitIssueExp(issueID int64, commitFn func() error) 
 			return err
 		}
 
-		issue.Commited = true
+		issue.Committed = true
 		_, err = c.updateEntity(key, issue, tx, true, nil)
 		return err
 	}
@@ -483,12 +484,12 @@ func (c *cloudTryjobStore) QueryLog(issueID int64, offset, size int, details boo
 	ret := make([]*expstorage.TriageLogEntry, 0, len(expChanges))
 	for _, change := range expChanges {
 		ret = append(ret, &expstorage.TriageLogEntry{
-			ID:           int(change.ChangeID.ID),
+			ID:           jsonutils.Number(change.ChangeID.ID),
 			Name:         change.UserID,
 			TS:           change.TimeStamp,
 			ChangeCount:  int(change.Count),
 			Details:      nil,
-			UndoChangeID: int(change.UndoChangeID),
+			UndoChangeID: change.UndoChangeID,
 		})
 	}
 
@@ -632,7 +633,7 @@ func (c *cloudTryjobStore) getExpChangesForIssue(issueID int64, offset, size int
 	return keys, expChanges, err
 }
 
-// getTestDigstExpectations gets all expectations for the given change.
+// getTestDigestExpectations gets all expectations for the given change.
 func (c *cloudTryjobStore) getTestDigestExps(changeKey *datastore.Key, keysOnly bool) ([]*datastore.Key, []*TestDigestExp, error) {
 	q := ds.NewQuery(ds.TEST_DIGEST_EXP).Ancestor(changeKey)
 	if keysOnly {

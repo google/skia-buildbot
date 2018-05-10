@@ -74,12 +74,12 @@ func (s *SQLExpectationsStore) AddChange(changedTests map[string]types.TestClass
 	return s.AddChangeWithTimeStamp(changedTests, userId, 0, util.TimeStampMs())
 }
 
-// TOOD(stephana): Remove the AddChangeWithTimeStamp if we remove the
+// TODO(stephana): Remove the AddChangeWithTimeStamp if we remove the
 // migration code that calls it.
 
 // AddChangeWithTimeStamp adds changed tests to the database with the
 // given time stamp. This is primarily for migration purposes.
-func (s *SQLExpectationsStore) AddChangeWithTimeStamp(changedTests map[string]types.TestClassification, userId string, undoID int, timeStamp int64) (retErr error) {
+func (s *SQLExpectationsStore) AddChangeWithTimeStamp(changedTests map[string]types.TestClassification, userId string, undoID int64, timeStamp int64) (retErr error) {
 	defer timer.New("adding exp change").Stop()
 
 	// Count the number of values to add.
@@ -256,7 +256,7 @@ func (s *SQLExpectationsStore) getExpectationsAt(changeInfo *TriageLogEntry) (ma
 	return ret, nil
 }
 
-func (s *SQLExpectationsStore) queryChanges(offset, size, changeID int, details bool) ([]*TriageLogEntry, int, error) {
+func (s *SQLExpectationsStore) queryChanges(offset, size int, changeID int64, details bool) ([]*TriageLogEntry, int, error) {
 	const (
 		stmtDetails = `SELECT ec.id, tc.name, tc.digest, tc.label
 					  FROM exp_change AS ec, exp_test_change AS tc
@@ -312,7 +312,7 @@ func (s *SQLExpectationsStore) queryChanges(offset, size, changeID int, details 
 		placeHolders = make([]string, 0, size)
 	}
 
-	idToIdxMap := map[int]int{}
+	idToIdxMap := map[int64]int{}
 	result := make([]*TriageLogEntry, 0, size)
 	for rows.Next() {
 		entry := &TriageLogEntry{}
@@ -322,7 +322,7 @@ func (s *SQLExpectationsStore) queryChanges(offset, size, changeID int, details 
 
 		result = append(result, entry)
 		if details {
-			idToIdxMap[entry.ID] = len(result) - 1
+			idToIdxMap[int64(entry.ID)] = len(result) - 1
 			ids = append(ids, entry.ID)
 			placeHolders = append(placeHolders, "?")
 		}
@@ -335,7 +335,7 @@ func (s *SQLExpectationsStore) queryChanges(offset, size, changeID int, details 
 			return nil, 0, err
 		}
 
-		var recID int
+		var recID int64
 		for rows.Next() {
 			detail := &TriageDetail{}
 			if err = rows.Scan(&recID, &detail.TestName, &detail.Digest, &detail.Label); err != nil {
@@ -354,7 +354,7 @@ func (s *SQLExpectationsStore) queryChanges(offset, size, changeID int, details 
 }
 
 // See  ExpectationsStore interface.
-func (s *SQLExpectationsStore) UndoChange(changeID int, userID string) (map[string]types.TestClassification, error) {
+func (s *SQLExpectationsStore) UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error) {
 	changeInfo, err := s.loadChangeEntry(changeID)
 	if err != nil {
 		return nil, err
@@ -380,7 +380,7 @@ func (s *SQLExpectationsStore) UndoChange(changeID int, userID string) (map[stri
 }
 
 // Loads a single change entry with all details from the DB.
-func (s *SQLExpectationsStore) loadChangeEntry(changeID int) (*TriageLogEntry, error) {
+func (s *SQLExpectationsStore) loadChangeEntry(changeID int64) (*TriageLogEntry, error) {
 	changeInfo, _, err := s.queryChanges(0, 5, changeID, true)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to retrieve triage information: %s", err)
@@ -391,16 +391,6 @@ func (s *SQLExpectationsStore) loadChangeEntry(changeID int) (*TriageLogEntry, e
 	}
 
 	return changeInfo[0], nil
-}
-
-// See ExpectationsStore interface.
-func (s *SQLExpectationsStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
-	return nil, nil
-}
-
-// See ExpectationsStore interface.
-func (s *SQLExpectationsStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
-	return nil
 }
 
 // Wraps around an ExpectationsStore and caches the expectations using
@@ -448,13 +438,13 @@ func (c *CachingExpectationStore) AddChange(changedTests map[string]types.TestCl
 		return err
 	}
 	// Fire an event that will trigger the addition to the cache.
-	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedTests, true)
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID), true)
 	return nil
 }
 
 // addChangeToCache updates the cache and fires the change event.
 func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) {
-	changedTests := (evtChangedTests).(map[string]types.TestClassification)
+	changedTests := evtChangedTests.(*EventExpectationChange).TestChanges
 
 	// Split the changes into removal and addition.
 	forRemoval := make(map[string]types.TestClassification, len(changedTests))
@@ -498,20 +488,7 @@ func (c *CachingExpectationStore) removeChange(changedDigests map[string]types.T
 	}
 
 	// Fire an event that will trigger the addition to the cache.
-	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedDigests, true)
-
-	// // Copy the data
-	// evtData := make(map[string]types.TestClassification, len(changedDigests))
-	// for testName, digests := range changedDigests {
-	// 	if _, ok := evtData[testName]; !ok {
-	// 		evtData[testName] = types.TestClassification{}
-	// 	}
-	// 	for _, digest := range digests {
-	// 		// Setting the label to untriaged indicates that the test was removed.
-	// 		evtData[testName][digest] = types.UNTRIAGED
-	// 	}
-	// }
-
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedDigests, masterIssueID), true)
 	return nil
 }
 
@@ -521,25 +498,13 @@ func (c *CachingExpectationStore) QueryLog(offset, size int, details bool) ([]*T
 }
 
 // See  ExpectationsStore interface.
-func (c *CachingExpectationStore) UndoChange(changeID int, userID string) (map[string]types.TestClassification, error) {
+func (c *CachingExpectationStore) UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error) {
 	changedTests, err := c.store.UndoChange(changeID, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Fire an event that will trigger the addition to the cache.
-	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, changedTests, true)
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID), true)
 	return changedTests, nil
-}
-
-// See ExpectationsStore interface.
-// TODO(stephana): Implement once API is defined.
-func (c *CachingExpectationStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
-	return nil, nil
-}
-
-// See ExpectationsStore interface.
-// TODO(stephana): Implement once API is defined.
-func (c *CachingExpectationStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
-	return nil
 }
