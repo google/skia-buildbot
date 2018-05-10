@@ -22,6 +22,9 @@ const (
 
 	// Field that contains the corpus identifier.
 	CORPUS_FIELD = "source_type"
+
+	// MAXIMUM_NAME_LENGTH is the maximum length in bytes a test name can be.
+	MAXIMUM_NAME_LENGTH = 256
 )
 
 // Label for classifying digests.
