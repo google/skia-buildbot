@@ -18,6 +18,6 @@ spec:
         - name: configmap-reload
           image: gcr.io/skia-root/configmap-reload:2018-05-04T15_07_13Z-jcgregorio-018615b-clean
         - name: iap-proxy
-          image: gcr.io/skia-public/iap_proxy:2018-05-04T15_09_43Z-jcgregorio-018615b-clean
+          image: gcr.io/skia-public/iap-proxy:2018-05-04T15_09_43Z-jcgregorio-018615b-clean
         - name: foo
           image: gcr.io/skia-public/foo:2018-05-05T15_07_13Z-jcgregorio-018615b-clean

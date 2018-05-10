@@ -13,7 +13,7 @@ func TestFindImages(t *testing.T) {
 	testutils.SmallTest(t)
 	names := findAllImageNames([]string{"./testdata/file1.yaml", "./testdata/file2.yaml"}, gcr.SERVER, "skia-public")
 	sort.Strings(names)
-	assert.Equal(t, []string{"configmap-reload", "foo", "iap_proxy"}, names)
+	assert.Equal(t, []string{"configmap-reload", "foo", "iap-proxy"}, names)
 
 	names = findAllImageNames([]string{"./testdata/file1.yaml", "./testdata/file2.yaml"}, gcr.SERVER, "skia-root")
 	sort.Strings(names)
@@ -21,11 +21,11 @@ func TestFindImages(t *testing.T) {
 
 	names = findAllImageNames([]string{"./testdata/file1.yaml"}, gcr.SERVER, "skia-public")
 	sort.Strings(names)
-	assert.Equal(t, []string{"configmap-reload", "iap_proxy"}, names)
+	assert.Equal(t, []string{"configmap-reload", "iap-proxy"}, names)
 
 	names = findAllImageNames([]string{"./testdata/file2.yaml"}, gcr.SERVER, "skia-public")
 	sort.Strings(names)
-	assert.Equal(t, []string{"foo", "iap_proxy"}, names)
+	assert.Equal(t, []string{"foo", "iap-proxy"}, names)
 
 	names = findAllImageNames([]string{}, gcr.SERVER, "skia-public")
 	sort.Strings(names)
