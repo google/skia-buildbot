@@ -8,3 +8,6 @@ ZONE=us-central1-a
 
 # Name for your cluster we will create or modify. E.g. example-secure-cluster
 CLUSTER_NAME=skia-public
+
+# The ID of the security account used by kubernetes.
+SA_NAME=skia-public-k8s
