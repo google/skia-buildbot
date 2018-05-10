@@ -22,6 +22,9 @@ const (
 
 	// Field that contains the corpus identifier.
 	CORPUS_FIELD = "source_type"
+
+	// MAXIMUM_NAME_LENGTH is the maximum length in bytes a test name can be.
+	MAXIMUM_NAME_LENGTH = 256
 )
 
 // Label for classifying digests.
@@ -235,7 +238,7 @@ func GoldenTraceBuilder(n int) tiling.Trace {
 }
 
 // Same as Tile but instead of Traces we preserve the raw JSON. This is a
-// utitlity struct that is used to parse a tile where we don't know the
+// utility struct that is used to parse a tile where we don't know the
 // Trace type upfront.
 type TileWithRawTraces struct {
 	Traces    map[string]json.RawMessage `json:"traces"`
@@ -249,7 +252,7 @@ type TileWithRawTraces struct {
 // traceExample has to be an instance of the Trace implementation
 // that needs to be deserialized.
 // Note: Instead of the type switch below we could use reflection
-// to be truely generic, but it makes the code harder to read and
+// to be truly generic, but it makes the code harder to read and
 // currently we only have two types.
 func TileFromJson(r io.Reader, traceExample tiling.Trace) (*tiling.Tile, error) {
 	factory := func() tiling.Trace { return NewGoldenTrace() }

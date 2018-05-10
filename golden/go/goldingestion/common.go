@@ -50,7 +50,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// Result is used by DMResults hand holds the invidual result of one test.
+// Result is used by DMResults hand holds the individual result of one test.
 type Result struct {
 	Key     map[string]string `json:"key"`
 	Options map[string]string `json:"options"`
@@ -77,7 +77,7 @@ func toStringMap(interfaceMap map[string]interface{}) (map[string]string, error)
 	return ret, nil
 }
 
-// TODO(stephana) Potentially remove this function once gamme_corrected field contains
+// TODO(stephana) Potentially remove this function once gamma_corrected field contains
 // only strings.
 func (r *Result) UnmarshalJSON(data []byte) error {
 	var err error
@@ -189,12 +189,22 @@ func (d *DMResults) ignoreResult(params map[string]string) bool {
 		return true
 	}
 
+	// Make sure the test name meets basic requirements.
+	testName := params[types.PRIMARY_KEY_FIELD]
+
 	// Ignore results that don't have a test given and log an error since that
 	// should not happen. But we want to keep other results in the same input file.
-	if params[types.PRIMARY_KEY_FIELD] == "" {
+	if testName == "" {
 		sklog.Errorf("Missing test name in %s", d.name)
 		return true
 	}
+
+	// Make sure the test name does not exceed the allowed length.
+	if len(testName) > types.MAXIMUM_NAME_LENGTH {
+		sklog.Errorf("Received test name which is longer than the allowed %d bytes: %s", types.MAXIMUM_NAME_LENGTH, testName)
+		return true
+	}
+
 	return false
 }
 

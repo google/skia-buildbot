@@ -68,7 +68,7 @@ type Issue struct {
 	URL             string            `json:"url"`
 	Status          string            `json:"status"`
 	PatchsetDetails []*PatchsetDetail `json:"patchsets"`
-	Commited        bool              `json:"commited"`
+	Committed       bool              `json:"committed"`
 	QueryPatchsets  []int64           `json:"queryPatchsets"    datastore:"-"`
 
 	clean bool
@@ -129,7 +129,7 @@ func (is *Issue) UpdatePatchsets(patchsets []*PatchsetDetail) {
 	}
 }
 
-// newer implments newerInterface.
+// newer implements newerInterface.
 func (is *Issue) newer(right interface{}) bool {
 	return is.Updated.After(right.(*Issue).Updated)
 }
@@ -164,7 +164,7 @@ func (t *Tryjob) String() string {
 	return fmt.Sprintf("%s - %d - %s", t.Builder, t.BuildBucketID, t.Status.String())
 }
 
-// newer implments newerInterface.
+// newer implements newerInterface.
 func (t *Tryjob) newer(r interface{}) bool {
 	right := r.(*Tryjob)
 	// A tryjob is newer if the status is updated or the BuildBucket record has been
@@ -237,8 +237,8 @@ func interfaceToStrSlice(inArr []interface{}) []string {
 }
 
 // ExpChange is used to store an expectation change in the database. Each
-// expecation change is an atomic change to expectations for an issue.
-// The actualy expecations are captured in instances of TestDigestExp.
+// expectation change is an atomic change to expectations for an issue.
+// The actually expecations are captured in instances of TestDigestExp.
 type ExpChange struct {
 	ChangeID     *datastore.Key `datastore:"__key__"`
 	IssueID      int64
