@@ -22,10 +22,11 @@ type IgnoreStore interface {
 	List(addCounts bool) ([]*IgnoreRule, error)
 
 	// Updates an IgnoreRule.
-	Update(id int, rule *IgnoreRule) error
+	Update(id int64, rule *IgnoreRule) error
 
-	// Removes an IgnoreRule from the store.
-	Delete(id int, userId string) (int, error)
+	// Removes an IgnoreRule from the store. The return value is the number of
+	// records that were deleted (either 0 or 1).
+	Delete(id int64) (int, error)
 
 	// Revision returns a monotonically increasing int64 that goes up each time
 	// the ignores have been changed. It will not persist nor will it be the same
@@ -40,14 +41,14 @@ type IgnoreStore interface {
 
 // IgnoreRule is the GUI struct for dealing with Ignore rules.
 type IgnoreRule struct {
-	ID             int       `json:"id"`
+	ID             int64     `json:"id"`
 	Name           string    `json:"name"`
 	UpdatedBy      string    `json:"updatedBy"`
 	Expires        time.Time `json:"expires"`
 	Query          string    `json:"query"`
 	Note           string    `json:"note"`
-	Count          int       `json:"count"`
-	ExclusiveCount int       `json:"exclusiveCount"`
+	Count          int       `json:"count"          datastore:"-"`
+	ExclusiveCount int       `json:"exclusiveCount" datastore:"-"`
 }
 
 // ToQuery makes a slice of url.Values from the given slice of IngoreRules.
@@ -56,7 +57,7 @@ func ToQuery(ignores []*IgnoreRule) ([]url.Values, error) {
 	for _, ignore := range ignores {
 		v, err := url.ParseQuery(ignore.Query)
 		if err != nil {
-			return nil, fmt.Errorf("Found an invaild ignore rule %d %s: %s", ignore.ID, ignore.Query, err)
+			return nil, fmt.Errorf("Found an invalid ignore rule %d %s: %s", ignore.ID, ignore.Query, err)
 		}
 		ret = append(ret, v)
 	}
@@ -77,7 +78,7 @@ func NewIgnoreRule(name string, expires time.Time, queryStr string, note string)
 type MemIgnoreStore struct {
 	rules    []*IgnoreRule
 	mutex    sync.Mutex
-	nextId   int
+	nextId   int64
 	revision int64
 }
 
@@ -115,7 +116,7 @@ func (m *MemIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 }
 
 // Update, see IgnoreStore interface.
-func (m *MemIgnoreStore) Update(id int, updated *IgnoreRule) error {
+func (m *MemIgnoreStore) Update(id int64, updated *IgnoreRule) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -131,7 +132,7 @@ func (m *MemIgnoreStore) Update(id int, updated *IgnoreRule) error {
 }
 
 // Delete, see IgnoreStore interface.
-func (m *MemIgnoreStore) Delete(id int, userId string) (int, error) {
+func (m *MemIgnoreStore) Delete(id int64) (int, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 

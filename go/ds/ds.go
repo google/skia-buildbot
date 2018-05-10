@@ -31,11 +31,16 @@ const (
 	ALERT      Kind = "Alert"
 
 	// Gold
-	ISSUE             Kind = "Issue"
-	TRYJOB            Kind = "Tryjob"
-	TRYJOB_RESULT     Kind = "TryjobResult"
-	TRYJOB_EXP_CHANGE Kind = "TryjobExpChange"
-	TEST_DIGEST_EXP   Kind = "TestDigestExp"
+	ISSUE                  Kind = "Issue"
+	TRYJOB                 Kind = "Tryjob"
+	TRYJOB_RESULT          Kind = "TryjobResult"
+	TRYJOB_EXP_CHANGE      Kind = "TryjobExpChange"
+	TEST_DIGEST_EXP        Kind = "TryjobTestDigestExp" // TODO(stephana): Remove after migration to consolidated expectations store
+	TRYJOB_TEST_DIGEST_EXP Kind = "TryjobTestDigestExp"
+	MASTER_EXP_CHANGE      Kind = "MasterExpChange"
+	MASTER_TEST_DIGEST_EXP Kind = "MasterTestDigestExp"
+	IGNORE_RULE            Kind = "IgnoreRule"
+	HELPER_RECENT_KEYS     Kind = "HelperRecentKeys"
 
 	// Android Compile
 	COMPILE_TASK Kind = "CompileTask"
@@ -68,9 +73,20 @@ var (
 		PERF_NS:                []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		PERF_ANDROID_NS:        []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		PERF_ANDROID_MASTER_NS: []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
-		GOLD_SKIA_PROD_NS:      []Kind{ISSUE, TRYJOB, TRYJOB_RESULT, TRYJOB_EXP_CHANGE, TEST_DIGEST_EXP},
-		ANDROID_COMPILE_NS:     []Kind{COMPILE_TASK},
-		LEASING_SERVER_NS:      []Kind{TASK},
+		GOLD_SKIA_PROD_NS: []Kind{
+			HELPER_RECENT_KEYS,
+			IGNORE_RULE,
+			ISSUE,
+			TRYJOB,
+			TRYJOB_RESULT,
+			TRYJOB_EXP_CHANGE,
+			TEST_DIGEST_EXP,
+			TRYJOB_TEST_DIGEST_EXP,
+			MASTER_EXP_CHANGE,
+			MASTER_TEST_DIGEST_EXP,
+		},
+		ANDROID_COMPILE_NS: []Kind{COMPILE_TASK},
+		LEASING_SERVER_NS:  []Kind{TASK},
 	}
 )
 
@@ -135,6 +151,12 @@ func NewKey(kind Kind) *datastore.Key {
 		Kind:      string(kind),
 		Namespace: Namespace,
 	}
+}
+
+func NewKeyWithParent(kind Kind, parent *datastore.Key) *datastore.Key {
+	ret := NewKey(kind)
+	ret.Parent = parent
+	return ret
 }
 
 // Creates a new query of the given kind with the right namespace.

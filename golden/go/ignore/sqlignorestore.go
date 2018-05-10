@@ -25,8 +25,8 @@ type SQLIgnoreStore struct {
 
 // NewSQLIgnoreStore creates a new SQL based IgnoreStore.
 //   vdb - database to connect to.
-//   expStore - expectations store needed to cound the untriaged digests per rule.
-//   tileStream - continously provides an updated copy of the current tile.
+//   expStore - expectations store needed to count the untriaged digests per rule.
+//   tileStream - continuously provides an updated copy of the current tile.
 func NewSQLIgnoreStore(vdb *database.VersionedDB, expStore expstorage.ExpectationsStore, tileStream <-chan *types.TilePair) IgnoreStore {
 	ret := &SQLIgnoreStore{
 		vdb:        vdb,
@@ -56,13 +56,13 @@ func (m *SQLIgnoreStore) Create(rule *IgnoreRule) error {
 	if err != nil {
 		return err
 	}
-	rule.ID = int(createdId)
+	rule.ID = createdId
 	m.inc()
 	return nil
 }
 
 // Update, see IgnoreStore interface.
-func (m *SQLIgnoreStore) Update(id int, rule *IgnoreRule) error {
+func (m *SQLIgnoreStore) Update(id int64, rule *IgnoreRule) error {
 	stmt := `UPDATE ignorerule SET updated_by=?, expires=?, query=?, note=? WHERE id=?`
 
 	res, err := m.vdb.DB.Exec(stmt, rule.UpdatedBy, rule.Expires.Unix(), rule.Query, rule.Note, rule.ID)
@@ -101,7 +101,8 @@ func (m *SQLIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 	}
 
 	if addCounts {
-		if err := m.addIgnoreCounts(result); err != nil {
+		m.lastTilePair, err = addIgnoreCounts(result, m, m.lastTilePair, m.expStore, m.tileStream)
+		if err != nil {
 			sklog.Errorf("Unable to add counts to ignore list result: %s", err)
 		}
 	}
@@ -109,82 +110,8 @@ func (m *SQLIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 	return result, nil
 }
 
-// TODO(stephana): Add unit tests to addIgnoreCounts once we have a framework ready to
-// easily test against live (vs synthetic) data.
-
-// addIgnoreCounts counts the number of traces in the current tile that match the given
-// ignore rules. It sets the corresponding field in each instance of IgnoreRule.
-func (m *SQLIgnoreStore) addIgnoreCounts(rules []*IgnoreRule) error {
-	if (m.expStore == nil) || (m.tileStream == nil) {
-		return fmt.Errorf("Either expStore or tileStream is nil. Cannot count ignores.")
-	}
-
-	exp, err := m.expStore.Get()
-	if err != nil {
-		return err
-	}
-
-	ignoreMatcher, err := m.BuildRuleMatcher()
-	if err != nil {
-		return err
-	}
-
-	// Get the next tile.
-	var tilePair *types.TilePair = nil
-	select {
-	case tilePair = <-m.tileStream:
-	default:
-		tilePair = m.lastTilePair
-	}
-	if tilePair == nil {
-		return fmt.Errorf("No tile available to count ignores")
-	}
-	m.lastTilePair = tilePair
-
-	// Count the untriaged digests in HEAD.
-	// matchingDigests[rule.ID]map[digest]bool
-	matchingDigests := make(map[int]map[string]bool, len(rules))
-	rulesByDigest := map[string]map[int]bool{}
-	for _, trace := range tilePair.TileWithIgnores.Traces {
-		gTrace := trace.(*types.GoldenTrace)
-		if matchRules, ok := ignoreMatcher(gTrace.Params_); ok {
-			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
-			if digest := gTrace.LastDigest(); digest != types.MISSING_DIGEST && (exp.Classification(testName, digest) == types.UNTRIAGED) {
-				k := testName + ":" + digest
-				for _, r := range matchRules {
-					// Add the digest to all matching rules.
-					if t, ok := matchingDigests[r.ID]; ok {
-						t[k] = true
-					} else {
-						matchingDigests[r.ID] = map[string]bool{k: true}
-					}
-
-					// Add the rule to the test-digest.
-					if t, ok := rulesByDigest[k]; ok {
-						t[r.ID] = true
-					} else {
-						rulesByDigest[k] = map[int]bool{r.ID: true}
-					}
-				}
-			}
-		}
-	}
-
-	for _, r := range rules {
-		r.Count = len(matchingDigests[r.ID])
-		r.ExclusiveCount = 0
-		for testDigestKey := range matchingDigests[r.ID] {
-			// If exactly this one rule matches then account for it.
-			if len(rulesByDigest[testDigestKey]) == 1 {
-				r.ExclusiveCount++
-			}
-		}
-	}
-	return nil
-}
-
 // Delete, see IgnoreStore interface.
-func (m *SQLIgnoreStore) Delete(id int, userId string) (int, error) {
+func (m *SQLIgnoreStore) Delete(id int64) (int, error) {
 	stmt := "DELETE FROM ignorerule WHERE id=?"
 	ret, err := m.vdb.DB.Exec(stmt, id)
 	if err != nil {
@@ -200,7 +127,7 @@ func (m *SQLIgnoreStore) Delete(id int, userId string) (int, error) {
 	return int(rowsAffected), nil
 }
 
-// Revisison, see IngoreStore interface.
+// Revision, see IngoreStore interface.
 func (m *SQLIgnoreStore) Revision() int64 {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -211,6 +138,9 @@ func (m *SQLIgnoreStore) Revision() int64 {
 func (m *SQLIgnoreStore) BuildRuleMatcher() (RuleMatcher, error) {
 	return buildRuleMatcher(m)
 }
+
+// TODO(stephana): move buildRuleMatcher into a separate file since it's
+// used by multiple implementations of IgnoreStore
 
 func buildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
 	rulesList, err := store.List(false)
@@ -238,4 +168,76 @@ func buildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
 
 		return result, len(result) > 0
 	}, nil
+}
+
+// TODO(stephana): Add unit tests to addIgnoreCounts once we have a framework ready to
+// easily test against live (vs synthetic) data.
+
+// addIgnoreCounts adds counts for the current tile to the given list of rules.
+func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastTilePair *types.TilePair, expStore expstorage.ExpectationsStore, tileStream <-chan *types.TilePair) (*types.TilePair, error) {
+	if (expStore == nil) || (tileStream == nil) {
+		return nil, fmt.Errorf("Either expStore or tileStream is nil. Cannot count ignores.")
+	}
+
+	exp, err := expStore.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	ignoreMatcher, err := ignoreStore.BuildRuleMatcher()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the next tile.
+	var tilePair *types.TilePair = nil
+	select {
+	case tilePair = <-tileStream:
+	default:
+		tilePair = lastTilePair
+	}
+	if tilePair == nil {
+		return nil, fmt.Errorf("No tile available to count ignores")
+	}
+
+	// Count the untriaged digests in HEAD.
+	// matchingDigests[rule.ID]map[digest]bool
+	matchingDigests := make(map[int64]map[string]bool, len(rules))
+	rulesByDigest := map[string]map[int64]bool{}
+	for _, trace := range tilePair.TileWithIgnores.Traces {
+		gTrace := trace.(*types.GoldenTrace)
+		if matchRules, ok := ignoreMatcher(gTrace.Params_); ok {
+			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+			if digest := gTrace.LastDigest(); digest != types.MISSING_DIGEST && (exp.Classification(testName, digest) == types.UNTRIAGED) {
+				k := testName + ":" + digest
+				for _, r := range matchRules {
+					// Add the digest to all matching rules.
+					if t, ok := matchingDigests[r.ID]; ok {
+						t[k] = true
+					} else {
+						matchingDigests[r.ID] = map[string]bool{k: true}
+					}
+
+					// Add the rule to the test-digest.
+					if t, ok := rulesByDigest[k]; ok {
+						t[r.ID] = true
+					} else {
+						rulesByDigest[k] = map[int64]bool{r.ID: true}
+					}
+				}
+			}
+		}
+	}
+
+	for _, r := range rules {
+		r.Count = len(matchingDigests[r.ID])
+		r.ExclusiveCount = 0
+		for testDigestKey := range matchingDigests[r.ID] {
+			// If exactly this one rule matches then account for it.
+			if len(rulesByDigest[testDigestKey]) == 1 {
+				r.ExclusiveCount++
+			}
+		}
+	}
+	return tilePair, nil
 }

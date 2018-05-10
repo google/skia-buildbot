@@ -431,9 +431,9 @@ func jsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
-	ignoreRule.ID = int(id)
+	ignoreRule.ID = id
 
-	err = storages.IgnoreStore.Update(int(id), ignoreRule)
+	err = storages.IgnoreStore.Update(id, ignoreRule)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to update ignore rule.")
 		return
@@ -456,7 +456,7 @@ func jsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = storages.IgnoreStore.Delete(int(id), user); err != nil {
+	if _, err = storages.IgnoreStore.Delete(id); err != nil {
 		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
 	} else {
 		// If delete worked just list the current ignores and return them.
@@ -883,7 +883,7 @@ func jsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 // The change id's are returned in the result of jsonTriageLogHandler.
 // It accepts one query parameter 'id' which is the id if the change
 // that should be reversed.
-// If successful it retunrs the same result as a call to jsonTriageLogHandler
+// If successful it returns the same result as a call to jsonTriageLogHandler
 // to reflect the changed triagelog.
 func jsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the user and make sure they are logged in.
@@ -894,7 +894,7 @@ func jsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extract the id to undo.
-	changeID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	changeID, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Invalid change id.")
 		return
@@ -972,7 +972,7 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jsonCompareTestHandler returns a JSON descripiton for the given test.
+// jsonCompareTestHandler returns a JSON description for the given test.
 // The result is intended to be displayed in a grid-like fashion.
 //
 // Input format of a POST request:

@@ -5,15 +5,49 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/testutils"
-
 	assert "github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/ds"
+	ds_testutil "go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/db"
 )
 
 func TestTestMemIgnoreStore(t *testing.T) {
 	testutils.SmallTest(t)
 	memStore := NewMemIgnoreStore()
 	testIgnoreStore(t, memStore)
+}
+
+func TestSQLIgnoreStore(t *testing.T) {
+	testutils.LargeTest(t)
+	// Set up the database. This also locks the db until this test is finished
+	// causing similar tests to wait.
+	migrationSteps := db.MigrationSteps()
+	mysqlDB := testutil.SetupMySQLTestDatabase(t, migrationSteps)
+	defer mysqlDB.Close(t)
+
+	vdb, err := testutil.LocalTestDatabaseConfig(migrationSteps).NewVersionedDB()
+	assert.NoError(t, err)
+	defer testutils.AssertCloses(t, vdb)
+
+	store := NewSQLIgnoreStore(vdb, nil, nil)
+	testIgnoreStore(t, store)
+}
+
+func TestCloudIgnoreStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	// Run to the locally running emulator.
+	cleanup := ds_testutil.InitDatastore(t,
+		ds.IGNORE_RULE,
+		ds.HELPER_RECENT_KEYS)
+	defer cleanup()
+
+	store, err := NewCloudIgnoreStore(ds.DS, nil, nil)
+	assert.NoError(t, err)
+	testIgnoreStore(t, store)
 }
 
 func testIgnoreStore(t *testing.T, store IgnoreStore) {
@@ -58,10 +92,14 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	assert.Equal(t, int64(4), store.Revision())
 
 	// Remove the third and fourth rule
-	delCount, err := store.Delete(r3.ID, "jon@example.com")
+	delCount, err := store.Delete(r3.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, delCount)
-	delCount, err = store.Delete(r4.ID, "jon@example.com")
+	allRules, err = store.List(false)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(allRules))
+
+	delCount, err = store.Delete(r4.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, delCount)
 	allRules, err = store.List(false)
@@ -73,7 +111,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 		assert.True(t, (oneRule.ID == r1.ID) || (oneRule.ID == r2.ID))
 	}
 
-	delCount, err = store.Delete(r1.ID, "jane@example.com")
+	delCount, err = store.Delete(r1.ID)
 	assert.NoError(t, err)
 	allRules, err = store.List(false)
 	assert.Equal(t, 1, len(allRules))
@@ -97,14 +135,14 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	assert.Error(t, err, "Update should fail for a bad id.")
 	assert.Equal(t, int64(8), store.Revision())
 
-	delCount, err = store.Delete(r2.ID, "jon@example.com")
+	delCount, err = store.Delete(r2.ID)
 	assert.NoError(t, err)
 	allRules, err = store.List(false)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(allRules))
 	assert.Equal(t, int64(9), store.Revision())
 
-	delCount, err = store.Delete(1000000, "someuser@example.com")
+	delCount, err = store.Delete(1000000)
 	assert.NoError(t, err)
 	assert.Equal(t, delCount, 0)
 	allRules, err = store.List(false)

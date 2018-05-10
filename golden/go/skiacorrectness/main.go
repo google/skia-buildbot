@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	netpprof "net/http/pprof"
 	"os"
@@ -100,6 +101,9 @@ const (
 func main() {
 	defer common.LogPanic()
 	var err error
+
+	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.
+	rand.Seed(time.Now().UnixNano())
 
 	mainTimer := timer.New("main init")
 	// Setup DB flags. But don't specify a default host or default database

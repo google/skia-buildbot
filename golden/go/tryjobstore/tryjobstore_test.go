@@ -221,7 +221,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	}))
 	foundIssue, err = store.GetIssue(issueID, false, nil)
 	assert.NoError(t, err)
-	assert.False(t, foundIssue.Commited)
+	assert.False(t, foundIssue.Committed)
 
 	// Test commiting the changes.
 	assert.NoError(t, store.CommitIssueExp(issueID, func() error {
@@ -231,7 +231,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 
 	foundIssue, err = store.GetIssue(issueID, false, nil)
 	assert.NoError(t, err)
-	assert.True(t, foundIssue.Commited)
+	assert.True(t, foundIssue.Committed)
 }
 
 func checkEqualIssue(t *testing.T, exp *Issue, actual *Issue) {
