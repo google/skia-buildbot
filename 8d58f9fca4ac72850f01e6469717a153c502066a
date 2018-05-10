@@ -4226,6 +4226,30 @@
     },
     {
       "key": {
+        "uuid": "3c520f89_ff99b450",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-10T14:54:08Z",
+      "side": 1,
+      "message": "(It seems you don\u0027t want to use Go\u0027s time.Time, but if you change your mind, you could use jsonutils.Time rather than jsonutils.Number for TS.)",
+      "parentUuid": "ae58c8aa_84997764",
+      "range": {
+        "startLine": 167,
+        "startChar": 14,
+        "endLine": 167,
+        "endChar": 19
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "96574997_5f658054",
         "filename": "golden/go/expstorage/expstorage.go",
         "patchSetId": 37
