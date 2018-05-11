@@ -3,8 +3,10 @@ package specs
 import (
 	"bytes"
 	"context"
+	"crypto/sha1"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -376,6 +378,10 @@ func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
 	return rv, nil
 }
 
+// TasksCfgFileHash represents the SHA-1 checksum of the contents of
+// TASKS_CFG_FILE.
+type TasksCfgFileHash [sha1.Size]byte
+
 // TaskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
@@ -398,13 +404,25 @@ type TaskCfgCache struct {
 	workdir         string
 }
 
+// gobCacheValue contains fields that can be deduplicated across cacheEntry
+// instances.
+type gobCacheValue struct {
+	Cfg  *TasksCfg
+	Err  string
+	Hash TasksCfgFileHash
+}
+
 // gobTaskCfgCache is a struct used for (de)serializing TaskCfgCache instance.
 type gobTaskCfgCache struct {
 	AddedTasksCache map[db.RepoState]util.StringSet
-	Cache           map[db.RepoState]*cacheEntry
+	Values          []gobCacheValue
 	RecentCommits   map[string]time.Time
 	RecentJobSpecs  map[string]time.Time
 	RecentTaskSpecs map[string]time.Time
+	// Map value is an index into Values. (We can't just use pointers pointing to
+	// the same object because GOB-encoding flattens/dereferences all pointers,
+	// resulting in multiple copies in the encoded file.)
+	RepoStates map[db.RepoState]int
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
@@ -427,12 +445,22 @@ func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, wo
 		}
 		util.Close(f)
 		c.addedTasksCache = gobCache.AddedTasksCache
-		c.cache = gobCache.Cache
+		c.cache = make(map[db.RepoState]*cacheEntry, len(gobCache.RepoStates))
 		c.recentCommits = gobCache.RecentCommits
 		c.recentJobSpecs = gobCache.RecentJobSpecs
 		c.recentTaskSpecs = gobCache.RecentTaskSpecs
-		for _, e := range c.cache {
-			e.c = c
+		for rs, idx := range gobCache.RepoStates {
+			if idx < 0 || idx >= len(gobCache.Values) {
+				return nil, fmt.Errorf("Corrupt cache file %q: RepoStates index %d out of range.", file, idx)
+			}
+			gobCacheValue := gobCache.Values[idx]
+			c.cache[rs] = &cacheEntry{
+				c:    c,
+				cfg:  gobCacheValue.Cfg,
+				err:  gobCacheValue.Err,
+				hash: gobCacheValue.Hash,
+				rs:   rs,
+			}
 		}
 	} else if !os.IsNotExist(err) {
 		return nil, fmt.Errorf("Failed to read cache file: %s", err)
@@ -460,11 +488,13 @@ func (c *TaskCfgCache) Close() error {
 }
 
 type cacheEntry struct {
-	c   *TaskCfgCache
-	Cfg *TasksCfg
-	Err string
-	mtx sync.Mutex
-	Rs  db.RepoState
+	c *TaskCfgCache
+	// Only one of cfg or err may be non-empty.
+	cfg  *TasksCfg
+	err  string
+	hash TasksCfgFileHash
+	mtx  sync.Mutex
+	rs   db.RepoState
 }
 
 // Get returns the TasksCfg for this cache entry. If it does not already exist
@@ -473,25 +503,24 @@ type cacheEntry struct {
 func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, bool, error) {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
-	if e.Cfg != nil {
-		return e.Cfg, false, nil
+	if e.cfg != nil {
+		return e.cfg, false, nil
 	}
-	if e.Err != "" {
-		return nil, false, fmt.Errorf(e.Err)
+	if e.err != "" {
+		return nil, false, errors.New(e.err)
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
 	// window. Read it.
 	// Point the upstream to a local source of truth to eliminate network
 	// latency.
-	r, ok := e.c.repos[e.Rs.Repo]
+	r, ok := e.c.repos[e.rs.Repo]
 	if !ok {
-		return nil, false, fmt.Errorf("Unknown repo %q", e.Rs.Repo)
+		return nil, false, fmt.Errorf("Unknown repo %q", e.rs.Repo)
 	}
 	var cfg *TasksCfg
-	if err := e.c.TempGitRepo(ctx, e.Rs, e.Rs.IsTryJob(), func(checkout *git.TempCheckout) error {
-		var err error
-		cfg, err = ReadTasksCfg(checkout.Dir())
+	if err := e.c.TempGitRepo(ctx, e.rs, e.rs.IsTryJob(), func(checkout *git.TempCheckout) error {
+		contents, err := ioutil.ReadFile(path.Join(checkout.Dir(), TASKS_CFG_FILE))
 		if err != nil {
 			// The tasks.cfg file may not exist for a particular commit.
 			if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") || strings.Contains(err.Error(), "no such file or directory") {
@@ -499,30 +528,33 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, bool, error) {
 				cfg = &TasksCfg{
 					Tasks: map[string]*TaskSpec{},
 				}
+				return nil
 			} else {
-				return err
+				return fmt.Errorf("Failed to read tasks cfg: could not read file: %s", err)
 			}
 		}
-		return nil
+		e.hash = TasksCfgFileHash(sha1.Sum(contents))
+		cfg, err = ParseTasksCfg(string(contents))
+		return err
 	}); err != nil {
 		if strings.Contains(err.Error(), "error: Failed to merge in the changes.") {
-			e.Err = err.Error()
+			e.err = err.Error()
 		}
 		return nil, false, err
 	}
-	e.Cfg = cfg
+	e.cfg = cfg
 
 	// Write the commit and task specs into the recent lists.
 	// TODO(borenet): The below should probably go elsewhere.
 	e.c.recentMtx.Lock()
 	defer e.c.recentMtx.Unlock()
-	d := r.Get(e.Rs.Revision)
+	d := r.Get(e.rs.Revision)
 	if d == nil {
-		return nil, false, fmt.Errorf("Unknown revision %s in %s", e.Rs.Revision, e.Rs.Repo)
+		return nil, false, fmt.Errorf("Unknown revision %s in %s", e.rs.Revision, e.rs.Repo)
 	}
 	ts := d.Timestamp
-	if ts.After(e.c.recentCommits[e.Rs.Revision]) {
-		e.c.recentCommits[e.Rs.Revision] = ts
+	if ts.After(e.c.recentCommits[e.rs.Revision]) {
+		e.c.recentCommits[e.rs.Revision] = ts
 	}
 	for name := range cfg.Tasks {
 		if ts.After(e.c.recentTaskSpecs[name]) {
@@ -542,7 +574,7 @@ func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
 	if !ok {
 		rv = &cacheEntry{
 			c:  c,
-			Rs: rs,
+			rs: rs,
 		}
 		c.cache[rs] = rv
 	}
@@ -785,10 +817,40 @@ func (c *TaskCfgCache) write() error {
 	return util.WithWriteFile(c.file, func(w io.Writer) error {
 		gobCache := gobTaskCfgCache{
 			AddedTasksCache: c.addedTasksCache,
-			Cache:           c.cache,
+			Values:          make([]gobCacheValue, 0, len(c.cache)),
 			RecentCommits:   c.recentCommits,
 			RecentJobSpecs:  c.recentJobSpecs,
 			RecentTaskSpecs: c.recentTaskSpecs,
+			RepoStates:      make(map[db.RepoState]int, len(c.cache)),
+		}
+		// When deduplicating gobCacheValue, we need to key by both hash and err. In
+		// the case that a patch doesn't apply, hash will always be all-zero, but
+		// err could vary.
+		type valueKey struct {
+			hash TasksCfgFileHash
+			err  string
+		}
+		valueIdxMap := make(map[valueKey]int, len(c.cache))
+		for _, e := range c.cache {
+			if e.cfg == nil && e.err == "" {
+				// Haven't called Get yet or Get failed; nothing to cache.
+				continue
+			}
+			key := valueKey{
+				hash: e.hash,
+				err:  e.err,
+			}
+			idx, ok := valueIdxMap[key]
+			if !ok {
+				idx = len(gobCache.Values)
+				valueIdxMap[key] = idx
+				gobCache.Values = append(gobCache.Values, gobCacheValue{
+					Cfg:  e.cfg,
+					Err:  e.err,
+					Hash: e.hash,
+				})
+			}
+			gobCache.RepoStates[e.rs] = idx
 		}
 		if err := gob.NewEncoder(w).Encode(&gobCache); err != nil {
 			return fmt.Errorf("Failed to encode TaskCfgCache: %s", err)
