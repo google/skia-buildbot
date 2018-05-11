@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79deefdc_265be002",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-11T13:45:02Z",
+      "side": 1,
+      "message": "Drive-by fix.",
+      "revId": "5b9fcc93208fe737d34c91b8b5fe42fe7391c22d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
