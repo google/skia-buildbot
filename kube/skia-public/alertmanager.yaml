@@ -100,7 +100,7 @@ spec:
         - name: iap-proxy
           args:
             - "--logtostderr"
-            - "--aud=/projects/145247227042/global/backendServices/3306673599466633399"
+            - "--aud=/projects/145247227042/global/backendServices/8486191600510710914"
             - "--port=:8000"
             - "--target_port=:9090"
             - "--prom_port=:10000"

@@ -24,6 +24,14 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member "serviceAccount:${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role roles/monitoring.viewer
 
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member "serviceAccount:${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --role roles/compute.serviceAgent
+
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member "serviceAccount:${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --role roles/storage.objectViewer
+
 gcloud container clusters create "${CLUSTER_NAME}" \
   --service-account="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
   --addons HorizontalPodAutoscaling,HttpLoadBalancing \
@@ -33,7 +41,7 @@ gcloud container clusters create "${CLUSTER_NAME}" \
   --enable-cloud-logging \
   --enable-cloud-monitoring \
   --image-type "COS" \
-  --machine-type "n1-standard-8" \
+  --machine-type "n1-standard-2" \
   --maintenance-window "07:00" \
   --network "default" \
   --no-enable-basic-auth \
