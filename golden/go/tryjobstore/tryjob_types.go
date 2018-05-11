@@ -62,13 +62,13 @@ type newerInterface interface {
 // Issue captures information about a single code review issue.
 type Issue struct {
 	ID              int64             `json:"id"`
-	Subject         string            `json:"subject"`
+	Subject         string            `json:"subject"           datastore:",noindex"`
 	Owner           string            `json:"owner"`
 	Updated         time.Time         `json:"updated"`
-	URL             string            `json:"url"`
+	URL             string            `json:"url"               datastore:",noindex"`
 	Status          string            `json:"status"`
-	PatchsetDetails []*PatchsetDetail `json:"patchsets"`
-	Committed       bool              `json:"committed"`
+	PatchsetDetails []*PatchsetDetail `json:"patchsets"         datastore:",noindex"`
+	Committed       bool              `json:"committed"         datastore:"Commited"`
 	QueryPatchsets  []int64           `json:"queryPatchsets"    datastore:"-"`
 
 	clean bool
@@ -143,13 +143,14 @@ type PatchsetDetail struct {
 
 // Tryjob captures information about a tryjob in BuildBucket.
 type Tryjob struct {
-	BuildBucketID int64        `json:"buildBucketID"`
-	IssueID       int64        `json:"issueID"`
-	PatchsetID    int64        `json:"patchsetID"`
-	Builder       string       `json:"builder"`
-	Status        TryjobStatus `json:"status"`
-	Updated       time.Time    `json:"-"`
-	MasterCommit  string       `json:"masterCommit"`
+	Key           *datastore.Key `json:"-" datastore:"__key__"` // Insert the key upon loading
+	BuildBucketID int64          `json:"buildBucketID"`
+	IssueID       int64          `json:"issueID"`
+	PatchsetID    int64          `json:"patchsetID"`
+	Builder       string         `json:"builder"`
+	Status        TryjobStatus   `json:"status"`
+	Updated       time.Time      `json:"-"`
+	MasterCommit  string         `json:"masterCommit"`
 }
 
 type TimeJsonMs time.Time
