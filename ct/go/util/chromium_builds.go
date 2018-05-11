@@ -22,6 +22,11 @@ const (
 	TRUNCATED_HASH_LENGTH = 14
 )
 
+var (
+	TELEMETRY_ISOLATES_TARGET  = "telemetry_perf_tests_without_chrome"
+	TELEMETRY_ISOLATES_OUT_DIR = filepath.Join("out", "telemetry_isolates")
+)
+
 // Construct the name of a directory to store a chromium build. For generic clean builds, runID
 // should be empty.
 func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
@@ -36,6 +41,68 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 			getTruncatedHash(skiaHash),
 			runID)
 	}
+}
+
+// rmistry
+// This needs to take it all hashes and patches right? Or is this sfficient???
+func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyFiles string, applyPatches bool) error {
+	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
+	util.MkdirAll(chromiumBuildDir, 0700)
+
+	// Run chromium sync command using the above commit hashes.
+	// Construct path to the sync_skia_in_chrome python script.
+	syncArgs := []string{
+		filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
+		"--destination=" + chromiumBuildDir,
+		"--fetch_target=chromium",
+		"--chrome_revision=" + chromiumHash,
+		"--skia_revision=SKIA_REV_DEPS",
+	}
+	syncCommand := &exec.Command{
+		Name:      "python",
+		Args:      syncArgs,
+		Timeout:   SYNC_SKIA_IN_CHROME_TIMEOUT,
+		LogStdout: true,
+		LogStderr: true,
+	}
+	if _, err := exec.RunCommand(ctx, syncCommand); err != nil {
+		return fmt.Errorf("There was an error checking out chromium %s: %s", chromiumHash, err)
+	}
+
+	// Make sure we are starting from a clean slate.
+	if err := os.Chdir(ChromiumSrcDir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", ChromiumSrcDir, err)
+	}
+	if err := ResetChromiumCheckout(ctx, ChromiumSrcDir); err != nil {
+		return fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
+	}
+	if applyPatches {
+		if err := applyRepoPatches(ctx, ChromiumSrcDir, runID); err != nil {
+			return fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
+		}
+		// Add "try" prefix and "withpatch" suffix.
+	}
+
+	// Make sure depot_tools is first in PATH.
+	env := os.Environ()
+	env = append(env, fmt.Sprintf("PATH=%s:$PATH", DepotToolsDir))
+	// Run "gn gen out/${TELEMETRY_ISOLATES_OUT_DIR}"
+	if err := ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "gn"), []string{"gen", TELEMETRY_ISOLATES_OUT_DIR}, env, GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running gn: %s", err)
+	}
+	// Run "env" for debugging!
+	fmt.Println("-----------------------------------")
+	if err := ExecuteCmd(ctx, "env", []string{}, env, GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running gn: %s", err)
+	}
+	// Run "tools/mb/mb.py isolate ${TELEMETRY_ISOLATES_OUT_DIR} ${TELEMETRY_ISOLATES_TARGET}"
+	args := []string{"isolate", TELEMETRY_ISOLATES_OUT_DIR, TELEMETRY_ISOLATES_TARGET}
+	if err := ExecuteCmd(ctx, filepath.Join("tools", "mb", "mb.py"), args, env, NINJA_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running mb.py isolate: %s", err)
+	}
+
+	// TODO(rmistry): Does this method really need to be here?
+	return nil
 }
 
 // CreateChromiumBuildOnSwarming creates a chromium build using the specified arguments.
