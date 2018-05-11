@@ -38,6 +38,80 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 	}
 }
 
+// rmistry
+func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, skiaHash, pathToPyFiles string, applyPatches bool) (string, string, error) {
+	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
+	util.MkdirAll(chromiumBuildDir, 0700)
+
+	// Find which Chromium commit hash should be used.
+	var err error
+	if chromiumHash == "" {
+		chromiumHash, err = GetChromiumHash(ctx)
+		if err != nil {
+			return "", "", fmt.Errorf("Error while finding Chromium's Hash: %s", err)
+		}
+	}
+
+	// Find which Skia commit hash should be used.
+	if skiaHash == "" {
+		skiaHash, err = buildskia.GetSkiaHash(nil)
+		if err != nil {
+			return "", "", fmt.Errorf("Error while finding Skia's Hash: %s", err)
+		}
+	}
+
+	// Run chromium sync command using the above commit hashes.
+	// Construct path to the sync_skia_in_chrome python script.
+	syncArgs := []string{
+		filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
+		"--destination=" + chromiumBuildDir,
+		"--fetch_target=chromium",
+		"--chrome_revision=" + chromiumHash,
+		"--skia_revision=" + skiaHash,
+	}
+	syncCommand := &exec.Command{
+		Name:      "python",
+		Args:      syncArgs,
+		Timeout:   SYNC_SKIA_IN_CHROME_TIMEOUT,
+		LogStdout: true,
+		LogStderr: true,
+	}
+	if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
+		//sklog.Warning("There was an error. Deleting base directory and trying again.")
+		//util.RemoveAll(chromiumBuildDir)
+		//util.MkdirAll(chromiumBuildDir, 0700)
+		//if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
+		//	return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
+		//}
+		return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
+	}
+
+	// Make sure we are starting from a clean slate.
+	if err := ResetChromiumCheckout(ctx, filepath.Join(chromiumBuildDir, "src")); err != nil {
+		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
+	}
+	if applyPatches {
+		if err := applyRepoPatches(ctx, filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
+			return "", "", fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
+		}
+		// Add "try" prefix and "withpatch" suffix.
+	}
+
+	// Run "gn gen out/Release"
+	if err := ExecuteCmd(ctx, "gn", []string{"gen", "out/Release"}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
+		return "", "", fmt.Errorf("Error while running gn: %s", err)
+	}
+	// Run "tools/mb/mb.py isolate //out/Release telemetry_perf_unittests"
+	args := []string{"isolate", "out/Release", "telemetry_perf_unittests"}
+	if err := ExecuteCmd(ctx, filepath.Join("tools", "mb", "mb.py"), args, os.Environ(), NINJA_TIMEOUT, nil, nil); err != nil {
+		return "", "", fmt.Errorf("Error while running mb.py isolate: %s", err)
+	}
+
+	// TODO(rmistry): Do you really need to return stuff?
+	// TODO(rmistry): Does this method really need to be here?
+	return getTruncatedHash(chromiumHash), getTruncatedHash(skiaHash), nil
+}
+
 // CreateChromiumBuildOnSwarming creates a chromium build using the specified arguments.
 
 // runID is the unique id of the current run (typically requester + timestamp).
