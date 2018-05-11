@@ -16,6 +16,24 @@
       "revId": "30afc52b583c6e7a4ed2a79702247c93f57dc5a8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4042081_259f09a1",
+        "filename": "promk/prometheus/alert_rules.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-11T13:40:46Z",
+      "side": 1,
+      "message": "pod names can be random, e.g. proberk-6575cfdc45-w7fdf, or indexed in the case of statefulsets, e.g. alertmanager-0, and who knows how many dashes are in the name, i.e. angle-skia-autoroller-6575cfdc45-w7fdf. I need to find out if there\u0027s any way to get the pod name from the running application and add that to metrics.",
+      "parentUuid": "aa5f6262_6f90a737",
+      "revId": "30afc52b583c6e7a4ed2a79702247c93f57dc5a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
