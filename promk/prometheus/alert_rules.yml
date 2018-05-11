@@ -10,9 +10,12 @@ groups:
     annotations:
       abbr: '{{ $labels.instance }}'
       description: '{{ $labels.instance }} of job {{ $labels.job }} has been down
-        for more than 5 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{
-        reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{
-        $labels.job }}'
+        for more than 5 minutes. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+          '
   - alert: CrashLoop
     expr: max_over_time(liveness_uptime_s[6m]) < 60 * 3
     for: 5m
@@ -22,9 +25,12 @@ groups:
     annotations:
       abbr: '{{ $labels.instance }}'
       description: '{{ $labels.instance }} of job {{ $labels.job }} is crashing on
-        startup. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{
-        reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{
-        $labels.job }}'
+        startup. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+        '
   - alert: TooManyGoRoutines
     expr: go_goroutines > 3000
     for: 2m
@@ -33,9 +39,12 @@ groups:
       severity: warning
     annotations:
       description: 'Too many Go routines in {{ $labels.job }} running on {{ $labels.instance
-        }}. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=400&expandAll=false&resource=logging_log%2Fname%2F{{
-        reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{
-        $labels.job }}'
+        }}. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+        '
       summary: Too many Go routines in {{ $labels.job }}
   - alert: ProbeFailure
     expr: prober{type="failure"} > 0
@@ -45,9 +54,9 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.probename }} {{ $labels.url }}'
-      description: Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to
+      description: 'Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to
         respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{
-        $labels.probename }}+filename%3Aprobers.json5 for the endpoint URL.
+        $labels.probename }}+filename%3Aprobersk.json5 for the endpoint URL.'
   - alert: TooManyOpenFDs
     expr: process_open_fds > 2000
     labels:
