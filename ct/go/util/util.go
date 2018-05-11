@@ -390,7 +390,7 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int) (int, error) {
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int, deps []string) (int, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -425,7 +425,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			isolateArgs[k] = v
 		}
 		taskName := fmt.Sprintf("%s_%d", taskPrefix, i)
-		genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateName), s.WorkDir, "linux", taskName, isolateArgs, []string{})
+		genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateName), s.WorkDir, "linux", taskName, isolateArgs, []string{}, deps)
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 		}
@@ -883,6 +883,64 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 	return nil
 }
 
+// TriggerIsolateTelemetrySwarmingTask creates a isolated.gen.json file using ISOLATE_TELEMETRY_ISOLATE,
+// archives it, and triggers it's swarming task. The swarming task will run the build_repo
+// worker script which will return a list of remote build directories.
+func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID string, hashes, patches []string, hardTimeout, ioTimeout time.Duration) (string, error) {
+	// Instantiate the swarming client.
+	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
+	if err != nil {
+		return "", fmt.Errorf("Could not get temp dir: %s", err)
+	}
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	if err != nil {
+		// Cleanup workdir.
+		if err := os.RemoveAll(workDir); err != nil {
+			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
+		}
+		return "", fmt.Errorf("Could not instantiate swarming client: %s", err)
+	}
+	defer s.Cleanup()
+	// Create isolated.gen.json.
+	// Get path to isolate files.
+	_, currentFile, _, _ := runtime.Caller(0)
+	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	isolateArgs := map[string]string{
+		"RUN_ID":  runID,
+		"HASHES":  strings.Join(hashes, ","),
+		"PATCHES": strings.Join(patches, ","),
+	}
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE), s.WorkDir, "linux", taskName, isolateArgs, []string{}, []string{})
+	if err != nil {
+		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+	}
+	// Batcharchive the task.
+	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
+	if err != nil {
+		return "", fmt.Errorf("Could not batch archive target: %s", err)
+	}
+	// Trigger swarming using the isolate hash.
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, GCE_LINUX_BUILDER_DIMENSIONS, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(GCE_LINUX_BUILDER_DIMENSIONS))
+	if err != nil {
+		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
+	}
+	if len(tasks) != 1 {
+		return "", fmt.Errorf("Expected a single task instead got: %v", tasks)
+	}
+	// Collect all tasks and log the ones that fail.
+	task := tasks[0]
+	_, outputDir, err := task.Collect(ctx, s)
+	if err != nil {
+		return "", fmt.Errorf("task %s failed: %s", task.Title, err)
+	}
+	outputFile := filepath.Join(outputDir, BUILD_OUTPUT_FILENAME)
+	contents, err := ioutil.ReadFile(outputFile)
+	if err != nil {
+		return "", fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
+	}
+	return strings.Trim(string(contents), "\n"), nil
+}
+
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
@@ -913,7 +971,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repo, ta
 		"SINGLE_BUILD":    strconv.FormatBool(singleBuild),
 		"TARGET_PLATFORM": targetPlatform,
 	}
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, "linux", taskName, isolateArgs, []string{})
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, "linux", taskName, isolateArgs, []string{}, []string{})
 	if err != nil {
 		return nil, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
