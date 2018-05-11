@@ -62,7 +62,7 @@ spec:
         - name: iap-proxy
           args:
             - "--logtostderr"
-            - "--aud=/projects/145247227042/global/backendServices/1958112585020521544"
+            - "--aud=/projects/145247227042/global/backendServices/5414126803647739030"
             - "--auth_group=google/skia-staff@google.com"
             - "--port=:8000"
             - "--target_port=:3000"

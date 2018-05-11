@@ -10,4 +10,4 @@ ZONE=us-central1-a
 CLUSTER_NAME=skia-public
 
 # The ID of the security account used by kubernetes.
-SA_NAME=skia-public-k8s
+SA_NAME=${CLUSTER_NAME}-k8s
