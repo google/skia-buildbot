@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a87e5a9_02672b3a",
+        "filename": "kube/create-cluster.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-11T13:20:17Z",
+      "side": 1,
+      "message": "Maybe add a comment explaining why you\u0027re using this machine type. Seems counter-intuitive that you would want a 2-core machine.",
+      "revId": "de51e8c49a1b1783bb5c1cef0af751ea7cbb0454",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
