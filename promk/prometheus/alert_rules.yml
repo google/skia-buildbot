@@ -38,6 +38,7 @@ groups:
       category: infra
       severity: warning
     annotations:
+      abbr: 'Too many Go routines in {{ $labels.job }}'
       description: 'Too many Go routines in {{ $labels.job }} running on {{ $labels.instance
         }}. Logs:
 
@@ -45,7 +46,6 @@ groups:
 
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
         '
-      summary: Too many Go routines in {{ $labels.job }}
   - alert: ProbeFailure
     expr: prober{type="failure"} > 0
     for: 5m
@@ -64,4 +64,20 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.host }}'
-      description: Too many open file handles on {{ $labels.host }}.
+      description: 'Too many open file handles on {{ $labels.host }}.'
+  - alert: PersistentVolumeLowSpace
+    expr: (kubelet_volume_stats_used_bytes /kubelet_volume_stats_capacity_bytes) > 0.9
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.persistentvolumeclaim }}'
+      description: '{{ $labels.persistentvolumeclaim }} is more than 90% full.'
+  - alert: ContainerVolumeLowSpace
+    expr: (container_fs_usage_bytes/container_fs_limit_bytes) > 0.9
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.device }} on {{ $labels.instance }} in pool {{ $labels.cloud_google_com_gke_nodepool }} is more than 90% full.'
