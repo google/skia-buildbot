@@ -2,6 +2,7 @@ package metrics2
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -13,10 +14,44 @@ import (
 	"github.com/skia-dev/glog"
 )
 
+const (
+	// PREFIX will be the beginning of all environment variables that should be added as tags.
+	PREFIX = "METRICS_"
+)
+
 var (
 	// invalidChar is used to force metric and tag names to conform to Prometheus's restrictions.
 	invalidChar = regexp.MustCompile("([^a-zA-Z0-9_:])")
+
+	// env_tags are tags create by environment variables beginning METRICS_ that will be added to all metrics.
+	env_tags = map[string]string{}
 )
+
+func parseEnvTags() map[string]string {
+	ret := map[string]string{}
+	for _, keyValue := range os.Environ() {
+		parts := strings.SplitN(keyValue, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		value := strings.TrimSpace(parts[1])
+		if value == "" {
+			continue
+		}
+		if strings.HasPrefix(parts[0], PREFIX) {
+			tagName := strings.ToLower(parts[0][len(PREFIX):])
+			if tagName == "" {
+				continue
+			}
+			ret[tagName] = value
+		}
+	}
+	return ret
+}
+
+func init() {
+	env_tags = parseEnvTags()
+}
 
 func clean(s string) string {
 	if invalidChar.MatchString(s) {
@@ -161,6 +196,9 @@ func NewPromClient() *promClient {
 func (p *promClient) commonGet(measurement string, tags ...map[string]string) (string, map[string]string, []string, string, string) {
 	// Convert measurement to a safe name.
 	measurement = clean(measurement)
+
+	// Always add in environment tags.
+	tags = append(tags, env_tags)
 
 	// Merge all tags.
 	rawTags := util.AddParams(map[string]string{}, tags...)

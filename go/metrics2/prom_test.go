@@ -1,7 +1,9 @@
 package metrics2
 
 import (
+	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	metrics_util "go.skia.org/infra/go/metrics2/testutils"
@@ -158,4 +160,31 @@ func TestPanicOn(t *testing.T) {
 			_ = p.GetInt64Metric("a.b", map[string]string{"some_key": "some-new-value", "wrong_number_of_keys": "2"})
 			assert.Fail(t, "Should have panic'd by now.")
 	*/
+}
+
+func TestEnvTags(t *testing.T) {
+	backup := os.Environ()
+	defer func() {
+		for _, keyValue := range backup {
+			parts := strings.SplitN(keyValue, "=", 2)
+			if len(parts) == 2 {
+				os.Setenv(parts[0], parts[1])
+			} else {
+				os.Setenv(parts[0], "")
+			}
+		}
+	}()
+	assert.Equal(t, map[string]string{}, parseEnvTags())
+
+	os.Setenv("METRICS_", "bad")
+	assert.Equal(t, map[string]string{}, parseEnvTags())
+
+	os.Setenv("METRICS_EMPTY", "")
+	assert.Equal(t, map[string]string{}, parseEnvTags())
+
+	os.Setenv("METRICS_POD_NAME", "foo-bar")
+	assert.Equal(t, map[string]string{"pod_name": "foo-bar"}, parseEnvTags())
+
+	os.Setenv("METRICS_APP_NAME", "fred")
+	assert.Equal(t, map[string]string{"pod_name": "foo-bar", "app_name": "fred"}, parseEnvTags())
 }
