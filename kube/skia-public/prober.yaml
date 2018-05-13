@@ -36,6 +36,15 @@ spec:
           ports:
             - name: metrics
               containerPort: 20000
+          env:
+            - name: METRICS_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: METRICS_APP_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
           volumeMounts:
             - name: config-volume
               mountPath: /etc/proberk
