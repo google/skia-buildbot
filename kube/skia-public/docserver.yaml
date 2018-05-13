@@ -50,6 +50,15 @@ spec:
             - "--work_dir=/mnt/docserverk"
             - "--port=:8000"
             - "--prom_port=:20000"
+          env:
+            - name: METRICS_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: METRICS_APP
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
           ports:
             - name: http
               containerPort: 8000

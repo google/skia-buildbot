@@ -28,7 +28,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: proberk
-          image: gcr.io/skia-public/proberk:2018-05-04T15_13_06Z-jcgregorio-018615b-clean
+          image: gcr.io/skia-public/proberk:2018-05-13T03_48_04Z-jcgregorio-283f32f-dirty
           args:
             - "--logtostderr"
             - "--config=/etc/proberk/allprobersk.json"
@@ -36,6 +36,15 @@ spec:
           ports:
             - name: metrics
               containerPort: 20000
+          env:
+            - name: METRICS_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: METRICS_APP
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
           volumeMounts:
             - name: config-volume
               mountPath: /etc/proberk
