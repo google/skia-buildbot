@@ -20,8 +20,12 @@ import (
 	"sync"
 	"time"
 
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/isolate"
+	//"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 
@@ -390,13 +394,25 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int) (int, error) {
-	// Instantiate the swarming client.
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, local, runOnGCE bool, repeatValue int, isolateDeps []string) (int, error) {
+	// Make functions to get swarmign and isolate clients!!
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
 		return 0, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	// Authenticated HTTP client.
+	oauthCacheFile := path.Join(workDir, "google_storage_token.data")
+	httpClient, err := auth.NewClient(local, oauthCacheFile, swarming.AUTH_SCOPE)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to create authenticated HTTP client: %s", err)
+	}
+	// Instantiate the isolate client.
+	isolateClient, err := isolate.NewClient(workDir, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to create private isolate client: %s", err)
+	}
+	// Instantiate the swarming client.
+	s, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {
@@ -404,9 +420,10 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		}
 		return 0, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
-	defer s.Cleanup()
+	//defer s.Cleanup()
 	// Create isolated.gen.json files from tasks.
 	genJSONs := []string{}
+	isolateTasks := []*isolate.Task{}
 	// Get path to isolate files.
 	_, currentFile, _, _ := runtime.Caller(0)
 	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
@@ -424,33 +441,46 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		for k, v := range isolateExtraArgs {
 			isolateArgs[k] = v
 		}
-		taskName := fmt.Sprintf("%s_%d", taskPrefix, i)
-		genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateName), s.WorkDir, "linux", taskName, isolateArgs, []string{})
-		if err != nil {
-			return numTasks, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+		//taskName := fmt.Sprintf("%s_%d", taskPrefix, i)
+
+		isolateTask := &isolate.Task{
+			BaseDir:     pathToIsolates,
+			Blacklist:   []string{},
+			IsolateFile: path.Join(pathToIsolates, isolateName),
+			Deps:        isolateDeps,
+			ExtraVars:   isolateArgs,
 		}
-		genJSONs = append(genJSONs, genJSON)
+		isolateTasks := append(isolateTasks, isolateTask)
 	}
 
-	// Batcharchive the tasks. Do not batcharchive more than 1000 at a time.
+	// Isolate the tasks. Do not isolate more than 1000 at a time.
 	tasksToHashes := map[string]string{}
-	for i := 0; i < len(genJSONs); i += 1000 {
+	//taskHashes := []string{}
+	countOfTasks := 0
+	for i := 0; i < len(isolateTasks); i += 1000 {
 		startRange := i
-		endRange := util.MinInt(len(genJSONs), i+1000)
-		t, err := s.BatchArchiveTargets(ctx, genJSONs[startRange:endRange], BATCHARCHIVE_TIMEOUT)
+		endRange := util.MinInt(len(isolateTasks), i+1000)
+
+		hashes, err := isolateClient.IsolateTasks(ctx, isolateTasks)
 		if err != nil {
-			return numTasks, fmt.Errorf("Could not batch archive targets: %s", err)
+			return numTasks, fmt.Errorf("Could not isolate targets: %s", err)
 		}
-		// Add the above map to tasksToHashes.
-		for k, v := range t {
-			tasksToHashes[k] = v
+		//// Add the above map to tasksToHashes.
+		//for k, v := range t {
+		//	tasksToHashes[k] = v
+		//}
+		for _, h := range hashes {
+			countOfTasks++
+			taskName := fmt.Sprintf("%s_%d", taskPrefix, countOfTasks)
+			tasksToHashes[taskName] = h
 		}
+		//taskHashes = append(taskHashes, t...)
 		// Sleep for a sec to give the swarming server some time to recuperate.
 		time.Sleep(time.Second)
 	}
 
-	if len(genJSONs) != len(tasksToHashes) {
-		return numTasks, fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
+	if len(isolateTasks) != len(tasksToHashes) {
+		return numTasks, fmt.Errorf("len(isolateTasks) was %d and len(tasksToHashes) was %d", len(isolateTasks), len(tasksToHashes))
 	}
 	var dimensions map[string]string
 	if runOnGCE {
@@ -461,10 +491,13 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 
 	// The channel where batches of tasks to be triggered and collected will be sent to.
 	chTasks := make(chan map[string]string)
+	//chTasks := make(chan []string)
 	// Kick off one goroutine to populate the above channel.
 	go func() {
 		defer close(chTasks)
 		tmpMap := map[string]string{}
+		//tmpSlice := []string{}
+		//for _, hash := range taskHashes {
 		for task, hash := range tasksToHashes {
 			if len(tmpMap) >= MAX_SIMULTANEOUS_SWARMING_TASKS_PER_RUN {
 				// Add the map to the channel.
@@ -478,16 +511,51 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	}()
 
 	// Trigger and collect swarming tasks.
+	triggeredTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	for taskMap := range chTasks {
 		// Save all retried tasks so that we can collect them at the end.
 		retriedTasks := []*swarming.SwarmingTask{}
-		// Trigger swarming using the isolate hashes.
-		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
-		if err != nil {
-			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
+		for taskName, hash := range taskMap {
+			// Trigger swarming using the isolate hashes.
+			tags := []string{
+				fmt.Sprintf("runid:%s", runID),
+				fmt.Sprintf("name:%s", taskName),
+			}
+			dims := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(dimensions))
+			for k, v := range dimensions {
+				dims = append(dims, &swarming_api.SwarmingRpcsStringPair{
+					Key:   k,
+					Value: v,
+				})
+			}
+			task := &swarming_api.SwarmingRpcsNewTaskRequest{
+				ExpirationSecs: int64(7 * 24 * time.Hour.Seconds()),
+				Name:           taskName,
+				Priority:       int64(priority),
+				Tags:           tags,
+				Properties: &swarming_api.SwarmingRpcsTaskProperties{
+					Dimensions: dims,
+					//Command:    command,
+					InputsRef: &swarming_api.SwarmingRpcsFilesRef{
+						Isolated:       hash,
+						Isolatedserver: isolate.ISOLATE_SERVER_URL_PRIVATE,
+						Namespace:      isolate.DEFAULT_NAMESPACE,
+					},
+					IoTimeoutSecs:        int64(ioTimeout.Seconds()),
+					ExecutionTimeoutSecs: int64(hardTimeout.Seconds()),
+				},
+				User:       getServiceAccount(dimensions),
+				Idempotent: false, // CT tasks are never idempotent.
+			}
+			triggeredTask, err := s.TriggerTask(task)
+			if err != nil {
+				return numTasks, fmt.Errorf("Error when triggering task %s: %s", taskName, err)
+			}
+			triggeredTasks = append(triggeredTasks, triggeredTask)
 		}
 		// Collect all tasks and retrigger the ones that fail.
-		for _, task := range tasks {
+		for _, task := range triggeredTasks {
+			// Need to wait for collect here.
 			if _, _, err := task.Collect(ctx, s); err != nil {
 				sklog.Errorf("task %s failed: %s", task.Title, err)
 				sklog.Infof("Retrying task %s", task.Title)

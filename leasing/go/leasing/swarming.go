@@ -329,6 +329,7 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, arch,
 				Namespace:      isolate.DEFAULT_NAMESPACE,
 			},
 			IoTimeoutSecs: ioTimeoutSecs,
+			Idempotent:    false,
 		},
 		User: "skiabot@google.com",
 	}
