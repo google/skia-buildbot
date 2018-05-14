@@ -2,8 +2,11 @@
 set -e
 set -x
 
+# Fix GPG Keys.
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
 # The same set of packages need to be installed both on the instance and within the container.
-PACKAGES="systemd-container git debootstrap build-essential libosmesa-dev libfreetype6-dev libfontconfig-dev libpng12-dev libgif-dev libqt4-dev mesa-common-dev"
+PACKAGES="systemd-container git debootstrap build-essential libosmesa-dev libfreetype6-dev libfontconfig-dev libpng-dev libgif-dev libqt4-dev mesa-common-dev"
 sudo apt-get update
 sudo apt-get --assume-yes upgrade
 sudo apt-get --assume-yes install ${PACKAGES}
