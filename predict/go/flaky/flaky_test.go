@@ -168,7 +168,7 @@ func TestBuilder(t *testing.T) {
 	err = fb.Update(ctx)
 	assert.NoError(t, err)
 
-	err = testutils.EventuallyConsistent(time.Second, func() error {
+	err = testutils.EventuallyConsistent(3*time.Second, func() error {
 		flakes, err = fb.Build(ctx, 24*time.Hour, now)
 		assert.NoError(t, err)
 		if len(flakes) == 2 {
