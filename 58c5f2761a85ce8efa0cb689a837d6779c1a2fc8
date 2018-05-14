@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04dcf86d_c9a91c34",
+        "filename": "kube/skia-public/notifier.yaml",
+        "patchSetId": 10
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-14T18:12:15Z",
+      "side": 1,
+      "message": "Is this service alertmanager-specific? If so, it should be named notifier-alertserver. If not, maybe add a TODO to rename the volumes/volumeMounts.",
+      "revId": "58c5f2761a85ce8efa0cb689a837d6779c1a2fc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca177ec3_c0d2bf84",
+        "filename": "notifier/go/notifier/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-14T18:12:15Z",
+      "side": 1,
+      "message": "nit: wrong name",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 24
+      },
+      "revId": "58c5f2761a85ce8efa0cb689a837d6779c1a2fc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "201f14eb_20bc779a",
+        "filename": "promk/prometheus/prometheus.yml",
+        "patchSetId": 10
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-14T18:12:15Z",
+      "side": 1,
+      "message": "Is this parsed as a string or a boolean? (I assume you want a string.)",
+      "range": {
+        "startLine": 158,
+        "startChar": 15,
+        "endLine": 158,
+        "endChar": 19
+      },
+      "revId": "58c5f2761a85ce8efa0cb689a837d6779c1a2fc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
