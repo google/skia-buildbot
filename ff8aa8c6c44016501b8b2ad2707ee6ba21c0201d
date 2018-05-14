@@ -22,6 +22,30 @@
       "revId": "ff8aa8c6c44016501b8b2ad2707ee6ba21c0201d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f983bf13_d829962f",
+        "filename": "kube/skia-public/notifier.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-14T18:32:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "efdcaf25_df0e67ac",
+      "range": {
+        "startLine": 11,
+        "startChar": 12,
+        "endLine": 11,
+        "endChar": 16
+      },
+      "revId": "ff8aa8c6c44016501b8b2ad2707ee6ba21c0201d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
