@@ -8,4 +8,4 @@ ADD . /
 
 USER skia
 
-ENTRYPOINT ["/bin/alertmanager-webhooks"]
+ENTRYPOINT ["/bin/notifier"]
