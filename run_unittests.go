@@ -80,7 +80,8 @@ var (
 
 	// Flags.
 
-	race = flag.Bool("race", false, "Whether or not to enable the race flag when running go tests.  This flag signals to only run go tests.")
+	race    = flag.Bool("race", false, "Whether or not to enable the race flag when running go tests.  This flag signals to only run go tests.")
+	runTest = flag.String("run", "", "Argument is passed to tests.")
 
 	// writeTimings is a file in which to write the test timings in JSON
 	// format.
@@ -202,6 +203,10 @@ func goTest(cwd string, testType string, args ...string) *test {
 	cmd := []string{"go", "test", "-v", "./go/...", "-parallel", "1"}
 	if *race {
 		cmd = append(cmd, "-race")
+	}
+
+	if *run != "" {
+		cmd = append(cmd, "--run", *run)
 	}
 	cmd = append(cmd, args...)
 	t := cmdTest(cmd, cwd, fmt.Sprintf("go tests (%s) in %s", testType, cwd), testType)
