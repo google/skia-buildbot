@@ -120,13 +120,11 @@ type GCloud struct {
 // NewGCloud returns a GCloud instance with a default http client. The
 // default client expects a local gcloud_token.data and client_secret.json.
 func NewGCloud(project, zone, workdir string) (*GCloud, error) {
-	projectTrimmed := strings.TrimPrefix(project, "google.com:")
-	oauthCacheFile := path.Join(workdir, fmt.Sprintf("gcloud_token_%s.data", projectTrimmed))
-	oauthConfigFile := fmt.Sprintf("client_secret_%s.json", projectTrimmed)
-	httpClient, err := auth.NewClientWithTransport(true, oauthCacheFile, oauthConfigFile, nil, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
+	tokenSource, err := auth.NewDefaultTokenSource(true, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
 	if err != nil {
 		return nil, err
 	}
+	httpClient := auth.ClientFromTokenSource(tokenSource)
 	return NewGCloudWithClient(project, zone, workdir, httpClient)
 }
 
