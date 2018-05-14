@@ -212,6 +212,30 @@
       "revId": "58c5f2761a85ce8efa0cb689a837d6779c1a2fc8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a465035c_f70b59bb",
+        "filename": "promk/prometheus/prometheus.yml",
+        "patchSetId": 10
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-14T20:03:37Z",
+      "side": 1,
+      "message": "In YAML, unquoted \"yes\", \"no\", \"true\", \"false\", and some other tokens are parsed as booleans by default, but according to http://blogs.perl.org/users/tinita/2018/03/strings-in-yaml---to-quote-or-not-to-quote.html it depends on the YAML version and whether the parser is using a schema that specifies the value\u0027s type. Hopefully Prometheus is parsing it as a string, and hopefully it would give you an error message if it isn\u0027t.",
+      "parentUuid": "f37e690d_61f09058",
+      "range": {
+        "startLine": 158,
+        "startChar": 15,
+        "endLine": 158,
+        "endChar": 19
+      },
+      "revId": "58c5f2761a85ce8efa0cb689a837d6779c1a2fc8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
