@@ -6,10 +6,12 @@
 
 set -e -x
 source ./config.sh
-source ./create-sa.sh
+source ../bash/ramdisk.sh
 
 # New service account we will create.
 SA_NAME=skia-public-auth
+
+cd /tmp/ramdisk
 
 gcloud iam service-accounts create "${SA_NAME}" --display-name="Read-only access to https://chrome-infra-auth.appspot.com API"
 
@@ -17,3 +19,4 @@ gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA
 
 kubectl create secret generic "${SA_NAME}" --from-file=key.json=${SA_NAME}.json
 
+cd -

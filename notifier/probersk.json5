@@ -1,0 +1,10 @@
+{
+   "notifier": {
+     "urls": [
+       "http://notifier:9000/"
+     ],
+     "method": "HEAD",
+     "expected": [404],
+     "body": "",
+   },
+}

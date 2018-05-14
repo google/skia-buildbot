@@ -1,14 +1,4 @@
-.PHONY: build release push validate push_config
-build:
-	go install  ./go/...
-
-release:
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/alertmanager-webhooks
-	./build_docker_release
-
-push:
-	pushk --apply alertmanager-webhooks
-
+.PHONY: validate push_config
 validate: ./tmp/promtool
 	# If the only error is "FAILED: error checking bearer token file..." then you should be good.
 	-./tmp/promtool check config ./prometheus/prometheus.yml

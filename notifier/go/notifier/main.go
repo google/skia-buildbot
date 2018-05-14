@@ -1,4 +1,4 @@
-// alertmanager-webhooks takes POST'd JSON requests from various sources, such as Prometheus
+// notifier takes POST'd JSON requests from various sources, such as Prometheus
 // AlertManager and turns them into outgoing emails.
 package main
 
