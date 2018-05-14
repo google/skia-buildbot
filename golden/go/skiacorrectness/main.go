@@ -53,6 +53,16 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+const (
+	IMAGE_URL_PREFIX = "/img/"
+
+	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
+	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
+
+	// WHITELIST_ALL can be provided as the value for the whitelist file to whitelist all configurations.
+	WHITELIST_ALL = "all"
+)
+
 // Command line flags.
 var (
 	appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
@@ -79,7 +89,7 @@ var (
 	port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 	projectID           = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 	promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	pubWhiteList        = flag.String("public_whitelist", "", "File name of a JSON5 file that contains a query with the traces to white list. This is required if force_login is false.")
+	pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", WHITELIST_ALL))
 	redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 	resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 	gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
@@ -89,13 +99,6 @@ var (
 	serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
 	showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 	traceservice        = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
-)
-
-const (
-	IMAGE_URL_PREFIX = "/img/"
-
-	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
-	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
 func main() {
@@ -203,7 +206,7 @@ func main() {
 	}
 
 	// Set up tracing via the sktrace.
-	traceClient, err := sktrace.NewTraceClient(common.PROJECT_ID, nodeName, tokenSource)
+	traceClient, err := sktrace.NewTraceClient(common.PROJECT_ID, nodeName, *local)
 	if err != nil {
 		sklog.Fatalf("Failure setting up tracing: %s", err)
 	}
@@ -324,7 +327,7 @@ func main() {
 	}
 
 	// Load the whitelist if there is one and disable querying for issues.
-	if *pubWhiteList != "" {
+	if *pubWhiteList != "" && *pubWhiteList != WHITELIST_ALL {
 		if err := storages.LoadWhiteList(*pubWhiteList); err != nil {
 			sklog.Fatalf("Empty or invalid white list file. A non-empty white list must be provided if force_login=false.")
 		}
@@ -438,7 +441,7 @@ func main() {
 			indexTemplate = template.Must(template.New("").ParseFiles(indexFile)).Lookup("index.html")
 		}
 		if err := indexTemplate.Execute(w, appConfig); err != nil {
-			sklog.Errorln("Failed to expand template:", err)
+			sklog.Errorf("Failed to expand template: %s", err)
 			return
 		}
 	})
@@ -471,13 +474,13 @@ func main() {
 		internalRouter.PathPrefix("/").Handler(appRouter)
 
 		go func() {
-			sklog.Infoln("Internal server on  http://127.0.0.1" + *internalPort)
+			sklog.Infof("Internal server on  http://127.0.0.1" + *internalPort)
 			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
 		}()
 	}
 
 	// Start the server
-	sklog.Infoln("Serving on http://127.0.0.1" + *port)
+	sklog.Infof("Serving on http://127.0.0.1" + *port)
 	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
 }
 
