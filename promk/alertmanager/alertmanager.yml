@@ -55,17 +55,17 @@ inhibit_rules:
 receivers:
 - name: 'skiabot'
   webhook_configs:
-    - url: 'http://localhost:9000/chat?room=skiabot_alerts'
+    - url: 'http://notifier:9000/chat?room=skiabot_alerts'
 
 - name: 'general'
   webhook_configs:
-    - url: 'http://localhost:9000/chat?room=general_alerts'
+    - url: 'http://notifier:9000/chat?room=general_alerts'
 
 - name: 'android'
   webhook_configs:
-    - url: 'http://localhost:9000/email?email=skia-android@google.com'
+    - url: 'http://notifier:9000/email?email=skia-android@google.com'
       send_resolved: false
 
 - name: 'android-master'
   webhook_configs:
-    - url: 'http://localhost:9000/email?email=android-perf-monitoring@google.com'
+    - url: 'http://notifier:9000/email?email=android-perf-monitoring@google.com'
