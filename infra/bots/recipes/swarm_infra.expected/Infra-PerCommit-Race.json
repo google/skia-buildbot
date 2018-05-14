@@ -413,8 +413,8 @@
       "--alsologtostderr",
       "--race",
       "--large",
-      "--medium",
-      "--small"
+      "--test.run",
+      "TestDS"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
     "env": {
