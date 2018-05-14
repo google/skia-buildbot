@@ -943,8 +943,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for TraceService service
-
+// TraceServiceClient is the client API for TraceService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type TraceServiceClient interface {
 	// Returns a list of traceids that don't have Params stored in the datastore.
 	MissingParams(ctx context.Context, in *MissingParamsRequest, opts ...grpc.CallOption) (*MissingParamsResponse, error)
@@ -980,7 +981,7 @@ func NewTraceServiceClient(cc *grpc.ClientConn) TraceServiceClient {
 
 func (c *traceServiceClient) MissingParams(ctx context.Context, in *MissingParamsRequest, opts ...grpc.CallOption) (*MissingParamsResponse, error) {
 	out := new(MissingParamsResponse)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/MissingParams", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/MissingParams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -989,7 +990,7 @@ func (c *traceServiceClient) MissingParams(ctx context.Context, in *MissingParam
 
 func (c *traceServiceClient) AddParams(ctx context.Context, in *AddParamsRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/AddParams", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/AddParams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -998,7 +999,7 @@ func (c *traceServiceClient) AddParams(ctx context.Context, in *AddParamsRequest
 
 func (c *traceServiceClient) Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/Add", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/Add", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1007,7 +1008,7 @@ func (c *traceServiceClient) Add(ctx context.Context, in *AddRequest, opts ...gr
 
 func (c *traceServiceClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error) {
 	out := new(ListResponse)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1016,7 +1017,7 @@ func (c *traceServiceClient) List(ctx context.Context, in *ListRequest, opts ...
 
 func (c *traceServiceClient) GetValues(ctx context.Context, in *GetValuesRequest, opts ...grpc.CallOption) (*GetValuesResponse, error) {
 	out := new(GetValuesResponse)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/GetValues", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/GetValues", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1025,7 +1026,7 @@ func (c *traceServiceClient) GetValues(ctx context.Context, in *GetValuesRequest
 
 func (c *traceServiceClient) GetParams(ctx context.Context, in *GetParamsRequest, opts ...grpc.CallOption) (*GetParamsResponse, error) {
 	out := new(GetParamsResponse)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/GetParams", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/GetParams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1034,7 +1035,7 @@ func (c *traceServiceClient) GetParams(ctx context.Context, in *GetParamsRequest
 
 func (c *traceServiceClient) GetValuesRaw(ctx context.Context, in *GetValuesRequest, opts ...grpc.CallOption) (*GetValuesRawResponse, error) {
 	out := new(GetValuesRawResponse)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/GetValuesRaw", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/GetValuesRaw", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1043,7 +1044,7 @@ func (c *traceServiceClient) GetValuesRaw(ctx context.Context, in *GetValuesRequ
 
 func (c *traceServiceClient) GetTraceIDs(ctx context.Context, in *GetTraceIDsRequest, opts ...grpc.CallOption) (*GetTraceIDsResponse, error) {
 	out := new(GetTraceIDsResponse)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/GetTraceIDs", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/GetTraceIDs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1052,7 +1053,7 @@ func (c *traceServiceClient) GetTraceIDs(ctx context.Context, in *GetTraceIDsReq
 
 func (c *traceServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := grpc.Invoke(ctx, "/traceservice.TraceService/Ping", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/traceservice.TraceService/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
