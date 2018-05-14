@@ -166,7 +166,7 @@ func main() {
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1, []string{} /* isolateDeps */); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

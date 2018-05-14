@@ -190,6 +190,10 @@ func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServ
 	}, nil
 }
 
+func (s *SwarmingClient) GetIsolateClient() *isolate.Client {
+	return s.isolateClient
+}
+
 // CreateIsolatedGenJSON creates isolated.gen.json files in the work dir. They then
 // can be passed on to BatchArchiveTargets.
 func (s *SwarmingClient) CreateIsolatedGenJSON(isolatePath, baseDir, osType, taskName string, extraVars map[string]string, blackList []string) (string, error) {

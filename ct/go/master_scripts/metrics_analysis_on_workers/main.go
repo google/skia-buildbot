@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT = 50
+	MAX_PAGES_PER_SWARMING_BOT = 1
 )
 
 var (
@@ -190,7 +190,7 @@ func main() {
 		"METRIC_NAME":    *metricName,
 		"CHROMIUM_HASH":  chromiumHash,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1))
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), []string{} /* isolateDeps */)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return

@@ -390,7 +390,7 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int) (int, error) {
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int, isolateDeps []string) (int, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -405,8 +405,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		return 0, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 	defer s.Cleanup()
-	// Create isolated.gen.json files from tasks.
-	genJSONs := []string{}
+	isolateTasks := []*isolate.Task{}
 	// Get path to isolate files.
 	_, currentFile, _, _ := runtime.Caller(0)
 	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
@@ -424,33 +423,41 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		for k, v := range isolateExtraArgs {
 			isolateArgs[k] = v
 		}
-		taskName := fmt.Sprintf("%s_%d", taskPrefix, i)
-		genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateName), s.WorkDir, "linux", taskName, isolateArgs, []string{})
-		if err != nil {
-			return numTasks, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+
+		isolateTask := &isolate.Task{
+			BaseDir:     pathToIsolates,
+			Blacklist:   []string{},
+			IsolateFile: path.Join(pathToIsolates, isolateName),
+			Deps:        isolateDeps,
+			ExtraVars:   isolateArgs,
+			OsType:      "linux",
 		}
-		genJSONs = append(genJSONs, genJSON)
+		isolateTasks = append(isolateTasks, isolateTask)
 	}
 
-	// Batcharchive the tasks. Do not batcharchive more than 1000 at a time.
+	// Isolate the tasks. Do not isolate more than 1000 at a time.
 	tasksToHashes := map[string]string{}
-	for i := 0; i < len(genJSONs); i += 1000 {
+	countOfTasks := 0
+	for i := 0; i < len(isolateTasks); i += 1000 {
 		startRange := i
-		endRange := util.MinInt(len(genJSONs), i+1000)
-		t, err := s.BatchArchiveTargets(ctx, genJSONs[startRange:endRange], BATCHARCHIVE_TIMEOUT)
+		endRange := util.MinInt(len(isolateTasks), i+1000)
+		hashes, err := s.GetIsolateClient().IsolateTasks(ctx, isolateTasks[startRange:endRange])
 		if err != nil {
-			return numTasks, fmt.Errorf("Could not batch archive targets: %s", err)
+			return numTasks, fmt.Errorf("Could not isolate targets: %s", err)
 		}
-		// Add the above map to tasksToHashes.
-		for k, v := range t {
-			tasksToHashes[k] = v
+
+		// Add the above hashes to tasksToHashes.
+		for _, h := range hashes {
+			countOfTasks++
+			taskName := fmt.Sprintf("%s_%d", taskPrefix, countOfTasks)
+			tasksToHashes[taskName] = h
 		}
 		// Sleep for a sec to give the swarming server some time to recuperate.
 		time.Sleep(time.Second)
 	}
 
-	if len(genJSONs) != len(tasksToHashes) {
-		return numTasks, fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
+	if len(isolateTasks) != len(tasksToHashes) {
+		return numTasks, fmt.Errorf("len(isolateTasks) was %d and len(tasksToHashes) was %d", len(isolateTasks), len(tasksToHashes))
 	}
 	var dimensions map[string]string
 	if runOnGCE {
