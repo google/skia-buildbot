@@ -6,7 +6,7 @@ package master_common
 
 import (
 	"flag"
-	"path/filepath"
+	//"path/filepath"
 
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
@@ -33,7 +33,7 @@ func initRest() {
 		frontend.InitForTesting(*localFrontend)
 		util.SetVarsForLocal()
 	} else {
-		frontend.MustInit()
-		util.MailInit(filepath.Join(util.StorageDir, "email.data"))
+		//frontend.MustInit()
+		//util.MailInit(filepath.Join(util.StorageDir, "email.data"))
 	}
 }
