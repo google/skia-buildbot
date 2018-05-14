@@ -183,7 +183,9 @@ def RunSteps(api):
 
   cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
   if 'Race' in api.properties['buildername']:
-    cmd.extend(['--race', '--large', '--medium', '--small'])
+    # cmd.extend(['--race', '--large', '--medium', '--small'])
+    cmd.extend(['--race', '--large'])
+    cmd.extend(['--run', 'TestDS'])
   elif 'Large' in api.properties['buildername']:
     cmd.append('--large')
   elif 'Medium' in api.properties['buildername']:
