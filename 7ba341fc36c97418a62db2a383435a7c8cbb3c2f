@@ -22,6 +22,30 @@
       "revId": "7ba341fc36c97418a62db2a383435a7c8cbb3c2f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e193f869_8a2cb902",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-14T18:27:10Z",
+      "side": 1,
+      "message": "Yep not used right now. But this is setting up for it to be used in the next change.",
+      "parentUuid": "722d2ff8_9faf155e",
+      "range": {
+        "startLine": 393,
+        "startChar": 242,
+        "endLine": 393,
+        "endChar": 264
+      },
+      "revId": "7ba341fc36c97418a62db2a383435a7c8cbb3c2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
