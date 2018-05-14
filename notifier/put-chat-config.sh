@@ -6,5 +6,5 @@
 #
 # See the get-chat-config.sh for downloading the chat_config.txt file for
 # editing.
-kubectl create secret generic alertmanager-webhook-chat-config --from-file=chat_config.txt=chat_config.txt --dry-run -o yaml | kubectl apply -f -
+kubectl create secret generic notifier-chat-config --from-file=chat_config.txt=chat_config.txt --dry-run -o yaml | kubectl apply -f -
 rm chat_config.txt
