@@ -32,7 +32,7 @@ groups:
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
         '
   - alert: TooManyGoRoutines
-    expr: go_goroutines > 3000
+    expr: go_goroutines{job!="kubernetes-nodes"} > 3000
     for: 2m
     labels:
       category: infra
