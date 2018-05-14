@@ -4,6 +4,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"flag"
 	"fmt"
 	"io"
@@ -24,7 +25,7 @@ import (
 
 // flags
 var (
-	config   = flag.String("config", "probersk.json5", "Comma separated names of prober config files.")
+	config   = flag.String("config", "probersk.json5", "Prober config filename.")
 	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 	validate = flag.Bool("validate", false, "Validate the config file and then exit.")
@@ -39,6 +40,9 @@ var (
 		"skfiddleJSONSecViolation": skfiddleJSONSecViolation,
 		"validJSON":                validJSON,
 	}
+
+	// The hash of the config file contents when the app started.
+	startHash = ""
 )
 
 const (
@@ -47,31 +51,29 @@ const (
 	ISSUE_TRACKER_PERIOD = 15 * time.Minute
 )
 
-func readConfigFiles(filenames string) (types.Probes, error) {
+func readConfigFile(filename string) (types.Probes, error) {
 	allProbes := types.Probes{}
 	errs := []string{}
-	for _, filename := range strings.Split(filenames, ",") {
-		file, err := os.Open(filename)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to open config file: %s", err)
-		}
-		d := json5.NewDecoder(file)
-		p := &types.Probes{}
-		if err := d.Decode(p); err != nil {
-			return nil, fmt.Errorf("Failed to decode JSON in config file: %s", err)
-		}
-		for k, v := range *p {
-			v.Failure = map[string]metrics2.Int64Metric{}
-			v.Latency = map[string]metrics2.Int64Metric{}
-			if v.ResponseTestName != "" {
-				if f, ok := responseTesters[v.ResponseTestName]; ok {
-					v.ResponseTest = f
-				} else {
-					errs = append(errs, fmt.Sprintf("ResponseTestName Not Found %q", k))
-				}
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open config file: %s", err)
+	}
+	d := json5.NewDecoder(file)
+	p := &types.Probes{}
+	if err := d.Decode(p); err != nil {
+		return nil, fmt.Errorf("Failed to decode JSON in config file: %s", err)
+	}
+	for k, v := range *p {
+		v.Failure = map[string]metrics2.Int64Metric{}
+		v.Latency = map[string]metrics2.Int64Metric{}
+		if v.ResponseTestName != "" {
+			if f, ok := responseTesters[v.ResponseTestName]; ok {
+				v.ResponseTest = f
+			} else {
+				errs = append(errs, fmt.Sprintf("ResponseTestName Not Found %q", k))
 			}
-			allProbes[k] = v
 		}
+		allProbes[k] = v
 	}
 	if len(errs) != 0 {
 		return nil, fmt.Errorf("%s", strings.Join(errs, "\n  "))
@@ -221,13 +223,33 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 	}
 }
 
+func getHash() (string, error) {
+	f, err := os.Open(*config)
+	if err != nil {
+		return "", fmt.Errorf("Failed to read config file while checking hash: %s", err)
+	}
+	defer util.Close(f)
+
+	h := md5.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", fmt.Errorf("Failed to copy bytes while checking hash: %s", err)
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
+}
+
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
 		"probeserver",
 		common.PrometheusOpt(promPort),
 	)
-	cfg, err := readConfigFiles(*config)
+	var err error
+	startHash, err = getHash()
+	if err != nil {
+		sklog.Fatalln("Failed to calculate hash of config file: ", err)
+	}
+	cfg, err := readConfigFile(*config)
 	if *validate {
 		if err != nil {
 			fmt.Printf("Validation Failed:\n  %s\n", err)
@@ -242,7 +264,6 @@ func main() {
 
 	liveness := metrics2.NewLiveness("probes")
 
-	// TODO(jcgregorio) Monitor config file and reload if it changes.
 	// Register counters for each probe.
 	for name, probe := range cfg {
 		for _, url := range probe.URLs {
@@ -261,5 +282,15 @@ func main() {
 	for range time.Tick(*runEvery) {
 		probeOneRound(cfg, c)
 		liveness.Reset()
+
+		currentHash, err := getHash()
+		if err != nil {
+			sklog.Errorf("Failed to verify hash of config file: %s", err)
+			continue
+		}
+		if currentHash != startHash {
+			fmt.Println("Restarting to pick up new config.")
+			os.Exit(0)
+		}
 	}
 }
