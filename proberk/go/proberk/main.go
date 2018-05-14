@@ -4,6 +4,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"flag"
 	"fmt"
 	"io"
@@ -39,6 +40,9 @@ var (
 		"skfiddleJSONSecViolation": skfiddleJSONSecViolation,
 		"validJSON":                validJSON,
 	}
+
+	// The hash of the config file contents when the app started.
+	startHash = ""
 )
 
 const (
@@ -221,12 +225,32 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 	}
 }
 
+func getHash() (string, error) {
+	f, err := os.Open(*config)
+	if err != nil {
+		return "", fmt.Errorf("Failed to read config file while checking hash: %s", err)
+	}
+	defer util.Close(f)
+
+	h := md5.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", fmt.Errorf("Failed to copy bytes while checking hash: %s", err)
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
+}
+
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
 		"probeserver",
 		common.PrometheusOpt(promPort),
 	)
+	var err error
+	startHash, err = getHash()
+	if err != nil {
+		sklog.Fatalln("Failed to calculate hash of config file: ", err)
+	}
 	cfg, err := readConfigFiles(*config)
 	if *validate {
 		if err != nil {
@@ -261,5 +285,15 @@ func main() {
 	for range time.Tick(*runEvery) {
 		probeOneRound(cfg, c)
 		liveness.Reset()
+
+		currentHash, err := getHash()
+		if err != nil {
+			sklog.Errorf("Failed to verify hash of config file: ", err)
+			continue
+		}
+		if currentHash != startHash {
+			fmt.Println("Restarting to pick up new config.")
+			os.Exit(0)
+		}
 	}
 }
