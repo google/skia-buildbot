@@ -16,6 +16,24 @@
       "revId": "2864a80c590ab31e23a2fedd5198e84a4195c1a0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ceed18ae_7d20cb3a",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-14T19:38:34Z",
+      "side": 1,
+      "message": "Fixed doc on config flag.",
+      "parentUuid": "15bdc0b5_3d607e8c",
+      "revId": "2864a80c590ab31e23a2fedd5198e84a4195c1a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
