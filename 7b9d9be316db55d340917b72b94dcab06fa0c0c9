@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f0478943_aa01b530",
+        "filename": "golden/go/tryjobstore/tryjobstore_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-15T17:05:21Z",
+      "side": 1,
+      "message": "This test still has some problems. My next CL will fix all that datastore tests that have race conditions. This is one of them.",
+      "range": {
+        "startLine": 22,
+        "startChar": 1,
+        "endLine": 22,
+        "endChar": 9
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
