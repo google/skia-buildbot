@@ -48,21 +48,13 @@ func (c *cloudIgnoreStore) Create(ignoreRule *IgnoreRule) error {
 	createFn := func(tx *datastore.Transaction) error {
 		key := dsutil.TimeSortableKey(ds.IGNORE_RULE, 0)
 		ignoreRule.ID = key.ID
-		var egroup errgroup.Group
 
 		// Add the new rule and put its key with the recently added keys.
-		// This can happen in parallel because the operations are independent.
-		// Since they are in a transaction both will be rolled back in case of
-		// error.
-		egroup.Go(func() error {
-			_, err := tx.Put(key, ignoreRule)
+		if _, err := tx.Put(key, ignoreRule); err != nil {
 			return err
-		})
-		egroup.Go(func() error {
-			return c.recentKeysList.Add(tx, key)
-		})
+		}
 
-		return egroup.Wait()
+		return c.recentKeysList.Add(tx, key)
 	}
 
 	// Run the relevant updates in a transaction.
@@ -155,10 +147,11 @@ func (c *cloudIgnoreStore) Delete(id int64) (int, error) {
 			return err
 		}
 
-		var egroup errgroup.Group
-		egroup.Go(func() error { return tx.Delete(key) })
-		egroup.Go(func() error { return c.recentKeysList.Delete(tx, key) })
-		return egroup.Wait()
+		if err := tx.Delete(key); err != nil {
+			return err
+		}
+
+		return c.recentKeysList.Delete(tx, key)
 	}
 
 	// Run the relevant updates in a transaction.
