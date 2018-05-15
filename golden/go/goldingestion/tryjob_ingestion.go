@@ -162,7 +162,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	}
 
 	// Fetch the issue and check if the trybot is contained.
-	issue, err := g.tryjobStore.GetIssue(issueID, false, nil)
+	issue, err := g.tryjobStore.GetIssue(issueID, false)
 	if err != nil {
 		return sklog.FmtErrorf("Unable to retrieve issue %d to process file %s. Got error: %s", issueID, resultsFile.Name(), err)
 	}
