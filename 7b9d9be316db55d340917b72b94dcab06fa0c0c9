@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "2ffaba27_5214b902",
+        "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-15T19:57:28Z",
+      "side": 1,
+      "message": "Ah, I had misunderstood that completed comes after ingested, not before it.  Colors are good, thanks",
+      "parentUuid": "6e20d57d_2c0ce856",
+      "range": {
+        "startLine": 53,
+        "startChar": 27,
+        "endLine": 53,
+        "endChar": 33
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "422549af_11964102",
         "filename": "golden/go/tryjobstore/tryjob_types.go",
         "patchSetId": 12
@@ -93,6 +117,30 @@
       "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c148c22_f9448ae3",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-15T19:57:28Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d9c446a0_cf74eb55",
+      "range": {
+        "startLine": 71,
+        "startChar": 72,
+        "endLine": 71,
+        "endChar": 80
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -202,6 +250,30 @@
       "side": 1,
       "message": "Right, it just keeps track of builder names we have seen already. \nIf we have seen it before i.e. builders[tryjobs[i].Builder] is true, we remove the entry.",
       "parentUuid": "1c65c669_9424c28d",
+      "range": {
+        "startLine": 724,
+        "startChar": 3,
+        "endLine": 724,
+        "endChar": 11
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c5bd3ad_1da56cad",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 724,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-15T19:57:28Z",
+      "side": 1,
+      "message": "I\u0027m very confused.  As far as I understand it, it gets created to the empty set on line 724.  It gets queried on line 726, but I don\u0027t see where we mark \"seen it before\".",
+      "parentUuid": "2ad8c257_1657553c",
       "range": {
         "startLine": 724,
         "startChar": 3,
