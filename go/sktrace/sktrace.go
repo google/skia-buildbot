@@ -7,7 +7,6 @@ import (
 
 	"go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
-	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/sklog"
 )
@@ -23,7 +22,7 @@ type TraceClient struct {
 }
 
 // NewTraceClient returns a new trace client instance.
-func NewTraceClient(projectID, serviceName string, tokenSrc oauth2.TokenSource) (*TraceClient, error) {
+func NewTraceClient(projectID, serviceName string, local bool) (*TraceClient, error) {
 	var exporter trace.Exporter
 	var err error
 
