@@ -81,6 +81,9 @@ func (b *baseInitOpt) init(appName string) error {
 	// Enable signal handling for the cleanup package.
 	cleanup.Enable()
 
+	// Record UID and GID.
+	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
+
 	return nil
 }
 

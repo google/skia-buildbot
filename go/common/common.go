@@ -88,6 +88,9 @@ func Init() {
 
 	// Enable signal handling for the cleanup package.
 	cleanup.Enable()
+
+	// Record UID and GID.
+	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
 }
 
 // StartCloudLogging initializes cloud logging. It is assumed to be running in GCE where the
