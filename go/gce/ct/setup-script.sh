@@ -48,6 +48,8 @@ sudo make install
 # Install psutil in Python 2.7.11. See skbug.com/7293 for context.
 sudo /usr/local/lib/python2.7.11/bin/python -m ensurepip --upgrade
 sudo /usr/local/lib/python2.7.11/bin/pip install psutil httplib2
+# Remove /usr/bin/ninja it interferences with depot_tools sometimes.
+sudo rm /usr/bin/ninja
 
 echo "Checking out depot_tools..."
 
@@ -58,6 +60,7 @@ if [ ! -d "/b/depot_tools" ]; then
 fi
 PATH=$PATH:/b/depot_tools
 
+# Should not need chromium, buildbot, trunk, or PDFium anymore.....
 echo "Checking out Chromium repository..."
 
 mkdir -p /b/storage/chromium

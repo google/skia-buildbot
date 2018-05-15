@@ -23,7 +23,7 @@ import (
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/common"
+	//"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sklog"
@@ -103,7 +103,7 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
+	//defer common.LogPanic()
 	master_common.Init("run_metrics_analysis")
 
 	ctx := context.Background()
@@ -122,11 +122,11 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Metrics analysis", *runID, *description))
-	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
-	defer sendEmail(emailsArr, gs)
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *taskID, *runID))
+	//skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Metrics analysis", *runID, *description))
+	//// Ensure webapp is updated and email is sent even if task fails.
+	//defer updateWebappTask()
+	//defer sendEmail(emailsArr, gs)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -175,6 +175,7 @@ func main() {
 	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
 	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
 	tracesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, tracesFileName)
+	remotePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName)}
 
 	// Find which chromium hash the workers should use.
 	chromiumHash, err := util.GetChromiumHash(ctx)
@@ -183,14 +184,25 @@ func main() {
 		return
 	}
 
+	// Trigger task to return hash of telemetry isolates.
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, []string{chromiumHash}, remotePatches, 1*time.Hour, 1*time.Hour)
+	if err != nil {
+		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
+		return
+	}
+	if telemetryHash == "" {
+		sklog.Error("Found empty telemetry hash!")
+		return
+	}
+	isolateDeps := []string{telemetryHash}
+
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
 		"RUN_ID":         *runID,
 		"BENCHMARK_ARGS": *benchmarkExtraArgs,
 		"METRIC_NAME":    *metricName,
-		"CHROMIUM_HASH":  chromiumHash,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), []string{} /* isolateDeps */)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
@@ -226,6 +238,8 @@ func main() {
 // run and writes to the specified outputPath.
 func extractTracesFromAnalysisRun(outputPath string, gs *util.GcsUtil) error {
 	// Construct path to the google storage locations and download it locally.
+	fmt.Println(*analysisOutputLink)
+	fmt.Println(util.GCSBucketName + "/")
 	remoteCsvPath := strings.Split(*analysisOutputLink, util.GCSBucketName+"/")[1]
 	localDownloadPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID, "downloads")
 	localCsvPath := filepath.Join(localDownloadPath, *runID+".csv")

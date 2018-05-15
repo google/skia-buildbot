@@ -196,7 +196,7 @@ func (s *SwarmingClient) GetIsolateClient() *isolate.Client {
 
 // CreateIsolatedGenJSON creates isolated.gen.json files in the work dir. They then
 // can be passed on to BatchArchiveTargets.
-func (s *SwarmingClient) CreateIsolatedGenJSON(isolatePath, baseDir, osType, taskName string, extraVars map[string]string, blackList []string) (string, error) {
+func (s *SwarmingClient) CreateIsolatedGenJSON(isolatePath, baseDir, osType, taskName string, extraVars map[string]string, blackList, deps []string) (string, error) {
 	// Verify that isolatePath is an absolute path.
 	if !path.IsAbs(isolatePath) {
 		return "", fmt.Errorf("isolate path %s must be an absolute path", isolatePath)
@@ -210,6 +210,7 @@ func (s *SwarmingClient) CreateIsolatedGenJSON(isolatePath, baseDir, osType, tas
 		ExtraVars:   extraVars,
 		IsolateFile: isolatePath,
 		OsType:      osType,
+		Deps:        deps,
 	}
 	if err := isolate.WriteIsolatedGenJson(t, isolatedGenJSONPath, isolatedPath); err != nil {
 		return "", err
