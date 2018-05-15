@@ -183,14 +183,26 @@ func main() {
 		return
 	}
 
+	// Trigger task to return hash of telemetry isolates.
+	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName)}
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour)
+	if err != nil {
+		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
+		return
+	}
+	if telemetryHash == "" {
+		sklog.Error("Found empty telemetry hash!")
+		return
+	}
+	isolateDeps := []string{telemetryHash}
+
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
 		"RUN_ID":         *runID,
 		"BENCHMARK_ARGS": *benchmarkExtraArgs,
 		"METRIC_NAME":    *metricName,
-		"CHROMIUM_HASH":  chromiumHash,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), []string{} /* isolateDeps */)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
