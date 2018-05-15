@@ -2,6 +2,98 @@
   "comments": [
     {
       "key": {
+        "uuid": "55ddeb31_c66ddbe2",
+        "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-15T18:40:38Z",
+      "side": 1,
+      "message": "Can we make these colors all match the gerrit colors? Maybe a gradient between running and complete for the \"ingesting\" color?",
+      "range": {
+        "startLine": 53,
+        "startChar": 27,
+        "endLine": 53,
+        "endChar": 33
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "422549af_11964102",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-15T18:40:38Z",
+      "side": 1,
+      "message": "Why is this spelled differently?",
+      "range": {
+        "startLine": 71,
+        "startChar": 72,
+        "endLine": 71,
+        "endChar": 80
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a6d6173_d01f5a3b",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-15T18:40:38Z",
+      "side": 1,
+      "message": "is flatt like thicc?  jk, probably typo.",
+      "range": {
+        "startLine": 698,
+        "startChar": 17,
+        "endLine": 698,
+        "endChar": 22
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c65c669_9424c28d",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 724,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-15T18:40:38Z",
+      "side": 1,
+      "message": "This doesn\u0027t really get stored to in the below loop.",
+      "range": {
+        "startLine": 724,
+        "startChar": 3,
+        "endLine": 724,
+        "endChar": 11
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f0478943_aa01b530",
         "filename": "golden/go/tryjobstore/tryjobstore_test.go",
         "patchSetId": 12
