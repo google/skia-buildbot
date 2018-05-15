@@ -3553,7 +3553,7 @@ func TestIsolateTaskFailed(t *testing.T) {
 	// We should run at tip-of-tree, and attempt to run at the bad commit.
 	err := s.MainLoop(ctx)
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "isolate: failed to process isolate"))
+	assert.True(t, strings.Contains(err.Error(), "failed to process isolate"))
 	assert.NoError(t, s.tCache.Update())
 	assert.Equal(t, 17, len(s.queue))
 	assert.Equal(t, badCommit, s.queue[0].Revision)
