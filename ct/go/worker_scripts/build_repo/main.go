@@ -82,26 +82,6 @@ func buildRepo() error {
 			remoteDirs = append(remoteDirs, fmt.Sprintf("try-%s-nopatch", util.ChromiumBuildDir(chromiumHash, skiaHash, *runID)))
 		}
 		remoteDirs = append(remoteDirs, fmt.Sprintf("try-%s-withpatch", util.ChromiumBuildDir(chromiumHash, skiaHash, *runID)))
-	} else if *repoName == "pdfium" {
-		// Sync PDFium and build pdfium_test binary.
-		if err := util.SyncDir(ctx, util.PDFiumTreeDir, map[string]string{}, []string{}); err != nil {
-			return fmt.Errorf("Could not sync PDFium: %s", err)
-		}
-		if err := util.BuildPDFium(ctx); err != nil {
-			return fmt.Errorf("Could not build PDFium: %s", err)
-		}
-		// Copy pdfium_test to Google Storage.
-		pdfiumLocalDir := path.Join(util.PDFiumTreeDir, "out", "Debug")
-		pdfiumRemoteDir := path.Join(util.BINARIES_DIR_NAME, *runID)
-		// Instantiate GcsUtil object.
-		gs, err := util.NewGcsUtil(nil)
-		if err != nil {
-			return err
-		}
-		if err := gs.UploadFile(util.BINARY_PDFIUM_TEST, pdfiumLocalDir, pdfiumRemoteDir); err != nil {
-			return fmt.Errorf("Could not upload %s to %s: %s", util.BINARY_PDFIUM_TEST, pdfiumRemoteDir, err)
-		}
-		remoteDirs = append(remoteDirs, *runID)
 	}
 
 	// Record the remote dirs in the output file.

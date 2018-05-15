@@ -294,11 +294,10 @@
      },
 
      pageSetsChanged: function() {
-       // CT's chromium perf does not support 1M, 100K and PDFs.
+       // CT's chromium perf does not support 1M, 100K.
        for (var i=this.pageSets.length-1; i>=0; i--) {
          if (ctfe.pageSets.getKey(this.pageSets[i]) == "All" ||
-             ctfe.pageSets.getKey(this.pageSets[i]).endsWith("100k") ||
-             ctfe.pageSets.getKey(this.pageSets[i]).startsWith("PDF")) {
+             ctfe.pageSets.getKey(this.pageSets[i]).endsWith("100k")) {
            this.pageSets.splice(i, 1);
          }
        }

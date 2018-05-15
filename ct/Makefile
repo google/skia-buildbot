@@ -101,10 +101,6 @@ capture_skps:
 pixel_diff:
 	go install -v ./go/worker_scripts/pixel_diff/
 
-.PHONY: capture_skps_from_pdfs
-capture_skps_from_pdfs:
-	go install -v ./go/worker_scripts/capture_skps_from_pdfs/
-
 .PHONY: run_chromium_perf
 run_chromium_perf:
 	go install -v ./go/worker_scripts/run_chromium_perf/
@@ -139,7 +135,7 @@ master_scripts: build_chromium \
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
-                pixel_diff capture_skps_from_pdfs run_chromium_perf \
+                pixel_diff run_chromium_perf \
                 run_chromium_analysis build_repo metrics_analysis
 
 .PHONY: all

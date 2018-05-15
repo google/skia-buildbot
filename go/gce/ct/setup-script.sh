@@ -67,7 +67,7 @@ cd src
 git checkout master
 /b/depot_tools/gclient sync
 
-echo "Checking out Skia's buildbot and trunk, and PDFium repositories..."
+echo "Checking out Skia's buildbot and trunk..."
 
 mkdir /b/skia-repo/
 cd /b/skia-repo/
@@ -89,14 +89,6 @@ solutions = [
     },
     'safesync_url': '',
   },
-  { 'name'        : 'pdfium',
-    'url'         : 'https://pdfium.googlesource.com/pdfium.git',
-    'deps_file'   : 'DEPS',
-    'managed'     : False,
-    'custom_deps' : {
-    },
-    'safesync_url': '',
-  },
 ]
 EOF
 /b/depot_tools/gclient sync
@@ -105,8 +97,6 @@ EOF
 cd buildbot
 git checkout master
 cd ../trunk
-git checkout master
-cd ../pdfium
 git checkout master
 # Create glog dir.
 mkdir /b/storage/glog

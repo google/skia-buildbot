@@ -78,10 +78,7 @@ if '__main__' == __name__:
       else:
         websites = []
         website = line.strip().split(',')[1]
-        if 'PDF' in options.pagesets_type:
-          # PDF urls do not need any additional prefixes.
-          qualified_website = website
-        elif website.startswith('https://') or website.startswith('http://'):
+        if website.startswith('https://') or website.startswith('http://'):
           qualified_website = website
         elif len(website.split('.')) > 2:
           qualified_website = 'http://%s' % website
