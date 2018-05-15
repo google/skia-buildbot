@@ -393,17 +393,16 @@ func (c *cloudExpStore) makeChange(changes map[string]types.TestClassification, 
 	updateFn := func(tx *datastore.Transaction) error {
 		// Start transaction to:
 		//  - store the key of the new change record to deal with eventual consistency
-		//	- add the change to the summary
+		//  - add the change to the summary
 		//  - mark the change as valid.
-		var egroup errgroup.Group
 
 		// Update the recent changes so we get full consistency on queries.
-		egroup.Go(func() error { return c.recentKeysList.Add(tx, changeKey) })
+		if err := c.recentKeysList.Add(tx, changeKey); err != nil {
+			return err
+		}
 
 		// Update the overall expectations.
-		egroup.Go(func() error { return c.updateExpectations(tx, changes) })
-
-		if err := egroup.Wait(); err != nil {
+		if err := c.updateExpectations(tx, changes); err != nil {
 			return err
 		}
 
