@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
@@ -22,8 +21,6 @@ import (
 
 const (
 	MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS = 100
-	// TODO(rmistry): Change back to 10000 once swarming can handle >10k pending tasks.
-	MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS = 50000
 )
 
 var (
@@ -105,49 +102,6 @@ func main() {
 		return
 	}
 
-	isolateFile := util.CAPTURE_SKPS_ISOLATE
-	maxPages := MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS
-	hardTimeout := 3 * time.Hour
-	ioTimeout := 1 * time.Hour
-	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
-		// For PDF pagesets use the capture_skps_from_pdfs worker script.
-		isolateFile = util.CAPTURE_SKPS_FROM_PDFS_ISOLATE
-		maxPages = MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS
-		hardTimeout = 12 * time.Hour
-		ioTimeout = hardTimeout // PDFs do not output any logs thus the ioTimeout must be the same as the hardTimeout.
-
-		// TODO(rmistry): Uncomment when ready to capture SKPs.
-		// TODO(rmistry): Replace the below block with:
-		// buildRemoteDir, err := util.TriggerBuildRepoSwarmingTask("build_pdfium", *runID, "pdfium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, /*singleBuild*/ true, 2*time.Hour, 1*time.Hour)
-		// if err != nil {
-		//	sklog.Errorf("Error encountered when swarming build repo task: %s", err)
-		//	return
-		// }
-		//
-		//// Sync PDFium and build pdfium_test binary which will be used by the worker script.
-		//if err := util.SyncDir(util.PDFiumTreeDir); err != nil {
-		//	sklog.Errorf("Could not sync PDFium: %s", err)
-		//	return
-		//}
-		//if err := util.BuildPDFium(); err != nil {
-		//	sklog.Errorf("Could not build PDFium: %s", err)
-		//	return
-		//}
-		//// Copy pdfium_test to Google Storage.
-		//pdfiumLocalDir := path.Join(util.PDFiumTreeDir, "out", "Debug")
-		//pdfiumRemoteDir := path.Join(util.BINARIES_DIR_NAME, *chromiumBuild)
-		//// Instantiate GcsUtil object.
-		//gs, err := util.NewGcsUtil(nil)
-		//if err != nil {
-		//	sklog.Error(err)
-		//	return
-		//}
-		//if err := gs.UploadFile(util.BINARY_PDFIUM_TEST, pdfiumLocalDir, pdfiumRemoteDir); err != nil {
-		//	sklog.Errorf("Could not upload %s to %s: %s", util.BINARY_PDFIUM_TEST, pdfiumRemoteDir, err)
-		//	return
-		//}
-	}
-
 	// Empty the remote dir before the workers upload to it.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
@@ -156,17 +110,13 @@ func main() {
 	}
 	skpGCSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild)
 	skutil.LogErr(gs.DeleteRemoteDir(skpGCSBaseDir))
-	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
-		pdfGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.PDFS_DIR_NAME, *pagesetType, *chromiumBuild)
-		skutil.LogErr(gs.DeleteRemoteDir(pdfGSBaseDir))
-	}
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, util.ADMIN_TASKS_PRIORITY, maxPages, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1, []string{} /* isolateDeps */); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1, []string{} /* isolateDeps */); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

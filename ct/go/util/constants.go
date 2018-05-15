@@ -19,7 +19,6 @@ const (
 	PAGESETS_DIR_NAME                = "page_sets"
 	WEB_ARCHIVES_DIR_NAME            = "webpage_archives"
 	SKPS_DIR_NAME                    = "skps"
-	PDFS_DIR_NAME                    = "pdfs"
 	STORAGE_DIR_NAME                 = "storage"
 	REPO_DIR_NAME                    = "skia-repo"
 	TASKS_DIR_NAME                   = "tasks"
@@ -42,9 +41,6 @@ const (
 	PAGESET_TYPE_MOBILE_100k = "Mobile100k"
 	PAGESET_TYPE_10k         = "10k"
 	PAGESET_TYPE_MOBILE_10k  = "Mobile10k"
-	PAGESET_TYPE_PDF_400m    = "PDF400m"
-	PAGESET_TYPE_PDF_1m      = "PDF1m"
-	PAGESET_TYPE_PDF_1k      = "PDF1k"
 	PAGESET_TYPE_DUMMY_1k    = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
@@ -59,7 +55,6 @@ const (
 	BINARY_GIT           = "git"
 	BINARY_MAIL          = "mail"
 	BINARY_LUA           = "lua"
-	BINARY_PDFIUM_TEST   = "pdfium_test"
 	// TODO(rmistry): Remove once all CT bots have been upgraded to use 2.7.11
 	//                by default.
 	BINARY_PYTHON_2_7_11 = "/usr/local/lib/python2.7.11/bin/python"
@@ -122,7 +117,6 @@ const (
 	GIT_LS_REMOTE_TIMEOUT       = 5 * time.Minute
 	GIT_APPLY_TIMEOUT           = 5 * time.Minute
 	GN_CHROMIUM_TIMEOUT         = 30 * time.Minute
-	GYP_PDFIUM_TIMEOUT          = 5 * time.Minute
 	NINJA_TIMEOUT               = 2 * time.Hour
 
 	// util.InstallChromeAPK
@@ -157,16 +151,15 @@ const (
 	BATCHARCHIVE_TIMEOUT = 10 * time.Minute
 	XVFB_TIMEOUT         = 5 * time.Minute
 	// Isolate files.
-	CREATE_PAGESETS_ISOLATE        = "create_pagesets.isolate"
-	CAPTURE_ARCHIVES_ISOLATE       = "capture_archives.isolate"
-	CAPTURE_SKPS_ISOLATE           = "capture_skps.isolate"
-	CAPTURE_SKPS_FROM_PDFS_ISOLATE = "capture_skps_from_pdfs.isolate"
-	RUN_LUA_ISOLATE                = "run_lua.isolate"
-	CHROMIUM_ANALYSIS_ISOLATE      = "chromium_analysis.isolate"
-	CHROMIUM_PERF_ISOLATE          = "chromium_perf.isolate"
-	PIXEL_DIFF_ISOLATE             = "pixel_diff.isolate"
-	METRICS_ANALYSIS_ISOLATE       = "metrics_analysis.isolate"
-	BUILD_REPO_ISOLATE             = "build_repo.isolate"
+	CREATE_PAGESETS_ISOLATE   = "create_pagesets.isolate"
+	CAPTURE_ARCHIVES_ISOLATE  = "capture_archives.isolate"
+	CAPTURE_SKPS_ISOLATE      = "capture_skps.isolate"
+	RUN_LUA_ISOLATE           = "run_lua.isolate"
+	CHROMIUM_ANALYSIS_ISOLATE = "chromium_analysis.isolate"
+	CHROMIUM_PERF_ISOLATE     = "chromium_perf.isolate"
+	PIXEL_DIFF_ISOLATE        = "pixel_diff.isolate"
+	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
+	BUILD_REPO_ISOLATE        = "build_repo.isolate"
 	// Swarming links and params.
 	// TODO(rmistry): The below link contains "st=1262304000000" which is from 2010. This is done so
 	// that swarming will not use today's timestamp as default. See if there is a better way to handle
@@ -215,12 +208,10 @@ var (
 	GCSTokenPath           = filepath.Join(StorageDir, "google_storage_token.data")
 	PagesetsDir            = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
 	WebArchivesDir         = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
-	PdfsDir                = filepath.Join(StorageDir, PDFS_DIR_NAME)
 	SkpsDir                = filepath.Join(StorageDir, SKPS_DIR_NAME)
 	GLogDir                = filepath.Join(StorageDir, "glog")
 	ApkName                = "ChromePublic.apk"
 	SkiaTreeDir            = filepath.Join(RepoDir, "trunk")
-	PDFiumTreeDir          = filepath.Join(RepoDir, "pdfium")
 	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
 	// Names of remote directories and files.
@@ -300,39 +291,6 @@ var (
 			PixelDiffTimeoutSecs:       300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
-		},
-		PAGESET_TYPE_PDF_400m: {
-			NumPages:                   400000000,
-			CSVSource:                  "csv/pdf-400m.csv",
-			UserAgent:                  "desktop",
-			CreatePagesetsTimeoutSecs:  1800,
-			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
-			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "PDF 400M",
-		},
-		PAGESET_TYPE_PDF_1m: {
-			NumPages:                   1000000,
-			CSVSource:                  "csv/pdf-top-1m.csv",
-			UserAgent:                  "desktop",
-			CreatePagesetsTimeoutSecs:  1800,
-			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
-			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "PDF 1M",
-		},
-		PAGESET_TYPE_PDF_1k: {
-			NumPages:                   1000,
-			CSVSource:                  "csv/pdf-top-1m.csv",
-			UserAgent:                  "desktop",
-			CreatePagesetsTimeoutSecs:  1800,
-			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
-			PixelDiffTimeoutSecs:       300,
-			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "PDF 1K",
 		},
 	}
 

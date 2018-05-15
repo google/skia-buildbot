@@ -146,23 +146,6 @@ func BuildSkiaLuaPictures(ctx context.Context) error {
 	return ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
-// BuildPDFium builds "pdfium_test" in the PDFium repo directory.
-func BuildPDFium(ctx context.Context) error {
-	if err := os.Chdir(PDFiumTreeDir); err != nil {
-		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
-	}
-
-	// Run "build/gyp_pdfium"
-	if err := ExecuteCmd(ctx, path.Join("build_gyp", "gyp_pdfium"), []string{},
-		[]string{"GYP_DEFINES=\"pdf_use_skia=1\"", "CPPFLAGS=\"-Wno-error\""}, GYP_PDFIUM_TIMEOUT, nil, nil); err != nil {
-		return err
-	}
-
-	// Build pdfium_test.
-	return ExecuteCmd(ctx, BINARY_NINJA, []string{"-C", "out/Debug", BINARY_PDFIUM_TEST},
-		[]string{}, NINJA_TIMEOUT, nil, nil)
-}
-
 // ResetCheckout resets the specified Git checkout.
 func ResetCheckout(ctx context.Context, dir, resetTo string) error {
 	if err := os.Chdir(dir); err != nil {

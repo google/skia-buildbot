@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -75,8 +74,8 @@ func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 
 func (task DBTask) RunsOnGCEWorkers() bool {
 	// Capture SKP tasks need to run on bare-metal machines because they have
-	// the right font packages installed. PDF tasks have no such restriction.
-	return strings.Contains(strings.ToUpper(task.PageSets), "PDF")
+	// the right font packages installed.
+	return false
 }
 
 func (task DBTask) TableName() string {

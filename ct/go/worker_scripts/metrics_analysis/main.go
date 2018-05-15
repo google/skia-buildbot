@@ -118,7 +118,7 @@ func metricsAnalysis() error {
 	traces = util.GetCustomPagesWithinRange(*startRange, *num, traces)
 	sklog.Infof("Using %d traces", len(traces))
 
-	// Establish output paths for pdf downloads and metrics.
+	// Establish output paths for trace downloads and metrics.
 	traceDownloadDir := filepath.Join(util.StorageDir, util.TraceDownloadsDir, *runID)
 	skutil.RemoveAll(traceDownloadDir)
 	skutil.MkdirAll(traceDownloadDir, 0700)

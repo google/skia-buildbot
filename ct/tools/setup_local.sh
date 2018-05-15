@@ -25,7 +25,7 @@ echo "Downloading depot_tools..."
 cd /b/
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 
-echo "Checking out Skia's buildbot and trunk, and PDFium repositories..."
+echo "Checking out Skia's buildbot and trunk..."
 mkdir -p /b/storage/glog
 mkdir /b/skia-repo/
 cd /b/skia-repo/
@@ -37,14 +37,6 @@ echo """
     'url'         : 'https://skia.googlesource.com/skia.git',
     'deps_file'   : 'DEPS',
     'managed'     : True,
-    'custom_deps' : {
-    },
-    'safesync_url': '',
-  },
-  { 'name'        : 'pdfium',
-    'url'         : 'https://pdfium.googlesource.com/pdfium.git',
-    'deps_file'   : 'DEPS',
-    'managed'     : False,
     'custom_deps' : {
     },
     'safesync_url': '',
