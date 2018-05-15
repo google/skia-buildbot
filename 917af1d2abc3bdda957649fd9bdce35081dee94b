@@ -16,6 +16,24 @@
       "revId": "917af1d2abc3bdda957649fd9bdce35081dee94b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f595065c_65f20221",
+        "filename": "ct/go/worker_scripts/build_repo/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-15T19:57:54Z",
+      "side": 1,
+      "message": "Going to add Skia tools to this soon.",
+      "parentUuid": "add35494_dbc5a7cd",
+      "revId": "917af1d2abc3bdda957649fd9bdce35081dee94b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
