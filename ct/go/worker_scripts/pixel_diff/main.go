@@ -70,17 +70,6 @@ func pixelDiff() error {
 
 	ctx := context.Background()
 
-	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	}
-	// Parse out the Chromium and Skia hashes.
-	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuildNoPatch)
-	// Sync the local chromium checkout.
-	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
-		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
-
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
@@ -91,13 +80,6 @@ func pixelDiff() error {
 	customWebpagesName := *runID + ".custom_webpages.csv"
 	tmpDir, err := ioutil.TempDir("", "custom_webpages")
 	defer skutil.RemoveAll(tmpDir)
-	remotePatchesDir := filepath.Join(util.BenchmarkRunsDir, *runID)
-	if err != nil {
-		return fmt.Errorf("Could not create tmpdir: %s", err)
-	}
-	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), filepath.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
-		return fmt.Errorf("Could not download %s: %s", customWebpagesName, err)
-	}
 	customWebpages, err := util.GetCustomPages(filepath.Join(tmpDir, customWebpagesName))
 	if err != nil {
 		return fmt.Errorf("Could not read custom webpages file %s: %s", customWebpagesName, err)
@@ -286,7 +268,7 @@ func pixelDiff() error {
 func runScreenshotBenchmark(ctx context.Context, outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs, rank int) {
 
 	args := []string{
-		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
+		filepath.Join(util.GetPathToTelemetryBinaries(!*worker_common.Local), util.BINARY_RUN_BENCHMARK),
 		util.BENCHMARK_SCREENSHOT,
 		"--also-run-disabled-tests",
 		"--png-outdir=" + filepath.Join(outputPath, strconv.Itoa(rank)),
