@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4ff2e46_0ab601d9",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-15T19:12:48Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to be implemented.",
+      "range": {
+        "startLine": 51,
+        "startChar": 62,
+        "endLine": 52,
+        "endChar": 35
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7428df6a_87b3d7bf",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-15T19:12:48Z",
+      "side": 1,
+      "message": "nit: add Catapult",
+      "range": {
+        "startLine": 116,
+        "startChar": 34,
+        "endLine": 116,
+        "endChar": 50
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4971f64_9b915dbe",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 903,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-15T19:12:48Z",
+      "side": 1,
+      "message": "nit: its",
+      "range": {
+        "startLine": 903,
+        "startChar": 29,
+        "endLine": 903,
+        "endChar": 33
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5daf6a27_cf871943",
+        "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-15T19:12:48Z",
+      "side": 1,
+      "message": "nit: seems like this belongs before line 84",
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38b50396_6ce90e37",
+        "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-15T19:12:48Z",
+      "side": 1,
+      "message": "nit: not leasing",
+      "range": {
+        "startLine": 92,
+        "startChar": 39,
+        "endLine": 92,
+        "endChar": 46
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f8a24f2_1f3d8487",
+        "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-15T19:12:48Z",
+      "side": 1,
+      "message": "nit: ioutil.WriteFile",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 2
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ea1b90d_ea7a7a37",
+        "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-15T19:12:48Z",
+      "side": 1,
+      "message": "nit: seems like it would be easier to just the copy files into the Swarming out dir so that they are automatically isolated. If you are worried about including files that you don\u0027t need, it seems that \u0027isolate.py remap\u0027 would do what you want.",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 11
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
