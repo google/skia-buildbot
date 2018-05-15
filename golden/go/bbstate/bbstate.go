@@ -138,7 +138,7 @@ func (b *BuildBucketState) FetchIssueAndTryjob(issueID, buildBucketID int64) (*t
 		return nil, nil, fmt.Errorf("Issue %d is not referenced by tryjob %d.", issueID, buildBucketID)
 	}
 
-	issue, err := b.tryjobStore.GetIssue(issueID, false, nil)
+	issue, err := b.tryjobStore.GetIssue(issueID, false)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -234,7 +234,7 @@ func (b *BuildBucketState) processBuild(build *bb_api.ApiCommonBuildMessage) (*t
 // updateTryjobState adds the provided tryjob information to the TryjobStore.
 func (b *BuildBucketState) updateTryjobState(params *tryjobstore.Parameters, tryjob *tryjobstore.Tryjob) error {
 	// Find the existing issue in the tryjob store.
-	issue, err := b.tryjobStore.GetIssue(tryjob.IssueID, false, nil)
+	issue, err := b.tryjobStore.GetIssue(tryjob.IssueID, false)
 	if err != nil {
 		return err
 	}
