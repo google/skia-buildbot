@@ -102,7 +102,7 @@ func (s *Storage) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies *t
 		return sklog.FmtErrorf("Unable to get issue expecations: %s", err)
 	}
 
-	tryjobs, tryjobResults, err := s.TryjobStore.GetTryjobResults(issueID, nil, true)
+	tryjobs, tryjobResults, err := s.TryjobStore.GetTryjobs(issueID, nil, true, true)
 	if err != nil {
 		return sklog.FmtErrorf("Unable to get TryjobResults")
 	}
