@@ -45,15 +45,6 @@ func captureArchives() error {
 
 	ctx := context.Background()
 
-	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	}
-	// Sync the local chromium checkout.
-	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{}, []string{}); err != nil {
-		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
-
 	// Delete and remake the local webpage archives directory.
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
 	skutil.RemoveAll(pathToArchives)
@@ -74,7 +65,7 @@ func captureArchives() error {
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
-	recordWprBinary := filepath.Join(util.TelemetryBinariesDir, util.BINARY_RECORD_WPR)
+	recordWprBinary := filepath.Join(util.GetPathToTelemetryBinaries(!*worker_common.Local), util.BINARY_RECORD_WPR)
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureArchivesTimeoutSecs
 	// Loop through all pagesets.
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
