@@ -110,9 +110,13 @@
       }
 
       .searchResponse {
-        padding: 1em;
+        padding: 1em 1em  0 1em;
         margin: 1em 1em 1em 0;
         border: 1px solid #555555;
+      }
+
+      .searchStats {
+        padding-bottom: 1em;
       }
     </style>
 
@@ -137,12 +141,13 @@
       </div>
 
       <div class="searchResponse" hidden$="[[_noResult(_allData)]]">
-        Displaying: [[_allData.size]] of [[_allData.digests.length]] images starting at [[_allData.offset]]<br>
-        UniqueTests Visible: [[_uniqueTests.length]] <br>
-        UniqueTests Total: [[_uniqueTestsAll.length]]<br>
+        <div class="searchStats">
+          Displaying: [[_allData.size]] of [[_allData.digests.length]] images starting at [[_allData.offset]]<br>
+          UniqueTests Visible: [[_uniqueTests.length]] <br>
+          UniqueTests Total: [[_uniqueTestsAll.length]]<br>
+        </div>
+        <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
       </div>
-      <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
-
       <div hidden$="[[_hideAll]]">
         <div id="missing" hidden$="[[_nonEmptyResult(data)]]">
           No digests match your query.
