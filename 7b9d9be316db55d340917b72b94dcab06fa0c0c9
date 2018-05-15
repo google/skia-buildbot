@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6e20d57d_2c0ce856",
+        "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
+        "patchSetId": 12
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-15T19:43:18Z",
+      "side": 1,
+      "message": "I switched to the Gerrit colors, but kept the darker green for the ingestion status. \nIMO that makes more sense because it\u0027s even \"greener\" than completed - we also have results. I am open to other suggestions, but a gradient might be a bit confusing especially when it\u0027s for a state that is not an intermediate state between the states represented by the gradient colors.",
+      "parentUuid": "55ddeb31_c66ddbe2",
+      "range": {
+        "startLine": 53,
+        "startChar": 27,
+        "endLine": 53,
+        "endChar": 33
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "422549af_11964102",
         "filename": "golden/go/tryjobstore/tryjob_types.go",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2018-05-15T18:40:38Z",
       "side": 1,
       "message": "Why is this spelled differently?",
+      "range": {
+        "startLine": 71,
+        "startChar": 72,
+        "endLine": 71,
+        "endChar": 80
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9c446a0_cf74eb55",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-15T19:43:18Z",
+      "side": 1,
+      "message": "In a recent CL I fixed the spelling of the struct field to \"Committed\", but there are already data with the wrong spelling in the cloud datastore, making the entities unreadable without this change. I added a TODO to fix that, but I needed to be able to use the existing data.",
+      "parentUuid": "422549af_11964102",
       "range": {
         "startLine": 71,
         "startChar": 72,
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "865e3d55_271a0d69",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-15T19:43:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d6ff211_f250d604",
+      "range": {
+        "startLine": 698,
+        "startChar": 17,
+        "endLine": 698,
+        "endChar": 22
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c65c669_9424c28d",
         "filename": "golden/go/tryjobstore/tryjobstore.go",
         "patchSetId": 12
@@ -106,6 +178,30 @@
       "writtenOn": "2018-05-15T18:40:38Z",
       "side": 1,
       "message": "This doesn\u0027t really get stored to in the below loop.",
+      "range": {
+        "startLine": 724,
+        "startChar": 3,
+        "endLine": 724,
+        "endChar": 11
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ad8c257_1657553c",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 724,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-15T19:43:18Z",
+      "side": 1,
+      "message": "Right, it just keeps track of builder names we have seen already. \nIf we have seen it before i.e. builders[tryjobs[i].Builder] is true, we remove the entry.",
+      "parentUuid": "1c65c669_9424c28d",
       "range": {
         "startLine": 724,
         "startChar": 3,
