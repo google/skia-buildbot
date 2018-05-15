@@ -145,8 +145,9 @@ def RunSteps(api):
   rev_parse.presentation.properties['got_revision'] = rev_parse.stdout.strip()
 
   # More prerequisites.
+  builder = api.properties['buildername']
   with api.context(cwd=infra_dir, env=env):
-    if 'Race' not in api.properties['buildername']:
+    if 'Race' not in builder:
       api.step(
           'install bower',
           cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
@@ -167,10 +168,12 @@ def RunSteps(api):
         'setup database',
         cmd=['./setup_test_db'])
 
-  with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
-    api.step(
-        'start the cloud data store emulator',
-        cmd=['./run_emulator', 'start'])
+  if ('Large' in builder) or ('Race' in builder):
+    with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
+      api.step(
+          'start the cloud data store emulator',
+           cmd=['./run_emulator', 'start'])
+    env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
 
   # Run tests.
   karma_port = '9876'
@@ -179,7 +182,6 @@ def RunSteps(api):
   env['TMPDIR'] = None
   env['PATH'] = api.path.pathsep.join([
       env['PATH'], str(api.path['depot_tools'])])
-  env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
 
   cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
   if 'Race' in api.properties['buildername']:
@@ -194,9 +196,10 @@ def RunSteps(api):
     with api.context(cwd=infra_dir, env=env):
       api.step('run_unittests', cmd)
   finally:
-    with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
-      api.step('stop the cloud data store emulator',
-          cmd=['./run_emulator', 'stop'])
+    if ('Large' in builder) or ('Race' in builder):
+      with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
+        api.step('stop the cloud data store emulator',
+            cmd=['./run_emulator', 'stop'])
 
 def GenTests(api):
   yield (
