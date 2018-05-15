@@ -236,10 +236,16 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GSUTIL...)
-	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 	if strings.Contains(name, "Large") {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
 	}
+
+	// Cloud datastore tests are assumed to be marked as 'Large'
+	if strings.Contains(name, "Large") || strings.Contains(name, "Race") {
+		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
+	}
+
+	// Re-run failing bots but not when testing for race conditions.
 	task.MaxAttempts = 2
 	if strings.Contains(name, "Race") {
 		task.MaxAttempts = 1

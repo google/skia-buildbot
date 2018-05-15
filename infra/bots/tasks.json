@@ -264,14 +264,14 @@
           "version": "version:4.28"
         },
         {
-          "name": "skia/bots/gcloud_linux",
-          "path": "gcloud_linux",
-          "version": "version:10"
-        },
-        {
           "name": "skia/bots/protoc",
           "path": "protoc",
           "version": "version:0"
+        },
+        {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:10"
         }
       ],
       "command": [
@@ -402,11 +402,6 @@
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
-        },
-        {
-          "name": "skia/bots/gcloud_linux",
-          "path": "gcloud_linux",
-          "version": "version:10"
         }
       ],
       "command": [
@@ -673,11 +668,6 @@
           "name": "infra/gsutil",
           "path": "cipd_bin_packages",
           "version": "version:4.28"
-        },
-        {
-          "name": "skia/bots/gcloud_linux",
-          "path": "gcloud_linux",
-          "version": "version:10"
         }
       ],
       "command": [
