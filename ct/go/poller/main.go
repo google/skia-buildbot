@@ -110,7 +110,6 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
 		".skia.patch":          task.SkiaPatch,
 		".v8.patch":            task.V8Patch,
 		".catapult.patch":      task.CatapultPatch,
-		".benchmark.patch":     task.BenchmarkPatch,
 		".custom_webpages.csv": task.CustomWebpages,
 	} {
 		// Add an extra newline at the end because git sometimes rejects patches due to
@@ -159,7 +158,6 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context) error {
 		".skia.patch":          task.SkiaPatch,
 		".v8.patch":            task.V8Patch,
 		".catapult.patch":      task.CatapultPatch,
-		".benchmark.patch":     task.BenchmarkPatch,
 		".custom_webpages.csv": task.CustomWebpages,
 	} {
 		// Add an extra newline at the end because git sometimes rejects patches due to

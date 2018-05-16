@@ -648,7 +648,7 @@ func RemoveFlagsFromArgs(benchmarkArgs string, flags ...string) string {
 // RunBenchmark runs the specified benchmark with the specified arguments. It prints the output of
 // the run_benchmark command and also returns the output incase the caller needs to do any
 // post-processing on it. Incase of any errors the output will be empty.
-func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int) (string, error) {
+func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, defaultRepeatValue int, runOnSwarming bool) (string, error) {
 	pagesetBaseName := filepath.Base(fileInfoName)
 	if filepath.Ext(pagesetBaseName) == ".pyc" {
 		// Ignore .pyc files.
@@ -663,7 +663,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	}
 	sklog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
 	args := []string{
-		filepath.Join(TelemetryBinariesDir, BINARY_RUN_BENCHMARK),
+		filepath.Join(GetPathToTelemetryBinaries(runOnSwarming), BINARY_RUN_BENCHMARK),
 		benchmarkName,
 		"--also-run-disabled-tests",
 		"--user-agent=" + decodedPageset.UserAgent,
@@ -706,9 +706,8 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	if browserExtraArgs != "" {
 		args = append(args, "--extra-browser-args="+browserExtraArgs)
 	}
-	// Set the PYTHONPATH to the pagesets and the telemetry dirs.
+	// Set the DISPLAY.
 	env := []string{
-		fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, TelemetryBinariesDir, TelemetrySrcDir, CatapultSrcDir),
 		"DISPLAY=:0",
 	}
 	// Append the original environment as well.
@@ -1023,27 +1022,6 @@ func DownloadPatch(localPath, remotePath string, gs *GcsUtil) (int64, error) {
 		return -1, fmt.Errorf("Could not write to %s: %s", localPath, err)
 	}
 	return written, nil
-}
-
-// RemoveCatapultLockFiles cleans up any leftover "pseudo_lock" files from the
-// catapult repo. See skbug.com/5919#c16 for context.
-func RemoveCatapultLockFiles(catapultSrcDir string) error {
-	visit := func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if f.IsDir() {
-			return nil
-		}
-		if filepath.Ext(f.Name()) == ".pseudo_lock" {
-			if err := os.Remove(path); err != nil {
-				return err
-			}
-
-		}
-		return nil
-	}
-	return filepath.Walk(catapultSrcDir, visit)
 }
 
 func DownloadAndApplyPatch(ctx context.Context, patchName, localDir, remotePatchesDir, checkout string, gs *GcsUtil) error {
