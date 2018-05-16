@@ -154,6 +154,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/email", emailHandler).Methods("POST")
 	router.HandleFunc("/chat", chatHandler).Methods("POST")
+	router.HandleFunc("/healthz", httputils.HealthCheckHandler).Methods("GET")
 	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
