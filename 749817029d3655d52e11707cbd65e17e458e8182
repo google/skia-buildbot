@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1f6c6c11_911bf45e",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-16T15:33:27Z",
+      "side": 1,
+      "message": "It is looking up the port by name, as set on line 54 of this file.",
+      "parentUuid": "536ff791_7f88ccd0",
+      "revId": "749817029d3655d52e11707cbd65e17e458e8182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "81616500_bca87004",
         "filename": "kube/skia-public/notifier.yaml",
         "patchSetId": 3
