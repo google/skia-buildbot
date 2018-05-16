@@ -28,3 +28,9 @@ spec:
         - backend:
             serviceName: grafana
             servicePort: 8000
+    - host: debugger.skia.org
+      http:
+        paths:
+        - backend:
+            serviceName: debugger
+            servicePort: 8000
