@@ -30,7 +30,7 @@ const (
 	N_IMG_WORKERS = 10
 )
 
-// ImageLoader facilitates to continously download images and cache them in RAM.
+// ImageLoader facilitates to continuously download images and cache them in RAM.
 type ImageLoader struct {
 	// storageClient is the Google client to local content from GCS.
 	storageClient *storage.Client
@@ -50,10 +50,19 @@ type ImageLoader struct {
 	// failureStore persists failures in retrieving images.
 	failureStore *failureStore
 
-	wg sync.WaitGroup
-
 	// mapper contains various functions for creating image IDs and paths.
 	mapper DiffStoreMapper
+}
+
+// closedCh is a closed <-chan bool that is used as a value for PendingIO instances
+// when there is no pending IO but we want it to behave like there was.
+var closedCh = getClosedBoolCh()
+
+// imgRet is a container type used to return the loaded image and a channel
+// that is closed after the image had been written to disk.
+type imgRet struct {
+	writtenCh <-chan bool // will be closed after the image has been written to disk
+	img       *image.NRGBA
 }
 
 // Creates a new instance of ImageLoader.
@@ -84,34 +93,28 @@ func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 	return ret, nil
 }
 
-// Warm makes sure the images are cached. It does not return a result to avoid
-// deserialization and unnecessary memory allocation.
-// The synchronous flag determines whether the call is blocking or not.
-// It workes in sync with Get, any image that is scheduled be retrieved by get
+// Warm makes sure the images are cached.
+// If synchronous is true the call blocks until all fetched images are written to disk.
+// It works in sync with Get, any image that is scheduled to be retrieved by Get
 // will not be fetched again.
 func (il *ImageLoader) Warm(priority int64, images []string, synchronous bool) {
-	var localWg sync.WaitGroup
-	il.wg.Add(len(images))
-	localWg.Add(len(images))
-	for _, id := range images {
-		go func(id string) {
-			defer il.wg.Done()
-			defer localWg.Done()
-			if err := il.imageCache.Warm(priority, id); err != nil {
-				sklog.Errorf("Unable to retrive image %s. Got error: %s", id, err)
-			}
-		}(id)
-	}
+	var pendingWrites PendingIO
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		_, pendingWrites, err = il.Get(priority, images)
+		if err != nil {
+			sklog.Errorf("Unable to warm images. Got error: %s", err)
+		}
+	}()
 
-	// Wait for the all images to be loaded.
 	if synchronous {
-		localWg.Wait()
+		// Wait for the get to finish and for all images to be written to disk.
+		wg.Wait()
+		pendingWrites.Wait()
 	}
-}
-
-// sync waits until all pending go routines have terminated.
-func (il *ImageLoader) Sync() {
-	il.wg.Wait()
 }
 
 // errResult is a helper type to capture error information in Get(...).
@@ -122,29 +125,25 @@ type errResult struct {
 
 // Get returns the images identified by digests and returns it as an NRGBA image.
 // Priority determines the order in which multiple concurrent calls are processed.
-// func (il *ImageLoader) Get(priority int64, digests []string) (*image.NRGBA, error) {
-// 	// img, err := il.imageCache.Get(priority, digests)
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-// 	// return img.(*image.NRGBA), nil
-// 	return nil, nil
-// }
-
-func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, error) {
+// The returned instance of PendingIO can be used to wait until all images are
+// not just loaded but also written to disk.
+func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, PendingIO, error) {
 	// Parallel load the requested images.
 	result := make([]*image.NRGBA, len(images))
+	doneCh := make(PendingIO, len(images))
 	errCh := make(chan errResult, len(images))
 	var wg sync.WaitGroup
 	wg.Add(len(images))
 	for idx, id := range images {
 		go func(idx int, id string) {
 			defer wg.Done()
-			img, err := il.imageCache.Get(priority, id)
+			tmp, err := il.imageCache.Get(priority, id)
 			if err != nil {
 				errCh <- errResult{err: err, id: id}
 			} else {
-				result[idx] = img.(*image.NRGBA)
+				ret := tmp.(imgRet)
+				result[idx] = ret.img
+				doneCh[idx] = ret.writtenCh
 			}
 		}(idx, id)
 	}
@@ -159,10 +158,10 @@ func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, err
 			// This captures the edge case when the error is cached in the image loader.
 			util.LogErr(il.failureStore.addDigestFailureIfNew(diff.NewDigestFailure(errRet.id, diff.OTHER)))
 		}
-		return nil, errors.New(msg.String())
+		return nil, nil, errors.New(msg.String())
 	}
 
-	return result, nil
+	return result, doneCh, nil
 }
 
 // IsOnDisk returns true if the image that corresponds to the given imageID is in the disk cache.
@@ -202,7 +201,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 			return nil, err
 		}
 		util.LogErr(il.failureStore.purgeDigestFailures([]string{imageID}))
-		return img, err
+		return imgRet{closedCh, img}, err
 	}
 
 	// Download the image
@@ -220,19 +219,21 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 	}
 
 	// Save the file to disk.
-	il.saveImgInfoAsync(imageID, imgBytes)
-	return img, nil
+	writeDoneCh := il.saveImgInfoAsync(imageID, imgBytes)
+	return imgRet{writeDoneCh, img}, nil
 }
 
-func (il *ImageLoader) saveImgInfoAsync(imageID string, imgBytes []byte) {
-	il.wg.Add(1)
+func (il *ImageLoader) saveImgInfoAsync(imageID string, imgBytes []byte) <-chan bool {
+	writeDoneCh := make(chan bool)
 	go func() {
-		defer il.wg.Done()
 		localRelPath, _, _ := il.mapper.ImagePaths(imageID)
 		if err := saveFilePath(filepath.Join(il.localImgDir, localRelPath), bytes.NewBuffer(imgBytes)); err != nil {
 			sklog.Error(err)
+			return
 		}
+		close(writeDoneCh)
 	}()
+	return writeDoneCh
 }
 
 // downloadImg retrieves the given image from Google storage. If bucket is not empty
@@ -337,4 +338,11 @@ func (il *ImageLoader) removeImg(bucket, gsRelPath string) {
 			continue
 		}
 	}
+}
+
+// getClosedBoolCh initializes closedCh
+func getClosedBoolCh() <-chan bool {
+	ret := make(chan bool)
+	close(ret)
+	return ret
 }
