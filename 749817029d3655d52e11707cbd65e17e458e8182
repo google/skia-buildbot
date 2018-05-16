@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "8cc88601_fe9cc051",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T16:29:54Z",
+      "side": 1,
+      "message": "Wrong port.",
+      "revId": "749817029d3655d52e11707cbd65e17e458e8182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "536ff791_7f88ccd0",
         "filename": "kube/skia-public/docserver.yaml",
         "patchSetId": 3
@@ -37,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "c78c553d_31a5e75b",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T16:29:54Z",
+      "side": 1,
+      "message": "Oops, sorry, commented on the wrong file. Please see other comments.",
+      "parentUuid": "1f6c6c11_911bf45e",
+      "revId": "749817029d3655d52e11707cbd65e17e458e8182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81616500_bca87004",
         "filename": "kube/skia-public/notifier.yaml",
         "patchSetId": 3
@@ -60,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "e74446c3_0cf4afbd",
+        "filename": "kube/skia-public/notifier.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T16:29:54Z",
+      "side": 1,
+      "message": "Wrong port.",
+      "parentUuid": "81616500_bca87004",
+      "range": {
+        "startLine": 62,
+        "startChar": 14,
+        "endLine": 62,
+        "endChar": 24
+      },
+      "revId": "749817029d3655d52e11707cbd65e17e458e8182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ac96b840_fc12e4c4",
         "filename": "kube/skia-public/prom.yaml",
         "patchSetId": 3
@@ -71,6 +130,30 @@
       "writtenOn": "2018-05-16T15:29:33Z",
       "side": 1,
       "message": "same comment here",
+      "range": {
+        "startLine": 99,
+        "startChar": 14,
+        "endLine": 99,
+        "endChar": 24
+      },
+      "revId": "749817029d3655d52e11707cbd65e17e458e8182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddf6528e_1b284085",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T16:29:54Z",
+      "side": 1,
+      "message": "Wrong port.",
+      "parentUuid": "ac96b840_fc12e4c4",
       "range": {
         "startLine": 99,
         "startChar": 14,
