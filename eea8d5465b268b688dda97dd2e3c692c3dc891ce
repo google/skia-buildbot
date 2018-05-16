@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "543e7179_3cec757f",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T14:42:51Z",
+      "side": 1,
+      "message": "If you are going to use chromium patch here, you should remove the option from the UI \"Apply this patch when running benchmarks?\"",
+      "range": {
+        "startLine": 196,
+        "startChar": 68,
+        "endLine": 196,
+        "endChar": 85
+      },
+      "revId": "eea8d5465b268b688dda97dd2e3c692c3dc891ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd8cd2ea_e2f91a10",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T14:42:51Z",
+      "side": 1,
+      "message": "nit: Would be nice to run this in parallel with build_chromium above. We should be able to pick a Chromium revision in this master script and pass it in to TriggerBuildRepoSwarmingTask, right?\n\nSorry, I should have noticed this on previous CLs.",
+      "revId": "eea8d5465b268b688dda97dd2e3c692c3dc891ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
