@@ -48,7 +48,6 @@ var (
 	skiaPatchLink      = util.MASTER_LOGSERVER_LINK
 	v8PatchLink        = util.MASTER_LOGSERVER_LINK
 	catapultPatchLink  = util.MASTER_LOGSERVER_LINK
-	benchmarkPatchLink = util.MASTER_LOGSERVER_LINK
 	customWebpagesLink = util.MASTER_LOGSERVER_LINK
 	outputLink         = util.MASTER_LOGSERVER_LINK
 )
@@ -90,7 +89,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	%s
 	The CSV output is <a href='%s'>here</a>.%s<br/>
 	The patch(es) you specified are here:
-	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>/<a href='%s'>telemetry</a>
+	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>
 	<br/>
 	Custom webpages (if specified) are <a href='%s'>here</a>.
 	<br/><br/>
@@ -98,7 +97,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, benchmarkPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -164,9 +163,8 @@ func main() {
 	skiaPatchName := *runID + ".skia.patch"
 	v8PatchName := *runID + ".v8.patch"
 	catapultPatchName := *runID + ".catapult.patch"
-	benchmarkPatchName := *runID + ".benchmark.patch"
 	customWebpagesName := *runID + ".custom_webpages.csv"
-	for _, patchName := range []string{chromiumPatchName, v8PatchName, skiaPatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
+	for _, patchName := range []string{chromiumPatchName, v8PatchName, skiaPatchName, catapultPatchName, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			sklog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
@@ -176,20 +174,50 @@ func main() {
 	skiaPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, skiaPatchName)
 	v8PatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, v8PatchName)
 	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
-	benchmarkPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, benchmarkPatchName)
 	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
-	// Create the required chromium build.
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+	// Find which chromium hash the workers should use.
+	chromiumHash, err := util.GetChromiumHash(ctx)
 	if err != nil {
-		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
+		sklog.Error("Could not find the latest chromium hash")
 		return
 	}
-	if len(chromiumBuilds) != 1 {
-		sklog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+
+	// Trigger both the build repo and isolate telemetry tasks in parallel.
+	group := skutil.NewNamedErrGroup()
+	var chromiumBuild string
+	group.Go("build chromium", func() error {
+		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, []string{chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+		if err != nil {
+			return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
+		}
+		if len(chromiumBuilds) != 1 {
+			return sklog.FmtErrorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+		}
+		chromiumBuild = chromiumBuilds[0]
+		return nil
+	})
+
+	// Isolate telemetry.
+	isolateDeps := []string{}
+	group.Go("isolate telemetry", func() error {
+		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour)
+		if err != nil {
+			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
+		}
+		if telemetryHash == "" {
+			return sklog.FmtErrorf("Found empty telemetry hash!")
+		}
+		isolateDeps = append(isolateDeps, telemetryHash)
+		return nil
+	})
+
+	// Wait for chromium build task and isolate telemetry task to complete.
+	if err := group.Wait(); err != nil {
+		sklog.Error(err)
 		return
 	}
-	chromiumBuild := chromiumBuilds[0]
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
@@ -211,7 +239,7 @@ func main() {
 	}
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, 1), []string{} /* isolateDeps */)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return

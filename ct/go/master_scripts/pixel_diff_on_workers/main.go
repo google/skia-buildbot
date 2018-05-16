@@ -181,10 +181,10 @@ func main() {
 				ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{chromiumHash}, remotePatches,
 				/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
 			if err != nil {
-				return fmt.Errorf("Error encountered when swarming build repo task: %s", err)
+				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
 			}
 			if len(chromiumBuilds) != 1 {
-				return fmt.Errorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+				return sklog.FmtErrorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
 			}
 			chromiumBuildNoPatch = chromiumBuilds[0]
 			chromiumBuildWithPatch = chromiumBuilds[0]
@@ -195,10 +195,10 @@ func main() {
 				ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{chromiumHash}, remotePatches,
 				/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
 			if err != nil {
-				return fmt.Errorf("Error encountered when swarming build repo task: %s", err)
+				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
 			}
 			if len(chromiumBuilds) != 2 {
-				return fmt.Errorf("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+				return sklog.FmtErrorf("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
 			}
 			chromiumBuildNoPatch = chromiumBuilds[0]
 			chromiumBuildWithPatch = chromiumBuilds[1]
@@ -212,10 +212,10 @@ func main() {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName)}
 		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour)
 		if err != nil {
-			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
+			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
 		if telemetryHash == "" {
-			return fmt.Errorf("Found empty telemetry hash!")
+			return sklog.FmtErrorf("Found empty telemetry hash!")
 		}
 		isolateDeps = append(isolateDeps, telemetryHash)
 		return nil

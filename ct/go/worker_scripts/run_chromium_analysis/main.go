@@ -74,17 +74,6 @@ func runChromiumAnalysis() error {
 
 	ctx := context.Background()
 
-	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	}
-	// Parse out the Chromium and Skia hashes.
-	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
-	// Sync the local chromium checkout.
-	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{"src": chromiumHash}, []string{}); err != nil {
-		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
-
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		if err := adb.VerifyLocalDevice(ctx); err != nil {
 			// Android device missing or offline.
@@ -97,8 +86,6 @@ func runChromiumAnalysis() error {
 		skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"root"}, []string{},
 			util.ADB_ROOT_TIMEOUT, nil, nil))
 	}
-	// Clean up any leftover "pseudo_lock" files from catapult repo.
-	skutil.LogErr(util.RemoveCatapultLockFiles(util.CatapultSrcDir))
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
@@ -108,24 +95,6 @@ func runChromiumAnalysis() error {
 
 	tmpDir, err := ioutil.TempDir("", "patches")
 	remotePatchesDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
-
-	// Download the v8 patch for this run from Google storage.
-	v8PatchName := *runID + ".v8.patch"
-	if err := util.DownloadAndApplyPatch(ctx, v8PatchName, tmpDir, remotePatchesDir, util.V8SrcDir, gs); err != nil {
-		return fmt.Errorf("Could not apply %s: %s", v8PatchName, err)
-	}
-
-	// Download the catapult patch for this run from Google storage.
-	catapultPatchName := *runID + ".catapult.patch"
-	if err := util.DownloadAndApplyPatch(ctx, catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
-		return fmt.Errorf("Could not apply %s: %s", catapultPatchName, err)
-	}
-
-	// Download the benchmark patch for this run from Google storage.
-	benchmarkPatchName := *runID + ".benchmark.patch"
-	if err := util.DownloadAndApplyPatch(ctx, benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
-		return fmt.Errorf("Could not apply %s: %s", benchmarkPatchName, err)
-	}
 
 	// Download the custom webpages for this run from Google storage.
 	customWebpagesName := *runID + ".custom_webpages.csv"
@@ -234,7 +203,7 @@ func runChromiumAnalysis() error {
 
 				mutex.RLock()
 				for i := 0; ; i++ {
-					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1)
+					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
 					if err == nil {
 						timeoutTracker.Reset()
 						// If *matchStdoutText is specified then add the number of times the text shows up in stdout
