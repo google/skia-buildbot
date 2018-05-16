@@ -1,6 +1,7 @@
 # Copyright (c) 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 {
   'includes': [
     'py.isolate',
@@ -9,16 +10,15 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/metrics_analysis',
+          '../../../../../bin/isolate_telemetry',
         ],
         'command': [
-          '../../../../../bin/metrics_analysis',
+          '../../../../../bin/isolate_telemetry',
           '-logtostderr',
-          '--start_range=<(START_RANGE)',
-          '--num=<(NUM)',
           '--run_id=<(RUN_ID)',
-          '--benchmark_extra_args=<(BENCHMARK_ARGS)',
-          '--metric_name=<(METRIC_NAME)',
+          '--chromium_hash=<(CHROMIUM_HASH)',
+          '--patches=<(PATCHES)',
+          '--out=${ISOLATED_OUTDIR}',
         ],
       },
     }],

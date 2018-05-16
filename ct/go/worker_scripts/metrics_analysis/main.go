@@ -2,7 +2,7 @@
 // go/ct_metrics_analysis
 //
 // Can be tested locally with:
-// $ go run go/worker_scripts/metrics_analysis/main.go --start_range=1 --num=3 --run_id=rmistry-test1 --benchmark_extra_args="--output-format=csv" --metric_name="loadingMetric" --logtostderr=true --local --chromium_hash=cab48032c45695c73b202af7d472a52808d551ca
+// $ go run go/worker_scripts/metrics_analysis/main.go --start_range=1 --num=3 --run_id=rmistry-test1 --benchmark_extra_args="--output-format=csv" --metric_name="loadingMetric" --logtostderr=true --local
 //
 package main
 
@@ -43,7 +43,6 @@ var (
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	metricName         = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
-	chromiumHash       = flag.String("chromium_hash", "", "The chromium commit hash to sync the local checkout to. Done so that all slaves operate on the same revision.")
 )
 
 func metricsAnalysis() error {
@@ -62,20 +61,8 @@ func metricsAnalysis() error {
 	if *metricName == "" {
 		return errors.New("Must specify --metric_name")
 	}
-	if *chromiumHash == "" {
-		return errors.New("Must specify --chromium_hash")
-	}
 
 	ctx := context.Background()
-
-	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	}
-	// Sync the local chromium checkout.
-	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{"src": *chromiumHash}, []string{}); err != nil {
-		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
@@ -91,18 +78,6 @@ func metricsAnalysis() error {
 	}
 	defer skutil.RemoveAll(tmpDir)
 	remotePatchesDir := filepath.Join(util.BenchmarkRunsDir, *runID)
-
-	// Download the catapult patch for this run from Google storage.
-	catapultPatchName := *runID + ".catapult.patch"
-	if err := util.DownloadAndApplyPatch(ctx, catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
-		return fmt.Errorf("Could not apply %s: %s", catapultPatchName, err)
-	}
-
-	// Download the chromium patch for this run from Google storage.
-	chromiumPatchName := *runID + ".chromium.patch"
-	if err := util.DownloadAndApplyPatch(ctx, chromiumPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
-		return fmt.Errorf("Could not apply %s: %s", chromiumPatchName, err)
-	}
 
 	// Download traces.
 	if _, err := util.DownloadPatch(filepath.Join(tmpDir, tracesFilename), filepath.Join(remotePatchesDir, tracesFilename), gs); err != nil {
@@ -204,7 +179,7 @@ func metricsAnalysis() error {
 // runMetricsAnalysisBenchmark runs the analysis_metrics_ct benchmark on the provided trace.
 func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrace, cloudTraceLink string) error {
 	args := []string{
-		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
+		filepath.Join(util.GetPathToTelemetryBinaries(!*worker_common.Local), util.BINARY_RUN_BENCHMARK),
 		util.BENCHMARK_METRICS_ANALYSIS,
 		"--local-trace-path", fmt.Sprintf("file://%s", downloadedTrace),
 		"--cloud-trace-link", cloudTraceLink,
@@ -216,9 +191,8 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 	if *benchmarkExtraArgs != "" {
 		args = append(args, strings.Fields(*benchmarkExtraArgs)...)
 	}
-	// Set the PYTHONPATH to the telemetry dirs.
+	// Set the DISPLAY.
 	env := []string{
-		fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", util.TelemetryBinariesDir, util.TelemetrySrcDir, util.CatapultSrcDir),
 		"DISPLAY=:0",
 	}
 	// Append the original environment as well.
