@@ -16,6 +16,24 @@
       "revId": "346a1788386ce8d3918943e9e7ea4b8529c85aad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fe32f1a8_7b736258",
+        "filename": "ct/go/master_scripts/capture_skps_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T14:03:46Z",
+      "side": 1,
+      "message": "Yes, I think we should eventually do that.\nI had done it differently initially thinking that we will want to reuse builds but that has never happened.",
+      "parentUuid": "94a29aba_25ad9138",
+      "revId": "346a1788386ce8d3918943e9e7ea4b8529c85aad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
