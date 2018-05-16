@@ -36,7 +36,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: notifier
-          image: gcr.io/skia-public/notifier:2018-05-14T20_47_43Z-jcgregorio-a4855dc-clean
+          image: gcr.io/skia-public/notifier:2018-05-16T14_01_53Z-jcgregorio-a4855dc-clean
           args:
             - "--logtostderr"
             - "--port=:9000"
