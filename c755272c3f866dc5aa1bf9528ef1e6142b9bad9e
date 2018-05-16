@@ -22,6 +22,30 @@
       "revId": "c755272c3f866dc5aa1bf9528ef1e6142b9bad9e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a58253de_f64fe71d",
+        "filename": "ct/py/sync_skia_in_chrome.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T17:34:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9448656b_b5c88cda",
+      "range": {
+        "startLine": 164,
+        "startChar": 38,
+        "endLine": 164,
+        "endChar": 59
+      },
+      "revId": "c755272c3f866dc5aa1bf9528ef1e6142b9bad9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
