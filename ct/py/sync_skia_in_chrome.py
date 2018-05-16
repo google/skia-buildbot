@@ -158,12 +158,14 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
                     shell=True)
 
   # Verify that we got the requested revisions of Chrome and Skia.
-  if skia_revision != actual_skia_rev and skia_revision != SKIA_REV_DEPS:
+  if (skia_revision != actual_skia_rev[:len(skia_revision)] and
+      skia_revision != SKIA_REV_DEPS):
     raise Exception('Requested Skia revision %s but got %s!' % (
-        repr(skia_revision), repr(actual_skia_rev)))
-  if chrome_revision and chrome_revision != actual_chrome_rev:
+        skia_revision, actual_skia_rev))
+  if (chrome_revision and
+      chrome_revision != actual_chrome_rev[:len(chrome_revision)]):
     raise Exception('Requested Chrome revision %s but got %s!' % (
-        repr(chrome_revision), repr(actual_chrome_rev)))
+        chrome_revision, actual_chrome_rev))
 
   return (actual_skia_rev, actual_chrome_rev)
 
