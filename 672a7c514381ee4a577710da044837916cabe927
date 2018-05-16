@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "24a49c81_c264db46",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T12:26:27Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "a4ff2e46_0ab601d9",
+      "range": {
+        "startLine": 51,
+        "startChar": 62,
+        "endLine": 52,
+        "endChar": 35
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7428df6a_87b3d7bf",
         "filename": "ct/go/util/chromium_builds.go",
         "patchSetId": 19
@@ -45,6 +69,30 @@
       "revId": "672a7c514381ee4a577710da044837916cabe927",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c15152d_41333144",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T12:26:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7428df6a_87b3d7bf",
+      "range": {
+        "startLine": 116,
+        "startChar": 34,
+        "endLine": 116,
+        "endChar": 50
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c7cd9850_4a5e70fb",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 903,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T12:26:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4971f64_9b915dbe",
+      "range": {
+        "startLine": 903,
+        "startChar": 29,
+        "endLine": 903,
+        "endChar": 33
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5daf6a27_cf871943",
         "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
         "patchSetId": 19
@@ -85,6 +157,24 @@
       "revId": "672a7c514381ee4a577710da044837916cabe927",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1535a30_c906df76",
+        "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T12:26:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5daf6a27_cf871943",
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "1a5b7f8d_34c0d8ad",
+        "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T12:26:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "38b50396_6ce90e37",
+      "range": {
+        "startLine": 92,
+        "startChar": 39,
+        "endLine": 92,
+        "endChar": 46
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f8a24f2_1f3d8487",
         "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
         "patchSetId": 19
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "0f7822c0_826262f0",
+        "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T12:26:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f8a24f2_1f3d8487",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 2
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ea1b90d_ea7a7a37",
         "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
         "patchSetId": 19
@@ -154,6 +292,30 @@
       "revId": "672a7c514381ee4a577710da044837916cabe927",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffe69040_cb615c4d",
+        "filename": "ct/go/worker_scripts/isolate_telemetry/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T12:26:27Z",
+      "side": 1,
+      "message": "That would probably work. But leaving the current approach because it\u0027s similar to the build_repo worker script.",
+      "parentUuid": "0ea1b90d_ea7a7a37",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 11
+      },
+      "revId": "672a7c514381ee4a577710da044837916cabe927",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
