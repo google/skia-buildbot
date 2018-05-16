@@ -139,7 +139,11 @@ master_scripts: build_chromium \
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
+<<<<<<< HEAD
+                pixel_diff capture_skps_from_pdfs run_chromium_perf \
+=======
                 pixel_diff run_chromium_perf \
+>>>>>>> 306bfcb700340c55777aa577c32d7a625e7a02fc
                 run_chromium_analysis build_repo metrics_analysis \
                 isolate_telemetry
 
