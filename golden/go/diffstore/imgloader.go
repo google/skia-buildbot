@@ -50,8 +50,6 @@ type ImageLoader struct {
 	// failureStore persists failures in retrieving images.
 	failureStore *failureStore
 
-	wg sync.WaitGroup
-
 	// mapper contains various functions for creating image IDs and paths.
 	mapper DiffStoreMapper
 }
@@ -91,11 +89,9 @@ func NewImgLoader(client *http.Client, baseDir, imgDir string, gsBucketNames []s
 // will not be fetched again.
 func (il *ImageLoader) Warm(priority int64, images []string, synchronous bool) {
 	var localWg sync.WaitGroup
-	il.wg.Add(len(images))
 	localWg.Add(len(images))
 	for _, id := range images {
 		go func(id string) {
-			defer il.wg.Done()
 			defer localWg.Done()
 			if err := il.imageCache.Warm(priority, id); err != nil {
 				sklog.Errorf("Unable to retrive image %s. Got error: %s", id, err)
@@ -107,11 +103,6 @@ func (il *ImageLoader) Warm(priority int64, images []string, synchronous bool) {
 	if synchronous {
 		localWg.Wait()
 	}
-}
-
-// sync waits until all pending go routines have terminated.
-func (il *ImageLoader) Sync() {
-	il.wg.Wait()
 }
 
 // errResult is a helper type to capture error information in Get(...).
@@ -131,20 +122,23 @@ type errResult struct {
 // 	return nil, nil
 // }
 
-func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, error) {
+func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, []<-chan bool, error) {
 	// Parallel load the requested images.
 	result := make([]*image.NRGBA, len(images))
+	doneCh := make([]<-chan bool, len(images))
 	errCh := make(chan errResult, len(images))
 	var wg sync.WaitGroup
 	wg.Add(len(images))
 	for idx, id := range images {
 		go func(idx int, id string) {
 			defer wg.Done()
-			img, err := il.imageCache.Get(priority, id)
+			tmp, err := il.imageCache.Get(priority, id)
 			if err != nil {
 				errCh <- errResult{err: err, id: id}
 			} else {
-				result[idx] = img.(*image.NRGBA)
+				ret := tmp.(imgRet)
+				result[idx] = ret.img
+				doneCh[idx] = ret.writtenCh
 			}
 		}(idx, id)
 	}
@@ -159,10 +153,10 @@ func (il *ImageLoader) Get(priority int64, images []string) ([]*image.NRGBA, err
 			// This captures the edge case when the error is cached in the image loader.
 			util.LogErr(il.failureStore.addDigestFailureIfNew(diff.NewDigestFailure(errRet.id, diff.OTHER)))
 		}
-		return nil, errors.New(msg.String())
+		return nil, nil, errors.New(msg.String())
 	}
 
-	return result, nil
+	return result, doneCh, nil
 }
 
 // IsOnDisk returns true if the image that corresponds to the given imageID is in the disk cache.
@@ -202,7 +196,7 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 			return nil, err
 		}
 		util.LogErr(il.failureStore.purgeDigestFailures([]string{imageID}))
-		return img, err
+		return imgRet{closedCh, img}, err
 	}
 
 	// Download the image
@@ -220,19 +214,34 @@ func (il *ImageLoader) imageLoadWorker(priority int64, imageID string) (interfac
 	}
 
 	// Save the file to disk.
-	il.saveImgInfoAsync(imageID, imgBytes)
-	return img, nil
+	writeDoneCh := il.saveImgInfoAsync(imageID, imgBytes)
+	return imgRet{writeDoneCh, img}, nil
 }
 
-func (il *ImageLoader) saveImgInfoAsync(imageID string, imgBytes []byte) {
-	il.wg.Add(1)
+var closedCh = getClosedWriteDoneCh()
+
+func getClosedWriteDoneCh() <-chan bool {
+	ret := make(chan bool)
+	close(ret)
+	return ret
+}
+
+type imgRet struct {
+	writtenCh <-chan bool
+	img       *image.NRGBA
+}
+
+func (il *ImageLoader) saveImgInfoAsync(imageID string, imgBytes []byte) <-chan bool {
+	writeDoneCh := make(chan bool)
 	go func() {
-		defer il.wg.Done()
 		localRelPath, _, _ := il.mapper.ImagePaths(imageID)
 		if err := saveFilePath(filepath.Join(il.localImgDir, localRelPath), bytes.NewBuffer(imgBytes)); err != nil {
 			sklog.Error(err)
+			return
 		}
+		close(writeDoneCh)
 	}()
+	return writeDoneCh
 }
 
 // downloadImg retrieves the given image from Google storage. If bucket is not empty

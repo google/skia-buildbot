@@ -5,6 +5,7 @@ import (
 	"path"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"go.skia.org/infra/golden/go/diff"
 
@@ -45,8 +46,7 @@ func TestImageLoader(t *testing.T) {
 
 	// Prefetch the images synchronously.
 	digests := digestSet.Keys()[:100]
-	imageLoader.Warm(1, digests, false)
-	imageLoader.Sync()
+	imageLoader.Warm(1, digests, true)
 
 	// Make sure they are on disk.
 	for _, digest := range digests {
@@ -55,22 +55,23 @@ func TestImageLoader(t *testing.T) {
 
 	// Get the images directly from cache
 	ti := timer.New("Fetch images")
-	_, err := imageLoader.Get(1, digests)
+	_, _, err := imageLoader.Get(1, digests)
 	assert.NoError(t, err)
 	ti.Stop()
 
 	// Fetch images from the secondary bucket.
-	_, err = imageLoader.Get(1, []string{TEST_IMG_DIGEST})
+	_, _, err = imageLoader.Get(1, []string{TEST_IMG_DIGEST})
 	assert.NoError(t, err)
-	_, err = imageLoader.Get(1, []string{"some-image-that-does-not-exist-at-all-in-any-bucket"})
+	_, _, err = imageLoader.Get(1, []string{"some-image-that-does-not-exist-at-all-in-any-bucket"})
 	assert.Error(t, err)
 
 	// Fetch arbitrary images from GCS.
 	gcsImgID := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
-	foundImgs, err := imageLoader.Get(1, []string{gcsImgID})
+	foundImgs, doneWrittingCh, err := imageLoader.Get(1, []string{gcsImgID})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(foundImgs))
-	imageLoader.Sync()
+	waitForAllClosed(doneWrittingCh)
+
 	relLocalPath, _, _ := mapper.ImagePaths(gcsImgID)
 	localPath := filepath.Join(imageLoader.localImgDir, relLocalPath)
 	localImg, err := diff.OpenNRGBAFromFile(localPath)
@@ -97,4 +98,25 @@ func getImageLoaderAndTile(t assert.TestingT, mapper DiffStoreMapper) (string, *
 	imgLoader, err := NewImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GCS_IMAGE_DIR, imgCacheCount, mapper)
 	assert.NoError(t, err)
 	return workingDir, tile, imgLoader, cleanup
+}
+
+func waitForAllClosed(channels []<-chan bool) {
+	for {
+		done := true
+	loop:
+		for _, ch := range channels {
+			if ch != nil {
+				select {
+				case <-ch:
+				default:
+					done = false
+					time.Sleep(time.Millisecond)
+					break loop
+				}
+			}
+		}
+		if done {
+			return
+		}
+	}
 }
