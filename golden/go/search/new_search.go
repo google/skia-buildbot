@@ -298,7 +298,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 	defer span.End()
 
 	// Get the issue.
-	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true, q.Patchsets)
+	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -307,17 +307,35 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 		return nil, nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
 	}
 
-	// Determine the patchsets we need to retrieve.
+	// If no patchsets were given we pick the last one that has tryjobs.
 	issue.QueryPatchsets = q.Patchsets
 	if len(issue.QueryPatchsets) == 0 {
 		issue.QueryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
-		for _, psd := range issue.PatchsetDetails {
-			issue.QueryPatchsets = append(issue.QueryPatchsets, psd.ID)
+		for i := len(issue.PatchsetDetails) - 1; i >= 0; i-- {
+			ps := issue.PatchsetDetails[i]
+			if len(ps.Tryjobs) > 0 {
+				issue.QueryPatchsets = append(issue.QueryPatchsets, ps.ID)
+				break
+			}
 		}
 	}
 
+	// Build the intermediate map to compare against the tile
+	ret := srInterMap{}
+
+	// Extract the list of tryjobs to consider.
+	tryjobs := []*tryjobstore.Tryjob{}
+	for _, psID := range issue.QueryPatchsets {
+		tryjobs = append(tryjobs, issue.FindPatchset(psID).Tryjobs...)
+	}
+
+	// If there are no tryjobs we are done.
+	if len(tryjobs) == 0 {
+		return ret, issue, nil
+	}
+
 	// Get the results
-	_, tjResults, err := s.storages.TryjobStore.GetTryjobResults(q.Issue, issue.QueryPatchsets, true)
+	tjResults, err := s.storages.TryjobStore.GetTryjobResults(tryjobs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -346,7 +364,6 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 	}
 
 	// Adjust the add function to exclude digests already in the master branch
-	ret := srInterMap{}
 	addFn := ret.add
 	if !q.IncludeMaster {
 		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)

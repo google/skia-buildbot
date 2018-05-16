@@ -3,16 +3,12 @@ package tryjobstore
 import (
 	"errors"
 	"fmt"
-	"os"
-	"os/user"
 	"sort"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"google.golang.org/api/option"
 
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
@@ -25,24 +21,14 @@ func TestCloudTryjobStore(t *testing.T) {
 	testutils.LargeTest(t)
 	t.Skip()
 
-	// If a service account file is in the environment then connect to the real datastore.
-	serviceAccountFile := os.Getenv("DS_SERVICE_ACCOUNT_FILE")
-	if serviceAccountFile != "" {
-		// Construct a namespace based on the user.
-		currUser, err := user.Current()
-		assert.NoError(t, err)
-		nameSpace := fmt.Sprintf("gold-localhost-%s-testing", currUser.Username)
-		assert.NoError(t, ds.InitWithOpt(common.PROJECT_ID, nameSpace, option.WithServiceAccountFile(serviceAccountFile)))
-	} else {
-		// Otherwise try and connect to a locally running emulator.
-		cleanup := testutil.InitDatastore(t,
-			ds.ISSUE,
-			ds.TRYJOB,
-			ds.TRYJOB_RESULT,
-			ds.TRYJOB_EXP_CHANGE,
-			ds.TEST_DIGEST_EXP)
-		defer cleanup()
-	}
+	// Otherwise try and connect to a locally running emulator.
+	cleanup := testutil.InitDatastore(t,
+		ds.ISSUE,
+		ds.TRYJOB,
+		ds.TRYJOB_RESULT,
+		ds.TRYJOB_EXP_CHANGE,
+		ds.TEST_DIGEST_EXP)
+	defer cleanup()
 
 	eventBus := eventbus.New()
 	store, err := NewCloudTryjobStore(ds.DS, eventBus)
@@ -81,14 +67,17 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		Updated:       nowSec,
 	}
 
-	// Delete the tryjobs from the datastore.
-	assert.NoError(t, store.DeleteIssue(issueID))
-	fmt.Printf("Deleted tryjobs. Starting to insert.\n")
-	defer func() {
-		assert.NoError(t, store.DeleteIssue(issueID))
-	}()
-	time.Sleep(5 * time.Second)
+	buildBucketID_3 := int64(40199)
+	tryjob_3 := &Tryjob{
+		IssueID:       issueID,
+		PatchsetID:    patchsetID_2,
+		Builder:       "Test-Builder-2",
+		BuildBucketID: buildBucketID_3,
+		Status:        TRYJOB_COMPLETE,
+		Updated:       nowSec.Add(-time.Hour),
+	}
 
+	// Delete the tryjobs from the datastore.
 	issue := &Issue{
 		ID:      issueID,
 		Subject: "Test issue",
@@ -110,19 +99,23 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	assert.NoError(t, store.UpdateTryjob(0, tryjob_1, nil))
 	found, err := store.GetTryjob(issueID, buildBucketID)
 	assert.NoError(t, err)
+	found.Key = nil
 	assert.Equal(t, tryjob_1.Updated, found.Updated)
 	assert.Equal(t, tryjob_1, found)
 	assert.NoError(t, store.UpdateTryjob(0, tryjob_2, nil))
 
 	time.Sleep(5 * time.Second)
-	foundIssue, err := store.GetIssue(issueID, true, nil)
+	foundIssue, err := store.GetIssue(issueID, true)
 	assert.NoError(t, err)
 	assert.NotNil(t, foundIssue)
 	foundTryjobs := []*Tryjob{}
 	for _, ps := range foundIssue.PatchsetDetails {
+		for _, tj := range ps.Tryjobs {
+			tj.Key = nil
+		}
 		foundTryjobs = append(foundTryjobs, ps.Tryjobs...)
 	}
-	assert.Equal(t, []*Tryjob{tryjob_1, tryjob_2}, foundTryjobs)
+	testutils.AssertDeepEqual(t, []*Tryjob{tryjob_1, tryjob_2}, foundTryjobs)
 
 	listedIssues, total, err := store.ListIssues(0, 1000)
 	assert.NoError(t, err)
@@ -156,14 +149,30 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 
 	time.Sleep(5 * time.Second)
 
-	foundTJs, foundTJResults, err := store.GetTryjobResults(issueID, []int64{patchsetID, patchsetID_2}, false)
+	foundTJs, foundTJResults, err := store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, true)
 	assert.NoError(t, err)
 	assert.Equal(t, len(allTryjobs), len(foundTJs))
 	for idx := range allTryjobs {
+		foundTJs[idx].Key = nil
 		assert.Equal(t, allTryjobs[idx], foundTJs[idx])
 		tjr := foundTJResults[idx]
 		sort.Slice(tjr, func(i, j int) bool { return tjr[i].Digest < tjr[j].Digest })
 		assert.Equal(t, tryjobResults[idx], tjr)
+	}
+
+	// Add a redundant Tryjob make sure it's filtered out.
+	assert.NoError(t, store.UpdateTryjob(0, tryjob_3, nil))
+	foundTJs, _, err = store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, false)
+	assert.NoError(t, err)
+	assert.Equal(t, len(allTryjobs)+1, len(foundTJs))
+
+	// Filter out duplicates
+	foundTJs, _, err = store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, true, false)
+	assert.NoError(t, err)
+	assert.Equal(t, len(allTryjobs), len(foundTJs))
+	for idx := range allTryjobs {
+		foundTJs[idx].Key = nil
+		assert.Equal(t, allTryjobs[idx], foundTJs[idx])
 	}
 
 	// Add changes to the issue
@@ -219,7 +228,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	assert.Error(t, store.CommitIssueExp(issueID, func() error {
 		return errors.New("Write failed")
 	}))
-	foundIssue, err = store.GetIssue(issueID, false, nil)
+	foundIssue, err = store.GetIssue(issueID, false)
 	assert.NoError(t, err)
 	assert.False(t, foundIssue.Committed)
 
@@ -229,7 +238,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		return nil
 	}))
 
-	foundIssue, err = store.GetIssue(issueID, false, nil)
+	foundIssue, err = store.GetIssue(issueID, false)
 	assert.NoError(t, err)
 	assert.True(t, foundIssue.Committed)
 }

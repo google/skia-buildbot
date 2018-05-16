@@ -49,7 +49,7 @@ type TryjobStore interface {
 
 	// GetIssue retrieves information about the given issue and patchsets. If needded
 	// this will include tryjob information.
-	GetIssue(issueID int64, loadTryjobs bool, targetPatchsets []int64) (*Issue, error)
+	GetIssue(issueID int64, loadTryjobs bool) (*Issue, error)
 
 	// UpdateIssue updates the given issue with the provided data. If the issue does not
 	// exist in the database it will be created.
@@ -63,14 +63,21 @@ type TryjobStore interface {
 	// DeleteIssue deletes the given issue and related information.
 	DeleteIssue(issueID int64) error
 
+	// GetTryjobs returns the Tryjobs for given issues. If filterDup is true it
+	// will also filter duplicate tryjobs for each patchset and only keep the newest.
+	// If loadResults is true it will also load the Tryjob results. The second
+	// return value will contain the results of the Tryjob with same index in the
+	// first return value.
+	GetTryjobs(issueID int64, patchsetIDs []int64, filterDup bool, loadResults bool) ([]*Tryjob, [][]*TryjobResult, error)
+
 	// GetTryjob returns the Tryjob instance defined by issueID and buildBucketID.
 	GetTryjob(issueID, buildBucketID int64) (*Tryjob, error)
 
-	// GetTryjobResults returns the results for the given issue and patchsets.
-	// If filterDup is true only the newest results (by patchset) are returned,
-	// e.g. if the 'Test-Some-Platform' builder is run for patchset 1 and for
-	// patchset 5, only the results of the latter run are included.
-	GetTryjobResults(issueID int64, patchsetID []int64, filterDup bool) ([]*Tryjob, [][]*TryjobResult, error)
+	// GetTryjobResults returns the results for the given Tryjobs.
+	// This is intended to be used when we have a list of Tryjobs already
+	// and we want to avoid another trip to the database to fetch them. The
+	// return slice will match the indices of the input slice.
+	GetTryjobResults(tryjobs []*Tryjob) ([][]*TryjobResult, error)
 
 	// UpdateTryjob updates the information about a tryjob. If the tryjob does not
 	// exist it will be created. If tryjob is not nil it will be written to the
@@ -149,7 +156,7 @@ func (c *cloudTryjobStore) ListIssues(offset, size int) ([]*Issue, int, error) {
 }
 
 // GetIssue implements the TryjobStore interface.
-func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatchsets []int64) (*Issue, error) {
+func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool) (*Issue, error) {
 	target := &Issue{}
 	key := c.getIssueKey(issueID)
 	ok, err := c.getEntity(key, target, nil)
@@ -162,25 +169,17 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool, targetPatch
 	}
 
 	if loadTryjobs {
-		_, tryjobs, err := c.getTryjobsForIssue(issueID, nil, false)
+		_, tryjobsMap, err := c.getTryjobsForIssue(issueID, nil, false, true)
 		if err != nil {
 			return nil, sklog.FmtErrorf("Error getting tryjobs for issue: %s", err)
 		}
 
-		for _, tj := range tryjobs {
-			ps := target.findPatchset(tj.PatchsetID)
+		for patchsetID, tryjobs := range tryjobsMap {
+			ps := target.FindPatchset(patchsetID)
 			if ps == nil {
-				return nil, sklog.FmtErrorf("Unable to find patchset %d in issue %d:", tj.PatchsetID, target.ID)
+				return nil, sklog.FmtErrorf("Unable to find patchset %d in issue %d:", patchsetID, target.ID)
 			}
-			ps.Tryjobs = append(ps.Tryjobs, tj)
-		}
-
-		for _, ps := range target.PatchsetDetails {
-			func(tryjobs []*Tryjob) {
-				sort.Slice(tryjobs, func(i, j int) bool {
-					return tryjobs[i].BuildBucketID < tryjobs[j].BuildBucketID
-				})
-			}(ps.Tryjobs)
+			ps.Tryjobs = tryjobs
 		}
 	}
 
@@ -289,48 +288,48 @@ func (c *cloudTryjobStore) UpdateTryjob(buildBucketID int64, tryjob *Tryjob, new
 	return nil
 }
 
-// GetTryjobResults implements the TryjobStore interface.
-func (c *cloudTryjobStore) GetTryjobResults(issueID int64, patchsetIDs []int64, filterDup bool) ([]*Tryjob, [][]*TryjobResult, error) {
-	tryjobKeys, tryjobs, err := c.getTryjobsForIssue(issueID, patchsetIDs, false)
+// GetTryjobs implements the TryjobStore interface.
+func (c *cloudTryjobStore) GetTryjobs(issueID int64, patchsetIDs []int64, filterDup bool, loadResults bool) ([]*Tryjob, [][]*TryjobResult, error) {
+	flatTryjobKeys, tryjobsMap, err := c.getTryjobsForIssue(issueID, patchsetIDs, false, filterDup)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Filter tryjob runs that have runs against newer patchsets.
-	if filterDup {
-		// sort tryjobs by patchset and when they were last updated.
-		sort.Slice(tryjobKeys, func(i, j int) bool {
-			return (tryjobs[i].PatchsetID < tryjobs[j].PatchsetID) ||
-				((tryjobs[i].PatchsetID == tryjobs[j].PatchsetID) && (tryjobs[i].Updated.Before(tryjobs[j].Updated)))
-		})
-
-		// Iterate the builders in reverse order filter out duplicates by builder.
-		builders := util.StringSet{}
-		for i := len(tryjobs) - 1; i >= 0; i-- {
-			if builders[tryjobs[i].Builder] {
-				tryjobs[i] = nil
-			} else {
-				builders[tryjobs[i].Builder] = true
-			}
-		}
-
-		newTryjobKeys := make([]*datastore.Key, 0, len(builders))
-		newTryjobs := make([]*Tryjob, 0, len(builders))
-		for idx, tryjob := range tryjobs {
-			if tryjob != nil {
-				newTryjobs = append(newTryjobs, tryjob)
-				newTryjobKeys = append(newTryjobKeys, tryjobKeys[idx])
-			}
-		}
-		tryjobs = newTryjobs
-		tryjobKeys = newTryjobKeys
+	// Flatten the Tryjobs map and make sure the element in keys matches.
+	tryjobs := make([]*Tryjob, 0, len(flatTryjobKeys))
+	for _, tjs := range tryjobsMap {
+		tryjobs = append(tryjobs, tjs...)
 	}
+
+	sort.Slice(tryjobs, func(i, j int) bool {
+		return tryjobs[i].Builder < tryjobs[j].Builder
+	})
+
+	var results [][]*TryjobResult
+	if loadResults {
+		var err error
+		results, err = c.GetTryjobResults(tryjobs)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return tryjobs, results, nil
+}
+
+// GetTryjobResults implements the TryjobStore interface.
+func (c *cloudTryjobStore) GetTryjobResults(tryjobs []*Tryjob) ([][]*TryjobResult, error) {
+	tryjobKeys := make([]*datastore.Key, 0, len(tryjobs))
+	for _, tryjob := range tryjobs {
+		tryjobKeys = append(tryjobKeys, tryjob.Key)
+	}
+
 	_, tryjobResults, err := c.getResultsForTryjobs(tryjobKeys, false)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return tryjobs, tryjobResults, nil
+	return tryjobResults, nil
 }
 
 // UpdateTryjobResults implements the TryjobStore interface.
@@ -499,7 +498,7 @@ func (c *cloudTryjobStore) QueryLog(issueID int64, offset, size int, details boo
 // deleteTryjobsForIssue deletes all tryjob information for the given issue.
 func (c *cloudTryjobStore) deleteTryjobsForIssue(issueID int64) error {
 	// Get all the tryjob keys.
-	tryjobKeys, _, err := c.getTryjobsForIssue(issueID, nil, true)
+	tryjobKeys, _, err := c.getTryjobsForIssue(issueID, nil, true, false)
 	if err != nil {
 		return fmt.Errorf("Error retrieving tryjob keys: %s", err)
 	}
@@ -648,8 +647,13 @@ func (c *cloudTryjobStore) getTestDigestExps(changeKey *datastore.Key, keysOnly 
 	return expsKeys, exps, nil
 }
 
-// getTryjobsForIssue returns the tryjobs for the given issue.
-func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64, keysOnly bool) ([]*datastore.Key, []*Tryjob, error) {
+// getTryjobsForIssue is a utility function that retrieves the Tryjobs for a given
+// issue and list of patchsets. If keysOnly is true only the keys of the Tryjobs will
+// be returned. If filterDup is true duplicate Tryjobs will be filtered out for
+// each patchset, only keeping the newest.
+// The first return value is the unordered slice of keys of the Tryjobs.
+// The second return value groups the tryjobs for each patchset as a map[patch_set_id][]*Tryjob.
+func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64, keysOnly bool, filterDup bool) ([]*datastore.Key, map[int64][]*Tryjob, error) {
 	if len(patchsetIDs) == 0 {
 		patchsetIDs = []int64{-1}
 	} else {
@@ -691,20 +695,49 @@ func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64
 		return nil, nil, err
 	}
 
+	// Assemble the flat array of keys.
 	retKeys := make([]*datastore.Key, 0, resultSize)
-	var retVals []*Tryjob = nil
-	if !keysOnly {
-		retVals = make([]*Tryjob, 0, resultSize)
+	for _, keys := range keysArr {
+		retKeys = append(retKeys, keys...)
 	}
 
-	for idx, keys := range keysArr {
-		retKeys = append(retKeys, keys...)
-		if !keysOnly {
-			retVals = append(retVals, valsArr[idx]...)
+	// If all we want are the keys we are done.
+	if keysOnly {
+		return retKeys, nil, nil
+	}
+
+	// Group the tryjobs by their patchsets
+	tryjobsMap := make(map[int64][]*Tryjob, resultSize)
+	for _, tryjobs := range valsArr {
+		for _, tj := range tryjobs {
+			tryjobsMap[tj.PatchsetID] = append(tryjobsMap[tj.PatchsetID], tj)
 		}
 	}
 
-	return retKeys, retVals, nil
+	// Go through the patchsets and dedupe tryjobs for each.
+	if filterDup {
+		for patchsetID, tryjobs := range tryjobsMap {
+			// sort when they were last updated
+			sort.Slice(tryjobs, func(i, j int) bool { return tryjobs[i].Updated.Before(tryjobs[j].Updated) })
+
+			// Iterate the builders in reverse order and filter out duplicate builders.
+			builders := util.StringSet{}
+			for i := len(tryjobs) - 1; i >= 0; i-- {
+				if builders[tryjobs[i].Builder] {
+					copy(tryjobs[i:], tryjobs[i+1:])
+					tryjobs[len(tryjobs)-1] = nil
+					tryjobs = tryjobs[:len(tryjobs)-1]
+				} else {
+					builders[tryjobs[i].Builder] = true
+				}
+			}
+
+			// NOTE: Store the new slice back into the tryjobs map since we might have removed some values.
+			tryjobsMap[patchsetID] = tryjobs
+		}
+	}
+
+	return retKeys, tryjobsMap, nil
 }
 
 // updateEntity writes the given entity to the datastore. If the
