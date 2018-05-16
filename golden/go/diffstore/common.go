@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"time"
 
 	"github.com/boltdb/bolt"
 
@@ -117,4 +118,27 @@ func (m MetricMapCodec) Decode(byteData []byte) (interface{}, error) {
 		ret[k] = metric
 	}
 	return ret, nil
+}
+
+type PendingIO []<-chan bool
+
+func (p PendingIO) Wait() {
+	for {
+		done := true
+	loop:
+		for _, ch := range p {
+			if ch != nil {
+				select {
+				case <-ch:
+				default:
+					done = false
+					time.Sleep(time.Millisecond)
+					break loop
+				}
+			}
+		}
+		if done {
+			return
+		}
+	}
 }
