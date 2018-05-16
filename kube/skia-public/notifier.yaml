@@ -36,7 +36,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: notifier
-          image: gcr.io/skia-public/notifier:2018-05-16T14_01_53Z-jcgregorio-a4855dc-clean
+          image: gcr.io/skia-public/notifier:2018-05-16T14_40_31Z-jcgregorio-80445ff-dirty
           args:
             - "--logtostderr"
             - "--port=:9000"
@@ -45,8 +45,8 @@ spec:
             - "--email_token_cache_file=/etc/notifier-alertserver-skia-org-secrets/client_token.json"
             - "--chat_webhooks_file=/etc/notifier-chat-config/chat_config.txt"
           ports:
-            - containerPort: 20000
             - containerPort: 9000
+            - containerPort: 20000
           volumeMounts:
             - name: notifier-alertserver-skia-org-secrets
               mountPath: /etc/notifier-alertserver-skia-org-secrets
@@ -56,6 +56,12 @@ spec:
             requests:
               memory: "30Mi"
               cpu: "20m"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9000
+            initialDelaySeconds: 3
+            periodSeconds: 3
       volumes:
         - name: notifier-alertserver-skia-org-secrets
           secret:
