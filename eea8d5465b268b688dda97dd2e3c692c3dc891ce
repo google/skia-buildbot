@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "eacd317e_c8ced1c0",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T14:43:41Z",
+      "side": 1,
+      "message": "(Applies to both analysis and perf)",
+      "parentUuid": "543e7179_3cec757f",
+      "range": {
+        "startLine": 196,
+        "startChar": 68,
+        "endLine": 196,
+        "endChar": 85
+      },
+      "revId": "eea8d5465b268b688dda97dd2e3c692c3dc891ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fd8cd2ea_e2f91a10",
         "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
         "patchSetId": 1
