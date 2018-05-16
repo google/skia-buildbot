@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "48ec10ca_84f578ec",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T19:02:11Z",
+      "side": 1,
+      "message": "Whoops. Done.",
+      "parentUuid": "210167e3_c1a0a8ec",
+      "range": {
+        "startLine": 190,
+        "startChar": 127,
+        "endLine": 190,
+        "endChar": 129
+      },
+      "revId": "5d434d5d1df6c23bdd59df75f59925847c5cf00d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c27c8e51_4c96768a",
         "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2018-05-16T18:49:24Z",
       "side": 1,
       "message": "There\u0027s also sklog.FmtErrorf, which includes file and line number in the error message. Since you are replacing sklog.Errorf, that might preserve debugging info.\n\nI should have mentioned this in prev CLs.",
+      "range": {
+        "startLine": 192,
+        "startChar": 10,
+        "endLine": 192,
+        "endChar": 14
+      },
+      "revId": "5d434d5d1df6c23bdd59df75f59925847c5cf00d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b6d8657_2994d7d3",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T19:02:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c27c8e51_4c96768a",
       "range": {
         "startLine": 192,
         "startChar": 10,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "dd10a421_8eef02f6",
+        "filename": "ct/go/master_scripts/run_chromium_perf_on_workers/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T19:02:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "807bfa75_626bf51e",
+      "range": {
+        "startLine": 196,
+        "startChar": 72,
+        "endLine": 196,
+        "endChar": 74
+      },
+      "revId": "5d434d5d1df6c23bdd59df75f59925847c5cf00d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22aea7cf_2702ee0e",
         "filename": "ct/go/master_scripts/run_chromium_perf_on_workers/main.go",
         "patchSetId": 4
@@ -91,6 +163,30 @@
       "revId": "5d434d5d1df6c23bdd59df75f59925847c5cf00d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee4a7b78_25123c25",
+        "filename": "ct/go/master_scripts/run_chromium_perf_on_workers/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-16T19:02:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22aea7cf_2702ee0e",
+      "range": {
+        "startLine": 210,
+        "startChar": 72,
+        "endLine": 210,
+        "endChar": 74
+      },
+      "revId": "5d434d5d1df6c23bdd59df75f59925847c5cf00d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
