@@ -218,6 +218,19 @@ func main() {
 	// Parse out the Chromium and Skia hashes.
 	chromiumHash, skiaHash := util.GetHashesFromBuild(chromiumBuildNoPatch)
 
+	// Isolate telemetry.
+	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour)
+	if err != nil {
+		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
+		return
+	}
+	if telemetryHash == "" {
+		sklog.Error("Found empty telemetry hash!")
+		return
+	}
+	isolateDeps := []string{telemetryHash}
+
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
 		"CHROMIUM_BUILD_NOPATCH":       chromiumBuildNoPatch,
@@ -242,7 +255,7 @@ func main() {
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), []string{} /* isolateDeps */)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
