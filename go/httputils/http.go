@@ -43,6 +43,11 @@ const (
 	MAX_BYTES_IN_RESPONSE_BODY = 10 * 1024 //10 KB
 )
 
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+}
+
 // DialTimeout is a dialer that sets a timeout.
 func DialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, DIAL_TIMEOUT)
