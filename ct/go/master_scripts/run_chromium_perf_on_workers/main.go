@@ -52,7 +52,6 @@ var (
 	chromiumPatchLink   = util.MASTER_LOGSERVER_LINK
 	v8PatchLink         = util.MASTER_LOGSERVER_LINK
 	catapultPatchLink   = util.MASTER_LOGSERVER_LINK
-	benchmarkPatchLink  = util.MASTER_LOGSERVER_LINK
 	customWebpagesLink  = util.MASTER_LOGSERVER_LINK
 	noPatchOutputLink   = util.MASTER_LOGSERVER_LINK
 	withPatchOutputLink = util.MASTER_LOGSERVER_LINK
@@ -163,9 +162,8 @@ func main() {
 	chromiumPatchName := *runID + ".chromium.patch"
 	v8PatchName := *runID + ".v8.patch"
 	catapultPatchName := *runID + ".catapult.patch"
-	benchmarkPatchName := *runID + ".benchmark.patch"
 	customWebpagesName := *runID + ".custom_webpages.csv"
-	for _, patchName := range []string{skiaPatchName, chromiumPatchName, v8PatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
+	for _, patchName := range []string{skiaPatchName, chromiumPatchName, v8PatchName, catapultPatchName, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			sklog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
@@ -175,7 +173,6 @@ func main() {
 	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
 	v8PatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, v8PatchName)
 	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
-	benchmarkPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, benchmarkPatchName)
 	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
 	// Check if the patches have any content to decide if we need one or two chromium builds.
@@ -297,7 +294,6 @@ func main() {
 		"--requester_email=" + *emails,
 		"--skia_patch_link=" + skiaPatchLink,
 		"--chromium_patch_link=" + chromiumPatchLink,
-		"--benchmark_patch_link=" + benchmarkPatchLink,
 		"--description=" + *description,
 		"--raw_csv_nopatch=" + noPatchOutputLink,
 		"--raw_csv_withpatch=" + withPatchOutputLink,

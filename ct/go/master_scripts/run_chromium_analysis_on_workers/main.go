@@ -48,7 +48,6 @@ var (
 	skiaPatchLink      = util.MASTER_LOGSERVER_LINK
 	v8PatchLink        = util.MASTER_LOGSERVER_LINK
 	catapultPatchLink  = util.MASTER_LOGSERVER_LINK
-	benchmarkPatchLink = util.MASTER_LOGSERVER_LINK
 	customWebpagesLink = util.MASTER_LOGSERVER_LINK
 	outputLink         = util.MASTER_LOGSERVER_LINK
 )
@@ -90,7 +89,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	%s
 	The CSV output is <a href='%s'>here</a>.%s<br/>
 	The patch(es) you specified are here:
-	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>/<a href='%s'>telemetry</a>
+	<a href='%s'>chromium</a>/<a href='%s'>skia</a>/<a href='%s'>v8</a>/<a href='%s'>catapult</a>
 	<br/>
 	Custom webpages (if specified) are <a href='%s'>here</a>.
 	<br/><br/>
@@ -98,7 +97,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, benchmarkPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, customWebpagesLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
@@ -164,9 +163,8 @@ func main() {
 	skiaPatchName := *runID + ".skia.patch"
 	v8PatchName := *runID + ".v8.patch"
 	catapultPatchName := *runID + ".catapult.patch"
-	benchmarkPatchName := *runID + ".benchmark.patch"
 	customWebpagesName := *runID + ".custom_webpages.csv"
-	for _, patchName := range []string{chromiumPatchName, v8PatchName, skiaPatchName, catapultPatchName, benchmarkPatchName, customWebpagesName} {
+	for _, patchName := range []string{chromiumPatchName, v8PatchName, skiaPatchName, catapultPatchName, customWebpagesName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			sklog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
@@ -176,7 +174,6 @@ func main() {
 	skiaPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, skiaPatchName)
 	v8PatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, v8PatchName)
 	catapultPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, catapultPatchName)
-	benchmarkPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, benchmarkPatchName)
 	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
 	// Create the required chromium build.
