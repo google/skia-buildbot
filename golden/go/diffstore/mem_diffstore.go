@@ -296,11 +296,14 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 
 			// Make sure the file exists. If not fetch it. Should be the exception.
 			if !m.imgLoader.IsOnDisk(imgID) {
-				if _, err = m.imgLoader.Get(diff.PRIORITY_NOW, []string{imgID}); err != nil {
+				_, pendingWrites, err := m.imgLoader.Get(diff.PRIORITY_NOW, []string{imgID})
+				if err != nil {
 					sklog.Errorf("Errorf retrieving digests: %s", imgID)
 					noCacheNotFound(w, r)
 					return
 				}
+				// Wait until the images are written to disk.
+				pendingWrites.Wait()
 			}
 			localRelPath, _, _ = m.mapper.ImagePaths(imgID)
 		} else {
@@ -344,7 +347,7 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 	}
 
 	// Get the images.
-	imgs, err := d.imgLoader.Get(priority, []string{leftDigest, rightDigest})
+	imgs, _, err := d.imgLoader.Get(priority, []string{leftDigest, rightDigest})
 	if err != nil {
 		return nil, err
 	}

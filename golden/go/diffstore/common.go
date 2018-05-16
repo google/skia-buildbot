@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"time"
 
 	"github.com/boltdb/bolt"
 
@@ -117,4 +118,31 @@ func (m MetricMapCodec) Decode(byteData []byte) (interface{}, error) {
 		ret[k] = metric
 	}
 	return ret, nil
+}
+
+// PendingIO is a helper type that allows to synchronize IO operations via the
+// Wait function.
+type PendingIO []<-chan bool
+
+// Wait blocks until the pending IO operations are finished. If the operations
+// are not already done when called it will block for at least one millisecond.
+func (p PendingIO) Wait() {
+	for {
+		done := true
+	loop:
+		for _, ch := range p {
+			if ch != nil {
+				select {
+				case <-ch:
+				default:
+					done = false
+					time.Sleep(time.Millisecond)
+					break loop
+				}
+			}
+		}
+		if done {
+			return
+		}
+	}
 }
