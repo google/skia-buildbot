@@ -146,6 +146,7 @@ const (
 	SWARMING_DIR_NAME               = "swarming"
 	SWARMING_POOL                   = "CT"
 	BUILD_OUTPUT_FILENAME           = "build_remote_dirs.txt"
+	ISOLATE_TELEMETRY_FILENAME      = "isolate_telemetry_hash.txt"
 	MAX_SWARMING_HARD_TIMEOUT_HOURS = 24
 	// Timeouts.
 	BATCHARCHIVE_TIMEOUT = 10 * time.Minute
@@ -160,6 +161,7 @@ const (
 	PIXEL_DIFF_ISOLATE        = "pixel_diff.isolate"
 	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
 	BUILD_REPO_ISOLATE        = "build_repo.isolate"
+	ISOLATE_TELEMETRY_ISOLATE = "isolate_telemetry.isolate"
 	// Swarming links and params.
 	// TODO(rmistry): The below link contains "st=1262304000000" which is from 2010. This is done so
 	// that swarming will not use today's timestamp as default. See if there is a better way to handle
