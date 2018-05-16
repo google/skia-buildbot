@@ -163,10 +163,6 @@
                     patch-type="chromium"
                     cl-description="{{chromiumClDescription}}">
           </patch-sk>
-          <paper-checkbox id="benchmark_patch" checked>
-            Apply this patch when running benchmarks?
-            Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.d3d1e25u2mzy">here</a>
-          </paper-checkbox>
         </td>
       </tr>
 
@@ -393,9 +389,6 @@
        params["skia_patch"] = this.$.skia_patch.patch;
        params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
-       if (this.$.benchmark_patch.checked) {
-         params["benchmark_patch"] = this.$.chromium_patch.patch;
-       }
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
        params["run_in_parallel"] = this.$.run_in_parallel.selected == "run_in_parallel_True";
        params["platform"] = this.$.target_platform.selected;
