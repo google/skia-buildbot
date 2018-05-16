@@ -19,7 +19,7 @@ type ReadThroughCache interface {
 	// item desired item via the worker function, an error is returned.
 	Warm(priority int64, id string) error
 
-	// Contains returns true if the identfied item is currently cached.
+	// Contains returns true if the identified item is currently cached.
 	Contains(id string) bool
 
 	// Keys returns the keys of the cache.
