@@ -286,6 +286,30 @@
     },
     {
       "key": {
+        "uuid": "4b192e4e_0fce70a8",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 724,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-16T14:05:10Z",
+      "side": 1,
+      "message": "you are right and this obviously wasn\u0027t tested. I expanded the test (still skipped but passes locally) and fixed the issue. Thanks.",
+      "parentUuid": "6c5bd3ad_1da56cad",
+      "range": {
+        "startLine": 724,
+        "startChar": 3,
+        "endLine": 724,
+        "endChar": 11
+      },
+      "revId": "7b9d9be316db55d340917b72b94dcab06fa0c0c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f0478943_aa01b530",
         "filename": "golden/go/tryjobstore/tryjobstore_test.go",
         "patchSetId": 12
