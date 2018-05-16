@@ -161,60 +161,75 @@ func main() {
 	chromiumPatchLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, chromiumPatchName)
 	customWebpagesLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, remoteOutputDir, customWebpagesName)
 
-	// Check if the patches have any content to decide if we need one or two chromium builds.
-	var chromiumBuildNoPatch, chromiumBuildWithPatch string
-	localPatches := []string{filepath.Join(os.TempDir(), chromiumPatchName), filepath.Join(os.TempDir(), skiaPatchName)}
-	remotePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName)}
-	if util.PatchesAreEmpty(localPatches) {
-		// Create only one chromium build.
-		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-			ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{}, remotePatches,
-			/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
-		if err != nil {
-			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
-			return
-		}
-		if len(chromiumBuilds) != 1 {
-			sklog.Errorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
-			return
-		}
-		chromiumBuildNoPatch = chromiumBuilds[0]
-		chromiumBuildWithPatch = chromiumBuilds[0]
+	// Find which chromium hash the workers should use.
+	chromiumHash, err := util.GetChromiumHash(ctx)
+	if err != nil {
+		sklog.Error("Could not find the latest chromium hash")
+		return
+	}
 
-	} else {
-		// Create the two required chromium builds (with patch and without the patch).
-		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-			ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{}, remotePatches,
-			/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
+	// Trigger both the build repo and isolate telemetry tasks in parallel.
+	group := skutil.NewNamedErrGroup()
+	var chromiumBuildNoPatch, chromiumBuildWithPatch string
+	group.Go("build chromium", func() error {
+		// Check if the patches have any content to decide if we need one or two chromium builds.
+		localPatches := []string{filepath.Join(os.TempDir(), chromiumPatchName), filepath.Join(os.TempDir(), skiaPatchName)}
+		remotePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName)}
+		if util.PatchesAreEmpty(localPatches) {
+			// Create only one chromium build.
+			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
+				ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{chromiumHash}, remotePatches,
+				/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
+			if err != nil {
+				return fmt.Errorf("Error encountered when swarming build repo task: %s", err)
+			}
+			if len(chromiumBuilds) != 1 {
+				return fmt.Errorf("Expected 1 build but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+			}
+			chromiumBuildNoPatch = chromiumBuilds[0]
+			chromiumBuildWithPatch = chromiumBuilds[0]
+
+		} else {
+			// Create the two required chromium builds (with patch and without the patch).
+			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
+				ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{chromiumHash}, remotePatches,
+				/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
+			if err != nil {
+				return fmt.Errorf("Error encountered when swarming build repo task: %s", err)
+			}
+			if len(chromiumBuilds) != 2 {
+				return fmt.Errorf("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
+			}
+			chromiumBuildNoPatch = chromiumBuilds[0]
+			chromiumBuildWithPatch = chromiumBuilds[1]
+		}
+		return nil
+	})
+
+	// Isolate telemetry.
+	isolateDeps := []string{}
+	group.Go("isolate telemetry", func() error {
+		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName)}
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour)
 		if err != nil {
-			sklog.Errorf("Error encountered when swarming build repo task: %s", err)
-			return
+			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
-		if len(chromiumBuilds) != 2 {
-			sklog.Errorf("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
-			return
+		if telemetryHash == "" {
+			return fmt.Errorf("Found empty telemetry hash!")
 		}
-		chromiumBuildNoPatch = chromiumBuilds[0]
-		chromiumBuildWithPatch = chromiumBuilds[1]
+		isolateDeps = append(isolateDeps, telemetryHash)
+		return nil
+	})
+
+	// Wait for chromium build task and isolate telemetry task to complete.
+	if err := group.Wait(); err != nil {
+		sklog.Error(err)
+		return
 	}
 
 	// Clean up the chromium builds from Google storage after the run completes.
 	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuildNoPatch))
 	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuildWithPatch))
-
-	// Parse out the Chromium hash and use that when isolating telemetry.
-	chromiumHash, _ := util.GetHashesFromBuild(chromiumBuildNoPatch)
-	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName)}
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour)
-	if err != nil {
-		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
-		return
-	}
-	if telemetryHash == "" {
-		sklog.Error("Found empty telemetry hash!")
-		return
-	}
-	isolateDeps := []string{telemetryHash}
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
