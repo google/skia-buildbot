@@ -59,15 +59,6 @@ func captureSkps() error {
 
 	ctx := context.Background()
 
-	// Reset the local chromium checkout.
-	if err := util.ResetChromiumCheckout(ctx, util.ChromiumSrcDir); err != nil {
-		return fmt.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	}
-	// Sync the local chromium checkout.
-	if err := util.SyncDir(ctx, util.ChromiumSrcDir, map[string]string{}, []string{}); err != nil {
-		return fmt.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-	}
-
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
@@ -158,7 +149,7 @@ func captureSkps() error {
 					continue
 				}
 				args := []string{
-					filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
+					filepath.Join(util.GetPathToTelemetryBinaries(!*worker_common.Local), util.BINARY_RUN_BENCHMARK),
 					util.BENCHMARK_SKPICTURE_PRINTER,
 					"--also-run-disabled-tests",
 					"--pageset-repeat=1", // Only need one run for SKPs.

@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
@@ -111,12 +112,27 @@ func main() {
 	skpGCSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild)
 	skutil.LogErr(gs.DeleteRemoteDir(skpGCSBaseDir))
 
+	// Find the Chromium hash.
+	tokens := strings.Split(*chromiumBuild, "-")
+	chromiumHash := tokens[0]
+	// Trigger task to return hash of telemetry isolates.
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, []string{}, 1*time.Hour, 1*time.Hour)
+	if err != nil {
+		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
+		return
+	}
+	if telemetryHash == "" {
+		sklog.Error("Found empty telemetry hash!")
+		return
+	}
+	isolateDeps := []string{telemetryHash}
+
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1, []string{} /* isolateDeps */); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1, isolateDeps); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
