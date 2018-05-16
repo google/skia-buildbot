@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "536ff791_7f88ccd0",
+        "filename": "kube/skia-public/docserver.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T15:29:33Z",
+      "side": 1,
+      "message": "Either this should be internal-http or I don\u0027t understand what this means.",
+      "revId": "749817029d3655d52e11707cbd65e17e458e8182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81616500_bca87004",
+        "filename": "kube/skia-public/notifier.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T15:29:33Z",
+      "side": 1,
+      "message": "same comment here",
+      "range": {
+        "startLine": 62,
+        "startChar": 14,
+        "endLine": 62,
+        "endChar": 24
+      },
+      "revId": "749817029d3655d52e11707cbd65e17e458e8182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac96b840_fc12e4c4",
+        "filename": "kube/skia-public/prom.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-16T15:29:33Z",
+      "side": 1,
+      "message": "same comment here",
+      "range": {
+        "startLine": 99,
+        "startChar": 14,
+        "endLine": 99,
+        "endChar": 24
+      },
+      "revId": "749817029d3655d52e11707cbd65e17e458e8182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
