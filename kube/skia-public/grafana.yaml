@@ -67,7 +67,7 @@ spec:
             - "--port=:8000"
             - "--target_port=:3000"
             - "--prom_port=:10000"
-          image: gcr.io/skia-public/iap-proxy:2018-05-10T17_50_31Z-jcgregorio-913d7d3-clean
+          image: gcr.io/skia-public/iap-proxy:2018-05-16T14_13_55Z-jcgregorio-80445ff-clean
           ports:
             - containerPort: 8000
             - containerPort: 10000
