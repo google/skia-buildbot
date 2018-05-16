@@ -46,11 +46,11 @@
     <style include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles">
       .runningTryjob {
-        background-color: #FFD92F;
+        background-color: #FFEB3B;
       }
 
       .completeTryjob {
-        background-color: #A6D854;
+        background-color: #8BC34A;
       }
 
       .ingestedTryjob {
@@ -59,7 +59,7 @@
       }
 
       .failedTryjob {
-        background-color: #D95F02;
+        background-color: #F44336;
         color: white;
       }
 
@@ -69,7 +69,7 @@
         margin-left: 0.5em;
         margin-right: 0.5em;
         margin-top: 0.3em;
-        margin-bottom: : 0.3em;
+        margin-bottom: 0.3em;
         padding: 0.2em 1em 0.2em 1em;
         float: left;
       }
@@ -175,6 +175,7 @@
       },
 
       setIssue: function(issue) {
+        this._noFire = true;
         this._setPatchsetInfo(issue);
         this.set("_issue", issue);
       },

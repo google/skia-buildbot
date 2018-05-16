@@ -59,16 +59,19 @@ type newerInterface interface {
 	newer(right interface{}) bool
 }
 
+// TODO(stephana): Fix the Committed field below to also be spelled correctly
+// in the database.
+
 // Issue captures information about a single code review issue.
 type Issue struct {
 	ID              int64             `json:"id"`
-	Subject         string            `json:"subject"`
+	Subject         string            `json:"subject"           datastore:",noindex"`
 	Owner           string            `json:"owner"`
 	Updated         time.Time         `json:"updated"`
-	URL             string            `json:"url"`
+	URL             string            `json:"url"               datastore:",noindex"`
 	Status          string            `json:"status"`
-	PatchsetDetails []*PatchsetDetail `json:"patchsets"`
-	Committed       bool              `json:"committed"`
+	PatchsetDetails []*PatchsetDetail `json:"patchsets"         datastore:",noindex"`
+	Committed       bool              `json:"committed"         datastore:"Commited"`
 	QueryPatchsets  []int64           `json:"queryPatchsets"    datastore:"-"`
 
 	clean bool
@@ -95,12 +98,12 @@ func (is *Issue) HasPatchset(patchsetID int64) bool {
 	if is == nil {
 		return false
 	}
-	found := is.findPatchset(patchsetID)
+	found := is.FindPatchset(patchsetID)
 	return found != nil
 }
 
-// findPatchset returns the patchset for the issue.
-func (is *Issue) findPatchset(id int64) *PatchsetDetail {
+// FindPatchset returns the with the given id or nil if cannot be found
+func (is *Issue) FindPatchset(id int64) *PatchsetDetail {
 	for _, psd := range is.PatchsetDetails {
 		if psd.ID == id {
 			return psd
@@ -118,7 +121,7 @@ func (is *Issue) UpdatePatchsets(patchsets []*PatchsetDetail) {
 	//	fmt.Printf("patchsets: %s", spew.Sdump(patchsets))
 	for _, psd := range patchsets {
 		// Only insert the patchset if it's not already there.
-		if found := is.findPatchset(psd.ID); found == nil {
+		if found := is.FindPatchset(psd.ID); found == nil {
 			is.clean = false
 			// insert patchset in the right spot.
 			is.PatchsetDetails = append(is.PatchsetDetails, psd)
@@ -143,13 +146,14 @@ type PatchsetDetail struct {
 
 // Tryjob captures information about a tryjob in BuildBucket.
 type Tryjob struct {
-	BuildBucketID int64        `json:"buildBucketID"`
-	IssueID       int64        `json:"issueID"`
-	PatchsetID    int64        `json:"patchsetID"`
-	Builder       string       `json:"builder"`
-	Status        TryjobStatus `json:"status"`
-	Updated       time.Time    `json:"-"`
-	MasterCommit  string       `json:"masterCommit"`
+	Key           *datastore.Key `json:"-" datastore:"__key__"` // Insert the key upon loading
+	BuildBucketID int64          `json:"buildBucketID"`
+	IssueID       int64          `json:"issueID"`
+	PatchsetID    int64          `json:"patchsetID"`
+	Builder       string         `json:"builder"`
+	Status        TryjobStatus   `json:"status"`
+	Updated       time.Time      `json:"-"`
+	MasterCommit  string         `json:"masterCommit"`
 }
 
 type TimeJsonMs time.Time

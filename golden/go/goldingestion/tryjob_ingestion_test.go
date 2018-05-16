@@ -124,7 +124,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, processor.Process(context.Background(), fsResult))
 
-	foundIssue, err := tryjobStore.GetIssue(testIssue.ID, false, nil)
+	foundIssue, err := tryjobStore.GetIssue(testIssue.ID, false)
 	assert.NoError(t, err)
 	assert.Equal(t, testIssue, foundIssue)
 

@@ -66,7 +66,7 @@ func TestBuildBucketState(t *testing.T) {
 	assert.NoError(t, err)
 	for _, issueEntry := range issues {
 		if issueEntry.ID == 54204 {
-			issue, err := tjStore.GetIssue(issueEntry.ID, true, nil)
+			issue, err := tjStore.GetIssue(issueEntry.ID, true)
 			assert.NoError(t, err)
 
 			fmt.Printf("%s - %s\n", issue.Subject, issue.Owner)
