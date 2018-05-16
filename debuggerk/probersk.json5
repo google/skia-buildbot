@@ -1,0 +1,9 @@
+{
+   "debugger": {
+     "urls": ["http://debugger:8000"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "text/html"
+   },
+}
