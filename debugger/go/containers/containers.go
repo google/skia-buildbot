@@ -11,13 +11,12 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
-	"strconv"
 	"sync"
 	"time"
 
+	"github.com/pborman/uuid"
 	"go.skia.org/infra/debugger/go/runner"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -42,7 +41,8 @@ const (
 )
 
 var (
-	containerPrefixRe = regexp.MustCompile("^/([0-9])(/.*)")
+	// Strip out the container uuid.
+	containerPrefixRe = regexp.MustCompile("^/([A-Fa-f0-9])(/.*)")
 )
 
 // container represents a single skiaserve instance, which may or may not
@@ -54,8 +54,8 @@ type container struct {
 	// port is the port that skiaserve is listening on.
 	port int
 
-	// user is the login id of the user this skiaserve is running for.
-	user string // "" means this isn't running.
+	// uuid is the login id of the uuid this skiaserve is running for.
+	uuid string // "" means this isn't running.
 
 	// lastUsed is the time the skiaserve instance last processed a request.
 	lastUsed time.Time
@@ -78,9 +78,7 @@ type Containers struct {
 	// them on demand.
 	pool []*container
 
-	// containers is a map from userid to a container running skiaserve. Note
-	// that the id is actually "user:num" where num is the instance number. A
-	// user may have up to 10 instances running at the same time.
+	// containers is a map from uuid to a container running skiaserve.
 	containers map[string]*container
 
 	// runner is used to start skiaserve instances running.
@@ -113,28 +111,27 @@ func New(runner *runner.Runner) *Containers {
 	return s
 }
 
-// startContainer starts skiaserve running in a container for the given user.
+// startContainer starts skiaserve running in a container for the given uuid.
 //
 // It waits until skiaserve responds to an HTTP request before returning.
 //
-// The actual instance for the user is determined by looking at the prefix of
-// the URL.Path, i.e. /2/foo will be directed to instance 2 for the given user
+// The actual instance for the uuid is determined by looking at the prefix of
+// the URL.Path, i.e. /2..F/foo will be directed to instance 2..F for the given uuid
 // and skiaserve will be sent the URL.Path "/foo", i.e. with the instance
-// number prefix stripped. If there is no prefix then the instance number is
-// considered to be 0.
-func (s *Containers) startContainer(ctx context.Context, user string) error {
+// number prefix stripped.
+func (s *Containers) startContainer(ctx context.Context, uuid string) error {
 	s.mutex.Lock()
 	// Find first open container in the pool.
 	var co *container = nil
 	for _, c := range s.pool {
-		if c.user == "" {
-			c.user = user
+		if c.uuid == "" {
+			c.uuid = uuid
 			co = c
 			break
 		}
 	}
 	if co != nil {
-		s.containers[user] = co
+		s.containers[uuid] = co
 	}
 	s.mutex.Unlock()
 	if co == nil {
@@ -155,9 +152,9 @@ func (s *Containers) startContainer(ctx context.Context, user string) error {
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
 		// Remove the entry for this container now that it has exited.
-		delete(s.containers, user)
+		delete(s.containers, uuid)
 		counter.Dec(1)
-		co.user = ""
+		co.uuid = ""
 	}()
 
 	// Poll the port until we get a response.
@@ -184,47 +181,37 @@ func (s *Containers) startContainer(ctx context.Context, user string) error {
 	return nil
 }
 
-// getContainer returns the Container for the given user, or nil if there isn't
-// one for that user.
-func (s *Containers) getContainer(user string) *container {
+// getContainer returns the Container for the given uuid, or nil if there isn't
+// one for that uuid.
+func (s *Containers) getContainer(uuid string) *container {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	return s.containers[user]
+	return s.containers[uuid]
 }
 
 // setLastUsed set the lastUsed timestamp for a Container.
-func (s *Containers) setLastUsed(user string) {
+func (s *Containers) setLastUsed(uuid string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.containers[user].lastUsed = time.Now()
+	s.containers[uuid].lastUsed = time.Now()
 }
 
 // ServeHTTP implements the http.Handler interface by proxying the requests to
-// the correct Container based on the user id.
+// the correct Container based on the uuid.
 func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-	// Look up user.
-	user := login.LoggedInAs(r)
-	if user == "" {
-		http.Error(w, "Unauthorized", 503)
+	ctx := r.Context()
+
+	containerID := ""
+	// Strip off the uuid from the URL.
+	parts := containerPrefixRe.FindStringSubmatch(r.URL.Path)
+	if len(parts) == 3 {
+		containerID = parts[1]
+		r.URL.Path = parts[2]
+	} else {
+		httputils.ReportError(w, r, fmt.Errorf("Invalid URL %q", r.URL.Path), "Not a valid URL.")
 		return
 	}
 
-	instanceNum := int64(0)
-	// Strip off the instance number from the URL if it exists.
-	parts := containerPrefixRe.FindStringSubmatch(r.URL.Path)
-	if len(parts) == 3 {
-		var err error
-		instanceNum, err = strconv.ParseInt(parts[1], 10, 32)
-		if err != nil {
-			instanceNum = 0
-		} else {
-			r.URL.Path = parts[2]
-		}
-	}
-
-	containerID := fmt.Sprintf("%s:%d", user, instanceNum)
-	// From user and the instance num prefix look up container.
 	co := s.getContainer(containerID)
 	if co == nil {
 		// If no container then start one up.
@@ -270,28 +257,19 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Mostly we proxy requests to the backend, but there is a URL we handle here: /instanceNew
 	//
 	if r.URL.Path == "/instanceNew" && r.Method == "GET" {
-		// Loop over all possible instance names and find the first free one.
-		for i := 0; i < 9; i++ {
-			if _, ok := s.containers[fmt.Sprintf("%s:%d", user, i)]; !ok {
-				// We start instances on demand, so just redirect to its URL.
-				http.Redirect(w, r, fmt.Sprintf("/%d/", i), 303)
-				return
-			}
-		}
-		httputils.ReportError(w, r, fmt.Errorf("Tried to create 11 instances: %s", user), "Can't create more than 10 instances per user.")
-		return
+		http.Redirect(w, r, fmt.Sprintf("/%x/", uuid.NewRandom()), 303)
 	}
 
 	// Proxy.
-	sklog.Infof("Proxying request: %s %s", r.URL, user)
+	sklog.Infof("Proxying request: %s %s", r.URL, containerID)
 	// If the request is a POST and we are at a non-zero instanceNum then pass in
 	// a recording response.  If the response is a 303 then we return a 303 with
-	// the  correct location URL, otherwise we return the response verbatim.
-	if r.Method == "POST" && instanceNum != 0 {
+	// the correct location URL, otherwise we return the response verbatim.
+	if r.Method == "POST" {
 		rw := httptest.NewRecorder()
 		co.proxy.ServeHTTP(rw, r)
 		if rw.Code == 303 {
-			http.Redirect(w, r, fmt.Sprintf("/%d/", instanceNum), 303)
+			http.Redirect(w, r, fmt.Sprintf("/%s/", containerID), 303)
 		} else {
 			for k, values := range rw.HeaderMap {
 				for _, v := range values {
@@ -315,14 +293,14 @@ func (s *Containers) StopAll() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	for _, co := range s.containers {
-		sklog.Infof("Stopping container for user %q on port %d", co.user, co.port)
+		sklog.Infof("Stopping container for uuid %q on port %d", co.uuid, co.port)
 		runner.Stop(co.port)
 	}
 }
 
 type ContainerInfo struct {
 	ID     string        `json:"id"`
-	User   string        `json:"user"`
+	UUID   string        `json:"uuid"`
 	Uptime time.Duration `json:"uptime"`
 	Port   int           `json:"port"`
 }
@@ -340,7 +318,7 @@ func (s *Containers) DescribeAll() []*ContainerInfo {
 	for id, co := range s.containers {
 		info = append(info, &ContainerInfo{
 			ID:     id,
-			User:   co.user,
+			UUID:   co.uuid,
 			Uptime: time.Now().Sub(co.started),
 			Port:   co.port,
 		})
