@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "adc4adf7_4dc93e61",
+        "filename": "golden/go/diffstore/common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T17:19:30Z",
+      "side": 1,
+      "message": "I converted to using a WaitGroup in the public facing functions, but rely on the channels for individual operations, because the operations are channeled through the ReadThroughCache (\u0027imageCache\u0027) and are therefore not triggered in the same loop like you would usually with a WaitGroup. \n\nI merged this into the retImgSlice type and closely tied it to retImg.",
+      "parentUuid": "55a427b2_933c7f7c",
+      "range": {
+        "startLine": 123,
+        "startChar": 3,
+        "endLine": 123,
+        "endChar": 29
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2e04af03_14d3674a",
         "filename": "golden/go/diffstore/common.go",
         "patchSetId": 8
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "4d199624_dd30c8c7",
+        "filename": "golden/go/diffstore/common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T17:19:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e04af03_14d3674a",
+      "range": {
+        "startLine": 127,
+        "startChar": 14,
+        "endLine": 127,
+        "endChar": 59
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "62f0bdec_8dfffd84",
         "filename": "golden/go/diffstore/common.go",
         "patchSetId": 8
@@ -59,6 +107,30 @@
       "writtenOn": "2018-05-17T13:26:02Z",
       "side": 1,
       "message": "This is rather confusing for me.  Perhaps add a comment explaining exactly how this works for multiple channels?",
+      "range": {
+        "startLine": 133,
+        "startChar": 2,
+        "endLine": 135,
+        "endChar": 12
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b0d12c9_265836e8",
+        "filename": "golden/go/diffstore/common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T17:19:30Z",
+      "side": 1,
+      "message": "I simplified this.",
+      "parentUuid": "62f0bdec_8dfffd84",
       "range": {
         "startLine": 133,
         "startChar": 2,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "727dd0a6_9381966e",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T17:19:30Z",
+      "side": 1,
+      "message": "I refrained from using another interface. I can change it if you feel strongly about it, but IMO it adds an unnecessary layer of abstraction. I am returning a WaitGroup now, which is well understood. If the client wants to shoot themselves in the foot and call Add/Done on it we should let them.",
+      "parentUuid": "023e89d5_699f9eab",
+      "range": {
+        "startLine": 64,
+        "startChar": 11,
+        "endLine": 64,
+        "endChar": 22
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "72aa75c0_26fe2d5b",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 8
@@ -105,6 +201,30 @@
       "writtenOn": "2018-05-17T13:26:02Z",
       "side": 1,
       "message": "Could cause a nil dereference if the caller doesn\u0027t check err before calling Wait() (which I think I saw in a few places)",
+      "range": {
+        "startLine": 161,
+        "startChar": 14,
+        "endLine": 161,
+        "endChar": 17
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb897314_fa8f2925",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T17:19:30Z",
+      "side": 1,
+      "message": "No, it would not call a panic, because the Wait function iterates of this value and iterating over a nil slice is like iterating over an empty slice.",
+      "parentUuid": "72aa75c0_26fe2d5b",
       "range": {
         "startLine": 161,
         "startChar": 14,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "3f25f8ef_08cc4a6d",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T17:19:30Z",
+      "side": 1,
+      "message": "Removed, since it didn\u0027t test anything new.",
+      "parentUuid": "9f2086d4_bc4e9f84",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 5
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "77cfed13_206b7ad0",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 8
@@ -151,6 +295,30 @@
       "writtenOn": "2018-05-17T13:26:02Z",
       "side": 1,
       "message": "Do we not need to wait?  Might be worth an explanatory comment.",
+      "range": {
+        "startLine": 350,
+        "startChar": 7,
+        "endLine": 350,
+        "endChar": 8
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efe716d4_754d7a11",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T17:19:30Z",
+      "side": 1,
+      "message": "I added in the doc for the Get function that using the WaitGroup is optional. The benefit of exposing it is for testing and the use case that motivated this CL (where we want to serve it from disk).",
+      "parentUuid": "77cfed13_206b7ad0",
       "range": {
         "startLine": 350,
         "startChar": 7,
