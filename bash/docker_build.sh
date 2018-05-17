@@ -56,6 +56,9 @@ fi
 copy_release_files
 
 docker build -t ${APPNAME} ${ROOT}
-docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
-docker push gcr.io/${PROJECT}/${APPNAME}:${TAG}
-echo gcr.io/${PROJECT}/${APPNAME}:${TAG}
+
+if [ -z "$SKIP_UPLOAD" ]; then
+  docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
+  docker push gcr.io/${PROJECT}/${APPNAME}:${TAG}
+  echo gcr.io/${PROJECT}/${APPNAME}:${TAG}
+fi
