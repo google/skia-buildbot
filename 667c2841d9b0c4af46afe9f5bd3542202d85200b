@@ -333,6 +333,30 @@
     },
     {
       "key": {
+        "uuid": "31006a3f_39799818",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T20:16:47Z",
+      "side": 1,
+      "message": "Yes, I wrote that response when I was still going with a solution that didn\u0027t involve WaitGroup.\nBut, nil is still correct here, because if the function returns an error, I am always assuming that the other return values should not be touched.",
+      "parentUuid": "1f55cd10_d3ed17a9",
+      "range": {
+        "startLine": 161,
+        "startChar": 14,
+        "endLine": 161,
+        "endChar": 17
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9f2086d4_bc4e9f84",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
