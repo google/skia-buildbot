@@ -22,6 +22,30 @@
       "revId": "75c605aa192a4b43102fcd833e161c75f861a00f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c3dec2f9_abad5f1c",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-17T19:56:50Z",
+      "side": 1,
+      "message": "yep, that\u0027s a bit of a mind bender, the receiver is essentially the first implicit argument.",
+      "parentUuid": "a5506f71_f82c26d9",
+      "range": {
+        "startLine": 353,
+        "startChar": 4,
+        "endLine": 353,
+        "endChar": 12
+      },
+      "revId": "75c605aa192a4b43102fcd833e161c75f861a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
