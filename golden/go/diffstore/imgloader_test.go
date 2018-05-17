@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 
@@ -45,32 +44,26 @@ func TestImageLoader(t *testing.T) {
 
 	// Prefetch the images synchronously.
 	digests := digestSet.Keys()[:100]
-	imageLoader.Warm(1, digests, false)
-	imageLoader.Sync()
+	imageLoader.Warm(1, digests, true)
 
-	// Make sure they are on disk.
+	// Make sure they are all on disk.
 	for _, digest := range digests {
 		assert.True(t, fileutil.FileExists(fileutil.TwoLevelRadixPath(workingDir, getDigestImageFileName(digest))))
 	}
 
-	// Get the images directly from cache
-	ti := timer.New("Fetch images")
-	_, err := imageLoader.Get(1, digests)
-	assert.NoError(t, err)
-	ti.Stop()
-
 	// Fetch images from the secondary bucket.
-	_, err = imageLoader.Get(1, []string{TEST_IMG_DIGEST})
+	_, _, err := imageLoader.Get(1, []string{TEST_IMG_DIGEST})
 	assert.NoError(t, err)
-	_, err = imageLoader.Get(1, []string{"some-image-that-does-not-exist-at-all-in-any-bucket"})
+	_, _, err = imageLoader.Get(1, []string{"some-image-that-does-not-exist-at-all-in-any-bucket"})
 	assert.Error(t, err)
 
 	// Fetch arbitrary images from GCS.
 	gcsImgID := GCSPathToImageID(TEST_GCS_SECONDARY_BUCKET, TEST_PATH_IMG_1)
-	foundImgs, err := imageLoader.Get(1, []string{gcsImgID})
+	foundImgs, pendingWrites, err := imageLoader.Get(1, []string{gcsImgID})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(foundImgs))
-	imageLoader.Sync()
+	pendingWrites.Wait()
+
 	relLocalPath, _, _ := mapper.ImagePaths(gcsImgID)
 	localPath := filepath.Join(imageLoader.localImgDir, relLocalPath)
 	localImg, err := diff.OpenNRGBAFromFile(localPath)
