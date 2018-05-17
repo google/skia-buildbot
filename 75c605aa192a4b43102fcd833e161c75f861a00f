@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "32686dac_8c876678",
+        "filename": "ct_pixel_diff/go/dynamicdiff/dynamicdiff_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-17T20:22:39Z",
+      "side": 1,
+      "message": "check err first",
+      "range": {
+        "startLine": 148,
+        "startChar": 1,
+        "endLine": 148,
+        "endChar": 14
+      },
+      "revId": "75c605aa192a4b43102fcd833e161c75f861a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a5506f71_f82c26d9",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 9
@@ -46,6 +69,29 @@
       "revId": "75c605aa192a4b43102fcd833e161c75f861a00f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "492e311e_3e820a5a",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-17T20:22:39Z",
+      "side": 1,
+      "message": "No need to wait here?  A comment explaining why would be appreciated.",
+      "range": {
+        "startLine": 350,
+        "startChar": 7,
+        "endLine": 350,
+        "endChar": 8
+      },
+      "revId": "75c605aa192a4b43102fcd833e161c75f861a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
