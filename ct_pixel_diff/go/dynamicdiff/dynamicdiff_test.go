@@ -143,8 +143,11 @@ func TestImageLoaderGetGSPath(t *testing.T) {
 	imgLoader, err := diffstore.NewImgLoader(client, baseDir, workingDir, gsBuckets, TEST_GS_BASE_DIR, 0, mapper)
 	assert.NoError(t, err)
 
-	_, err = imgLoader.Get(1, []string{TEST_IMG_PATH})
-	imgLoader.Sync()
+	// Get the images and wait until they are written to disk
+	_, pendingWrites, err := imgLoader.Get(1, []string{TEST_IMG_PATH})
+	assert.NoError(t, err)
+	pendingWrites.Wait()
+
 	assert.NoError(t, err)
 	assert.True(t, fileutil.FileExists(filepath.Join(workingDir, TEST_IMG_PATH+DOT_EXT)))
 }

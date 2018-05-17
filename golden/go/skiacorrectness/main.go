@@ -332,6 +332,9 @@ func main() {
 		sklog.Fatalf("Empty whitelist file. A non-empty white list must be provided if force_login=false.")
 	}
 
+	// openSite indicates whether this can expose all end-points. The user still has to be authenticated.
+	openSite := (*pubWhiteList == WHITELIST_ALL) || *forceLogin
+
 	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
 	storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute))
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
@@ -400,8 +403,8 @@ func main() {
 	router.HandleFunc("/json/tryjob", jsonTryjobListHandler).Methods("GET")
 	router.HandleFunc("/json/tryjob/{id}", jsonTryjobSummaryHandler).Methods("GET")
 
-	// Only expose these endpoints if login is enforced across the app.
-	if *forceLogin {
+	// Only expose these endpoints if login is enforced across the app or this an open site.
+	if openSite {
 		router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
 		router.HandleFunc("/json/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
 		router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
@@ -418,13 +421,13 @@ func main() {
 		DefaultCorpus   string `json:"defaultCorpus"`
 		ShowBotProgress bool   `json:"showBotProgress"`
 		Title           string `json:"title"`
-		IsPublic        bool   `json:"isPublic"`
+		IsPublic        bool   `json:"isPublic"` // If true this is not open but restrictions apply.
 	}{
 		BaseRepoURL:     *gitRepoURL,
 		DefaultCorpus:   *defaultCorpus,
 		ShowBotProgress: *showBotProgress,
 		Title:           *appTitle,
-		IsPublic:        !*forceLogin,
+		IsPublic:        !openSite,
 	}
 
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
