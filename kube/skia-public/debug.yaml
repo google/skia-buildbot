@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: debug
+  name: debug
+spec:
+  ports:
+    - name: metrics
+      port: 20000
+    - name: http
+      port: 8000
+  selector:
+    app: debug
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: debug
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: debug
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: debug
+          image: gcr.io/skia-public/skdebug:2018-05-17T16_43_03Z-jcgregorio-0113ec9-dirty
+          args:
+            - "--logtostderr"
+            - "--port=:8000"
+            - "--prom_port=:20000"
+            - "--resources_dir=/usr/local/share/skdebug"
+          ports:
+            - containerPort: 20000
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "20Gi"
+              cpu: "6"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 3

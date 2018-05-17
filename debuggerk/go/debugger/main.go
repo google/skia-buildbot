@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -85,7 +86,7 @@ func main() {
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
 	router.HandleFunc("/", mainHandler)
 
-	http.Handle("/", httputils.LoggingRequestResponse(router))
+	http.Handle("/", iap.None(httputils.LoggingRequestResponse(router)))
 
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
