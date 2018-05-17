@@ -70,6 +70,30 @@
       "revId": "a3cd161edfca1445ce3856ed0f4b48eefa70ff40",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ac82176_636e0a7d",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-17T19:53:42Z",
+      "side": 1,
+      "message": "Ah whoops. I thought this was the triggering worker bots line. The worker bots line already has 12h below.",
+      "parentUuid": "f00fb912_918ec7a8",
+      "range": {
+        "startLine": 188,
+        "startChar": 137,
+        "endLine": 188,
+        "endChar": 149
+      },
+      "revId": "a3cd161edfca1445ce3856ed0f4b48eefa70ff40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
