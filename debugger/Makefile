@@ -11,9 +11,7 @@ VULCANIZE1=true
 
 .PHONY: build
 build: elements_html core_js
-	go install -v ./go/skdebugger
-	go install -v ./go/fakedebugger
-	go install -v ../go/buildskia/skia_build
+	go install -v ./go/debugger
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
@@ -23,15 +21,18 @@ debug: clean_webtools debug_core_js debug_elements_html
 testgo:
 	go test -v ./...
 
-push: build
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli skdebuggerd skia-debugger
-
-run_fake_local: build
-	fakedebugger --source="http://localhost:9000" --port=localhost:8000 --alsologtostderr
-
+.PHONY: run_server_local
 run_server_local: build
-	skdebugger --port=localhost:9000 --local --alsologtostderr
+	debugger --port=localhost:9000 --local --logtostderr
+
+.PHONY: release
+release: build
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/debugger
+	./build_docker_release
+
+.PHONY: push
+push:
+	go install ../kube/go/pushk
+	pushk debugger
 
 include ../webtools/webtools.mk
