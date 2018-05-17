@@ -34,3 +34,9 @@ spec:
         - backend:
             serviceName: debugger
             servicePort: 8000
+    - host: debug.skia.org
+      http:
+        paths:
+        - backend:
+            serviceName: debug
+            servicePort: 8000

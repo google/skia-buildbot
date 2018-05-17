@@ -18,6 +18,12 @@
 # unique tag is generated from the time/date, user, git hash and repo state.
 # This should never be set for application images, i.e. ones that will
 # participate in pushk, which expects the auto generated tag format.
+#
+# SKIP_UPLOAD
+# ---
+# If SKIP_UPLOAD is set then do not push the image to the container registry.
+# This is useful when developing locally and needing to rapidly iterate on
+# the image.
 
 set -x -e
 
@@ -56,6 +62,9 @@ fi
 copy_release_files
 
 docker build -t ${APPNAME} ${ROOT}
-docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
-docker push gcr.io/${PROJECT}/${APPNAME}:${TAG}
-echo gcr.io/${PROJECT}/${APPNAME}:${TAG}
+
+if [ -z "$SKIP_UPLOAD" ]; then
+  docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
+  docker push gcr.io/${PROJECT}/${APPNAME}:${TAG}
+  echo gcr.io/${PROJECT}/${APPNAME}:${TAG}
+fi

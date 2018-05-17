@@ -15,7 +15,7 @@ Running
 To run the server locally make sure you have Go installed and then run:
 
 ~~~~bash
-go get go.skia.org/infra/debuggerk/...
+go get go.skia.org/infra/debugger/...
 cd $GOPATH/src/go.skia.org/infra/debugger
 make run_server_local
 ~~~~

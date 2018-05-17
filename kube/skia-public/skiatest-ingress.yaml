@@ -40,3 +40,9 @@ spec:
         - backend:
             serviceName: debugger
             servicePort: 8000
+    - host: debug.skiatest.org
+      http:
+        paths:
+        - backend:
+            serviceName: debug
+            servicePort: 8000
