@@ -426,7 +426,7 @@ func main() {
 	// Other tests.
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"gofmt", "-s", "-d"}, ".", "go simplify (gofmt -s -w .)", testutils.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", testutils.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close,fmt:Fprint", "go.skia.org/infra/..."}, ".", "errcheck", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "prober/go/build_probers_json5/main.go", "--srcdir=.", "--dest=/tmp/allprobers.json5"}, ".", "probers test", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"make", "validate"}, "perf", "perf validator", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", testutils.MEDIUM_TEST))
