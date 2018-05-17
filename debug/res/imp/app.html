@@ -316,10 +316,10 @@ The main application element for the Skia Debugger.
             <iron-pages selected="{{tab_selected}}">
               <div>
                 <div class="layout horizontal sizeToolBar">
-                  <paper-icon-button src="./res/img/image.png"  data-style="natural" title="Original size."     on-tap="_resizeImage"></paper-icon-button>
-                  <paper-icon-button src="./res/img/both.png"   data-style="fit"     title="Fit to page."       on-tap="_resizeImage"></paper-icon-button>
-                  <paper-icon-button src="./res/img/right.png"  data-style="right"   title="Fit to page width." on-tap="_resizeImage"></paper-icon-button>
-                  <paper-icon-button src="./res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/image.png"  data-style="natural" title="Original size."     on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/both.png"   data-style="fit"     title="Fit to page."       on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/right.png"  data-style="right"   title="Fit to page width." on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
                 </div>
                 <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
                   <img id=img src="" class="fit">
