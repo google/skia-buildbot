@@ -46,6 +46,30 @@
       "revId": "a3cd161edfca1445ce3856ed0f4b48eefa70ff40",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f00fb912_918ec7a8",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-17T19:20:48Z",
+      "side": 1,
+      "message": "Doesn\u0027t TriggerIsolateTelemetrySwarmingTask use builder bots rather than worker bots?",
+      "parentUuid": "45a917a9_7ef7011c",
+      "range": {
+        "startLine": 188,
+        "startChar": 137,
+        "endLine": 188,
+        "endChar": 149
+      },
+      "revId": "a3cd161edfca1445ce3856ed0f4b48eefa70ff40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
