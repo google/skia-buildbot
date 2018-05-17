@@ -146,8 +146,8 @@ func testDiffStore(t *testing.T, tile *tiling.Tile, baseDir string, diffStore di
 
 	// Warm the digests and make sure they are in the cache.
 	digests := testDigests[0][:TEST_N_DIGESTS]
-	diffStore.WarmDigests(diff.PRIORITY_NOW, digests, false)
-	memDiffStore.imgLoader.Sync()
+	diffStore.WarmDigests(diff.PRIORITY_NOW, digests, true)
+
 	for _, d := range digests {
 		assert.True(t, memDiffStore.imgLoader.IsOnDisk(d), fmt.Sprintf("Could not find '%s'", d))
 	}

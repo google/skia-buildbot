@@ -26,7 +26,7 @@ var (
 	TEST_DATA_STORAGE_BUCKET = "skia-infra-testdata"
 	TEST_DATA_STORAGE_PATH   = "gold-testdata/goldentile.json.gz"
 
-	// GCS locations wher images are stored.
+	// GCS locations where images are stored.
 	TEST_GCS_BUCKET_NAME      = "skia-infra-gm"
 	TEST_GCS_SECONDARY_BUCKET = "skia-infra-testdata"
 	TEST_GCS_IMAGE_DIR        = "dm-images-v1"

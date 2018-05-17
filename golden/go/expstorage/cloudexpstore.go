@@ -68,7 +68,7 @@ type cloudExpStore struct {
 	recentKeysList *dsutil.RecentKeysList
 
 	// summaryKey is the key of the summary entity which stores the keys of
-	// recent changes and acts as the parent entity for overall expecations.
+	// recent changes and acts as the parent entity for overall expectations.
 	summaryKey *datastore.Key
 
 	// Use different entities depending on whether this manages expectations
@@ -416,7 +416,7 @@ func (c *cloudExpStore) makeChange(changes map[string]types.TestClassification, 
 
 	// Run the relevant updates in a transaction.
 	if _, err = c.client.RunInTransaction(ctx, updateFn); err != nil {
-		return sklog.FmtErrorf("Error updating expecations and recentKeysList for change %d: %s", changeKey.ID, err)
+		return sklog.FmtErrorf("Error updating expectations and recentKeysList for change %d: %s", changeKey.ID, err)
 	}
 
 	if c.eventBus != nil {
