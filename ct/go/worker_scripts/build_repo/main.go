@@ -82,6 +82,26 @@ func buildRepo() error {
 			remoteDirs = append(remoteDirs, fmt.Sprintf("try-%s-nopatch", util.ChromiumBuildDir(chromiumHash, skiaHash, *runID)))
 		}
 		remoteDirs = append(remoteDirs, fmt.Sprintf("try-%s-withpatch", util.ChromiumBuildDir(chromiumHash, skiaHash, *runID)))
+	} else if *repoName == "skiaLuaPictures" {
+
+	} else if *repoName == "skiaSKPInfo" {
+		// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
+		if err := util.SyncDir(ctx, util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}); err != nil {
+			return fmt.Errorf("Could not sync Skia: %s", err)
+		}
+		// Build tools.
+		if err := util.BuildSkiaSKPInfo(ctx); err != nil {
+			return fmt.Errorf("Could not build skpinfo: %s", err)
+		}
+		// Copy skpinfo to Google Storage.
+		skiaLocalDir := path.Join(util.SkiaTreeDir, "out", "Release")
+		skiaRemoteDir := path.Join(util.BINARIES_DIR_NAME, *runID)
+		if err := gs.UploadFile(util.BINARY_SKPINFO, skiaLocalDir, skiaRemoteDir); err != nil {
+			return fmt.Errorf("Could not upload %s to %s: %s", util.BINARY_SKPINFO, skiaRemoteDir, err)
+		}
+		remoteDirs = append(remoteDirs, *runID)
+	} else {
+		return fmt.Errorf("Unknown repo name specified to build_repo: %s", repoName)
 	}
 
 	// Record the remote dirs in the output file.

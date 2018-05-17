@@ -310,10 +310,10 @@ func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles string) error {
 	close(skpsChannel)
 
 	sklog.Info("Calling remove_invalid_skp.py")
-	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-	util.LogErr(SyncDir(ctx, SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
-	// Build tools.
-	util.LogErr(BuildSkiaSKPInfo(ctx))
+	//// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
+	//util.LogErr(SyncDir(ctx, SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
+	//// Build tools.
+	//util.LogErr(BuildSkiaSKPInfo(ctx))
 	// Run remove_invalid_skp.py in parallel goroutines.
 	// Construct path to the python script.
 	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skp.py")
