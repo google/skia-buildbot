@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5506f71_f82c26d9",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-17T18:00:48Z",
+      "side": 1,
+      "message": "Sidenote: I did not know you could do this.",
+      "range": {
+        "startLine": 353,
+        "startChar": 4,
+        "endLine": 353,
+        "endChar": 12
+      },
+      "revId": "75c605aa192a4b43102fcd833e161c75f861a00f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

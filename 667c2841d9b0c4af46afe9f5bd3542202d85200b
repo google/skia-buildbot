@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fc615df3_eb0b6526",
+        "filename": "golden/go/diffstore/common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-17T18:00:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "adc4adf7_4dc93e61",
+      "range": {
+        "startLine": 123,
+        "startChar": 3,
+        "endLine": 123,
+        "endChar": 29
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2e04af03_14d3674a",
         "filename": "golden/go/diffstore/common.go",
         "patchSetId": 8
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "15f00a78_c32bbbb0",
+        "filename": "golden/go/diffstore/common.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-17T18:00:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1b0d12c9_265836e8",
+      "range": {
+        "startLine": 133,
+        "startChar": 2,
+        "endLine": 135,
+        "endChar": 12
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "023e89d5_699f9eab",
         "filename": "golden/go/diffstore/imgloader.go",
         "patchSetId": 8
@@ -178,6 +226,30 @@
       "side": 1,
       "message": "I refrained from using another interface. I can change it if you feel strongly about it, but IMO it adds an unnecessary layer of abstraction. I am returning a WaitGroup now, which is well understood. If the client wants to shoot themselves in the foot and call Add/Done on it we should let them.",
       "parentUuid": "023e89d5_699f9eab",
+      "range": {
+        "startLine": 64,
+        "startChar": 11,
+        "endLine": 64,
+        "endChar": 22
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dc052b47_e2e4064d",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-17T18:00:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "727dd0a6_9381966e",
       "range": {
         "startLine": 64,
         "startChar": 11,
@@ -237,6 +309,30 @@
     },
     {
       "key": {
+        "uuid": "1f55cd10_d3ed17a9",
+        "filename": "golden/go/diffstore/imgloader.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-17T18:00:48Z",
+      "side": 1,
+      "message": "I don\u0027t follow.  This second argument is type *sync.WaitGroup.  If it is nil and I try to do foo.Wait(), it should panic, right?",
+      "parentUuid": "eb897314_fa8f2925",
+      "range": {
+        "startLine": 161,
+        "startChar": 14,
+        "endLine": 161,
+        "endChar": 17
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9f2086d4_bc4e9f84",
         "filename": "golden/go/diffstore/imgloader_test.go",
         "patchSetId": 8
@@ -281,6 +377,30 @@
       "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a6802eb_45359eda",
+        "filename": "golden/go/diffstore/imgloader_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-17T18:00:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3f25f8ef_08cc4a6d",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 5
+      },
+      "revId": "667c2841d9b0c4af46afe9f5bd3542202d85200b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
