@@ -1,6 +1,6 @@
 {
-   "debugger": {
-     "urls": ["http://debugger:8000/res/"],
+   "debug": {
+     "urls": ["http://debug:8000/"],
      "method": "GET",
      "expected": [200],
      "body": "",
