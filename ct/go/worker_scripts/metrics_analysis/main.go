@@ -187,9 +187,15 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 		"--browser", "system", // No browser is brought up but unfortunately this is needed by the framework.
 		"--output-dir", filepath.Join(outputPath, getTraceName(downloadedTrace)),
 	}
-	// Split benchmark args if not empty and append to args.
-	if *benchmarkExtraArgs != "" {
-		args = append(args, strings.Fields(*benchmarkExtraArgs)...)
+	// Calculate what timeout should be used when executing run_benchmark.
+	timeoutSecs := util.GetRunBenchmarkTimeoutValue(*benchmarkExtraArgs, METRICS_BENCHMARK_TIMEOUT_SECS)
+	sklog.Infof("Using %d seconds for timeout", timeoutSecs)
+	// Remove from benchmarkExtraArgs "special" flags that are recognized by CT but not
+	// by the run_benchmark script.
+	extraArgs := util.RemoveFlagsFromArgs(*benchmarkExtraArgs, util.RUN_BENCHMARK_TIMEOUT_FLAG)
+	// Split extraArgs if not empty and append to args.
+	if extraArgs != "" {
+		args = append(args, strings.Fields(extraArgs)...)
 	}
 	// Set the DISPLAY.
 	env := []string{
@@ -199,9 +205,6 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 	for _, e := range os.Environ() {
 		env = append(env, e)
 	}
-	// Calculate what timeout should be used when executing run_benchmark.
-	timeoutSecs := util.GetRunBenchmarkTimeoutValue(*benchmarkExtraArgs, METRICS_BENCHMARK_TIMEOUT_SECS)
-	sklog.Infof("Using %d seconds for timeout", timeoutSecs)
 
 	// Create buffer for capturing the stdout and stderr of the benchmark run.
 	var b bytes.Buffer
