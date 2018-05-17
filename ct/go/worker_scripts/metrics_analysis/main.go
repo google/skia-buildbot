@@ -199,13 +199,16 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 	for _, e := range os.Environ() {
 		env = append(env, e)
 	}
+	// Calculate what timeout should be used when executing run_benchmark.
+	timeoutSecs := util.GetRunBenchmarkTimeoutValue(*benchmarkExtraArgs, METRICS_BENCHMARK_TIMEOUT_SECS)
+	sklog.Infof("Using %d seconds for timeout", timeoutSecs)
 
 	// Create buffer for capturing the stdout and stderr of the benchmark run.
 	var b bytes.Buffer
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", downloadedTrace)); err != nil {
 		return fmt.Errorf("Error writing to output buffer: %s", err)
 	}
-	if err := util.ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, METRICS_BENCHMARK_TIMEOUT_SECS*time.Second, &b, &b, false, false); err != nil {
+	if err := util.ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		output, getErr := util.GetRunBenchmarkOutput(b)
 		skutil.LogErr(getErr)
 		fmt.Println(output)
