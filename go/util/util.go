@@ -528,11 +528,15 @@ func MkdirAll(name string, perm os.FileMode) {
 	}
 }
 
-// LogErr logs err if it's not nil. This is intended to be used
-// for calls where generally a returned error can be ignored.
-func LogErr(err error) {
-	if err != nil {
-		sklog.ErrorfWithDepth(1, "Unexpected error: %s", err)
+// LogErr logs errors in the arguments if they are not nil. This is intended to
+// be used for calls where generally a returned error can be ignored. The variadic
+// arguments allows to feed more than one return value. Only instances of error
+// will be logged.
+func LogErr(potentialErrs ...interface{}) {
+	for _, x := range potentialErrs {
+		if err, ok := x.(error); ok && err != nil {
+			sklog.ErrorfWithDepth(1, "Unexpected error: %s", err)
+		}
 	}
 }
 

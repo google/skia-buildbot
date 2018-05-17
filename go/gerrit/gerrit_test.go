@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -291,7 +292,7 @@ func TestFiles(t *testing.T) {
 	testutils.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `)]}'
+		util.LogErr(fmt.Fprintln(w, `)]}'
 {
   "/COMMIT_MSG": {
     "status": "A",
@@ -318,7 +319,7 @@ func TestFiles(t *testing.T) {
     "size": 861
   }
 }
-`)
+`))
 	}))
 
 	defer ts.Close()
@@ -340,7 +341,7 @@ func TestGetFileNames(t *testing.T) {
 	testutils.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `)]}'
+		util.LogErr(fmt.Fprintln(w, `)]}'
 {
   "/COMMIT_MSG": {
     "status": "A",
@@ -367,7 +368,7 @@ func TestGetFileNames(t *testing.T) {
     "size": 861
   }
 }
-`)
+`))
 	}))
 
 	defer ts.Close()
@@ -385,7 +386,7 @@ func TestIsBinaryPatch(t *testing.T) {
 
 	tsNoBinary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `)]}'
+		util.LogErr(fmt.Fprintln(w, `)]}'
 {
   "/COMMIT_MSG": {
     "status": "A",
@@ -394,7 +395,7 @@ func TestIsBinaryPatch(t *testing.T) {
     "size": 353
   }
 }
-`)
+`))
 	}))
 	defer tsNoBinary.Close()
 	api, err := NewGerrit(tsNoBinary.URL, "", nil)
@@ -405,7 +406,7 @@ func TestIsBinaryPatch(t *testing.T) {
 
 	tsBinary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `)]}'
+		util.LogErr(fmt.Fprintln(w, `)]}'
 {
   "/COMMIT_MSG": {
     "status": "A",
@@ -420,7 +421,7 @@ func TestIsBinaryPatch(t *testing.T) {
     "size": 49030
   }
 }
-`)
+`))
 	}))
 	defer tsBinary.Close()
 	api, err = NewGerrit(tsBinary.URL, "", nil)
