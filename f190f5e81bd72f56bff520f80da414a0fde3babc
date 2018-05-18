@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5e0a0ff8_eaac1cbd",
+        "filename": "bash/ramdisk.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-18T21:20:32Z",
+      "side": 1,
+      "message": "Might be more robust to add retries.",
+      "revId": "f190f5e81bd72f56bff520f80da414a0fde3babc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01e9e1b7_87a525bb",
+        "filename": "notifier/edit-chat-config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-18T21:20:32Z",
+      "side": 1,
+      "message": "Why not just \"$EDITOR /tmp/ramdisk/chat_config.txt\"?\n\n(Maybe still want to confirm upload with read.)",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 100
+      },
+      "revId": "f190f5e81bd72f56bff520f80da414a0fde3babc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
