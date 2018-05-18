@@ -6,6 +6,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -32,7 +33,7 @@ func TestModifiedTasks(t *testing.T) {
 	// Ensure that the task shows up in the modified list.
 	tasks, err = m.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	// Insert two more tasks.
 	t2 := makeTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
@@ -45,7 +46,7 @@ func TestModifiedTasks(t *testing.T) {
 	// Ensure that both tasks show up in the modified list.
 	tasks, err = m.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
 	// Check StopTrackingModifiedTasks.
 	m.StopTrackingModifiedTasks(id)
@@ -77,7 +78,7 @@ func TestMultipleTaskModifications(t *testing.T) {
 	// Ensure that the task shows up only once in the modified list.
 	tasks, err := m.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1}, tasks)
 }
 
 func TestModifiedTasksTooManyUsers(t *testing.T) {
@@ -122,7 +123,7 @@ func TestModifiedJobs(t *testing.T) {
 	// Ensure that the job shows up in the modified list.
 	jobs, err = m.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+	deepequal.AssertDeepEqual(t, []*Job{j1}, jobs)
 
 	// Insert two more jobs.
 	j2 := makeJob(time.Unix(0, 1470674376000000))
@@ -135,7 +136,7 @@ func TestModifiedJobs(t *testing.T) {
 	// Ensure that both jobs show up in the modified list.
 	jobs, err = m.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+	deepequal.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
 
 	// Check StopTrackingModifiedJobs.
 	m.StopTrackingModifiedJobs(id)
@@ -165,7 +166,7 @@ func TestMultipleJobModifications(t *testing.T) {
 	// Ensure that the task shows up only once in the modified list.
 	jobs, err := m.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+	deepequal.AssertDeepEqual(t, []*Job{j1}, jobs)
 }
 
 func TestModifiedJobsTooManyUsers(t *testing.T) {
