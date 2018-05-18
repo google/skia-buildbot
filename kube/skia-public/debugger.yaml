@@ -34,7 +34,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: debugger
-          image: gcr.io/skia-public/debugger:2018-05-18T15_51_58Z-jcgregorio-6a8c2d6-dirty
+          image: gcr.io/skia-public/debugger:2018-05-18T18_26_04Z-jcgregorio-9ef2f42-clean
           args:
             - "--logtostderr"
             - "--port=:8000"
