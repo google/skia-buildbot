@@ -1,12 +1,18 @@
 {
    "debugger": {
      "urls": [
-       "http://debugger:8000",
-       "https://debugger-assets.skia.org",
+       "https://debugger.skia.org/",
      ],
      "method": "GET",
      "expected": [200],
-     "body": "",
+     "mimetype": "text/html"
+   },
+   "debugger-redirect": {
+     "urls": [
+       "http://debugger.skia.org/",
+     ],
+     "method": "GET",
+     "expected": [301],
      "mimetype": "text/html"
    },
 }

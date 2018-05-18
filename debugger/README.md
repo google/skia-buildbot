@@ -1,10 +1,11 @@
 Skia Debugger
 =============
 
-The Skia Debugger consists of two components, the C++ command-line application
-that ingests SKPs and analyzes them, and the HTML/CSS/JS front-end to the
-debugger that is loaded off of https://debugger.skia.org. This directory
-contains the code for debugger.skia.org.
+The Skia Debugger consists of several components:
+  - skiaserve - The C++ command-line application that ingests SKPs and analyzes them.
+  - debugger-assets - The server that provides the HTML/CSS/JS for skiaserve.
+  - debugger - The server that sits at debugger.skia.org and proxies requests
+    to running skiaserve instances.
 
 See `DESIGN.md` for more details.
 
