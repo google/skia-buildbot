@@ -41,3 +41,9 @@ spec:
             requests:
               memory: "100Mi"
               cpu: "25m"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 20000
+            initialDelaySeconds: 3
+            periodSeconds: 3

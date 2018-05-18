@@ -93,6 +93,12 @@ spec:
             requests:
               memory: "1Gi"
               cpu: "2"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9090
+            initialDelaySeconds: 3
+            periodSeconds: 3
         - name: configmap-reload
           args:
             - "--volume-dir=/etc/prometheus/"
