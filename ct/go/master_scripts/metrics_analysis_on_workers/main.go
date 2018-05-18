@@ -196,13 +196,15 @@ func main() {
 	}
 	isolateDeps := []string{telemetryHash}
 
+	// Calculate the max pages to run per bot.
+	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
 		"RUN_ID":         *runID,
 		"BENCHMARK_ARGS": *benchmarkExtraArgs,
 		"METRIC_NAME":    *metricName,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
@@ -212,7 +214,7 @@ func main() {
 	noOutputSlaves := []string{}
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numTraces, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
+		if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numTraces, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 		}
 	}
