@@ -57,6 +57,12 @@ spec:
             requests:
               memory: "30Mi"
               cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9090
+            initialDelaySeconds: 3
+            periodSeconds: 3
         - name: configmap-reload
           args:
             - "--volume-dir=/etc/alertmanager/"
