@@ -81,10 +81,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-ctfe:20000']
 
-  - job_name: 'debugger'
-    static_configs:
-      - targets: ['skia-debugger:20000']
-
   - job_name: 'datahopper'
     static_configs:
       - targets: ['skia-datahopper2:20000']
@@ -245,7 +241,6 @@ scrape_configs:
       - targets: ['skia-cq-watcher:11000']
       - targets: ['skia-ct-pixel-diff:11000']
       - targets: ['skia-datahopper2:11000']
-      - targets: ['skia-debugger:11000']
       - targets: ['skia-diffserver-prod:11000']
       - targets: ['skia-diffserver-stage:11000']
       - targets: ['skia-docs:11000']
