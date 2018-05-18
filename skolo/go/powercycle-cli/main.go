@@ -109,9 +109,9 @@ func main() {
 // listDevices prints out the devices it know about. This implies that
 // the devices have been contacted and passed a ping test.
 func listDevices(devGroup powercycle.DeviceGroup, exitCode int) {
-	fmt.Fprintf(os.Stderr, "Valid device IDs are:\n\n")
+	sklog.Errorf("Valid device IDs are:\n\n")
 	for _, id := range devGroup.DeviceIDs() {
-		fmt.Fprintf(os.Stderr, "    %s\n", id)
+		sklog.Errorf("    %s\n", id)
 	}
 	os.Exit(exitCode)
 }
