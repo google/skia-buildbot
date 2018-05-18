@@ -15,7 +15,7 @@ func TestGetPullRequestBuilds(t *testing.T) {
 	testutils.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `
+		_, err := fmt.Fprintln(w, `
 {
   "@type": "builds",
   "builds": [
@@ -43,6 +43,7 @@ func TestGetPullRequestBuilds(t *testing.T) {
   ]
 }
 `)
+		assert.NoError(t, err)
 	}))
 	defer ts.Close()
 
