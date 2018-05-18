@@ -19,9 +19,7 @@ kind: Deployment
 metadata:
   name: debugger
 spec:
-  replicas: 2
-  strategy:
-    type: RollingUpdate
+  replicas: 1
   template:
     metadata:
       labels:
@@ -36,7 +34,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: debugger
-          image: gcr.io/skia-public/debugger:2018-05-17T19_43_10Z-jcgregorio-36c930e-dirty
+          image: gcr.io/skia-public/debugger:2018-05-18T15_51_58Z-jcgregorio-6a8c2d6-dirty
           args:
             - "--logtostderr"
             - "--port=:8000"
@@ -47,8 +45,8 @@ spec:
             - containerPort: 8000
           resources:
             requests:
-              memory: "50Mi"
-              cpu: "20m"
+              memory: "20Gi"
+              cpu: "6"
           livenessProbe:
             httpGet:
               path: /

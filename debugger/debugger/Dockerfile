@@ -1,7 +1,17 @@
-FROM gcr.io/skia-public/basealpine:3.7
+FROM debian:testing-slim
 
-ADD . /
+ADD https://storage.googleapis.com/swiftshader-binaries/OpenGL_ES/Latest/Linux/libGLESv2.so /usr/local/lib/libGLESv2.so
+ADD https://storage.googleapis.com/swiftshader-binaries/OpenGL_ES/Latest/Linux/libEGL.so /usr/local/lib/libEGL.so
 
-USER skia
+RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
+  libfontconfig1 \
+  libglu1-mesa \
+  xvfb \
+  && rm -rf /var/lib/apt/lists/*
 
-ENTRYPOINT ["/bin/debugger"]
+COPY --from=gcr.io/skia-public/skiaserve:latest /bin/skiaserve /skiaserve
+
+COPY . /
+
+ENTRYPOINT ["/debugger"]
+CMD ["--logtostderr", "--resources_dir=/usr/local/share/debugger"]

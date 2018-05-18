@@ -109,3 +109,9 @@ Far Future Actions:
     /colorMode/[0|1|2]
       POST - Changes rendering to Linear 32-bit (0), sRGB (1), or Half-float (2)
 
+Hosted Debugger
+---------------
+
+A hosted version of the debugger runs on debugger.skia.org.
+
+The new design is TBD.
