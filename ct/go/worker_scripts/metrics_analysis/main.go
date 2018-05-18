@@ -192,7 +192,7 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 	sklog.Infof("Using %d seconds for timeout", timeoutSecs)
 	// Remove from benchmarkExtraArgs "special" flags that are recognized by CT but not
 	// by the run_benchmark script.
-	extraArgs := util.RemoveFlagsFromArgs(*benchmarkExtraArgs, util.RUN_BENCHMARK_TIMEOUT_FLAG)
+	extraArgs := util.RemoveFlagsFromArgs(*benchmarkExtraArgs, util.RUN_BENCHMARK_TIMEOUT_FLAG, util.MAX_PAGES_PER_BOT)
 	// Split extraArgs if not empty and append to args.
 	if extraArgs != "" {
 		args = append(args, strings.Fields(extraArgs)...)
