@@ -1,8 +1,8 @@
 {
    "debugger": {
      "urls": [
-       "http://debugger:8000",
-       "https://debugger-assets.skia.org",
+       "http://debugger-assets:8000/res/",
+       "https://debugger-assets.skia.org/res/",
      ],
      "method": "GET",
      "expected": [200],
