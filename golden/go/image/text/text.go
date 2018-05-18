@@ -116,7 +116,9 @@ func DecodeConfig(r io.Reader) (image.Config, error) {
 
 // Encode encoded the image in SKTEXT format.
 func Encode(w io.Writer, m *image.NRGBA) error {
-	fmt.Fprintf(w, "%s%d %d\n", skTextHeader, m.Rect.Dx(), m.Rect.Dy())
+	if _, err := fmt.Fprintf(w, "%s%d %d\n", skTextHeader, m.Rect.Dx(), m.Rect.Dy()); err != nil {
+		return err
+	}
 	height := m.Bounds().Dy()
 	for i := 0; i < len(m.Pix); i += 4 {
 		_, err := fmt.Fprintf(w, "0x%02x%02x%02x%02x", m.Pix[i+0], m.Pix[i+1], m.Pix[i+2], m.Pix[i+3])
@@ -127,10 +129,14 @@ func Encode(w io.Writer, m *image.NRGBA) error {
 		if (i > 0 || m.Stride == 4) && (i+4)%m.Stride == 0 {
 			// Don't add a trailing \n to the very last line.
 			if (i+4)/m.Stride < height {
-				fmt.Fprintln(w)
+				if _, err := fmt.Fprintln(w); err != nil {
+					return err
+				}
 			}
 		} else {
-			fmt.Fprint(w, " ")
+			if _, err := fmt.Fprint(w, " "); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
