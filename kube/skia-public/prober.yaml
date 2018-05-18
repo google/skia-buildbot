@@ -37,14 +37,7 @@ spec:
           ports:
             - name: metrics
               containerPort: 20000
-          volumeMounts:
-            - name: config-volume
-              mountPath: /etc/proberk
           resources:
             requests:
               memory: "100Mi"
               cpu: "25m"
-      volumes:
-        - name: config-volume
-          configMap:
-            name: proberk-conf
