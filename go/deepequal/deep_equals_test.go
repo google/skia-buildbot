@@ -1,4 +1,4 @@
-package testutils
+package deepequal
 
 import (
 	"reflect"
@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestTime(t *testing.T) {
-	SmallTest(t)
+	testutils.SmallTest(t)
 
 	t1 := time.Now()
 	t2 := t1.Round(0)
@@ -26,7 +27,7 @@ func (b customEqualValue) Equal(o customEqualValue) bool {
 }
 
 func TestCustomEqualValue(t *testing.T) {
-	SmallTest(t)
+	testutils.SmallTest(t)
 
 	a := customEqualValue{a: "foo"}
 	b := customEqualValue{a: "bar"}
@@ -43,7 +44,7 @@ func (b *customEqualPointer) Equal(o customEqualPointer) bool {
 }
 
 func TestCustomEqualPointer(t *testing.T) {
-	SmallTest(t)
+	testutils.SmallTest(t)
 
 	a := customEqualPointer{a: "foo"}
 	b := customEqualPointer{a: "bar"}
@@ -60,7 +61,7 @@ func (b equalNoArgs) Equal() bool {
 }
 
 func TestEqualWithNoArgs(t *testing.T) {
-	SmallTest(t)
+	testutils.SmallTest(t)
 
 	a := &equalNoArgs{a: "foo"}
 	b := &equalNoArgs{a: "bar"}
@@ -77,7 +78,7 @@ func (b equalWrongArgs) Equal(foo time.Time) bool {
 }
 
 func TestEqualWithWrongArgs(t *testing.T) {
-	SmallTest(t)
+	testutils.SmallTest(t)
 
 	a := &equalWrongArgs{a: "foo"}
 	b := &equalWrongArgs{a: "bar"}
@@ -90,7 +91,7 @@ type infiniteNesting struct {
 }
 
 func TestInfiniteNesting(t *testing.T) {
-	SmallTest(t)
+	testutils.SmallTest(t)
 
 	a := &infiniteNesting{}
 	a.alpha = a
