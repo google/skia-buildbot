@@ -138,7 +138,7 @@ func SoftPowerCycle(address string) bool {
 		sklog.Errorf("Failed to create session: %s", err)
 		return false
 	}
-	defer session.Close()
+	defer util.Close(session)
 
 	var b bytes.Buffer
 	session.Stdout = &b
