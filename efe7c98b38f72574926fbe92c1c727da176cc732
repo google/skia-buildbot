@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ac03d90_e1ce664a",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-18T18:52:57Z",
+      "side": 1,
+      "message": "Cannot redo metric analysis tasks from the UI without this.\nProbably because it is saved in the DB as 0 when not specified.",
+      "range": {
+        "startLine": 141,
+        "startChar": 33,
+        "endLine": 141,
+        "endChar": 59
+      },
+      "revId": "efe7c98b38f72574926fbe92c1c727da176cc732",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
