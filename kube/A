@@ -1,0 +1,10 @@
+gcr.io/skia-public/configmap-reload:2018-05-16T14_13_33Z-jcgregorio-80445ff-clean
+gcr.io/skia-public/debugger:2018-05-18T18_26_04Z-jcgregorio-9ef2f42-clean
+gcr.io/skia-public/debugger-assets:2018-05-18T14_50_37Z-jcgregorio-992e9f8-dirty
+gcr.io/skia-public/docserverk:2018-05-04T15_11_29Z-jcgregorio-018615b-clean
+gcr.io/skia-public/iap-proxy:2018-05-16T14_13_55Z-jcgregorio-80445ff-clean
+gcr.io/skia-public/notifier:2018-05-18T17_58_26Z-jcgregorio-db3358d-dirty
+gcr.io/skia-public/proberk:2018-05-18T20_20_12Z-jcgregorio-e434f61-dirty
+grafana/grafana:5.1.2
+prom/alertmanager:v0.14.0
+prom/prometheus:v2.2.1
