@@ -22,6 +22,30 @@
       "revId": "9bd5844ca4a72f015416d70d9a0cae052ad024fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fcdd15f_93425000",
+        "filename": "skolo/go/powercycle-cli/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-18T14:09:48Z",
+      "side": 1,
+      "message": "stderr shows up even if the user forgets to type --logtostderr\n\nThis way, powercycle -l \"just works\"",
+      "parentUuid": "e0842a0e_e923db55",
+      "range": {
+        "startLine": 112,
+        "startChar": 1,
+        "endLine": 114,
+        "endChar": 30
+      },
+      "revId": "9bd5844ca4a72f015416d70d9a0cae052ad024fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
