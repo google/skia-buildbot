@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0842a0e_e923db55",
+        "filename": "skolo/go/powercycle-cli/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-18T14:08:02Z",
+      "side": 1,
+      "message": "Why do these write to stderr in the first place, shouldn\u0027t that be sklog.Infof(....) ?",
+      "range": {
+        "startLine": 112,
+        "startChar": 1,
+        "endLine": 114,
+        "endChar": 30
+      },
+      "revId": "9bd5844ca4a72f015416d70d9a0cae052ad024fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
