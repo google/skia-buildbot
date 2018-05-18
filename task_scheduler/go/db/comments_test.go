@@ -7,6 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -65,7 +66,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 	callCount := 0
 	testWriter := func(actual map[string]*RepoComments) error {
 		callCount++
-		testutils.AssertDeepEqual(t, expected, actual)
+		deepequal.AssertDeepEqual(t, expected, actual)
 		return nil
 	}
 
@@ -155,7 +156,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 			expected["r1"],
 			expected["r2"],
 		}
-		testutils.AssertDeepEqual(t, expectedSlice, actual)
+		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
 
 	assert.Equal(t, 0, callCount)
@@ -190,7 +191,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 			expected["r1"],
 			expected["r2"],
 		}
-		testutils.AssertDeepEqual(t, expectedSlice, actual)
+		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
 
 	// Reload DB from persistent again.
@@ -208,7 +209,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 			expected["r1"],
 			expected["r2"],
 		}
-		testutils.AssertDeepEqual(t, expectedSlice, actual)
+		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
 }
 
@@ -279,7 +280,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expected, actual)
+		deepequal.AssertDeepEqual(t, expected, actual)
 	}
 
 	callCount = 0
@@ -303,7 +304,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expected, actual)
+		deepequal.AssertDeepEqual(t, expected, actual)
 	}
 
 	assert.Error(t, db.DeleteTaskComment(tc1))
@@ -314,6 +315,6 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expected, actual)
+		deepequal.AssertDeepEqual(t, expected, actual)
 	}
 }

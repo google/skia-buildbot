@@ -14,6 +14,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -603,7 +604,7 @@ func TestGetTaskSpecDAG(t *testing.T) {
 		assert.True(t, ok)
 		res, err := j.GetTaskSpecDAG(cfg)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, res, dag)
+		deepequal.AssertDeepEqual(t, res, dag)
 	}
 
 	test(map[string][]string{"a": {}}, []string{"a"})
@@ -655,7 +656,7 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 		c2Queue := c2.queue
 		c.queue = nil
 		c2.queue = nil
-		testutils.AssertDeepEqual(t, c, c2)
+		deepequal.AssertDeepEqual(t, c, c2)
 		c.queue = c1Queue
 		c2.queue = c2Queue
 	}
