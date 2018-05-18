@@ -291,7 +291,7 @@ func TestFiles(t *testing.T) {
 	testutils.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `)]}'
+		_, err := fmt.Fprintln(w, `)]}'
 {
   "/COMMIT_MSG": {
     "status": "A",
@@ -319,6 +319,7 @@ func TestFiles(t *testing.T) {
   }
 }
 `)
+		assert.NoError(t, err)
 	}))
 
 	defer ts.Close()
@@ -340,7 +341,7 @@ func TestGetFileNames(t *testing.T) {
 	testutils.SmallTest(t)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `)]}'
+		_, err := fmt.Fprintln(w, `)]}'
 {
   "/COMMIT_MSG": {
     "status": "A",
@@ -368,6 +369,7 @@ func TestGetFileNames(t *testing.T) {
   }
 }
 `)
+		assert.NoError(t, err)
 	}))
 
 	defer ts.Close()
@@ -385,7 +387,7 @@ func TestIsBinaryPatch(t *testing.T) {
 
 	tsNoBinary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `)]}'
+		_, err := fmt.Fprintln(w, `)]}'
 {
   "/COMMIT_MSG": {
     "status": "A",
@@ -395,6 +397,7 @@ func TestIsBinaryPatch(t *testing.T) {
   }
 }
 `)
+		assert.NoError(t, err)
 	}))
 	defer tsNoBinary.Close()
 	api, err := NewGerrit(tsNoBinary.URL, "", nil)
@@ -405,7 +408,7 @@ func TestIsBinaryPatch(t *testing.T) {
 
 	tsBinary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `)]}'
+		_, err := fmt.Fprintln(w, `)]}'
 {
   "/COMMIT_MSG": {
     "status": "A",
@@ -421,6 +424,7 @@ func TestIsBinaryPatch(t *testing.T) {
   }
 }
 `)
+		assert.NoError(t, err)
 	}))
 	defer tsBinary.Close()
 	api, err = NewGerrit(tsBinary.URL, "", nil)
