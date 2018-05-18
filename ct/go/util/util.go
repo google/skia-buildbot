@@ -110,16 +110,55 @@ func syncDirStep(ctx context.Context, revisions map[string]string, additionalArg
 	return nil
 }
 
-// BuildSkiaSKPInfo builds "skpinfo" in the Skia trunk directory.
-func BuildSkiaSKPInfo(ctx context.Context) error {
-	if err := os.Chdir(SkiaTreeDir); err != nil {
-		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+func downloadClangAsset(ctx context.Context, clangDir string, runningOnSwarming bool) error {
+	downloadClangArgs := []string{
+		"infra/bots/assets/clang_linux/download.py",
+		"-t", clangDir,
 	}
+	if runningOnSwarming {
+		downloadClangArgs = append(downloadClangArgs, "--gsutil", filepath.Join(DepotToolsDir, "gsutil.py"))
+	}
+	cipdEnv := []string{}
+	if runningOnSwarming {
+		cipdEnv = append(cipdEnv, "USE_CIPD_GCE_AUTH=true")
+	}
+	if err := ExecuteCmd(ctx, "python", downloadClangArgs, cipdEnv, FETCH_GN_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running bin/fetch-gn: %s", err)
+	}
+	return nil
+}
+
+func runSkiaGnArgs(ctx context.Context, clangLocation, gnExtraArgs string) error {
 	// Run "bin/fetch-gn".
 	util.LogErr(ExecuteCmd(ctx, "bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
 		nil))
-	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd(ctx, "buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+	// gn gen out/Release '--args=cc="/home/chrome-bot/test/clang_linux/bin/clang" cxx="/home/chrome-bot/test/clang_linux/bin/clang++" extra_cflags=["-B/home/chrome-bot/test/clang_linux/bin", "-DDUMMY_clang_linux_version=11"] extra_ldflags=["-B/home/chrome-bot/test/clang_linux/bin", "-fuse-ld=lld"] is_debug=false target_cpu="x86_64"'
+	gnArgs := fmt.Sprintf("--args=cc=\"%s/bin/clang\" cxx=\"%s/bin/clang++\" extra_cflags=[\"-B%s/bin\", \"-DDUMMY_clang_linux_version=11\"] extra_ldflags=[\"-B%s/bin\", \"-fuse-ld=lld\"] is_debug=false target_cpu=\"x86_64\"", clangLocation, clangLocation, clangLocation, clangLocation)
+	if gnExtraArgs != "" {
+		gnArgs += " " + gnExtraArgs
+	}
+	if err := ExecuteCmd(ctx, "buildtools/linux64/gn", []string{"gen", "out/Release", gnArgs}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running gn: %s", err)
+	}
+	return nil
+}
+
+// BuildSkiaSKPInfo builds "skpinfo" in the Skia trunk directory.
+func BuildSkiaSKPInfo(ctx context.Context, runningOnSwarming bool) error {
+	if err := os.Chdir(SkiaTreeDir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+	}
+	// Download clang.
+	clangDir, err := ioutil.TempDir(StorageDir, "clang_linux")
+	if err != nil {
+		return fmt.Errorf("Could not create clangDir: %s", err)
+	}
+	defer util.RemoveAll(clangDir)
+	if err := downloadClangAsset(ctx, clangDir, runningOnSwarming); err != nil {
+		return fmt.Errorf("Error when downloading clang asset: %s", err)
+	}
+	// Run gn args
+	if err := runSkiaGnArgs(ctx, clangDir, "" /* gnExtraArgs */); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 skpinfo".
@@ -129,15 +168,21 @@ func BuildSkiaSKPInfo(ctx context.Context) error {
 }
 
 // BuildSkiaLuaPictures builds "lua_pictures" in the Skia trunk directory.
-func BuildSkiaLuaPictures(ctx context.Context) error {
+func BuildSkiaLuaPictures(ctx context.Context, runningOnSwarming bool) error {
 	if err := os.Chdir(SkiaTreeDir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
-	// Run "bin/fetch-gn".
-	util.LogErr(ExecuteCmd(ctx, "bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
-		nil))
-	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd(ctx, "buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false skia_use_lua=true"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+	// Download clang.
+	clangDir, err := ioutil.TempDir(StorageDir, "clang_linux")
+	if err != nil {
+		return fmt.Errorf("Could not create clangDir: %s", err)
+	}
+	defer util.RemoveAll(clangDir)
+	if err := downloadClangAsset(ctx, clangDir, runningOnSwarming); err != nil {
+		return fmt.Errorf("Error when downloading clang asset: %s", err)
+	}
+	// Run gn args
+	if err := runSkiaGnArgs(ctx, clangDir, "skia_use_lua=true"); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 lua_pictures".
@@ -310,10 +355,10 @@ func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles string) error {
 	close(skpsChannel)
 
 	sklog.Info("Calling remove_invalid_skp.py")
-	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-	util.LogErr(SyncDir(ctx, SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
-	// Build tools.
-	util.LogErr(BuildSkiaSKPInfo(ctx))
+	//// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
+	//util.LogErr(SyncDir(ctx, SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
+	//// Build tools.
+	//util.LogErr(BuildSkiaSKPInfo(ctx))
 	// Run remove_invalid_skp.py in parallel goroutines.
 	// Construct path to the python script.
 	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skp.py")
