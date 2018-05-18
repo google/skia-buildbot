@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: debug
-  name: debug
+    app: debugger-assets
+  name: debugger-assets
 spec:
   ports:
     - name: metrics
@@ -11,19 +11,21 @@ spec:
     - name: http
       port: 8000
   selector:
-    app: debug
+    app: debugger-assets
   type: NodePort
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: debug
+  name: debugger-assets
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
-        app: debug
+        app: debugger-assets
       annotations:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"
@@ -33,20 +35,20 @@ spec:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
       containers:
-        - name: debug
-          image: gcr.io/skia-public/debug:2018-05-17T20_11_19Z-jcgregorio-69728a2-dirty
+        - name: debugger-assets
+          image: gcr.io/skia-public/debugger-assets:2018-05-18T14_50_37Z-jcgregorio-992e9f8-dirty
           args:
             - "--logtostderr"
             - "--port=:8000"
             - "--prom_port=:20000"
-            - "--resources_dir=/usr/local/share/debug"
+            - "--resources_dir=/usr/local/share/debugger-assets"
           ports:
             - containerPort: 20000
             - containerPort: 8000
           resources:
             requests:
-              memory: "20Gi"
-              cpu: "6"
+              memory: "50Mi"
+              cpu: "20m"
           livenessProbe:
             httpGet:
               path: /

@@ -1,17 +1,27 @@
 package main
 
 import (
+	"bytes"
 	"flag"
+	"fmt"
+	"html/template"
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"runtime"
 
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/debugger/go/instances"
+	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 // flags
@@ -22,8 +32,132 @@ var (
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
+var (
+	templates *template.Template
+
+	// repo is the Skia checkout.
+	repo *gitinfo.GitInfo
+
+	// build is responsible to building the LKGR of skiaserve periodically.
+	build *buildskia.ContinuousBuilder
+
+	// co handles proxying requests to skiaserve instances which is spins up and down.
+	co *instances.Instances
+)
+
+func loadTemplates() {
+	templates = template.Must(template.New("").ParseFiles(
+		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/admin.html"),
+	))
+}
+
+func templateHandler(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if *local {
+			loadTemplates()
+		}
+		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
+			sklog.Errorln("Failed to expand template:", err)
+		}
+	}
+}
+
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "https://debug.skia.org", http.StatusPermanentRedirect)
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+		sklog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+func adminHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if err := templates.ExecuteTemplate(w, "admin.html", co.DescribeAll()); err != nil {
+		sklog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+// loadHandler allows an SKP available on the open web to be downloaded into
+// skiaserve for debugging.
+//
+// Expects a single query parameter of "url" that contains the URL of the SKP
+// to download.
+func loadHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+
+	// Load the SKP from the given query parameter.
+	client := httputils.NewTimeoutClient()
+	resp, err := client.Get(r.FormValue("url"))
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve the SKP.")
+		return
+	}
+	if resp.StatusCode != 200 {
+		httputils.ReportError(w, r, err, "Failed to retrieve the SKP, bad status code.")
+		return
+	}
+	defer util.Close(r.Body)
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to read body.")
+		return
+	}
+
+	// Now package that SKP up in the multipart/form-file that skiaserve expects.
+	body := &bytes.Buffer{}
+	multipartWriter := multipart.NewWriter(body)
+	formFile, err := multipartWriter.CreateFormFile("file", "file.skp")
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to create new multipart/form-file object to pass to skiaserve.")
+		return
+	}
+	if _, err := formFile.Write(b); err != nil {
+		httputils.ReportError(w, r, err, "Failed to copy SKP into multipart/form-file object to pass to skiaserve.")
+		return
+	}
+	if err := multipartWriter.Close(); err != nil {
+		httputils.ReportError(w, r, err, "Failed to close new multipart/form-file object to pass to skiaserve.")
+		return
+	}
+
+	// POST the image down to skiaserve.
+	instanceID := instances.NewInstanceID()
+	req, err := http.NewRequest("POST", fmt.Sprintf("/%s/new", instanceID), body)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to create new request object to pass to skiaserve.")
+		return
+	}
+	// Copy over cookies so the request is authenticated.
+	for _, c := range r.Cookies() {
+		req.AddCookie(c)
+	}
+	req.Header.Set("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", multipartWriter.Boundary()))
+	rec := httptest.NewRecorder()
+	co.ServeHTTP(rec, req)
+	if rec.Code >= 400 {
+		httputils.ReportError(w, r, fmt.Errorf("Bad status from SKP upload: Status %d Body %q", rec.Code, rec.Body.String()), "Failed to upload SKP.")
+	} else {
+		http.Redirect(w, r, fmt.Sprintf("/%s/", instanceID), 303)
+	}
+}
+
+func Init() {
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+	}
+	loadTemplates()
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
@@ -41,17 +175,27 @@ func main() {
 		"debugger",
 		common.PrometheusOpt(promPort),
 	)
+	co = instances.New()
 
-	if *resourcesDir == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
-	}
+	Init()
 
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
 	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/admin", adminHandler)
+	router.HandleFunc("/loadfrom", loadHandler)
 
-	http.Handle("/", iap.None(httputils.LoggingRequestResponse(router)))
+	// All URLs that we don't understand will be routed to be handled by
+	// skiaserve, with the one exception of "/instanceStatus" which will be
+	// handled by 'co' itself.
+	router.NotFoundHandler = co
+
+	h := httputils.LoggingRequestResponse(router)
+	if !*local {
+		h = iap.None(h)
+	}
+	http.Handle("/", h)
+
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

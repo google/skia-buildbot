@@ -179,6 +179,7 @@ The main application element for the Skia Debugger.
     header h2,
     header div,
     header instance-status-sk,
+    header login-sk,
     {
       display: inline-block;
     }
@@ -277,6 +278,7 @@ The main application element for the Skia Debugger.
       <h2>Skia Debugger</h2>
       <div class=flex></div>
       <instance-status-sk id=status class=hidden></instance-status-sk>
+      <login-sk id=login class=hidden></login-sk>
     </header>
     <div id=content>
       <div class="layout horizontal center">
@@ -314,10 +316,10 @@ The main application element for the Skia Debugger.
             <iron-pages selected="{{tab_selected}}">
               <div>
                 <div class="layout horizontal sizeToolBar">
-                  <paper-icon-button src="https://debugger.skia.org/res/img/image.png"  data-style="natural" title="Original size."     on-tap="_resizeImage"></paper-icon-button>
-                  <paper-icon-button src="https://debugger.skia.org/res/img/both.png"   data-style="fit"     title="Fit to page."       on-tap="_resizeImage"></paper-icon-button>
-                  <paper-icon-button src="https://debugger.skia.org/res/img/right.png"  data-style="right"   title="Fit to page width." on-tap="_resizeImage"></paper-icon-button>
-                  <paper-icon-button src="https://debugger.skia.org/res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/image.png"  data-style="natural" title="Original size."     on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/both.png"   data-style="fit"     title="Fit to page."       on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/right.png"  data-style="right"   title="Fit to page width." on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
                 </div>
                 <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
                   <img id=img src="" class="fit">
@@ -557,7 +559,13 @@ The main application element for the Skia Debugger.
           this.$.prevColor.textContent = "";
         }.bind(this));
 
-        this.$.status.classList.remove('hidden');
+        // Only display the login control if we are running in hosted mode, in which case
+        // the /loginstatus/ endpoint will return valid JSON, otherwise we are running
+        // locally.
+        sk.get("/loginstatus/").then(JSON.parse).then(function(json) {
+          this.$.login.classList.remove('hidden');
+          this.$.status.classList.remove('hidden');
+        }.bind(this));
       },
 
       attached: function() {

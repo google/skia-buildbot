@@ -12,11 +12,11 @@ Normally the skdebugger will be run on the same machine that the browser is
 run on:
 
 ~~~~
-                          +---------------------+
-                          |                     |
-                          |  debugger.skia.org  |
-                          |                     |
-                          +----+----------------+
+                          +----------------------------+
+                          |                            |
+                          |  debugger-assets.skia.org  |
+                          |                            |
+                          +----+-----------------------+
                                ^
                                |
 +-----------------------------------------------+
@@ -33,15 +33,15 @@ run on:
 +-----------------------------------------------+
 ~~~~
 
-But that ins't a requirement, and the skdebugger could be run on a remove
+But that ins't a requirement, and the skdebugger could be run on a remote
 machine, or with port forwarding could be run on an Android device:
 
 ~~~~
-                          +---------------------+
-                          |                     |
-                          |  debugger.skia.org  |
-                          |                     |
-                          +----+----------------+
+                          +----------------------------+
+                          |                            |
+                          |  debugger-assets.skia.org  |
+                          |                            |
+                          +----+-----------------------+
                                ^
                                |
 +----------------------------------+    +----------------------+
@@ -110,8 +110,10 @@ Far Future Actions:
       POST - Changes rendering to Linear 32-bit (0), sRGB (1), or Half-float (2)
 
 Hosted Debugger
----------------
+===============
 
-A hosted version of the debugger runs on debugger.skia.org.
-
-The new design is TBD.
+A hosted version of the debugger runs as https://debugger.skia.org.
+It loads its assets from https://debugger-assets.skia.org and spins
+up multipe copies of skiaserve. Each running instance is identified
+by a UUID, which is part of the URL, and guides which instance of
+skiaserve processes the requests.

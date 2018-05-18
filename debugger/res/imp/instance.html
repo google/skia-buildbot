@@ -41,10 +41,8 @@
     <content>
       Your instance has been running <span id=duration></span>.
       <form id=form action="./instanceStatus" method="post" accept-charset="utf-8">
-        <input type="submit" value="Restart">
-      </form>
-      <form action="/1/instanceNew" method="post" accept-charset="utf-8">
-        <input type="submit" value="New">
+        <button type="submit">Restart Instance</button>
+        <a href="/instanceNew" title="Start a new instance.">New</a>
       </form>
     </content>
   </template>

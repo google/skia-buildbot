@@ -7,14 +7,7 @@
     <link rel="shortcut icon" href="/res/img/favicon.ico" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/res/js/core.js" type="text/javascript" charset="utf-8"></script>
-    <link href="/res/vul/elements.html" rel="import" />
-    <!--We must use is=custom-style here so styles don't get leaked into local DOM.
-    Note that using custom-style inside <dom-module> can lead to
-    unintended consequences, such as CSS mixins not being visible.
-    https://www.polymer-project.org/1.0/docs/devguide/styling#custom-style -->
-    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
-    <style is="custom-style" type="text/css" media="screen">
+    <style type="text/css" media="screen">
       body {
         margin: 0;
         padding: 0;
@@ -27,6 +20,9 @@
         color: white;
         padding: 0.5em;
         margin: 0;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
       }
 
       header > * {
@@ -37,7 +33,7 @@
         margin: 0;
       }
 
-      #main {
+      main {
         padding: 1em;
       }
 
@@ -49,18 +45,16 @@
     </style>
 </head>
 <body>
-  <header class="horizontal layout center">
+  <header>
     <h2>Skia Debugger - Admin</h2>
-    <div class="flex"></div>
-    <login-sk></login-sk>
   </header>
-  <section id=main>
+  <main>
     <table>
       <tr><th>ID</th><th>Uptime</th><th>Port</th></tr>
       {{range .}}
       <tr><td>{{.ID}}</td><td>{{.Uptime}}</td><td>{{.Port}}</td></tr>
       {{end}}
     </table>
-  </section>
+  </main>
 </body>
 </html>
