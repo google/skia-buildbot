@@ -151,14 +151,9 @@ func main() {
 		}
 	}
 	// Figure out how many traces we are dealing with.
-	traces, err := ioutil.ReadFile(tracesFilePath)
+	traces, err := util.GetCustomPages(tracesFilePath)
 	if err != nil {
 		sklog.Errorf("Could not read %s: %s", tracesFilePath, err)
-		return
-	}
-	numTraces := len(strings.Split(string(traces), ","))
-	if numTraces == 0 {
-		sklog.Errorf("Could not find any traces in %s", tracesFileName)
 		return
 	}
 
@@ -204,7 +199,7 @@ func main() {
 		"BENCHMARK_ARGS": *benchmarkExtraArgs,
 		"METRIC_NAME":    *metricName,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numTraces, isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
@@ -214,7 +209,7 @@ func main() {
 	noOutputSlaves := []string{}
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numTraces, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
+		if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, len(traces), maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 		}
 	}

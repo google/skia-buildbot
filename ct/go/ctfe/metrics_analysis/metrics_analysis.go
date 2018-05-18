@@ -138,7 +138,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	}); err != nil {
 		return "", nil, err
 	}
-	if task.AnalysisTaskId != "" {
+	if task.AnalysisTaskId != "" && task.AnalysisTaskId != "0" {
 		// Get analysis output link from analysis task id.
 		outputLinks := []string{}
 		query := fmt.Sprintf("SELECT raw_output FROM %s WHERE id = ?", db.TABLE_CHROMIUM_ANALYSIS_TASKS)
