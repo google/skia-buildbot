@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -87,14 +88,14 @@ func TestIsolateTasks(t *testing.T) {
 		OsType:      "linux",
 	}
 	hashes = do([]*Task{t1, t2}, "")
-	testutils.AssertDeepEqual(t, hashes, []string{h1, h1})
+	deepequal.AssertDeepEqual(t, hashes, []string{h1, h1})
 
 	// Tweak the second task.
 	t2.IsolateFile = dummyIsolate2
 	hashes = do([]*Task{t1, t2}, "")
 	h2 := hashes[1]
 	assert.NotEqual(t, h1, h2)
-	testutils.AssertDeepEqual(t, hashes, []string{h1, h2})
+	deepequal.AssertDeepEqual(t, hashes, []string{h1, h2})
 
 	// Add a dependency of t2 on t1. Ensure that we get a different hash,
 	// which implies that the dependency was added successfully.
@@ -125,5 +126,5 @@ func TestIsolateTasks(t *testing.T) {
 		expectHashes = append(expectHashes, h[0])
 	}
 	gotHashes := do(tasks, "")
-	testutils.AssertDeepEqual(t, expectHashes, gotHashes)
+	deepequal.AssertDeepEqual(t, expectHashes, gotHashes)
 }

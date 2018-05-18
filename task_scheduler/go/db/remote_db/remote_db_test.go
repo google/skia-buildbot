@@ -7,12 +7,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func TestMain(m *testing.M) {
-	db.AssertDeepEqual = testutils.AssertDeepEqual
+	db.AssertDeepEqual = deepequal.AssertDeepEqual
 	os.Exit(m.Run())
 }
 

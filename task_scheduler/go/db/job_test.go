@@ -10,6 +10,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -42,7 +43,7 @@ func makeFullJob(now time.Time) *Job {
 func TestJobCopy(t *testing.T) {
 	testutils.SmallTest(t)
 	v := makeFullJob(time.Now())
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 // Test that sort.Sort(JobSlice(...)) works correctly.
@@ -67,7 +68,7 @@ func TestJobSort(t *testing.T) {
 
 	sort.Sort(JobSlice(jobs))
 
-	testutils.AssertDeepEqual(t, expected, jobs)
+	deepequal.AssertDeepEqual(t, expected, jobs)
 }
 
 func TestJobEncoder(t *testing.T) {
@@ -94,7 +95,7 @@ func TestJobEncoder(t *testing.T) {
 		actualJobs[job] = serialized
 	}
 
-	testutils.AssertDeepEqual(t, expectedJobs, actualJobs)
+	deepequal.AssertDeepEqual(t, expectedJobs, actualJobs)
 }
 
 func TestJobEncoderNoJobs(t *testing.T) {
@@ -130,7 +131,7 @@ func TestJobDecoder(t *testing.T) {
 	for _, job := range result {
 		actualJobs[job.Id] = job
 	}
-	testutils.AssertDeepEqual(t, expectedJobs, actualJobs)
+	deepequal.AssertDeepEqual(t, expectedJobs, actualJobs)
 }
 
 func TestJobDecoderNoJobs(t *testing.T) {

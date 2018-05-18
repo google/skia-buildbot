@@ -11,6 +11,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 )
@@ -25,7 +26,7 @@ func TestCopyTaskKey(t *testing.T) {
 		Name:        "Build",
 		ForcedJobId: "123",
 	}
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 // Test that Task.UpdateFromSwarming returns an error when the input data is
@@ -87,7 +88,7 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 	}, "Unable to parse AbandonedTs")
 
 	// Unchanged.
-	testutils.AssertDeepEqual(t, task, copy)
+	deepequal.AssertDeepEqual(t, task, copy)
 }
 
 // Test that Task.UpdateFromSwarming returns an error when the task "identity"
@@ -153,7 +154,7 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 	testError(s, ErrUnknownId.Error())
 
 	// Unchanged.
-	testutils.AssertDeepEqual(t, task, copy)
+	deepequal.AssertDeepEqual(t, task, copy)
 }
 
 // Test that Task.UpdateFromSwarming sets the expected fields in an empty Task.
@@ -190,7 +191,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	changed1, err1 := task1.UpdateFromSwarming(s)
 	assert.NoError(t, err1)
 	assert.True(t, changed1)
-	testutils.AssertDeepEqual(t, task1, &Task{
+	deepequal.AssertDeepEqual(t, task1, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -220,7 +221,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	changed2, err2 := task2.UpdateFromSwarming(s)
 	assert.NoError(t, err2)
 	assert.True(t, changed2)
-	testutils.AssertDeepEqual(t, task2, &Task{
+	deepequal.AssertDeepEqual(t, task2, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -294,7 +295,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	changed, err := task.UpdateFromSwarming(s)
 	assert.NoError(t, err)
 	assert.True(t, changed)
-	testutils.AssertDeepEqual(t, task, &Task{
+	deepequal.AssertDeepEqual(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -320,7 +321,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	changed, err = task.UpdateFromSwarming(s)
 	assert.NoError(t, err)
 	assert.False(t, changed)
-	testutils.AssertDeepEqual(t, task, &Task{
+	deepequal.AssertDeepEqual(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -347,7 +348,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	changed, err = task.UpdateFromSwarming(s)
 	assert.NoError(t, err)
 	assert.True(t, changed)
-	testutils.AssertDeepEqual(t, task, &Task{
+	deepequal.AssertDeepEqual(t, task, &Task{
 		Id: "A",
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -394,7 +395,7 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 		changed, err := task.UpdateFromSwarming(s)
 		assert.NoError(t, err)
 		assert.True(t, changed)
-		testutils.AssertDeepEqual(t, task, &Task{
+		deepequal.AssertDeepEqual(t, task, &Task{
 			Id: "A",
 			TaskKey: TaskKey{
 				RepoState: RepoState{
@@ -499,7 +500,7 @@ func TestUpdateDBFromSwarmingTask(t *testing.T) {
 
 	updatedTask, err := db.GetTaskById(task.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, updatedTask, &Task{
+	deepequal.AssertDeepEqual(t, updatedTask, &Task{
 		Id: task.Id,
 		TaskKey: TaskKey{
 			RepoState: RepoState{
@@ -679,7 +680,7 @@ func TestCopyTask(t *testing.T) {
 			Name: "Build",
 		},
 	}
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 func TestValidateTask(t *testing.T) {
@@ -755,7 +756,7 @@ func TestTaskSort(t *testing.T) {
 
 	sort.Sort(TaskSlice(tasks))
 
-	testutils.AssertDeepEqual(t, expected, tasks)
+	deepequal.AssertDeepEqual(t, expected, tasks)
 }
 
 func TestTaskEncoder(t *testing.T) {
@@ -780,7 +781,7 @@ func TestTaskEncoder(t *testing.T) {
 		assert.NoError(t, err)
 		actualTasks[task] = serialized
 	}
-	testutils.AssertDeepEqual(t, expectedTasks, actualTasks)
+	deepequal.AssertDeepEqual(t, expectedTasks, actualTasks)
 }
 
 func TestTaskEncoderNoTasks(t *testing.T) {
@@ -816,7 +817,7 @@ func TestTaskDecoder(t *testing.T) {
 	for _, task := range result {
 		actualTasks[task.Id] = task
 	}
-	testutils.AssertDeepEqual(t, expectedTasks, actualTasks)
+	deepequal.AssertDeepEqual(t, expectedTasks, actualTasks)
 }
 
 func TestTaskDecoderNoTasks(t *testing.T) {
@@ -862,5 +863,5 @@ func TestCopyTaskSummary(t *testing.T) {
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "abc123",
 	}
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
