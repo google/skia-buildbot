@@ -46,6 +46,30 @@
       "revId": "9bd5844ca4a72f015416d70d9a0cae052ad024fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a9e13e8_90d156be",
+        "filename": "skolo/go/powercycle-cli/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-18T14:39:50Z",
+      "side": 1,
+      "message": "it\u0027s fine in this case, in general I think as a user I would like that -l automatically implies --aloslogtostderr or --logtostderr, just a thought.",
+      "parentUuid": "0fcdd15f_93425000",
+      "range": {
+        "startLine": 112,
+        "startChar": 1,
+        "endLine": 114,
+        "endChar": 30
+      },
+      "revId": "9bd5844ca4a72f015416d70d9a0cae052ad024fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
