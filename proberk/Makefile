@@ -15,8 +15,3 @@ release: default
 push: release
 	go install ../kube/go/pushk
 	pushk proberk
-
-push_config: validate
-	# Need to use replace so that the configmap gets updated. Change "replace"
-	# to "create" if this is the first time the configmap has been uploaded.
-	kubectl create configmap proberk-conf --from-file=./allprobersk.json -o yaml --dry-run | kubectl replace -f -
