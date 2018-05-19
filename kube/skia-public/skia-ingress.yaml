@@ -8,7 +8,7 @@ metadata:
     ingress.gcp.kubernetes.io/pre-shared-cert: skia-org
 spec:
   backend:
-    serviceName: docserverk
+    serviceName: docserver
     servicePort: 8000
   rules:
     - host: prom2.skia.org
