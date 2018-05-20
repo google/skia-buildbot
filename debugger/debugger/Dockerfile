@@ -7,6 +7,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
   libfontconfig1 \
   libglu1-mesa \
   xvfb \
+  ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=gcr.io/skia-public/skiaserve:latest /bin/skiaserve /skiaserve
