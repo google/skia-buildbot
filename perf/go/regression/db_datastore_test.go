@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
@@ -16,9 +17,11 @@ import (
 // TestDS test storing regressions in the datastore.
 func TestDS(t *testing.T) {
 	testutils.LargeTest(t)
+	if metadata.OnGCE() {
+		t.Skipf("Test is only run locally.")
+	}
 
 	cleanup := testutil.InitDatastore(t, ds.REGRESSION)
-
 	defer cleanup()
 
 	st := NewStore()
