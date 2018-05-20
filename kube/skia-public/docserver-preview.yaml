@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: docserver-preview
+  name: docserver-preview
+spec:
+  ports:
+    - name: http
+      port: 8000
+    - name: docserver-preview-metrics
+      port: 20000
+  selector:
+    app: docserver-preview
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: docserver-preview
+spec:
+  selector:
+    matchLabels:
+      app: docserver-preview # Label selector that determines which Pods belong to the StatefulSet
+                      # Must match spec: template: metadata: labels
+  serviceName: "docserver-preview"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: docserver-preview # Pod template's label selector
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      volumes:
+        - name: skia-docs-sa
+          secret:
+            secretName: skia-docs
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: docserver-preview
+          image: gcr.io/skia-public/docserverk:2018-05-19T18_48_58Z-jcgregorio-612e55b-dirty
+          args:
+            - "--cl_preview=true"
+            - "--logtostderr"
+            - "--port=:8000"
+            - "--prom_port=:20000"
+            - "--resources_dir=/usr/local/share/docserverk/"
+            - "--work_dir=/mnt/docserver-preview"
+          ports:
+            - name: http
+              containerPort: 8000
+            - name: metrics
+              containerPort: 20000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
+          volumeMounts:
+            - name: skia-docs-sa
+              mountPath: /var/secrets/google
+            - name: docserver-preview-storage
+              mountPath: /mnt/docserver-preview
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: docserver-preview-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 500Gi
