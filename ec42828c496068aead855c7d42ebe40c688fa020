@@ -16,6 +16,24 @@
       "revId": "ec42828c496068aead855c7d42ebe40c688fa020",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b24f4555_578bf5d7",
+        "filename": "perf/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-21T17:33:31Z",
+      "side": 0,
+      "message": "Yes, Perf doesn\u0027t use mysql anymore.",
+      "parentUuid": "fa8b5202_5914862f",
+      "revId": "ec42828c496068aead855c7d42ebe40c688fa020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
