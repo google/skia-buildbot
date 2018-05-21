@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: docserver
-  name: docserver
+    app: docserver-preview
+  name: docserver-preview
 spec:
   ports:
     - name: metrics
@@ -11,21 +11,19 @@ spec:
     - name: http
       port: 8000
   selector:
-    app: docserver
+    app: docserver-preview
   type: NodePort
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: docserver
+  name: docserver-preview
 spec:
-  replicas: 2
-  strategy:
-    type: RollingUpdate
+  replicas: 1
   template:
     metadata:
       labels:
-        app: docserver
+        app: docserver-preview
       annotations:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"
@@ -35,10 +33,10 @@ spec:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
       containers:
-        - name: docserver
+        - name: docserver-preview
           image: gcr.io/skia-public/docserverk:2018-05-19T18_48_58Z-jcgregorio-612e55b-dirty
           args:
-            - "--cl_preview=false"
+            - "--cl_preview=true"
             - "--logtostderr"
             - "--resources_dir=/usr/local/share/docserverk/"
             - "--work_dir=/mnt/docserverk"
@@ -57,7 +55,7 @@ spec:
               value: /var/secrets/google/key.json
           resources:
             requests:
-              memory: "1.3Gi"
+              memory: "2.3Gi"
               cpu: "100m"
           livenessProbe:
             httpGet:
