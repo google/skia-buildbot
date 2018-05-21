@@ -21,7 +21,8 @@ func setupTemp(t *testing.T, testData []string, repo vcsinfo.VCS) (*ContinuousBu
 	assert.NoError(t, err)
 	fi, err := os.Create(filepath.Join(tempDir, GOOD_BUILDS_FILENAME))
 	assert.NoError(t, err)
-	fmt.Fprintf(fi, strings.Join(testData, "\n"))
+	_, err = fmt.Fprintf(fi, strings.Join(testData, "\n"))
+	assert.NoError(t, err)
 	err = fi.Close()
 	assert.NoError(t, err)
 
