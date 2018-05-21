@@ -22,6 +22,30 @@
       "revId": "ace6b2d492f8a619c64e1cb124a58c3eb5a41f38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3af70cac_39a0710e",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-21T16:06:46Z",
+      "side": 1,
+      "message": "\"GoldIngestionErrorRate\" is based on num_log_lines. I\u0027m not sure if these are duplicates or if they are alerting on different things.",
+      "parentUuid": "5dd76c93_c71b83bf",
+      "range": {
+        "startLine": 236,
+        "startChar": 0,
+        "endLine": 243,
+        "endChar": 0
+      },
+      "revId": "ace6b2d492f8a619c64e1cb124a58c3eb5a41f38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
