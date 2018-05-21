@@ -46,6 +46,30 @@
       "revId": "ace6b2d492f8a619c64e1cb124a58c3eb5a41f38",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40819bc2_ec5b1250",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-21T17:56:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3af70cac_39a0710e",
+      "range": {
+        "startLine": 236,
+        "startChar": 0,
+        "endLine": 243,
+        "endChar": 0
+      },
+      "revId": "ace6b2d492f8a619c64e1cb124a58c3eb5a41f38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
