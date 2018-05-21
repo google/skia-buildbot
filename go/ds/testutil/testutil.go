@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/compute/metadata"
 	assert "github.com/stretchr/testify/require"
 	"google.golang.org/api/iterator"
 
@@ -84,5 +85,12 @@ to set the environment variables. When done running tests you can unset the env 
 	cleanup(t, kinds...)
 	return func() {
 		cleanup(t, kinds...)
+	}
+}
+
+// LocalOnlyTest will skip the test if it is bein run on GCE.
+func LocalOnlyTest(t *testing.T) {
+	if metadata.OnGCE() {
+		t.Skipf("Test is only run locally.")
 	}
 }
