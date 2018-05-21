@@ -16,6 +16,29 @@
       "revId": "fe512bc28e7465f703a0816408a6aab7227a3d10",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "760320f0_e782b83e",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2018-05-21T15:36:50Z",
+      "side": 1,
+      "message": "If hardcoded, this is probably just better left off.  I am suspicious that we\u0027ll actually keep it in sync with the package version..\n\nBut, we can probably grab the version in downloadClangAsset()?",
+      "range": {
+        "startLine": 135,
+        "startChar": 190,
+        "endLine": 135,
+        "endChar": 221
+      },
+      "revId": "fe512bc28e7465f703a0816408a6aab7227a3d10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
