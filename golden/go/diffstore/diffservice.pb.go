@@ -491,8 +491,7 @@ func (c *diffServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.Ca
 	return out, nil
 }
 
-// Server API for DiffService service
-
+// DiffServiceServer is the server API for DiffService service.
 type DiffServiceServer interface {
 	// Same functionality as Get in the diff.DiffStore interface.
 	GetDiffs(context.Context, *GetDiffsRequest) (*GetDiffsResponse, error)

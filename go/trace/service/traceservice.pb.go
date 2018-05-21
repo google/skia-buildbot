@@ -1060,8 +1060,7 @@ func (c *traceServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.C
 	return out, nil
 }
 
-// Server API for TraceService service
-
+// TraceServiceServer is the server API for TraceService service.
 type TraceServiceServer interface {
 	// Returns a list of traceids that don't have Params stored in the datastore.
 	MissingParams(context.Context, *MissingParamsRequest) (*MissingParamsResponse, error)
