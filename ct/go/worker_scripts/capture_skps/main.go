@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -32,6 +33,7 @@ var (
 	num                = flag.Int("num", 100, "The total number of SKPs to capture starting from the start_range.")
 	pagesetType        = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create SKPs from. Eg: 10k, Mobile10k, All.")
 	chromiumBuild      = flag.String("chromium_build", "", "The chromium build that will be used to create the SKPs.")
+	skpinfoRemotePath  = flag.String("skpinfo_remote_path", "", "The location of the skpinfo binary in Google Storage.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 	chromeCleanerTimer = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
@@ -49,6 +51,9 @@ func captureSkps() error {
 	// Validate required arguments.
 	if *chromiumBuild == "" {
 		return errors.New("Must specify --chromium_build")
+	}
+	if *skpinfoRemotePath == "" {
+		return errors.New("Must specify --skpinfo_remote_path")
 	}
 	if *runID == "" {
 		return errors.New("Must specify --run_id")
@@ -78,6 +83,25 @@ func captureSkps() error {
 			return fmt.Errorf("Could not install the chromium APK: %s", err)
 		}
 	}
+
+	// Copy over the skpinfo binary to this worker.
+	skpinfoLocalPath := filepath.Join(os.TempDir(), util.BINARY_SKPINFO)
+	respBody, err := gs.GetRemoteFileContents(*skpinfoRemotePath)
+	if err != nil {
+		return fmt.Errorf("Could not fetch %s: %s", *skpinfoRemotePath, err)
+	}
+	defer skutil.Close(respBody)
+	out, err := os.Create(skpinfoLocalPath)
+	if err != nil {
+		return fmt.Errorf("Unable to create file %s: %s", skpinfoLocalPath, err)
+	}
+	defer skutil.Remove(skpinfoLocalPath)
+	if _, err = io.Copy(out, respBody); err != nil {
+		return err
+	}
+	skutil.Close(out)
+	// Downloaded skpinfo binary needs to be set as an executable.
+	skutil.LogErr(os.Chmod(skpinfoLocalPath, 0777))
 
 	// Download pagesets if they do not exist locally.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
@@ -207,7 +231,7 @@ func captureSkps() error {
 	wg.Wait()
 
 	// Move and validate all SKP files.
-	if err := util.ValidateSKPs(ctx, pathToSkps, pathToPyFiles); err != nil {
+	if err := util.ValidateSKPs(ctx, pathToSkps, pathToPyFiles, skpinfoLocalPath); err != nil {
 		return err
 	}
 
