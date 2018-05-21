@@ -236,7 +236,8 @@ func New(impl AutoRollerImpl, workdir string, n *notifier.AutoRollNotifier) (*Au
 			return err
 		}
 		roll := s.a.GetActiveRoll()
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The roller has uploaded a new roll attempt: %s", roll.IssueURL()))
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The roller has uploaded a new roll attempt: %s", roll.IssueURL()))
+		return nil
 	})
 	b.F(F_UPLOAD_DRY_RUN, func(ctx context.Context) error {
 		if err := s.a.SafetyThrottle().Inc(); err != nil {
@@ -246,7 +247,8 @@ func New(impl AutoRollerImpl, workdir string, n *notifier.AutoRollNotifier) (*Au
 			return err
 		}
 		roll := s.a.GetActiveRoll()
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The roller has uploaded a new dry run attempt: %s", roll.IssueURL()))
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The roller has uploaded a new dry run attempt: %s", roll.IssueURL()))
+		return nil
 	})
 	b.F(F_UPDATE_ROLL, func(ctx context.Context) error {
 		if err := s.a.GetActiveRoll().Update(ctx); err != nil {
@@ -259,42 +261,48 @@ func New(impl AutoRollerImpl, workdir string, n *notifier.AutoRollNotifier) (*Au
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll.")); err != nil {
 			return err
 		}
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue failed and there are new commits to try.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue failed and there are new commits to try.")
+		return nil
 	})
 	b.F(F_CLOSE_STOPPED, func(ctx context.Context) error {
 		roll := s.a.GetActiveRoll()
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("AutoRoller is stopped; closing the active roll.")); err != nil {
 			return err
 		}
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the AutoRoller was stopped.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the AutoRoller was stopped.")
+		return nil
 	})
 	b.F(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context) error {
 		roll := s.a.GetActiveRoll()
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll.")); err != nil {
 			return err
 		}
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue dry run failed and there are new commits to try.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue dry run failed and there are new commits to try.")
+		return nil
 	})
 	b.F(F_CLOSE_DRY_RUN_OUTDATED, func(ctx context.Context) error {
 		roll := s.a.GetActiveRoll()
 		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, fmt.Sprintf("Repo has passed %s; will open a new dry run.", roll.RollingTo())); err != nil {
 			return err
 		}
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because one or more new commits have landed.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because one or more new commits have landed.")
+		return nil
 	})
 	b.F(F_SWITCH_TO_DRY_RUN, func(ctx context.Context) error {
 		roll := s.a.GetActiveRoll()
 		if err := roll.SwitchToDryRun(ctx); err != nil {
 			return err
 		}
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This roll was switched to commit queue dry run mode.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This roll was switched to commit queue dry run mode.")
+		return nil
 	})
 	b.F(F_SWITCH_TO_NORMAL, func(ctx context.Context) error {
 		roll := s.a.GetActiveRoll()
 		if err := roll.SwitchToNormal(ctx); err != nil {
 			return err
 		}
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This roll was switched to normal commit queue mode.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This roll was switched to normal commit queue mode.")
+		return nil
 	})
 	b.F(F_WAIT_FOR_LAND, func(ctx context.Context) error {
 		sklog.Infof("Roll succeeded; syncing the repo until it lands.")
@@ -319,12 +327,10 @@ func New(impl AutoRollerImpl, workdir string, n *notifier.AutoRollNotifier) (*Au
 			}
 			time.Sleep(10 * time.Second)
 		}
-		if err := n.SendIssueUpdate(ctx, currentRoll.IssueID(), currentRoll.IssueURL(), "This roll landed successfully."); err != nil {
-			return err
-		}
+		n.SendIssueUpdate(ctx, currentRoll.IssueID(), currentRoll.IssueURL(), "This roll landed successfully.")
 		successThrottle := s.a.SuccessThrottle()
 		if successThrottle.IsThrottled() {
-			return n.SendSuccessThrottled(ctx, successThrottle.ThrottledUntil())
+			n.SendSuccessThrottled(ctx, successThrottle.ThrottledUntil())
 		}
 		return nil
 	})
@@ -336,7 +342,8 @@ func New(impl AutoRollerImpl, workdir string, n *notifier.AutoRollNotifier) (*Au
 		if err := roll.RetryCQ(ctx); err != nil {
 			return err
 		}
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "Retrying the commit queue on this CL because there are no new commits.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "Retrying the commit queue on this CL because there are no new commits.")
+		return nil
 	})
 	b.F(F_RETRY_FAILED_DRY_RUN, func(ctx context.Context) error {
 		sklog.Infof("Dry run failed but no new commits; retrying CQ.")
@@ -347,15 +354,18 @@ func New(impl AutoRollerImpl, workdir string, n *notifier.AutoRollNotifier) (*Au
 		if err := roll.RetryDryRun(ctx); err != nil {
 			return err
 		}
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "Retrying the CQ dry run on this CL because there are no new commits.")
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "Retrying the CQ dry run on this CL because there are no new commits.")
+		return nil
 	})
 	b.F(F_NOTIFY_FAILURE_THROTTLE, func(ctx context.Context) error {
 		roll := s.a.GetActiveRoll()
 		until := s.a.FailureThrottle().ThrottledUntil()
-		return n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The commit queue failed on this CL but no new commits have landed in the repo. Will retry the CQ at %s if no new commits land.", until))
+		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The commit queue failed on this CL but no new commits have landed in the repo. Will retry the CQ at %s if no new commits land.", until))
+		return nil
 	})
 	b.F(F_NOTIFY_SAFETY_THROTTLE, func(ctx context.Context) error {
-		return n.SendSafetyThrottled(ctx, s.a.SafetyThrottle().ThrottledUntil())
+		n.SendSafetyThrottled(ctx, s.a.SafetyThrottle().ThrottledUntil())
+		return nil
 	})
 
 	// States and transitions.
