@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05e0597a_37975ff4",
+        "filename": "predict/go/flaky/flaky_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-21T17:41:41Z",
+      "side": 1,
+      "message": "Nit: testutils.LocalTestOnly(t)",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 2
+      },
+      "revId": "c9548fe7a1ed2be641ba6fb7ec20c44cbc49d177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
