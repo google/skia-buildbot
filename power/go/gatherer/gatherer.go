@@ -134,7 +134,7 @@ func (g *gatherer) update() {
 		return
 	}
 
-	sklog.Infof("Swarming reports %d down bots: %s", len(bots), bots)
+	sklog.Infof("Swarming reports %d down bots", len(bots))
 
 	// Ask Prometheus for bot alerts related to quarantined and dead
 	alerts, err := g.alerts.GetAlerts(downBotsFilter)
