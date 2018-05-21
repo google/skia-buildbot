@@ -126,15 +126,6 @@ window.addEventListener("WebComponentsReady", function(e) {
         skData.sk_retry_of,
         skData.sk_parent_task_id,
         skData.sk_id);
-
-    // TODO(kjlubick): remove this when it lands upstream
-    if (skData.log_location) {
-      var iframe = document.getElementById("miloFrame");
-      var expectedSrc = skData.log_location.replace("logdog://", "https://ci.chromium.org/raw/build/")
-      if (iframe.src !== expectedSrc) {
-        iframe.src = expectedSrc;
-      }
-    }
   }, 100);
 
 });
