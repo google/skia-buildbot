@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1dc29edf_4af67b63",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-21T19:52:16Z",
+      "side": 1,
+      "message": "You can still read the version from the Skia repo (e.g. with gitiles).\n\nI forgot that CT is not using the API. Do we want to continue maintaining two client libraries?",
+      "parentUuid": "af6c423c_f40ca020",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 130,
+        "endChar": 0
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "15203b6c_bcd40bd8",
         "filename": "ct/go/util/util.go",
         "patchSetId": 11
