@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "af6c423c_f40ca020",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-21T19:15:25Z",
+      "side": 1,
+      "message": "That will require a hardcoded version, right?\n(will also have to add support for cipd packages to the command-line swarming library CT still uses, but that shouldn\u0027t be too difficult).",
+      "parentUuid": "c173d328_fb8f1c60",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 130,
+        "endChar": 0
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "15203b6c_bcd40bd8",
         "filename": "ct/go/util/util.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "49a38a122283df0c2ed796369bb878917274fed3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d33518e0_e81f69f7",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-21T19:15:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15203b6c_bcd40bd8",
+      "range": {
+        "startLine": 131,
+        "startChar": 14,
+        "endLine": 131,
+        "endChar": 18
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "48616d97_5209651d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-21T19:15:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7d70eeb_dcbc97a6",
+      "range": {
+        "startLine": 184,
+        "startChar": 11,
+        "endLine": 184,
+        "endChar": 15
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "af19fe72_7485ab8e",
         "filename": "ct/go/worker_scripts/build_repo/main.go",
         "patchSetId": 11
@@ -91,6 +163,30 @@
       "revId": "49a38a122283df0c2ed796369bb878917274fed3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6600523e_7dd9f67d",
+        "filename": "ct/go/worker_scripts/build_repo/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-21T19:15:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af19fe72_7485ab8e",
+      "range": {
+        "startLine": 85,
+        "startChar": 12,
+        "endLine": 85,
+        "endChar": 20
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fffd90e0_8fd82147",
+        "filename": "ct/go/worker_scripts/build_repo/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-21T19:15:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1283210b_314e4ea3",
+      "range": {
+        "startLine": 95,
+        "startChar": 18,
+        "endLine": 95,
+        "endChar": 63
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dfb06f76_cf6d5125",
         "filename": "ct/go/worker_scripts/capture_skps/main.go",
         "patchSetId": 11
@@ -137,6 +257,30 @@
       "revId": "49a38a122283df0c2ed796369bb878917274fed3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f330fc5_31d0c582",
+        "filename": "ct/go/worker_scripts/capture_skps/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-21T19:15:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dfb06f76_cf6d5125",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 48
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
