@@ -10,7 +10,7 @@ echo "Installing packages..."
 sudo apt-get update
 sudo apt-get -y install libosmesa-dev libexpat1-dev:i386 clang-3.6 poppler-utils netpbm python-django libgif-dev lua5.2 libnss3
 sudo easy_install -U pip
-sudo pip install setuptools --no-use-wheel --upgrade
+sudo pip install setuptools --no-binary --upgrade
 sudo pip install -U crcmod
 
 sudo apt-get -y --purge remove apache2*
@@ -60,29 +60,21 @@ if [ ! -d "/b/depot_tools" ]; then
 fi
 PATH=$PATH:/b/depot_tools
 
-echo "Checking out Chromium repository..."
+# If the bot is a builder then checkout Chromium and Skia repositories.
+if [[ $(hostname -s) = ct-*-builder* ]]; then
+  echo "Checking out Chromium repository..."
+  mkdir -p /b/storage/chromium
+  cd /b/storage/chromium
+  /b/depot_tools/fetch chromium
+  cd src
+  git checkout master
+  /b/depot_tools/gclient sync
 
-mkdir -p /b/storage/chromium
-cd /b/storage/chromium
-/b/depot_tools/fetch chromium
-cd src
-git checkout master
-/b/depot_tools/gclient sync
-
-echo "Checking out Skia's buildbot and trunk..."
-
-mkdir /b/skia-repo/
-cd /b/skia-repo/
-cat > .gclient << EOF
+  echo "Checking out Skia repository..."
+  mkdir /b/skia-repo/
+  cd /b/skia-repo/
+  cat > .gclient << EOF
 solutions = [
-  { 'name'        : 'buildbot',
-    'url'         : 'https://skia.googlesource.com/buildbot.git',
-    'deps_file'   : 'DEPS',
-    'managed'     : True,
-    'custom_deps' : {
-    },
-    'safesync_url': '',
-  },
   { 'name'        : 'trunk',
     'url'         : 'https://skia.googlesource.com/skia.git',
     'deps_file'   : 'DEPS',
@@ -93,15 +85,10 @@ solutions = [
   },
 ]
 EOF
-/b/depot_tools/gclient sync
-
-# Checkout master in the repositories so that we can run "git pull" later.
-cd buildbot
-git checkout master
-cd ../trunk
-git checkout master
-# Create glog dir.
-mkdir /b/storage/glog
+  /b/depot_tools/gclient sync
+  cd trunk
+  git checkout master
+fi
 
 # Get access token from metadata.
 TOKEN=`curl "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" -H "Metadata-Flavor: Google" | python -c "import sys, json; print json.load(sys.stdin)['access_token']"`
