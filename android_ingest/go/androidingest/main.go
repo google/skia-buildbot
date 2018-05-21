@@ -131,7 +131,10 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 func badRequest(w http.ResponseWriter, r *http.Request, err error, message string) {
 	sklog.Errorln(message, err)
 	w.WriteHeader(http.StatusBadRequest)
-	fmt.Fprintf(w, "%s: %s", message, err)
+	_, err = fmt.Fprintf(w, "%s: %s", message, err)
+	if err != nil {
+		sklog.Errorf("Failed to write badRequest response: %s", err)
+	}
 }
 
 // UploadHandler handles POSTs of images to be analyzed.
