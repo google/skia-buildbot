@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf0d9128_924298ae",
+        "filename": "perf/go/alerts/db_datastore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-21T13:55:30Z",
+      "side": 1,
+      "message": "Can we add this as testutils.LocalOnlyTest(t)?  Or if this is temporary, add a TODO?",
+      "range": {
+        "startLine": 16,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 22
+      },
+      "revId": "7aae3d6fa089f20152754cf1c5d4b90029763840",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

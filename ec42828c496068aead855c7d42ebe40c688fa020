@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa8b5202_5914862f",
+        "filename": "perf/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-21T13:55:30Z",
+      "side": 0,
+      "message": "Delete intentional?",
+      "revId": "ec42828c496068aead855c7d42ebe40c688fa020",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
