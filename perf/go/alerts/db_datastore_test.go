@@ -12,9 +12,8 @@ import (
 
 func TestDS(t *testing.T) {
 	testutils.LargeTest(t)
-	testutils.LocalTestOnly(t)
-
 	cleanup := testutil.InitDatastore(t, ds.ALERT)
+
 	defer cleanup()
 
 	// Test saving one alert.

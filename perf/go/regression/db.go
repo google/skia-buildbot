@@ -2,6 +2,7 @@ package regression
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -11,6 +12,7 @@ import (
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/db"
 	"google.golang.org/api/iterator"
 )
 
@@ -149,6 +151,28 @@ func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions,
 		ret[key.Name] = reg
 	}
 	return ret, nil
+}
+
+// intx runs f within a database transaction.
+//
+func intx(f func(tx *sql.Tx) error) (err error) {
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return fmt.Errorf("Failed to start transaction: %s", err)
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				err = fmt.Errorf("Error occurred in rollback: %s while attempting to recover from %s.", rollbackErr, err)
+			}
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	err = f(tx)
+	return err
 }
 
 // SetHigh sets the cluster for a high regression at the given commit and alertID.
