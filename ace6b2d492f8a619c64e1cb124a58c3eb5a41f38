@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5dd76c93_c71b83bf",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-05-21T15:33:46Z",
+      "side": 1,
+      "message": "Looks good, but this would alert all ingestion error rates, so the Gold specific ones somewhere else in the file should be removed IMO.",
+      "range": {
+        "startLine": 236,
+        "startChar": 0,
+        "endLine": 243,
+        "endChar": 0
+      },
+      "revId": "ace6b2d492f8a619c64e1cb124a58c3eb5a41f38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
