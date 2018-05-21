@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "b1ae868e_9ec747cc",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-21T20:32:56Z",
+      "side": 1,
+      "message": "I recently tried to use the swarming api but ran into various issues. One day I will try again.\n\nI\u0027m getting auth errors trying to get the CIPD package:\nError: resolving package: failed to resolve package version (line 2): access denied (not authenticated or not enough permissions).\nhttps://chrome-swarming.appspot.com/task?id\u003d3d9d339b75702910\n\nDo you know how to fix that?",
+      "parentUuid": "1dc29edf_4af67b63",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 130,
+        "endChar": 0
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "15203b6c_bcd40bd8",
         "filename": "ct/go/util/util.go",
         "patchSetId": 11
