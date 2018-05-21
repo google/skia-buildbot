@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "074ab8dd_7732c3d3",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-21T20:41:45Z",
+      "side": 1,
+      "message": "Hmm, maybe Eric knows. I believe we are using external CIPD packages on SkiaInternal.",
+      "parentUuid": "b1ae868e_9ec747cc",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 130,
+        "endChar": 0
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "15203b6c_bcd40bd8",
         "filename": "ct/go/util/util.go",
         "patchSetId": 11
