@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
@@ -51,6 +52,9 @@ func TestFlaky(t *testing.T) {
 const BOTNAME = "Test-Chromecast-GCC-Chorizo-CPU-Cortex_A7-arm-Release-All"
 
 func TestFlakyReadWrite(t *testing.T) {
+	if metadata.OnGCE() {
+		t.Skipf("Test is only run locally.")
+	}
 	testutils.LargeTest(t)
 
 	cleanup := testutil.InitDatastore(t, ds.FLAKY_RANGES)
@@ -107,6 +111,7 @@ func TestFlakyReadWrite(t *testing.T) {
 
 func TestBuilder(t *testing.T) {
 	testutils.LargeTest(t)
+	testutils.LocalTestOnly(t)
 
 	cleanup := testutil.InitDatastore(t, ds.FLAKY_RANGES)
 	defer cleanup()
