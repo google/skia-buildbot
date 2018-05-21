@@ -272,9 +272,7 @@ func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) er
 	if err := r.modeHistory.Add(mode, user, message); err != nil {
 		return err
 	}
-	if err := r.notifier.SendModeChange(ctx, user, mode, message); err != nil {
-		return fmt.Errorf("Failed to send notification: %s", err)
-	}
+	r.notifier.SendModeChange(ctx, user, mode, message)
 
 	// Update the status so that the mode change shows up on the UI.
 	return r.updateStatus(false, "")
@@ -469,13 +467,9 @@ func (r *AutoRoller) rollFinished(ctx context.Context, currentRoll RollImpl) err
 	lastSuccess := util.In(lastRoll.Result, autoroll.SUCCESS_RESULTS)
 	if lastRoll != nil {
 		if currentSuccess && !lastSuccess {
-			if err := r.notifier.SendNewSuccess(ctx, currentRoll.IssueID(), currentRoll.IssueURL()); err != nil {
-				return err
-			}
+			r.notifier.SendNewSuccess(ctx, currentRoll.IssueID(), currentRoll.IssueURL())
 		} else if !currentSuccess && lastSuccess {
-			if err := r.notifier.SendNewFailure(ctx, currentRoll.IssueID(), currentRoll.IssueURL()); err != nil {
-				return err
-			}
+			r.notifier.SendNewFailure(ctx, currentRoll.IssueID(), currentRoll.IssueURL())
 		}
 	}
 
@@ -491,9 +485,7 @@ func (r *AutoRoller) rollFinished(ctx context.Context, currentRoll RollImpl) err
 		}
 	}
 	if lastNFailed {
-		if err := r.notifier.SendLastNFailed(ctx, NOTIFY_IF_LAST_N_FAILED, currentRoll.IssueURL()); err != nil {
-			return err
-		}
+		r.notifier.SendLastNFailed(ctx, NOTIFY_IF_LAST_N_FAILED, currentRoll.IssueURL())
 	}
 
 	return nil
