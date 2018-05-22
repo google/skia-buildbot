@@ -29,6 +29,7 @@ const (
 	SWARMING_TAG_ID               = "sk_id"
 	SWARMING_TAG_ISSUE            = "sk_issue"
 	SWARMING_TAG_LUCI_PROJECT     = "luci_project"
+	SWARMING_TAG_MILO_HOST        = "milo_host"
 	SWARMING_TAG_NAME             = "sk_name"
 	SWARMING_TAG_PARENT_TASK_ID   = "sk_parent_task_id"
 	SWARMING_TAG_PATCHSET         = "sk_patchset"
@@ -41,6 +42,8 @@ const (
 	// These two tags allow the swarming ui to point to the GoB repo
 	SWARMING_TAG_SOURCE_REVISION = "source_revision"
 	SWARMING_TAG_SOURCE_REPO     = "source_repo"
+
+	MILO_HOST = "https://ci.chromium.org/raw/build/%s"
 )
 
 type TaskStatus string
@@ -628,6 +631,7 @@ func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, r
 	tags[SWARMING_TAG_NAME] = name
 	tags[SWARMING_TAG_ID] = id
 	tags[SWARMING_TAG_LUCI_PROJECT] = common.REPO_PROJECT_MAPPING[rs.Repo]
+	tags[SWARMING_TAG_MILO_HOST] = MILO_HOST
 	tags[SWARMING_TAG_PRIORITY] = fmt.Sprintf("%f", priority)
 	tags[SWARMING_TAG_REPO] = rs.Repo
 	tags[SWARMING_TAG_RETRY_OF] = retryOf
