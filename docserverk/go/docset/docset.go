@@ -101,10 +101,24 @@ type DocSet struct {
 
 // newDocSet does the core of the work for both NewDocSet and NewDocSetForIssue.
 //
-// The repo is checked out into repoDir.
+// The repo is checked out somewhere under workDir.
 // If a valid issue and patchset are supplied then the repo will be patched with that CL.
 // If refresh is true then the git repo will be periodically refreshed (git pull).
-func newDocSet(ctx context.Context, repoDir, repo string, issue, patchset int64, refresh bool) (*DocSet, error) {
+func newDocSet(ctx context.Context, workDir, repo string, issue, patchset int64, refresh bool) (*DocSet, error) {
+	primaryDir := filepath.Join(workDir, "primary")
+	issueDir := filepath.Join(workDir, "patches", fmt.Sprintf("%d-%d", issue, patchset))
+	repoDir := primaryDir
+	if issue > 0 {
+		repoDir = issueDir
+		if _, err := os.Stat(issueDir); err == nil {
+			d := &DocSet{
+				repoDir: repoDir,
+			}
+			d.BuildNavigation()
+			return d, nil
+		}
+	}
+
 	if issue > 0 {
 		info, err := gc.GetIssueProperties(issue)
 		if err != nil {
@@ -114,7 +128,13 @@ func newDocSet(ctx context.Context, repoDir, repo string, issue, patchset int64,
 			return nil, IssueCommittedErr
 		}
 	}
-	git, err := gitinfo.CloneOrUpdate(ctx, repo, repoDir, false)
+	var git *gitinfo.GitInfo
+	var err error
+	if issue > 0 {
+		git, err = gitinfo.CloneOrUpdate(ctx, primaryDir, repoDir, false)
+	} else {
+		git, err = gitinfo.CloneOrUpdate(ctx, repo, repoDir, false)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
 	}
@@ -129,6 +149,7 @@ func newDocSet(ctx context.Context, repoDir, repo string, issue, patchset int64,
 		//                |  +-> Issue ID.
 		//                |
 		//                +-> Last two digits of Issue ID.
+
 		issuePostfix := issue % 100
 		output, err := exec.RunCwd(ctx, repoDir, "git", "fetch", repo, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset))
 		if err != nil {
@@ -181,11 +202,7 @@ func NewPreviewDocSet() (*DocSet, error) {
 
 // NewDocSet creates a new DocSet, one that is periodically refreshed.
 func NewDocSet(ctx context.Context, workDir, repo string) (*DocSet, error) {
-	d, err := newDocSet(ctx, filepath.Join(workDir, "primary"), repo, -1, -1, true)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to CloneOrUpdate repo %q: %s", repo, err)
-	}
-	return d, nil
+	return newDocSet(ctx, workDir, repo, -1, -1, true)
 }
 
 // NewDocSetForIssue creates a new DocSet patched to the latest patch level of
@@ -209,26 +226,7 @@ func NewDocSetForIssue(ctx context.Context, workDir, repo string, issue int64) (
 	if !util.In(domain, config.WHITELIST) {
 		return nil, fmt.Errorf("User is not authorized to test docset CLs.")
 	}
-	var d *DocSet
-	repoDir := filepath.Join(workDir, "patches", fmt.Sprintf("%d-%d", issue, patchset))
-	if _, err := os.Stat(repoDir); os.IsNotExist(err) {
-		d, err = newDocSet(ctx, repoDir, repo, issue, patchset, false)
-		if err != nil {
-			if err == IssueCommittedErr {
-				return nil, err
-			}
-			if err := os.RemoveAll(repoDir); err != nil {
-				sklog.Errorf("Failed to remove %q: %s", repoDir, err)
-			}
-			return nil, fmt.Errorf("Failed to create new doc set: %s", err)
-		}
-	} else {
-		d = &DocSet{
-			repoDir: repoDir,
-		}
-		d.BuildNavigation()
-	}
-	return d, nil
+	return newDocSet(ctx, workDir, repo, issue, patchset, false)
 }
 
 // RawFilename returns the absolute filename for the file associated with the
@@ -518,10 +516,7 @@ var issueAndPatch = regexp.MustCompile("([0-9]+)-[0-9]+")
 func StartCleaner(workDir string) {
 	sklog.Info("Starting Cleaner")
 	for range time.Tick(config.REFRESH) {
-		// TODO (stephana): The extra 'patches' directory should go away after
-		// one of the path segments is removed in docserver/main.go or
-		// NewDocsetForIssue.
-		matches, err := filepath.Glob(workDir + "/patches/patches/*")
+		matches, err := filepath.Glob(workDir + "/patches/*")
 		sklog.Infof("Matches: %v", matches)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve list of patched checkouts: %s", err)

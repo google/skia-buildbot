@@ -28,7 +28,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: proberk
-          image: gcr.io/skia-public/proberk:2018-05-18T21_17_26Z-jcgregorio-1dad246-clean
+          image: gcr.io/skia-public/proberk:2018-05-19T20_34_44Z-jcgregorio-b64814e-dirty
           args:
             - "--logtostderr"
             - "--config=/etc/proberk/allprobersk.json"
@@ -41,7 +41,7 @@ spec:
             requests:
               memory: "100Mi"
               cpu: "25m"
-          livenessProbe:
+          readinessProbe:
             httpGet:
               path: /metrics
               port: 20000
