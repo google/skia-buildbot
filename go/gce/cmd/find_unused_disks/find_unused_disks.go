@@ -24,6 +24,18 @@ var (
 	zone    = flag.String("zone", gce.ZONE_DEFAULT, "Which GCE zone to use.")
 )
 
+func log(str string, args ...interface{}) {
+	if _, err := fmt.Fprintf(os.Stdout, str, args...); err != nil {
+		sklog.Fatal(err)
+	}
+}
+
+func logErr(str string, args ...interface{}) {
+	if _, err := fmt.Fprintf(os.Stderr, str, args...); err != nil {
+		sklog.Fatal(err)
+	}
+}
+
 func main() {
 	common.Init()
 	defer common.LogPanic()
@@ -55,16 +67,16 @@ func main() {
 	// Print out the unused disks and give the user the option to delete
 	// them.
 	if len(unused) > 0 {
-		fmt.Fprintf(os.Stdout, "Found %d unused disks in zone %s:", len(unused), *zone)
+		log("Found %d unused disks in zone %s:\n", len(unused), *zone)
 		for i, d := range unused {
-			fmt.Fprintf(os.Stdout, "  %d.\t%s", i+1, d.Name)
+			log("  %d.\t%s\n", i+1, d.Name)
 		}
 		delete := make([]string, 0, len(unused))
-		fmt.Fprintf(os.Stdout, "Do you want to delete them?")
+		log("\nDo you want to delete them?\n")
 		for {
-			fmt.Fprintf(os.Stdout, "'n' to exit without deleting\n")
-			fmt.Fprintf(os.Stdout, "'y' to delete them all\n")
-			fmt.Fprintf(os.Stdout, "expression like '1-3,9,10-15' to delete specific disks\n? ")
+			log("'n' to exit without deleting\n")
+			log("'y' to delete them all\n")
+			log("expression like '1-3,9,10-15' to delete specific disks\n? ")
 			r := bufio.NewReader(os.Stdin)
 			got, err := r.ReadString('\n')
 			if err != nil {
@@ -81,13 +93,13 @@ func main() {
 			} else {
 				nums, err := util.ParseIntSet(got)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Invalid choice: %s", err)
+					logErr("Invalid choice: %s", err)
 					continue
 				}
 				for _, n := range nums {
 					idx := n - 1
 					if idx < 0 || idx >= len(unused) {
-						fmt.Fprintf(os.Stderr, "Invalid disk number: %d\n", n)
+						logErr("Invalid disk number: %d\n", n)
 						continue
 					} else {
 						delete = append(delete, unused[n-1].Name)
@@ -98,14 +110,14 @@ func main() {
 		}
 		if len(delete) > 0 {
 			for _, name := range delete {
-				fmt.Fprintf(os.Stderr, "Deleting disk %s...", name)
+				log("Deleting disk %s...\n", name)
 				if err := g.DeleteDisk(name, false); err != nil {
 					sklog.Fatal(err)
 				}
 			}
-			fmt.Fprintf(os.Stderr, "Successfully deleted %d disks.", len(delete))
+			log("Successfully deleted %d disks.", len(delete))
 		}
 	} else {
-		fmt.Fprintf(os.Stdout, "No unused disks found in zone %s\n", *zone)
+		log("No unused disks found in zone %s\n", *zone)
 	}
 }

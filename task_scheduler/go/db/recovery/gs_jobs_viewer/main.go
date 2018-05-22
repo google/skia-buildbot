@@ -75,5 +75,7 @@ func main() {
 	if _, err := os.Stdout.Write(enc); err != nil {
 		sklog.Fatal(err)
 	}
-	fmt.Fprintln(os.Stdout)
+	if _, err := fmt.Fprintln(os.Stdout); err != nil {
+		sklog.Fatal(err)
+	}
 }
