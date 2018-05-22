@@ -56,7 +56,7 @@ spec:
             requests:
               memory: "30Mi"
               cpu: "20m"
-          livenessProbe:
+          readinessProbe:
             httpGet:
               path: /healthz
               port: 9000

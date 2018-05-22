@@ -36,7 +36,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: debugger-assets
-          image: gcr.io/skia-public/debugger-assets:2018-05-18T14_50_37Z-jcgregorio-992e9f8-dirty
+          image: gcr.io/skia-public/debugger-assets:2018-05-19T02_14_37Z-jcgregorio-612e55b-clean
           args:
             - "--logtostderr"
             - "--port=:8000"
@@ -49,7 +49,7 @@ spec:
             requests:
               memory: "50Mi"
               cpu: "20m"
-          livenessProbe:
+          readinessProbe:
             httpGet:
               path: /
               port: http

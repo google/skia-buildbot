@@ -42,7 +42,7 @@ var (
 
 // flags
 var (
-	docRepo      = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
+	docRepo      = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The repo to check out.")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	preview      = flag.Bool("preview", false, "Preview markdown changes to a local repo. Doesn't do pulls.")
@@ -133,7 +133,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.")
 			return
 		}
-		d, err = docset.NewDocSetForIssue(context.Background(), filepath.Join(*workDir, "patches"), *docRepo, issue)
+		d, err = docset.NewDocSetForIssue(context.Background(), *workDir, *docRepo, issue)
 		if err == docset.IssueCommittedErr {
 			httputils.ReportError(w, r, err, "Failed to load the given CL, that issue is closed.")
 			return

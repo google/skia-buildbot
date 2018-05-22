@@ -57,7 +57,7 @@ spec:
             requests:
               memory: "30Mi"
               cpu: "100m"
-          livenessProbe:
+          readinessProbe:
             httpGet:
               path: /
               port: 9090

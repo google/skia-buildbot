@@ -47,7 +47,7 @@ spec:
             requests:
               memory: "20Gi"
               cpu: "6"
-          livenessProbe:
+          readinessProbe:
             httpGet:
               path: /
               port: 8000

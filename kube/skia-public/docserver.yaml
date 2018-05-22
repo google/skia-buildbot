@@ -2,48 +2,41 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: docserverk
-  name: docserverk
+    app: docserver
+  name: docserver
 spec:
   ports:
+    - name: metrics
+      port: 20000
     - name: http
       port: 8000
-    - name: docserverk-metrics
-      port: 20000
   selector:
-    app: docserverk
+    app: docserver
   type: NodePort
 ---
 apiVersion: apps/v1beta1
-kind: StatefulSet
+kind: Deployment
 metadata:
-  name: docserverk
+  name: docserver
 spec:
-  selector:
-    matchLabels:
-      app: docserverk # Label selector that determines which Pods belong to the StatefulSet
-                      # Must match spec: template: metadata: labels
-  serviceName: "docserverk"
-  replicas: 1
-  updateStrategy:
+  replicas: 2
+  strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: docserverk # Pod template's label selector
+        app: docserver
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
     spec:
       automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
-      volumes:
-        - name: skia-docs-sa
-          secret:
-            secretName: skia-docs
-      terminationGracePeriodSeconds: 10
       containers:
-        - name: docserverk
-          image: gcr.io/skia-public/docserverk:2018-05-04T15_11_29Z-jcgregorio-018615b-clean
+        - name: docserver
+          image: gcr.io/skia-public/docserverk:2018-05-22T16_58_21Z-jcgregorio-8ed9abe-dirty
           args:
             - "--logtostderr"
             - "--resources_dir=/usr/local/share/docserverk/"
@@ -51,33 +44,29 @@ spec:
             - "--port=:8000"
             - "--prom_port=:20000"
           ports:
-            - name: http
-              containerPort: 8000
-            - name: metrics
-              containerPort: 20000
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "100Mi"
+            - containerPort: 8000
+            - containerPort: 20000
           volumeMounts:
             - name: skia-docs-sa
               mountPath: /var/secrets/google
-            - name: docserverk-storage2
+            - name: docserverk-storage
               mountPath: /mnt/docserverk
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
-          livenessProbe:
+          resources:
+            requests:
+              memory: "1.3Gi"
+              cpu: "100m"
+          readinessProbe:
             httpGet:
               path: /
               port: 8000
-            initialDelaySeconds: 3
+            initialDelaySeconds: 45
             periodSeconds: 3
-  volumeClaimTemplates:
-    - metadata:
-        name: docserverk-storage2
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 500Gi
+      volumes:
+        - name: skia-docs-sa
+          secret:
+            secretName: skia-docs
+        - name: docserverk-storage
+          emptyDir: {}
