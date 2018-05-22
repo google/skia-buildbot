@@ -1,0 +1,18 @@
+{
+   "debugger": {
+     "urls": [
+       "https://debugger.skia.org/",
+     ],
+     "method": "GET",
+     "expected": [200],
+     "mimetype": "text/html"
+   },
+   "debugger-redirect": {
+     "urls": [
+       "http://debugger.skia.org/",
+     ],
+     "method": "GET",
+     "expected": [301],
+     "mimetype": "text/html"
+   },
+}

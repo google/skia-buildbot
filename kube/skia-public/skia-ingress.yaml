@@ -1,3 +1,4 @@
+# Always run set-backend-timeouts.sh after adding a new backend.
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -33,4 +34,10 @@ spec:
         paths:
         - backend:
             serviceName: debugger
+            servicePort: 8000
+    - host: debugger-assets.skia.org
+      http:
+        paths:
+        - backend:
+            serviceName: debugger-assets
             servicePort: 8000
