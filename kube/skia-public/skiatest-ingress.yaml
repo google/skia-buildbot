@@ -7,14 +7,14 @@ metadata:
     ingress.gcp.kubernetes.io/pre-shared-cert: skiatest
 spec:
   backend:
-    serviceName: docserverk
+    serviceName: docserver
     servicePort: 8000
   rules:
     - host: docs.skiatest.org
       http:
         paths:
         - backend:
-            serviceName: docserverk
+            serviceName: docserver
             servicePort: 8000
     - host: prom.skiatest.org
       http:
