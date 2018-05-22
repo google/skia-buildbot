@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/compute/metadata"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
 )
@@ -292,4 +293,11 @@ func EventuallyConsistent(duration time.Duration, f func() error) error {
 		}
 	}
 	return fmt.Errorf("Failed to pass test in allotted time.")
+}
+
+// LocalOnlyTest will skip the test if it is bein run on GCE.
+func LocalOnlyTest(t *testing.T) {
+	if metadata.OnGCE() {
+		t.Skipf("Test is only run locally.")
+	}
 }

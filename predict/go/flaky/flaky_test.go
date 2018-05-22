@@ -52,6 +52,7 @@ const BOTNAME = "Test-Chromecast-GCC-Chorizo-CPU-Cortex_A7-arm-Release-All"
 
 func TestFlakyReadWrite(t *testing.T) {
 	testutils.LargeTest(t)
+	testutils.LocalOnlyTest(t)
 
 	cleanup := testutil.InitDatastore(t, ds.FLAKY_RANGES)
 	defer cleanup()
@@ -107,6 +108,7 @@ func TestFlakyReadWrite(t *testing.T) {
 
 func TestBuilder(t *testing.T) {
 	testutils.LargeTest(t)
+	testutils.LocalOnlyTest(t)
 
 	cleanup := testutil.InitDatastore(t, ds.FLAKY_RANGES)
 	defer cleanup()
