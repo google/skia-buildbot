@@ -1,0 +1,290 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "01ffe769_c5beb5ea",
+        "filename": "debug/build_docker_release",
+        "patchSetId": 19
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "What does this do? It seems like you would need to copy things into ${ROOT} for this to have any effect.",
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f88101ee_fbfe2b4f",
+        "filename": "debug/debug/Dockerfile",
+        "patchSetId": 19
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "nit: /bin/skiaserve",
+      "range": {
+        "startLine": 12,
+        "startChar": 63,
+        "endLine": 12,
+        "endChar": 73
+      },
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d329cf91_b028b823",
+        "filename": "debug/go/debug/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "This seems bad.",
+      "range": {
+        "startLine": 193,
+        "startChar": 18,
+        "endLine": 193,
+        "endChar": 26
+      },
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68226b82_42dacadd",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "This var is unused. (The local var shadows it.)",
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6469ecb3_733f734a",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "nit: doc",
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2b733a3_08a2e223",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "I\u0027m not sure what \"login id\" is referring to here.",
+      "range": {
+        "startLine": 74,
+        "startChar": 16,
+        "endLine": 74,
+        "endChar": 24
+      },
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "202e1799_bb1ecc53",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "nit: doc return values",
+      "range": {
+        "startLine": 90,
+        "startChar": 39,
+        "endLine": 90,
+        "endChar": 51
+      },
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a17147d_d4d7b757",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "nit: variable names leftover from \"container\" and not very intuitive",
+      "range": {
+        "startLine": 195,
+        "startChar": 5,
+        "endLine": 195,
+        "endChar": 7
+      },
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0070c939_2f51fe09",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "nit: \"startInstance starts an instance of skiaserve with the given uuid.\"",
+      "range": {
+        "startLine": 209,
+        "startChar": 3,
+        "endLine": 209,
+        "endChar": 75
+      },
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7472a2e_2962c1bd",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "This doc seems like it should be on ServeHTTP instead of startInstance.",
+      "range": {
+        "startLine": 212,
+        "startChar": 0,
+        "endLine": 216,
+        "endChar": 26
+      },
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00c1eca0_e8a61b95",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "nit: also set co.lastUsed",
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eea38636_aa758d74",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "nit: co.process \u003d nil",
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5080ff2_26e2e452",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "nit: co.Stop() to avoid leaking resources",
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6054cec4_e3c26651",
+        "filename": "debug/go/instances/instances.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:04Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this include the URL path from rw?",
+      "range": {
+        "startLine": 347,
+        "startChar": 23,
+        "endLine": 347,
+        "endChar": 54
+      },
+      "revId": "2d8049f6b039703de84ba243340c837c65362776",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
