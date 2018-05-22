@@ -22,11 +22,12 @@ import (
 )
 
 var (
-	startRange    = flag.Int("start_range", 1, "The number this worker will run lua scripts from.")
-	num           = flag.Int("num", 100, "The total number of SKPs to run on starting from the start_range.")
-	pagesetType   = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
-	chromiumBuild = flag.String("chromium_build", "", "The chromium build that was used to create the SKPs we would like to run lua scripts against.")
-	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	startRange            = flag.Int("start_range", 1, "The number this worker will run lua scripts from.")
+	num                   = flag.Int("num", 100, "The total number of SKPs to run on starting from the start_range.")
+	pagesetType           = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
+	chromiumBuild         = flag.String("chromium_build", "", "The chromium build that was used to create the SKPs we would like to run lua scripts against.")
+	luaPicturesRemotePath = flag.String("lua_pictures_remote_path", "", "The location of the lua_pictures binary in Google Storage.")
+	runID                 = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 )
 
 func runLua() error {
@@ -41,19 +42,14 @@ func runLua() error {
 	if *chromiumBuild == "" {
 		return errors.New("Must specify --chromium_build")
 	}
+	if *luaPicturesRemotePath == "" {
+		return errors.New("Must specify --lua_pictures_remote_path")
+	}
 	if *runID == "" {
 		return errors.New("Must specify --run_id")
 	}
 
 	ctx := context.Background()
-
-	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-	skutil.LogErr(util.SyncDir(ctx, util.SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
-
-	// Build lua_pictures.
-	if err := util.BuildSkiaLuaPictures(ctx); err != nil {
-		return err
-	}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
@@ -88,6 +84,25 @@ func runLua() error {
 		return err
 	}
 
+	// Copy over the lua_pictures binary to this worker.
+	luaPicturesLocalPath := filepath.Join(os.TempDir(), util.BINARY_LUA_PICTURES)
+	luaPicturesRespBody, err := gs.GetRemoteFileContents(*luaPicturesRemotePath)
+	if err != nil {
+		return fmt.Errorf("Could not fetch %s: %s", *luaPicturesRemotePath, err)
+	}
+	defer skutil.Close(luaPicturesRespBody)
+	writeErr := skutil.WithWriteFile(luaPicturesLocalPath, func(w io.Writer) error {
+		_, err = io.Copy(w, luaPicturesRespBody)
+		return err
+	})
+	if writeErr != nil {
+		return fmt.Errorf("Failed to write to %s: %s", luaPicturesLocalPath, writeErr)
+	}
+	// Downloaded lua_pictures binary needs to be set as an executable.
+	if err := os.Chmod(luaPicturesLocalPath, 0777); err != nil {
+		return fmt.Errorf("Failed to set %s as executable: %s", luaPicturesLocalPath, err)
+	}
+
 	// Run lua_pictures and save stdout and stderr in files.
 	stdoutFileName := *runID + ".output"
 	stdoutFilePath := filepath.Join(os.TempDir(), stdoutFileName)
@@ -110,7 +125,7 @@ func runLua() error {
 		"--luaFile", luaScriptLocalPath,
 	}
 	err = util.ExecuteCmd(
-		ctx, filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_LUA_PICTURES),
+		ctx, luaPicturesLocalPath,
 		args, []string{}, util.LUA_PICTURES_TIMEOUT, stdoutFile, stderrFile)
 	if err != nil {
 		return err

@@ -18,6 +18,7 @@
           '--num=<(NUM)',
           '--pageset_type=<(PAGESET_TYPE)',
           '--chromium_build=<(CHROMIUM_BUILD)',
+          '--lua_pictures_remote_path=<(LUA_PICTURES_REMOTE_PATH)',
           '--run_id=<(RUN_ID)'
         ],
       },

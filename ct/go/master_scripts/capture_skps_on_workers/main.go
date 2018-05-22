@@ -7,6 +7,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -112,25 +113,47 @@ func main() {
 	skpGCSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild)
 	skutil.LogErr(gs.DeleteRemoteDir(skpGCSBaseDir))
 
-	// Find the Chromium hash.
-	tokens := strings.Split(*chromiumBuild, "-")
-	chromiumHash := tokens[0]
-	// Trigger task to return hash of telemetry isolates.
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, []string{}, 1*time.Hour, 1*time.Hour)
-	if err != nil {
-		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
+	// Trigger both the skpinfo build and isolate telemetry tasks in parallel.
+	group := skutil.NewNamedErrGroup()
+	var skpinfoRemotePath string
+	group.Go("build skpinfo", func() error {
+		remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
+			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, []string{}, []string{}, true, 3*time.Hour, 1*time.Hour)
+		if err != nil {
+			return fmt.Errorf("Error encountered when swarming build skpinfo task: %s", err)
+		}
+		skpinfoRemoteDirName := remoteDirNames[0]
+		skpinfoRemotePath = path.Join(util.BINARIES_DIR_NAME, skpinfoRemoteDirName, util.BINARY_SKPINFO)
+		return nil
+	})
+
+	// Isolate telemetry
+	isolateDeps := []string{}
+	group.Go("isolate telemetry", func() error {
+		tokens := strings.Split(*chromiumBuild, "-")
+		chromiumHash := tokens[0]
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, []string{}, 1*time.Hour, 1*time.Hour)
+		if err != nil {
+			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
+		}
+		if telemetryHash == "" {
+			return sklog.FmtErrorf("Found empty telemetry hash!")
+		}
+		isolateDeps = append(isolateDeps, telemetryHash)
+		return nil
+	})
+
+	// Wait for skpinfo build task and isolate telemetry task to complete.
+	if err := group.Wait(); err != nil {
+		sklog.Error(err)
 		return
 	}
-	if telemetryHash == "" {
-		sklog.Error("Found empty telemetry hash!")
-		return
-	}
-	isolateDeps := []string{telemetryHash}
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
-		"CHROMIUM_BUILD": *chromiumBuild,
-		"RUN_ID":         *runID,
+		"CHROMIUM_BUILD":      *chromiumBuild,
+		"RUN_ID":              *runID,
+		"SKPINFO_REMOTE_PATH": skpinfoRemotePath,
 	}
 	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1, isolateDeps); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
