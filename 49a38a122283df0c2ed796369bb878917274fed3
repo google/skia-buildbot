@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "2eda907d_fb03f724",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-22T13:14:45Z",
+      "side": 1,
+      "message": "I figured it out, I was specifying the package format wrong.\nI\u0027ll use CIPD in follow up CL.",
+      "parentUuid": "074ab8dd_7732c3d3",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 130,
+        "endChar": 0
+      },
+      "revId": "49a38a122283df0c2ed796369bb878917274fed3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15203b6c_bcd40bd8",
         "filename": "ct/go/util/util.go",
         "patchSetId": 11
