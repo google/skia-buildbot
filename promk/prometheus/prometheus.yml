@@ -14,9 +14,6 @@ scrape_configs:
   - job_name: 'alertmanager'
     static_configs:
       - targets: ['alertmanager:9090']
-  - job_name: 'docserverk'
-    static_configs:
-      - targets: ['docserverk:20000']
   - job_name: 'grafana'
     static_configs:
       - targets: ['grafana:3000']
