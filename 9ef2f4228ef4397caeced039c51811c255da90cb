@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7754b663_37873e31",
+        "filename": "debugger-assets/res/imp/app.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T23:04:28Z",
+      "side": 1,
+      "message": "nit: Doesn\u0027t this make it impossible to use run_server_local?",
+      "range": {
+        "startLine": 317,
+        "startChar": 42,
+        "endLine": 317,
+        "endChar": 74
+      },
+      "revId": "9ef2f4228ef4397caeced039c51811c255da90cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
