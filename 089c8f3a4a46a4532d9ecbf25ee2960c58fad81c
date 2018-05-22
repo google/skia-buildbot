@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "321252ca_903f3467",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T14:52:40Z",
+      "side": 1,
+      "message": "Maybe strings.TrimSpace just to be safe.",
+      "range": {
+        "startLine": 175,
+        "startChar": 72,
+        "endLine": 175,
+        "endChar": 84
+      },
+      "revId": "089c8f3a4a46a4532d9ecbf25ee2960c58fad81c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
