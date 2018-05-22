@@ -160,7 +160,7 @@ func main() {
 				"id":   id,
 			}
 			sklog.Infof("Triggering on %s", id)
-			if _, err := swarmClient.TriggerSwarmingTasks(ctx, m, dims, tags, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, ""); err != nil {
+			if _, err := swarmClient.TriggerSwarmingTasks(ctx, m, dims, tags, []string{}, swarming.HIGHEST_PRIORITY, 120*time.Minute, 120*time.Minute, 120*time.Minute, false, false, ""); err != nil {
 				sklog.Fatal(err)
 			}
 		}(bot.BotId, botDims)
