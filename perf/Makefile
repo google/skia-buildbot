@@ -10,7 +10,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: skiaperf web ptracequery perf_update_regressions ingest_json_validator
+build: skiaperf web ptracequery ingest_json_validator
 
 .PHONY: validate
 validate: ingest_json_validator
