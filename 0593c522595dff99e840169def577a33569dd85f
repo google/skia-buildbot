@@ -22,6 +22,30 @@
       "revId": "0593c522595dff99e840169def577a33569dd85f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a07ccb36_ab84f8a3",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-22T20:40:34Z",
+      "side": 1,
+      "message": "Should be extract-able? looks identical to the one in deps_repo_manager unless I am missing something.",
+      "parentUuid": "3840ac29_b888130e",
+      "range": {
+        "startLine": 217,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 0
+      },
+      "revId": "0593c522595dff99e840169def577a33569dd85f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
