@@ -110,40 +110,89 @@ func syncDirStep(ctx context.Context, revisions map[string]string, additionalArg
 	return nil
 }
 
-// BuildSkiaSKPInfo builds "skpinfo" in the Skia trunk directory.
-func BuildSkiaSKPInfo(ctx context.Context) error {
-	if err := os.Chdir(SkiaTreeDir); err != nil {
-		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+func downloadClangAsset(ctx context.Context, clangDir string, runningOnSwarming bool) error {
+	downloadClangArgs := []string{
+		"infra/bots/assets/clang_linux/download.py",
+		"-t", clangDir,
 	}
+	if runningOnSwarming {
+		downloadClangArgs = append(downloadClangArgs, "--gsutil", filepath.Join(DepotToolsDir, "gsutil.py"))
+	}
+	cipdEnv := []string{}
+	if runningOnSwarming {
+		cipdEnv = append(cipdEnv, "USE_CIPD_GCE_AUTH=true")
+	}
+	if err := ExecuteCmd(ctx, "python", downloadClangArgs, cipdEnv, FETCH_GN_TIMEOUT, nil, nil); err != nil {
+		return fmt.Errorf("Error while running bin/fetch-gn: %s", err)
+	}
+	return nil
+}
+
+func runSkiaGnGen(ctx context.Context, clangLocation, gnExtraArgs string) error {
 	// Run "bin/fetch-gn".
 	util.LogErr(ExecuteCmd(ctx, "bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
 		nil))
-	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd(ctx, "buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
+	// gn gen out/Release '--args=cc="/home/chrome-bot/test/clang_linux/bin/clang" cxx="/home/chrome-bot/test/clang_linux/bin/clang++" extra_cflags=["-B/home/chrome-bot/test/clang_linux/bin"] extra_ldflags=["-B/home/chrome-bot/test/clang_linux/bin", "-fuse-ld=lld"] is_debug=false target_cpu="x86_64"'
+	gnArgs := fmt.Sprintf("--args=cc=\"%s/bin/clang\" cxx=\"%s/bin/clang++\" extra_cflags=[\"-B%s/bin\"] extra_ldflags=[\"-B%s/bin\", \"-fuse-ld=lld\"] is_debug=false target_cpu=\"x86_64\"", clangLocation, clangLocation, clangLocation, clangLocation)
+	if gnExtraArgs != "" {
+		gnArgs += " " + gnExtraArgs
+	}
+	if err := ExecuteCmd(ctx, "buildtools/linux64/gn", []string{"gen", "out/Release", gnArgs}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
+	}
+	return nil
+}
+
+// BuildSkiaSKPInfo builds "skpinfo" in the Skia trunk directory.
+// Returns the directory that contains the binary.
+func BuildSkiaSKPInfo(ctx context.Context, runningOnSwarming bool) (string, error) {
+	if err := os.Chdir(SkiaTreeDir); err != nil {
+		return "", fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+	}
+	// Download clang.
+	clangDir, err := ioutil.TempDir(StorageDir, "clang_linux")
+	if err != nil {
+		return "", fmt.Errorf("Could not create clangDir: %s", err)
+	}
+	defer util.RemoveAll(clangDir)
+	if err := downloadClangAsset(ctx, clangDir, runningOnSwarming); err != nil {
+		return "", fmt.Errorf("Error when downloading clang asset: %s", err)
+	}
+	// Run gn gen
+	if err := runSkiaGnGen(ctx, clangDir, "" /* gnExtraArgs */); err != nil {
+		return "", fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 skpinfo".
 	// Use the full system env when building.
-	args := []string{"-C", "out/Release", "-j100", BINARY_SKPINFO}
-	return ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
+	outPath := filepath.Join(SkiaTreeDir, "out", "Release")
+	args := []string{"-C", outPath, "-j100", BINARY_SKPINFO}
+	return outPath, ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 // BuildSkiaLuaPictures builds "lua_pictures" in the Skia trunk directory.
-func BuildSkiaLuaPictures(ctx context.Context) error {
+// Returns the directory that contains the binary.
+func BuildSkiaLuaPictures(ctx context.Context, runningOnSwarming bool) (string, error) {
 	if err := os.Chdir(SkiaTreeDir); err != nil {
-		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+		return "", fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
-	// Run "bin/fetch-gn".
-	util.LogErr(ExecuteCmd(ctx, "bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
-		nil))
-	// Run "gn gen out/Release --args=...".
-	if err := ExecuteCmd(ctx, "buildtools/linux64/gn", []string{"gen", "out/Release", "--args=is_debug=false skia_use_lua=true"}, os.Environ(), GN_GEN_TIMEOUT, nil, nil); err != nil {
-		return fmt.Errorf("Error while running gn: %s", err)
+	// Download clang.
+	clangDir, err := ioutil.TempDir(StorageDir, "clang_linux")
+	if err != nil {
+		return "", fmt.Errorf("Could not create clangDir: %s", err)
+	}
+	defer util.RemoveAll(clangDir)
+	if err := downloadClangAsset(ctx, clangDir, runningOnSwarming); err != nil {
+		return "", fmt.Errorf("Error when downloading clang asset: %s", err)
+	}
+	// Run gn gen
+	if err := runSkiaGnGen(ctx, clangDir, "skia_use_lua=true"); err != nil {
+		return "", fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 lua_pictures".
 	// Use the full system env when building.
-	args := []string{"-C", "out/Release", "-j100", BINARY_LUA_PICTURES}
-	return ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
+	outPath := filepath.Join(SkiaTreeDir, "out", "Release")
+	args := []string{"-C", outPath, "-j100", BINARY_LUA_PICTURES}
+	return outPath, ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 // ResetCheckout resets the specified Git checkout.
@@ -252,7 +301,7 @@ func ReadPageset(pagesetPath string) (PagesetVars, error) {
 
 // ValidateSKPs moves all root_dir/index/dir_name/*.skp into the root_dir/index
 // and validates them. SKPs that fail validation are logged and deleted.
-func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles string) error {
+func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles, pathToSkpinfo string) error {
 	// This slice will be used to run remove_invalid_skp.py.
 	skps := []string{}
 	// List all directories in pathToSkps and copy out the skps.
@@ -310,14 +359,8 @@ func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles string) error {
 	close(skpsChannel)
 
 	sklog.Info("Calling remove_invalid_skp.py")
-	// Sync Skia tree. Specify --nohooks otherwise this step could log errors.
-	util.LogErr(SyncDir(ctx, SkiaTreeDir, map[string]string{}, []string{"--nohooks"}))
-	// Build tools.
-	util.LogErr(BuildSkiaSKPInfo(ctx))
-	// Run remove_invalid_skp.py in parallel goroutines.
-	// Construct path to the python script.
+
 	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skp.py")
-	pathToSKPInfo := filepath.Join(SkiaTreeDir, "out", "Release", BINARY_SKPINFO)
 
 	var wg sync.WaitGroup
 
@@ -335,7 +378,7 @@ func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles string) error {
 				args := []string{
 					pathToRemoveSKPs,
 					"--path_to_skp=" + skpPath,
-					"--path_to_skpinfo=" + pathToSKPInfo,
+					"--path_to_skpinfo=" + pathToSkpinfo,
 				}
 				sklog.Infof("Executing remove_invalid_skp.py with goroutine#%d", i+1)
 				// Execute the command with stdout not logged. It otherwise outputs
@@ -942,7 +985,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repo, targetPlatform string, hashes, patches []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform string, hashes, patches []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -963,7 +1006,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repo, ta
 	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
 	isolateArgs := map[string]string{
 		"RUN_ID":          runID,
-		"REPO":            repo,
+		"REPO_AND_TARGET": repoAndTarget,
 		"HASHES":          strings.Join(hashes, ","),
 		"PATCHES":         strings.Join(patches, ","),
 		"SINGLE_BUILD":    strconv.FormatBool(singleBuild),
