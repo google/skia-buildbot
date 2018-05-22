@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a443adb_4206594a",
+        "filename": "ct/go/master_scripts/metrics_analysis_on_workers/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T16:30:31Z",
+      "side": 1,
+      "message": "nit: maybe rename ReadCsvAsSlice or something like that.",
+      "range": {
+        "startLine": 154,
+        "startChar": 16,
+        "endLine": 154,
+        "endChar": 35
+      },
+      "revId": "e434f61a5e004be5840ec6e55c59aeb564db774c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
