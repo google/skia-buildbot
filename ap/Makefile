@@ -1,9 +1,8 @@
-default:
-	yarn
-	npx webpack
+default: package-lock.json
+	npx webpack --mode=development
 
 release:
-	npx webpack --config webpack.prod.js --define process.env.NODE_ENV=production
+	npx webpack --mode=release webpack.prod.js --define process.env.NODE_ENV=production
 
 serve:
 	npx webpack-dev-server --content-base ./dist --watch
@@ -25,3 +24,6 @@ update-patch:
 
 docs:
 	npx jsdoc -c jsdoc.config.js
+
+package-lock.json: package.json
+	npm install
