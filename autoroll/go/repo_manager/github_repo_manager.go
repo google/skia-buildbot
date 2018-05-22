@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -58,7 +59,6 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 	}
 	dr := &depsRepoManager{
 		depotToolsRepoManager: drm,
-		rollDep:               path.Join(drm.depotTools, ROLL_DEP),
 	}
 	if c.GithubParentPath != "" {
 		dr.parentDir = path.Join(wd, c.GithubParentPath)
@@ -186,6 +186,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 	// Make third_party/ match the new DEPS.
+	// TODO(borenet): Is this necessary?
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.depsRepoManager.parentDir,
 		Env:  depot_tools.Env(rm.depotTools),
@@ -203,23 +204,60 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 
-	// Run roll-dep.
-	args := []string{rm.childPath, "--ignore-dirty-tree", "--roll-to", to}
-	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
+	// Run "gclient setdep".
+	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", rm.childPath, to)}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
 		Env:  depot_tools.Env(rm.depotTools),
-		Name: rm.rollDep,
+		Name: rm.gclient,
 		Args: args,
 	}); err != nil {
 		return 0, err
 	}
-	// Build the commit message, starting with the message provided by roll-dep.
-	commitMsg, err := git.GitDir(rm.parentDir).Git(ctx, "log", "-n1", "--format=%B", "HEAD")
+	// Build the commit message.
+	cmd := []string{"git", "log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format='%ad %ae %s'"}
+	logStr, err := exec.RunCwd(ctx, rm.childDir, cmd...)
 	if err != nil {
 		return 0, err
 	}
-	commitMsg += fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, rm.serverURL)
+	numCommits := len(strings.Split(logStr, "\n"))
+	remoteUrl, err := exec.RunCwd(ctx, rm.childDir, "git", "remote", "get-url", "origin")
+	if err != nil {
+		return 0, err
+	}
+	remoteUrl = strings.TrimSpace(remoteUrl)
+	data := struct {
+		ChildPath  string
+		ChildRepo  string
+		From       string
+		To         string
+		NumCommits int
+		LogURL     string
+		LogStr     string
+		ServerURL  string
+		Footer     string
+	}{
+		ChildPath:  rm.childPath,
+		ChildRepo:  remoteUrl,
+		From:       from[:7],
+		To:         to[:7],
+		NumCommits: numCommits,
+		LogStr:     "",
+		ServerURL:  rm.serverURL,
+		Footer:     "",
+	}
+	if cqExtraTrybots != "" {
+		data.Footer += fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
+	}
+	if rm.includeLog {
+		data.LogStr = fmt.Sprintf("\n\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'", from[:7], to[:7])
+		data.LogStr += logStr
+	}
+	var buf bytes.Buffer
+	if err := commitMsgTmpl.Execute(&buf, data); err != nil {
+		return 0, err
+	}
+	commitMsg := buf.String()
 
 	// Run the pre-upload steps and collect any errors.
 	preUploadErrors := []error{}
@@ -227,6 +265,11 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		if err := s(ctx, rm.parentDir); err != nil {
 			preUploadErrors = append(preUploadErrors, err)
 		}
+	}
+
+	// Commit.
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
+		return 0, err
 	}
 
 	// Push to the forked repository.
