@@ -47,6 +47,7 @@ type SwarmingTask struct {
 	OutputDir      string
 	Dimensions     map[string]string
 	Tags           map[string]string
+	CipdPackages   []string
 	Priority       int
 	Expiration     time.Duration
 	Idempotent     bool
@@ -90,6 +91,9 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 	}
 	for k, v := range t.Tags {
 		triggerArgs = append(triggerArgs, "--tag", fmt.Sprintf("%s:%s", k, v))
+	}
+	for _, c := range t.CipdPackages {
+		triggerArgs = append(triggerArgs, "--cipd-package", c)
 	}
 	if t.Idempotent {
 		triggerArgs = append(triggerArgs, "--idempotent")
@@ -239,7 +243,7 @@ func (s *SwarmingClient) BatchArchiveTargets(ctx context.Context, isolatedGenJSO
 }
 
 // Trigger swarming using the specified hashes and dimensions.
-func (s *SwarmingClient) TriggerSwarmingTasks(ctx context.Context, tasksToHashes, dimensions, tags map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent, addTaskNameAsTag bool, serviceAccount string) ([]*SwarmingTask, error) {
+func (s *SwarmingClient) TriggerSwarmingTasks(ctx context.Context, tasksToHashes, dimensions, tags map[string]string, cipdPackages []string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent, addTaskNameAsTag bool, serviceAccount string) ([]*SwarmingTask, error) {
 	tasks := []*SwarmingTask{}
 
 	for taskName, hash := range tasksToHashes {
@@ -260,6 +264,7 @@ func (s *SwarmingClient) TriggerSwarmingTasks(ctx context.Context, tasksToHashes
 			OutputDir:      taskOutputDir,
 			Dimensions:     dimensions,
 			Tags:           taskTags,
+			CipdPackages:   cipdPackages,
 			Priority:       priority,
 			Expiration:     expiration,
 			Idempotent:     idempotent,

@@ -117,8 +117,12 @@ func main() {
 	group := skutil.NewNamedErrGroup()
 	var skpinfoRemotePath string
 	group.Go("build skpinfo", func() error {
+		cipdPackage, err := util.GetCipdPackageFromAsset("clang_linux")
+		if err != nil {
+			return fmt.Errorf("Could not get cipd package for clang_linux: %s", err)
+		}
 		remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
-			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, []string{}, []string{}, true, 3*time.Hour, 1*time.Hour)
+			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, []string{}, []string{}, []string{cipdPackage}, true, 3*time.Hour, 1*time.Hour)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming build skpinfo task: %s", err)
 		}

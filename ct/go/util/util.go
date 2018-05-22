@@ -20,7 +20,9 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -110,24 +112,6 @@ func syncDirStep(ctx context.Context, revisions map[string]string, additionalArg
 	return nil
 }
 
-func downloadClangAsset(ctx context.Context, clangDir string, runningOnSwarming bool) error {
-	downloadClangArgs := []string{
-		"infra/bots/assets/clang_linux/download.py",
-		"-t", clangDir,
-	}
-	if runningOnSwarming {
-		downloadClangArgs = append(downloadClangArgs, "--gsutil", filepath.Join(DepotToolsDir, "gsutil.py"))
-	}
-	cipdEnv := []string{}
-	if runningOnSwarming {
-		cipdEnv = append(cipdEnv, "USE_CIPD_GCE_AUTH=true")
-	}
-	if err := ExecuteCmd(ctx, "python", downloadClangArgs, cipdEnv, FETCH_GN_TIMEOUT, nil, nil); err != nil {
-		return fmt.Errorf("Error while running bin/fetch-gn: %s", err)
-	}
-	return nil
-}
-
 func runSkiaGnGen(ctx context.Context, clangLocation, gnExtraArgs string) error {
 	// Run "bin/fetch-gn".
 	util.LogErr(ExecuteCmd(ctx, "bin/fetch-gn", []string{}, []string{}, FETCH_GN_TIMEOUT, nil,
@@ -149,16 +133,8 @@ func BuildSkiaSKPInfo(ctx context.Context, runningOnSwarming bool) (string, erro
 	if err := os.Chdir(SkiaTreeDir); err != nil {
 		return "", fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
-	// Download clang.
-	clangDir, err := ioutil.TempDir(StorageDir, "clang_linux")
-	if err != nil {
-		return "", fmt.Errorf("Could not create clangDir: %s", err)
-	}
-	defer util.RemoveAll(clangDir)
-	if err := downloadClangAsset(ctx, clangDir, runningOnSwarming); err != nil {
-		return "", fmt.Errorf("Error when downloading clang asset: %s", err)
-	}
 	// Run gn gen
+	clangDir := filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "clang_linux")
 	if err := runSkiaGnGen(ctx, clangDir, "" /* gnExtraArgs */); err != nil {
 		return "", fmt.Errorf("Error while running gn: %s", err)
 	}
@@ -175,16 +151,8 @@ func BuildSkiaLuaPictures(ctx context.Context, runningOnSwarming bool) (string, 
 	if err := os.Chdir(SkiaTreeDir); err != nil {
 		return "", fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
-	// Download clang.
-	clangDir, err := ioutil.TempDir(StorageDir, "clang_linux")
-	if err != nil {
-		return "", fmt.Errorf("Could not create clangDir: %s", err)
-	}
-	defer util.RemoveAll(clangDir)
-	if err := downloadClangAsset(ctx, clangDir, runningOnSwarming); err != nil {
-		return "", fmt.Errorf("Error when downloading clang asset: %s", err)
-	}
 	// Run gn gen
+	clangDir := filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "clang_linux")
 	if err := runSkiaGnGen(ctx, clangDir, "skia_use_lua=true"); err != nil {
 		return "", fmt.Errorf("Error while running gn: %s", err)
 	}
@@ -193,6 +161,18 @@ func BuildSkiaLuaPictures(ctx context.Context, runningOnSwarming bool) (string, 
 	outPath := filepath.Join(SkiaTreeDir, "out", "Release")
 	args := []string{"-C", outPath, "-j100", BINARY_LUA_PICTURES}
 	return outPath, ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
+}
+
+// GetCipdPackageFromAsset returns a string of the format "path:package_name:version".
+// It returns the latest version of the asset via gitiles.
+func GetCipdPackageFromAsset(assetName string) (string, error) {
+	// Find the latest version of the asset from gitiles.
+	assetVersionFilePath := path.Join("infra", "bots", "assets", assetName, "VERSION")
+	var buf bytes.Buffer
+	if err := gitiles.NewRepo(common.REPO_SKIA).ReadFile(assetVersionFilePath, &buf); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s:skia/bots/%s:version:%s", assetName, assetName, strings.TrimSpace(buf.String())), nil
 }
 
 // ResetCheckout resets the specified Git checkout.
@@ -515,7 +495,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		// Save all retried tasks so that we can collect them at the end.
 		retriedTasks := []*swarming.SwarmingTask{}
 		// Trigger swarming using the isolate hashes.
-		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
 		}
@@ -524,7 +504,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			if _, _, err := task.Collect(ctx, s); err != nil {
 				sklog.Errorf("task %s failed: %s", task.Title, err)
 				sklog.Infof("Retrying task %s", task.Title)
-				t, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+				t, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 				if err != nil {
 					return numTasks, fmt.Errorf("Could not trigger retry of swarming tasks: %s", err)
 				}
@@ -961,7 +941,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
 	// Trigger swarming using the isolate hash.
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, GCE_LINUX_BUILDER_DIMENSIONS, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(GCE_LINUX_BUILDER_DIMENSIONS))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, GCE_LINUX_BUILDER_DIMENSIONS, map[string]string{"runid": runID}, []string{}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(GCE_LINUX_BUILDER_DIMENSIONS))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -985,7 +965,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform string, hashes, patches []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform string, hashes, patches, cipdPackages []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -1028,7 +1008,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, cipdPackages, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
