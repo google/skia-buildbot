@@ -3459,6 +3459,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 	makeTags := func(commit string) []string {
 		return []string{
 			"luci_project:",
+			"milo_host:https://ci.chromium.org/raw/build/%s",
 			"sk_attempt:0",
 			"sk_dim_pool:Skia",
 			"sk_retry_of:",
