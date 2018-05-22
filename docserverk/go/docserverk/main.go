@@ -42,6 +42,7 @@ var (
 
 // flags
 var (
+	clPreview    = flag.Bool("cl_preview", false, "Users are allowed to get a preview of a CL before it lands.")
 	docRepo      = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
@@ -87,7 +88,7 @@ func Init() {
 	if err != nil {
 		sklog.Fatalf("Failed to load the docset: %s", err)
 	}
-	if !*preview {
+	if !*preview && *clPreview {
 		go docset.StartCleaner(*workDir)
 	}
 }
@@ -116,15 +117,18 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	// If there is a cl={issue_number} query parameter supplied then
 	// clone a new copy of the docs repo and patch that issue into it,
 	// and then serve this reqeust from that patched repo.
-	cl := r.FormValue("cl")
+	cl := ""
+	if *clPreview {
+		cl = r.FormValue("cl")
 
-	// Images and other assets won't include the ?cl=[issueid], which means if we
-	// add a new image in a CL it won't normally show up in the preview, but we
-	// can extract the issue id from the Referer header if present.
-	ref := r.Header.Get("Referer")
-	if cl == "" && ref != "" {
-		if refParsed, err := url.Parse(ref); err == nil && (refParsed.Host == r.Host || refParsed.Host == "skia.org") {
-			cl = refParsed.Query().Get("cl")
+		// Images and other assets won't include the ?cl=[issueid], which means if we
+		// add a new image in a CL it won't normally show up in the preview, but we
+		// can extract the issue id from the Referer header if present.
+		ref := r.Header.Get("Referer")
+		if cl == "" && ref != "" {
+			if refParsed, err := url.Parse(ref); err == nil && (refParsed.Host == r.Host || refParsed.Host == "skia.org") {
+				cl = refParsed.Query().Get("cl")
+			}
 		}
 	}
 	if cl != "" {

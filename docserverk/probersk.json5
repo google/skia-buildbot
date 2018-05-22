@@ -1,0 +1,20 @@
+{
+   "docserver": {
+     "urls": [
+       "https://skia.org/",
+       "http://docserver:8000",
+     ],
+     "method": "GET",
+     "expected": [200],
+     "mimetype": "text/html"
+   },
+   "docserver-preview": {
+     "urls": [
+       "https://preview.skia.org/",
+       "http://docserver-preview:8000",
+     ],
+     "method": "GET",
+     "expected": [200],
+     "mimetype": "text/html"
+   },
+}
