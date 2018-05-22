@@ -16,6 +16,24 @@
       "revId": "2591d04e9830a968fd04e92707e1947473fb8900",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76533b3e_e70989ce",
+        "filename": "go/gce/cmd/find_unused_disks/find_unused_disks.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-22T12:24:39Z",
+      "side": 1,
+      "message": "I was avoiding using sklog so that I didn\u0027t need to always pass --logtostderr to see logs.  But now I see sklog.Fatal in a number of places in this file, and it\u0027s going to panic anyway.  Switched to sklog.Fatal.",
+      "parentUuid": "7e2ae5fe_4e08a221",
+      "revId": "2591d04e9830a968fd04e92707e1947473fb8900",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
