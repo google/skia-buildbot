@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2ae82e2_63b7ae86",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T14:32:54Z",
+      "side": 1,
+      "message": "This description doesn\u0027t match docserver-preview.yaml. docserver-preview.yaml has a Deployment, not a StatefulSet.\n\nGiven that both are stateless, what\u0027s the reason for splitting them?",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 67
+      },
+      "revId": "f007eeb637c4f95f2befe860d5ae271610ad1f27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de696344_3e285e8b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T14:32:54Z",
+      "side": 1,
+      "message": "Why not proxy requests from the stateless service to the preview service?",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 42
+      },
+      "revId": "f007eeb637c4f95f2befe860d5ae271610ad1f27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c279d907_5ca8c32b",
+        "filename": "docserverk/go/docserverk/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T14:32:54Z",
+      "side": 1,
+      "message": "Seems like you need to modify this also.",
+      "range": {
+        "startLine": 131,
+        "startChar": 3,
+        "endLine": 131,
+        "endChar": 35
+      },
+      "revId": "f007eeb637c4f95f2befe860d5ae271610ad1f27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
