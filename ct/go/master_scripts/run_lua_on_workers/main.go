@@ -141,8 +141,13 @@ func main() {
 	}
 
 	// Build lua_pictures.
+	cipdPackage, err := util.GetCipdPackageFromAsset("clang_linux")
+	if err != nil {
+		sklog.Errorf("Could not get cipd package for clang_linux: %s", err)
+		return
+	}
 	remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
-		ctx, "build_lua_pictures", *runID, "skiaLuaPictures", util.PLATFORM_LINUX, []string{}, []string{}, []string{}, true, 3*time.Hour, 1*time.Hour)
+		ctx, "build_lua_pictures", *runID, "skiaLuaPictures", util.PLATFORM_LINUX, []string{}, []string{}, []string{cipdPackage}, true, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming build lua_pictures task: %s", err)
 		return
