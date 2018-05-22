@@ -230,7 +230,7 @@ func setupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, []
 }
 
 func TestValidation(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	// Setup.
 	ctx, gb, commits := setupTestRepo(t)
 	defer gb.Cleanup()
@@ -365,7 +365,7 @@ func TestValidation(t *testing.T) {
 }
 
 func TestCommitRange(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	// Setup.
 	ctx, gb, commits := setupTestRepo(t)
 	defer gb.Cleanup()

@@ -456,9 +456,13 @@ func (b *gsDBBackup) incrementalBackupStep(now time.Time) error {
 		return errs[0]
 	} else {
 		errStr := &bytes.Buffer{}
-		fmt.Fprint(errStr, "Multiple errors performing incremental Job backups:")
+		if _, err := fmt.Fprint(errStr, "Multiple errors performing incremental Job backups:"); err != nil {
+			sklog.Error(err)
+		}
 		for _, err := range errs {
-			fmt.Fprint(errStr, "\n", err.Error())
+			if _, err := fmt.Fprint(errStr, "\n", err.Error()); err != nil {
+				sklog.Error(err)
+			}
 		}
 		return errors.New(errStr.String())
 	}

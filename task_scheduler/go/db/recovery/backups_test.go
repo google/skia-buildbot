@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -1310,15 +1311,21 @@ func assertJobMapsEqual(t *testing.T, expected map[string]*db.Job, actual map[st
 	for id, eJob := range expected {
 		if aJob, ok := actual[id]; ok {
 			if !reflect.DeepEqual(eJob, aJob) {
-				fmt.Fprintf(msg, "Job %q differs:\n\tExpected: %v\n\tActual:   %v\n", id, eJob, aJob)
+				if _, err := fmt.Fprintf(msg, "Job %q differs:\n\tExpected: %v\n\tActual:   %v\n", id, eJob, aJob); err != nil {
+					sklog.Fatal(err)
+				}
 			}
 		} else {
-			fmt.Fprintf(msg, "Missing job %q: %v\n", id, eJob)
+			if _, err := fmt.Fprintf(msg, "Missing job %q: %v\n", id, eJob); err != nil {
+				sklog.Fatal(err)
+			}
 		}
 	}
 	for id, aJob := range actual {
 		if _, ok := expected[id]; !ok {
-			fmt.Fprintf(msg, "Extra job %q: %v\n", id, aJob)
+			if _, err := fmt.Fprintf(msg, "Extra job %q: %v\n", id, aJob); err != nil {
+				sklog.Fatal(err)
+			}
 		}
 	}
 	if msg.Len() > 0 {
