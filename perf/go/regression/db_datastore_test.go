@@ -16,9 +16,9 @@ import (
 // TestDS test storing regressions in the datastore.
 func TestDS(t *testing.T) {
 	testutils.LargeTest(t)
+	testutils.LocalOnlyTest(t)
 
 	cleanup := testutil.InitDatastore(t, ds.REGRESSION)
-
 	defer cleanup()
 
 	st := NewStore()
