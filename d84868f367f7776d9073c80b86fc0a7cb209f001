@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2669e4b3_ec439244",
+        "filename": "docserverk/go/docset/docset.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T17:36:07Z",
+      "side": 1,
+      "message": "nit: combine identical if blocks",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 15
+      },
+      "revId": "d84868f367f7776d9073c80b86fc0a7cb209f001",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "413a2079_aed5297f",
+        "filename": "kube/skia-public/alertmanager.yaml",
+        "patchSetId": 18
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T17:36:07Z",
+      "side": 1,
+      "message": "nit: explain this change in the commit message",
+      "revId": "d84868f367f7776d9073c80b86fc0a7cb209f001",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf85adfc_b2333046",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 18
+      },
+      "lineNbr": 1692,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T17:36:07Z",
+      "side": 1,
+      "message": "Is this still needed?",
+      "revId": "d84868f367f7776d9073c80b86fc0a7cb209f001",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
