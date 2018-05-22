@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fbb60d99_b840bb8c",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 21
+      },
+      "lineNbr": 1672,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-22T21:45:08Z",
+      "side": 0,
+      "message": "fiddle/res/imp/fiddle-sk.html still points to debug.skia.org.",
+      "revId": "c48076272cd4feae94f18a6c40f8b44e2d7aeaee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
