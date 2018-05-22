@@ -178,7 +178,7 @@ func main() {
 		if util.PatchesAreEmpty(localPatches) {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{chromiumHash}, remotePatches,
+				ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{chromiumHash}, remotePatches, []string{},
 				/*singlebuild*/ true, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
@@ -192,7 +192,7 @@ func main() {
 		} else {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{chromiumHash}, remotePatches,
+				ctx, "build_chromium", *runID, "chromium", util.PLATFORM_LINUX, []string{chromiumHash}, remotePatches, []string{},
 				/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
