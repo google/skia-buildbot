@@ -15,6 +15,7 @@ import (
 // Interface useful for mocking.
 type IAutoscaler interface {
 	GetRunningInstances() ([]string, error)
+	GetNamesOfManagedInstances() []string
 	StopAllInstances() error
 	StartAllInstances() error
 }
@@ -78,6 +79,16 @@ func (a *Autoscaler) GetRunningInstances() ([]string, error) {
 	}
 	sort.Strings(runningInstances)
 	return runningInstances, nil
+}
+
+// GetNamesOfManagedInstances returns names of all instances managed by this
+// autoscaler.
+func (a *Autoscaler) GetNamesOfManagedInstances() []string {
+	instanceNames := []string{}
+	for _, instance := range a.instances {
+		instanceNames = append(instanceNames, instance.Name)
+	}
+	return instanceNames
 }
 
 // StopAllInstances stops all instances.
