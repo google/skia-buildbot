@@ -13,7 +13,7 @@ SA_NAME=skia-contest
 
 cd /tmp/ramdisk
 
-gcloud iam service-accounts create "${SA_NAME}" --display-name="Read-only access to GCS for skia docs server side includes."
+gcloud iam service-accounts create "${SA_NAME}" --display-name="Uses the spreadsheets API to get access to the contest spreadsheet."
 
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
