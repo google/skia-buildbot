@@ -123,6 +123,8 @@ type ApiClient interface {
 	// GetTaskMetadata returns a swarming.SwarmingRpcsTaskRequestMetadata instance
 	// corresponding to the given Swarming task.
 	GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+
+	DeleteBots(bots []string) error
 }
 
 type apiClient struct {
@@ -453,6 +455,28 @@ func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskReques
 		TaskResult: task,
 		Request:    req,
 	}, nil
+}
+
+func (c *apiClient) DeleteBots(bots []string) error {
+	// Perform the requested operation.
+	group := util.NewNamedErrGroup()
+	for _, b := range bots {
+		b := b // https://golang.org/doc/faq#closures_and_goroutines
+		group.Go(b, func() error {
+			r, err := c.s.Bot.Delete(b).Do()
+			if err != nil {
+				return err
+			}
+			if !r.Deleted {
+				return fmt.Errorf("Could not delete swarming bot: %s", b)
+			}
+			return nil
+		})
+	}
+	if err := group.Wait(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // BotDimensionsToStringMap converts Swarming bot dimensions as represented in

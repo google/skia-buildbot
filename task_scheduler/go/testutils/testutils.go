@@ -235,6 +235,10 @@ func (c *TestClient) GetTaskMetadata(id string) (*swarming_api.SwarmingRpcsTaskR
 	return nil, fmt.Errorf("No such task: %s", id)
 }
 
+func (c *TestClient) DeleteBots(bots []string) error {
+	return nil
+}
+
 func (c *TestClient) MockBots(bots []*swarming_api.SwarmingRpcsBotInfo) {
 	c.botListMtx.Lock()
 	defer c.botListMtx.Unlock()
