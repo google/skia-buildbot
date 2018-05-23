@@ -22,6 +22,46 @@
       "revId": "198251649310a9a5f4db04fdfabfa0dcac6d4536",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5526d194_0fe92bfa",
+        "filename": "go/gerrit/create_cl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-23T20:20:42Z",
+      "side": 1,
+      "message": "It makes sense to me to keep EditFile, MoveFile, SetCommitMessage in gerrit.go. If I was looking for those methods to call in the API I would try to do it first in GerritInterface (which also has Abandon and Delete).\nCould also move WithNewChange in gerrit.go, it would call the methods you need with the ret of CreateChange.\nYou will also be able to add tests in gerrit_test.go following the example of TestFiles and the tests after that.",
+      "revId": "198251649310a9a5f4db04fdfabfa0dcac6d4536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01777940_39c4a0b9",
+        "filename": "go/gerrit/create_cl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-23T20:20:42Z",
+      "side": 1,
+      "message": "WithNewChange might be a more Gerrit-y name (vs CL).",
+      "range": {
+        "startLine": 99,
+        "startChar": 3,
+        "endLine": 99,
+        "endChar": 12
+      },
+      "revId": "198251649310a9a5f4db04fdfabfa0dcac6d4536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
