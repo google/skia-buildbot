@@ -12,6 +12,7 @@ import (
 
 func TestActivity(t *testing.T) {
 	testutils.LargeTest(t)
+	testutils.LocalOnlyTest(t)
 	cleanup := testutil.InitDatastore(t, ds.ACTIVITY)
 
 	defer cleanup()
