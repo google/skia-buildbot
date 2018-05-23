@@ -8,6 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -54,7 +55,7 @@ func TestGetModeHistory(t *testing.T) {
 	history, err := d.db.GetModeHistory(10)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(history))
-	testutils.AssertDeepEqual(t, m1, history[0])
+	deepequal.AssertDeepEqual(t, m1, history[0])
 
 	// Add more modes, ensuring that we retrieve them consistently.
 	m2 := &ModeChange{
@@ -79,20 +80,20 @@ func TestGetModeHistory(t *testing.T) {
 	assert.NoError(t, d.db.SetMode(m2))
 	history, err = d.db.GetModeHistory(10)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*ModeChange{m2, m1}, history)
+	deepequal.AssertDeepEqual(t, []*ModeChange{m2, m1}, history)
 
 	assert.NoError(t, d.db.SetMode(m3))
 	history, err = d.db.GetModeHistory(10)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*ModeChange{m3, m2, m1}, history)
+	deepequal.AssertDeepEqual(t, []*ModeChange{m3, m2, m1}, history)
 
 	assert.NoError(t, d.db.SetMode(m4))
 	history, err = d.db.GetModeHistory(10)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*ModeChange{m4, m3, m2, m1}, history)
+	deepequal.AssertDeepEqual(t, []*ModeChange{m4, m3, m2, m1}, history)
 
 	// Only three changes?
 	history, err = d.db.GetModeHistory(3)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*ModeChange{m4, m3, m2}, history)
+	deepequal.AssertDeepEqual(t, []*ModeChange{m4, m3, m2}, history)
 }

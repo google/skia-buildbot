@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -35,7 +36,7 @@ func TestCheckout(t *testing.T) {
 	// Log.
 	gotCommits, err := c.RevList(ctx, "origin/master")
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, commits, gotCommits)
+	deepequal.AssertDeepEqual(t, commits, gotCommits)
 
 	// Add a commit on the remote.
 	commit := gb.CommitGen(ctx, "somefile")

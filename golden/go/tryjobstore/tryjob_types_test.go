@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -42,7 +43,7 @@ func TestIssueDetails(t *testing.T) {
 	issue.UpdatePatchsets([]*PatchsetDetail{thirdPS})
 
 	// Make sure we are sorted.
-	testutils.AssertDeepEqual(t, []*PatchsetDetail{seconPS, firstPS, thirdPS}, issue.PatchsetDetails)
+	deepequal.AssertDeepEqual(t, []*PatchsetDetail{seconPS, firstPS, thirdPS}, issue.PatchsetDetails)
 	assert.NoError(t, nil)
 }
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.skia.org/infra/go/deepequal"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 
@@ -50,7 +51,7 @@ func TestRepo(t *testing.T) {
 	// Log.
 	gotCommits, err := r.RevList(ctx, "master")
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, commits, gotCommits)
+	deepequal.AssertDeepEqual(t, commits, gotCommits)
 
 	// Add a commit on the remote.
 	c := gb.CommitGen(ctx, "somefile")

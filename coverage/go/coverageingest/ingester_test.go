@@ -14,6 +14,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/coverage/go/common"
 	"go.skia.org/infra/coverage/go/db"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/mockgcsclient"
@@ -140,7 +141,7 @@ func TestBlankIngestion(t *testing.T) {
 		},
 	}
 
-	testutils.AssertDeepEqual(t, ir, i.GetResults())
+	deepequal.AssertDeepEqual(t, ir, i.GetResults())
 }
 
 // Tests that we download files correctly from GCS when some files already exist.
@@ -226,7 +227,7 @@ func TestPartialIngestion(t *testing.T) {
 		},
 	}
 
-	testutils.AssertDeepEqual(t, ir, i.GetResults())
+	deepequal.AssertDeepEqual(t, ir, i.GetResults())
 }
 
 // Tests that we correctly call the untar() function after downloading a tar file.
@@ -248,7 +249,7 @@ func TestTarIngestion(t *testing.T) {
 		if c.Name == "tar" {
 			called++
 			expectedArgs := []string{"xf", path.Join(tpath, "abcdefgh", "Some-Config.html.tar"), "--strip-components=6", "-C", path.Join(tpath, "abcdefgh", "Some-Config", "html")}
-			testutils.AssertDeepEqual(t, expectedArgs, c.Args)
+			deepequal.AssertDeepEqual(t, expectedArgs, c.Args)
 		}
 		return fmt.Errorf("Unexpected use of context: calling command %#v", c)
 	})
@@ -264,7 +265,7 @@ func TestTarIngestion(t *testing.T) {
 	i.IngestCommits(ctx, mockLongCommits("abcdefgh"))
 
 	mg.AssertCalled(t, "GetFileContents", mockctx, "commit/abcdefgh/Some-Config.html.tar")
-	testutils.AssertDeepEqual(t, 1, called) // unTar() should be called exactly once
+	deepequal.AssertDeepEqual(t, 1, called) // unTar() should be called exactly once
 }
 
 // Tests that the call to the "get combined coverage" function is well-formed.
@@ -318,7 +319,7 @@ func TestCallToCombine(t *testing.T) {
 	i := New(tpath, mg, mcc)
 	i.IngestCommits(ctx, mockLongCommits("abcdefgh"))
 
-	testutils.AssertDeepEqual(t, 3*5*7, called) // createSummary() should be called 3 times, once with each folder, then once with an array.
+	deepequal.AssertDeepEqual(t, 3*5*7, called) // createSummary() should be called 3 times, once with each folder, then once with an array.
 }
 
 // Tests the interface between the ingestion and the caching layer,
@@ -378,7 +379,7 @@ func TestCachingCalls(t *testing.T) {
 		},
 	}
 
-	testutils.AssertDeepEqual(t, ir, i.GetResults())
+	deepequal.AssertDeepEqual(t, ir, i.GetResults())
 }
 
 // Tests the defaultUntar function, in that it behaves properly on a tar file that
@@ -462,8 +463,8 @@ func TestCoverageDataOperations(t *testing.T) {
 	assert.Equal(t, 8, expected.TotalExecutable())
 	assert.Equal(t, 3, expected.MissedExecutable())
 
-	testutils.AssertDeepEqual(t, expected, c1.Union(&c2))
-	testutils.AssertDeepEqual(t, expected, c2.Union(&c1))
+	deepequal.AssertDeepEqual(t, expected, c1.Union(&c2))
+	deepequal.AssertDeepEqual(t, expected, c2.Union(&c1))
 }
 
 // Tests the parsing logic in coverageData for output produced by LLVM 5
@@ -505,7 +506,7 @@ func TestCoverageDataParsingLLVM5(t *testing.T) {
 		},
 	}
 	parsed := parseLinesCovered(contents)
-	testutils.AssertDeepEqual(t, expected.executableLines, parsed.executableLines)
+	deepequal.AssertDeepEqual(t, expected.executableLines, parsed.executableLines)
 	actualHTML, err := parsed.ToHTMLPage(CoverageFileData{
 		FileName: "test.cpp",
 		Commit:   "adbde2143",
@@ -560,7 +561,7 @@ func TestCalculateTotalCoverage(t *testing.T) {
 		MissedLines: 7,
 	}
 
-	testutils.AssertDeepEqual(t, expected, tc)
+	deepequal.AssertDeepEqual(t, expected, tc)
 }
 
 func read(t *testing.T, path string) string {

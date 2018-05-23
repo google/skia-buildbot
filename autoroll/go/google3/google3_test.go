@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/deepequal"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/testutils"
@@ -88,8 +89,8 @@ func TestStatus(t *testing.T) {
 	assert.Equal(t, 1, status.NumNotRolledCommits)
 	assert.Equal(t, issue1.RollingTo, status.LastRollRev)
 	assert.Nil(t, status.CurrentRoll)
-	testutils.AssertDeepEqual(t, issue1, status.LastRoll)
-	testutils.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue1}, status.Recent)
+	deepequal.AssertDeepEqual(t, issue1, status.LastRoll)
+	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue1}, status.Recent)
 
 	// Ensure that repo update occurs when adding an issue.
 	commits = append(commits, gb.CommitGen(ctx, "a.txt"))
@@ -114,9 +115,9 @@ func TestStatus(t *testing.T) {
 	assert.Equal(t, 2, status.NumNotRolledCommits)
 	assert.Equal(t, issue1.RollingTo, status.LastRollRev)
 	assert.Equal(t, "error message", status.Error)
-	testutils.AssertDeepEqual(t, issue4, status.CurrentRoll)
-	testutils.AssertDeepEqual(t, issue3, status.LastRoll)
-	testutils.AssertDeepEqual(t, recent, status.Recent)
+	deepequal.AssertDeepEqual(t, issue4, status.CurrentRoll)
+	deepequal.AssertDeepEqual(t, issue3, status.LastRoll)
+	deepequal.AssertDeepEqual(t, recent, status.Recent)
 
 	// Test preserving error.
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
@@ -134,9 +135,9 @@ func TestStatus(t *testing.T) {
 	assert.Equal(t, 2, status.NumNotRolledCommits)
 	assert.Equal(t, issue1.RollingTo, status.LastRollRev)
 	assert.Equal(t, "", status.Error)
-	testutils.AssertDeepEqual(t, issue4, status.CurrentRoll)
-	testutils.AssertDeepEqual(t, issue3, status.LastRoll)
-	testutils.AssertDeepEqual(t, recent, status.Recent)
+	deepequal.AssertDeepEqual(t, issue4, status.CurrentRoll)
+	deepequal.AssertDeepEqual(t, issue3, status.LastRoll)
+	deepequal.AssertDeepEqual(t, recent, status.Recent)
 }
 
 func TestAddOrUpdateIssue(t *testing.T) {
@@ -155,7 +156,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	closeIssue(issue2, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(issue2, http.MethodPut))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
-	testutils.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.GetStatus(true).Recent)
+	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.GetStatus(true).Recent)
 
 	// Test adding a two issues without closing the first one.
 	issue3 := makeIssue(3, commits[2])
@@ -165,7 +166,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue3.Closed = true
 	issue3.Result = autoroll.ROLL_RESULT_FAILURE
-	testutils.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}, a.GetStatus(true).Recent)
+	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}, a.GetStatus(true).Recent)
 
 	// Test both situations at the same time.
 	issue5 := makeIssue(5, commits[2])
@@ -174,7 +175,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue4.Closed = true
 	issue4.Result = autoroll.ROLL_RESULT_FAILURE
-	testutils.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue5, issue4, issue3, issue2, issue1}, a.GetStatus(true).Recent)
+	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue5, issue4, issue3, issue2, issue1}, a.GetStatus(true).Recent)
 }
 
 func makeRoll(now time.Time) Roll {
@@ -201,14 +202,14 @@ func TestRollAsIssue(t *testing.T) {
 
 	actual, err := roll.AsIssue()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, expected, actual)
+	deepequal.AssertDeepEqual(t, expected, actual)
 
 	roll.TestSummaryUrl = ""
 	savedTryResults := expected.TryResults
 	expected.TryResults = []*autoroll.TryResult{}
 	actual, err = roll.AsIssue()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, expected, actual)
+	deepequal.AssertDeepEqual(t, expected, actual)
 
 	roll.Closed = true
 	expected.Closed = true
@@ -221,7 +222,7 @@ func TestRollAsIssue(t *testing.T) {
 	expected.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
 	actual, err = roll.AsIssue()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, expected, actual)
+	deepequal.AssertDeepEqual(t, expected, actual)
 
 	roll.Submitted = true
 	roll.Result = autoroll.ROLL_RESULT_SUCCESS
@@ -230,7 +231,7 @@ func TestRollAsIssue(t *testing.T) {
 	expected.TryResults[0].Result = autoroll.TRYBOT_RESULT_SUCCESS
 	actual, err = roll.AsIssue()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, expected, actual)
+	deepequal.AssertDeepEqual(t, expected, actual)
 
 	roll = makeRoll(now)
 	roll.Created = jsonutils.Time{}

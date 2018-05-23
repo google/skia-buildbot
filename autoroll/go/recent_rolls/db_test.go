@@ -10,6 +10,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/comment"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -63,11 +64,11 @@ func TestRolls(t *testing.T) {
 	assert.NoError(t, d.db.InsertRoll(roll1))
 	test1, err := d.db.GetRoll(roll1.Issue)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, roll1, test1)
+	deepequal.AssertDeepEqual(t, roll1, test1)
 	recent, err := d.db.GetRecentRolls(10)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(recent))
-	testutils.AssertDeepEqual(t, roll1, recent[0])
+	deepequal.AssertDeepEqual(t, roll1, recent[0])
 
 	// Update.
 	roll1.Closed = true
@@ -77,11 +78,11 @@ func TestRolls(t *testing.T) {
 	assert.NoError(t, d.db.UpdateRoll(roll1))
 	test1, err = d.db.GetRoll(roll1.Issue)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, roll1, test1)
+	deepequal.AssertDeepEqual(t, roll1, test1)
 	recent, err = d.db.GetRecentRolls(10)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(recent))
-	testutils.AssertDeepEqual(t, roll1, recent[0])
+	deepequal.AssertDeepEqual(t, roll1, recent[0])
 
 	// Delete.
 	assert.NoError(t, d.db.DeleteRoll(roll1))
@@ -145,7 +146,7 @@ func TestRolls(t *testing.T) {
 	expect := []*autoroll.AutoRollIssue{roll3, roll4, roll2, roll1}
 	recent, err = d.db.GetRecentRolls(10)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, recent, expect)
+	deepequal.AssertDeepEqual(t, recent, expect)
 
 	// Ensure that we extend the set of recent rolls to ensure that we
 	// include the last successful roll.
@@ -157,7 +158,7 @@ func TestRolls(t *testing.T) {
 	}
 	recent, err = d.db.GetRecentRolls(2)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, recent, expect)
+	deepequal.AssertDeepEqual(t, recent, expect)
 
 	// Ensure that we get a maximum of the number of rolls we requested.
 	for _, roll := range []*autoroll.AutoRollIssue{roll2, roll3, roll4} {
@@ -166,5 +167,5 @@ func TestRolls(t *testing.T) {
 	}
 	recent, err = d.db.GetRecentRolls(3)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, recent, expect[:3])
+	deepequal.AssertDeepEqual(t, recent, expect[:3])
 }

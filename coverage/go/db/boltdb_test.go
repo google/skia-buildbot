@@ -7,6 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/coverage/go/common"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -27,10 +28,10 @@ func TestStorage(t *testing.T) {
 	assert.NoError(t, b.StoreToCache("key2", expected2))
 	actual, ok := b.CheckCache("key2")
 	assert.True(t, ok, "key2 should have a value")
-	testutils.AssertDeepEqual(t, actual, expected2)
+	deepequal.AssertDeepEqual(t, actual, expected2)
 	actual, ok = b.CheckCache("key1")
 	assert.True(t, ok, "key1 should now have a value")
-	testutils.AssertDeepEqual(t, actual, expected1)
+	deepequal.AssertDeepEqual(t, actual, expected1)
 	_, ok = b.CheckCache("key:doesnotexist")
 	assert.False(t, ok, "nonexistant key should not exist still")
 	assert.NoError(t, b.Close())
@@ -43,10 +44,10 @@ func TestStorage(t *testing.T) {
 
 	actual, ok = c.CheckCache("key2")
 	assert.True(t, ok, "key2 should have a value after opening")
-	testutils.AssertDeepEqual(t, actual, expected2)
+	deepequal.AssertDeepEqual(t, actual, expected2)
 	actual, ok = c.CheckCache("key1")
 	assert.True(t, ok, "key1 should now have a value after opening")
-	testutils.AssertDeepEqual(t, actual, expected1)
+	deepequal.AssertDeepEqual(t, actual, expected1)
 	_, ok = c.CheckCache("key:doesnotexist")
 	assert.False(t, ok, "nonexistant key should not exist still after opening")
 	assert.NoError(t, c.Close())

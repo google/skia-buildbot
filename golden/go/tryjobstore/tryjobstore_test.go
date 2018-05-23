@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
@@ -115,7 +116,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		}
 		foundTryjobs = append(foundTryjobs, ps.Tryjobs...)
 	}
-	testutils.AssertDeepEqual(t, []*Tryjob{tryjob_1, tryjob_2}, foundTryjobs)
+	deepequal.AssertDeepEqual(t, []*Tryjob{tryjob_1, tryjob_2}, foundTryjobs)
 
 	listedIssues, total, err := store.ListIssues(0, 1000)
 	assert.NoError(t, err)

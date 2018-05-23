@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 
 	expect "github.com/stretchr/testify/assert"
@@ -44,7 +45,7 @@ func TestDuration(t *testing.T) {
 
 	parsed := dummy{}
 	assert.NoError(t, json.Unmarshal(enc, &parsed))
-	testutils.AssertDeepEqual(t, orig, parsed)
+	deepequal.AssertDeepEqual(t, orig, parsed)
 }
 
 func TestParseConfigFile(t *testing.T) {
@@ -81,7 +82,7 @@ func TestParseConfigFile(t *testing.T) {
 			"arch": "amd64",
 		},
 	}
-	testutils.AssertDeepEqual(t, expected, parsed)
+	deepequal.AssertDeepEqual(t, expected, parsed)
 }
 
 func TestParseConfigFileDoesntExist(t *testing.T) {

@@ -16,7 +16,7 @@ const DEFAULT_TEST_REPO = "go-on-now.git"
 //
 // Callers of these tests utils should assign a value to AssertDeepEqual beforehand, e.g.:
 //
-//	AssertDeepEqual = testutils.AssertDeepEqual
+//	AssertDeepEqual = deepequal.AssertDeepEqual
 //
 // This is necessary to break the hard linking of this file to the "testing" module.
 var AssertDeepEqual func(t assert.TestingT, expected, actual interface{})

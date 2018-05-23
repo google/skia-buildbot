@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -106,13 +107,13 @@ func TestGraph(t *testing.T) {
 	repo2, err := NewGraph(ctx, g.Dir(), tmp2)
 	assert.NoError(t, err)
 	assert.NoError(t, repo2.Update(ctx))
-	testutils.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
+	deepequal.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
 	m2 := repo2.Get("master")
 	// These will confuse AssertDeepEqual.
 	m1.repo = nil
 	m2.repo = nil
-	testutils.AssertDeepEqual(t, m1, m2)
+	deepequal.AssertDeepEqual(t, m1, m2)
 }
 
 func TestSerialize(t *testing.T) {
@@ -124,7 +125,7 @@ func TestSerialize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, repo2.Update(ctx))
 
-	testutils.AssertDeepEqual(t, repo, repo2)
+	deepequal.AssertDeepEqual(t, repo, repo2)
 }
 
 func TestRecurse(t *testing.T) {

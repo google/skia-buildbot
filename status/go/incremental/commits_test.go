@@ -6,6 +6,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -20,7 +21,7 @@ func assertBranches(t *testing.T, gb *git_testutils.GitBuilder, actual map[strin
 	for _, branch := range actual[gb.RepoUrl()] {
 		actualBranches[branch.Name] = branch.Head
 	}
-	testutils.AssertDeepEqual(t, expect, actualBranches)
+	deepequal.AssertDeepEqual(t, expect, actualBranches)
 }
 
 func assertCommits(t *testing.T, gb *git_testutils.GitBuilder, actual map[string][]*vcsinfo.LongCommit, expect []string) {
@@ -29,7 +30,7 @@ func assertCommits(t *testing.T, gb *git_testutils.GitBuilder, actual map[string
 		actualMap[c.Hash] = true
 	}
 	expectMap := util.NewStringSet(expect)
-	testutils.AssertDeepEqual(t, expectMap, actualMap)
+	deepequal.AssertDeepEqual(t, expectMap, actualMap)
 }
 
 func TestIncrementalCommits(t *testing.T) {

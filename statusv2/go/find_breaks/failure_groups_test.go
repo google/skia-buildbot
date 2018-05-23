@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -206,16 +207,16 @@ func TestMerge(t *testing.T) {
 		assertValidFailureGroup(t, g2)
 
 		if expect == nil {
-			testutils.AssertDeepEqual(t, f1.brokeIn, g1.brokeIn)
-			testutils.AssertDeepEqual(t, f1.failing, g1.failing)
-			testutils.AssertDeepEqual(t, f1.fixedIn, g1.fixedIn)
+			deepequal.AssertDeepEqual(t, f1.brokeIn, g1.brokeIn)
+			deepequal.AssertDeepEqual(t, f1.failing, g1.failing)
+			deepequal.AssertDeepEqual(t, f1.fixedIn, g1.fixedIn)
 
-			testutils.AssertDeepEqual(t, f2.brokeIn, g2.brokeIn)
-			testutils.AssertDeepEqual(t, f2.failing, g2.failing)
-			testutils.AssertDeepEqual(t, f2.fixedIn, g2.fixedIn)
+			deepequal.AssertDeepEqual(t, f2.brokeIn, g2.brokeIn)
+			deepequal.AssertDeepEqual(t, f2.failing, g2.failing)
+			deepequal.AssertDeepEqual(t, f2.fixedIn, g2.fixedIn)
 		} else {
-			testutils.AssertDeepEqual(t, expect, g1)
-			testutils.AssertDeepEqual(t, expect, g2)
+			deepequal.AssertDeepEqual(t, expect, g1)
+			deepequal.AssertDeepEqual(t, expect, g2)
 		}
 	}
 	for _, tc := range tc {

@@ -9,6 +9,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
@@ -31,7 +32,7 @@ func TestUpdateJobs(t *testing.T) {
 		if j != nil {
 			expect = append(expect, j)
 		}
-		testutils.AssertDeepEqual(t, expect, active)
+		deepequal.AssertDeepEqual(t, expect, active)
 	}
 	assertNoActiveTryJobs := func() {
 		assertActiveTryJob(nil)
@@ -110,7 +111,7 @@ func TestUpdateJobs(t *testing.T) {
 	assert.NoError(t, trybots.tjCache.Update())
 	active, err := trybots.tjCache.GetActiveTryJobs()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*db.Job{j2}, active)
+	deepequal.AssertDeepEqual(t, []*db.Job{j2}, active)
 	canceled, err := trybots.tjCache.db.GetJobById(j1.Id)
 	assert.NoError(t, err)
 	assert.True(t, canceled.Done())

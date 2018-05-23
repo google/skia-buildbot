@@ -8,6 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -32,11 +33,11 @@ func TestProcessor(t *testing.T) {
 	expect := []*invocation{}
 	testProcess := func(ctx context.Context, start, end time.Time) error {
 		e := expect[0]
-		testutils.AssertDeepEqual(t, e.start, start)
+		deepequal.AssertDeepEqual(t, e.start, start)
 		if util.TimeIsZero(e.end) {
 			// TODO
 		} else {
-			testutils.AssertDeepEqual(t, e.end, end)
+			deepequal.AssertDeepEqual(t, e.end, end)
 		}
 		expect = expect[1:]
 		return e.retVal
@@ -70,7 +71,7 @@ func TestProcessor(t *testing.T) {
 	}
 	assert.NoError(t, p.run(ctx, now))
 	assert.Empty(t, expect)
-	testutils.AssertDeepEqual(t, now, p.processedUpTo)
+	deepequal.AssertDeepEqual(t, now, p.processedUpTo)
 
 	// Verify the subsequent repeated processing of the window.
 	start = now.Add(-p.Window)
@@ -87,7 +88,7 @@ func TestProcessor(t *testing.T) {
 	}
 	assert.NoError(t, p.run(ctx, now))
 	assert.Empty(t, expect)
-	testutils.AssertDeepEqual(t, now, p.processedUpTo)
+	deepequal.AssertDeepEqual(t, now, p.processedUpTo)
 
 	// Another window, a little later now.
 	now = now.Add(30 * time.Minute)
@@ -105,7 +106,7 @@ func TestProcessor(t *testing.T) {
 	}
 	assert.NoError(t, p.run(ctx, now))
 	assert.Empty(t, expect)
-	testutils.AssertDeepEqual(t, now, p.processedUpTo)
+	deepequal.AssertDeepEqual(t, now, p.processedUpTo)
 
 	// Ensure that we correctly saved the processedUpTo value.
 	p2 := &Processor{
@@ -118,7 +119,7 @@ func TestProcessor(t *testing.T) {
 		Workdir:         wd,
 	}
 	assert.NoError(t, p2.init())
-	testutils.AssertDeepEqual(t, now, p2.processedUpTo)
+	deepequal.AssertDeepEqual(t, now, p2.processedUpTo)
 
 	// Test that, if we error out, we'll retry the same chunk.
 	now = now.Add(30 * time.Minute)
@@ -138,7 +139,7 @@ func TestProcessor(t *testing.T) {
 	failed.retVal = errors.New("failed")
 	expectUpTo := expect[1].end
 	assert.EqualError(t, p.run(ctx, now), failed.retVal.Error())
-	testutils.AssertDeepEqual(t, expectUpTo, p.processedUpTo)
+	deepequal.AssertDeepEqual(t, expectUpTo, p.processedUpTo)
 }
 
 func TestValidate(t *testing.T) {

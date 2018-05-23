@@ -4,11 +4,12 @@ import (
 	"os"
 	"testing"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
 func TestMain(m *testing.M) {
-	AssertDeepEqual = testutils.AssertDeepEqual
+	AssertDeepEqual = deepequal.AssertDeepEqual
 	os.Exit(m.Run())
 }
 

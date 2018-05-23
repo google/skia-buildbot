@@ -9,6 +9,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -19,11 +20,11 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *Task) {
 	for _, commit := range b.Commits {
 		found, err := c.GetTaskForCommit(DEFAULT_TEST_REPO, commit, b.Name)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, b, found)
+		deepequal.AssertDeepEqual(t, b, found)
 
 		tasks, err := c.GetTasksForCommits(DEFAULT_TEST_REPO, []string{commit})
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, b, tasks[commit][b.Name])
+		deepequal.AssertDeepEqual(t, b, tasks[commit][b.Name])
 	}
 }
 
@@ -60,7 +61,7 @@ func TestTaskCache(t *testing.T) {
 	assert.NoError(t, c.Update())
 	tasks, err := c.GetTasksForCommits(DEFAULT_TEST_REPO, []string{"b"})
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, map[string]map[string]*Task{
+	deepequal.AssertDeepEqual(t, map[string]map[string]*Task{
 		"b": {
 			t1.Name: t1,
 			t3.Name: t3,
@@ -140,51 +141,51 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t1After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t2Before)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t2After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t3Before)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, t3After)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(timeStart, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t1Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t1After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t2Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t2After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t3Before, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t3}, tasks)
 
 	tasks, err = c.GetTasksFromDateRange(t3After, timeEnd)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{}, tasks)
 }
 
 func TestTaskCacheMultiRepo(t *testing.T) {
@@ -210,7 +211,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	{
 		tasks, err := c.GetTasksForCommits(t1.Repo, []string{"a", "b", "c"})
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
+		deepequal.AssertDeepEqual(t, map[string]map[string]*Task{
 			"a": {
 				t1.Name: t1,
 			},
@@ -224,7 +225,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	{
 		tasks, err := c.GetTasksForCommits(t2.Repo, []string{"a", "b", "c"})
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
+		deepequal.AssertDeepEqual(t, map[string]map[string]*Task{
 			"a": {
 				t1.Name: t2,
 			},
@@ -238,7 +239,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	{
 		tasks, err := c.GetTasksForCommits(t3.Repo, []string{"a", "b", "c"})
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
+		deepequal.AssertDeepEqual(t, map[string]map[string]*Task{
 			"a": {},
 			"b": {
 				t1.Name: t3,
@@ -318,7 +319,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	assert.NoError(t, err)
 	tasks, err := c.UnfinishedTasks()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	// Finish the task. Insert it, ensure that it's not unfinished.
 	t1.Status = TASK_STATUS_SUCCESS
@@ -327,7 +328,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	assert.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{}, tasks)
 
 	// Already-finished task.
 	t2 := makeTask(time.Now(), []string{"a"})
@@ -337,7 +338,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	assert.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{}, tasks)
 
 	// An unfinished task, created after the cache was created.
 	t3 := makeTask(time.Now(), []string{"b"})
@@ -346,7 +347,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	assert.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t3}, tasks)
 
 	// Update the task.
 	t3.Commits = []string{"c", "d", "f"}
@@ -355,7 +356,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	assert.NoError(t, c.Update())
 	tasks, err = c.UnfinishedTasks()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+	deepequal.AssertDeepEqual(t, []*Task{t3}, tasks)
 }
 
 // assertTaskInSlice fails the test if task is not deep-equal to an element of
@@ -363,7 +364,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 func assertTaskInSlice(t *testing.T, task *Task, slice []*Task) {
 	for _, other := range slice {
 		if task.Id == other.Id {
-			testutils.AssertDeepEqual(t, task, other)
+			deepequal.AssertDeepEqual(t, task, other)
 			return
 		}
 	}
@@ -444,7 +445,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 		for _, task := range []*Task{tasks[0], tasks[1]} {
 			cachedTask, err := c.GetTask(task.Id)
 			assert.NoError(t, err)
-			testutils.AssertDeepEqual(t, task, cachedTask)
+			deepequal.AssertDeepEqual(t, task, cachedTask)
 			testGetTasksForCommits(t, c, task)
 			assertTaskInSlice(t, task, firstTasks)
 			assertTaskInSlice(t, task, unfinishedTasks)
@@ -490,14 +491,14 @@ func TestTaskCacheExpiration(t *testing.T) {
 		if allCachedTasks[3].Id != orderedTasks[3].Id {
 			allCachedTasks[3], allCachedTasks[4] = allCachedTasks[4], allCachedTasks[3]
 		}
-		testutils.AssertDeepEqual(t, orderedTasks, allCachedTasks)
+		deepequal.AssertDeepEqual(t, orderedTasks, allCachedTasks)
 
 		unfinishedTasks, err := c.UnfinishedTasks()
 		assert.NoError(t, err)
 		for _, task := range orderedTasks {
 			cachedTask, err := c.GetTask(task.Id)
 			assert.NoError(t, err)
-			testutils.AssertDeepEqual(t, task, cachedTask)
+			deepequal.AssertDeepEqual(t, task, cachedTask)
 			testGetTasksForCommits(t, c, task)
 			assertTaskInSlice(t, task, unfinishedTasks)
 			assert.True(t, c.KnownTaskName(task.Repo, task.Name))
@@ -519,13 +520,13 @@ func TestTaskCacheExpiration(t *testing.T) {
 		for _, task := range newTasks {
 			cachedTask, err := c.GetTask(task.Id)
 			assert.NoError(t, err)
-			testutils.AssertDeepEqual(t, task, cachedTask)
+			deepequal.AssertDeepEqual(t, task, cachedTask)
 			testGetTasksForCommits(t, c, task)
 		}
 
 		allCachedTasks, err := c.GetTasksFromDateRange(timeStart, timeStart.Add(20*time.Minute))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, newTasks, allCachedTasks)
+		deepequal.AssertDeepEqual(t, newTasks, allCachedTasks)
 
 		// Only new task is known.
 		assert.True(t, c.KnownTaskName(newTasks[0].Repo, newTasks[0].Name))
@@ -535,7 +536,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 
 		unfinishedTasks, err := c.UnfinishedTasks()
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, newTasks, unfinishedTasks)
+		deepequal.AssertDeepEqual(t, newTasks, unfinishedTasks)
 	}
 }
 
@@ -555,11 +556,11 @@ func TestJobCache(t *testing.T) {
 	assert.NoError(t, err)
 	test, err := c.GetJob(j1.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, j1, test)
+	deepequal.AssertDeepEqual(t, j1, test)
 	jobs, err := c.GetJobsByRepoState(j1.Name, j1.RepoState)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
-	testutils.AssertDeepEqual(t, jobs[0], test)
+	deepequal.AssertDeepEqual(t, jobs[0], test)
 
 	// Create another job. Ensure that it gets picked up.
 	j2 := makeJob(startTime.Add(time.Nanosecond))
@@ -569,11 +570,11 @@ func TestJobCache(t *testing.T) {
 	assert.NoError(t, c.Update())
 	test, err = c.GetJob(j2.Id)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, j2, test)
+	deepequal.AssertDeepEqual(t, j2, test)
 	jobs, err = c.GetJobsByRepoState(j2.Name, j2.RepoState)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(jobs))
-	testutils.AssertDeepEqual(t, jobs[1], test)
+	deepequal.AssertDeepEqual(t, jobs[1], test)
 }
 
 func TestJobCacheTriggeredForCommit(t *testing.T) {
@@ -616,7 +617,7 @@ func testGetUnfinished(t *testing.T, expect []*Job, cache JobCache) {
 	assert.NoError(t, err)
 	sort.Sort(JobSlice(jobs))
 	sort.Sort(JobSlice(expect))
-	testutils.AssertDeepEqual(t, expect, jobs)
+	deepequal.AssertDeepEqual(t, expect, jobs)
 }
 
 func TestJobCacheReset(t *testing.T) {
@@ -700,7 +701,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 func assertJobInSlice(t *testing.T, job *Job, slice []*Job) {
 	for _, other := range slice {
 		if job.Id == other.Id {
-			testutils.AssertDeepEqual(t, job, other)
+			deepequal.AssertDeepEqual(t, job, other)
 			return
 		}
 	}
@@ -714,7 +715,7 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*Job) {
 	for _, job := range jobs {
 		cachedJob, err := c.GetJob(job.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, job, cachedJob)
+		deepequal.AssertDeepEqual(t, job, cachedJob)
 
 		if !job.Done() {
 			assertJobInSlice(t, job, unfinishedJobs)
@@ -731,7 +732,7 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*Job) {
 		found := false
 		for _, otherJob := range cachedJobs {
 			if job.Id == otherJob.Id {
-				testutils.AssertDeepEqual(t, job, otherJob)
+				deepequal.AssertDeepEqual(t, job, otherJob)
 				found = true
 			}
 		}

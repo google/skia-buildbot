@@ -3,6 +3,7 @@ package find_breaks
 import (
 	"testing"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 
 	assert "github.com/stretchr/testify/require"
@@ -38,7 +39,7 @@ func TestSliceEmpty(t *testing.T) {
 func TestSliceCopy(t *testing.T) {
 	testutils.SmallTest(t)
 	test := func(s slice) {
-		testutils.AssertDeepEqual(t, s, s.Copy())
+		deepequal.AssertDeepEqual(t, s, s.Copy())
 	}
 	test(newSlice(-1, -1))
 	test(newSlice(0, 0))
@@ -49,8 +50,8 @@ func TestSliceCopy(t *testing.T) {
 func TestSliceOverlap(t *testing.T) {
 	testutils.SmallTest(t)
 	test := func(a, b, expect slice) {
-		testutils.AssertDeepEqual(t, expect, a.Overlap(b))
-		testutils.AssertDeepEqual(t, expect, b.Overlap(a))
+		deepequal.AssertDeepEqual(t, expect, a.Overlap(b))
+		deepequal.AssertDeepEqual(t, expect, b.Overlap(a))
 	}
 	test(newSlice(-1, -1), newSlice(-1, -1), newSlice(-1, -1))
 	test(newSlice(-5, -7), newSlice(-4, -8), newSlice(-1, -1))
@@ -64,7 +65,7 @@ func TestMakeSlice(t *testing.T) {
 	testutils.SmallTest(t)
 	test := func(sub, super []string, start, end int) {
 		s := makeSlice(sub, super)
-		testutils.AssertDeepEqual(t, newSlice(start, end), s)
+		deepequal.AssertDeepEqual(t, newSlice(start, end), s)
 	}
 
 	// Actual subslices.

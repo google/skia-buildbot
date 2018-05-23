@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -38,19 +39,19 @@ func TestBusyBots(t *testing.T) {
 		"pool": {"Skia"},
 	})
 	bots := []*swarming_api.SwarmingRpcsBotInfo{b1}
-	testutils.AssertDeepEqual(t, bots, bb.Filter(bots))
+	deepequal.AssertDeepEqual(t, bots, bb.Filter(bots))
 
 	// Reserve the bot for a task.
 	t1 := task("t1", map[string]string{"pool": "Skia"})
 	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1})
-	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter(bots))
+	deepequal.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter(bots))
 
 	// Ensure that it's still busy.
-	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter(bots))
+	deepequal.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter(bots))
 
 	// It's no longer busy.
 	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{})
-	testutils.AssertDeepEqual(t, bots, bb.Filter(bots))
+	deepequal.AssertDeepEqual(t, bots, bb.Filter(bots))
 
 	// There are two bots and one task.
 	b2 := bot("b2", map[string][]string{
@@ -58,12 +59,12 @@ func TestBusyBots(t *testing.T) {
 	})
 	bots = append(bots, b2)
 	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1})
-	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b2}, bb.Filter(bots))
+	deepequal.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b2}, bb.Filter(bots))
 
 	// Two tasks and one bot.
 	t2 := task("t2", map[string]string{"pool": "Skia"})
 	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1, t2})
-	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b1}))
+	deepequal.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b1}))
 
 	// Differentiate between dimension sets.
 	// Since busyBots works in order, if we were arbitrarily picking any
@@ -73,9 +74,9 @@ func TestBusyBots(t *testing.T) {
 	b4 := bot("b4", androidBotDims)
 	t3 := task("t3", androidTaskDims)
 	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t3})
-	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b3}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b3, b4}))
+	deepequal.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b3}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b3, b4}))
 
 	// Test supersets of dimensions.
 	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1, t2, t3})
-	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b3}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3, b4}))
+	deepequal.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsBotInfo{b3}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3, b4}))
 }

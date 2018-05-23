@@ -7,6 +7,7 @@ import (
 	"path"
 	"testing"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
@@ -36,12 +37,12 @@ func TestAddRemove(t *testing.T) {
 	assert.NoError(t, b1.addRule(r1))
 	b2, err := FromFile(f)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, b1, b2)
+	deepequal.AssertDeepEqual(t, b1, b2)
 
 	assert.NoError(t, b1.RemoveRule(r1.Name))
 	b2, err = FromFile(f)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, b1, b2)
+	deepequal.AssertDeepEqual(t, b1, b2)
 }
 
 func TestRules(t *testing.T) {
