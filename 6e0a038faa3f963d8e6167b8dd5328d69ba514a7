@@ -46,6 +46,30 @@
       "revId": "6e0a038faa3f963d8e6167b8dd5328d69ba514a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f25bfc6d_898146a2",
+        "filename": "fuzzer/go/issues/issues_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-23T16:41:34Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "206ea43c_0af12662",
+      "range": {
+        "startLine": 19,
+        "startChar": 19,
+        "endLine": 19,
+        "endChar": 28
+      },
+      "revId": "6e0a038faa3f963d8e6167b8dd5328d69ba514a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
