@@ -51,6 +51,8 @@ spec:
               mountPath: /var/secrets/google
             - name: docserverk-storage
               mountPath: /mnt/docserverk
+            - name: skia-org-legacy-login-secrets
+              mountPath: /etc/skia.org/
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
@@ -70,3 +72,6 @@ spec:
             secretName: skia-docs
         - name: docserverk-storage
           emptyDir: {}
+        - name: skia-org-legacy-login-secrets
+          secret:
+            secretName: skia-org-legacy-login-secrets

@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/iap"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 )
@@ -225,11 +226,22 @@ func main() {
 		common.PrometheusOpt(promPort),
 	)
 
+	if !*local {
+		login.SimpleInitMust(*port, *local)
+	}
+
 	Init()
 
 	router := mux.NewRouter()
 	// Resources are served directly.
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+
+	if !*local {
+		router.HandleFunc("/logout/", login.LogoutHandler)
+		router.HandleFunc("/loginstatus/", login.StatusHandler)
+		router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	}
+
 	router.PathPrefix("/").HandlerFunc(autogzip.HandleFunc(mainHandler))
 
 	var h http.Handler = router
