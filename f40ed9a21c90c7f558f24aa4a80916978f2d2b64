@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "155b4dd8_cc018fa2",
+        "filename": "contestk/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-23T19:24:27Z",
+      "side": 1,
+      "message": "nit: We should be consistent across services whether \u0027make push\u0027 includes --apply or not. Other Makefiles do not include --apply (except notifier for some reason).",
+      "range": {
+        "startLine": 10,
+        "startChar": 7,
+        "endLine": 10,
+        "endChar": 14
+      },
+      "revId": "f40ed9a21c90c7f558f24aa4a80916978f2d2b64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e6b0565_a3655fb5",
+        "filename": "contestk/build_docker_release",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-23T19:24:27Z",
+      "side": 1,
+      "message": "nit: /bin/",
+      "range": {
+        "startLine": 11,
+        "startChar": 58,
+        "endLine": 11,
+        "endChar": 68
+      },
+      "revId": "f40ed9a21c90c7f558f24aa4a80916978f2d2b64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfb8b446_7ec57b48",
+        "filename": "contestk/create-skia-contest-sa.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-23T19:24:27Z",
+      "side": 1,
+      "message": "Wrong description.",
+      "range": {
+        "startLine": 16,
+        "startChar": 64,
+        "endLine": 16,
+        "endChar": 123
+      },
+      "revId": "f40ed9a21c90c7f558f24aa4a80916978f2d2b64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
