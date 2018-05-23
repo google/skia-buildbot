@@ -111,14 +111,6 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "color_deserialize", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
-	"color_icc": {
-		PrettyName:          "SkColorSpace - ICC",
-		Status:              STABLE_FUZZER,
-		Groomer:             "scroggo",
-		ExtraBugLabels:      []string{"Area-ImageDecoder"},
-		ArgsAfterExecutable: []string{"--type", "icc", "--bytes"},
-		GenerationArgs:      defaultGenerationArgs,
-	},
 	"image_filter_deserialize": {
 		PrettyName:          "FilterFuzz Stub",
 		Status:              EXPERIMENTAL_FUZZER,
