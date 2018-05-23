@@ -22,6 +22,30 @@
       "revId": "6e0a038faa3f963d8e6167b8dd5328d69ba514a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "206ea43c_0af12662",
+        "filename": "fuzzer/go/issues/issues_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2018-05-23T16:31:56Z",
+      "side": 0,
+      "message": "yeah, i\u0027m ok with that, I just don\u0027t know what is expected in expectedURL.  Can you make the change here?",
+      "parentUuid": "d1769b09_153f34c0",
+      "range": {
+        "startLine": 19,
+        "startChar": 19,
+        "endLine": 19,
+        "endChar": 28
+      },
+      "revId": "6e0a038faa3f963d8e6167b8dd5328d69ba514a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
