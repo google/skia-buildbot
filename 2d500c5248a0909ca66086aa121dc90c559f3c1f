@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56950cea_41e354bb",
+        "filename": "task_scheduler/startup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-23T13:20:22Z",
+      "side": 1,
+      "message": "This is incorrect, task scheduler runs as task-scheduler@skia-buildbots.google.com.iam.gserviceaccount.com, and the internal scheduler as task-scheduler-internal@skia-buildbots.google.com.iam.gserviceaccount.com",
+      "range": {
+        "startLine": 10,
+        "startChar": 47,
+        "endLine": 10,
+        "endChar": 70
+      },
+      "revId": "2d500c5248a0909ca66086aa121dc90c559f3c1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
