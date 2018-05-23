@@ -24,4 +24,12 @@ push: default
 	go install -v ../push/go/pushcli
 	pushcli docserver skia-docs
 
+.PHONY: secret
+secret:
+	kubectl create secret generic skia-org-legacy-login-secrets \
+  --from-file=./login.json \
+  --dry-run -o yaml | kubectl create -f -
+
+
+
 include ../webtools/webtools.mk
