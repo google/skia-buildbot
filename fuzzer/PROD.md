@@ -9,7 +9,7 @@ Nomenclature
 ------------
 
 A single **fuzzer** generates **bad fuzzes** which crash Skia.
-These are referred to by their **categories**, e.g. color_icc, skcodec_mode.
+These are referred to by their **categories**, e.g. skcodec_mode.
 [afl-fuzz](http://lcamtuf.coredump.cx/afl/) is the underlying mechanism that runs the fuzzers.
 **Fuzzer**, with a capital 'F', refers to the fuzzing system, the machine or machines running in GCE.
 
