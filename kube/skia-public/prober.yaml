@@ -21,6 +21,9 @@ spec:
     metadata:
       labels:
         app: proberk
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
     spec:
       automountServiceAccountToken: false
       securityContext:
