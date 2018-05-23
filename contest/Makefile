@@ -1,8 +1,0 @@
-build:
-	go install -v ./go/contest
-
-.PHONY: push
-push: build
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli contest skia-docs
