@@ -7,4 +7,4 @@ release:
 	./build_docker_release
 
 push:
-	pushk --apply notifier
+	pushk notifier

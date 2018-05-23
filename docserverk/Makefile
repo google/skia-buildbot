@@ -21,7 +21,7 @@ release: default
 	./build_docker_release
 
 .PHONY: push
-push: release
+push:
 	go install ../kube/go/pushk
 	pushk docserverk
 
