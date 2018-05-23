@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3238382e_7b928baf",
+        "filename": "docserverk/edit-legacy-login-secrets.sh",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-23T14:15:26Z",
+      "side": 1,
+      "message": "I think an attacker could snoop and see this information being passed through pipes.  But presumably if the attacker could do that, they could also just run \"kubectl get secret\", so probably not worth worrying about.",
+      "range": {
+        "startLine": 10,
+        "startChar": 83,
+        "endLine": 10,
+        "endChar": 86
+      },
+      "revId": "71acdb1d48980655949f4ad9ff03cb2bbe7d89c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73e2dff5_d56af1db",
+        "filename": "go/login/login.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-23T14:15:26Z",
+      "side": 1,
+      "message": "Nit: \"from a file in a known location, and then from GCE project level metadata.\"",
+      "range": {
+        "startLine": 565,
+        "startChar": 10,
+        "endLine": 565,
+        "endChar": 15
+      },
+      "revId": "71acdb1d48980655949f4ad9ff03cb2bbe7d89c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
