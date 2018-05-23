@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -50,7 +51,7 @@ func assertEvent(t *testing.T, ev *events.Event, j *db.Job) {
 	assert.Equal(t, STREAM, ev.Stream)
 	var job db.Job
 	assert.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&job))
-	testutils.AssertDeepEqual(t, j, &job)
+	deepequal.AssertDeepEqual(t, j, &job)
 	assert.True(t, j.Created.Equal(ev.Timestamp))
 }
 
