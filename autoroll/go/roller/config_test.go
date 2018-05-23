@@ -8,6 +8,7 @@ import (
 	"github.com/flynn/json5"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/testutils"
 )
@@ -138,7 +139,7 @@ func TestConfigSerialization(t *testing.T) {
 		bytes, err := json.Marshal(a)
 		assert.NoError(t, err)
 		assert.NoError(t, json5.Unmarshal(bytes, &b))
-		testutils.AssertDeepEqual(t, a, &b)
+		deepequal.AssertDeepEqual(t, a, &b)
 	}
 
 	test()

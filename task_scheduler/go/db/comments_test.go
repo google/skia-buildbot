@@ -7,13 +7,14 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
 func TestCopyTaskComment(t *testing.T) {
 	testutils.SmallTest(t)
 	v := makeTaskComment(1, 1, 1, 1, time.Now())
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 func TestCopyTaskSpecComment(t *testing.T) {
@@ -21,14 +22,14 @@ func TestCopyTaskSpecComment(t *testing.T) {
 	v := makeTaskSpecComment(1, 1, 1, time.Now())
 	v.Flaky = true
 	v.IgnoreFailure = true
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 func TestCopyCommitComment(t *testing.T) {
 	testutils.SmallTest(t)
 	v := makeCommitComment(1, 1, 1, time.Now())
 	v.IgnoreFailure = true
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 func TestCopyRepoComments(t *testing.T) {
@@ -47,7 +48,7 @@ func TestCopyRepoComments(t *testing.T) {
 			"c1": {makeCommitComment(1, 1, 1, time.Now())},
 		},
 	}
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 // TestCommentBox checks that CommentBox correctly implements CommentDB.
@@ -65,7 +66,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 	callCount := 0
 	testWriter := func(actual map[string]*RepoComments) error {
 		callCount++
-		testutils.AssertDeepEqual(t, expected, actual)
+		deepequal.AssertDeepEqual(t, expected, actual)
 		return nil
 	}
 
@@ -155,7 +156,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 			expected["r1"],
 			expected["r2"],
 		}
-		testutils.AssertDeepEqual(t, expectedSlice, actual)
+		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
 
 	assert.Equal(t, 0, callCount)
@@ -190,7 +191,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 			expected["r1"],
 			expected["r2"],
 		}
-		testutils.AssertDeepEqual(t, expectedSlice, actual)
+		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
 
 	// Reload DB from persistent again.
@@ -208,7 +209,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 			expected["r1"],
 			expected["r2"],
 		}
-		testutils.AssertDeepEqual(t, expectedSlice, actual)
+		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
 }
 
@@ -279,7 +280,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expected, actual)
+		deepequal.AssertDeepEqual(t, expected, actual)
 	}
 
 	callCount = 0
@@ -303,7 +304,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expected, actual)
+		deepequal.AssertDeepEqual(t, expected, actual)
 	}
 
 	assert.Error(t, db.DeleteTaskComment(tc1))
@@ -314,6 +315,6 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expected, actual)
+		deepequal.AssertDeepEqual(t, expected, actual)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -33,7 +34,7 @@ func TestJobCache(t *testing.T) {
 	assert.NoError(t, err)
 	jobs, err := c.GetActiveTryJobs()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*db.Job{j1}, jobs)
+	deepequal.AssertDeepEqual(t, []*db.Job{j1}, jobs)
 
 	// Create another job. Ensure that it gets picked up.
 	j2 := makeJob(now.Add(-5 * time.Minute))
@@ -41,7 +42,7 @@ func TestJobCache(t *testing.T) {
 	assert.NoError(t, c.Update())
 	jobs, err = c.GetActiveTryJobs()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*db.Job{j1, j2}, jobs)
+	deepequal.AssertDeepEqual(t, []*db.Job{j1, j2}, jobs)
 
 	// j1 is not active.
 	j1.BuildbucketLeaseKey = 0
@@ -49,12 +50,12 @@ func TestJobCache(t *testing.T) {
 	assert.NoError(t, c.Update())
 	jobs, err = c.GetActiveTryJobs()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*db.Job{j2}, jobs)
+	deepequal.AssertDeepEqual(t, []*db.Job{j2}, jobs)
 
 	// Expire j2.
 	assert.NoError(t, w.UpdateWithTime(now.Add(time.Hour)))
 	assert.NoError(t, c.Update())
 	jobs, err = c.GetActiveTryJobs()
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*db.Job{}, jobs)
+	deepequal.AssertDeepEqual(t, []*db.Job{}, jobs)
 }

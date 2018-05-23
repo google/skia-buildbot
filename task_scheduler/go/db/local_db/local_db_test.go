@@ -10,13 +10,14 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func TestMain(m *testing.M) {
-	db.AssertDeepEqual = testutils.AssertDeepEqual
+	db.AssertDeepEqual = deepequal.AssertDeepEqual
 	os.Exit(m.Run())
 }
 
@@ -334,7 +335,7 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 		// Verify added to DB.
 		taskCopy, err := d.GetTaskById(task.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, task, taskCopy)
+		deepequal.AssertDeepEqual(t, task, taskCopy)
 	}
 
 	// We can even change the Created time if we want. (Not necessarily supported
@@ -348,7 +349,7 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 		// Verify added to DB.
 		taskCopy, err := d.GetTaskById(task.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, task, taskCopy)
+		deepequal.AssertDeepEqual(t, task, taskCopy)
 	}
 
 	// But we can't change it to be out of range.
@@ -415,7 +416,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	// Attempt to insert; put task1Cached last so that the error comes last.
 	err = d.PutTasks([]*db.Task{task2, task3, task4, task1Cached})
 	assert.True(t, db.IsConcurrentUpdate(err))
-	testutils.AssertDeepEqual(t, expectedTasks, []*db.Task{task1Cached, task2, task3, task4})
+	deepequal.AssertDeepEqual(t, expectedTasks, []*db.Task{task1Cached, task2, task3, task4})
 
 	// Check that nothing was updated in the DB.
 	tasksInDb, err := d.GetTasksFromDateRange(begin, time.Now())
@@ -424,9 +425,9 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	for _, task := range tasksInDb {
 		switch task.Id {
 		case task1.Id:
-			testutils.AssertDeepEqual(t, task1InDb, task)
+			deepequal.AssertDeepEqual(t, task1InDb, task)
 		case task2.Id:
-			testutils.AssertDeepEqual(t, task2InDb, task)
+			deepequal.AssertDeepEqual(t, task2InDb, task)
 		default:
 			assert.Fail(t, "Unexpected task in DB: %v", task)
 		}
@@ -513,7 +514,7 @@ func TestPutJobValidateCreatedTime(t *testing.T) {
 		// Verify added to DB.
 		jobCopy, err := d.GetJobById(job.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, job, jobCopy)
+		deepequal.AssertDeepEqual(t, job, jobCopy)
 	}
 
 	// Test changing Created time.
@@ -527,7 +528,7 @@ func TestPutJobValidateCreatedTime(t *testing.T) {
 
 		jobAfter, err := d.GetJobById(job.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, jobBefore, jobAfter)
+		deepequal.AssertDeepEqual(t, jobBefore, jobAfter)
 	}
 }
 
@@ -575,7 +576,7 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 	// Attempt to insert; put job1Cached last so that the error comes last.
 	err = d.PutJobs([]*db.Job{job2, job3, job1Cached})
 	assert.True(t, db.IsConcurrentUpdate(err))
-	testutils.AssertDeepEqual(t, expectedJobs, []*db.Job{job1Cached, job2, job3})
+	deepequal.AssertDeepEqual(t, expectedJobs, []*db.Job{job1Cached, job2, job3})
 
 	// Check that nothing was updated in the DB.
 	jobsInDb, err := d.GetJobsFromDateRange(begin, time.Now())
@@ -584,9 +585,9 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 	for _, job := range jobsInDb {
 		switch job.Id {
 		case job1.Id:
-			testutils.AssertDeepEqual(t, job1InDb, job)
+			deepequal.AssertDeepEqual(t, job1InDb, job)
 		case job2.Id:
-			testutils.AssertDeepEqual(t, job2InDb, job)
+			deepequal.AssertDeepEqual(t, job2InDb, job)
 		default:
 			assert.Fail(t, "Unexpected job in DB: %v", job)
 		}

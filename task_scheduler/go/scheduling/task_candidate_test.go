@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -36,7 +37,7 @@ func TestCopyTaskCandidate(t *testing.T) {
 			Isolate: "confine",
 		},
 	}
-	testutils.AssertCopy(t, v, v.Copy())
+	deepequal.AssertCopy(t, v, v.Copy())
 }
 
 func TestTaskCandidateId(t *testing.T) {
