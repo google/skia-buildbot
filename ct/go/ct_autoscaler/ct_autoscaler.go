@@ -2,14 +2,18 @@ package ct_autoscaler
 
 import (
 	"fmt"
+	"path"
 	"sync"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/autoscaler"
 	"go.skia.org/infra/go/gce/ct/instance_types"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 
+	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 )
 
@@ -32,6 +36,7 @@ type ICTAutoscaler interface {
 //   GCE tasks.
 type CTAutoscaler struct {
 	a              autoscaler.IAutoscaler
+	s              swarming.ApiClient
 	activeGCETasks int
 	mtx            sync.Mutex
 	upGauge        metrics2.Int64Metric
@@ -42,6 +47,18 @@ func NewCTAutoscaler() (*CTAutoscaler, error) {
 	a, err := autoscaler.NewAutoscaler(gce.ZONE_CT, util.StorageDir, MIN_CT_INSTANCE_NUM, MAX_CT_INSTANCE_NUM, instance_types.CTInstance)
 	if err != nil {
 		return nil, fmt.Errorf("Could not instantiate Autoscaler: %s", err)
+	}
+
+	// Authenticated HTTP client.
+	oauthCacheFile := path.Join(".", "google_storage_token.data")
+	httpClient, err := auth.NewClient(*master_common.Local, oauthCacheFile, swarming.AUTH_SCOPE)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create an authenticated HTTP client: %s", err)
+	}
+	// Instantiate the swarming client.
+	s, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
+	if err != nil {
+		return nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
 
 	// The following metric will be set to 1 when prometheus should alert on
@@ -55,7 +72,7 @@ func NewCTAutoscaler() (*CTAutoscaler, error) {
 		return nil, err
 	}
 
-	return &CTAutoscaler{a: a, upGauge: upGauge}, nil
+	return &CTAutoscaler{a: a, s: s, upGauge: upGauge}, nil
 }
 
 func (c *CTAutoscaler) RegisterGCETask(taskId string) error {
@@ -104,6 +121,10 @@ func (c *CTAutoscaler) UnregisterGCETask(taskId string) error {
 			return err
 		}
 		if err := c.logRunningGCEInstances(); err != nil {
+			return err
+		}
+		// Delete all CT GCE instances from swarming.
+		if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
 			return err
 		}
 	}
