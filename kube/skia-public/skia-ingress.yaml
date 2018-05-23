@@ -29,6 +29,12 @@ spec:
         - backend:
             serviceName: docserver
             servicePort: 8000
+    - host: contest.skia.org
+      http:
+        paths:
+        - backend:
+            serviceName: contest
+            servicePort: 8000
     - host: alerts2.skia.org
       http:
         paths:
