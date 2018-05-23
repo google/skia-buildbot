@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d8623178_3cce0e16",
+        "filename": "jsdoc/Dockerfile",
+        "patchSetId": 7
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-23T23:32:53Z",
+      "side": 1,
+      "message": "Would this allow getting rid of \"rm -rf /var/cache/apk/*\" in kube/basealpine/Dockerfile and docserverk/Dockerfile?",
+      "range": {
+        "startLine": 6,
+        "startChar": 12,
+        "endLine": 6,
+        "endChar": 22
+      },
+      "revId": "83e51bae73b651feb492dbf0bba75a0c93480a2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5713e724_56ad7261",
+        "filename": "jsdoc/build_docker_release",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-23T23:32:53Z",
+      "side": 1,
+      "message": "nit: /bin/\n\n(Or remove /bin/ in these files:\n\u003e git grep \u0027${ROOT}/bin/\u0027                                                                                                                                    [benjaminwagner@benjaminwagner1]\ndebugger-assets/build_docker_release:${INSTALL} --mode\u003d755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/bin/${APPNAME}\ndocserverk/build_docker_release:${INSTALL} --mode\u003d755 -T ${GOPATH}/bin/docserverk  ${ROOT}/bin/docserverk\nnotifier/build_docker_release:${INSTALL} --mode\u003d755 -T ${GOPATH}/bin/notifier ${ROOT}/bin/notifier\nproberk/build_docker_release:${INSTALL} --mode\u003d755 -T ${GOPATH}/bin/${APPNAME}   ${ROOT}/bin/${APPNAME}\n)",
+      "range": {
+        "startLine": 11,
+        "startChar": 58,
+        "endLine": 11,
+        "endChar": 68
+      },
+      "revId": "83e51bae73b651feb492dbf0bba75a0c93480a2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d28e45d7_6d95c142",
+        "filename": "promk/prometheus/alert_rules.yml",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-23T23:32:53Z",
+      "side": 1,
+      "message": "This doesn\u0027t look correct based on https://prom2.skia.org/graph?g0.range_input\u003d1h\u0026g0.expr\u003dliveness_build_s\u0026g0.tab\u003d1\n\n$labels.instance below is probably also not what you want.",
+      "range": {
+        "startLine": 85,
+        "startChar": 27,
+        "endLine": 85,
+        "endChar": 54
+      },
+      "revId": "83e51bae73b651feb492dbf0bba75a0c93480a2f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
