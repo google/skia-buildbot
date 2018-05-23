@@ -16,6 +16,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/deepequal"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -290,7 +291,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	test := func(jobs []*db.Job, expect map[db.TaskKey]*taskCandidate) {
 		actual, err := s.findTaskCandidatesForJobs(ctx, jobs)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, actual, expect)
+		deepequal.AssertDeepEqual(t, actual, expect)
 	}
 
 	rs1 := getRS1(t, ctx, gb)
@@ -1057,7 +1058,7 @@ func TestComputeBlamelist(t *testing.T) {
 		}
 		sort.Strings(commits)
 		sort.Strings(tc.Expected)
-		testutils.AssertDeepEqual(t, tc.Expected, commits)
+		deepequal.AssertDeepEqual(t, tc.Expected, commits)
 		if tc.StoleFromIdx >= 0 {
 			assert.NotNil(t, stoleFrom)
 			assert.Equal(t, ids[tc.StoleFromIdx], stoleFrom.Id)
@@ -1478,7 +1479,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	// Single match.
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
 
 	// No match.
 	t1.TaskSpec.Dimensions[0] = "k:v2"
@@ -1489,21 +1490,21 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 := makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
 
 	// Switch the task order.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
 
 	// Make both tasks match the bot, ensure that we pick the first one.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
 
 	// Multiple dimensions. Ensure that different permutations of the bots
 	// and tasks lists give us the expected results.
@@ -1518,21 +1519,21 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// because there is no bot available which can run it.
 	// TODO(borenet): Use a more optimal solution to avoid this case.
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
 	// In these two cases, the task with more dimensions has the higher
 	// priority. Both tasks get scheduled.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t2, t1})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t2, t1})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
 
 	// Matching dimensions. More bots than tasks.
 	b2 = makeSwarmingBot("bot2", dims)
@@ -1541,14 +1542,14 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t2 = makeTaskCandidate("task2", dims)
 	t3 := makeTaskCandidate("task3", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
 
 	// More tasks than bots.
 	t1 = makeTaskCandidate("task1", dims)
 	t2 = makeTaskCandidate("task2", dims)
 	t3 = makeTaskCandidate("task3", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
-	testutils.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
+	deepequal.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
 }
 
 func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInfo {
@@ -1581,7 +1582,7 @@ func TestSchedulingE2E(t *testing.T) {
 		c1: {},
 		c2: {},
 	}
-	testutils.AssertDeepEqual(t, expect, tasks)
+	deepequal.AssertDeepEqual(t, expect, tasks)
 	assert.Equal(t, 2, len(s.queue)) // Two compile tasks.
 
 	// A bot is free but doesn't have all of the right dimensions to run a task.
@@ -1594,7 +1595,7 @@ func TestSchedulingE2E(t *testing.T) {
 		c1: {},
 		c2: {},
 	}
-	testutils.AssertDeepEqual(t, expect, tasks)
+	deepequal.AssertDeepEqual(t, expect, tasks)
 	assert.Equal(t, 2, len(s.queue)) // Still two compile tasks.
 
 	// One bot free, schedule a task, ensure it's not in the queue.
@@ -1632,7 +1633,7 @@ func TestSchedulingE2E(t *testing.T) {
 	for _, c := range t1.Commits {
 		expect[c][t1.Name] = t1
 	}
-	testutils.AssertDeepEqual(t, expect, tasks)
+	deepequal.AssertDeepEqual(t, expect, tasks)
 	expectLen := 3 // One remaining build task, plus one test task and one perf task.
 	assert.Equal(t, expectLen, len(s.queue))
 
@@ -1815,7 +1816,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	expect := commits[:len(commits)-2]
 	sort.Strings(expect)
 	sort.Strings(task.Commits)
-	testutils.AssertDeepEqual(t, expect, task.Commits)
+	deepequal.AssertDeepEqual(t, expect, task.Commits)
 
 	task.Status = db.TASK_STATUS_SUCCESS
 	task.Finished = time.Now()
@@ -1859,7 +1860,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		new := util.NewStringSet(newTask.Commits)
 		updatedOld := util.NewStringSet(updatedOldTask.Commits)
 
-		testutils.AssertDeepEqual(t, old, new.Union(updatedOld))
+		deepequal.AssertDeepEqual(t, old, new.Union(updatedOld))
 		assert.Equal(t, 0, len(new.Intersect(updatedOld)))
 		// Finish the new task.
 		newTask.Status = db.TASK_STATUS_SUCCESS
@@ -2062,9 +2063,9 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	sort.Strings(t1.Commits)
 	sort.Strings(t2.Commits)
 	sort.Strings(t3.Commits)
-	testutils.AssertDeepEqual(t, expect1, t1.Commits)
-	testutils.AssertDeepEqual(t, expect2, t2.Commits)
-	testutils.AssertDeepEqual(t, expect3, t3.Commits)
+	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
+	deepequal.AssertDeepEqual(t, expect2, t2.Commits)
+	deepequal.AssertDeepEqual(t, expect3, t3.Commits)
 
 	// Just for good measure, check the task at the head of the queue.
 	expectIdx := 2
@@ -2447,7 +2448,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
 	}
 
 	// Mark the task successful.
@@ -2460,7 +2461,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
 	}
 
 	// Cycle. Ensure that we schedule a retry of t1.
@@ -2482,7 +2483,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
 	}
 
 	// The retry succeeded.
@@ -2502,7 +2503,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
 	}
 
 	// Schedule the remaining tasks.
@@ -2530,7 +2531,7 @@ func TestGetTasksForJob(t *testing.T) {
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, expect[j.Id], tasksByName)
+		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
 	}
 }
 
@@ -2707,7 +2708,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 	// Assert that the third task doesn't show up in the time range query.
 	got, err := swarmingClient.ListTasks(now.Add(-4*time.Hour), now, []string{"pool:Skia"}, "")
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2}, got)
+	deepequal.AssertDeepEqual(t, []*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2}, got)
 
 	// Ensure that we update the tasks as expected.
 	assert.NoError(t, s.updateUnfinishedTasks())
@@ -2716,7 +2717,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 		assert.NoError(t, err)
 		// Ignore DbModified when comparing.
 		task.DbModified = got.DbModified
-		testutils.AssertDeepEqual(t, task, got)
+		deepequal.AssertDeepEqual(t, task, got)
 	}
 }
 
@@ -2761,7 +2762,7 @@ func assertModifiedTasks(t *testing.T, d db.TaskReader, id string, expected []*d
 	for i, expectedTask := range expected {
 		actualTask, ok := tasksById[expectedTask.Id]
 		assert.True(t, ok, "Missing task; idx %d; id %s", i, expectedTask.Id)
-		testutils.AssertDeepEqual(t, expectedTask, actualTask)
+		deepequal.AssertDeepEqual(t, expectedTask, actualTask)
 	}
 }
 
@@ -3058,7 +3059,7 @@ func TestAddTasksFailure(t *testing.T) {
 		// "duty" tasks should never be updated.
 		for _, task := range modTasks {
 			assert.Equal(t, "toil", task.Name)
-			testutils.AssertDeepEqual(t, toil2, task)
+			deepequal.AssertDeepEqual(t, toil2, task)
 			assertBlamelist(t, hashes, toil2, []int{3, 4, 5})
 		}
 	}
@@ -3155,12 +3156,12 @@ func TestAddTasksRetries(t *testing.T) {
 		t3Arg := tasks[t3.Repo][t3.Name][0]
 		t3InDB, err := d.GetTaskById(t3Arg.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, t3Arg, t3InDB)
+		deepequal.AssertDeepEqual(t, t3Arg, t3InDB)
 		assertBlamelist(t, hashes, t3InDB, []int{3, 4, 5})
 		t4Arg := tasks[t4.Repo][t4.Name][1]
 		t4InDB, err := d.GetTaskById(t4Arg.Id)
 		assert.NoError(t, err)
-		testutils.AssertDeepEqual(t, t4Arg, t4InDB)
+		deepequal.AssertDeepEqual(t, t4Arg, t4InDB)
 		assertBlamelist(t, hashes, t4InDB, []int{2})
 		t2.Commits = t2InDB.Commits
 		t2.DbModified = t2InDB.DbModified
@@ -3251,7 +3252,7 @@ func TestAddTask(t *testing.T) {
 	expected1.Id = task1.Id
 	expected1.DbModified = task1.DbModified
 	expected1.Commits = []string{c2, c1}
-	testutils.AssertDeepEqual(t, expected1, task1)
+	deepequal.AssertDeepEqual(t, expected1, task1)
 
 	// Add commits on master.
 	makeDummyCommits(ctx, gb, 2)
@@ -3281,7 +3282,7 @@ func TestAddTask(t *testing.T) {
 	expected2.Commits = []string{commits[0], commits[1]}
 	sort.Strings(task2.Commits)
 	sort.Strings(expected2.Commits)
-	testutils.AssertDeepEqual(t, expected2, task2)
+	deepequal.AssertDeepEqual(t, expected2, task2)
 
 	// Backfill.
 	task3 := makeTask("Fake-Name", gb.RepoUrl(), commits[1])
@@ -3300,7 +3301,7 @@ func TestAddTask(t *testing.T) {
 	expected3.Id = task3.Id
 	expected3.DbModified = task3.DbModified
 	expected3.Commits = []string{commits[1]}
-	testutils.AssertDeepEqual(t, expected3, task3)
+	deepequal.AssertDeepEqual(t, expected3, task3)
 
 	// Check DB.
 	tasks, err := d.GetModifiedTasks(track)
@@ -3316,12 +3317,12 @@ func TestAddTask(t *testing.T) {
 			actual3 = task
 		}
 	}
-	testutils.AssertDeepEqual(t, expected1, actual1)
+	deepequal.AssertDeepEqual(t, expected1, actual1)
 	assert.True(t, actual2.DbModified.After(task2.DbModified))
 	expected2.DbModified = actual2.DbModified
 	expected2.Commits = []string{commits[0]}
-	testutils.AssertDeepEqual(t, expected2, actual2)
-	testutils.AssertDeepEqual(t, expected3, actual3)
+	deepequal.AssertDeepEqual(t, expected2, actual2)
+	deepequal.AssertDeepEqual(t, expected3, actual3)
 }
 
 func TestValidateTaskForUpdate(t *testing.T) {
@@ -3434,13 +3435,13 @@ func TestUpdateTask(t *testing.T) {
 
 	assert.True(t, expected.DbModified.Before(task.DbModified))
 	expected.DbModified = task.DbModified
-	testutils.AssertDeepEqual(t, expected, task)
+	deepequal.AssertDeepEqual(t, expected, task)
 
 	// Check DB.
 	tasks, err := d.GetModifiedTasks(track)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
-	testutils.AssertDeepEqual(t, expected, tasks[0])
+	deepequal.AssertDeepEqual(t, expected, tasks[0])
 }
 
 func TestTriggerTaskFailed(t *testing.T) {
@@ -3512,8 +3513,8 @@ func TestTriggerTaskFailed(t *testing.T) {
 	sort.Strings(expect3)
 	sort.Strings(t1.Commits)
 	sort.Strings(t3.Commits)
-	testutils.AssertDeepEqual(t, expect1, t1.Commits)
-	testutils.AssertDeepEqual(t, expect3, t3.Commits)
+	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
+	deepequal.AssertDeepEqual(t, expect3, t3.Commits)
 }
 
 func TestIsolateTaskFailed(t *testing.T) {
@@ -3577,5 +3578,5 @@ func TestIsolateTaskFailed(t *testing.T) {
 	expect1 := util.CopyStringSlice(commits)
 	sort.Strings(expect1)
 	sort.Strings(t1.Commits)
-	testutils.AssertDeepEqual(t, expect1, t1.Commits)
+	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
 }

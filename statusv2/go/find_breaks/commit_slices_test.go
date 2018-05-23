@@ -8,6 +8,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -71,7 +72,7 @@ func TestCommitSlices1(t *testing.T) {
 	slices := commitSlices(repo, time.Time{}, now)
 	assert.Equal(t, 1, len(slices))
 	assert.Equal(t, 5, len(slices[0]))
-	testutils.AssertDeepEqual(t, []string{a, b, c, d, e}, slices[0])
+	deepequal.AssertDeepEqual(t, []string{a, b, c, d, e}, slices[0])
 
 	// Make sure the timestamp cutoffs work.
 	end := now.Add(-22 * time.Minute)
@@ -79,13 +80,13 @@ func TestCommitSlices1(t *testing.T) {
 	slices = commitSlices(repo, start, end)
 	assert.Equal(t, 1, len(slices))
 	assert.Equal(t, 4, len(slices[0]))
-	testutils.AssertDeepEqual(t, []string{a, b, c, d}, slices[0])
+	deepequal.AssertDeepEqual(t, []string{a, b, c, d}, slices[0])
 
 	// Test the edges of the timestamp cutoffs.
 	slices = commitSlices(repo, start.Add(2*time.Second), end.Add(-2*time.Second))
 	assert.Equal(t, 1, len(slices))
 	assert.Equal(t, 3, len(slices[0]))
-	testutils.AssertDeepEqual(t, []string{b, c, d}, slices[0])
+	deepequal.AssertDeepEqual(t, []string{b, c, d}, slices[0])
 
 	// We shouldn't return empty slices.
 	slices = commitSlices(repo, now.Add(30*time.Minute), now.Add(60*time.Minute))
@@ -124,8 +125,8 @@ func TestCommitSlices2(t *testing.T) {
 	assert.Equal(t, 2, len(slices))
 	assert.Equal(t, 3, len(slices[0]))
 	assert.Equal(t, 3, len(slices[1]))
-	testutils.AssertDeepEqual(t, []string{a, b, d}, slices[0])
-	testutils.AssertDeepEqual(t, []string{a, b, c}, slices[1])
+	deepequal.AssertDeepEqual(t, []string{a, b, d}, slices[0])
+	deepequal.AssertDeepEqual(t, []string{a, b, c}, slices[1])
 }
 
 // TestCommitSlices3 uses a git repo with two merging branches:
@@ -163,8 +164,8 @@ func TestCommitSlices3(t *testing.T) {
 	assert.Equal(t, 2, len(slices))
 	assert.Equal(t, 3, len(slices[0]))
 	assert.Equal(t, 3, len(slices[1]))
-	testutils.AssertDeepEqual(t, []string{a, c, d}, slices[0])
-	testutils.AssertDeepEqual(t, []string{b, c, d}, slices[1])
+	deepequal.AssertDeepEqual(t, []string{a, c, d}, slices[0])
+	deepequal.AssertDeepEqual(t, []string{b, c, d}, slices[1])
 }
 
 // TestCommitSlices4 uses a git repo with a branch which diverges and then
@@ -214,6 +215,6 @@ func TestCommitSlices4(t *testing.T) {
 	assert.Equal(t, 2, len(slices))
 	assert.Equal(t, 5, len(slices[0]))
 	assert.Equal(t, 5, len(slices[1]))
-	testutils.AssertDeepEqual(t, []string{a, b, c, e, f}, slices[0])
-	testutils.AssertDeepEqual(t, []string{a, b, d, e, f}, slices[1])
+	deepequal.AssertDeepEqual(t, []string{a, b, c, e, f}, slices[0])
+	deepequal.AssertDeepEqual(t, []string{a, b, d, e, f}, slices[1])
 }

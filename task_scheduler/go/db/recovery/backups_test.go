@@ -28,6 +28,7 @@ import (
 
 	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/exec"
 	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -998,7 +999,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 		var j1Copy *db.Job
 		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j1Copy))
 		assert.NoError(t, gzR.Close())
-		testutils.AssertDeepEqual(t, j1, j1Copy)
+		deepequal.AssertDeepEqual(t, j1, j1Copy)
 	}
 
 	newTs, err := b.db.GetIncrementalBackupTime()
@@ -1023,7 +1024,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 		var j1Copy *db.Job
 		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j1Copy))
 		assert.NoError(t, gzR.Close())
-		testutils.AssertDeepEqual(t, j1, j1Copy)
+		deepequal.AssertDeepEqual(t, j1, j1Copy)
 	}
 
 	{
@@ -1032,7 +1033,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 		var j2Copy *db.Job
 		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j2Copy))
 		assert.NoError(t, gzR.Close())
-		testutils.AssertDeepEqual(t, j2, j2Copy)
+		deepequal.AssertDeepEqual(t, j2, j2Copy)
 	}
 
 	assert.Equal(t, beforeCount+3, b.jobBackupCount.Get())
@@ -1247,7 +1248,7 @@ func TestDownloadGOB(t *testing.T) {
 	name := formatJobObjectName(job.DbModified, job.Id)
 	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &jobCopy)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, job, &jobCopy)
+	deepequal.AssertDeepEqual(t, job, &jobCopy)
 }
 
 // downloadGOB should return a sensible error if the object doesn't exist.
@@ -1267,7 +1268,7 @@ func TestDownloadGOBNotFound(t *testing.T) {
 	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
 	assert.Error(t, err)
 	assert.Regexp(t, "object doesn't exist", err.Error())
-	testutils.AssertDeepEqual(t, db.Job{}, dummy)
+	deepequal.AssertDeepEqual(t, db.Job{}, dummy)
 }
 
 // downloadGOB should return an error if the data is not GOB-encoded.
@@ -1286,7 +1287,7 @@ func TestDownloadGOBNotGOB(t *testing.T) {
 	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
 	assert.Error(t, err)
 	assert.Regexp(t, "Error decoding GOB data", err.Error())
-	testutils.AssertDeepEqual(t, db.Job{}, dummy)
+	deepequal.AssertDeepEqual(t, db.Job{}, dummy)
 }
 
 // addGetJobGOBsHandlers causes r to respond to list and get requests for the

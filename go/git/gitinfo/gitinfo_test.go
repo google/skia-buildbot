@@ -9,6 +9,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -200,7 +201,7 @@ func TestLastNIndex(t *testing.T) {
 	for _, tc := range testCases {
 		actual := r.LastNIndex(tc.n)
 		assert.Equal(t, len(tc.expected), len(actual))
-		testutils.AssertDeepEqual(t, tc.expected, actual)
+		deepequal.AssertDeepEqual(t, tc.expected, actual)
 	}
 }
 
@@ -295,7 +296,7 @@ func TestRange(t *testing.T) {
 	for idx, tc := range testCases {
 		actual := r.Range(tc.begin, tc.end)
 		assert.Equal(t, len(tc.expected), len(actual), fmt.Sprintf("%d %#v", idx, tc))
-		testutils.AssertDeepEqual(t, tc.expected, actual)
+		deepequal.AssertDeepEqual(t, tc.expected, actual)
 	}
 }
 
@@ -319,8 +320,7 @@ Author: Joe Gregorio <jcgregorio@google.com>
 Date:   Wed Jul 30 08:00:42 2014 -0400
 
     First "checkin"
-    
-    With quotes.
+    ` + "\n" + `    With quotes.
 
 README.txt
 `

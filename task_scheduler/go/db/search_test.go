@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -50,7 +51,7 @@ func TestJobSearch(t *testing.T) {
 		jobs, err := matchJobs([]*Job{j}, p)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(jobs))
-		testutils.AssertDeepEqual(t, j, jobs[0])
+		deepequal.AssertDeepEqual(t, j, jobs[0])
 	}
 	checkNoMatch := func(p *JobSearchParams) {
 		jobs, err := matchJobs([]*Job{j}, p)
@@ -180,11 +181,11 @@ func TestJobSearchParamsJson(t *testing.T) {
 	testIsForce := new(bool)
 	*testIsForce = true
 	p := &JobSearchParams{}
-	testutils.AssertDeepEqual(t, p, decode(`{}`))
+	deepequal.AssertDeepEqual(t, p, decode(`{}`))
 
 	p.IsForce = testIsForce
-	testutils.AssertDeepEqual(t, p, decode(`{"is_force": true}`))
+	deepequal.AssertDeepEqual(t, p, decode(`{"is_force": true}`))
 
 	*p.IsForce = false
-	testutils.AssertDeepEqual(t, p, decode(`{"is_force": false}`))
+	deepequal.AssertDeepEqual(t, p, decode(`{"is_force": false}`))
 }

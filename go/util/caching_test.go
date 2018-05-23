@@ -3,6 +3,7 @@ package util
 import (
 	"testing"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 
 	assert "github.com/stretchr/testify/require"
@@ -36,7 +37,7 @@ func TestJSONCodec(t *testing.T) {
 	assert.NoError(t, err)
 	found, err := mapCodec.Decode(jsonBytes)
 	assert.NoError(t, err)
-	testutils.AssertDeepEqual(t, testMap, found)
+	deepequal.AssertDeepEqual(t, testMap, found)
 }
 
 func TestMemLRUCache(t *testing.T) {
