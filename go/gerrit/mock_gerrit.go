@@ -86,5 +86,9 @@ func (g *MockedGerrit) IsBinaryPatch(issue int64, patch string) (bool, error) {
 	return false, nil
 }
 
+func (g *MockedGerrit) CreateChange(string, string, string) (*ChangeInfo, error) {
+	return nil, nil
+}
+
 // Make sure MockGerrit fulfills GerritInterface
 var _ GerritInterface = (*MockedGerrit)(nil)

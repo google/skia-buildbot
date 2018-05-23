@@ -75,6 +75,7 @@ const (
 
 // ChangeInfo contains information about a Gerrit issue.
 type ChangeInfo struct {
+	Id              string                 `json:"id"`
 	Created         time.Time              `json:"-"`
 	CreatedString   string                 `json:"created"`
 	Updated         time.Time              `json:"-"`
@@ -411,7 +412,7 @@ func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]
 		"labels":  labels,
 	}
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
-	return g.post(fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
+	return g.postJson(fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
 }
 
 // AddComment adds a message to the issue.
@@ -452,7 +453,7 @@ func (g *Gerrit) Abandon(issue *ChangeInfo, message string) error {
 	postData := map[string]interface{}{
 		"message": message,
 	}
-	return g.post(fmt.Sprintf("/a/changes/%s/abandon", issue.ChangeId), postData)
+	return g.postJson(fmt.Sprintf("/a/changes/%s/abandon", issue.ChangeId), postData)
 }
 
 func (g *Gerrit) addAuthenticationCookie(req *http.Request) error {
@@ -530,11 +531,7 @@ func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
 	return nil
 }
 
-func (g *Gerrit) post(suburl string, postData interface{}) error {
-	b, err := json.Marshal(postData)
-	if err != nil {
-		return err
-	}
+func (g *Gerrit) post(suburl string, b []byte) error {
 	req, err := http.NewRequest("POST", g.url+suburl, bytes.NewBuffer(b))
 	if err != nil {
 		return err
@@ -548,8 +545,68 @@ func (g *Gerrit) post(suburl string, postData interface{}) error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != 200 {
+	if resp.StatusCode < 200 || resp.StatusCode > 204 {
 		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
+	}
+	return nil
+}
+
+func (g *Gerrit) postJson(suburl string, postData interface{}) error {
+	b, err := json.Marshal(postData)
+	if err != nil {
+		return err
+	}
+	return g.post(suburl, b)
+}
+
+func (g *Gerrit) put(suburl string, b []byte) error {
+	req, err := http.NewRequest("PUT", g.url+suburl, bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+
+	if err := g.addAuthenticationCookie(req); err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := g.client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 204 {
+		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
+	}
+	return nil
+}
+
+func (g *Gerrit) putJson(suburl string, data interface{}) error {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return g.put(suburl, b)
+}
+
+func (g *Gerrit) delete(suburl string) error {
+	req, err := http.NewRequest("DELETE", g.url+suburl, nil)
+	if err != nil {
+		return err
+	}
+
+	if err := g.addAuthenticationCookie(req); err != nil {
+		return err
+	}
+	resp, err := g.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer util.Close(resp.Body)
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 204 {
+		return fmt.Errorf("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
 	}
 	return nil
 }
@@ -846,4 +903,49 @@ func ContainsAny(id int64, changes []*ChangeInfo) bool {
 		}
 	}
 	return false
+}
+
+func (g *Gerrit) CreateChange(project, branch, subject string) (*ChangeInfo, error) {
+	c := struct {
+		Project string `json:"project"`
+		Subject string `json:"subject"`
+		Branch  string `json:"branch"`
+		Topic   string `json:"topic"`
+		Status  string `json:"status"`
+	}{
+		Project: project,
+		Branch:  branch,
+		Subject: subject,
+		Status:  "NEW",
+	}
+	b, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", g.url+"/a/changes/", bytes.NewBuffer(b))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := g.addAuthenticationCookie(req); err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := g.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(resp.Body)
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 201 {
+		return nil, fmt.Errorf("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
+	}
+	var ci ChangeInfo
+	if err := json.NewDecoder(bytes.NewReader(respBytes[4:])).Decode(&ci); err != nil {
+		return nil, err
+	}
+	return &ci, nil
 }
