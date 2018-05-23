@@ -11,6 +11,8 @@ alerting:
         - alertmanager:9090
 
 scrape_configs:
+  # Scrape configs for pods that run multiple containers. If a pod doesn't
+  # run multiple containers then just use annotations to get it scraped.
   - job_name: 'alertmanager'
     static_configs:
       - targets: ['alertmanager:9090']
@@ -22,9 +24,6 @@ scrape_configs:
       - targets: ['prometheus:10000']
       - targets: ['alertmanager:10000']
       - targets: ['grafana:10000']
-  - job_name: 'proberk'
-    static_configs:
-      - targets: ['proberk:20000']
   - job_name: 'prometheus'
     static_configs:
       - targets: ['prometheus:9090']
