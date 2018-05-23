@@ -411,9 +411,8 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// DiffServiceClient is the client API for DiffService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// Client API for DiffService service
+
 type DiffServiceClient interface {
 	// Same functionality as Get in the diff.DiffStore interface.
 	GetDiffs(ctx context.Context, in *GetDiffsRequest, opts ...grpc.CallOption) (*GetDiffsResponse, error)
@@ -439,7 +438,7 @@ func NewDiffServiceClient(cc *grpc.ClientConn) DiffServiceClient {
 
 func (c *diffServiceClient) GetDiffs(ctx context.Context, in *GetDiffsRequest, opts ...grpc.CallOption) (*GetDiffsResponse, error) {
 	out := new(GetDiffsResponse)
-	err := c.cc.Invoke(ctx, "/diffstore.DiffService/GetDiffs", in, out, opts...)
+	err := grpc.Invoke(ctx, "/diffstore.DiffService/GetDiffs", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -448,7 +447,7 @@ func (c *diffServiceClient) GetDiffs(ctx context.Context, in *GetDiffsRequest, o
 
 func (c *diffServiceClient) WarmDigests(ctx context.Context, in *WarmDigestsRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/diffstore.DiffService/WarmDigests", in, out, opts...)
+	err := grpc.Invoke(ctx, "/diffstore.DiffService/WarmDigests", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -457,7 +456,7 @@ func (c *diffServiceClient) WarmDigests(ctx context.Context, in *WarmDigestsRequ
 
 func (c *diffServiceClient) WarmDiffs(ctx context.Context, in *WarmDiffsRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/diffstore.DiffService/WarmDiffs", in, out, opts...)
+	err := grpc.Invoke(ctx, "/diffstore.DiffService/WarmDiffs", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -466,7 +465,7 @@ func (c *diffServiceClient) WarmDiffs(ctx context.Context, in *WarmDiffsRequest,
 
 func (c *diffServiceClient) UnavailableDigests(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UnavailableDigestsResponse, error) {
 	out := new(UnavailableDigestsResponse)
-	err := c.cc.Invoke(ctx, "/diffstore.DiffService/UnavailableDigests", in, out, opts...)
+	err := grpc.Invoke(ctx, "/diffstore.DiffService/UnavailableDigests", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +474,7 @@ func (c *diffServiceClient) UnavailableDigests(ctx context.Context, in *Empty, o
 
 func (c *diffServiceClient) PurgeDigests(ctx context.Context, in *PurgeDigestsRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/diffstore.DiffService/PurgeDigests", in, out, opts...)
+	err := grpc.Invoke(ctx, "/diffstore.DiffService/PurgeDigests", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -484,7 +483,7 @@ func (c *diffServiceClient) PurgeDigests(ctx context.Context, in *PurgeDigestsRe
 
 func (c *diffServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/diffstore.DiffService/Ping", in, out, opts...)
+	err := grpc.Invoke(ctx, "/diffstore.DiffService/Ping", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
