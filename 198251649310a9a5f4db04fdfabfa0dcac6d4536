@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "756e7662_2f2f3df5",
+        "filename": "go/gerrit/create_cl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-23T18:46:55Z",
+      "side": 1,
+      "message": "At the moment this only works for *Gerrit, and not GerritInterface.  If we changed MockGerrit to just be *Gerrit with a mock http client, then the same implementation would work for both.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 0
+      },
+      "revId": "198251649310a9a5f4db04fdfabfa0dcac6d4536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
