@@ -31,6 +31,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -61,6 +62,9 @@ const (
 
 	// COOKIE_DOMAIN is the domain that are cookies attached to.
 	COOKIE_DOMAIN = "skia.org"
+
+	// LOGIN_CONFIG_FILE is the location of the login config when running in kubernetes.
+	LOGIN_CONFIG_FILE = "/etc/skia.org/login.json"
 )
 
 var (
@@ -127,7 +131,7 @@ func SimpleInitMust(port string, local bool) {
 // The authWhiteList is the space separated list of domains and email addresses
 // that are allowed to log in.
 func Init(redirectURL string, authWhiteList string) error {
-	cookieSalt, clientID, clientSecret := tryLoadingFromMetadata()
+	cookieSalt, clientID, clientSecret := tryLoadingFromKnownLocations()
 	if clientID == "" {
 		b, err := ioutil.ReadFile("client_secret.json")
 		if err != nil {
@@ -550,21 +554,48 @@ func setActiveWhitelists(authWhiteList string) {
 	_, activeAdminEmailWhiteList = splitAuthWhiteList(adminWhiteList)
 }
 
-// tryLoadingFromMetadata tries to load the cookie salt, client id, and client
-// secret from GCE project level metadata. If it fails then it returns the salt
-// it was passed and the client id and secret are the empty string.
+// loginInfo is the JSON file format that client info is stored in as a kubernetes secret.
+type loginInfo struct {
+	Salt         string `json:"salt"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
+// tryLoadingFromKnownLocations tries to load the cookie salt, client id, and
+// client secret from a file in a known location, and then from GCE project
+// level metadata. If it fails then it returns the salt it was passed and the
+// client id and secret are the empty string.
 //
 // Returns salt, clientID, clientSecret.
-func tryLoadingFromMetadata() (string, string, string) {
-	cookieSalt, err := metadata.ProjectGet(metadata.COOKIESALT)
+func tryLoadingFromKnownLocations() (string, string, string) {
+	cookieSalt := ""
+	clientID := ""
+	clientSecret := ""
+	var info loginInfo
+	err := util.WithReadFile(LOGIN_CONFIG_FILE, func(f io.Reader) error {
+		if err := json.NewDecoder(f).Decode(&info); err != nil {
+			return err
+		}
+		cookieSalt = info.Salt
+		clientID = info.ClientID
+		clientSecret = info.ClientSecret
+		return nil
+	})
+	if err == nil {
+		sklog.Infof("Successfully loaded login secrets from file %s", LOGIN_CONFIG_FILE)
+		return cookieSalt, clientID, clientSecret
+	} else {
+		sklog.Infof("Failed to load login secrets from file %s", LOGIN_CONFIG_FILE)
+	}
+	cookieSalt, err = metadata.ProjectGet(metadata.COOKIESALT)
 	if err != nil {
 		return DEFAULT_COOKIE_SALT, "", ""
 	}
-	clientID, err := metadata.ProjectGet(metadata.CLIENT_ID)
+	clientID, err = metadata.ProjectGet(metadata.CLIENT_ID)
 	if err != nil {
 		return DEFAULT_COOKIE_SALT, "", ""
 	}
-	clientSecret, err := metadata.ProjectGet(metadata.CLIENT_SECRET)
+	clientSecret, err = metadata.ProjectGet(metadata.CLIENT_SECRET)
 	if err != nil {
 		return DEFAULT_COOKIE_SALT, "", ""
 	}
