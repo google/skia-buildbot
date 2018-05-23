@@ -100,9 +100,6 @@ func main() {
 	opts := []common.Opt{
 		common.PrometheusOpt(promPort),
 	}
-	if !*local {
-		opts = append(opts, common.CloudLoggingOpt())
-	}
 	common.InitWithMust(
 		"jsdocserver",
 		opts...,
