@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "541bd532_d53dfed7",
+        "filename": "docserverk/edit-legacy-login-secrets.sh",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-23T14:22:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3238382e_7b928baf",
+      "range": {
+        "startLine": 10,
+        "startChar": 83,
+        "endLine": 10,
+        "endChar": 86
+      },
+      "revId": "71acdb1d48980655949f4ad9ff03cb2bbe7d89c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73e2dff5_d56af1db",
         "filename": "go/login/login.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "71acdb1d48980655949f4ad9ff03cb2bbe7d89c0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd26ff94_b6db4809",
+        "filename": "go/login/login.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-23T14:22:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73e2dff5_d56af1db",
+      "range": {
+        "startLine": 565,
+        "startChar": 10,
+        "endLine": 565,
+        "endChar": 15
+      },
+      "revId": "71acdb1d48980655949f4ad9ff03cb2bbe7d89c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
