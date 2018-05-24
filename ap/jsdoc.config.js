@@ -1,3 +1,3 @@
 let config = require('../common/jsdoc.common.js')
-config.source.include = ['./skia-elements'];
+config.source.include = ['./elements-sk'];
 module.exports = config;

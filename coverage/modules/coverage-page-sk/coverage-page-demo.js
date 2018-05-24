@@ -1,6 +1,6 @@
 import './index.js'
 
-import { $$, DomReady } from 'common/dom';
+import { $$, DomReady } from 'common-sk/modules/dom';
 
 // Can't use import fetch-mock because the library isn't quite set up
 // correctly for it, and we get strange errors about "this" not being defined.
