@@ -60,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "64745a63_ea5335be",
+        "filename": "go/gerrit/create_cl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-24T14:24:30Z",
+      "side": 1,
+      "message": "To me these are the 2 options-\n1) Either these methods should be moved to GerritInterface because it already has methods that deal with ChangeInfo. Some new methods should have a comment saying will not take effect until Publish/Delete or something like that.\n2) Move everything that deals with ChangeInfo in GerritInterface to be methods of ChangeInfo.\n\nRight now it seems to be in a fuzzy area between (1) and (2).\nI think it is easier to do (1) because the structure already exists. For (2) there are likely lots of callers and tests that will have to be updated.\n\nAlso things like EditFile/SetCommitMsg/Publish does not have to be tied to create_cl/create_change. Callers might want to do that for existing changes as well.",
+      "parentUuid": "424b83fa_d436c238",
+      "revId": "198251649310a9a5f4db04fdfabfa0dcac6d4536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "01777940_39c4a0b9",
         "filename": "go/gerrit/create_cl.go",
         "patchSetId": 1
