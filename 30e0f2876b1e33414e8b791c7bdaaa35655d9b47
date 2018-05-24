@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "88444c10_5af40a1f",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-24T13:59:56Z",
+      "side": 1,
+      "message": "Moving it after should work for the license script.",
+      "parentUuid": "9ccb51b2_1c8d189b",
+      "range": {
+        "startLine": 188,
+        "startChar": 1,
+        "endLine": 188,
+        "endChar": 37
+      },
+      "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "98833788_23456708",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 4
@@ -105,6 +129,24 @@
       "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5756bbed_2c0bfa45",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-24T13:59:56Z",
+      "side": 1,
+      "message": "Oh I missed the change to pre-upload steps or forgot about it.",
+      "parentUuid": "4d43ad17_efc81f7a",
+      "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
