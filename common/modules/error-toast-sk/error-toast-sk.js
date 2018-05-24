@@ -25,8 +25,8 @@
  *   <error-toast-sk></error-toast-sk>
  * </footer>
  */
-import 'skia-elements/toast-sk'
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import 'elements-sk/toast-sk'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 window.customElements.define('error-toast-sk', class extends HTMLElement {
   connectedCallback() {
