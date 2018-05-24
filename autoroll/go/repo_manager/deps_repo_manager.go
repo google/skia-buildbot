@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"text/template"
 	"time"
 
 	"go.skia.org/infra/go/depot_tools"
@@ -19,9 +21,26 @@ import (
 )
 
 const (
-	GCLIENT  = "gclient.py"
-	ROLL_DEP = "roll-dep"
+	GCLIENT = "gclient.py"
 
+	TMPL_COMMIT_MESSAGE = `Roll {{.ChildPath}} {{.From}}..{{.To}} ({{.NumCommits}} commits)
+
+{{.ChildRepo}}/+log/{{.From}}..{{.To}}
+
+{{.LogStr}}
+Created with:
+  gclient setdep -r {{.ChildPath}}@{{.To}}
+
+The AutoRoll server is located here: {{.ServerURL}}
+
+Documentation for the AutoRoller is here:
+https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+
+If the roll is causing failures, please contact the current sheriff, who should
+be CC'd on the roll, and stop the roller if necessary.
+
+{{.Footer}}
+`
 	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
 
@@ -29,6 +48,8 @@ var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
 	NewDEPSRepoManager func(context.Context, *DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string) (RepoManager, error) = newDEPSRepoManager
+
+	commitMsgTmpl = template.Must(template.New("commitMsg").Parse(TMPL_COMMIT_MESSAGE))
 )
 
 // issueJson is the structure of "git cl issue --json"
@@ -41,7 +62,6 @@ type issueJson struct {
 type depsRepoManager struct {
 	*depotToolsRepoManager
 	includeLog bool
-	rollDep    string
 }
 
 // DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
@@ -70,7 +90,6 @@ func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir s
 	dr := &depsRepoManager{
 		depotToolsRepoManager: drm,
 		includeLog:            c.IncludeLog,
-		rollDep:               path.Join(drm.depotTools, ROLL_DEP),
 	}
 
 	// TODO(borenet): This update can be extremely expensive. Consider
@@ -116,26 +135,69 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
-	childPath := path.Join(dr.childSubdir, dr.childPath)
-	output, err := exec.RunCwd(ctx, dr.parentDir, "python", dr.gclient, "revinfo")
+	output, err := exec.RunCwd(ctx, dr.parentDir, "python", dr.gclient, "getdep", "-r", dr.childPath)
 	if err != nil {
 		return "", err
 	}
-	split := strings.Split(output, "\n")
-	for _, s := range split {
-		if strings.HasPrefix(s, childPath) {
-			subs := strings.Split(s, "@")
-			if len(subs) != 2 {
-				return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (wrong number of entries for %s):\n\n%s\n", childPath, output)
-			}
-			return subs[1], nil
-		}
+	commit := strings.TrimSpace(output)
+	if len(commit) != 40 {
+		return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
 	}
-	return "", fmt.Errorf("Failed to parse output of `gclient revinfo` (no entry for %s):\n\n%s\n", childPath, output)
+	return commit, nil
 }
 
 func getLocalPartOfEmailAddress(emailAddress string) string {
 	return strings.SplitN(emailAddress, "@", 2)[0]
+}
+
+// Helper function for building the commit message.
+func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtraTrybots string, bugs []string) (string, error) {
+	logStr, err := exec.RunCwd(ctx, dr.childDir, "git", "log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format='%ad %ae %s'")
+	if err != nil {
+		return "", err
+	}
+	numCommits := len(strings.Split(logStr, "\n"))
+	remoteUrl, err := exec.RunCwd(ctx, dr.childDir, "git", "remote", "get-url", "origin")
+	if err != nil {
+		return "", err
+	}
+	remoteUrl = strings.TrimSpace(remoteUrl)
+	data := struct {
+		ChildPath  string
+		ChildRepo  string
+		From       string
+		To         string
+		NumCommits int
+		LogURL     string
+		LogStr     string
+		ServerURL  string
+		Footer     string
+	}{
+		ChildPath:  dr.childPath,
+		ChildRepo:  remoteUrl,
+		From:       from[:7],
+		To:         to[:7],
+		NumCommits: numCommits,
+		LogStr:     "",
+		ServerURL:  dr.serverURL,
+		Footer:     "",
+	}
+	if cqExtraTrybots != "" {
+		data.Footer += fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
+	}
+	if len(bugs) > 0 {
+		data.Footer += "\n\nBUG=" + strings.Join(bugs, ",")
+	}
+	if dr.includeLog {
+		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'", from[:7], to[:7])
+		data.LogStr += logStr
+	}
+	var buf bytes.Buffer
+	if err := commitMsgTmpl.Execute(&buf, data); err != nil {
+		return "", err
+	}
+	commitMsg := buf.String()
+	return commitMsg, nil
 }
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
@@ -189,31 +251,22 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		}
 	}
 
-	// Run roll-dep.
-	args := []string{dr.childPath, "--roll-to", to}
-	if len(bugs) > 0 {
-		args = append(args, "--bug", strings.Join(bugs, ","))
-	}
-	if !dr.includeLog {
-		args = append(args, "--no-log")
-	}
-	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
+	// Run "gclient setdep".
+	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", dr.childPath, to)}
+	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  dr.parentDir,
 		Env:  depot_tools.Env(dr.depotTools),
-		Name: dr.rollDep,
+		Name: dr.gclient,
 		Args: args,
 	}); err != nil {
 		return 0, err
 	}
-	// Build the commit message, starting with the message provided by roll-dep.
-	commitMsg, err := exec.RunCwd(ctx, dr.parentDir, "git", "log", "-n1", "--format=%B", "HEAD")
+
+	// Build the commit message.
+	commitMsg, err := dr.buildCommitMsg(ctx, from, to, cqExtraTrybots, bugs)
 	if err != nil {
 		return 0, err
-	}
-	commitMsg += fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, dr.serverURL)
-	if cqExtraTrybots != "" {
-		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
 
 	// Run the pre-upload steps.
@@ -221,6 +274,11 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		if err := s(ctx, dr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
+	}
+
+	// Commit.
+	if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "commit", "-a", "-m", commitMsg); err != nil {
+		return 0, err
 	}
 
 	// Upload the CL.

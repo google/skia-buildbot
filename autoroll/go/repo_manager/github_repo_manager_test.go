@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -22,6 +21,10 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
+)
+
+const (
+	githubApiUrl = "https://api.github.com"
 )
 
 var (
@@ -82,10 +85,6 @@ func setupGithub(t *testing.T) (context.Context, string, *git_testutils.GitBuild
 		if strings.Contains(cmd.Name, "gclient") && (cmd.Args[0] == "sync" || cmd.Args[0] == "runhooks") {
 			return nil
 		}
-		if cmd.Name == "git" && cmd.Args[0] == "log" {
-			return nil
-		}
-
 		return exec.DefaultRun(cmd)
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
@@ -99,8 +98,7 @@ func setupGithub(t *testing.T) (context.Context, string, *git_testutils.GitBuild
 	return ctx, wd, child, childCommits, parent, mockRun, cleanup
 }
 
-func setupFakeGithub(t *testing.T, wd string, childCommits []string) *github.GitHub {
-	gUrl := "https://api.github.com"
+func setupFakeGithub(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock) {
 	urlMock := mockhttpclient.NewURLMock()
 
 	// Mock /user endpoint.
@@ -108,31 +106,29 @@ func setupFakeGithub(t *testing.T, wd string, childCommits []string) *github.Git
 		Login: &mockGithubUser,
 	})
 	assert.NoError(t, err)
-	urlMock.MockOnce(gUrl+"/user", mockhttpclient.MockGetDialogue(serializedUser))
+	urlMock.MockOnce(githubApiUrl+"/user", mockhttpclient.MockGetDialogue(serializedUser))
 
+	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client(), "")
+	assert.NoError(t, err)
+	return g, urlMock
+}
+
+func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, from, to string, numCommits int) {
 	// Mock /pulls endpoint.
 	serializedPull, err := json.Marshal(&github_api.PullRequest{
 		Number: &testPullNumber,
 	})
 	assert.NoError(t, err)
 	reqType := "application/json"
-	headBranch := fmt.Sprintf("%s:%s", mockGithubUser, ROLL_BRANCH)
-	baseBranch := "master"
-	reqBody := []byte(`{"title":"","head":"` + headBranch + `","base":"` + baseBranch + `","body":"The AutoRoll server is located here: fake.server.com\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\nIf the roll is causing failures, please contact the current sheriff, who should\nbe CC'd on the roll, and stop the roller if necessary.\n\n"}
-`)
-	md := mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, serializedPull, http.StatusCreated)
-	urlMock.MockOnce(gUrl+"/repos/superman/krypton/pulls", md)
+	md := mockhttpclient.MockPostDialogueWithResponseCode(reqType, mockhttpclient.DONT_CARE_REQUEST, serializedPull, http.StatusCreated)
+	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/pulls", md)
 
 	// Mock /comments endpoint.
 	reqType = "application/json"
-	reqBody = []byte(`{"body":"@reviewer : New roll has been created by fake.server.com"}
+	reqBody := []byte(`{"body":"@reviewer : New roll has been created by fake.server.com"}
 `)
 	md = mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, nil, http.StatusCreated)
-	urlMock.MockOnce(gUrl+"/repos/superman/krypton/issues/12345/comments", md)
-
-	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client(), "")
-	assert.NoError(t, err)
-	return g
+	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345/comments", md)
 }
 
 // TestGithubRepoManager tests all aspects of the GithubRepoManager except for CreateNewRoll.
@@ -143,7 +139,7 @@ func TestGithubRepoManager(t *testing.T) {
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGithub(t, wd, childCommits)
+	g, _ := setupFakeGithub(t)
 	cfg := githubCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
@@ -182,19 +178,24 @@ func TestCreateNewGithubRoll(t *testing.T) {
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGithub(t, wd, childCommits)
+	g, urlMock := setupFakeGithub(t)
 	cfg := githubCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 
 	// Create a roll, assert that it's at tip of tree.
+	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), rm.CommitsNotRolled())
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
-	msg, err := ioutil.ReadFile(path.Join(rm.(*githubRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
+
+	p := git.GitDir(parent.Dir())
+	head, err := p.GetBranchHead(ctx, ROLL_BRANCH)
 	assert.NoError(t, err)
-	from, to, err := autoroll.RollRev(strings.Split(string(msg), "\n")[0], func(h string) (string, error) {
+	lastUpload, err := p.Details(ctx, head)
+	assert.NoError(t, err)
+	from, to, err := autoroll.RollRev(lastUpload.Subject, func(h string) (string, error) {
 		return git.GitDir(child.Dir()).RevParse(ctx, h)
 	})
 	assert.NoError(t, err)
@@ -206,11 +207,11 @@ func TestCreateNewGithubRoll(t *testing.T) {
 func TestRanPreUploadStepsGithub(t *testing.T) {
 	testutils.LargeTest(t)
 
-	ctx, wd, _, childCommits, parent, _, cleanup := setupGithub(t)
+	ctx, wd, _, _, parent, _, cleanup := setupGithub(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGithub(t, wd, childCommits)
+	g, urlMock := setupFakeGithub(t)
 	cfg := githubCfg()
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
@@ -224,6 +225,7 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
+	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), rm.CommitsNotRolled())
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, createErr)
 	assert.True(t, ran)
