@@ -8,8 +8,8 @@ APPNAME=iap-proxy
 copy_release_files()
 {
 INSTALL="install -D --verbose"
-${INSTALL} --mode=644 -T iap-proxy/Dockerfile    ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/iap-proxy ${ROOT}/iap-proxy
+${INSTALL} --mode=644 -T iap-proxy/Dockerfile     ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
 }
 
 source ../bash/docker_build.sh

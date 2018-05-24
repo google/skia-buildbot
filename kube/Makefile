@@ -18,5 +18,5 @@ release_iap_proxy:
 	./build_iap_proxy_release
 
 push: pushk
-	pushk iap-proxy configmap-reload
+	pushk --apply iap-proxy configmap-reload
 

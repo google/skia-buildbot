@@ -1,8 +1,8 @@
 FROM gcr.io/skia-public/basealpine:3.7
 
-ADD . /
+COPY . /
 
 USER skia
 
-ENTRYPOINT ["/bin/debugger-assets"]
+ENTRYPOINT ["/usr/local/bin/debugger-assets"]
 CMD ["--logtostderr", "--resources_dir=/usr/local/share/debugger-assets"]

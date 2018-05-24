@@ -3,6 +3,6 @@ FROM alpine:3.7
 
 RUN addgroup -g 2000 -S skia && \
     adduser -u 2000 -S skia -G skia && \
-    apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+    apk update && apk add --no-cache ca-certificates
 
 USER skia:skia

@@ -14,4 +14,4 @@ release: default
 .PHONY: push
 push:
 	go install ../kube/go/pushk
-	pushk proberk
+	pushk --apply proberk

@@ -4,8 +4,8 @@ USER root
 
 RUN apk add --no-cache tzdata
 
-ADD . /
+COPY . /
 
 USER skia
 
-ENTRYPOINT ["/bin/notifier"]
+ENTRYPOINT ["/usr/local/bin/notifier"]
