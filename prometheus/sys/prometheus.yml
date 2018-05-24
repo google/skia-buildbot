@@ -156,10 +156,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-predict:20000']
 
-  - job_name: 'jsdoc'
-    static_configs:
-      - targets: ['skia-jsdoc:20000']
-
   - job_name: 'push'
     static_configs:
       - targets: ['skia-push:20000']
@@ -242,7 +238,6 @@ scrape_configs:
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']
       - targets: ['skia-internal:11000']
-      - targets: ['skia-jsdoc:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-perf:11000']
