@@ -31,7 +31,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: proberk
-          image: gcr.io/skia-public/proberk:2018-05-23T18_47_41Z-jcgregorio-f40ed9a-clean
+          image: gcr.io/skia-public/proberk:2018-05-24T13_10_26Z-jcgregorio-fcdc1ae-dirty
           args:
             - "--logtostderr"
             - "--config=/etc/proberk/allprobersk.json"

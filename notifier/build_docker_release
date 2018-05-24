@@ -9,7 +9,7 @@ copy_release_files()
 {
 INSTALL="install -D --verbose --backup=none"
 ${INSTALL} --mode=644 -T notifier/Dockerfile    ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/notifier ${ROOT}/bin/notifier
+${INSTALL} --mode=755 -T ${GOPATH}/bin/notifier ${ROOT}/usr/local/bin/notifier
 }
 
 source ../bash/docker_build.sh

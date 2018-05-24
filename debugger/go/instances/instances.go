@@ -45,7 +45,7 @@ const (
 	EXIT_WAIT_PERIOD = 2 * time.Second
 
 	// SKIASERVE is the full path to the skiaserve executable.
-	SKIASERVE = "/skiaserve"
+	SKIASERVE = "/usr/local/bin/skiaserve"
 )
 
 var (

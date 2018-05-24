@@ -36,7 +36,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: contest
-          image: gcr.io/skia-public/contest:2018-05-23T18_51_25Z-jcgregorio-f40ed9a-clean
+          image: gcr.io/skia-public/contest:2018-05-24T13_00_40Z-jcgregorio-fcdc1ae-dirty
           args:
             - "--logtostderr"
             - "--port=:8000"
