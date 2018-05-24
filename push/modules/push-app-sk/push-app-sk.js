@@ -1,6 +1,6 @@
-import 'skia-elements/buttons'
-import 'skia-elements/icon-sk'
-import 'skia-elements/spinner-sk'
+import 'elements-sk/buttons'
+import 'elements-sk/icon-sk'
+import 'elements-sk/spinner-sk'
 
 import 'common/confirm-dialog-sk'
 import 'common/error-toast-sk'

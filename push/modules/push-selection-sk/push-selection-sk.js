@@ -1,7 +1,7 @@
-import 'skia-elements/buttons'
-import 'skia-elements/dialog-sk'
-import 'skia-elements/icon-sk'
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import 'elements-sk/buttons'
+import 'elements-sk/dialog-sk'
+import 'elements-sk/icon-sk'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 import 'common/select-sk'
 import { diffDate } from 'common/human'

@@ -19,8 +19,8 @@
  */
 import { html, render } from 'lit-html/lib/lit-extended'
 
-import 'skia-elements/buttons'
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import 'elements-sk/buttons'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 import { diffDate } from 'common/human'
 

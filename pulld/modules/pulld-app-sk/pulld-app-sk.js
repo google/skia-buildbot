@@ -1,6 +1,6 @@
 import { html, render } from 'lit-html/lib/lit-extended'
 
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 import 'common/error-toast-sk'
 import 'common/systemd-unit-status-sk'
