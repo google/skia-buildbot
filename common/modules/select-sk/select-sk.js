@@ -32,7 +32,7 @@
  *   </pre>
  *
  */
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 window.customElements.define('select-sk', class extends HTMLElement {
   constructor() {
