@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ccb51b2_1c8d189b",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-24T13:46:56Z",
+      "side": 1,
+      "message": "roll-dep did update the dependency.  gclient setdep does not.  I moved the sync to after setdep.  It should already be up-to-date before setdep, since Update() also does gclient sync.",
+      "parentUuid": "1833bf35_46eba2e7",
+      "range": {
+        "startLine": 188,
+        "startChar": 1,
+        "endLine": 188,
+        "endChar": 37
+      },
+      "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "98833788_23456708",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 4
@@ -60,6 +84,24 @@
       "writtenOn": "2018-05-24T13:31:03Z",
       "side": 1,
       "message": "This should be before the pre-upload steps to make it follow the same flow as before. Alternatively we could remove the commit step in the license pre-upload script.",
+      "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d43ad17_efc81f7a",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-24T13:46:56Z",
+      "side": 1,
+      "message": "I already removed the commit from the pre-upload steps.  IMO it makes more sense to commit once than to commit before the pre-upload steps and then have any steps which modify things also have to commit --amend.",
+      "parentUuid": "98833788_23456708",
       "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
