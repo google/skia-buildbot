@@ -21,7 +21,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -50,7 +50,7 @@ func depsCfg() *DEPSRepoManagerConfig {
 	}
 }
 
-func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
+func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
@@ -68,10 +68,17 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 }`, childPath, child.RepoUrl(), childCommits[0]))
 	parent.Commit(context.Background())
 
+	lastUpload := new(vcsinfo.LongCommit)
 	mockRun := &exec.CommandCollector{}
+	ctx := exec.NewContext(context.Background(), mockRun.Run)
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		if cmd.Name == "git" && cmd.Args[0] == "cl" {
 			if cmd.Args[1] == "upload" {
+				d, err := git.GitDir(cmd.Dir).Details(ctx, "HEAD")
+				if err != nil {
+					return err
+				}
+				*lastUpload = *d
 				return nil
 			} else if cmd.Args[1] == "issue" {
 				json := testutils.MarshalJSON(t, &issueJson{
@@ -85,7 +92,6 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 		}
 		return exec.DefaultRun(cmd)
 	})
-	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -93,7 +99,7 @@ func setup(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []
 		parent.Cleanup()
 	}
 
-	return ctx, wd, child, childCommits, parent, mockRun, cleanup
+	return ctx, wd, child, childCommits, parent, mockRun, lastUpload, cleanup
 }
 
 func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
@@ -119,7 +125,7 @@ func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 func TestDEPSRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 
-	ctx, wd, child, childCommits, parent, _, cleanup := setup(t)
+	ctx, wd, child, childCommits, parent, _, _, cleanup := setup(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -160,7 +166,7 @@ func TestDEPSRepoManager(t *testing.T) {
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	testutils.LargeTest(t)
 
-	ctx, wd, child, childCommits, parent, _, cleanup := setup(t)
+	ctx, wd, child, childCommits, parent, _, _, cleanup := setup(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -199,7 +205,7 @@ func TestDEPSRepoManagerSingle(t *testing.T) {
 func TestRanPreUploadStepsDeps(t *testing.T) {
 	testutils.LargeTest(t)
 
-	ctx, wd, _, _, parent, _, cleanup := setup(t)
+	ctx, wd, _, _, parent, _, _, cleanup := setup(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -228,7 +234,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 	testutils.LargeTest(t)
 
 	test := func(includeLog bool) {
-		ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
+		ctx, wd, _, _, parent, _, lastUpload, cleanup := setup(t)
 		defer cleanup()
 		recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -243,15 +249,9 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 		assert.NoError(t, err)
 
-		// Ensure that --no-log is present or not, according to includeLog.
-		found := false
-		for _, c := range mockRun.Commands() {
-			if strings.Contains(c.Name, "roll-dep") {
-				found = true
-				assert.Equal(t, !includeLog, util.In("--no-log", c.Args))
-			}
-		}
-		assert.True(t, found)
+		// Ensure that we included the log, or not, as appropriate.
+		assert.NoError(t, err)
+		assert.Equal(t, includeLog, strings.Contains(lastUpload.Body, "git log"))
 	}
 
 	test(true)
@@ -262,7 +262,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 func TestDEPSRepoManagerGclientSpec(t *testing.T) {
 	testutils.LargeTest(t)
 
-	ctx, wd, _, _, parent, mockRun, cleanup := setup(t)
+	ctx, wd, _, _, parent, mockRun, _, cleanup := setup(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -315,7 +315,7 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 
 	test := func(bugLine, expect string) {
 		// Setup.
-		ctx, wd, child, _, parent, mockRun, cleanup := setup(t)
+		ctx, wd, child, _, parent, _, lastUpload, cleanup := setup(t)
 		defer cleanup()
 		recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -341,26 +341,18 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify that we passed the correct --bug argument to roll-dep.
-		foundCmd := false
-		for _, cmd := range mockRun.Commands() {
-			if strings.Contains(cmd.Name, "roll-dep") {
-				foundCmd = true
-				foundArg := false
-				for idx, arg := range cmd.Args {
-					if arg == "--bug" {
-						assert.True(t, idx+1 < len(cmd.Args))
-						foundArg = true
-						assert.Equal(t, cmd.Args[idx+1], expect)
-					}
-				}
-				if expect == "" {
-					assert.False(t, foundArg)
-				} else {
-					assert.True(t, foundArg)
-				}
+		found := false
+		for _, line := range strings.Split(lastUpload.Body, "\n") {
+			if strings.HasPrefix(line, "BUG=") {
+				found = true
+				assert.Equal(t, line[4:], expect)
 			}
 		}
-		assert.True(t, foundCmd)
+		if expect == "" {
+			assert.False(t, found)
+		} else {
+			assert.True(t, found)
+		}
 	}
 
 	// Test cases.
