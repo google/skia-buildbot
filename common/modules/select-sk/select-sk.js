@@ -1,4 +1,4 @@
-/** @module common/select-sk
+/** @module common-sk/modules/select-sk
  *
  * @description <h2><code>select-sk</code></h2>
  *
@@ -32,7 +32,7 @@
  *   </pre>
  *
  */
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 window.customElements.define('select-sk', class extends HTMLElement {
   constructor() {

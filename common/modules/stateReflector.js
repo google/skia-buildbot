@@ -1,4 +1,4 @@
-/** @module common/stateReflector */
+/** @module common-sk/modules/stateReflector */
 import * as query from './query.js'
 import * as object from './object.js'
 import { DomReady } from './dom.js'

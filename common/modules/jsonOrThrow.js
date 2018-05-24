@@ -1,4 +1,4 @@
-/** @module common/jsonOrThrow */
+/** @module common-sk/modules/jsonOrThrow */
 
 /** Helper function when making fetch() requests.
  *

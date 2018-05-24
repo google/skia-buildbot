@@ -1,4 +1,4 @@
-/** @module common/dom */
+/** @module common-sk/modules/dom */
 /**
  * A Promise that resolves when DOMContentLoaded has fired.
  */

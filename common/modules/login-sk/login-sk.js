@@ -1,15 +1,15 @@
 /**
- * @module common/login-sk
+ * @module common-sk/modules/login-sk
  * @description <h2><code>login-sk</code></h2>
  *
  * <p>
  * The <login-sk> custom element. Uses the Login promise to display the
  * current login status and provides login/logout links. Reports errors via
- * {@linkcode module:common/errorMessage}.
+ * {@linkcode module:common-sk/modules/errorMessage}.
  * </p>
  */
-import { errorMessage } from 'common/errorMessage';
-import { Login } from 'common/login';
+import { errorMessage } from '../errorMessage';
+import { Login } from '../login';
 
 window.customElements.define('login-sk', class extends HTMLElement {
   connectedCallback() {

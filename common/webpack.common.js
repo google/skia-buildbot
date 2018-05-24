@@ -6,7 +6,7 @@ module.exports.addCommon = function(webpack_config) {
   webpack_config.resolve = {
     alias: {
       // Keep these libraries at well known locations.
-      'skia-elements': path.resolve(__dirname, '..', 'ap', 'skia-elements'),
+      'elements-sk': path.resolve(__dirname, '..', 'ap', 'elements-sk'),
       'common': path.resolve(__dirname, 'modules'),
     },
   };

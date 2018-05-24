@@ -5,9 +5,9 @@
 //
 //     module.exports = require('../common/jsdoc.common.js');
 //
-// Add jsdoc via yarn:
+// Add jsdoc via npm:
 //
-//   $ yarn add jsdoc
+//   $ npm add jsdoc
 //
 // Then add this to your Makefile:
 //

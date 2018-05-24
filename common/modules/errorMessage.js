@@ -1,8 +1,8 @@
-/** @module common/errorMessage */
+/** @module common-sk/modules/errorMessage */
 
 /** errorMessage dispatches an event with the error message in it.
  * <p>
- *   Use this function in conjunction with the {@linkcode module:common/error-toast-sk} element.
+ *   Use this function in conjunction with the {@linkcode module:common-sk/modules/error-toast-sk} element.
  * </p>
  *
  * @evt error-sk The event has a detail of the form:

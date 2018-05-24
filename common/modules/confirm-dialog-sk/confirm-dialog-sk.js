@@ -1,5 +1,5 @@
 /**
- * @module common/confirm-dialog-sk
+ * @module common-sk/modules/confirm-dialog-sk
  * @description <h2><code>confirm-dialog-sk</code></h2>
  *
  * <p>
@@ -24,10 +24,10 @@
  */
 import { html, render } from 'lit-html/lib/lit-extended'
 
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
-import 'skia-elements/dialog-sk'
-import 'skia-elements/buttons'
+import 'elements-sk/dialog-sk'
+import 'elements-sk/buttons'
 
 const template = (ele) => html`<dialog-sk>
   <h2>Confirm</h2>

@@ -1,4 +1,4 @@
-/** @module common/object
+/** @module common-sk/modules/object
  *  @description Utility functions for dealing with Objects.
  */
 import { fromObject } from './query.js'

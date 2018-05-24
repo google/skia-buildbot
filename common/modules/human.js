@@ -1,4 +1,4 @@
-/** @module common/human
+/** @module common-sk/modules/human
  *  @description Utitities for working with human friendly I/O.
  */
 

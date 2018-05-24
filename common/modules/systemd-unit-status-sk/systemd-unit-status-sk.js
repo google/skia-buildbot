@@ -1,5 +1,5 @@
 /**
- * @module common/systemd-unit-status-sk
+ * @module common-sk/modules/systemd-unit-status-sk
  * @description <h2><code>systemd-unit-status-sk</code></h2>
  *
  * @attr machine - The name of the machine the service is running on.
@@ -19,10 +19,10 @@
  */
 import { html, render } from 'lit-html/lib/lit-extended'
 
-import 'skia-elements/buttons'
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import 'elements-sk/buttons'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
-import { diffDate } from 'common/human'
+import { diffDate } from '../human'
 
 const template = (ele) => html`
   <button raised data-action="start"   data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Start  </button>

@@ -1,22 +1,27 @@
 {
-  "name": "pushd",
+  "name": "pushd-skia",
   "version": "2.0.0",
   "main": "pages/index.js",
-  "license": "",
+  "private": true,
+  "license": "Apache 2.0",
   "dependencies": {
+    "common-sk": "^1.1.0"
+  },
+  "devDependencies": {
     "chai": "^4.1.2",
     "jsdoc": "^3.5.5",
-    "karma": "^2.0.0",
+    "karma": "^2.0.2",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-firefox-launcher": "^1.1.0",
     "karma-mocha": "^1.3.0",
     "karma-sinon": "^1.0.5",
-    "karma-webpack": "^2.0.13",
-    "lit-html": "^0.9.0",
-    "mocha": "^5.0.0",
-    "pulito": "^2.0.0",
-    "sinon": "^4.2.2",
-    "webpack-cli": "^2.1.3"
+    "karma-webpack": "^3.0.0",
+    "lit-html": "^0.10.0",
+    "mocha": "^5.2.0",
+    "pulito": "^3.0.2",
+    "sinon": "^5.0.10",
+    "webpack": "^4.8.3",
+    "webpack-cli": "^2.1.4"
   }
 }

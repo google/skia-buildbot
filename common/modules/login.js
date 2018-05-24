@@ -1,4 +1,4 @@
-/** @module common/login */
+/** @module common-sk/modules/login */
 
 /**
  * A Promise that will be resolved with the users current login status.
