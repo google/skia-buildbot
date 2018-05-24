@@ -64,9 +64,12 @@ func NewCTAutoscaler() (*CTAutoscaler, error) {
 	upGauge := metrics2.GetInt64Metric("ct_gce_bots_up")
 
 	// Start from a clean slate by bringing down all CT instances since
-	// activeGCETasks is initially 0.
+	// activeGCETasks is initially 0. Also delete them from swarming.
 	upGauge.Update(0)
 	if err := a.StopAllInstances(); err != nil {
+		return nil, err
+	}
+	if err := s.DeleteBots(a.GetNamesOfManagedInstances()); err != nil {
 		return nil, err
 	}
 
