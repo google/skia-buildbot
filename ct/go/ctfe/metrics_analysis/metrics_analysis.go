@@ -118,6 +118,10 @@ type AddTaskVars struct {
 	CatapultPatch      string `json:"catapult_patch"`
 }
 
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
+}
+
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.MetricName == "" {
 		return "", nil, fmt.Errorf("Must specify metric name")

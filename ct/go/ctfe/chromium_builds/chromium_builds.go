@@ -7,7 +7,7 @@ package chromium_builds
 import (
 	"bufio"
 	"bytes"
-	"database/sql"
+	//"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -66,9 +66,9 @@ func ReloadTemplates(resourcesDir string) {
 type DBTask struct {
 	task_common.CommonCols
 
-	ChromiumRev   string        `db:"chromium_rev"`
-	ChromiumRevTs sql.NullInt64 `db:"chromium_rev_ts"`
-	SkiaRev       string        `db:"skia_rev"`
+	ChromiumRev   string `db:"chromium_rev" json:"chromium_rev"`
+	ChromiumRevTs int64  `db:"chromium_rev_ts" json:"chromium_rev_ts"`
+	SkiaRev       string `db:"skia_rev" json:"skia_rev"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -86,7 +86,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
 
 	taskVars.ChromiumRev = dbTask.ChromiumRev
-	taskVars.ChromiumRevTs = strconv.FormatInt(dbTask.ChromiumRevTs.Int64, 10)
+	taskVars.ChromiumRevTs = strconv.FormatInt(dbTask.ChromiumRevTs, 10)
 	taskVars.SkiaRev = dbTask.SkiaRev
 	return taskVars
 }
@@ -121,6 +121,10 @@ type AddTaskVars struct {
 	ChromiumRev   string `json:"chromium_rev"`
 	ChromiumRevTs string `json:"chromium_rev_ts"`
 	SkiaRev       string `json:"skia_rev"`
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {

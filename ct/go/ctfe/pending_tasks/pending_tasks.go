@@ -67,7 +67,7 @@ func GetOldestPendingTask() (task_common.Task, error) {
 		}
 		if oldestTask == nil {
 			oldestTask = task
-		} else if oldestTask.GetCommonCols().TsAdded.Int64 > task.GetCommonCols().TsAdded.Int64 {
+		} else if oldestTask.GetCommonCols().TsAdded > task.GetCommonCols().TsAdded {
 			oldestTask = task
 		}
 	}

@@ -116,6 +116,10 @@ type AddTaskVars struct {
 	SkiaPatch            string `json:"skia_patch"`
 }
 
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
+}
+
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.PageSets == "" ||
 		task.Description == "" {

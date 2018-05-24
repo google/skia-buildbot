@@ -35,6 +35,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -53,6 +54,10 @@ var (
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir           = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	tasksSchedulerWaitTime = flag.Duration("tasks_scheduler_wait_time", 5*time.Minute, "How often the repeated tasks scheduler should run.")
+
+	// Datastore params
+	namespace   = flag.String("namespace", "cluster-telemetry", "The Cloud Datastore namespace, such as 'cluster-telemetry'.")
+	projectName = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
 
 	// authenticated http client
 	client *http.Client
@@ -151,9 +156,11 @@ func startCtfeMetrics() {
 				oldestPendingTaskAgeGauge.Update(0)
 				oldestPendingTaskStatusGauge.Update(0)
 			} else {
-				addedTime := ctutil.GetTimeFromTs(strconv.FormatInt(oldestPendingTask.GetCommonCols().TsAdded.Int64, 10))
+				addedTime := ctutil.GetTimeFromTs(strconv.FormatInt(oldestPendingTask.GetCommonCols().TsAdded, 10))
 				oldestPendingTaskAgeGauge.Update(time.Since(addedTime).Seconds())
-				if oldestPendingTask.GetCommonCols().TsStarted.Valid {
+				// rmistry
+				// is this right?
+				if oldestPendingTask.GetCommonCols().TsStarted != 0 {
 					oldestPendingTaskStatusGauge.Update(1)
 				} else {
 					oldestPendingTaskStatusGauge.Update(2)
@@ -193,7 +200,7 @@ func repeatedTasksScheduler() {
 
 			tasks := task_common.AsTaskSlice(data)
 			for _, task := range tasks {
-				addedTime := ctutil.GetTimeFromTs(strconv.FormatInt(task.GetCommonCols().TsAdded.Int64, 10))
+				addedTime := ctutil.GetTimeFromTs(strconv.FormatInt(task.GetCommonCols().TsAdded, 10))
 				scheduledTime := addedTime.Add(time.Duration(task.GetCommonCols().RepeatAfterDays) * time.Hour * 24)
 
 				cutOffTime := time.Now().UTC().Add(*tasksSchedulerWaitTime)
@@ -291,6 +298,11 @@ func main() {
 	}
 
 	sklog.Info("CloneOrUpdate complete")
+
+	// Initialize the datastore.
+	if err := ds.Init(*projectName, *namespace); err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Initialize the ctfe database.
 	if !*local {

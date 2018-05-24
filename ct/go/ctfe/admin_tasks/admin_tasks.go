@@ -151,6 +151,10 @@ type AddRecreatePageSetsTaskVars struct {
 	PageSets string `json:"page_sets"`
 }
 
+func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
+}
+
 func (task *AddRecreatePageSetsTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.PageSets == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
@@ -178,6 +182,10 @@ type AddRecreateWebpageArchivesTaskVars struct {
 	AddTaskVars
 	PageSets      string                 `json:"page_sets"`
 	ChromiumBuild chromium_builds.DBTask `json:"chromium_build"`
+}
+
+func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
 }
 
 func (task *AddRecreateWebpageArchivesTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {

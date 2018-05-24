@@ -39,13 +39,14 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
+// Obviously change this to DatastoreTask.
 type DBTask struct {
 	task_common.CommonCols
 
-	PageSets    string `db:"page_sets"`
-	ChromiumRev string `db:"chromium_rev"`
-	SkiaRev     string `db:"skia_rev"`
-	Description string `db:"description"`
+	PageSets    string `db:"page_sets" json:"page_sets"`
+	ChromiumRev string `db:"chromium_rev" json:"chromium_rev"`
+	SkiaRev     string `db:"skia_rev" json:"skia_rev"`
+	Description string `db:"description" json:"description"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -92,6 +93,7 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
+// Think of where all to put noindex sutff. like datastore:",noindex"
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
@@ -100,6 +102,67 @@ type AddTaskVars struct {
 	Description   string                 `json:"desc"`
 }
 
+// Except ID ofcourse
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+
+	/*
+			task_common.CommonCols
+
+		PageSets    string `db:"page_sets" json:"page_sets"`
+		ChromiumRev string `db:"chromium_rev" json:"chromium_rev"`
+		SkiaRev     string `db:"skia_rev" json:"skia_rev"`
+		Description string `db:"description" json:"description"`
+
+			Id              int64  `db:"id" json:"id"`
+		TsAdded         int64  `db:"ts_added" json:"ts_added"`
+		TsStarted       int64  `db:"ts_started" json:"ts_started"`
+		TsCompleted     int64  `db:"ts_completed" json:"ts_completed"`
+		Username        string `db:"username" json:"username"`
+		Failure         bool   `db:"failure" json:"failure"`
+		RepeatAfterDays int64  `db:"repeat_after_days" json:"repeat_after_days"`
+		SwarmingLogs    string `db:"swarming_logs" json:"swarming_logs"`
+		Test            string
+	*/
+
+	//task.Username,
+	//task.PageSets,
+	//task.ChromiumBuild.ChromiumRev,
+	//task.ChromiumBuild.SkiaRev,
+	//task.Description,
+	//task.TsAdded,
+	//task.RepeatAfterDays,
+
+	//commonCols := &task_common.CommonCols{
+	//	TsAdded:         task.TsAdded,
+	//	Username:        task.Username,
+	//	RepeatAfterDays: task.RepeatAfterDays,
+	//}
+	t := &DBTask{
+		//task_common.CommonCols: task_common.CommonCols{
+		//	TsAdded:         task.TsAdded,
+		//	Username:        task.Username,
+		//	RepeatAfterDays: task.RepeatAfterDays,
+		//},
+		PageSets:    task.PageSets,
+		ChromiumRev: task.ChromiumBuild.ChromiumRev,
+		SkiaRev:     task.ChromiumBuild.SkiaRev,
+		Description: task.Description,
+	}
+	tsAdded, err := strconv.ParseInt(task.TsAdded, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.TsAdded, err)
+	}
+	t.TsAdded = tsAdded
+	t.Username = task.Username
+	repeatAfterDays, err := strconv.ParseInt(task.RepeatAfterDays, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.RepeatAfterDays, err)
+	}
+	t.RepeatAfterDays = repeatAfterDays
+	return t, nil
+}
+
+// Rename to get populated Datastore Task
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.PageSets == "" ||
 		task.ChromiumBuild.ChromiumRev == "" ||

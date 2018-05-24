@@ -140,6 +140,10 @@ type AddTaskVars struct {
 	MatchStdoutTxt string `json:"match_stdout_txt"`
 }
 
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
+}
+
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.Benchmark == "" ||
 		task.PageSets == "" ||
