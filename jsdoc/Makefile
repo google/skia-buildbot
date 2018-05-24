@@ -1,13 +1,10 @@
+.PHONY: build release push
 build:
-	go install ./go/jsdocserver
+	go install  ./go/jsdoc
 
-docs:
-	yarn
-	npx jsdoc -c jsdoc.config.js
+release:
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/jsdoc
+	./build_docker_release
 
-push: build
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli jsdocserver skia-jsdoc
-
-.PHONY: push docs build
+push:
+	pushk jsdoc
