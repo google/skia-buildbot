@@ -1,5 +1,5 @@
 FROM gcr.io/skia-public/basealpine:3.7
 
-ADD . /
+COPY . /
 
-ENTRYPOINT ["/iap-proxy"]
+ENTRYPOINT ["/bin/iap-proxy"]

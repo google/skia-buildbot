@@ -6,4 +6,4 @@ COPY . /
 
 USER skia
 
-ENTRYPOINT ["/contest"]
+ENTRYPOINT ["/bin/contest"]

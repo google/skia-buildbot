@@ -10,9 +10,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=gcr.io/skia-public/skiaserve:latest /bin/skiaserve /skiaserve
+COPY --from=gcr.io/skia-public/skiaserve:prod /bin/skiaserve /bin/skiaserve
 
 COPY . /
 
-ENTRYPOINT ["/debugger"]
+ENTRYPOINT ["/bin/debugger"]
 CMD ["--logtostderr", "--resources_dir=/usr/local/share/debugger"]

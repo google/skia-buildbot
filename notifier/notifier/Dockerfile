@@ -4,7 +4,7 @@ USER root
 
 RUN apk add --no-cache tzdata
 
-ADD . /
+COPY . /
 
 USER skia
 
