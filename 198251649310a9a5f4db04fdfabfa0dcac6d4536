@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "424b83fa_d436c238",
+        "filename": "go/gerrit/create_cl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-24T13:57:40Z",
+      "side": 1,
+      "message": "I\u0027m emulating what the Gerrit API does here.  CreateChange just creates a new empty Change. \n EditFile (Move, Delete, etc) and SetCommitMessage cause a ChangeEdit to be created on top of an existing Change.  The ChangeEdit does not become a patch set until Publish is run.\n\nIt didn\u0027t make sense to me to add these methods directly to the GerritInterface, because the act of creating a ChangeEdit is essentially a new context that needs to be managed (and finalized, either with Publish or Delete).  Personally, it makes more sense to me for some methods of GerritInterface to be moved to be methods of ChangeInfo, eg. SetReview, AddComment, SendToCQ, etc.",
+      "parentUuid": "5526d194_0fe92bfa",
+      "revId": "198251649310a9a5f4db04fdfabfa0dcac6d4536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "01777940_39c4a0b9",
         "filename": "go/gerrit/create_cl.go",
         "patchSetId": 1
@@ -53,6 +71,30 @@
       "writtenOn": "2018-05-23T20:20:42Z",
       "side": 1,
       "message": "WithNewChange might be a more Gerrit-y name (vs CL).",
+      "range": {
+        "startLine": 99,
+        "startChar": 3,
+        "endLine": 99,
+        "endChar": 12
+      },
+      "revId": "198251649310a9a5f4db04fdfabfa0dcac6d4536",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f93c0f2e_80172c87",
+        "filename": "go/gerrit/create_cl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-24T13:57:40Z",
+      "side": 1,
+      "message": "Ack, will do once we agree on API.",
+      "parentUuid": "01777940_39c4a0b9",
       "range": {
         "startLine": 99,
         "startChar": 3,
