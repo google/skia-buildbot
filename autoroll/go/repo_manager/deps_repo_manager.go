@@ -152,10 +152,11 @@ func getLocalPartOfEmailAddress(emailAddress string) string {
 
 // Helper function for building the commit message.
 func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtraTrybots string, bugs []string) (string, error) {
-	logStr, err := exec.RunCwd(ctx, dr.childDir, "git", "log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format='%ad %ae %s'")
+	logStr, err := exec.RunCwd(ctx, dr.childDir, "git", "log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format=%ad %ae %s")
 	if err != nil {
 		return "", err
 	}
+	logStr = strings.TrimSpace(logStr)
 	numCommits := len(strings.Split(logStr, "\n"))
 	remoteUrl, err := exec.RunCwd(ctx, dr.childDir, "git", "remote", "get-url", "origin")
 	if err != nil {
@@ -189,8 +190,8 @@ func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtra
 		data.Footer += "\n\nBUG=" + strings.Join(bugs, ",")
 	}
 	if dr.includeLog {
-		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'", from[:7], to[:7])
-		data.LogStr += logStr
+		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from[:7], to[:7])
+		data.LogStr += logStr + "\n"
 	}
 	var buf bytes.Buffer
 	if err := commitMsgTmpl.Execute(&buf, data); err != nil {
