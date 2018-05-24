@@ -86,5 +86,33 @@ func (g *MockedGerrit) IsBinaryPatch(issue int64, patch string) (bool, error) {
 	return false, nil
 }
 
+func (g *MockedGerrit) CreateChange(string, string, string) (*ChangeInfo, error) {
+	return nil, nil
+}
+
+func (g *MockedGerrit) EditFile(ci *ChangeInfo, filepath, content string) error {
+	return nil
+}
+
+func (g *MockedGerrit) MoveFile(ci *ChangeInfo, oldPath, newPath string) error {
+	return nil
+}
+
+func (g *MockedGerrit) DeleteFile(ci *ChangeInfo, filepath string) error {
+	return nil
+}
+
+func (g *MockedGerrit) SetCommitMessage(ci *ChangeInfo, msg string) error {
+	return nil
+}
+
+func (g *MockedGerrit) PublishChangeEdit(ci *ChangeInfo) error {
+	return nil
+}
+
+func (g *MockedGerrit) DeleteChangeEdit(ci *ChangeInfo) error {
+	return nil
+}
+
 // Make sure MockGerrit fulfills GerritInterface
 var _ GerritInterface = (*MockedGerrit)(nil)
