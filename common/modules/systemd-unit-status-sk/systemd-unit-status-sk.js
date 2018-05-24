@@ -19,10 +19,10 @@
  */
 import { html, render } from 'lit-html/lib/lit-extended'
 
-import 'skia-elements/buttons'
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import 'elements-sk/buttons'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
-import { diffDate } from 'common/human'
+import { diffDate } from '../human'
 
 const template = (ele) => html`
   <button raised data-action="start"   data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Start  </button>

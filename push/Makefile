@@ -4,17 +4,14 @@ build: core
 serve:
 	npx webpack-dev-server --watch
 
-core: yarn.lock
+core: package-lock.json
 	go install -v ./go/push
 	go install -v ./go/pushcli
 	go install -v ./go/build_skiapush_json5
 	build_skiapush_json5
 
-yarn.lock: package.json
-	yarn
-
 release: core
-	NODE_ENV=production npx webpack
+	npx webpack --mode=production
 
 watch: core
 	npx webpack --watch
@@ -32,3 +29,5 @@ test: build
 
 .PHONY: build core release push
 
+package-lock.json: package.json
+	npm install
