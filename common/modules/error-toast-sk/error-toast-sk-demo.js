@@ -1,4 +1,4 @@
-import 'skia-elements/buttons'
+import 'elements-sk/buttons'
 
 import { $$ } from 'common/dom'
 import { errorMessage } from 'common/errorMessage'

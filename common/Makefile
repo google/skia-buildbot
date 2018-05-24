@@ -1,21 +1,18 @@
-build:
-	yarn
+build: package-lock.json
 	npx webpack
 
-serve:
+serve: package-lock.json
 	npx webpack-dev-server --content-base ./dist --watch
 
-test: build
+test: package-lock.json build
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-testci:
-	node --version
-	npm install
+testci: package-lock.json
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-continuous:
+continuous: package-lock.json
 	# Setup for continuous testing when ssh'd into a machine.
 	# To debug tests, set up port forwarding via ssh with "-L 9876:localhost:9876".
 	# Start Xvfb on port :99 so Chrome can start.
@@ -26,7 +23,7 @@ continuous:
 	# Continuously run the tests each time they are modified.
 	DISPLAY=:99 npx karma start --no-single-run &
 
-continuous_desktop:
+continuous_desktop: package-lock.json
 	# Setup for continuous testing when running on the desktop.
 	# Continuously monitor the source files and rebuild the test files as needed.
 	npx webpack --watch &
@@ -36,4 +33,22 @@ continuous_desktop:
 
 docs:
 	npx jsdoc -c jsdoc.config.js
+
+package-lock.json: package.json
+	npm install
+
+publish:
+	npm publish
+
+update-major:
+	npm version major
+	echo "Don't forget to publish."
+
+update-minor:
+	npm version minor
+	echo "Don't forget to publish."
+
+update-patch:
+	npm version patch
+	echo "Don't forget to publish."
 

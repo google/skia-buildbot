@@ -1,4 +1,4 @@
-// Serves the jsdoc's for both the skia-elements and common libraries.
+// Serves the jsdoc's for both the elements-sk and common libraries.
 package main
 
 import (
@@ -116,7 +116,7 @@ func main() {
 	commonDemoDir := path.Join(*gitRepoDir, "common", "dist")
 	router := mux.NewRouter()
 	router.PathPrefix("/common/").Handler(http.StripPrefix("/common/", http.HandlerFunc(httputils.MakeResourceHandler(commonDemoDir))))
-	router.PathPrefix("/skia-elements/").Handler(http.StripPrefix("/skia-elements/", http.HandlerFunc(httputils.MakeResourceHandler(elementsDemoDir))))
+	router.PathPrefix("/elements-sk/").Handler(http.StripPrefix("/elements-sk/", http.HandlerFunc(httputils.MakeResourceHandler(elementsDemoDir))))
 	router.PathPrefix("/").Handler(http.HandlerFunc(httputils.MakeResourceHandler(docsDir)))
 
 	http.Handle("/", autogzip.Handle(router))

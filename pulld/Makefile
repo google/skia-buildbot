@@ -1,10 +1,10 @@
 default:
 	go install -v ./go/pulld
-	npx webpack
+	npx webpack --mode=development
 
 prod:
 	go install -v ./go/pulld
-	NODE_ENV=production npx webpack
+	npx webpack --mode=production
 
 serve:
 	npx webpack-dev-server --content-base ./dist --watch
