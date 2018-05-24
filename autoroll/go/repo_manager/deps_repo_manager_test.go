@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -377,4 +378,41 @@ func TestDEPSConfigValidation(t *testing.T) {
 	// verify that we fail validation.
 	cfg = &DEPSRepoManagerConfig{}
 	assert.Error(t, cfg.Validate())
+}
+
+func TestCommitMessageTemplate(t *testing.T) {
+	testutils.SmallTest(t)
+
+	commitA := "abc123"
+	commitB := "def456"
+	logStr := fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'", commitA, commitB)
+	logStr += `2018-05-18 courtneygo Use libnativewindow for Android builds
+2018-04-27 brandon1.jones Add initial specification for EGL_ANGLE_explicit_context Extension
+2018-05-23 tobine Update required Windows SDK version to 10.0.17134
+2018-05-23 geofflang Refactor a hex streaming into a generic FmtHex function.`
+	data := struct {
+		Childpath  string
+		ChildRepo  string
+		From       string
+		To         string
+		NumCommits int
+		LogURL     string
+		LogStr     string
+		ServerURL  string
+		Footer     string
+	}{
+		ChildPath:  "path/to/child",
+		ChildRepo:  "https://fake.git",
+		From:       commitA,
+		To:         commitB,
+		NumCommits: 3,
+		LogStr:     logStr,
+		ServerURL:  "https://autoroll.server.com",
+		Footer:     "Footer",
+	}
+
+	var buf bytes.Buffer
+	assert.NoError(t, commitMsgTmpl.Execute(&buf, data))
+
+	assert.Equal(t, buf.String(), ``)
 }
