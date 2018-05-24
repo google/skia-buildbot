@@ -8,8 +8,8 @@ APPNAME=configmap-reload
 copy_release_files()
 {
 INSTALL="install -D --verbose"
-${INSTALL} --mode=644 -T configmap-reload/Dockerfile    ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/configmap-reload ${ROOT}/configmap-reload
+${INSTALL} --mode=644 -T configmap-reload/Dockerfile ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}    ${ROOT}/usr/local/bin/${APPNAME}
 }
 
 source ../bash/docker_build.sh
