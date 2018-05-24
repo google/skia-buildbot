@@ -35,6 +35,12 @@ spec:
         - backend:
             serviceName: contest
             servicePort: 8000
+    - host: jsdoc.skia.org
+      http:
+        paths:
+        - backend:
+            serviceName: jsdoc
+            servicePort: 8000
     - host: alerts2.skia.org
       http:
         paths:

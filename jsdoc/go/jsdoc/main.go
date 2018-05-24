@@ -9,12 +9,12 @@ import (
 	"path"
 	"time"
 
-	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -100,9 +100,6 @@ func main() {
 	opts := []common.Opt{
 		common.PrometheusOpt(promPort),
 	}
-	if !*local {
-		opts = append(opts, common.CloudLoggingOpt())
-	}
 	common.InitWithMust(
 		"jsdocserver",
 		opts...,
@@ -119,7 +116,12 @@ func main() {
 	router.PathPrefix("/skia-elements/").Handler(http.StripPrefix("/skia-elements/", http.HandlerFunc(httputils.MakeResourceHandler(elementsDemoDir))))
 	router.PathPrefix("/").Handler(http.HandlerFunc(httputils.MakeResourceHandler(docsDir)))
 
-	http.Handle("/", autogzip.Handle(router))
+	h := httputils.LoggingGzipRequestResponse(router)
+	if !*local {
+		h = iap.None(h)
+	}
+
+	http.Handle("/", h)
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
