@@ -8,8 +8,8 @@
  * {@linkcode module:common/errorMessage}.
  * </p>
  */
-import { errorMessage } from 'common/errorMessage';
-import { Login } from 'common/login';
+import { errorMessage } from '../errorMessage';
+import { Login } from '../login';
 
 window.customElements.define('login-sk', class extends HTMLElement {
   connectedCallback() {
