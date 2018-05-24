@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/boltdb/bolt"
 
@@ -117,4 +118,30 @@ func (m MetricMapCodec) Decode(byteData []byte) (interface{}, error) {
 		ret[k] = metric
 	}
 	return ret, nil
+}
+
+const dotExt = "." + IMG_EXTENSION
+
+// path is expected to be
+//
+//  testname/images/digest.png
+//  testname/diffs/digest-digest.png
+//
+func ParseImagePath(path string) (string, string, string, bool) {
+	segments := strings.Split(path, "/")
+	if len(segments) != 3 {
+		return "", "", "", false
+	}
+
+	dir := segments[1]
+	if (dir != DEFAULT_DIFFIMG_DIR_NAME) && (dir != DEFAULT_IMG_DIR_NAME) {
+		return "", "", "", false
+	}
+
+	file := segments[2]
+	if (len(file) <= len(dotExt)) || (!strings.HasSuffix(file, dotExt)) {
+		return "", "", "", false
+	}
+
+	return segments[0], dir, file, true
 }

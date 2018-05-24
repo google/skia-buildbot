@@ -133,7 +133,7 @@ const (
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
-	Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error)
+	Get(priority int64, shardKey string, mainDigest string, rightDigests []string) (map[string]interface{}, error)
 
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
 	// can then serve images of the format:
@@ -143,11 +143,11 @@ type DiffStore interface {
 
 	// WarmDigest will fetch the given digests. If sync is true the call will
 	// block until all digests have been fetched or failed to fetch.
-	WarmDigests(priority int64, digests []string, sync bool)
+	WarmDigests(priority int64, shardKey string, digests []string, sync bool)
 
 	// WarmDiffs will calculate the difference between every digests in
 	// leftDigests and every in digests in rightDigests.
-	WarmDiffs(priority int64, leftDigests []string, rightDigests []string)
+	WarmDiffs(priority int64, shardKey string, leftDigests []string, rightDigests []string)
 
 	// UnavailableDigests returns map[digest]*DigestFailure which can be used
 	// to check whether a digest could not be processed and to provide details

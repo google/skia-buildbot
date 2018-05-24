@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 
 	"go.skia.org/infra/go/sklog"
@@ -149,7 +148,7 @@ func (d *MemDiffStore) ConvertLegacy() {
 
 // WarmDigests fetches images based on the given list of digests. It does
 // not cache the images but makes sure they are downloaded from GCS.
-func (d *MemDiffStore) WarmDigests(priority int64, digests []string, sync bool) {
+func (d *MemDiffStore) WarmDigests(priority int64, shardKey string, digests []string, sync bool) {
 	missingDigests := make([]string, 0, len(digests))
 	for _, digest := range digests {
 		if !d.imgLoader.IsOnDisk(digest) {
@@ -164,7 +163,7 @@ func (d *MemDiffStore) WarmDigests(priority int64, digests []string, sync bool) 
 // WarmDiffs puts the diff metrics for the cross product of leftDigests x rightDigests into the cache for the
 // given diff metric and with the given priority. This means if there are multiple subsets of the digests
 // with varying priority (ignored vs "regular") we can call this multiple times.
-func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {
+func (d *MemDiffStore) WarmDiffs(priority int64, shardKey string, leftDigests []string, rightDigests []string) {
 	priority = rtcache.PriorityTimeCombined(priority)
 	diffIDs := d.getDiffIds(leftDigests, rightDigests)
 	sklog.Infof("Warming %d diffs", len(diffIDs))
@@ -184,7 +183,7 @@ func (d *MemDiffStore) sync() {
 }
 
 // See DiffStore interface.
-func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
+func (d *MemDiffStore) Get(priority int64, shardKey string, mainDigest string, rightDigests []string) (map[string]interface{}, error) {
 	if mainDigest == "" {
 		return nil, fmt.Errorf("Received empty dMain digest.")
 	}
@@ -258,34 +257,17 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		return nil, fmt.Errorf("Unable to get abs path of %s. Got error: %s", m.baseDir, err)
 	}
 
-	dotExt := "." + IMG_EXTENSION
-
 	// Setup the file server and define the handler function.
 	fileServer := http.FileServer(http.Dir(absPath))
 	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
-		idx := strings.Index(path, "/")
-		if idx == -1 {
-			noCacheNotFound(w, r)
-			return
-		}
-		dir := path[:idx]
-
-		// Limit the requests to directories with the images and diff images.
-		if (dir != DEFAULT_DIFFIMG_DIR_NAME) && (dir != DEFAULT_IMG_DIR_NAME) {
-			noCacheNotFound(w, r)
-			return
-		}
-
-		// Get the file that was requested and verify that it's a valid PNG file.
-		file := path[idx+1:]
-		if (len(file) <= len(dotExt)) || (!strings.HasSuffix(file, dotExt)) {
+		_, dir, file, valid := ParseImagePath(r.URL.Path)
+		if !valid {
 			noCacheNotFound(w, r)
 			return
 		}
 
 		// Trim the image extension to get the image ID.
-		imgID := path[idx+1 : len(path)-len(dotExt)]
+		imgID := file[:len(file)-len(dotExt)]
 		var localRelPath string
 		if dir == DEFAULT_IMG_DIR_NAME {
 			// Validate the requested image ID.
