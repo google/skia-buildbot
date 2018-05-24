@@ -70,6 +70,30 @@
       "revId": "0593c522595dff99e840169def577a33569dd85f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5f3c206_09c3d9df",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-24T13:31:03Z",
+      "side": 1,
+      "message": "Yea I think this is sufficient.",
+      "parentUuid": "6a2a4bb6_eebc1aa8",
+      "range": {
+        "startLine": 217,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 0
+      },
+      "revId": "0593c522595dff99e840169def577a33569dd85f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

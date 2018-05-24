@@ -22,6 +22,47 @@
       "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1833bf35_46eba2e7",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-24T13:31:03Z",
+      "side": 1,
+      "message": "It\u0027s required for pre-upload steps because the license script needs updated third_party/. It makes more sense for this part to be in the pre-upload step but it did not have rm.gclient in there and there was some other complication I do not recall right now.\n\nI don\u0027t remember this so to clarify: Did roll-dep update third_party/${repo} ? Does setdep update third_party/${repo} ?",
+      "parentUuid": "4ad5f9ae_b9b4fa09",
+      "range": {
+        "startLine": 188,
+        "startChar": 1,
+        "endLine": 188,
+        "endChar": 37
+      },
+      "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98833788_23456708",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-24T13:31:03Z",
+      "side": 1,
+      "message": "This should be before the pre-upload steps to make it follow the same flow as before. Alternatively we could remove the commit step in the license pre-upload script.",
+      "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
