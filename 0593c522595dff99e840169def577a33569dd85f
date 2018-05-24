@@ -46,6 +46,30 @@
       "revId": "0593c522595dff99e840169def577a33569dd85f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a2a4bb6_eebc1aa8",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-24T12:44:07Z",
+      "side": 1,
+      "message": "I added buildCommitMsg.  We could probably move the setdep, commit, pre-upload steps, etc into a shared function, but this RepoManager works a bit differently, so we\u0027d either need to make the two work the same or add several flags.  I didn\u0027t bother for now.",
+      "parentUuid": "a07ccb36_ab84f8a3",
+      "range": {
+        "startLine": 217,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 0
+      },
+      "revId": "0593c522595dff99e840169def577a33569dd85f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

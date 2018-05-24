@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ad5f9ae_b9b4fa09",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-24T12:44:07Z",
+      "side": 1,
+      "message": "Is this required for the pre-upload steps, or can we remove it?",
+      "range": {
+        "startLine": 188,
+        "startChar": 1,
+        "endLine": 188,
+        "endChar": 37
+      },
+      "revId": "30e0f2876b1e33414e8b791c7bdaaa35655d9b47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
