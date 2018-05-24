@@ -3,7 +3,7 @@ import 'common/error-toast-sk'
 import { errorMessage } from 'common/errorMessage'
 import { jsonOrThrow } from 'common/jsonOrThrow'
 import { stateReflector } from 'common/stateReflector'
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 import { html, render } from 'lit-html/lib/lit-extended'
 
