@@ -76,9 +76,6 @@ func TrainInfra(ctx context.Context, parentRepoDir string) error {
 	}); err != nil {
 		return err
 	}
-	if _, err := exec.RunCwd(ctx, parentRepoDir, "git", "commit", "-a", "--amend", "--no-edit"); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -152,11 +149,6 @@ func FlutterLicenseScripts(ctx context.Context, parentRepoDir string) error {
 	// Step8: Revert any change to pubspec.lock. This should be a temporary step
 	// as described in https://bugs.chromium.org/p/skia/issues/detail?id=7730#c9
 	if _, err := git.GitDir(licenseToolsDir).Git(ctx, "checkout", "--", "pubspec.lock"); err != nil {
-		return err
-	}
-
-	// Step9: Commit all changed files.
-	if _, err := git.GitDir(parentRepoDir).Git(ctx, "commit", "-a", "--amend", "--no-edit"); err != nil {
 		return err
 	}
 

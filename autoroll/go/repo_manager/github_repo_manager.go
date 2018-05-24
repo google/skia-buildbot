@@ -58,7 +58,6 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 	}
 	dr := &depsRepoManager{
 		depotToolsRepoManager: drm,
-		rollDep:               path.Join(drm.depotTools, ROLL_DEP),
 	}
 	if c.GithubParentPath != "" {
 		dr.parentDir = path.Join(wd, c.GithubParentPath)
@@ -185,6 +184,26 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", ROLL_BRANCH, "-f"); err != nil {
 		return 0, err
 	}
+
+	// Make sure the right name and email are set.
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.name", rm.user); err != nil {
+		return 0, err
+	}
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.email", rm.user); err != nil {
+		return 0, err
+	}
+
+	// Run "gclient setdep".
+	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", rm.childPath, to)}
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Dir:  rm.parentDir,
+		Env:  depot_tools.Env(rm.depotTools),
+		Name: rm.gclient,
+		Args: args,
+	}); err != nil {
+		return 0, err
+	}
+
 	// Make third_party/ match the new DEPS.
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.depsRepoManager.parentDir,
@@ -195,31 +214,11 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, fmt.Errorf("Error when running gclient sync to make third_party/ match the new DEPS: %s", err)
 	}
 
-	// Make sure the right name and email are set.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.name", rm.user); err != nil {
-		return 0, err
-	}
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.email", rm.user); err != nil {
-		return 0, err
-	}
-
-	// Run roll-dep.
-	args := []string{rm.childPath, "--ignore-dirty-tree", "--roll-to", to}
-	sklog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  rm.parentDir,
-		Env:  depot_tools.Env(rm.depotTools),
-		Name: rm.rollDep,
-		Args: args,
-	}); err != nil {
-		return 0, err
-	}
-	// Build the commit message, starting with the message provided by roll-dep.
-	commitMsg, err := git.GitDir(rm.parentDir).Git(ctx, "log", "-n1", "--format=%B", "HEAD")
+	// Build the commit message.
+	commitMsg, err := rm.buildCommitMsg(ctx, from, to, cqExtraTrybots, nil)
 	if err != nil {
 		return 0, err
 	}
-	commitMsg += fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, rm.serverURL)
 
 	// Run the pre-upload steps and collect any errors.
 	preUploadErrors := []error{}
@@ -227,6 +226,11 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		if err := s(ctx, rm.parentDir); err != nil {
 			preUploadErrors = append(preUploadErrors, err)
 		}
+	}
+
+	// Commit.
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
+		return 0, err
 	}
 
 	// Push to the forked repository.
