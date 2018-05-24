@@ -174,6 +174,19 @@ type TriageLogEntry struct {
 	UndoChangeID int64            `json:"undoChangeId"`
 }
 
+func (t *TriageLogEntry) GetChanges() map[string]types.TestClassification {
+	ret := map[string]types.TestClassification{}
+	for _, d := range t.Details {
+		label := types.LabelFromString(d.Label)
+		if found, ok := ret[d.TestName]; !ok {
+			ret[d.TestName] = types.TestClassification{d.Digest: label}
+		} else {
+			found[d.Digest] = label
+		}
+	}
+	return ret
+}
+
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
 	expectations *Expectations
