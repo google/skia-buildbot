@@ -249,7 +249,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task.MaxAttempts = 2
 	if strings.Contains(name, "Race") {
 		task.MaxAttempts = 1
-		task.IoTimeout = 40 * time.Minute
+		task.IoTimeout = 1 * time.Hour
 	}
 	b.MustAddTask(name, task)
 	return name
