@@ -33,7 +33,6 @@ package deepequal
 import (
 	"fmt"
 	"reflect"
-	"testing"
 	"unsafe"
 
 	"github.com/davecgh/go-spew/spew"
@@ -367,7 +366,7 @@ var spewConfig = spew.ConfigState{
 // have a zero value and none of the direct fields point to the same object.
 // This catches regressions where a new field is added without adding that field
 // to the Copy method. Arguments must be structs.
-func AssertCopy(t *testing.T, a, b interface{}) {
+func AssertCopy(t assert.TestingT, a, b interface{}) {
 	AssertDeepEqual(t, a, b)
 
 	// Check that all fields are non-zero.
