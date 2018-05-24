@@ -1,7 +1,7 @@
 {
   "childName": "SwiftShader",
   "cqExtraTrybots": [
-    "skia.primary:Test-Debian9-Clang-GCE-CPU-AVX2-x86_64-Debug-All-SwiftShader"
+    "skia.primary:Test-Debian9-Clang-GCE-GPU-SwiftShader-x86_64-Debug-All-SwiftShader"
   ],
   "gerritURL": "https://skia-review.googlesource.com",
   "maxRollFrequency": "0m",
