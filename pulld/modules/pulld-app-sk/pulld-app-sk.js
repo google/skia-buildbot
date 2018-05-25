@@ -1,12 +1,12 @@
 import { html, render } from 'lit-html/lib/lit-extended'
 
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
-import 'common/error-toast-sk'
-import 'common/systemd-unit-status-sk'
-import { errorMessage } from 'common/errorMessage'
-import { fromObject } from 'common/query'
-import { jsonOrThrow } from 'common/jsonOrThrow'
+import 'common-sk/modules/error-toast-sk'
+import 'common-sk/modules/systemd-unit-status-sk'
+import { errorMessage } from 'common-sk/modules/errorMessage'
+import { fromObject } from 'common-sk/modules/query'
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
 const listUnits = (ele) =>  ele._units.map(
   unit => html`<systemd-unit-status-sk machine$="${ele._hostname}" value=${unit}></systemd-unit-status-sk>`
