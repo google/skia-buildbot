@@ -1,8 +1,8 @@
-import 'common/error-toast-sk'
+import 'common-sk/modules/error-toast-sk'
 
-import { diffDate } from 'common/human'
-import { errorMessage } from 'common/errorMessage'
-import { jsonOrThrow } from 'common/jsonOrThrow'
+import { diffDate } from 'common-sk/modules/human'
+import { errorMessage } from 'common-sk/modules/errorMessage'
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
 import { html, render } from 'lit-html/lib/lit-extended'
 

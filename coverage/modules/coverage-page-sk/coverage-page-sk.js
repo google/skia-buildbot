@@ -1,9 +1,9 @@
-import 'common/error-toast-sk'
+import 'common-sk/modules/error-toast-sk'
 
-import { errorMessage } from 'common/errorMessage'
-import { jsonOrThrow } from 'common/jsonOrThrow'
-import { stateReflector } from 'common/stateReflector'
-import { upgradeProperty } from 'skia-elements/upgradeProperty'
+import { errorMessage } from 'common-sk/modules/errorMessage'
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import { stateReflector } from 'common-sk/modules/stateReflector'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 import { html, render } from 'lit-html/lib/lit-extended'
 

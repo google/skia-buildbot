@@ -103,9 +103,11 @@ func Init() {
 
 	serverNames = config.AllServerNames()
 
-	if client, err = auth.NewDefaultClient(*local, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
-		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE)
+	if err != nil {
+		sklog.Fatalf("Failed to create authenticated HTTP client token source: %s", err)
 	}
+	client := auth.ClientFromTokenSource(ts)
 
 	fastClient = NewFastTimeoutClient()
 
@@ -524,8 +526,9 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingDefaultAuthOpt(local),
 	)
-	login.SimpleInitMust(*port, *local)
-
+	if !*local {
+		login.SimpleInitMust(*port, *local)
+	}
 	Init()
 
 	go startDirtyMonitoring()
@@ -534,9 +537,11 @@ func main() {
 	r.HandleFunc("/_/change", changeHandler)
 	r.HandleFunc("/_/state", stateHandler)
 	r.HandleFunc("/_/status", statusHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	if !*local {
+		r.HandleFunc("/loginstatus/", login.StatusHandler)
+		r.HandleFunc("/logout/", login.LogoutHandler)
+		r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	}
 	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infoln("Ready to serve.")

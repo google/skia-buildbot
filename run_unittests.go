@@ -432,7 +432,7 @@ func main() {
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"python", "go/testutils/uncategorized_tests.py"}, ".", "uncategorized tests", testutils.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"make", "testci"}, "common", "common elements", testutils.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"make", "testci"}, "common-sk", "common-sk elements", testutils.MEDIUM_TEST))
 
 	if !*race {
 		// put this behind a flag because polylintTests trys to build the polymer files

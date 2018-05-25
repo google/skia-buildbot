@@ -45,7 +45,7 @@ module.exports = {
   },
   plugins: [
     new ExtractTextPlugin({
-      filename: '[name]-bundle.css?[contenthash]',
+      filename: '[name]-bundle.css?[hash]',
     }),
     new HtmlWebpackPlugin({
       filename: 'index.html',

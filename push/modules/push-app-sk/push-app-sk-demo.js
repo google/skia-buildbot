@@ -1,6 +1,6 @@
 import './index.js'
 
-import { $$ } from 'common/dom';
+import { $$ } from 'common-sk/modules/dom';
 
 let ele = $$('#ele');
 let state = {
