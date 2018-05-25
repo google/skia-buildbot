@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "common-sk": "^1.2.0",
+    "elements-sk": "^1.0.0",
     "jsdoc": "^3.5.5",
     "webpack-cli": "^2.1.4"
   }
