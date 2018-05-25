@@ -4,10 +4,13 @@
   "description": "Displays the coverage summaries of Skia's tests.",
   "main": "pages/index.js",
   "dependencies": {
-    "lit-html": "^0.9.0",
-    "pulito": "^2.0.0"
+    "common-sk": "^1.2.0",
+    "lit-html": "^0.10.0",
+    "pulito": "^3.0.2",
+    "fetch-mock": "^6.4.2"
   },
   "devDependencies": {
-    "fetch-mock": "^6.0.0"
+    "webpack": "^4.8.3",
+    "webpack-cli": "^2.1.4"
   }
 }

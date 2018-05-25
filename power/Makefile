@@ -1,15 +1,14 @@
 build: core
-	npx webpack
+	npx webpack --mode=development
 
 serve:
 	npx webpack-dev-server --watch
 
 core:
-	yarn
 	go install -v ./go/power-controller
 
 release_build: core
-	NODE_ENV=production npx webpack
+	npx webpack --mode=production
 
 release: release_build
 	./power_release "`git log -n1 --format=%s`"
