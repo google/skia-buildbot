@@ -1,4 +1,4 @@
-// Serves the jsdoc's for both the skia-elements and common libraries.
+// Serves the jsdoc's for both the elements-sk and common libraries.
 package main
 
 import (
@@ -72,14 +72,14 @@ func step() error {
 	// Build common demo pages.
 	buildCommonDemoCmd := &exec.Command{
 		Name:        "make",
-		Dir:         path.Join(*gitRepoDir, "common"),
+		Dir:         path.Join(*gitRepoDir, "common-sk"),
 		InheritPath: false,
 		LogStderr:   true,
 		LogStdout:   true,
 	}
 
 	if err := exec.Run(ctx, buildCommonDemoCmd); err != nil {
-		return fmt.Errorf("Failed building common demos: %s", err)
+		return fmt.Errorf("Failed building common-sk demos: %s", err)
 	}
 
 	liveness.Reset()
@@ -110,10 +110,10 @@ func main() {
 	go periodic()
 	docsDir := path.Join(*gitRepoDir, "jsdoc", "out")
 	elementsDemoDir := path.Join(*gitRepoDir, "ap", "dist")
-	commonDemoDir := path.Join(*gitRepoDir, "common", "dist")
+	commonDemoDir := path.Join(*gitRepoDir, "common-sk", "dist")
 	router := mux.NewRouter()
-	router.PathPrefix("/common/").Handler(http.StripPrefix("/common/", http.HandlerFunc(httputils.MakeResourceHandler(commonDemoDir))))
-	router.PathPrefix("/skia-elements/").Handler(http.StripPrefix("/skia-elements/", http.HandlerFunc(httputils.MakeResourceHandler(elementsDemoDir))))
+	router.PathPrefix("/common-sk/").Handler(http.StripPrefix("/common-sk/", http.HandlerFunc(httputils.MakeResourceHandler(commonDemoDir))))
+	router.PathPrefix("/elements-sk/").Handler(http.StripPrefix("/elements-sk/", http.HandlerFunc(httputils.MakeResourceHandler(elementsDemoDir))))
 	router.PathPrefix("/").Handler(http.HandlerFunc(httputils.MakeResourceHandler(docsDir)))
 
 	h := httputils.LoggingGzipRequestResponse(router)

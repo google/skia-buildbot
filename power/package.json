@@ -4,10 +4,11 @@
   "main": "pages/index.js",
   "license": "",
   "dependencies": {
-    "lit-html": "^0.9.0",
-    "pulito": "^2.0.0"
-  },
-  "devDependencies": {
-    "fetch-mock": "^6.0.0"
+    "common-sk": "^1.2.0",
+    "fetch-mock": "^6.4.2",
+    "lit-html": "^0.10.0",
+    "pulito": "^3.0.2",
+    "webpack": "^4.8.3",
+    "webpack-cli": "^2.1.4"
   }
 }
