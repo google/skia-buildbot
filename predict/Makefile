@@ -1,11 +1,10 @@
+.PHONY: build release push
 build:
-	go install -v ./go/predict
+	go install  ./go/...
 
-testgo:
-	go test -v ./go/...
+release:
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/predict
+	./build_release
 
-.PHONY: push
-push: build
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli predict skia-predict
+push:
+	pushk --apply predict

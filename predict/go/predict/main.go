@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/predict/go/app"
@@ -26,6 +27,7 @@ import (
 	"go.skia.org/infra/predict/go/flaky"
 	"go.skia.org/infra/predict/go/statusprovider"
 	"go.skia.org/infra/predict/go/tasklistprovider"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -37,7 +39,7 @@ var (
 	namespace      = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'perf'.")
 	period         = flag.Duration("period", time.Hour, "How often to rebuild the prediction model.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	projectName    = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
+	projectName    = flag.String("project_name", "skia-public", "The Google Cloud project name.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	remoteDbURL    = flag.String("remote_db_url", "http://skia-task-scheduler:8008/db/", "The URL of the task scheduler remote db endpoint.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
@@ -131,7 +133,6 @@ func main() {
 	common.InitWithMust(
 		"predict",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
 	loadTemplates()
 
@@ -141,7 +142,13 @@ func main() {
 	if *gitRepoDir == "" {
 		sklog.Fatal("The --git_repo_dir flag is required.")
 	}
-	if err := ds.Init(*projectName, *namespace); err != nil {
+	ts, err := auth.NewDefaultTokenSource(*bool, swarming.AUTH_SCOPE)
+	if err != nil {
+		sklog.Fatalf("Failed to create token source: %s", err)
+	}
+	httpClient := auth.ClientFromTokenSource(ts)
+
+	if err := ds.InitWithOpt(*projectName, *namespace, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
 	}
 	if os.Getenv("DATASTORE_EMULATOR_HOST") != "" {
@@ -150,10 +157,6 @@ func main() {
 
 	ctx := context.Background()
 	repo, err := git.NewCheckout(ctx, *gitRepoURL, *gitRepoDir)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	httpClient, err = auth.NewDefaultJWTServiceAccountClient(swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -185,6 +188,9 @@ func main() {
 	var h http.Handler = router
 	h = httputils.LoggingGzipRequestResponse(h)
 	http.Handle("/", h)
+	if !*local {
+		h = iap.None(h)
+	}
 
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
