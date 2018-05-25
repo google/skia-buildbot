@@ -47,6 +47,7 @@
     <p>Press the button below to start a new instance of the debugger.</p>
     <form action="/instanceNew" method="post" accept-charset="utf-8">
       <input type="submit" value="Start">
+      {{ .csrfField }}
     </form>
   </main>
 </body>

@@ -53,3 +53,10 @@ spec:
               port: 8000
             initialDelaySeconds: 3
             periodSeconds: 3
+          volumeMounts:
+            - name: debugger-csrf-salt
+              mountPath: /var/debugger
+      volumes:
+        - name: debugger-csrf-salt
+          secret:
+            secretName: debugger-csrf-salt

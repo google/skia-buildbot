@@ -9,8 +9,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
 
 ADD https://storage.googleapis.com/swiftshader-binaries/OpenGL_ES/Latest/Linux/libGLESv2.so /usr/local/lib/libGLESv2.so
 ADD https://storage.googleapis.com/swiftshader-binaries/OpenGL_ES/Latest/Linux/libEGL.so /usr/local/lib/libEGL.so
-COPY . /
 COPY --from=gcr.io/skia-public/skiaserve:prod /bin/skiaserve /usr/local/bin/skiaserve
+COPY . /
 
 ENTRYPOINT ["/usr/local/bin/debugger"]
 CMD ["--logtostderr", "--resources_dir=/usr/local/share/debugger"]
