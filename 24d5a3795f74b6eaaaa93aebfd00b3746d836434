@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7153a647_8fc47fd6",
+        "filename": "ap/Makefile",
+        "patchSetId": 22
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-25T17:32:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47801d70_64ee1f46",
+      "range": {
+        "startLine": 8,
+        "startChar": 46,
+        "endLine": 8,
+        "endChar": 53
+      },
+      "revId": "24d5a3795f74b6eaaaa93aebfd00b3746d836434",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "be19723d_aa8a2a56",
         "filename": "ap/package.json",
         "patchSetId": 22
@@ -36,6 +60,30 @@
       "writtenOn": "2018-05-25T15:30:34Z",
       "side": 1,
       "message": "unofficial?  The name here doesn\u0027t impact the folder layout? (e.g. import ./elements-sk/foo) ?",
+      "range": {
+        "startLine": 2,
+        "startChar": 22,
+        "endLine": 2,
+        "endChar": 33
+      },
+      "revId": "24d5a3795f74b6eaaaa93aebfd00b3746d836434",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9972cc6_76032c87",
+        "filename": "ap/package.json",
+        "patchSetId": 22
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-25T17:32:12Z",
+      "side": 1,
+      "message": "That package.json we use to create the npm package is in the /ap/element-sk directory. I changed this to \"elements-sk-local\" to avoid confusion.",
+      "parentUuid": "be19723d_aa8a2a56",
       "range": {
         "startLine": 2,
         "startChar": 22,
