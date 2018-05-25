@@ -13,6 +13,7 @@ import (
 	"runtime"
 
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/debugger/go/instances"
 	"go.skia.org/infra/go/buildskia"
@@ -30,6 +31,7 @@ var (
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	source       = flag.String("source", "https://debugger-assets.skia.org", "The URL to load the web assetts from. Passed as --source to skiaserve.")
 )
 
 var (
@@ -70,7 +72,10 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+
+	if err := templates.ExecuteTemplate(w, "index.html", map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(r),
+	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -175,13 +180,13 @@ func main() {
 		"debugger",
 		common.PrometheusOpt(promPort),
 	)
-	co = instances.New()
+	co = instances.New(*source)
 
 	Init()
 
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
-	router.HandleFunc("/", mainHandler)
+	router.Handle("/", csrf.Protect([]byte("32-byte-long-auth-key"), csrf.Secure(!*local))(http.HandlerFunc(mainHandler)))
 	router.HandleFunc("/admin", adminHandler)
 	router.HandleFunc("/loadfrom", loadHandler)
 
@@ -197,5 +202,5 @@ func main() {
 	http.Handle("/", h)
 
 	sklog.Infoln("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Fatal(http.ListenAndServe(*port, h))
 }
