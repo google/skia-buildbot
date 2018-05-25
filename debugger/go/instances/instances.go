@@ -87,10 +87,10 @@ type instance struct {
 
 // Start a single instance of skiaserve running at the given port.
 //
-func (c *instance) Start(uuid string) (<-chan error, error) {
+func (c *instance) Start(uuid, source string) (<-chan error, error) {
 	runCmd := &exec.Command{
 		Name:      "xvfb-run",
-		Args:      []string{"--server-args", "-screen 0 1280x1024x24", "--server-num", fmt.Sprintf("%d", c.port), SKIASERVE, "--port", fmt.Sprintf("%d", c.port), "--source", "https://debugger-assets.skia.org", "--hosted"},
+		Args:      []string{"--server-args", "-screen 0 1280x1024x24", "--server-num", fmt.Sprintf("%d", c.port), SKIASERVE, "--port", fmt.Sprintf("%d", c.port), "--source", source, "--hosted"},
 		Env:       []string{fmt.Sprintf("DISPLAY=:%d", c.display)},
 		LogStderr: true,
 		LogStdout: true,
@@ -132,6 +132,7 @@ func (p instanceSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 //
 // TODO(jcgregorio) Need to add memory limits to instance.
 type Instances struct {
+	source string
 	// pool is the list of potential running skiaserve instances. We only start
 	// them on demand.
 	pool []*instance
@@ -143,8 +144,9 @@ type Instances struct {
 	mutex sync.Mutex
 }
 
-func New() *Instances {
+func New(source string) *Instances {
 	s := &Instances{
+		source:    source,
 		pool:      []*instance{},
 		instances: map[string]*instance{},
 	}
@@ -222,7 +224,7 @@ func (s *Instances) startInstance(uuid string) error {
 	runningInstances := metrics2.GetCounter("running_instances", nil)
 	runningInstances.Inc(1)
 	co.started = time.Now()
-	exitChan, err := co.Start(uuid)
+	exitChan, err := co.Start(uuid, s.source)
 	if err != nil {
 		return fmt.Errorf("Failed to start instance at port %d: %s", co.port, err)
 	}
@@ -277,7 +279,6 @@ func (s *Instances) setLastUsed(uuid string) {
 // the correct instance based on the uuid.
 func (s *Instances) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/instanceNew" && r.Method == "POST" {
-		// TODO(jcgregorio) Add gorilla.csrf protection.
 		http.Redirect(w, r, fmt.Sprintf("/%s/", NewInstanceID()), 303)
 		return
 	}
