@@ -36,6 +36,7 @@ all:
     radeon:
       hosts:
         skia-e-win-303:
+        skia-e-win-306:
         skia-e-win-310:
         skia-e-win-311:
         skia-e-win-312:
