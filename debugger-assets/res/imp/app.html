@@ -407,14 +407,14 @@ The main application element for the Skia Debugger.
 <script>
   (function () {
     var INDENTERS = {
-      "Save":             { icon: "icons:save",         color: "#B2DF8A", count: 1 },
-      "SaveLayer":        { icon: "icons:content-copy", color: "#FDBF6F", count: 1  },
-      "BeginDrawPicture": { icon: "image:image",        color: "#A6CEE3", count: 1  },
+      'Save':             { icon: 'icons:save',         color: '#B2DF8A', count: 1 },
+      'SaveLayer':        { icon: 'icons:content-copy', color: '#FDBF6F', count: 1  },
+      'BeginDrawPicture': { icon: 'image:image',        color: '#A6CEE3', count: 1  },
     };
-    var OUTDENTERS = ["Restore", "EndDrawPicture"];
+    var OUTDENTERS = ['Restore', 'EndDrawPicture'];
 
     Polymer({
-      is: "debugger-app-sk",
+      is: 'debugger-app-sk',
 
       properties: {
         tab_selected: {
@@ -424,7 +424,7 @@ The main application element for the Skia Debugger.
         },
         bitmap: {
           type: String,
-          value: "",
+          value: '',
           reflectToAttribute: false,
         },
         _leftRatio: {
@@ -476,7 +476,7 @@ The main application element for the Skia Debugger.
 
         // Load the test image served by the debugger.
         this._setCacheBreakingURL();
-        this.$.post_skp.action= this._correctedOrigin() + "new";
+        this.$.post_skp.action= this._correctedOrigin() + 'new';
 
         this.$.commands.addEventListener('op-selected', function(e) {
           // Only force reloading the image if necessary.
@@ -494,8 +494,8 @@ The main application element for the Skia Debugger.
 
         this.$.commands.addEventListener('op-toggled', function(e) {
           // Toggle the op and the trigger a reload of the image.
-          var value = e.detail.checked ? "1" : "0";
-          sk.post("./cmd/" + e.detail.index + "/" + value, "").then(function() {
+          var value = e.detail.checked ? '1' : '0';
+          sk.post('./cmd/' + e.detail.index + '/' + value, '').then(function() {
             this._setCacheBreakingURL();
           }.bind(this)).catch(sk.errorMessage);
         }.bind(this));
@@ -514,14 +514,14 @@ The main application element for the Skia Debugger.
 
         this.$.play.prePlayCallback(function() {
           if (!this.$.colorBreakPoint.disabled && this.$.colorBreakPoint.checked) {
-            sk.get("./break/" + this._targetItem + "/" + this.x + "/" + this.y).then(JSON.parse).then(function(json) {
+            sk.get('./break/' + this._targetItem + '/' + this.x + '/' + this.y).then(JSON.parse).then(function(json) {
               if (json.endOp != -1) {
-                this.$.prevColor.textContent = json.startColor + " -> " + json.endColor;
+                this.$.prevColor.textContent = json.startColor + ' -> ' + json.endColor;
                 var item = this._findItemFromIndex(json.endOp);
                 this._targetItem = item;
                 this._setCacheBreakingURL();
               } else {
-                sk.errorMessage("Pixel at (" + this.x + ", " + this.y + ") never changes.");
+                sk.errorMessage('Pixel at (' + this.x + ', ' + this.y + ') never changes.');
               }
             }.bind(this)).catch(sk.errorMessage);
             return false;
@@ -530,10 +530,10 @@ The main application element for the Skia Debugger.
         }.bind(this));
 
         this.$.zoom.addEventListener('zoom-point', function(e) {
-          this.set("rgb", e.detail.rgb);
-          this.set("hex", e.detail.hex);
-          this.set("x", e.detail.x);
-          this.set("y", e.detail.y);
+          this.set('rgb', e.detail.rgb);
+          this.set('hex', e.detail.hex);
+          this.set('x', e.detail.x);
+          this.set('y', e.detail.y);
         }.bind(this));
 
         this.$.zoom.addEventListener('zoom-loaded', function(e) {
@@ -541,8 +541,8 @@ The main application element for the Skia Debugger.
         }.bind(this));
 
         this.$.img.addEventListener('load', function() {
-          this.$.download.href = this._correctedOrigin() + "download";
-          this.$.download.classList.remove("hidden");
+          this.$.download.href = this._correctedOrigin() + 'download';
+          this.$.download.classList.remove('hidden');
 
           this.$.commands.item = this._targetItem;
         }.bind(this));
@@ -554,7 +554,7 @@ The main application element for the Skia Debugger.
 
         this.$.play.addEventListener('mode-changed-manually', function(e) {
           // Clear the breakpoint info if the user presses a button.
-          this.$.prevColor.textContent = "";
+          this.$.prevColor.textContent = '';
         }.bind(this));
 
         this.$.status.classList.remove('hidden');
@@ -565,13 +565,13 @@ The main application element for the Skia Debugger.
       },
 
       _resizeImage: function(e) {
-        var ele = sk.findParent(e.target, "PAPER-ICON-BUTTON");
+        var ele = sk.findParent(e.target, 'PAPER-ICON-BUTTON');
         if (!ele) {
           return
         }
-        this.$.img.classList.remove("natural", "fit", "right", "bottom");
+        this.$.img.classList.remove('natural', 'fit', 'right', 'bottom');
         this.$.img.classList.add(ele.dataset.style);
-        window.dispatchEvent(new CustomEvent("partial-resize"));
+        window.dispatchEvent(new CustomEvent('partial-resize'));
       },
 
       _smallerLeft: function() {
@@ -595,7 +595,7 @@ The main application element for the Skia Debugger.
         if (e.target.selected == this._cmd.colorMode) {
           return
         }
-        sk.post("./colorMode/" + e.target.selected, "").then(function() {
+        sk.post('./colorMode/' + e.target.selected, '').then(function() {
           // Reloads the image and the JSON for all the commands.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
@@ -610,10 +610,10 @@ The main application element for the Skia Debugger.
           return
         }
         // Don't do anything if the toggle and the mode already agree.
-        if (e.target.checked == (this._cmd.mode == "gpu")) {
+        if (e.target.checked == (this._cmd.mode == 'gpu')) {
           return
         }
-        sk.post("./enableGPU/" + (e.target.checked ? 1 : 0), "").then(function() {
+        sk.post('./enableGPU/' + (e.target.checked ? 1 : 0), '').then(function() {
           // Reloads the image and the JSON for all the commands.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
@@ -623,7 +623,7 @@ The main application element for the Skia Debugger.
       },
 
       _gpuChecked: function(mode) {
-        return mode == "gpu";
+        return mode == 'gpu';
       },
 
       _gpuNotChecked: function(mode) {
@@ -643,12 +643,12 @@ The main application element for the Skia Debugger.
         if (!this._cmd) {
           return
         }
-        this.$.gpuOpBoundsLegend.classList.toggle("hidden", !this.$.gpuOpBounds.checked);
+        this.$.gpuOpBoundsLegend.classList.toggle('hidden', !this.$.gpuOpBounds.checked);
         // Don't do anything if the toggle and the mode already agree.
         if (this.$.gpuOpBounds.checked === this._cmd.drawGpuOpBounds) {
           return
         }
-        sk.post("./gpuOpBounds/" + (this.$.gpuOpBounds.checked ? 1 : 0), "").then(function() {
+        sk.post('./gpuOpBounds/' + (this.$.gpuOpBounds.checked ? 1 : 0), '').then(function() {
           // Reloads the image and the JSON for all the commands.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
@@ -661,7 +661,7 @@ The main application element for the Skia Debugger.
         if (this.$.colorBreakPoint.checked) {
           // We want to be able to jump to any op when the breakpoint
           // triggers, so we remove all filtering.
-          this.$.fast.value = "";
+          this.$.fast.value = '';
           this._fastFilter();
         }
       },
@@ -678,25 +678,25 @@ The main application element for the Skia Debugger.
       },
 
       _clearFilter: function()  {
-        this.$.fast.value = "";
+        this.$.fast.value = '';
         this._fastFilter();
       },
 
       _fastFilter: function() {
         var rawFilter = this.$.fast.value.trim().toLowerCase();
-        if (rawFilter.indexOf(":") > 0) {
-          // This is a range filter, e.g. "3:21".
+        if (rawFilter.indexOf(':') > 0) {
+          // This is a range filter, e.g. '3:21'.
           this._rangeFilter(rawFilter);
         } else {
-          // Text filter, e.g. "!save restore".
+          // Text filter, e.g. '!save restore'.
           this._textFilter(rawFilter);
         }
       },
 
       _rangeFilter: function(rawFilter) {
-        var parts = rawFilter.split(":");
+        var parts = rawFilter.split(':');
         if (parts.length != 2) {
-          sk.errorMessage("Range filters are of the form 'N:M'.");
+          sk.errorMessage('Range filters are of the form "N:M".');
           return
         }
         var begin = +parts[0];
@@ -714,7 +714,7 @@ The main application element for the Skia Debugger.
       },
 
       _textFilter: function(rawFilter) {
-        var negative = (rawFilter[0] == "!");
+        var negative = (rawFilter[0] == '!');
         if (negative) {
           rawFilter = rawFilter.slice(1).trim();
         }
@@ -747,13 +747,13 @@ The main application element for the Skia Debugger.
       },
 
       _refreshPage: function() {
-        this.$.img.classList.remove("hidden");
+        this.$.img.classList.remove('hidden');
         this._setCacheBreakingURL();
-        sk.get("./info").then(JSON.parse).then(function(json) {
+        sk.get('./info').then(JSON.parse).then(function(json) {
           this.skp_not_loaded = false;
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
-        sk.get("./cmd").then(JSON.parse).then(function(json) {
+        sk.get('./cmd').then(JSON.parse).then(function(json) {
           this._cmd = this._processCommands(json);
           if (this.$.fast.value) {
             this._fastFilter();
@@ -781,14 +781,14 @@ The main application element for the Skia Debugger.
 
       _clipHandler: function() {
         var alpha = this.$.clip.checked ? 128 : 0;
-        sk.post("./clipAlpha/" + alpha).then(function() {
+        sk.post('./clipAlpha/' + alpha).then(function() {
           this._setCacheBreakingURL();
         }.bind(this)).catch(sk.errorMessage);
       },
 
       _textBoundsHandler: function() {
         var checked = this.$.textBounds.checked ? 1 : 0;
-        sk.post("./textBounds/" + checked).then(function() {
+        sk.post('./textBounds/' + checked).then(function() {
           this._setCacheBreakingURL();
         }.bind(this)).catch(sk.errorMessage);
       },
@@ -800,34 +800,34 @@ The main application element for the Skia Debugger.
         }
         var index = this._filtered.commands[this._targetItem]._index;
         var op = this._filtered.commands[this._targetItem];
-        var path = "img/" + index + "?";
-        this.bitmap = op.details.bitmap ? (this._correctedOrigin() + op.details.bitmap.data) : "";
-        sk.get("./info/" + index).then(JSON.parse).then(function(json) {
+        var path = 'img/' + index + '?';
+        this.bitmap = op.details.bitmap ? (this._correctedOrigin() + op.details.bitmap.data) : '';
+        sk.get('./info/' + index).then(JSON.parse).then(function(json) {
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
-        this.$.img.src = this._correctedOrigin() + path + "?" + new Date().getTime();
+        this.$.img.src = this._correctedOrigin() + path + '?' + new Date().getTime();
       },
 
       _correctedOrigin: function() {
-        // Since we always use relative URLs, i.e. "./foo" we need to make
-        // sure the base URL ends with a "/".
+        // Since we always use relative URLs, i.e. './foo' we need to make
+        // sure the base URL ends with a '/'.
         var origin = window.location.href;
-        if (origin[origin.length-1] != "/") {
-          origin += "/";
+        if (origin[origin.length-1] != '/') {
+          origin += '/';
         }
         return origin;
       },
 
       _crosshairClick: function(e) {
-        if (this.$.crosshair.update_on === "move") {
-          this.$.crosshair.update_on = "click";
+        if (this.$.crosshair.update_on === 'move') {
+          this.$.crosshair.update_on = 'click';
           this.$.colorBreakPoint.disabled = false;
-          this.$.keyboardshortcuts.classList.remove("hidden");
+          this.$.keyboardshortcuts.classList.remove('hidden');
           this.$.crosshair.hidden = false;
         } else {
-          this.$.crosshair.update_on = "move";
+          this.$.crosshair.update_on = 'move';
           this.$.colorBreakPoint.disabled = true;
-          this.$.keyboardshortcuts.classList.add("hidden");
+          this.$.keyboardshortcuts.classList.add('hidden');
           this.$.crosshair.hidden = true;
         }
       },
@@ -835,20 +835,20 @@ The main application element for the Skia Debugger.
       _keyDownHandler: function(e) {
         var c = String.fromCharCode(e.keyCode);
         switch (c) {
-          case "J":
+          case 'J':
             this.$.crosshair.y = this.$.crosshair.y+1;
             break;
-          case "K":
+          case 'K':
             this.$.crosshair.y = this.$.crosshair.y-1;
             break;
-          case "H":
+          case 'H':
             this.$.crosshair.x = this.$.crosshair.x-1;
             break;
-          case "L":
+          case 'L':
             this.$.crosshair.x = this.$.crosshair.x+1;
             break;
         }
-        if ("JKHL".indexOf(c) != -1 ) {
+        if ('JKHL'.indexOf(c) != -1 ) {
           e.stopPropagation();
         }
       },
@@ -897,7 +897,7 @@ The main application element for the Skia Debugger.
             // Now that we can match an OUTDENTER with an INDENTER we can set
             // the _zoom property for both commands.
             var begin = matchup.pop();
-            var range = begin + ":" + i;
+            var range = begin + ':' + i;
             commands[i]._zoom = range
             commands[begin]._zoom = range;
 
