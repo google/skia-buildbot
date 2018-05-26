@@ -1,0 +1,26 @@
+bin/bash
+# Builds and uploads a debian package for fiddle.
+APPNAME=fiddle
+SYSTEMD=${APPNAME}.service
+DESCRIPTION="Application for running Skia C++ code on the web."
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=644 -T  ./sys/${APPNAME}.service   ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle       ${ROOT}/usr/local/bin/fiddle
+${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle_build ${ROOT}/usr/local/bin/fiddle_build
+${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle_run   ${ROOT}/mnt/pd0/fiddle/bin/fiddle_run
+${INSTALL_DIR} --mode=755 ${ROOT}/usr/local/share/fiddle/templates
+${INSTALL} --mode=644     ./templates/*              ${ROOT}/usr/local/share/fiddle/templates
+${INSTALL} --mode=644 -T  ./res/js/core.js           ${ROOT}/usr/local/share/fiddle/res/js/core.js
+${INSTALL} --mode=644 -T  ./res/vul/elements.html    ${ROOT}/usr/local/share/fiddle/res/vul/elements.html
+${INSTALL} --mode=644 -T  ./cpp/fiddle_secwrap.cpp   ${ROOT}/mnt/pd0/fiddle/bin/fiddle_secwrap.cpp
+${INSTALL} --mode=644 -T  ./cpp/seccomp_bpf.h        ${ROOT}/mnt/pd0/fiddle/bin/seccomp_bpf.h
+}
+
+source ../bash/release.sh
