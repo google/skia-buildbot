@@ -1,0 +1,30 @@
+{
+  "test1": {
+    "code": "void draw(SkCanvas* canvas) {\n    SkPaint p;\n    p.setColor(SK_ColorRED);\n    p.setAntiAlias(true);\n    p.setStyle(SkPaint::kStroke_Style);\n    p.setStrokeWidth(10);\n\n    canvas->drawLine(20, 20, 100, 100, p);\n}",
+    "options": {
+      "width": 256,
+      "height": 256,
+      "source": 0,
+      "srgb": false,
+      "f16": false,
+      "textOnly": false,
+      "animated": false,
+      "duration": 0
+    },
+    "fast": true
+  },
+  "test2": {
+    "code": "void draw(SkCanvas* canvas) { SkDebugf(\"Hello\"); }",
+    "options": {
+      "width": 256,
+      "height": 256,
+      "source": 0,
+      "srgb": false,
+      "f16": false,
+      "textOnly": true,
+      "animated": false,
+      "duration": 0
+    },
+    "fast": true
+  }
+}
