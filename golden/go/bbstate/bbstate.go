@@ -346,7 +346,7 @@ func (b *BuildBucketState) pollBuildBucket(buildsCh chan<- *bb_api.ApiCommonBuil
 	timeWindowStart := time.Now().Add(-timeWindow).UnixNano() / int64(time.Microsecond)
 	searchCall.Bucket(b.bucketName).CreationTsLow(timeWindowStart)
 
-	if err := searchCall.Run(buildsCh, 0, nil); err != nil {
+	if _, err := searchCall.Run(buildsCh, 0, nil); err != nil {
 		return fmt.Errorf("Error querying build bucket: %s", err)
 	}
 	sklog.Infof("Done. Successfully searched buildbucket.")
