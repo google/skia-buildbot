@@ -29,8 +29,8 @@
  *
  * @prop {boolean} checked This mirrors the checked attribute.
  * @prop {boolean} disabled This mirrors the disabled attribute.
- * @prop {string} disabled This mirrors the name attribute.
- * @prop {string} disabled This mirrors the label attribute.
+ * @prop {string} name This mirrors the name attribute.
+ * @prop {string} label This mirrors the label attribute.
  *
  */
 import { upgradeProperty } from '../upgradeProperty'
