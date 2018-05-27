@@ -1,4 +1,5 @@
-default: package-lock.json
+default:
+	npm install
 	npx webpack --mode=development
 
 release:

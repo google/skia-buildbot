@@ -1,4 +1,5 @@
-build: package-lock.json
+build:
+	npm install
 	npx webpack
 
 serve: package-lock.json
