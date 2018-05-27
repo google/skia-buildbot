@@ -36,7 +36,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: jsdoc
-          image: gcr.io/skia-public/jsdoc:2018-05-27T01_17_13Z-jcgregorio-0bd55e6-dirty
+          image: gcr.io/skia-public/jsdoc:2018-05-27T17_44_27Z-jcgregorio-34dabcd-dirty
           args:
             - "--logtostderr"
             - "--port=:8000"

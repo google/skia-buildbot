@@ -48,7 +48,6 @@ func step() error {
 		Args:        []string{"docs"},
 		Dir:         path.Join(*gitRepoDir, "jsdoc"),
 		InheritPath: false,
-		LogStderr:   true,
 		LogStdout:   true,
 	}
 
@@ -61,7 +60,6 @@ func step() error {
 		Name:        "make",
 		Dir:         path.Join(*gitRepoDir, "ap"),
 		InheritPath: false,
-		LogStderr:   true,
 		LogStdout:   true,
 	}
 
@@ -74,7 +72,6 @@ func step() error {
 		Name:        "make",
 		Dir:         path.Join(*gitRepoDir, "common-sk"),
 		InheritPath: false,
-		LogStderr:   true,
 		LogStdout:   true,
 	}
 
