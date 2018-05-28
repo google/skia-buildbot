@@ -1,0 +1,358 @@
+// Compiles a fiddle and then runs the fiddle. The output of both processes is
+// combined into a single JSON output.
+package main
+
+import (
+	"bytes"
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"path"
+	"path/filepath"
+	"runtime"
+	"sync"
+	"time"
+
+	"github.com/gorilla/mux"
+	"golang.org/x/sync/errgroup"
+
+	"go.skia.org/infra/fiddle/go/types"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
+)
+
+const (
+	// FPS is the Frames Per Second when generating an animation.
+	FPS = 60
+)
+
+// flags
+var (
+	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	fiddleRoot = flag.String("fiddle_root", "", "Directory location where all the work is done.")
+	checkout   = flag.String("checkout", "", "Directory where Skia is checked out.")
+	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+)
+
+type State string
+
+// State constants.
+const (
+	IDLE      State = "idle"
+	WRITING   State = "writing"
+	COMPILING State = "compiling"
+	RUNNING   State = "running"
+)
+
+var (
+	mutex        sync.Mutex
+	currentState State = IDLE
+)
+
+func setState(s State) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	currentState = s
+}
+
+func getState() State {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return currentState
+}
+
+func serializeOutput(w io.Writer, res *types.Result) {
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		sklog.Errorf("Failed to encode: %s", err)
+	}
+}
+
+func main() {
+	defer common.LogPanic()
+	common.InitWithMust(
+		"fiddler",
+		common.PrometheusOpt(promPort),
+	)
+	res := &types.Result{
+		Compile: types.Compile{},
+		Execute: types.Execute{
+			Errors: "",
+			Output: types.Output{},
+		},
+	}
+	if *fiddleRoot == "" {
+		res.Errors = "fiddle_run: The --fiddle_root flag is required."
+	}
+	if *checkout == "" {
+		res.Errors = "fiddle_run: The --checkout flag is required."
+	}
+
+	r := mux.NewRouter()
+	r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/run", runHandler)
+
+	sklog.Infoln("Ready to serve.")
+	srv := &http.Server{
+		Handler:      httputils.LoggingGzipRequestResponse(r),
+		Addr:         *port,
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  60 * time.Second,
+	}
+
+	sklog.Fatal(srv.ListenAndServe())
+}
+
+func mainHandler(w http.ResponseWriter, r *http.Request) {
+	err := json.NewEncoder(w).Encode(map[string]string{
+		"state": string(getState()),
+	})
+	if err != nil {
+		sklog.Errorf("Failed to encode state: %s", err)
+	}
+}
+
+type RunRequest struct {
+	Code     string  `json:"code"`
+	Duration float64 `json:"duration"`
+}
+
+func runHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	defer util.Close(r.Body)
+	if getState() != IDLE {
+		http.Error(w, "Currently running a fiddle.", http.StatusTooManyRequests)
+		return
+	}
+	defer func() {
+		setState(IDLE)
+	}()
+	var request RunRequest
+
+	res := &types.Result{
+		Compile: types.Compile{},
+		Execute: types.Execute{
+			Errors: "",
+			Output: types.Output{},
+		},
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		res.Execute.Errors = fmt.Sprintf("Invalid JSON Request: %s", err)
+		serializeOutput(w, res)
+		return
+	}
+
+	setState(WRITING)
+
+	// Compile draw.cpp into 'fiddle'.
+	if err := ioutil.WriteFile(filepath.Join(*checkout, "tools", "fiddle", "draw.cpp"), []byte(request.Code), 0644); err != nil {
+		res.Execute.Errors = fmt.Sprintf("Failed to write draw.cpp: %s", err)
+		serializeOutput(w, res)
+		return
+	}
+
+	setState(COMPILING)
+
+	buildResults, err := exec.RunCwd(ctx, *checkout, filepath.Join(*fiddleRoot, "depot_tools", "ninja"), "-C", "out/Static")
+	if err != nil {
+		res.Execute.Errors = fmt.Sprintf("Failed to build: %s\n%s", err, buildResults)
+		serializeOutput(w, res)
+		return
+	}
+
+	setState(RUNNING)
+
+	if request.Duration == 0 {
+		oneStep(ctx, *checkout, res, 0.0, request.Duration)
+		serializeOutput(w, res)
+	} else {
+
+		var g errgroup.Group
+		// If this is an animated fiddle then:
+		//   - Create tmpdir to store PNGs.
+		//   - Loop over the following code to generate each frame of the animation.
+		//   -   Pass the duration and frame via cmd line flags to fiddle.
+		//   -   Decode and write PNGs (CPU+GPU) to their temp location.
+		//   - Run ffmpeg over the resulting PNG's to generate the webm files.
+		//   - Clean up tmp file.
+		//   - Encode resulting webm files as base64 strings and return in JSON.
+		numFrames := int(FPS * (request.Duration))
+		tmpDir, err := ioutil.TempDir("", "animation")
+		if err != nil {
+			res.Execute.Errors = fmt.Sprintf("Failed to create tmp dir for storing animation PNGs: %s", err)
+			serializeOutput(w, res)
+			return
+		}
+
+		// frameCh is a channel of all the frames we want rendered, which feeds the
+		// pool of Go routines that will do the actual rendering.
+		frameCh := make(chan int)
+
+		// mutex protects glinfo.
+		var mutex sync.Mutex
+		// glinfo is the info about the GL version for the GPU.
+		glinfo := ""
+
+		// Start a pool of workers to do the rendering.
+		for i := 0; i <= runtime.NumCPU(); i++ {
+			g.Go(func() error {
+				// Each Go func should have its own 'res'.
+				res := &types.Result{
+					Compile: types.Compile{},
+					Execute: types.Execute{
+						Errors: "",
+						Output: types.Output{},
+					},
+				}
+				for frameIndex := range frameCh {
+					sklog.Infof("Parallel render: %d", frameIndex)
+					frame := float64(frameIndex) / float64(numFrames)
+					oneStep(ctx, *checkout, res, frame, request.Duration)
+					// Check for errors.
+					if res.Execute.Errors != "" {
+						return fmt.Errorf("Failed to render: %s", res.Execute.Errors)
+					}
+					// Extract CPU and GPU pngs to a tmp directory.
+					if err := extractPNG(res.Execute.Output.Raster, res, frameIndex, "CPU", tmpDir); err != nil {
+						return err
+					}
+					if err := extractPNG(res.Execute.Output.Gpu, res, frameIndex, "GPU", tmpDir); err != nil {
+						return err
+					}
+					mutex.Lock()
+					if glinfo == "" {
+						glinfo = res.Execute.Output.GLInfo
+					}
+					mutex.Unlock()
+				}
+				return nil
+			})
+		}
+
+		// Feed all the frame indices to the channel.
+		for i := 0; i <= numFrames; i++ {
+			frameCh <- i
+		}
+		close(frameCh)
+
+		// Wait for all the work to be done.
+		if err := g.Wait(); err != nil {
+			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
+			serializeOutput(w, res)
+			return
+		}
+		// Run ffmpeg for CPU and GPU.
+		if err := createWebm(ctx, "CPU", tmpDir); err != nil {
+			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
+			serializeOutput(w, res)
+			return
+		}
+		res.Execute.Output.AnimatedRaster = encodeWebm("CPU", tmpDir, res)
+
+		if err := createWebm(ctx, "GPU", tmpDir); err != nil {
+			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
+			serializeOutput(w, res)
+			return
+		}
+		res.Execute.Output.AnimatedGpu = encodeWebm("GPU", tmpDir, res)
+		res.Execute.Output.Raster = ""
+		res.Execute.Output.Gpu = ""
+		res.Execute.Output.GLInfo = glinfo
+
+		serializeOutput(w, res)
+	}
+}
+
+// encodeWebm encodes the webm as base64 and adds it to the results.
+func encodeWebm(prefix, tmpDir string, res *types.Result) string {
+	b, err := ioutil.ReadFile(path.Join(tmpDir, fmt.Sprintf("%s.webm", prefix)))
+	if err != nil {
+		res.Execute.Errors = fmt.Sprintf("Failed to read resulting video: %s", err)
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(b)
+}
+
+// createWebm runs ffmpeg over the images in the given dir.
+func createWebm(ctx context.Context, prefix, tmpDir string) error {
+	// ffmpeg -r $FPS -pattern_type glob -i '*.png' -c:v libvpx-vp9 -lossless 1 output.webm
+	name := "ffmpeg"
+	args := []string{
+		"-r", fmt.Sprintf("%d", FPS),
+		"-pattern_type", "glob", "-i", prefix + "*.png",
+		"-c:v", "libvpx-vp9",
+		"-lossless", "1",
+		fmt.Sprintf("%s.webm", prefix),
+	}
+	output := &bytes.Buffer{}
+	runCmd := &exec.Command{
+		Name:      name,
+		Args:      args,
+		Dir:       tmpDir,
+		LogStderr: true,
+		Stdout:    output,
+	}
+	if err := exec.Run(ctx, runCmd); err != nil {
+		return fmt.Errorf("ffmpeg failed %#v: %s", *runCmd, err)
+	}
+
+	return nil
+}
+
+// extractPNG pulls the base64 encoded PNG out of the results and writes it to the tmpDir.
+func extractPNG(b64 string, res *types.Result, i int, prefix string, tmpDir string) error {
+	body, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		res.Execute.Errors = fmt.Sprintf("Failed to decode frame %d of %s: %s", i, prefix, err)
+		return err
+	}
+	if err := ioutil.WriteFile(path.Join(tmpDir, fmt.Sprintf("%s_%05d.png", prefix, i)), body, 0600); err != nil {
+		res.Execute.Errors = fmt.Sprintf("Failed to write frame %d of %s as a PNG: %s", i, prefix, err)
+		return err
+	}
+	return nil
+}
+
+func oneStep(ctx context.Context, checkout string, res *types.Result, frame float64, duration float64) {
+	name := path.Join(checkout, "out", "Static", "fiddle")
+	args := []string{"--duration", fmt.Sprintf("%f", duration), "--frame", fmt.Sprintf("%f", frame)}
+	stderr := bytes.Buffer{}
+	stdout := bytes.Buffer{}
+	runCmd := &exec.Command{
+		Name:        name,
+		Args:        args,
+		Dir:         *fiddleRoot,
+		InheritPath: true,
+		Env:         []string{"HOME=/tmp"},
+		InheritEnv:  true,
+		Stdout:      &stdout,
+		Stderr:      &stderr,
+		Timeout:     20 * time.Second,
+	}
+	if err := exec.Run(ctx, runCmd); err != nil {
+		sklog.Errorf("Failed to run: %s", err)
+		res.Execute.Errors = err.Error()
+	}
+	if res.Execute.Errors != "" && stderr.String() != "" {
+		sklog.Errorf("Found stderr output: %q", stderr.String())
+		res.Execute.Errors += "\n"
+	}
+	res.Execute.Errors += stderr.String()
+	if err := json.Unmarshal(stdout.Bytes(), &res.Execute.Output); err != nil {
+		if res.Execute.Errors != "" {
+			res.Execute.Errors += "\n"
+		}
+		res.Execute.Errors += "Failed to decode JSON output from fiddle.\n"
+		res.Execute.Errors += err.Error()
+		res.Execute.Errors += fmt.Sprintf("\nOutput was %q", stdout.Bytes())
+	}
+}
