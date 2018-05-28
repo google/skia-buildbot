@@ -20,7 +20,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/golang/groupcache/lru"
-	"go.skia.org/infra/fiddle/go/types"
+	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -115,12 +115,12 @@ func shouldBeCached(media Media) bool {
 }
 
 // New create a new Store.
-func New() (*Store, error) {
-	// TODO(jcgregorio) Decide is this needs to be a backoff client. May not be necessary if we add caching at this layer.
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+func New(local bool) (*Store, error) {
+	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
+	client := auth.ClientFromTokenSource(ts)
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Problem creating storage client: %s", err)

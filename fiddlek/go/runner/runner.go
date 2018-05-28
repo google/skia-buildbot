@@ -8,19 +8,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
+	"io"
 	"path/filepath"
 	"time"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-
-	"go.skia.org/infra/fiddle/go/linenumbers"
-	"go.skia.org/infra/fiddle/go/types"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/util"
+
+	"go.skia.org/infra/fiddlek/go/linenumbers"
+	"go.skia.org/infra/fiddlek/go/types"
+	"go.skia.org/infra/go/git/gitinfo"
 )
 
 const (
@@ -38,6 +37,7 @@ DrawOptions GetDrawOptions() {
 var (
 	runTotal    = metrics2.GetCounter("run_total", nil)
 	runFailures = metrics2.GetCounter("run_failures", nil)
+	client      = httputils.NewTimeoutClient()
 )
 
 func toGrMipMapped(b bool) string {
@@ -51,17 +51,17 @@ func toGrMipMapped(b bool) string {
 // prepCodeToCompile adds the line numbers and the right prefix code
 // to the fiddle so it compiles and links correctly.
 //
-//    fiddleRoot - The root of the fiddle working directory. See DESIGN.md.
 //    code - The code to compile.
 //    opts - The user's options about how to run that code.
 //
 // Returns the prepped code.
-func prepCodeToCompile(fiddleRoot, code string, opts *types.Options) string {
+func prepCodeToCompile(code string, opts *types.Options) string {
 	code = linenumbers.LineNumbers(code)
 	sourceImage := "0"
 	if opts.Source != 0 {
 		filename := fmt.Sprintf("%d.png", opts.Source)
-		sourceImage = fmt.Sprintf("%q", filepath.Join(fiddleRoot, "images", filename))
+		// TODO Move string to const.
+		sourceImage = fmt.Sprintf("%q", filepath.Join("/tmp/skia/skia/images", filename))
 	}
 	pdf := true
 	skp := true
@@ -108,50 +108,6 @@ func ValidateOptions(opts *types.Options) error {
 		}
 	}
 	return nil
-}
-
-// WriteDrawCpp takes the given code, modifies it so that it can be compiled
-// and then writes the "draw.cpp" file to the correct location, based on
-// 'local'.
-//
-//    fiddleRoot - The root of the fiddle working directory. See DESIGN.md.
-//    code - The code to compile.
-//    opts - The user's options about how to run that code.
-//    local - If true then we are running locally, so write the code to
-//        fiddleRoot/src/draw.cpp.
-//
-// Returns a temp directory. Depending on 'local' this is where the 'draw.cpp' file was written.
-func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options) (string, error) {
-	code = prepCodeToCompile(fiddleRoot, code, opts)
-	dstDir := filepath.Join(fiddleRoot, "src")
-	var err error
-	tmpDir := filepath.Join(fiddleRoot, "tmp")
-	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil && err != os.ErrExist {
-		return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
-	}
-	dstDir, err = ioutil.TempDir(tmpDir, "code")
-	sklog.Infof("Created tmp dir: %s %s", dstDir, err)
-	if err != nil {
-		return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
-	}
-
-	drawPath := filepath.Join(dstDir, "upper", "skia", "tools", "fiddle")
-	if err := os.MkdirAll(drawPath, 0755); err != nil {
-		return dstDir, fmt.Errorf("failed to create dir %q: %s", drawPath, err)
-	}
-
-	sklog.Infof("About to write to: %s", drawPath)
-	w, err := os.Create(filepath.Join(drawPath, "draw.cpp"))
-	sklog.Infof("Create: %v %v", *w, err)
-	if err != nil {
-		return dstDir, fmt.Errorf("Failed to open destination: %s", err)
-	}
-	defer util.Close(w)
-	_, err = w.Write([]byte(code))
-	if err != nil {
-		return dstDir, fmt.Errorf("Failed to write draw.cpp file: %s", err)
-	}
-	return dstDir, nil
 }
 
 // GitHashTimeStamp finds the timestamp, in UTC, of the given checkout of Skia under fiddleRoot.
@@ -217,111 +173,29 @@ func GitHashTimeStamp(ctx context.Context, fiddleRoot, gitHash string) (time.Tim
 // the point of making the bindings and then xargs will be able to execute the
 // exe within the container.
 //
-func Run(ctx context.Context, checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string, opts *types.Options, preserve bool) (*types.Result, error) {
-	/*
-		Do the equivalent of the following bash script that creates the overlayfs
-		mount.
-
-			#!/bin/bash
-
-			set -e -x
-
-			RUNID=runid2222
-			GITHASH=c34a946d5a975ba8b8cd51f79b55174a5ec0f99f
-			FIDDLE_ROOT=/usr/local/google/home/jcgregorio/projects/temp
-			TMP_DIR=${FIDDLE_ROOT}/tmp/${RUNID}
-
-			mkdir --parents ${TMP_DIR}/upper/skia/tools/fiddle
-			mkdir ${TMP_DIR}/work
-			mkdir ${TMP_DIR}/overlay
-			cp ${TMP_DIR}/draw.cpp ${TMP_DIR}/upper/skia/tools/fiddle/draw.cpp
-
-			LOWER=${FIDDLE_ROOT}/versions/${GITHASH}
-			UPPER=${TMP_DIR}/upper
-			WORK=${TMP_DIR}/work
-			OVERLAY=${TMP_DIR}/overlay
-
-			sudo mount -t overlay -o lowerdir=$LOWER,upperdir=$UPPER,workdir=$WORK none ${OVERLAY}
-
-	*/
+func Run(ctx context.Context, local bool, req *types.FiddleContext) (*types.Result, error) {
+	req.Code = prepCodeToCompile(req.Code, &req.Options)
 	runTotal.Inc(1)
-	upper := filepath.Join(tmpDir, "upper")
-	work := filepath.Join(tmpDir, "work")
-	overlay := filepath.Join(tmpDir, "overlay")
-	lower := filepath.Join(fiddleRoot, "versions", gitHash)
-	if err := os.MkdirAll(upper, 0755); err != nil {
-		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", upper, err)
-	}
-	if err := os.MkdirAll(work, 0755); err != nil {
-		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", work, err)
-	}
-	if err := os.MkdirAll(overlay, 0755); err != nil {
-		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", overlay, err)
-	}
-	mounttype := "overlay"
-	if local {
-		mounttype = "overlayfs"
-	}
-	name := "sudo"
-	args := []string{
-		"mount", "-t", mounttype,
-		"-o",
-		fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", lower, upper, work),
-		"none",
-		overlay,
-	}
-	output := &bytes.Buffer{}
-	mountCmd := &exec.Command{
-		Name:      name,
-		Args:      args,
-		LogStderr: true,
-		Stdout:    output,
-	}
-	if err := exec.Run(ctx, mountCmd); err != nil {
-		return nil, fmt.Errorf("mount failed to run %#v: %s", *mountCmd, err)
-	}
 
-	// Queue up the umount in a defer.
-	if !preserve {
-		defer func() {
-			name = "sudo"
-			args = []string{
-				"umount", overlay,
-			}
-			output = &bytes.Buffer{}
-			umountCmd := &exec.Command{
-				Name:      name,
-				Args:      args,
-				LogStderr: true,
-				Stdout:    output,
-			}
-
-			if err := exec.Run(ctx, umountCmd); err != nil {
-				sklog.Errorf("umount failed to run %#v: %s", *umountCmd, err)
-			}
-		}()
-	}
-
-	// Run fiddle_run.
-	name = filepath.Join(fiddleRoot, "bin", "fiddle_run")
+	var output bytes.Buffer
+	// If not local then use the k8s api to pick an open fiddler pod to send
+	// the request to. Send a GET / to each on until you find an idle instance.
 	if local {
-		name = "fiddle_run"
-	}
-	args = []string{"--fiddle_root", fiddleRoot, "--checkout", overlay, "--git_hash", gitHash, "--alsologtostderr"}
-	args = append(args, "--duration", fmt.Sprintf("%f", opts.Duration))
-	if local {
-		args = append(args, "--local")
-	}
-	output = &bytes.Buffer{}
-	runCmd := &exec.Command{
-		Name:      name,
-		Args:      args,
-		LogStderr: true,
-		Stdout:    output,
-	}
-	if err := exec.Run(ctx, runCmd); err != nil {
-		runFailures.Inc(1)
-		return nil, fmt.Errorf("fiddle_run failed to run %#v: %s", *runCmd, err)
+		b, err := json.Marshal(req)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to encode request: %s", err)
+		}
+		body := bytes.NewReader(b)
+		resp, err := client.Post("http://localhost:8000/run", "application/json", body)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to send request: %s", err)
+		}
+		defer util.Close(resp.Body)
+		_, err = io.Copy(&output, resp.Body)
+		sklog.Infof("Got response: %q", output.String())
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read response: %s", err)
+		}
 	}
 
 	// Parse the output into types.Result.
