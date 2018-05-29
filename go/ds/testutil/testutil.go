@@ -35,7 +35,7 @@ func cleanup(t *testing.T, kinds ...ds.Kind) {
 	}
 }
 
-// InitDatastore is a common utitity function used in tests. It sets up the
+// InitDatastore is a common utility function used in tests. It sets up the
 // datastore to connect to the emulator and also clears out all instances of
 // the given 'kinds' from the datastore.
 func InitDatastore(t *testing.T, kinds ...ds.Kind) CleanupFunc {
