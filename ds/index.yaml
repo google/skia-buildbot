@@ -8,3 +8,15 @@ indexes:
   - name: OK
   - name: TimeStamp
     direction: asc
+
+# CT
+- kind: CaptureSkpsTasks
+  properties:
+  - name: TsCompleted
+  - name: Username
+  - name: Id
+
+- kind: CaptureSkpsTasks
+  properties:
+  - name: TsCompleted
+  - name: Id
