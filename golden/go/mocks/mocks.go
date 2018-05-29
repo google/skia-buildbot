@@ -31,7 +31,7 @@ func MockUrlGenerator(path string) string {
 // Mock the diffstore.
 type MockDiffStore struct{}
 
-func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[string]interface{}, error) {
+func (m MockDiffStore) Get(priority int64, shardKey string, dMain string, dRest []string) (map[string]interface{}, error) {
 	result := map[string]interface{}{}
 	for _, d := range dRest {
 		if dMain != d {
@@ -50,11 +50,12 @@ func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[st
 	return result, nil
 }
 
-func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                    { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                    { return nil }
-func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                   { return nil, nil }
-func (m MockDiffStore) WarmDigests(priority int64, digests []string, sync bool)               {}
-func (m MockDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDigests []string) {}
+func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure                       { return nil }
+func (m MockDiffStore) PurgeDigests(digests []string, purgeGCS bool) error                       { return nil }
+func (m MockDiffStore) ImageHandler(urlPrefix string) (http.Handler, error)                      { return nil, nil }
+func (m MockDiffStore) WarmDigests(priority int64, shardKey string, digests []string, sync bool) {}
+func (m MockDiffStore) WarmDiffs(priority int64, shardKey string, leftDigests []string, rightDigests []string) {
+}
 
 func NewMockDiffStore() diff.DiffStore {
 	return MockDiffStore{}
@@ -107,7 +108,7 @@ func NewMockTileBuilderFromTile(t assert.TestingT, tile *tiling.Tile) tracedb.Ma
 	}
 }
 
-// GetTileBuilderFromEnv looks at the TEST_TRACEDB_ADDRESS environement variable for the
+// GetTileBuilderFromEnv looks at the TEST_TRACEDB_ADDRESS environment variable for the
 // name of directory that contains tiles. If it's defined it will return a
 // TileStore instance. If the not the calling test will fail.
 func GetTileBuilderFromEnv(t assert.TestingT, ctx context.Context) tracedb.MasterTileBuilder {

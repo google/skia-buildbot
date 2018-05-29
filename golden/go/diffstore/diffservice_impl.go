@@ -32,7 +32,7 @@ func NewDiffServiceServer(diffStore diff.DiffStore, codec util.LRUCodec) DiffSer
 
 // GetDiffs wraps around the Get method of the underlying DiffStore.
 func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*GetDiffsResponse, error) {
-	diffs, err := d.diffStore.Get(req.Priority, req.MainDigest, req.RightDigests)
+	diffs, err := d.diffStore.Get(req.Priority, "", req.MainDigest, req.RightDigests)
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +49,13 @@ func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*
 
 // WarmDigests wraps around the WarmDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) WarmDigests(ctx context.Context, req *WarmDigestsRequest) (*Empty, error) {
-	d.diffStore.WarmDigests(req.Priority, req.Digests, req.Sync)
+	d.diffStore.WarmDigests(req.Priority, "", req.Digests, req.Sync)
 	return &Empty{}, nil
 }
 
 // WarmDiffs wraps around the WarmDiffs method of the underlying DiffStore.
 func (d *DiffServiceImpl) WarmDiffs(ctx context.Context, req *WarmDiffsRequest) (*Empty, error) {
-	d.diffStore.WarmDiffs(req.Priority, req.LeftDigests, req.RightDigests)
+	d.diffStore.WarmDiffs(req.Priority, "", req.LeftDigests, req.RightDigests)
 	return &Empty{}, nil
 }
 

@@ -209,6 +209,8 @@ func main() {
 	// otherwise create an embedded DiffStore instance.
 	var diffStore diff.DiffStore = nil
 	if (*diffServerGRPCAddr != "") || (*diffServerImageAddr != "") {
+		util.Split()
+
 		// Create the client connection and connect to the server.
 		conn, err := grpc.Dial(*diffServerGRPCAddr,
 			grpc.WithInsecure(),
