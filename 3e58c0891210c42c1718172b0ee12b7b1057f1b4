@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3791c9e5_5d882ce7",
+        "filename": "debugger/build_docker_release",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-29T15:19:48Z",
+      "side": 1,
+      "message": "IMO, we should Fatalf in debugger/go/debugger/main.go if we see this value in production.",
+      "range": {
+        "startLine": 16,
+        "startChar": 6,
+        "endLine": 16,
+        "endChar": 18
+      },
+      "revId": "3e58c0891210c42c1718172b0ee12b7b1057f1b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2717500_e6ecffd3",
+        "filename": "debugger/build_docker_release",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-29T15:19:48Z",
+      "side": 1,
+      "message": "missing \" | base64\"?",
+      "range": {
+        "startLine": 16,
+        "startChar": 19,
+        "endLine": 16,
+        "endChar": 21
+      },
+      "revId": "3e58c0891210c42c1718172b0ee12b7b1057f1b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66229707_de86ada1",
+        "filename": "debugger/create-csrf-salt-secret.sh",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-29T15:19:48Z",
+      "side": 1,
+      "message": "I don\u0027t see where this is decoded to get the original bytes.",
+      "range": {
+        "startLine": 11,
+        "startChar": 26,
+        "endLine": 11,
+        "endChar": 32
+      },
+      "revId": "3e58c0891210c42c1718172b0ee12b7b1057f1b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b062b24_a35f4f33",
+        "filename": "debugger/create-csrf-salt-secret.sh",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-29T15:19:48Z",
+      "side": 1,
+      "message": "Docs for csrf package say the key should be 32 bytes. https://godoc.org/github.com/gorilla/csrf#Protect",
+      "range": {
+        "startLine": 11,
+        "startChar": 8,
+        "endLine": 11,
+        "endChar": 10
+      },
+      "revId": "3e58c0891210c42c1718172b0ee12b7b1057f1b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e6cccdf_e2712869",
+        "filename": "debugger/go/debugger/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-29T15:19:48Z",
+      "side": 1,
+      "message": "typo assets",
+      "range": {
+        "startLine": 34,
+        "startChar": 99,
+        "endLine": 34,
+        "endChar": 106
+      },
+      "revId": "3e58c0891210c42c1718172b0ee12b7b1057f1b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c22eb00_8d0aac14",
+        "filename": "debugger/go/debugger/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-29T15:19:48Z",
+      "side": 1,
+      "message": "nit: \"source\" is vague, maybe \"assets_url\"",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 7
+      },
+      "revId": "3e58c0891210c42c1718172b0ee12b7b1057f1b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f962ef62_95f55649",
+        "filename": "debugger/go/debugger/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-29T15:19:48Z",
+      "side": 1,
+      "message": "nit: Don\u0027t need h here with line 211.",
+      "revId": "3e58c0891210c42c1718172b0ee12b7b1057f1b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
