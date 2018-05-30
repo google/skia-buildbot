@@ -15,7 +15,7 @@ const (
 // GetProjectConfig loads the cr-buildbucket.cfg file from the given repo via Gitiles.
 func GetProjectConfig(repo string) (*BuildbucketCfg, error) {
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(repo).ReadFileAtRef(PROJECT_CFG_FILE, INFRA_CONFIG_BRANCH, &buf); err != nil {
+	if err := gitiles.NewRepo(repo, nil).ReadFileAtRef(PROJECT_CFG_FILE, INFRA_CONFIG_BRANCH, &buf); err != nil {
 		return nil, err
 	}
 	return ParseProjectConfig(buf.String())
