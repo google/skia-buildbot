@@ -1,6 +1,6 @@
 import 'elements-sk/buttons'
 
-import { $$ } from 'common/dom'
+import { $$ } from '../dom'
 
 import './index.js'
 

@@ -4,7 +4,7 @@ $sidebar-width: 250px !default
 
 /* Import this after setting the above variables
 to let the values properly propagate */
-@import '~common/app-sk/app-sk';
+@import '~../app-sk/app-sk';
 
 .no-decorate {
   list-style-type: none;

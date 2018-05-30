@@ -1,2 +1,2 @@
 import './index.js'
-import 'common/error-toast-sk'
+import '../error-toast-sk'

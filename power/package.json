@@ -5,6 +5,7 @@
   "license": "",
   "dependencies": {
     "common-sk": "^1.2.0",
+    "elements-sk": "^1.0.0",
     "fetch-mock": "^6.4.2",
     "lit-html": "^0.10.0",
     "pulito": "^3.0.2",
