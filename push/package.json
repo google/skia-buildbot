@@ -5,7 +5,8 @@
   "private": true,
   "license": "Apache 2.0",
   "dependencies": {
-    "common-sk": "^1.1.0"
+    "common-sk": "^1.1.0",
+    "elements-sk": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
