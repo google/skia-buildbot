@@ -82,7 +82,7 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 	return r, r.Update(ctx)
 }
 
-// Update syncs code in the relevant repositories.
+// See documentation for RepoManager interface.
 func (r *androidRepoManager) Update(ctx context.Context) error {
 	// Sync the projects.
 	r.repoMtx.Lock()
@@ -155,29 +155,28 @@ func (r *androidRepoManager) getLastRollRev(ctx context.Context) (string, error)
 	return strings.TrimRight(output, "\n"), nil
 }
 
-// FullChildHash returns the full hash of the given short hash or ref in the
-// child repo.
+// See documentation for RepoManager interface.
 func (r *androidRepoManager) FullChildHash(ctx context.Context, shortHash string) (string, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
 	return r.childRepo.FullHash(ctx, shortHash)
 }
 
-// LastRollRev returns the last-rolled child commit.
+// See documentation for RepoManager interface.
 func (r *androidRepoManager) LastRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.lastRollRev
 }
 
-// RolledPast determines whether DEPS has rolled past the given commit.
+// See documentation for RepoManager interface.
 func (r *androidRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
 	return r.childRepo.IsAncestor(ctx, hash, r.lastRollRev)
 }
 
-// NextRollRev returns the revision of the next roll.
+// See documentation for RepoManager interface.
 func (r *androidRepoManager) NextRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
@@ -250,8 +249,7 @@ func ExtractTestLines(line string) []string {
 	return testLines
 }
 
-// CreateNewRoll creates and uploads a new Android roll to the given commit.
-// Returns the change number of the uploaded roll.
+// See documentation for RepoManager interface.
 func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
@@ -458,6 +456,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	return change.Issue, nil
 }
 
+// See documentation for RepoManager interface.
 func (r *androidRepoManager) User() string {
 	return r.user
 }
