@@ -19,7 +19,7 @@ import (
 // up test inputs. The provided func is used to build the git repo which will
 // be used by the test.
 func setupHelper(t *testing.T, setup func(context.Context, *git_testutils.GitBuilder)) (*repograph.Graph, func()) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	wd, err := ioutil.TempDir("", "")
