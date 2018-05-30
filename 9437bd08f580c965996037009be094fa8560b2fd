@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "48e42994_74bc63c3",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-30T14:22:14Z",
+      "side": 1,
+      "message": "Why not replace this with deps repo manager? Will we ever need a deps repo manager that needs a checkout?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "9437bd08f580c965996037009be094fa8560b2fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03a5c619_0ded407b",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-30T14:22:14Z",
+      "side": 1,
+      "message": "NoCheckoutRepoManager -\u003e NoCheckoutDepsRepoManager (here and everywhere). Similar to the name of the file because this only deals with DEPS (not manifest, android, etc).\nROLLER_TYPE_NO_CHECKOUT \u003d \"noCheckout\" is confusing because I do not know what kind of roller it is referring to.\n\nOr call it DepsRepoManager from my above comment.",
+      "range": {
+        "startLine": 32,
+        "startChar": 5,
+        "endLine": 32,
+        "endChar": 32
+      },
+      "revId": "9437bd08f580c965996037009be094fa8560b2fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6a737e09_b6700bb6",
         "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
         "patchSetId": 1
@@ -22,6 +68,30 @@
       "revId": "9437bd08f580c965996037009be094fa8560b2fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "820c3fa1_8985a72c",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-30T14:22:14Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6a737e09_b6700bb6",
+      "range": {
+        "startLine": 209,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 2
+      },
+      "revId": "9437bd08f580c965996037009be094fa8560b2fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
