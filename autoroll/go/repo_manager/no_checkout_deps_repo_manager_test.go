@@ -18,7 +18,6 @@ import (
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -75,7 +74,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 		testutils.RemoveAll(t, wd)
 		child.Cleanup()
 		parent.Cleanup()
-		assert.True(t, urlmock.Empty())
+		assert.True(t, urlmock.Empty(), strings.Join(urlmock.List(), "\n"))
 	}
 	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
 }
@@ -91,19 +90,24 @@ func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
 	}
 }
 
+<<<<<<< HEAD
 func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
 	ctx, _, rm, _, _, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+=======
+func TestNoCheckoutRepoManagerUpdate(t *testing.T) {
+	cfg := noCheckoutCfg()
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+>>>>>>> [autoroll] NoCheckoutDEPSRepoManager: set base commit
 	defer cleanup()
 
-	for _, c := range childCommits {
-		sklog.Info(c)
-	}
-	mockParent.MockReadFile(ctx, "DEPS", "master")
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	assert.NoError(t, err)
+	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	nextRollRev := childCommits[len(childCommits)-1]
-	mockChild.MockLog(ctx, childCommits[0], nextRollRev)
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, rm.LastRollRev(), childCommits[0])
 	assert.Equal(t, rm.NextRollRev(), nextRollRev)
@@ -113,34 +117,38 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 func TestNoCheckoutDEPSRepoManagerSingle(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
 	cfg.Strategy = ROLL_STRATEGY_SINGLE
-	ctx, _, rm, _, _, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
 	defer cleanup()
 
-	for _, c := range childCommits {
-		sklog.Info(c)
-	}
-	mockParent.MockReadFile(ctx, "DEPS", "master")
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	assert.NoError(t, err)
+	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	nextRollRev := childCommits[1]
-	mockChild.MockLog(ctx, childCommits[0], nextRollRev)
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, rm.NextRollRev(), nextRollRev)
 }
 
+<<<<<<< HEAD
 func TestNoCheckoutDEPSRepoManagerFullChildHash(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
 	ctx, _, rm, _, _, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+=======
+func TestNoCheckoutRepoManagerFullChildHash(t *testing.T) {
+	cfg := noCheckoutCfg()
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+>>>>>>> [autoroll] NoCheckoutDEPSRepoManager: set base commit
 	defer cleanup()
 
-	for _, c := range childCommits {
-		sklog.Info(c)
-	}
-	mockParent.MockReadFile(ctx, "DEPS", "master")
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	assert.NoError(t, err)
+	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	nextRollRev := childCommits[len(childCommits)-1]
-	mockChild.MockLog(ctx, childCommits[0], nextRollRev)
 	assert.NoError(t, rm.Update(ctx))
 
 	test := func(ref, expect string) {
@@ -154,22 +162,26 @@ func TestNoCheckoutDEPSRepoManagerFullChildHash(t *testing.T) {
 	test(childCommits[1][:7], childCommits[1])
 }
 
+<<<<<<< HEAD
 func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
 	ctx, _, rm, childRepo, _, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
+=======
+func TestNoCheckoutRepoManagerCreateNewRoll(t *testing.T) {
+	cfg := noCheckoutCfg()
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
+>>>>>>> [autoroll] NoCheckoutDEPSRepoManager: set base commit
 	defer cleanup()
 
-	for _, c := range childCommits {
-		sklog.Info(c)
-	}
-	mockParent.MockReadFile(ctx, "DEPS", "master")
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	assert.NoError(t, err)
+	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	nextRollRev := childCommits[len(childCommits)-1]
-	mockChild.MockLog(ctx, childCommits[0], nextRollRev)
 	assert.NoError(t, rm.Update(ctx))
 
-	mockParent.MockReadFile(ctx, "DEPS", "master")
 	lastRollRev := childCommits[0]
 
 	// Mock the initial change creation.
@@ -192,7 +204,7 @@ be CC'd on the roll, and stop the roller if necessary.
 
 `, childPath, lastRollRev[:7], nextRollRev[:7], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:7], nextRollRev[:7], childPath, nextRollRev[:7], "fake.server.com")
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW"}`, cfg.GerritProject, subject, cfg.ParentBranch))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, cfg.GerritProject, subject, cfg.ParentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
