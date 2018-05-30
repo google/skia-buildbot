@@ -139,9 +139,9 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		return nil, err
 	}
 
-	strat := StrategyGitilesBatch(client, c.ChildRepo, c.ChildBranch)
-	if c.Strategy == ROLL_STRATEGY_SINGLE {
-		strat = StrategyGitilesSingle(client, c.ChildRepo, c.ChildBranch)
+	strat, err := GetNextRollStrategy(c.Strategy, c.ChildBranch, "", nil)
+	if err != nil {
+		return nil, err
 	}
 
 	return &noCheckoutDEPSRepoManager{
@@ -327,9 +327,12 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	notRolledCount := len(notRolled)
 
 	// Get the next roll revision.
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, nil, lastRollRev)
+	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
 	if err != nil {
 		return err
+	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
 	}
 	nextRollCommits := make([]*vcsinfo.LongCommit, 0, notRolledCount)
 	if nextRollRev != lastRollRev {

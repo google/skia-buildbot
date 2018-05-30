@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/common"
@@ -126,23 +127,26 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Get the next roll revision.
-	nextRollRev, err := r.strategy.GetNextRollRev(ctx, r.childRepo, lastRollRev)
-	if err != nil {
-		return err
-	}
-
 	// Find the number of not-rolled child repo commits.
 	notRolled, err := r.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
 
+	// Get the next roll revision.
+	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolled)
+	if err != nil {
+		return err
+	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
+	}
+
 	r.infoMtx.Lock()
 	defer r.infoMtx.Unlock()
 	r.lastRollRev = lastRollRev
 	r.nextRollRev = nextRollRev
-	r.commitsNotRolled = notRolled
+	r.commitsNotRolled = len(notRolled)
 	return nil
 }
 
@@ -461,19 +465,26 @@ func (r *androidRepoManager) User() string {
 	return r.user
 }
 
-func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) (int, error) {
+func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
 	output, err := r.childRepo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 	head := strings.Split(output, "\t")[0]
-	notRolled := 0
-	if head != lastRollRev {
-		commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+	if head == lastRollRev {
+		return []*vcsinfo.LongCommit{}, nil
+	}
+	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+	if err != nil {
+		return nil, err
+	}
+	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		details, err := r.childRepo.Details(ctx, c)
 		if err != nil {
-			return -1, err
+			return nil, err
 		}
-		notRolled = len(commits)
+		notRolled = append(notRolled, details)
 	}
 	return notRolled, nil
 }

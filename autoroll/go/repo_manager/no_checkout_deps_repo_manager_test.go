@@ -100,7 +100,6 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
-	mockChild.MockLog(ctx, childCommits[0], "master")
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, rm.LastRollRev(), childCommits[0])
@@ -119,7 +118,6 @@ func TestNoCheckoutDEPSRepoManagerSingle(t *testing.T) {
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
-	mockChild.MockLog(ctx, childCommits[0], "master")
 	nextRollRev := childCommits[1]
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, rm.NextRollRev(), nextRollRev)
@@ -134,7 +132,6 @@ func TestNoCheckoutDEPSRepoManagerFullChildHash(t *testing.T) {
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))
@@ -159,7 +156,6 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockLog(ctx, childCommits[0], "master")
 	mockChild.MockLog(ctx, childCommits[0], "master")
 	nextRollRev := childCommits[len(childCommits)-1]
 	assert.NoError(t, rm.Update(ctx))

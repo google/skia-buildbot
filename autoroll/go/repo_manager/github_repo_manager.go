@@ -135,23 +135,26 @@ func (rm *githubRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Get the next roll revision.
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, rm.childRepo, lastRollRev)
-	if err != nil {
-		return err
-	}
-
 	// Find the number of not-rolled child repo commits.
 	notRolled, err := rm.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
 
+	// Get the next roll revision.
+	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
+	if err != nil {
+		return err
+	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
+	}
+
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
 	rm.lastRollRev = lastRollRev
 	rm.nextRollRev = nextRollRev
-	rm.commitsNotRolled = notRolled
+	rm.commitsNotRolled = len(notRolled)
 
 	sklog.Infof("lastRollRev is: %s", rm.lastRollRev)
 	sklog.Infof("nextRollRev is: %s", nextRollRev)

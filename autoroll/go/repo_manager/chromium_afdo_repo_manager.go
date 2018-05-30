@@ -21,9 +21,9 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"google.golang.org/api/option"
 )
 
@@ -140,7 +140,7 @@ type afdoStrategy struct {
 }
 
 // See documentation for Strategy interface.
-func (s *afdoStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, _ string) (string, error) {
+func (s *afdoStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.LongCommit) (string, error) {
 	// Find the available AFDO versions, sorted newest to oldest, and store.
 	available := []string{}
 	if err := s.gcs.AllFilesInDirectory(ctx, AFDO_GS_PATH, func(item *storage.ObjectAttrs) {
@@ -341,9 +341,12 @@ func (rm *afdoRepoManager) Update(ctx context.Context) error {
 	lastRollRev := strings.TrimSpace(string(lastRollRevBytes))
 
 	// Get the next roll rev.
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, nil, "")
+	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, nil)
 	if err != nil {
 		return err
+	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
 	}
 	versions := rm.strategy.(*afdoStrategy).GetVersions()
 	lastIdx := -1
