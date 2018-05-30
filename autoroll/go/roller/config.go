@@ -21,15 +21,16 @@ const (
 	DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT = 3
 	DEFAULT_SAFETY_THROTTLE_TIME_WINDOW   = 30 * time.Minute
 
-	ROLLER_TYPE_AFDO        = "afdo"
-	ROLLER_TYPE_ANDROID     = "android"
-	ROLLER_TYPE_COPY        = "copy"
-	ROLLER_TYPE_DEPS        = "deps"
-	ROLLER_TYPE_FUCHSIA_SDK = "fuchsiaSDK"
-	ROLLER_TYPE_GITHUB      = "github"
-	ROLLER_TYPE_GOOGLE3     = "google3"
-	ROLLER_TYPE_INVALID     = "INVALID"
-	ROLLER_TYPE_MANIFEST    = "manifest"
+	ROLLER_TYPE_AFDO             = "afdo"
+	ROLLER_TYPE_ANDROID          = "android"
+	ROLLER_TYPE_COPY             = "copy"
+	ROLLER_TYPE_DEPS             = "deps"
+	ROLLER_TYPE_DEPS_NO_CHECKOUT = "noCheckoutDEPS"
+	ROLLER_TYPE_FUCHSIA_SDK      = "fuchsiaSDK"
+	ROLLER_TYPE_GITHUB           = "github"
+	ROLLER_TYPE_GOOGLE3          = "google3"
+	ROLLER_TYPE_INVALID          = "INVALID"
+	ROLLER_TYPE_MANIFEST         = "manifest"
 )
 
 var (
@@ -104,14 +105,15 @@ type AutoRollerConfig struct {
 	GithubRepoName  string `json:"githubRepoName"`
 
 	// RepoManager configs. Exactly one must be provided.
-	AFDORepoManager       *repo_manager.AFDORepoManagerConfig       `json:"afdoRepoManager"`
-	AndroidRepoManager    *repo_manager.AndroidRepoManagerConfig    `json:"androidRepoManager"`
-	CopyRepoManager       *repo_manager.CopyRepoManagerConfig       `json:"copyRepoManager"`
-	DEPSRepoManager       *repo_manager.DEPSRepoManagerConfig       `json:"depsRepoManager"`
-	FuchsiaSDKRepoManager *repo_manager.FuchsiaSDKRepoManagerConfig `json:"fuchsiaSDKRepoManager"`
-	GithubRepoManager     *repo_manager.GithubRepoManagerConfig     `json:"githubRepoManager"`
-	Google3RepoManager    *google3FakeRepoManagerConfig             `json:"google3"`
-	ManifestRepoManager   *repo_manager.ManifestRepoManagerConfig   `json:"manifestRepoManager"`
+	AFDORepoManager           *repo_manager.AFDORepoManagerConfig           `json:"afdoRepoManager"`
+	AndroidRepoManager        *repo_manager.AndroidRepoManagerConfig        `json:"androidRepoManager"`
+	CopyRepoManager           *repo_manager.CopyRepoManagerConfig           `json:"copyRepoManager"`
+	DEPSRepoManager           *repo_manager.DEPSRepoManagerConfig           `json:"depsRepoManager"`
+	FuchsiaSDKRepoManager     *repo_manager.FuchsiaSDKRepoManagerConfig     `json:"fuchsiaSDKRepoManager"`
+	GithubRepoManager         *repo_manager.GithubRepoManagerConfig         `json:"githubRepoManager"`
+	Google3RepoManager        *google3FakeRepoManagerConfig                 `json:"google3"`
+	ManifestRepoManager       *repo_manager.ManifestRepoManagerConfig       `json:"manifestRepoManager"`
+	NoCheckoutDEPSRepoManager *repo_manager.NoCheckoutDEPSRepoManagerConfig `json:"noCheckoutDEPSRepoManager"`
 
 	// Optional Fields.
 
@@ -173,6 +175,9 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.ManifestRepoManager != nil {
 		rm = append(rm, c.ManifestRepoManager)
 	}
+	if c.NoCheckoutDEPSRepoManager != nil {
+		rm = append(rm, c.NoCheckoutDEPSRepoManager)
+	}
 	if len(rm) != 1 {
 		return fmt.Errorf("Exactly one repo manager must be supplied, but got %d", len(rm))
 	}
@@ -209,6 +214,8 @@ func (c *AutoRollerConfig) RollerType() string {
 			c.rollerType = ROLLER_TYPE_GOOGLE3
 		} else if c.ManifestRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_MANIFEST
+		} else if c.NoCheckoutDEPSRepoManager != nil {
+			c.rollerType = ROLLER_TYPE_DEPS_NO_CHECKOUT
 		} else {
 			c.rollerType = ROLLER_TYPE_INVALID
 		}

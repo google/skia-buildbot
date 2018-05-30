@@ -956,7 +956,7 @@ func (g *Gerrit) CreateChange(project, branch, subject string) (*ChangeInfo, err
 	if err := json.NewDecoder(bytes.NewReader(respBytes[4:])).Decode(&ci); err != nil {
 		return nil, err
 	}
-	return &ci, nil
+	return fixupChangeInfo(&ci), nil
 }
 
 // Modify the given file to have the given content. A ChangeEdit is created, if
@@ -982,7 +982,7 @@ func (g *Gerrit) EditFile(ci *ChangeInfo, filepath, content string) error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != 204 {
+	if resp.StatusCode < 200 || resp.StatusCode > 204 {
 		return fmt.Errorf("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))
 	}
 	return nil
