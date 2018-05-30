@@ -56,6 +56,10 @@ func (e *Expectations) AddDigests(testDigests map[string]types.TestClassificatio
 	}
 }
 
+func (e *Expectations) Update(changes *Expectations) {
+	e.AddDigests(changes.Tests)
+}
+
 // SetTestExpectation sets the label (expectation) for a single test/digest pair.
 func (e *Expectations) SetTestExpectation(testName string, digest string, label types.Label) {
 	if _, ok := e.Tests[testName]; !ok {
@@ -172,6 +176,19 @@ type TriageLogEntry struct {
 	ChangeCount  int              `json:"changeCount"`
 	Details      []*TriageDetail  `json:"details"`
 	UndoChangeID int64            `json:"undoChangeId"`
+}
+
+func (t *TriageLogEntry) GetChanges() map[string]types.TestClassification {
+	ret := map[string]types.TestClassification{}
+	for _, d := range t.Details {
+		label := types.LabelFromString(d.Label)
+		if found, ok := ret[d.TestName]; !ok {
+			ret[d.TestName] = types.TestClassification{d.Digest: label}
+		} else {
+			found[d.Digest] = label
+		}
+	}
+	return ret
 }
 
 // Implements ExpectationsStore in memory for prototyping and testing.
