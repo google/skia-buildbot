@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b429f05c_d5f85105",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-05-30T12:55:14Z",
+      "side": 1,
+      "message": "Could body have more than one empty line at the start? If it can then maybe this will work (will also get rid of stuff from the end):\nif len(split) \u003e 1 {\n  body \u003d strings.Join(split, \"\\n\");\n  body \u003d strings.Trim(body, \"\\n\");\n}",
+      "revId": "5e68ab82bbed1a9cbc3a6c05df491ccc8bfdfbde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
