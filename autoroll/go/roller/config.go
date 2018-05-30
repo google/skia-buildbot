@@ -30,6 +30,7 @@ const (
 	ROLLER_TYPE_GOOGLE3     = "google3"
 	ROLLER_TYPE_INVALID     = "INVALID"
 	ROLLER_TYPE_MANIFEST    = "manifest"
+	ROLLER_TYPE_NO_CHECKOUT = "noCheckout"
 )
 
 var (
@@ -112,6 +113,7 @@ type AutoRollerConfig struct {
 	GithubRepoManager     *repo_manager.GithubRepoManagerConfig     `json:"githubRepoManager"`
 	Google3RepoManager    *google3FakeRepoManagerConfig             `json:"google3"`
 	ManifestRepoManager   *repo_manager.ManifestRepoManagerConfig   `json:"manifestRepoManager"`
+	NoCheckoutRepoManager *repo_manager.NoCheckoutRepoManagerConfig `json:"noCheckoutRepoManager"`
 
 	// Optional Fields.
 
@@ -173,6 +175,9 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.ManifestRepoManager != nil {
 		rm = append(rm, c.ManifestRepoManager)
 	}
+	if c.NoCheckoutRepoManager != nil {
+		rm = append(rm, c.NoCheckoutRepoManager)
+	}
 	if len(rm) != 1 {
 		return fmt.Errorf("Exactly one repo manager must be supplied, but got %d", len(rm))
 	}
@@ -209,6 +214,8 @@ func (c *AutoRollerConfig) RollerType() string {
 			c.rollerType = ROLLER_TYPE_GOOGLE3
 		} else if c.ManifestRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_MANIFEST
+		} else if c.NoCheckoutRepoManager != nil {
+			c.rollerType = ROLLER_TYPE_NO_CHECKOUT
 		} else {
 			c.rollerType = ROLLER_TYPE_INVALID
 		}
