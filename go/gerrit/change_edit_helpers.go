@@ -29,8 +29,8 @@ func EditChange(g GerritInterface, ci *ChangeInfo, fn func(GerritInterface, *Cha
 // published as a new patch set, or in the case of failure, reverted. If an
 // error is encountered after the Change is created, the ChangeInfo is returned
 // so that the caller can decide whether to abandon the change or try again.
-func CreateAndEditChange(g GerritInterface, project, branch, commitMsg string, fn func(GerritInterface, *ChangeInfo) error) (*ChangeInfo, error) {
-	ci, err := g.CreateChange(project, branch, strings.Split(commitMsg, "\n")[0])
+func CreateAndEditChange(g GerritInterface, project, branch, commitMsg, baseCommit string, fn func(GerritInterface, *ChangeInfo) error) (*ChangeInfo, error) {
+	ci, err := g.CreateChange(project, branch, strings.Split(commitMsg, "\n")[0], baseCommit)
 	if err != nil {
 		return nil, err
 	}
