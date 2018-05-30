@@ -77,7 +77,7 @@ func GetSkiaInfraCQTryBots() ([]string, error) {
 // getCQTryBots is a convenience method for the Skia and Skia Infra CQ TryBots.
 func getCQTryBots(repo string) ([]string, error) {
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(repo).ReadFile(CQ_CFG_FILE_PATH, &buf); err != nil {
+	if err := gitiles.NewRepo(repo, nil).ReadFile(CQ_CFG_FILE_PATH, &buf); err != nil {
 		return nil, err
 	}
 	var cqCfg Config
