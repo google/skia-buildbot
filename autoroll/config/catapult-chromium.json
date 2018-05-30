@@ -15,6 +15,12 @@
         "room": "speed-operations"
       },
       "subject": "Catapult into Chromium AutoRoller"
+    },
+    {
+      "filter": "warning",
+      "email": {
+        "emails": ["chrome-speed-operations@google.com"]
+      }
     }
   ],
   "parentName": "Chromium",
