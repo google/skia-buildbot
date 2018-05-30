@@ -5,20 +5,24 @@
 package capture_skps
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/sklog"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -39,13 +43,19 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
+// Obviously change this to DatastoreTask.
 type DBTask struct {
 	task_common.CommonCols
 
-	PageSets    string `db:"page_sets"`
-	ChromiumRev string `db:"chromium_rev"`
-	SkiaRev     string `db:"skia_rev"`
-	Description string `db:"description"`
+	PageSets      string `db:"page_sets"`
+	IsTestPageSet bool
+	ChromiumRev   string `db:"chromium_rev"`
+	SkiaRev       string `db:"skia_rev"`
+	Description   string `db:"description"`
+}
+
+func (task DBTask) GetCommonCols() *task_common.CommonCols {
+	return &task.CommonCols
 }
 
 func (task DBTask) GetTaskName() string {
@@ -82,16 +92,40 @@ func (task DBTask) TableName() string {
 	return db.TABLE_CAPTURE_SKPS_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DBTask) GetDatastoreKind() ds.Kind {
+	return ds.CAPTURE_SKPS_TASKS
+}
+
+func (task DBTask) Select(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*DBTask{}
+	for {
+		t := &DBTask{}
+		k, err := it.Next(t)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+		t.DatastoreId = k.ID
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
+}
+
+func (task DBTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DBTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
+// Think of where all to put noindex sutff. like datastore:",noindex"
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
@@ -100,6 +134,75 @@ type AddTaskVars struct {
 	Description   string                 `json:"desc"`
 }
 
+// Except ID ofcourse
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+
+	/*
+			task_common.CommonCols
+
+		PageSets    string `db:"page_sets" json:"page_sets"`
+		ChromiumRev string `db:"chromium_rev" json:"chromium_rev"`
+		SkiaRev     string `db:"skia_rev" json:"skia_rev"`
+		Description string `db:"description" json:"description"`
+
+			Id              int64  `db:"id" json:"id"`
+		TsAdded         int64  `db:"ts_added" json:"ts_added"`
+		TsStarted       int64  `db:"ts_started" json:"ts_started"`
+		TsCompleted     int64  `db:"ts_completed" json:"ts_completed"`
+		Username        string `db:"username" json:"username"`
+		Failure         bool   `db:"failure" json:"failure"`
+		RepeatAfterDays int64  `db:"repeat_after_days" json:"repeat_after_days"`
+		SwarmingLogs    string `db:"swarming_logs" json:"swarming_logs"`
+		Test            string
+	*/
+
+	//task.Username,
+	//task.PageSets,
+	//task.ChromiumBuild.ChromiumRev,
+	//task.ChromiumBuild.SkiaRev,
+	//task.Description,
+	//task.TsAdded,
+	//task.RepeatAfterDays,
+
+	//commonCols := &task_common.CommonCols{
+	//	TsAdded:         task.TsAdded,
+	//	Username:        task.Username,
+	//	RepeatAfterDays: task.RepeatAfterDays,
+	//}
+
+	id, err := task_common.GetNextId(ds.CAPTURE_SKPS_TASKS)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get highest id: %s", err)
+	}
+
+	t := &DBTask{
+		//task_common.CommonCols: task_common.CommonCols{
+		//	TsAdded:         task.TsAdded,
+		//	Username:        task.Username,
+		//	RepeatAfterDays: task.RepeatAfterDays,
+		//},
+		PageSets:      task.PageSets,
+		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		ChromiumRev:   task.ChromiumBuild.ChromiumRev,
+		SkiaRev:       task.ChromiumBuild.SkiaRev,
+		Description:   task.Description,
+	}
+	tsAdded, err := strconv.ParseInt(task.TsAdded, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.TsAdded, err)
+	}
+	t.TsAdded = tsAdded
+	t.Username = task.Username
+	t.Id = id
+	repeatAfterDays, err := strconv.ParseInt(task.RepeatAfterDays, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.RepeatAfterDays, err)
+	}
+	t.RepeatAfterDays = repeatAfterDays
+	return t, nil
+}
+
+// Rename to get populated Datastore Task
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.PageSets == "" ||
 		task.ChromiumBuild.ChromiumRev == "" ||
@@ -139,6 +242,7 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Validate that the given skpRepository exists in the DB.
+// rmistry
 func Validate(skpRepository DBTask) error {
 	rowCount := []int{}
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE page_sets = ? AND chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CAPTURE_SKPS_TASKS)

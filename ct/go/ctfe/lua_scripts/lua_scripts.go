@@ -5,6 +5,7 @@
 package lua_scripts
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
@@ -19,6 +21,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -93,10 +96,23 @@ func (task DBTask) TableName() string {
 	return db.TABLE_LUA_SCRIPT_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DBTask) GetDatastoreKind() ds.Kind {
+	return ds.LUA_SCRIPT_TASKS
+}
+
+func (task DBTask) Select(it *datastore.Iterator) (interface{}, error) {
+	//result := []DBTask{}
+	//err := db.DB.Select(&result, query, args...)
+	//return result, err
+	return nil, nil
+}
+
+func (task DBTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DBTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -110,6 +126,10 @@ type AddTaskVars struct {
 	LuaScript           string              `json:"lua_script"`
 	LuaAggregatorScript string              `json:"lua_aggregator_script"`
 	Description         string              `json:"desc"`
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
