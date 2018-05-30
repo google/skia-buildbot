@@ -17,10 +17,11 @@
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
-  "depsRepoManager": {
+  "noCheckoutDepsRepoManager": {
     "childBranch": "master",
     "childPath": "third_party/externals/angle2",
-    "childSubdir": "skia",
+    "childRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "gerritProject": "skia",
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",

@@ -8,10 +8,11 @@
     "https://build.chromium.org/deprecated/chromium/sheriff_ios_europe.js",
     "https://build.chromium.org/deprecated/chromium/sheriff_ios_us.js"
   ],
-  "depsRepoManager": {
+  "noCheckoutDepsRepoManager": {
     "childBranch": "master",
     "childPath": "src/ios_internal",
-    "gclientSpec": "solutions=[{\"name\":\"src\",\"url\":\"https://chromium.googlesource.com/chromium/src.git\",\"deps_file\":\"DEPS\",\"managed\":True,\"custom_deps\":{},\"custom_vars\":{\"checkout_ios\":True,\"checkout_google_internal\":True}}];cache_dir = None",
+    "childRepo": "https://chrome-internal.googlesource.com/chrome/ios_internal.git",
+    "gerritProject": "chromium/src",
     "includeLog": false,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
