@@ -97,7 +97,7 @@ func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir s
 	return dr, dr.Update(ctx)
 }
 
-// Update syncs code in the relevant repositories.
+// See documentation for RepoManager interface.
 func (dr *depsRepoManager) Update(ctx context.Context) error {
 	// Sync the projects.
 	dr.repoMtx.Lock()
@@ -133,7 +133,7 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 	return nil
 }
 
-// getLastRollRev returns the commit hash of the last-completed DEPS roll.
+// See documentation for RepoManager interface.
 func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (string, error) {
 	output, err := exec.RunCwd(ctx, dr.parentDir, "python", dr.gclient, "getdep", "-r", dr.childPath)
 	if err != nil {
@@ -201,8 +201,7 @@ func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtra
 	return commitMsg, nil
 }
 
-// CreateNewRoll creates and uploads a new DEPS roll to the given commit.
-// Returns the issue number of the uploaded roll.
+// See documentation for RepoManager interface.
 func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	dr.repoMtx.Lock()
 	defer dr.repoMtx.Unlock()

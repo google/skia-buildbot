@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -37,17 +36,57 @@ be CC'd on the roll, and stop the roller if necessary.
 // RepoManager is the interface used by different Autoroller implementations
 // to manage checkouts.
 type RepoManager interface {
+	// Return the number of commits which have not yet been rolled.
 	CommitsNotRolled() int
+
+	// Create a new roll attempt.
 	CreateNewRoll(context.Context, string, string, []string, string, bool) (int64, error)
+
+	// Return the full git commit hash for the given short hash or ref in
+	// the child repo.
 	FullChildHash(context.Context, string) (string, error)
+
+	// Return the last-rolled child revision.
 	LastRollRev() string
+
+	// Return the next child revision to be rolled.
 	NextRollRev() string
+
+	// PreUploadSteps returns a slice of functions which should be run after the
+	// roll is performed but before a CL is uploaded for it.
 	PreUploadSteps() []PreUploadStep
+
+	// Return true iff the roller has rolled up through or past the given
+	// commit.
 	RolledPast(context.Context, string) (bool, error)
+
+	// Update the RepoManager's view of the world. Depending on
+	// implementation, this may sync repos and may take some time.
 	Update(context.Context) error
+
+	// Return the name of the user who owns the uploaded rolls.
 	User() string
+
+	// GetFullHistoryUrl returns a url that contains all changes uploaded by the
+	// user.
 	GetFullHistoryUrl() string
+
+	// Return the base URL used for building the URLs of uploaded rolls.
 	GetIssueUrlBase() string
+}
+
+// Start makes the RepoManager begin the periodic update process.
+func Start(ctx context.Context, r RepoManager, frequency time.Duration) {
+	sklog.Infof("Starting repo_manager")
+	lv := metrics2.NewLiveness("last_successful_repo_manager_update")
+	cleanup.Repeat(frequency, func() {
+		sklog.Infof("Running repo_manager update.")
+		if err := r.Update(ctx); err != nil {
+			sklog.Errorf("Failed to update repo manager: %s", err)
+		} else {
+			lv.Reset()
+		}
+	}, nil)
 }
 
 // CommonRepoManagerConfig provides configuration for commonRepoManager.
@@ -166,78 +205,55 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 	}, nil
 }
 
-// FullChildHash returns the full hash of the given short hash or ref in the
-// child repo.
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) FullChildHash(ctx context.Context, shortHash string) (string, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
 	return r.childRepo.FullHash(ctx, shortHash)
 }
 
-// LastRollRev returns the last-rolled child commit.
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) LastRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.lastRollRev
 }
 
-// RolledPast determines whether the repo has rolled past the given commit.
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) RolledPast(ctx context.Context, hash string) (bool, error) {
 	r.repoMtx.RLock()
 	defer r.repoMtx.RUnlock()
 	return r.childRepo.IsAncestor(ctx, hash, r.lastRollRev)
 }
 
-// NextRollRev returns the revision of the next roll.
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) NextRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.nextRollRev
 }
 
-// PreUploadSteps returns a slice of functions which should be run after the
-// roll is performed but before a CL is uploaded for it.
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 	return r.preUploadSteps
 }
 
-// GetFullHistoryUrl returns a url that contains all changes uploaded by the
-// user.
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) GetFullHistoryUrl() string {
 	return r.g.Url(0) + "/q/owner:" + r.User()
 }
 
-// GetIssueUrlBase returns a partial url that needs an issue number suffix to
-// complete.
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) GetIssueUrlBase() string {
 	return r.g.Url(0) + "/c/"
 }
 
-// Start makes the RepoManager begin the periodic update process.
-func Start(ctx context.Context, r RepoManager, frequency time.Duration) {
-	sklog.Infof("Starting repo_manager")
-	lv := metrics2.NewLiveness("last_successful_repo_manager_update")
-	cleanup.Repeat(frequency, func() {
-		sklog.Infof("Running repo_manager update.")
-		if err := r.Update(ctx); err != nil {
-			sklog.Errorf("Failed to update repo manager: %s", err)
-		} else {
-			lv.Reset()
-		}
-	}, nil)
-}
-
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) User() string {
 	return r.user
 }
 
-func (r *commonRepoManager) IsRollSubject(line string) (bool, error) {
-	rollSubjectRegex := fmt.Sprintf("^Roll %s [a-zA-Z0-9]+..[a-zA-Z0-9]+ \\([0-9]+ commits\\)$", r.childPath)
-	return regexp.MatchString(rollSubjectRegex, line)
-}
-
-// CommitsNotRolled returns the number of commits in the child repo which have
-// not been rolled into the parent repo.
+// See documentation for RepoManager interface.
 func (r *commonRepoManager) CommitsNotRolled() int {
 	return r.commitsNotRolled
 }

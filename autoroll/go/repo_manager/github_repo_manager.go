@@ -77,7 +77,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 	return gr, gr.Update(ctx)
 }
 
-// Update syncs code in the relevant repositories.
+// See documentation for RepoManager interface.
 func (rm *githubRepoManager) Update(ctx context.Context) error {
 	// Sync the projects.
 	rm.repoMtx.Lock()
@@ -159,8 +159,7 @@ func (rm *githubRepoManager) Update(ctx context.Context) error {
 	return nil
 }
 
-// CreateNewRoll creates and uploads a new Android roll to the given commit.
-// Returns the change number of the uploaded roll.
+// See documentation for RepoManager interface.
 func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
@@ -275,15 +274,18 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	return int64(pr.GetNumber()), nil
 }
 
+// See documentation for RepoManager interface.
 func (rm *githubRepoManager) User() string {
 	return rm.user
 }
 
+// See documentation for RepoManager interface.
 func (rm *githubRepoManager) GetFullHistoryUrl() string {
 	user := strings.Split(rm.user, "@")[0]
 	return fmt.Sprintf("https://github.com/%s/%s/pulls/%s", rm.githubClient.RepoOwner, rm.githubClient.RepoName, user)
 }
 
+// See documentation for RepoManager interface.
 func (rm *githubRepoManager) GetIssueUrlBase() string {
 	return fmt.Sprintf("https://github.com/%s/%s/pull/", rm.githubClient.RepoOwner, rm.githubClient.RepoName)
 }

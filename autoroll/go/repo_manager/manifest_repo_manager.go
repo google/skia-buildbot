@@ -61,7 +61,7 @@ func newManifestRepoManager(ctx context.Context, c *ManifestRepoManagerConfig, w
 	return mr, mr.Update(ctx)
 }
 
-// Update syncs code in the relevant repositories.
+// See documentation for RepoManager interface.
 func (mr *manifestRepoManager) Update(ctx context.Context) error {
 	// Sync the projects.
 	mr.repoMtx.Lock()
@@ -119,8 +119,7 @@ func (mr *manifestRepoManager) getLastRollRev() (string, error) {
 	return m[len(m)-1], nil
 }
 
-// CreateNewRoll creates and uploads a new DEPS roll to the given commit.
-// Returns the issue number of the uploaded roll.
+// See documentation for RepoManager interface.
 func (mr *manifestRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	mr.repoMtx.Lock()
 	defer mr.repoMtx.Unlock()

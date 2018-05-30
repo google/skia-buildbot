@@ -98,7 +98,7 @@ func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir s
 	return rm, rm.Update(ctx)
 }
 
-// Update syncs the repo and determines the current and next roll revisions.
+// See documentation for RepoManager interface.
 func (rm *copyRepoManager) Update(ctx context.Context) error {
 	// Sync the projects.
 	rm.repoMtx.Lock()
@@ -140,8 +140,7 @@ func (rm *copyRepoManager) Update(ctx context.Context) error {
 	return nil
 }
 
-// CreateNewRoll creates and uploads a CL which rolls the child repo to the
-// given commit. Returns the issue number of the uploaded roll.
+// See documentation for RepoManager interface.
 func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
