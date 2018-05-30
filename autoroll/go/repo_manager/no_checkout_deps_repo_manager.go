@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -84,28 +85,30 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 }
 
 type noCheckoutDEPSRepoManager struct {
-	childBranch      string
-	childPath        string
-	childRepo        *gitiles.Repo
-	childRepoUrl     string
-	commitsNotRolled int
-	depotTools       string
-	g                gerrit.GerritInterface
-	gclient          string
-	gerritProject    string
-	includeLog       bool
-	infoMtx          sync.RWMutex
-	lastRollRev      string
-	nextRollCommits  []*vcsinfo.LongCommit
-	nextRollRev      string
-	parentBranch     string
-	parentRepo       *gitiles.Repo
-	parentRepoUrl    string
-	preUploadSteps   []PreUploadStep
-	serverURL        string
-	strategy         NextRollStrategy
-	user             string
-	workdir          string
+	baseCommit          string
+	childBranch         string
+	childPath           string
+	childRepo           *gitiles.Repo
+	childRepoUrl        string
+	commitsNotRolled    int
+	depotTools          string
+	g                   gerrit.GerritInterface
+	gclient             string
+	gerritProject       string
+	includeLog          bool
+	infoMtx             sync.RWMutex
+	lastRollRev         string
+	nextRollCommits     []*vcsinfo.LongCommit
+	nextRollDEPSContent []byte
+	nextRollRev         string
+	parentBranch        string
+	parentRepo          *gitiles.Repo
+	parentRepoUrl       string
+	preUploadSteps      []PreUploadStep
+	serverURL           string
+	strategy            NextRollStrategy
+	user                string
+	workdir             string
 }
 
 // newNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
@@ -199,40 +202,9 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 		return 0, err
 	}
 
-	// Get the current state of the DEPS file.
-	wd, err := ioutil.TempDir("", "")
-	if err != nil {
-		return 0, err
-	}
-	defer util.RemoveAll(wd)
-
-	// Download the DEPS file from the parent repo.
-	depsFile := path.Join(wd, "DEPS")
-	if err := getDEPSFile(rm.parentRepo, rm.parentBranch, depsFile); err != nil {
-		return 0, err
-	}
-
-	// Run "gclient setdep" to set the new revision.
-	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", rm.childPath, to)}
-	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  wd,
-		Env:  depot_tools.Env(rm.depotTools),
-		Name: rm.gclient,
-		Args: args,
-	}); err != nil {
-		return 0, err
-	}
-
-	// Read the updated DEPS file.
-	b, err := ioutil.ReadFile(depsFile)
-	if err != nil {
-		return 0, err
-	}
-
 	// Create the change.
-	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritProject, rm.parentBranch, commitMsg, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
-		return g.EditFile(ci, "DEPS", string(b))
+	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritProject, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+		return g.EditFile(ci, "DEPS", string(rm.nextRollDEPSContent))
 	})
 	if err != nil {
 		if ci != nil {
@@ -311,25 +283,6 @@ func getDEPSFile(repo *gitiles.Repo, ref, dest string) error {
 	return depsFile.Close()
 }
 
-// getLastRollRev returns the commit hash of the last-completed DEPS roll.
-func (rm *noCheckoutDEPSRepoManager) getLastRollRev(ctx context.Context, wd string) (string, error) {
-	// Download the DEPS file from the parent repo.
-	if err := getDEPSFile(rm.parentRepo, rm.parentBranch, path.Join(wd, "DEPS")); err != nil {
-		return "", err
-	}
-
-	// Use "gclient getdep" to retrieve the last roll revision.
-	output, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "getdep", "-r", rm.childPath)
-	if err != nil {
-		return "", err
-	}
-	commit := strings.TrimSpace(output)
-	if len(commit) != 40 {
-		return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
-	}
-	return commit, nil
-}
-
 // See documentation for RepoManager interface.
 func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	wd, err := ioutil.TempDir("", "")
@@ -338,10 +291,32 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	}
 	defer util.RemoveAll(wd)
 
-	// Get the last roll revision.
-	lastRollRev, err := rm.getLastRollRev(ctx, wd)
+	// Find HEAD of the desired parent branch. We make sure to provide the
+	// base commit of our change, to avoid clobbering other changes to the
+	// DEPS file.
+	baseCommit, err := rm.parentRepo.GetCommit(rm.parentBranch)
 	if err != nil {
 		return err
+	}
+
+	// Download the DEPS file from the parent repo.
+	buf := bytes.NewBuffer([]byte{})
+	if err := rm.parentRepo.ReadFileAtRef("DEPS", baseCommit.Hash, buf); err != nil {
+		return err
+	}
+
+	// Use "gclient getdep" to retrieve the last roll revision.
+	depsFile := path.Join(wd, "DEPS")
+	if err := ioutil.WriteFile(depsFile, buf.Bytes(), os.ModePerm); err != nil {
+		return err
+	}
+	output, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "getdep", "-r", rm.childPath)
+	if err != nil {
+		return err
+	}
+	lastRollRev := strings.TrimSpace(output)
+	if len(lastRollRev) != 40 {
+		return fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
 	}
 
 	// Find the not-yet-rolled child repo commits.
@@ -356,20 +331,43 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	nextRollCommits := []*vcsinfo.LongCommit{}
+	nextRollCommits := make([]*vcsinfo.LongCommit, 0, notRolledCount)
 	if nextRollRev != lastRollRev {
-		nextRollCommits, err = rm.childRepo.Log(lastRollRev, nextRollRev)
-		if err != nil {
-			return err
+		for _, c := range notRolled {
+			nextRollCommits = append(nextRollCommits, c)
+			if c.Hash == nextRollRev {
+				break
+			}
 		}
+	}
+
+	// Go ahead and write the new DEPS content, while we have the file on
+	// disk.
+	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", rm.childPath, nextRollRev)}
+	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Dir:  wd,
+		Env:  depot_tools.Env(rm.depotTools),
+		Name: rm.gclient,
+		Args: args,
+	}); err != nil {
+		return err
+	}
+
+	// Read the updated DEPS content.
+	newDEPSContent, err := ioutil.ReadFile(depsFile)
+	if err != nil {
+		return err
 	}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
+	rm.baseCommit = baseCommit.Hash
 	rm.lastRollRev = lastRollRev
 	rm.nextRollRev = nextRollRev
 	rm.commitsNotRolled = notRolledCount
 	rm.nextRollCommits = nextRollCommits
+	rm.nextRollDEPSContent = newDEPSContent
 	return nil
 }
 

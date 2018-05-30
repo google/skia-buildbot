@@ -86,7 +86,7 @@ func (g *MockedGerrit) IsBinaryPatch(issue int64, patch string) (bool, error) {
 	return false, nil
 }
 
-func (g *MockedGerrit) CreateChange(string, string, string) (*ChangeInfo, error) {
+func (g *MockedGerrit) CreateChange(string, string, string, string) (*ChangeInfo, error) {
 	return nil, nil
 }
 
