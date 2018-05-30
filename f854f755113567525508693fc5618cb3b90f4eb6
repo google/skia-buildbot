@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0e9438b_ca4d1cb7",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-30T17:02:46Z",
+      "side": 1,
+      "message": "This is done twice because we need it in the repo manager Update() but it\u0027s also done in NextRollStrategy.  I have an idea for a little refactor that will help remove this.",
+      "range": {
+        "startLine": 103,
+        "startChar": 1,
+        "endLine": 103,
+        "endChar": 50
+      },
+      "revId": "f854f755113567525508693fc5618cb3b90f4eb6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
