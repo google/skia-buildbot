@@ -5,9 +5,11 @@
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "sheriff": ["chrome-os-gardeners@google.com"],
-  "depsRepoManager": {
+  "noCheckoutDepsRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/chromite",
+    "childRepo": "https://chromium.googlesource.com/chromiumos/chromite.git",
+    "gerritProject": "chromium/src",
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",

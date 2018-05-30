@@ -5,10 +5,11 @@
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "sheriff": ["mmoss@chromium.org"],
-  "depsRepoManager": {
+  "noCheckoutDepsRepoManager": {
     "childBranch": "master",
     "childPath": "src-internal",
-    "gclientSpec": "solutions=[{\"name\":\"src\",\"url\":\"https://chromium.googlesource.com/chromium/src.git\",\"deps_file\":\"DEPS\",\"managed\":True,\"custom_deps\":{},\"custom_vars\":{\"checkout_src_internal\":True}}];cache_dir = None",
+    "childRepo": "https://chrome-internal.googlesource.com/chrome/src-internal.git",
+    "gerritProject": "chromium/src",
     "includeLog": false,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
