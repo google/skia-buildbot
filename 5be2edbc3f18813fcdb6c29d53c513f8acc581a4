@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7cc46a60_cf2e22a2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-30T15:24:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0974055b_140387a8",
+      "range": {
+        "startLine": 7,
+        "startChar": 15,
+        "endLine": 7,
+        "endChar": 36
+      },
+      "revId": "5be2edbc3f18813fcdb6c29d53c513f8acc581a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8c1cc314_28827d4b",
         "filename": "autoroll/go/roller/config.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "5be2edbc3f18813fcdb6c29d53c513f8acc581a4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52842b7c_e696d57c",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-30T15:24:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8c1cc314_28827d4b",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 24
+      },
+      "revId": "5be2edbc3f18813fcdb6c29d53c513f8acc581a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
