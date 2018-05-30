@@ -113,23 +113,26 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Get the next roll revision.
-	nextRollRev, err := dr.strategy.GetNextRollRev(ctx, dr.childRepo, lastRollRev)
-	if err != nil {
-		return err
-	}
-
 	// Find the number of not-rolled child repo commits.
 	notRolled, err := dr.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
 
+	// Get the next roll revision.
+	nextRollRev, err := dr.strategy.GetNextRollRev(ctx, notRolled)
+	if err != nil {
+		return err
+	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
+	}
+
 	dr.infoMtx.Lock()
 	defer dr.infoMtx.Unlock()
 	dr.lastRollRev = lastRollRev
 	dr.nextRollRev = nextRollRev
-	dr.commitsNotRolled = notRolled
+	dr.commitsNotRolled = len(notRolled)
 	return nil
 }
 

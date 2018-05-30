@@ -120,14 +120,14 @@ func (rm *copyRepoManager) Update(ctx context.Context) error {
 	}
 	lastRollRev := strings.TrimSpace(string(lastRollRevBytes))
 
-	// Get the next roll revision.
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, rm.childRepo, lastRollRev)
+	// Find the number of not-rolled child repo commits.
+	notRolled, err := rm.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
 
-	// Find the number of not-rolled child repo commits.
-	notRolled, err := rm.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, nextRollRev))
+	// Get the next roll revision.
+	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
 	if err != nil {
 		return err
 	}

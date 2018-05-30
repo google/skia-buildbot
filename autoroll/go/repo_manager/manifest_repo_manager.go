@@ -81,23 +81,26 @@ func (mr *manifestRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Get the next roll revision.
-	nextRollRev, err := mr.strategy.GetNextRollRev(ctx, mr.childRepo, lastRollRev)
-	if err != nil {
-		return err
-	}
-
 	// Find the number of not-rolled child repo commits.
 	notRolled, err := mr.getCommitsNotRolled(ctx, lastRollRev)
 	if err != nil {
 		return err
 	}
 
+	// Get the next roll revision.
+	nextRollRev, err := mr.strategy.GetNextRollRev(ctx, notRolled)
+	if err != nil {
+		return err
+	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
+	}
+
 	mr.infoMtx.Lock()
 	defer mr.infoMtx.Unlock()
 	mr.lastRollRev = lastRollRev
 	mr.nextRollRev = nextRollRev
-	mr.commitsNotRolled = notRolled
+	mr.commitsNotRolled = len(notRolled)
 	return nil
 }
 
