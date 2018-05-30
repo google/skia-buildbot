@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -25,13 +24,14 @@ const (
 // NextRollStrategy is an interface for modules which determine what the next roll
 // revision should be.
 type NextRollStrategy interface {
-	// Return the next roll revision, or an error. Parameters are the child
-	// git checkout and the last roll revision.
-	GetNextRollRev(context.Context, *git.Checkout, string) (string, error)
+	// Return the next roll revision, given the list of not-yet-rolled
+	// commits in reverse chronological order. Returning the empty string
+	// implies that we are up-to-date.
+	GetNextRollRev(context.Context, []*vcsinfo.LongCommit) (string, error)
 }
 
 // Return the NextRollStrategy indicated by the given string.
-func GetNextRollStrategy(strategy string, branch, lkgr string) (NextRollStrategy, error) {
+func GetNextRollStrategy(strategy string, branch, lkgr string, repo *git.Checkout) (NextRollStrategy, error) {
 	switch strategy {
 	case ROLL_STRATEGY_AFDO:
 		return nil, nil // Handled by ChromiumAFDORepoManager.
@@ -42,7 +42,7 @@ func GetNextRollStrategy(strategy string, branch, lkgr string) (NextRollStrategy
 	case ROLL_STRATEGY_LKGR:
 		return StrategyLKGR(lkgr), nil
 	case ROLL_STRATEGY_REMOTE_BATCH:
-		return StrategyRemoteHead(branch), nil
+		return StrategyRemoteHead(branch, repo), nil
 	case ROLL_STRATEGY_SINGLE:
 		return StrategySingle(branch), nil
 	default:
@@ -56,8 +56,12 @@ type headStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *headStrategy) GetNextRollRev(ctx context.Context, repo *git.Checkout, _ string) (string, error) {
-	return repo.FullHash(ctx, fmt.Sprintf("origin/%s", s.branch))
+func (s *headStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit) (string, error) {
+	if len(notRolled) > 0 {
+		// Commits are listed in reverse chronological order.
+		return notRolled[0].Hash, nil
+	}
+	return "", nil
 }
 
 // StrategyHead returns a NextRollStrategy which always rolls to HEAD of a given branch.
@@ -71,11 +75,12 @@ func StrategyHead(branch string) NextRollStrategy {
 // given branch, as defined by "git ls-remote".
 type remoteHeadStrategy struct {
 	branch string
+	repo   *git.Checkout
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, repo *git.Checkout, _ string) (string, error) {
-	output, err := repo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", s.branch), "-1")
+func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.LongCommit) (string, error) {
+	output, err := s.repo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", s.branch), "-1")
 	if err != nil {
 		return "", err
 	}
@@ -85,9 +90,10 @@ func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, repo *git.Check
 
 // StrategyRemoteHead returns a NextRollStrategy which always rolls to HEAD of a
 // given branch, as defined by "git ls-remote".
-func StrategyRemoteHead(branch string) NextRollStrategy {
+func StrategyRemoteHead(branch string, repo *git.Checkout) NextRollStrategy {
 	return &remoteHeadStrategy{
 		branch: branch,
+		repo:   repo,
 	}
 }
 
@@ -98,20 +104,11 @@ type singleStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *singleStrategy) GetNextRollRev(ctx context.Context, repo *git.Checkout, lastRollRev string) (string, error) {
-	head, err := s.headStrategy.GetNextRollRev(ctx, repo, lastRollRev)
-	if err != nil {
-		return "", err
+func (s *singleStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit) (string, error) {
+	if len(notRolled) > 0 {
+		return notRolled[len(notRolled)-1].Hash, nil
 	}
-	commits, err := repo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
-	if err != nil {
-		return "", fmt.Errorf("Failed to list revisions: %s", err)
-	}
-	if len(commits) == 0 {
-		return lastRollRev, nil
-	} else {
-		return commits[len(commits)-1], nil
-	}
+	return "", nil
 }
 
 // StrategySingle returns a NextRollStrategy which rolls toward HEAD of a given branch,
@@ -129,7 +126,7 @@ type urlStrategy struct {
 }
 
 // See documentation for NextRollStrategy interface.
-func (s *urlStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, _ string) (string, error) {
+func (s *urlStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.LongCommit) (string, error) {
 	resp, err := s.client.Get(s.url)
 	if err != nil {
 		return "", err
@@ -158,52 +155,4 @@ func StrategyLKGR(url string) NextRollStrategy {
 	return StrategyURL(nil, url, func(body string) (string, error) {
 		return strings.TrimSpace(body), nil
 	})
-}
-
-// gitilesStrategy is a NextRollStrategy which uses the Gitiles API to obtain
-// the list of not-yet-rolled commits.
-type gitilesStrategy struct {
-	branch string
-	r      *gitiles.Repo
-	fn     func(string, []*vcsinfo.LongCommit) string
-}
-
-// See documentation for NextRollStrategy interface.
-func (s *gitilesStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, lastRollRev string) (string, error) {
-	commits, err := s.r.Log(lastRollRev, s.branch)
-	if err != nil {
-		return "", err
-	}
-	return s.fn(lastRollRev, commits), nil
-}
-
-// StrategyGitilesBatch returns a NextRollStrategy which rolls to HEAD of a
-// given branch, using the Gitiles API instead of a local checkout.
-func StrategyGitilesBatch(client *http.Client, repoUrl, branch string) NextRollStrategy {
-	return &gitilesStrategy{
-		branch: branch,
-		r:      gitiles.NewRepo(repoUrl, client),
-		fn: func(lastRollRev string, newCommits []*vcsinfo.LongCommit) string {
-			if len(newCommits) == 0 {
-				return lastRollRev
-			}
-			return newCommits[0].Hash
-		},
-	}
-}
-
-// StrategyGitilesSingle returns a NextRollStrategy which rolls toward HEAD of a
-// given branch one commit at a time, using the Gitiles API instead of a local
-// checkout.
-func StrategyGitilesSingle(client *http.Client, repoUrl, branch string) NextRollStrategy {
-	return &gitilesStrategy{
-		branch: branch,
-		r:      gitiles.NewRepo(repoUrl, client),
-		fn: func(lastRollRev string, newCommits []*vcsinfo.LongCommit) string {
-			if len(newCommits) == 0 {
-				return lastRollRev
-			}
-			return newCommits[len(newCommits)-1].Hash
-		},
-	}
 }
