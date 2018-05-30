@@ -16,6 +16,24 @@
       "revId": "5e68ab82bbed1a9cbc3a6c05df491ccc8bfdfbde",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "082c2701_d8df0037",
+        "filename": "go/gitiles/gitiles.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-30T13:03:59Z",
+      "side": 1,
+      "message": "We want to preserve newlines that are intentionally placed; the goal here is to be as consistent as possible.  This if-statement is just to ensure that we do the right thing in the case where the commit message is written incorrectly, ie. no empty line between subject and body.",
+      "parentUuid": "b429f05c_d5f85105",
+      "revId": "5e68ab82bbed1a9cbc3a6c05df491ccc8bfdfbde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
