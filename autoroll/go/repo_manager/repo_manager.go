@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -127,7 +128,7 @@ func (c *CommonRepoManagerConfig) Validate() error {
 	if c.Strategy == "" {
 		return errors.New("Strategy is required.")
 	}
-	if _, err := GetNextRollStrategy(c.Strategy, "master", "lkgr"); err != nil {
+	if _, err := GetNextRollStrategy(c.Strategy, "master", "lkgr", nil); err != nil {
 		return err
 	}
 	for _, s := range c.PreUploadSteps {
@@ -177,7 +178,7 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 	if err != nil {
 		return nil, err
 	}
-	strategy, err := GetNextRollStrategy(c.Strategy, c.ChildBranch, "")
+	strategy, err := GetNextRollStrategy(c.Strategy, c.ChildBranch, "", childRepo)
 	if err != nil {
 		return nil, err
 	}
@@ -393,18 +394,25 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 	return nil
 }
 
-func (r *depotToolsRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) (int, error) {
+func (r *depotToolsRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
 	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
-	notRolled := 0
-	if head != lastRollRev {
-		commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+	if head == lastRollRev {
+		return []*vcsinfo.LongCommit{}, nil
+	}
+	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+	if err != nil {
+		return nil, err
+	}
+	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		detail, err := r.childRepo.Details(ctx, c)
 		if err != nil {
-			return -1, err
+			return nil, err
 		}
-		notRolled = len(commits)
+		notRolled = append(notRolled, detail)
 	}
 	return notRolled, nil
 }
