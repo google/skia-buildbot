@@ -67,7 +67,7 @@ func GetOldestPendingTask() (task_common.Task, error) {
 		}
 		if oldestTask == nil {
 			oldestTask = task
-		} else if oldestTask.GetCommonCols().TsAdded.Int64 > task.GetCommonCols().TsAdded.Int64 {
+		} else if oldestTask.GetCommonCols().TsAdded > task.GetCommonCols().TsAdded {
 			oldestTask = task
 		}
 	}
@@ -75,16 +75,17 @@ func GetOldestPendingTask() (task_common.Task, error) {
 }
 
 // GetRunningTasks returns all running tasks from all task types.
+// rmistry: Fix!!!!!!!
 func GetRunningTasks() ([]task_common.Task, error) {
 	runningTasks := []task_common.Task{}
-	for _, task := range task_types.Prototypes() {
-		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NOT NULL AND ts_completed IS NULL ORDER BY ts_added;", task.TableName())
-		data, err := task.Select(query)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to query DB: %v", err)
-		}
-		runningTasks = append(runningTasks, task_common.AsTaskSlice(data)...)
-	}
+	//for _, task := range task_types.Prototypes() {
+	//	query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NOT NULL AND ts_completed IS NULL ORDER BY ts_added;", task.TableName())
+	//	data, err := task.Select(query)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("Failed to query DB: %v", err)
+	//	}
+	//	runningTasks = append(runningTasks, task_common.AsTaskSlice(data)...)
+	//}
 	return runningTasks, nil
 }
 
@@ -242,20 +243,21 @@ func getTerminateRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetPendingTaskCount returns the total number of pending tasks of all types. On error, the first
 // return value will be -1 and the second return value will be non-nil.
+// rmistry: Fix
 func GetPendingTaskCount() (int64, error) {
 	var result int64 = 0
-	params := task_common.QueryParams{
-		PendingOnly: true,
-		CountQuery:  true,
-	}
-	for _, prototype := range task_types.Prototypes() {
-		query, args := task_common.DBTaskQuery(prototype, params)
-		var countVal int64 = 0
-		if err := db.DB.Get(&countVal, query, args...); err != nil {
-			return -1, err
-		}
-		result += countVal
-	}
+	//params := task_common.QueryParams{
+	//	PendingOnly: true,
+	//	CountQuery:  true,
+	//}
+	//for _, prototype := range task_types.Prototypes() {
+	//	query, args := task_common.DBTaskQuery(prototype, params)
+	//	var countVal int64 = 0
+	//	if err := db.DB.Get(&countVal, query, args...); err != nil {
+	//		return -1, err
+	//	}
+	//	result += countVal
+	//}
 	return result, nil
 }
 

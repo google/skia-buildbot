@@ -7,7 +7,8 @@ package chromium_builds
 import (
 	"bufio"
 	"bytes"
-	"database/sql"
+	"context"
+	//"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,6 +21,7 @@ import (
 	"text/template"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/sklog"
 
@@ -28,6 +30,7 @@ import (
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -66,9 +69,9 @@ func ReloadTemplates(resourcesDir string) {
 type DBTask struct {
 	task_common.CommonCols
 
-	ChromiumRev   string        `db:"chromium_rev"`
-	ChromiumRevTs sql.NullInt64 `db:"chromium_rev_ts"`
-	SkiaRev       string        `db:"skia_rev"`
+	ChromiumRev   string `db:"chromium_rev" json:"chromium_rev"`
+	ChromiumRevTs int64  `db:"chromium_rev_ts" json:"chromium_rev_ts"`
+	SkiaRev       string `db:"skia_rev" json:"skia_rev"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -86,7 +89,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
 
 	taskVars.ChromiumRev = dbTask.ChromiumRev
-	taskVars.ChromiumRevTs = strconv.FormatInt(dbTask.ChromiumRevTs.Int64, 10)
+	taskVars.ChromiumRevTs = strconv.FormatInt(dbTask.ChromiumRevTs, 10)
 	taskVars.SkiaRev = dbTask.SkiaRev
 	return taskVars
 }
@@ -105,10 +108,23 @@ func (task DBTask) TableName() string {
 	return db.TABLE_CHROMIUM_BUILD_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DBTask) GetDatastoreKind() ds.Kind {
+	return ds.CHROMIUM_BUILD_TASKS
+}
+
+func (task DBTask) Select(it *datastore.Iterator) (interface{}, error) {
+	//result := []DBTask{}
+	//err := db.DB.Select(&result, query, args...)
+	//return result, err
+	return nil, nil
+}
+
+func (task DBTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DBTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -121,6 +137,10 @@ type AddTaskVars struct {
 	ChromiumRev   string `json:"chromium_rev"`
 	ChromiumRevTs string `json:"chromium_rev_ts"`
 	SkiaRev       string `json:"skia_rev"`
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
