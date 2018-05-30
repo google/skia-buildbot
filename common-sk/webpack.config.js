@@ -1,11 +1,9 @@
 const { glob } = require('glob');
+const commonBuilder = require('pulito');
 
-const { commonBuilder } = require('pulito');
+module.exports = (env, argv) => {
+  let config = commonBuilder(env, argv, __dirname);
 
-const { addCommon } = require('./webpack.common.js');
-
-let config = addCommon(commonBuilder(__dirname));
-
-config.entry.tests = glob.sync('./modules/**/*_test.js');
-
-module.exports = config;
+  config.entry.tests = glob.sync('./modules/**/*_test.js');
+  return config;
+}
