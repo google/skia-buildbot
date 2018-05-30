@@ -1,6 +1,8 @@
 build:
-	npm install
-	npx webpack
+	npx webpack --mode=development
+
+production:
+	npx webpack --mode=production
 
 serve: package-lock.json
 	npx webpack-dev-server --content-base ./dist --watch

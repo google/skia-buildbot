@@ -1,7 +1,7 @@
 import 'elements-sk/buttons'
 
-import { $$ } from 'common/dom'
-import { errorMessage } from 'common/errorMessage'
+import { $$ } from '../dom'
+import { errorMessage } from '../errorMessage'
 
 import './index.js'
 
