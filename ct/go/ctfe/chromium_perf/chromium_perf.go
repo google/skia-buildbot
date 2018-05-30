@@ -13,12 +13,14 @@ import (
 	"strings"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -112,10 +114,15 @@ func (task DBTask) TableName() string {
 	return db.TABLE_CHROMIUM_PERF_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DBTask) GetDatastoreKind() ds.Kind {
+	return ds.CHROMIUM_PERF_TASKS
+}
+
+func (task DBTask) Select(it *datastore.Iterator) (interface{}, error) {
+	//result := []DBTask{}
+	//err := db.DB.Select(&result, query, args...)
+	//return result, err
+	return nil, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -141,6 +148,10 @@ type AddTaskVars struct {
 	CatapultPatch        string `json:"catapult_patch"`
 	BenchmarkPatch       string `json:"benchmark_patch"`
 	V8Patch              string `json:"v8_patch"`
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {

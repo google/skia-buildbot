@@ -108,15 +108,15 @@
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
@@ -145,10 +145,10 @@
             <template is="dom-if" if="{{captureSkpsTask.Failure.Bool}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!captureSkpsTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!captureSkpsTask.TsCompleted}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{isDone(captureSkpsTask.Failure.Bool, captureSkpsTask.TsCompleted.Int64)}}">
+            <template is="dom-if" if="{{isDone(captureSkpsTask.Failure.Bool, captureSkpsTask.TsCompleted)}}">
               Done
             </template>
             <template is="dom-if" if="{{captureSkpsTask.SwarmingLogs.String}}">
@@ -295,13 +295,15 @@
 
      deleteTask: function(deleteIndex) {
        var params = {};
-       params["id"] = this.captureSkpsTasks[deleteIndex].Id;
+       params["id"] = this.captureSkpsTasks[deleteIndex].DatastoreId;
+       console.log("ALL PARAMS OF THE TASK!");
+       console.log(this.captureSkpsTasks[deleteIndex]);
        sk.post("/_/delete_capture_skps_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Deleted task " + params["id"];
          $$$("#confirm_toast").show();
        }.bind(this)).catch(sk.errorMessage).then(function() {
          this.reload();
-         this.$.delete_dialog.close();
+         // this.$.delete_dialog.close();
        }.bind(this));
      },
 
