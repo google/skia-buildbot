@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ad058450_0c8c8e9e",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-30T15:03:20Z",
+      "side": 1,
+      "message": "Yes, unfortunately.  Any DEPS repo manager which has pre-upload steps requiring a checkout will have to use the old DEPSRepoManager.  An example is the skia-\u003einternal_test roller.",
+      "parentUuid": "48e42994_74bc63c3",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "9437bd08f580c965996037009be094fa8560b2fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "03a5c619_0ded407b",
         "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "9437bd08f580c965996037009be094fa8560b2fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0207bccc_805bab8e",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-30T15:03:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03a5c619_0ded407b",
+      "range": {
+        "startLine": 32,
+        "startChar": 5,
+        "endLine": 32,
+        "endChar": 32
+      },
+      "revId": "9437bd08f580c965996037009be094fa8560b2fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
