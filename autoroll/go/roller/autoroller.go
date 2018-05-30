@@ -96,6 +96,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		}
 	} else if c.ManifestRepoManager != nil {
 		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL)
+	} else if c.NoCheckoutDEPSRepoManager != nil {
+		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, nil)
 	} else {
 		return nil, errors.New("Invalid roller config; no repo manager defined!")
 	}

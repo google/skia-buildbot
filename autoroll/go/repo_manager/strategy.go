@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -156,4 +158,52 @@ func StrategyLKGR(url string) NextRollStrategy {
 	return StrategyURL(nil, url, func(body string) (string, error) {
 		return strings.TrimSpace(body), nil
 	})
+}
+
+// gitilesStrategy is a NextRollStrategy which uses the Gitiles API to obtain
+// the list of not-yet-rolled commits.
+type gitilesStrategy struct {
+	branch string
+	r      *gitiles.Repo
+	fn     func(string, []*vcsinfo.LongCommit) string
+}
+
+// See documentation for NextRollStrategy interface.
+func (s *gitilesStrategy) GetNextRollRev(ctx context.Context, _ *git.Checkout, lastRollRev string) (string, error) {
+	commits, err := s.r.Log(lastRollRev, s.branch)
+	if err != nil {
+		return "", err
+	}
+	return s.fn(lastRollRev, commits), nil
+}
+
+// StrategyGitilesBatch returns a NextRollStrategy which rolls to HEAD of a
+// given branch, using the Gitiles API instead of a local checkout.
+func StrategyGitilesBatch(client *http.Client, repoUrl, branch string) NextRollStrategy {
+	return &gitilesStrategy{
+		branch: branch,
+		r:      gitiles.NewRepo(repoUrl, client),
+		fn: func(lastRollRev string, newCommits []*vcsinfo.LongCommit) string {
+			if len(newCommits) == 0 {
+				return lastRollRev
+			}
+			return newCommits[0].Hash
+		},
+	}
+}
+
+// StrategyGitilesSingle returns a NextRollStrategy which rolls toward HEAD of a
+// given branch one commit at a time, using the Gitiles API instead of a local
+// checkout.
+func StrategyGitilesSingle(client *http.Client, repoUrl, branch string) NextRollStrategy {
+	return &gitilesStrategy{
+		branch: branch,
+		r:      gitiles.NewRepo(repoUrl, client),
+		fn: func(lastRollRev string, newCommits []*vcsinfo.LongCommit) string {
+			if len(newCommits) == 0 {
+				return lastRollRev
+			}
+			return newCommits[len(newCommits)-1].Hash
+		},
+	}
 }

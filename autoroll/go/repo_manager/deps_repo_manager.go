@@ -151,6 +151,46 @@ func getLocalPartOfEmailAddress(emailAddress string) string {
 }
 
 // Helper function for building the commit message.
+func buildCommitMsg(from, to, childPath, cqExtraTrybots, remoteUrl, serverURL, logStr string, bugs []string, numCommits int, includeLog bool) (string, error) {
+	data := struct {
+		ChildPath  string
+		ChildRepo  string
+		From       string
+		To         string
+		NumCommits int
+		LogURL     string
+		LogStr     string
+		ServerURL  string
+		Footer     string
+	}{
+		ChildPath:  childPath,
+		ChildRepo:  remoteUrl,
+		From:       from[:7],
+		To:         to[:7],
+		NumCommits: numCommits,
+		LogStr:     "",
+		ServerURL:  serverURL,
+		Footer:     "",
+	}
+	if cqExtraTrybots != "" {
+		data.Footer += fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
+	}
+	if len(bugs) > 0 {
+		data.Footer += "\n\nBUG=" + strings.Join(bugs, ",")
+	}
+	if includeLog {
+		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from[:7], to[:7])
+		data.LogStr += logStr + "\n"
+	}
+	var buf bytes.Buffer
+	if err := commitMsgTmpl.Execute(&buf, data); err != nil {
+		return "", err
+	}
+	commitMsg := buf.String()
+	return commitMsg, nil
+}
+
+// Helper function for building the commit message.
 func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtraTrybots string, bugs []string) (string, error) {
 	logStr, err := exec.RunCwd(ctx, dr.childDir, "git", "log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format=%ad %ae %s")
 	if err != nil {
@@ -163,42 +203,7 @@ func (dr *depsRepoManager) buildCommitMsg(ctx context.Context, from, to, cqExtra
 		return "", err
 	}
 	remoteUrl = strings.TrimSpace(remoteUrl)
-	data := struct {
-		ChildPath  string
-		ChildRepo  string
-		From       string
-		To         string
-		NumCommits int
-		LogURL     string
-		LogStr     string
-		ServerURL  string
-		Footer     string
-	}{
-		ChildPath:  dr.childPath,
-		ChildRepo:  remoteUrl,
-		From:       from[:7],
-		To:         to[:7],
-		NumCommits: numCommits,
-		LogStr:     "",
-		ServerURL:  dr.serverURL,
-		Footer:     "",
-	}
-	if cqExtraTrybots != "" {
-		data.Footer += fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
-	}
-	if len(bugs) > 0 {
-		data.Footer += "\n\nBUG=" + strings.Join(bugs, ",")
-	}
-	if dr.includeLog {
-		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from[:7], to[:7])
-		data.LogStr += logStr + "\n"
-	}
-	var buf bytes.Buffer
-	if err := commitMsgTmpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	commitMsg := buf.String()
-	return commitMsg, nil
+	return buildCommitMsg(from, to, dr.childPath, cqExtraTrybots, remoteUrl, dr.serverURL, logStr, bugs, numCommits, dr.includeLog)
 }
 
 // See documentation for RepoManager interface.
