@@ -156,7 +156,7 @@ type GerritInterface interface {
 	Abandon(*ChangeInfo, string) error
 	AddComment(*ChangeInfo, string) error
 	Approve(*ChangeInfo, string) error
-	CreateChange(string, string, string) (*ChangeInfo, error)
+	CreateChange(string, string, string, string) (*ChangeInfo, error)
 	DeleteChangeEdit(*ChangeInfo) error
 	DeleteFile(*ChangeInfo, string) error
 	DisApprove(*ChangeInfo, string) error
@@ -914,18 +914,20 @@ func ContainsAny(id int64, changes []*ChangeInfo) bool {
 
 // Create a new Change in the given project, based on the given branch, and with
 // the given subject line.
-func (g *Gerrit) CreateChange(project, branch, subject string) (*ChangeInfo, error) {
+func (g *Gerrit) CreateChange(project, branch, subject, baseCommit string) (*ChangeInfo, error) {
 	c := struct {
-		Project string `json:"project"`
-		Subject string `json:"subject"`
-		Branch  string `json:"branch"`
-		Topic   string `json:"topic"`
-		Status  string `json:"status"`
+		Project    string `json:"project"`
+		Subject    string `json:"subject"`
+		Branch     string `json:"branch"`
+		Topic      string `json:"topic"`
+		Status     string `json:"status"`
+		BaseCommit string `json:"base_commit"`
 	}{
-		Project: project,
-		Branch:  branch,
-		Subject: subject,
-		Status:  "NEW",
+		Project:    project,
+		Branch:     branch,
+		Subject:    subject,
+		Status:     "NEW",
+		BaseCommit: baseCommit,
 	}
 	b, err := json.Marshal(c)
 	if err != nil {
