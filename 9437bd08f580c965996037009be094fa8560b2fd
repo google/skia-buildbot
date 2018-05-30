@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a737e09_b6700bb6",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-05-30T13:49:53Z",
+      "side": 1,
+      "message": "One potential problem with the way the Gerrit API works is that we provide the entire file contents, not the diff.  This means that, if our view of the file is out of date (eg. someone else landed a roll of a different project), then we may undo any changes since our last update.  That\u0027s why we\u0027re reading the DEPS file here right before creating the change.  I\u0027m going to look into this in more detail before starting to run this in production.",
+      "range": {
+        "startLine": 209,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 2
+      },
+      "revId": "9437bd08f580c965996037009be094fa8560b2fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
