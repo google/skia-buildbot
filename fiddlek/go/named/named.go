@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/fiddle/go/store"
+	"go.skia.org/infra/fiddlek/go/store"
 	"go.skia.org/infra/go/sklog"
 )
 
