@@ -21,10 +21,11 @@ import (
 */
 
 const (
-	COMMIT_URL   = "%s/+/%s?format=JSON"
-	DATE_FORMAT  = "Mon Jan 02 15:04:05 2006"
-	DOWNLOAD_URL = "%s/+/%s/%s?format=TEXT"
-	LOG_URL      = "%s/+log/%s..%s?format=JSON"
+	COMMIT_URL        = "%s/+/%s?format=JSON"
+	DATE_FORMAT_NO_TZ = "Mon Jan 02 15:04:05 2006"
+	DATE_FORMAT_TZ    = "Mon Jan 02 15:04:05 2006 -0700"
+	DOWNLOAD_URL      = "%s/+/%s/%s?format=TEXT"
+	LOG_URL           = "%s/+log/%s..%s?format=JSON"
 )
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.
@@ -100,7 +101,13 @@ type Log struct {
 }
 
 func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
-	ts, err := time.Parse(DATE_FORMAT, c.Committer.Time)
+	var ts time.Time
+	var err error
+	if strings.Contains(c.Committer.Time, " +") || strings.Contains(c.Committer.Time, " -") {
+		ts, err = time.Parse(DATE_FORMAT_TZ, c.Committer.Time)
+	} else {
+		ts, err = time.Parse(DATE_FORMAT_NO_TZ, c.Committer.Time)
+	}
 	if err != nil {
 		return nil, err
 	}
