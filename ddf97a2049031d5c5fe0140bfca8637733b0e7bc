@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b70a0d6_ba9cbcd4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-31T15:53:40Z",
+      "side": 1,
+      "message": "Any reason not to use 64?",
+      "range": {
+        "startLine": 13,
+        "startChar": 29,
+        "endLine": 13,
+        "endChar": 42
+      },
+      "revId": "ddf97a2049031d5c5fe0140bfca8637733b0e7bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66d02694_4c9e738c",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-31T15:53:40Z",
+      "side": 1,
+      "message": "nit: for consistency this should be chrome-swarming-bots, but it\u0027s not a big deal.",
+      "range": {
+        "startLine": 76,
+        "startChar": 36,
+        "endLine": 76,
+        "endChar": 52
+      },
+      "revId": "ddf97a2049031d5c5fe0140bfca8637733b0e7bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
