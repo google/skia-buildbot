@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16d4abb7_81d3fcdf",
+        "filename": "html-template-minifier/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-31T18:10:49Z",
+      "side": 1,
+      "message": "Looking at the tests I think you actually detect this situation and then just skip minification?  If so, then mention that here.",
+      "revId": "7459e5b58441842c49d9d9cf2ca4c50002be3a82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71b8a175_0155a752",
+        "filename": "html-template-minifier/loader.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-31T18:10:49Z",
+      "side": 1,
+      "message": "Also add textarea.",
+      "revId": "7459e5b58441842c49d9d9cf2ca4c50002be3a82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c04c3c80_bc880d9a",
+        "filename": "html-template-minifier/test/minify_spec.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-05-31T18:10:49Z",
+      "side": 1,
+      "message": "You are converting \u0027 to \" inside the templates? What would happen to:\n\n  \u003cdiv title\u003d\u0027Hello, \"World!\"\u0027\u003e",
+      "revId": "7459e5b58441842c49d9d9cf2ca4c50002be3a82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
