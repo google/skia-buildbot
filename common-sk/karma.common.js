@@ -26,8 +26,10 @@ const path = require('path');
 module.exports = function(dirname) {
   return function(config) {
 
-    let webpackConfig = require(path.resolve(dirname, 'webpack.config.js'));
+    let webpackConfig = require(path.resolve(dirname, 'webpack.config.js'))({}, {mode: 'development'});
     webpackConfig.entry = null;
+    console.log(webpackConfig.mode);
+    webpackConfig.mode = 'development';
 
     config.set({
 
