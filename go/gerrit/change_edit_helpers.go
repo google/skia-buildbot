@@ -34,10 +34,18 @@ func CreateAndEditChange(g GerritInterface, project, branch, commitMsg, baseComm
 	if err != nil {
 		return nil, err
 	}
-	return ci, EditChange(g, ci, func(g GerritInterface, ci *ChangeInfo) error {
+	if err := EditChange(g, ci, func(g GerritInterface, ci *ChangeInfo) error {
 		if err := g.SetCommitMessage(ci, commitMsg); err != nil {
 			return err
 		}
 		return fn(g, ci)
-	})
+	}); err != nil {
+		return ci, err
+	}
+	// Update the view of the Change to include the new patchset.
+	ci2, err := g.GetIssueProperties(ci.Issue)
+	if err != nil {
+		return ci, err
+	}
+	return ci2, nil
 }

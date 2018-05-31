@@ -153,6 +153,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		g:              g,
 		gerritProject:  c.GerritProject,
 		gclient:        path.Join(depotTools, GCLIENT),
+		includeLog:     c.IncludeLog,
 		parentBranch:   c.ParentBranch,
 		parentRepo:     gitiles.NewRepo(c.ParentRepo, client),
 		parentRepoUrl:  c.ParentRepo,
@@ -184,8 +185,12 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 	logStr := ""
 	for _, c := range rm.nextRollCommits {
-		date := c.Timestamp.Format("2016-01-02")
-		author := strings.Split(c.Author, "@")[0]
+		date := c.Timestamp.Format("2006-01-02")
+		author := c.Author
+		authorSplit := strings.Split(c.Author, "(")
+		if len(authorSplit) > 1 {
+			author = strings.TrimRight(strings.TrimSpace(authorSplit[1]), ")")
+		}
 		logStr += fmt.Sprintf("%s %s %s\n", date, author, c.Subject)
 
 		// Bugs list.
@@ -201,6 +206,7 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	if err != nil {
 		return 0, err
 	}
+	commitMsg += "TBR=" + strings.Join(emails, ",")
 
 	// Create the change.
 	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritProject, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
@@ -216,12 +222,14 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	// Set the CQ bit as appropriate.
+	cq := gerrit.COMMITQUEUE_LABEL_SUBMIT
 	if dryRun {
-		err = rm.g.SendToDryRun(ci, "")
-	} else {
-		err = rm.g.SendToCQ(ci, "")
+		cq = gerrit.COMMITQUEUE_LABEL_DRY_RUN
 	}
-	if err != nil {
+	if err = rm.g.SetReview(ci, "", map[string]interface{}{
+		gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
+		gerrit.COMMITQUEUE_LABEL: cq,
+	}); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
 		return 0, err
 	}
@@ -335,11 +343,14 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 		nextRollRev = lastRollRev
 	}
 	nextRollCommits := make([]*vcsinfo.LongCommit, 0, notRolledCount)
+	found := false
 	if nextRollRev != lastRollRev {
 		for _, c := range notRolled {
-			nextRollCommits = append(nextRollCommits, c)
 			if c.Hash == nextRollRev {
-				break
+				found = true
+			}
+			if found {
+				nextRollCommits = append(nextRollCommits, c)
 			}
 		}
 	}
@@ -347,7 +358,6 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	// Go ahead and write the new DEPS content, while we have the file on
 	// disk.
 	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", rm.childPath, nextRollRev)}
-	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  wd,
 		Env:  depot_tools.Env(rm.depotTools),
