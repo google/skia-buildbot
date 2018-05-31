@@ -131,6 +131,9 @@ func (rm *copyRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
+	}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
