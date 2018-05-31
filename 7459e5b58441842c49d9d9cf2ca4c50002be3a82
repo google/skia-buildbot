@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7af18493_e1be5414",
+        "filename": "html-template-minifier/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-31T18:44:02Z",
+      "side": 1,
+      "message": "We only detect certain situations, like mismatched \u003cpre\u003e.  I added a few tests for it, but there could be cases constructed that cause incorrect minification without me detecting it.  If it becomes a problem I see in production, I\u0027ll make the parser smarter.",
+      "parentUuid": "16d4abb7_81d3fcdf",
+      "revId": "7459e5b58441842c49d9d9cf2ca4c50002be3a82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "71b8a175_0155a752",
         "filename": "html-template-minifier/loader.js",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "326c1387_c99dc3be",
+        "filename": "html-template-minifier/loader.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-31T18:44:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71b8a175_0155a752",
+      "revId": "7459e5b58441842c49d9d9cf2ca4c50002be3a82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c04c3c80_bc880d9a",
         "filename": "html-template-minifier/test/minify_spec.js",
         "patchSetId": 4
@@ -47,6 +83,24 @@
       "writtenOn": "2018-05-31T18:10:49Z",
       "side": 1,
       "message": "You are converting \u0027 to \" inside the templates? What would happen to:\n\n  \u003cdiv title\u003d\u0027Hello, \"World!\"\u0027\u003e",
+      "revId": "7459e5b58441842c49d9d9cf2ca4c50002be3a82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c633f03_2dd069db",
+        "filename": "html-template-minifier/test/minify_spec.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-31T18:44:02Z",
+      "side": 1,
+      "message": "No, that\u0027s a side-effect of UglifyJS minifying the JS inside the templates and then coellescing the quotes.  I added some quotes to the HTML to show that they are unchanged.",
+      "parentUuid": "c04c3c80_bc880d9a",
       "revId": "7459e5b58441842c49d9d9cf2ca4c50002be3a82",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
