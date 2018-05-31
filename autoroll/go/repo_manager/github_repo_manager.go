@@ -216,18 +216,17 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, fmt.Errorf("Error when running gclient sync to make third_party/ match the new DEPS: %s", err)
 	}
 
+	// Run the pre-upload steps.
+	for _, s := range rm.PreUploadSteps() {
+		if err := s(ctx, rm.parentDir); err != nil {
+			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
+		}
+	}
+
 	// Build the commit message.
 	commitMsg, err := rm.buildCommitMsg(ctx, from, to, cqExtraTrybots, nil)
 	if err != nil {
 		return 0, err
-	}
-
-	// Run the pre-upload steps and collect any errors.
-	preUploadErrors := []error{}
-	for _, s := range rm.PreUploadSteps() {
-		if err := s(ctx, rm.parentDir); err != nil {
-			preUploadErrors = append(preUploadErrors, err)
-		}
 	}
 
 	// Commit.
@@ -253,14 +252,6 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
 	if err != nil {
 		return 0, err
-	}
-
-	// Display all pre-upload errors as comments on the pull request.
-	for _, preUploadErr := range preUploadErrors {
-		sklog.Warningf("Adding pre-upload error comment: %s", preUploadErr.Error())
-		if err := rm.githubClient.AddComment(pr.GetNumber(), fmt.Sprintf("Error: %s", preUploadErr.Error())); err != nil {
-			return 0, err
-		}
 	}
 
 	// Mention the sheriffs on the pull request so that they are automatically
