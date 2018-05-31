@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	GS_URL_GITCONFIG = "gs://skia-buildbots/artifacts/bots/.gitconfig_ct"
-	GS_URL_NETRC     = "gs://skia-buildbots/artifacts/bots/.netrc_ct"
-	GS_URL_BOTO      = "gs://skia-buildbots/artifacts/bots/.boto_ct"
+	GS_URL_GITCONFIG = "gs://cluster-telemetry-bucket/artifacts/bots/.gitconfig_ct"
+	GS_URL_NETRC     = "gs://cluster-telemetry-bucket/artifacts/bots/.netrc_ct"
+	GS_URL_BOTO      = "gs://cluster-telemetry-bucket/artifacts/bots/.boto_ct"
 
 	CT_WORKER_PREFIX = "ct-gce-"
 )
@@ -33,7 +33,7 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
-			SourceImage: "skia-swarming-v3",
+			SourceImage: "ct-swarming-v1",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		DataDisks: []*gce.Disk{dataDisk},
@@ -52,12 +52,12 @@ func CT20170602(name string, useSSDDataDisk bool) *gce.Instance {
 				Dest:   "/home/chrome-bot/.boto",
 			},
 		},
-		MachineType:       gce.MACHINE_TYPE_HIGHMEM_2,
+		MachineType:       gce.MACHINE_TYPE_HIGHMEM_4,
 		Metadata:          map[string]string{},
 		MetadataDownloads: map[string]string{},
 		Name:              name,
 		Os:                gce.OS_LINUX,
-		ServiceAccount:    gce.SERVICE_ACCOUNT_CHROME_SWARMING,
+		ServiceAccount:    gce.SERVICE_ACCOUNT_CT_SWARMING,
 		Scopes: []string{
 			auth.SCOPE_FULL_CONTROL,
 			auth.SCOPE_USERINFO_EMAIL,
@@ -77,13 +77,13 @@ func CTInstance(num int) *gce.Instance {
 // CT Android Builder GCE instances.
 func CTAndroidBuilderInstance(num int) *gce.Instance {
 	vm := CT20170602(fmt.Sprintf("ct-android-builder-%03d", num), true /* useSSDDataDisk */)
-	vm.MachineType = "custom-32-70400"
+	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_64
 	return vm
 }
 
 // CT Linux Builder GCE instances.
 func CTLinuxBuilderInstance(num int) *gce.Instance {
 	vm := CT20170602(fmt.Sprintf("ct-linux-builder-%03d", num), true /* useSSDDataDisk */)
-	vm.MachineType = "custom-32-70400"
+	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_64
 	return vm
 }
