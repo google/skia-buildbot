@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aa8b3b0e_f73abb96",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-05-31T15:48:43Z",
+      "side": 1,
+      "message": "Still ignoring this error.",
+      "revId": "8c65d7653e43d717ae143be5ec0094735fd3f54e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
