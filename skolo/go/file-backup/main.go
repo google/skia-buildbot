@@ -86,20 +86,24 @@ func step(ctx context.Context, storageClient *storage.Client) {
 	w.ObjectAttrs.ContentEncoding = "application/gzip"
 
 	gw := gzip.NewWriter(w)
-	defer util.Close(gw)
 
 	sklog.Infof("Uploading %s to gs://%s/%s", *localFilePath, *gceBucket, name)
 
 	// This takes a few minutes for a ~1.3 GB image (which gets compressed to about 400MB)
 	if i, err := gw.Write([]byte(contents)); err != nil {
-		sklog.Fatalf("Problem writing to GCS.  Only wrote %d/%d bytes: %s", i, len(contents), err)
-	} else {
-		// The configuration in prometheus/sys/[hostname]/prometheus.yml will indicate what
-		// is being backed up (e.g. router_confgi)
-		backupMetric.Reset()
+		defer util.Close(gw)
+		sklog.Errorf("Problem writing to GCS.  Only wrote %d/%d bytes: %s", i, len(contents), err)
+		return
 	}
 
-	sklog.Infof("Upload complete")
+	if err = gw.Close(); err != nil {
+		sklog.Errorf("Problem writing to GCS. Error when closing: %s", err)
+	} else {
+		// The configuration in prometheus/sys/[hostname]/prometheus.yml will indicate what
+		// is being backed up (e.g. router_config)
+		backupMetric.Reset()
+		sklog.Infof("Upload complete")
+	}
 }
 
 func main() {
