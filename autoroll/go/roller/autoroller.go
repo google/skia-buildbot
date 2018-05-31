@@ -442,20 +442,22 @@ func (r *AutoRoller) AddComment(issueNum int64, message, user string, timestamp 
 func (r *AutoRoller) AddHandlers(*mux.Router) {}
 
 // Callback function which runs when roll CLs are closed.
-func (r *AutoRoller) rollFinished(ctx context.Context, currentRoll RollImpl) error {
+func (r *AutoRoller) rollFinished(ctx context.Context, justFinished RollImpl) error {
 	recent := r.recent.GetRecentRolls()
 	// Sanity check: pop any rolls which occurred after the one which just
 	// finished.
 	idx := -1
+	var currentRoll *autoroll.AutoRollIssue
 	for i, roll := range recent {
 		issue := fmt.Sprintf("%d", roll.Issue)
-		if issue == currentRoll.IssueID() {
+		if issue == justFinished.IssueID() {
 			idx = i
+			currentRoll = roll
 			break
 		}
 	}
-	if idx == -1 {
-		return fmt.Errorf("Unable to find just-finished roll %q in recent list!", currentRoll.IssueID())
+	if currentRoll == nil {
+		return fmt.Errorf("Unable to find just-finished roll %q in recent list!", justFinished.IssueID())
 	}
 	recent = recent[idx:]
 	var lastRoll *autoroll.AutoRollIssue
@@ -463,15 +465,17 @@ func (r *AutoRoller) rollFinished(ctx context.Context, currentRoll RollImpl) err
 		lastRoll = recent[1]
 	}
 
+	issueURL := fmt.Sprintf("%s%d", r.rm.GetIssueUrlBase(), currentRoll.Issue)
+
 	// Send notifications if this roll had a different result from the last
 	// roll, ie. success -> failure or failure -> success.
-	currentSuccess := currentRoll.IsSuccess() || currentRoll.IsDryRunSuccess()
+	currentSuccess := util.In(currentRoll.Result, autoroll.SUCCESS_RESULTS)
 	lastSuccess := util.In(lastRoll.Result, autoroll.SUCCESS_RESULTS)
 	if lastRoll != nil {
 		if currentSuccess && !lastSuccess {
-			r.notifier.SendNewSuccess(ctx, currentRoll.IssueID(), currentRoll.IssueURL())
+			r.notifier.SendNewSuccess(ctx, fmt.Sprintf("%d", currentRoll.Issue), issueURL)
 		} else if !currentSuccess && lastSuccess {
-			r.notifier.SendNewFailure(ctx, currentRoll.IssueID(), currentRoll.IssueURL())
+			r.notifier.SendNewFailure(ctx, fmt.Sprintf("%d", currentRoll.Issue), issueURL)
 		}
 	}
 
@@ -487,7 +491,7 @@ func (r *AutoRoller) rollFinished(ctx context.Context, currentRoll RollImpl) err
 		}
 	}
 	if lastNFailed {
-		r.notifier.SendLastNFailed(ctx, NOTIFY_IF_LAST_N_FAILED, currentRoll.IssueURL())
+		r.notifier.SendLastNFailed(ctx, NOTIFY_IF_LAST_N_FAILED, issueURL)
 	}
 
 	return nil
