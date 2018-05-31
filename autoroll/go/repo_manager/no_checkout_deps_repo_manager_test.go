@@ -163,9 +163,18 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	lastRollRev := childCommits[0]
 
 	// Mock the initial change creation.
+	details, err := git.GitDir(childRepo.Dir()).Details(ctx, nextRollRev)
+	assert.NoError(t, err)
+	ts := details.Timestamp.Format("2006-01-02")
+	author := strings.Split(details.Author, "@")[0]
+	nextRollSubject := details.Subject
 	commitMsg := fmt.Sprintf(`Roll %s %s..%s (%d commits)
 
 %s/+log/%s..%s
+
+
+git log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'
+%s %s %s
 
 
 Created with:
@@ -180,7 +189,7 @@ If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
 
 
-`, childPath, lastRollRev[:7], nextRollRev[:7], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:7], nextRollRev[:7], childPath, nextRollRev[:7], "fake.server.com")
+TBR=`, childPath, lastRollRev[:7], nextRollRev[:7], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:7], nextRollRev[:7], lastRollRev[:7], nextRollRev[:7], ts, author, nextRollSubject, childPath, nextRollRev[:7], "fake.server.com")
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, cfg.GerritProject, subject, cfg.ParentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
@@ -213,8 +222,14 @@ be CC'd on the roll, and stop the roller if necessary.
 	reqBody = []byte(`{"notify":"ALL"}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:publish", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
+	// Mock the request to load the updated change.
+	respBody, err = json.Marshal(ci)
+	assert.NoError(t, err)
+	respBody = append([]byte(")]}'\n"), respBody...)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
+
 	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Commit-Queue":2},"message":""}`)
+	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":""}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), nil, "", false)

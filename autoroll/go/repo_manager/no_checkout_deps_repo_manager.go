@@ -153,6 +153,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		g:              g,
 		gerritProject:  c.GerritProject,
 		gclient:        path.Join(depotTools, GCLIENT),
+		includeLog:     c.IncludeLog,
 		parentBranch:   c.ParentBranch,
 		parentRepo:     gitiles.NewRepo(c.ParentRepo, client),
 		parentRepoUrl:  c.ParentRepo,
@@ -183,8 +184,9 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 		sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", rm.parentRepoUrl)
 	}
 	logStr := ""
-	for _, c := range rm.nextRollCommits {
-		date := c.Timestamp.Format("2016-01-02")
+	for idx := len(rm.nextRollCommits) - 1; idx >= 0; idx-- {
+		c := rm.nextRollCommits[idx]
+		date := c.Timestamp.Format("2006-01-02")
 		author := strings.Split(c.Author, "@")[0]
 		logStr += fmt.Sprintf("%s %s %s\n", date, author, c.Subject)
 
@@ -201,6 +203,7 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	if err != nil {
 		return 0, err
 	}
+	commitMsg += "TBR=" + strings.Join(emails, ",")
 
 	// Create the change.
 	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritProject, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
@@ -216,12 +219,14 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	}
 
 	// Set the CQ bit as appropriate.
+	cq := gerrit.COMMITQUEUE_LABEL_SUBMIT
 	if dryRun {
-		err = rm.g.SendToDryRun(ci, "")
-	} else {
-		err = rm.g.SendToCQ(ci, "")
+		cq = gerrit.COMMITQUEUE_LABEL_DRY_RUN
 	}
-	if err != nil {
+	if err = rm.g.SetReview(ci, "", map[string]interface{}{
+		gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
+		gerrit.COMMITQUEUE_LABEL: cq,
+	}); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
 		return 0, err
 	}
