@@ -16,6 +16,24 @@
       "revId": "8c65d7653e43d717ae143be5ec0094735fd3f54e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6de1258_bebe6b75",
+        "filename": "skolo/go/file-backup/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-05-31T15:57:24Z",
+      "side": 1,
+      "message": "I think that\u0027s ok.  When I close the gzip writer is when the error happens.  This could likely be removed as it\u0027s basically a no-op, I think.",
+      "parentUuid": "aa8b3b0e_f73abb96",
+      "revId": "8c65d7653e43d717ae143be5ec0094735fd3f54e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
