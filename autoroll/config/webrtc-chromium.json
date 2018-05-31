@@ -10,7 +10,12 @@
     {
       "filter": "warning",
       "email": {
-        "emails": ["mbonadei@google.com"]
+        "emails": [
+          "anatolid@google.com",
+          "mbonadei@google.com",
+          "webrtc-in-chrome-sheriff-sto@grotations.appspotmail.com",
+          "webrtc-in-chrome-sheriff-mtv@grotations.appspotmail.com"
+        ]
       }
     }
   ],
