@@ -59,12 +59,12 @@ func (mr *MockRepo) getCommit(ctx context.Context, ref string) *gitiles.Commit {
 		Author: &gitiles.Author{
 			Name:  authorName,
 			Email: authorEmail,
-			Time:  details.Timestamp.Format(gitiles.DATE_FORMAT),
+			Time:  details.Timestamp.Format(gitiles.DATE_FORMAT_TZ),
 		},
 		Committer: &gitiles.Author{
 			Name:  authorName,
 			Email: authorEmail,
-			Time:  details.Timestamp.Format(gitiles.DATE_FORMAT),
+			Time:  details.Timestamp.Format(gitiles.DATE_FORMAT_TZ),
 		},
 		Message: details.Subject + "\n\n" + details.Body,
 	}
