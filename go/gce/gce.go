@@ -46,7 +46,9 @@ const (
 	MACHINE_TYPE_HIGHCPU_64  = "n1-highcpu-64"
 	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
 	MACHINE_TYPE_HIGHMEM_2   = "n1-highmem-2"
+	MACHINE_TYPE_HIGHMEM_4   = "n1-highmem-4"
 	MACHINE_TYPE_HIGHMEM_32  = "n1-highmem-32"
+	MACHINE_TYPE_HIGHMEM_64  = "n1-highmem-64"
 	MACHINE_TYPE_STANDARD_1  = "n1-standard-1"
 	MACHINE_TYPE_STANDARD_16 = "n1-standard-16"
 	MACHINE_TYPE_STANDARD_2  = "n1-standard-2"
@@ -64,13 +66,15 @@ const (
 	OS_LINUX   = "Linux"
 	OS_WINDOWS = "Windows"
 
-	PROJECT_ID_SERVER   = common.PROJECT_ID
-	PROJECT_ID_SWARMING = "skia-swarming-bots"
+	PROJECT_ID_SERVER      = common.PROJECT_ID
+	PROJECT_ID_SWARMING    = "skia-swarming-bots"
+	PROJECT_ID_CT_SWARMING = "ct-swarming-bots"
 
 	SERVICE_ACCOUNT_DEFAULT         = "31977622648@project.gserviceaccount.com"
 	SERVICE_ACCOUNT_COMPUTE         = "31977622648-compute@developer.gserviceaccount.com"
 	SERVICE_ACCOUNT_CHROME_SWARMING = "chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com"
 	SERVICE_ACCOUNT_CHROMIUM_SWARM  = "chromium-swarm-bots@skia-swarming-bots.iam.gserviceaccount.com"
+	SERVICE_ACCOUNT_CT_SWARMING     = "ct-swarming-bots@ct-swarming-bots.iam.gserviceaccount.com"
 
 	SETUP_SCRIPT_KEY_LINUX  = "setup-script"
 	SETUP_SCRIPT_KEY_WIN    = "sysprep-specialize-script-ps1"
