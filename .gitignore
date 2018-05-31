@@ -35,6 +35,7 @@ oauth-token.cache
 # Bower and Node related directories
 node_modules
 bower_components
+package-lock.json
 # Sublime project files
 *.sublime-project
 *.sublime-workspace
