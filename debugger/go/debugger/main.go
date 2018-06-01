@@ -186,8 +186,7 @@ func main() {
 	router.HandleFunc("/loadfrom", loadHandler)
 
 	// All URLs that we don't understand will be routed to be handled by
-	// skiaserve, with the one exception of "/instanceStatus" which will be
-	// handled by 'co' itself.
+	// skiaserve.
 	router.NotFoundHandler = co
 
 	h := httputils.LoggingRequestResponse(router)
