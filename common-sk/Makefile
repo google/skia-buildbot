@@ -1,7 +1,7 @@
-build:
+build: package-lock.json
 	npx webpack --mode=development
 
-production:
+production: package-lock.json
 	npx webpack --mode=production
 
 serve: package-lock.json
@@ -10,6 +10,9 @@ serve: package-lock.json
 test: package-lock.json build
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+demos: package-lock.json
+	npx webpack --mode=development
 
 testci:
 	rm -rf node_modules

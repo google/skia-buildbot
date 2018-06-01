@@ -70,6 +70,7 @@ func step() error {
 	// Build common demo pages.
 	buildCommonDemoCmd := &exec.Command{
 		Name:        "make",
+		Args:        []string{"demos"},
 		Dir:         path.Join(*gitRepoDir, "common-sk"),
 		InheritPath: false,
 		LogStdout:   true,
