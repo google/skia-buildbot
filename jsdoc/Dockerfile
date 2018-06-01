@@ -10,3 +10,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/jsdoc"]
+CMD ["--logtostderr", "--port=:8000", "--prom_port=:20000", "--git_repo_dir=/tmp"]

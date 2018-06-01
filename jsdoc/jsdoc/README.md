@@ -8,5 +8,5 @@ There are also demo pages for each set of elements that can
 be accessed below:
 
   * [elements-sk](/elements-sk/)
-  * [common](/common/)
+  * [common-sk](/common-sk/)
 
