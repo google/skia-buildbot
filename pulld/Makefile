@@ -1,16 +1,16 @@
-default:
+default: package-lock.json
 	go install -v ./go/pulld
 	npx webpack --mode=development
 
-prod:
+prod: package-lock.json
 	go install -v ./go/pulld
 	npx webpack --mode=production
 
-serve:
-	npx webpack-dev-server --content-base ./dist --watch
+serve: package-lock.json
+	npx webpack-dev-server --content-base ./dist --watch --mode=development
 
-watch:
-	npx webpack --watch
+watch: package-lock.json
+	npx webpack --watch --mode=development
 
 release: prod
 	./build_release "$(MESSAGE)"
@@ -28,3 +28,6 @@ release_arm: default
 push_everywhere:
 	cd ../push; make build
 	pushcli --alsologtostderr --config_filename=../push/allskiapush.json5 pulld "*"
+
+package-lock.json: package.json
+	npm install
