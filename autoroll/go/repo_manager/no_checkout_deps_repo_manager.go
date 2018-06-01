@@ -25,7 +25,7 @@ import (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewNoCheckoutDEPSRepoManager func(context.Context, *NoCheckoutDEPSRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client) (RepoManager, error) = newNoCheckoutDEPSRepoManager
+	NewNoCheckoutDEPSRepoManager func(context.Context, *NoCheckoutDEPSRepoManagerConfig, string, gerrit.GerritInterface, string, string, string, *http.Client) (RepoManager, error) = newNoCheckoutDEPSRepoManager
 )
 
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
@@ -113,7 +113,7 @@ type noCheckoutDEPSRepoManager struct {
 
 // newNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
 // a local checkout.
-func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
+func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL, gitcookiesPath string, client *http.Client) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 	return &noCheckoutDEPSRepoManager{
 		childBranch:    c.ChildBranch,
 		childPath:      c.ChildPath,
-		childRepo:      gitiles.NewRepo(c.ChildRepo, client),
+		childRepo:      gitiles.NewRepo(c.ChildRepo, gitcookiesPath, client),
 		childRepoUrl:   c.ChildRepo,
 		depotTools:     depotTools,
 		g:              g,
@@ -155,7 +155,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		gclient:        path.Join(depotTools, GCLIENT),
 		includeLog:     c.IncludeLog,
 		parentBranch:   c.ParentBranch,
-		parentRepo:     gitiles.NewRepo(c.ParentRepo, client),
+		parentRepo:     gitiles.NewRepo(c.ParentRepo, gitcookiesPath, client),
 		parentRepoUrl:  c.ParentRepo,
 		preUploadSteps: preUploadSteps,
 		serverURL:      serverURL,

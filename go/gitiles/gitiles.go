@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -30,31 +31,52 @@ const (
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.
 type Repo struct {
-	client *http.Client
-	URL    string
+	client         *http.Client
+	gitCookiesPath string
+	URL            string
 }
 
 // NewRepo creates and returns a new Repo object.
-func NewRepo(url string, c *http.Client) *Repo {
+func NewRepo(url string, gitCookiesPath string, c *http.Client) *Repo {
 	if c == nil {
 		c = httputils.NewTimeoutClient()
 	}
 	return &Repo{
-		client: c,
-		URL:    url,
+		client:         c,
+		gitCookiesPath: gitCookiesPath,
+		URL:            url,
 	}
+}
+
+// get executes a GET request to the given URL, returning the http.Response.
+func (r *Repo) get(url string) (*http.Response, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	if r.gitCookiesPath != "" {
+		if err := gitauth.AddAuthenticationCookie(r.gitCookiesPath, req); err != nil {
+			return nil, err
+		}
+	}
+	resp, err := r.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		util.Close(resp.Body)
+		return nil, fmt.Errorf("Request got status %q", resp.Status)
+	}
+	return resp, nil
 }
 
 // ReadFileAtRef reads the given file at the given ref.
 func (r *Repo) ReadFileAtRef(srcPath, ref string, w io.Writer) error {
-	resp, err := r.client.Get(fmt.Sprintf(DOWNLOAD_URL, r.URL, ref, srcPath))
+	resp, err := r.get(fmt.Sprintf(DOWNLOAD_URL, r.URL, ref, srcPath))
 	if err != nil {
 		return err
 	}
 	defer util.Close(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Request got status %q", resp.Status)
-	}
 	d := base64.NewDecoder(base64.StdEncoding, resp.Body)
 	if _, err := io.Copy(w, d); err != nil {
 		return err
@@ -136,14 +158,11 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 
 // GetCommit returns a vcsinfo.LongCommit for the given commit.
 func (r *Repo) GetCommit(ref string) (*vcsinfo.LongCommit, error) {
-	resp, err := r.client.Get(fmt.Sprintf(COMMIT_URL, r.URL, ref))
+	resp, err := r.get(fmt.Sprintf(COMMIT_URL, r.URL, ref))
 	if err != nil {
 		return nil, err
 	}
 	defer util.Close(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Request got status %q", resp.Status)
-	}
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response: %s", err)
@@ -160,14 +179,11 @@ func (r *Repo) GetCommit(ref string) (*vcsinfo.LongCommit, error) {
 // Log returns Gitiles' equivalent to "git log" for the given start and end
 // commits.
 func (r *Repo) Log(from, to string) ([]*vcsinfo.LongCommit, error) {
-	resp, err := r.client.Get(fmt.Sprintf(LOG_URL, r.URL, from, to))
+	resp, err := r.get(fmt.Sprintf(LOG_URL, r.URL, from, to))
 	if err != nil {
 		return nil, err
 	}
 	defer util.Close(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Request got status %q", resp.Status)
-	}
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response: %s", err)

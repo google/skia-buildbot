@@ -22,14 +22,14 @@ import (
 	"github.com/golang/groupcache/lru"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
 var (
-	ErrCookiesMissing = errors.New("Cannot make authenticated post calls without a valid .gitcookies file")
-	ErrNotFound       = errors.New("Requested item was not found")
+	ErrNotFound = errors.New("Requested item was not found")
 )
 
 const (
@@ -229,36 +229,6 @@ func DefaultGitCookiesPath() string {
 		return ""
 	}
 	return filepath.Join(usr.HomeDir, ".gitcookies")
-}
-
-// getCredentials returns the parsed contents of .gitCookies.
-// This logic has been borrowed from
-// https://cs.chromium.org/chromium/tools/depot_tools/gerrit_util.py?l=143
-func getCredentials(gitCookiesPath string) (map[string]string, error) {
-	// Set empty cookies if no path was given and issue a warning.
-	if gitCookiesPath == "" {
-		sklog.Infof("Gerrit client initialized in read-only mode. ")
-		return map[string]string{}, nil
-	}
-
-	gitCookies := map[string]string{}
-
-	dat, err := ioutil.ReadFile(gitCookiesPath)
-	if err != nil {
-		return nil, err
-	}
-	contents := string(dat)
-	for _, line := range strings.Split(contents, "\n") {
-		if strings.HasPrefix(line, "#") || line == "" {
-			continue
-		}
-		tokens := strings.Split(line, "\t")
-		domain, xpath, key, value := tokens[0], tokens[2], tokens[5], tokens[6]
-		if xpath == "/" && key == "o" {
-			gitCookies[domain] = value
-		}
-	}
-	return gitCookies, nil
 }
 
 func parseTime(t string) time.Time {
@@ -463,31 +433,6 @@ func (g *Gerrit) Abandon(issue *ChangeInfo, message string) error {
 	return g.postJson(fmt.Sprintf("/a/changes/%s/abandon", issue.ChangeId), postData)
 }
 
-func (g *Gerrit) addAuthenticationCookie(req *http.Request) error {
-	u, err := url.Parse(g.url)
-	if err != nil {
-		return err
-	}
-
-	auth := ""
-	cookies, err := getCredentials(g.gitCookiesPath)
-	if err != nil {
-		return err
-	}
-	for d, a := range cookies {
-		if util.CookieDomainMatch(u.Host, d) {
-			auth = a
-			cookie := http.Cookie{Name: "o", Value: a}
-			req.AddCookie(&cookie)
-			break
-		}
-	}
-	if auth == "" {
-		return ErrCookiesMissing
-	}
-	return nil
-}
-
 // get retrieves the given sub URL and populates 'rv' with the result.
 // If notFoundError is not nil it will be returned if the requested item doesn't
 // exist.
@@ -502,7 +447,7 @@ func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
 	}
 
 	if g.useAuthenticatedGets {
-		if err := g.addAuthenticationCookie(req); err != nil {
+		if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 			return err
 		}
 	}
@@ -544,7 +489,7 @@ func (g *Gerrit) post(suburl string, b []byte) error {
 		return err
 	}
 
-	if err := g.addAuthenticationCookie(req); err != nil {
+	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -572,7 +517,7 @@ func (g *Gerrit) put(suburl string, b []byte) error {
 		return err
 	}
 
-	if err := g.addAuthenticationCookie(req); err != nil {
+	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -600,7 +545,7 @@ func (g *Gerrit) delete(suburl string) error {
 		return err
 	}
 
-	if err := g.addAuthenticationCookie(req); err != nil {
+	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
 	}
 	resp, err := g.client.Do(req)
@@ -706,7 +651,7 @@ func (g *Gerrit) SetTopic(topic string, changeNum int64) error {
 	if err != nil {
 		return err
 	}
-	if err := g.addAuthenticationCookie(req); err != nil {
+	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -938,7 +883,7 @@ func (g *Gerrit) CreateChange(project, branch, subject, baseCommit string) (*Cha
 		return nil, err
 	}
 
-	if err := g.addAuthenticationCookie(req); err != nil {
+	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -972,7 +917,7 @@ func (g *Gerrit) EditFile(ci *ChangeInfo, filepath, content string) error {
 		return err
 	}
 
-	if err := g.addAuthenticationCookie(req); err != nil {
+	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
 		return err
 	}
 	resp, err := g.client.Do(req)
