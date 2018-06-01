@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -228,5 +229,34 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), rm.CommitsNotRolled())
 	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
 	assert.NoError(t, createErr)
+	assert.True(t, ran)
+}
+
+// Verify that we fail when a PreUploadStep fails.
+func TestErrorPreUploadStepsGithub(t *testing.T) {
+	testutils.LargeTest(t)
+
+	ctx, wd, _, _, parent, _, cleanup := setupGithub(t)
+	defer cleanup()
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
+
+	g, urlMock := setupFakeGithub(t)
+	cfg := githubCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	assert.NoError(t, err)
+	ran := false
+	expectedErr := errors.New("Expected error")
+	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
+		func(context.Context, string) error {
+			ran = true
+			return expectedErr
+		},
+	}
+
+	// Create a roll, assert that we ran the PreUploadSteps.
+	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), rm.CommitsNotRolled())
+	_, createErr := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), githubEmails, cqExtraTrybots, false)
+	assert.Error(t, expectedErr, createErr)
 	assert.True(t, ran)
 }
