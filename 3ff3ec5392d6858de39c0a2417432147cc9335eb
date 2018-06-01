@@ -22,6 +22,30 @@
       "revId": "3ff3ec5392d6858de39c0a2417432147cc9335eb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f9b0630_f6b8dba9",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-01T12:18:03Z",
+      "side": 1,
+      "message": "I did not know why it was after build commit msg, made sense me to run it before and fail earlier.",
+      "parentUuid": "8c0cca48_a44d5945",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 225,
+        "endChar": 0
+      },
+      "revId": "3ff3ec5392d6858de39c0a2417432147cc9335eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
