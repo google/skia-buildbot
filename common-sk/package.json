@@ -1,6 +1,6 @@
 {
   "name": "common-sk",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Common Skia Infra modules.",
   "homepage": "https://github.com/google/skia-buildbot/tree/master/common-sk",
   "main": "index.js",
@@ -22,7 +22,7 @@
     "karma-sinon": "^1.0.5",
     "karma-webpack": "^3.0.0",
     "mocha": "^5.2.0",
-    "pulito": "^4.0.0",
+    "pulito": "^4.0.1",
     "sinon": "^5.0.10",
     "webpack": "^4.10.2",
     "webpack-cli": "^2.1.4"
