@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"go.skia.org/infra/fiddle/go/store"
+	"go.skia.org/infra/fiddlek/go/store"
 	"go.skia.org/infra/go/testutils"
 
 	"github.com/stretchr/testify/assert"
