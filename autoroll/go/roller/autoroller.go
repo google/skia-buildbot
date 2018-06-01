@@ -62,7 +62,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	} else if c.ManifestRepoManager != nil {
 		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
-		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, nil)
+		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, nil)
 	} else {
 		return nil, errors.New("Invalid roller config; no repo manager defined!")
 	}
