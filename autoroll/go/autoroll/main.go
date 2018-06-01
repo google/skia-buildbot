@@ -316,7 +316,7 @@ func main() {
 		if *recipesCfgFile == "" {
 			*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 		}
-		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL)
+		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath)
 	}
 	if err != nil {
 		sklog.Fatal(err)
