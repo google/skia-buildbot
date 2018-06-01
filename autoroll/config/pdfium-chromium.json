@@ -8,7 +8,7 @@
   "noCheckoutDepsRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/pdfium",
-    "childRepo": "https://chromium.googlesource.com/pdfium.git",
+    "childRepo": "https://pdfium.googlesource.com/pdfium.git",
     "gerritProject": "chromium/src",
     "includeLog": true,
     "parentBranch": "master",
