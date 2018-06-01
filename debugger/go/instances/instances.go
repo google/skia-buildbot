@@ -96,7 +96,7 @@ func (c *instance) Start(uuid string) (<-chan error, error) {
 		LogStdout: true,
 	}
 	process, exitChan, err := exec.RunIndefinitely(runCmd)
-	if err != nil {
+	if err == nil {
 		c.process = process
 		c.uuid = uuid
 	}
@@ -275,6 +275,9 @@ func (s *Instances) setLastUsed(uuid string) {
 
 // ServeHTTP implements the http.Handler interface by proxying the requests to
 // the correct instance based on the uuid.
+//
+// All requests are routed to the instance, with the exception of
+// /instanceStatus and /instanceNew which will be handled by 'co' itself.
 func (s *Instances) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/instanceNew" && r.Method == "POST" {
 		// TODO(jcgregorio) Add gorilla.csrf protection.
