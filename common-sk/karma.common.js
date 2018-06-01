@@ -26,7 +26,13 @@ const path = require('path');
 module.exports = function(dirname) {
   return function(config) {
 
-    let webpackConfig = require(path.resolve(dirname, 'webpack.config.js'))({}, {mode: 'development'});
+    let webpackConfig = require(path.resolve(dirname, 'webpack.config.js'));
+    // Webpack 3+ configs can be either objects or functions that produce the
+    // config object. Karma currently doesn't handle the latter, so do it
+    // ourselves here.
+    if (typeof webpackConfig === 'function') {
+      webpackConfig = webpackConfig({}, {mode: 'development'});
+    }
     webpackConfig.entry = null;
     console.log(webpackConfig.mode);
     webpackConfig.mode = 'development';
