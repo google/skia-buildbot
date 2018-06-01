@@ -1,3 +1,3 @@
-const { commonBuilder } = require('pulito');
+const commonBuilder = require('pulito');
 
-module.exports = commonBuilder(__dirname);
+module.exports = (env, argv) => commonBuilder(env, argv, __dirname);

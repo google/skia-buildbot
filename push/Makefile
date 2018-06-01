@@ -1,8 +1,8 @@
 build: core
-	npx webpack
+	npx webpack --mode=development
 
 serve:
-	npx webpack-dev-server --watch
+	npx webpack-dev-server --watch --mode=development
 
 core: package-lock.json
 	go install -v ./go/push
@@ -10,11 +10,15 @@ core: package-lock.json
 	go install -v ./go/build_skiapush_json5
 	build_skiapush_json5
 
+test: core
+	# Run the generated tests just once under Xvfb.
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
 release: core
 	npx webpack --mode=production
 
 watch: core
-	npx webpack --watch
+	npx webpack --watch --mode=development
 
 push: release
 	./build_pushd_release "`git log -n1 --format=%s`"
@@ -22,10 +26,6 @@ push: release
 
 docs:
 	npx jsdoc -c jsdoc.config.js `find modules -name "*.js"`
-
-test: build
-	# Run the generated tests just once under Xvfb.
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 .PHONY: build core release push
 
