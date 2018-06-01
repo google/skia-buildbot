@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6953cfc_708b9c26",
+        "filename": "debugger-assets/res/imp/instance.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-01T14:08:03Z",
+      "side": 1,
+      "message": "Fixes New.",
+      "revId": "e0e0836fa2f64e639b6c99e88319957beb99cff9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f353442_17201e14",
+        "filename": "debugger/go/instances/instances.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-01T14:08:03Z",
+      "side": 1,
+      "message": "Fixes Restart. D\u0027oh.",
+      "revId": "e0e0836fa2f64e639b6c99e88319957beb99cff9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
