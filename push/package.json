@@ -5,7 +5,7 @@
   "private": true,
   "license": "Apache 2.0",
   "dependencies": {
-    "common-sk": "^1.1.0",
+    "common-sk": "^2.0.1",
     "elements-sk": "^1.0.0"
   },
   "devDependencies": {
@@ -20,9 +20,9 @@
     "karma-webpack": "^3.0.0",
     "lit-html": "^0.10.0",
     "mocha": "^5.2.0",
-    "pulito": "^3.0.2",
+    "pulito": "^4.0.1",
     "sinon": "^5.0.10",
-    "webpack": "^4.8.3",
+    "webpack": "^4.10.2",
     "webpack-cli": "^2.1.4"
   }
 }
