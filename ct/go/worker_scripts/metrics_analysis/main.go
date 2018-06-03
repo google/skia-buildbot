@@ -72,6 +72,7 @@ func metricsAnalysis() error {
 
 	// Download the trace URLs for this run from Google storage.
 	tracesFilename := *runID + ".traces.csv"
+	skutil.MkdirAll(util.PagesetsDir, 0700)
 	tmpDir, err := ioutil.TempDir(util.PagesetsDir, "traces")
 	if err != nil {
 		return fmt.Errorf("Could not create tmpdir: %s", err)
