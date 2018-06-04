@@ -15,7 +15,7 @@ release:
 .PHONY: push
 push:
 	go install ../kube/go/pushk
-	pushk --apply debugger
+	pushk debugger
 
 .PHONY: testgo
 testgo:
