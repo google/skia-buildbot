@@ -5,19 +5,21 @@
 package metrics_analysis
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 )
 
@@ -44,15 +46,15 @@ func ReloadTemplates(resourcesDir string) {
 type DBTask struct {
 	task_common.CommonCols
 
-	MetricName         string         `db:"metric_name"`
-	CustomTraces       string         `db:"custom_traces"`
-	AnalysisTaskId     string         `db:"analysis_task_id"`
-	AnalysisOutputLink string         `db:"analysis_output_link"`
-	BenchmarkArgs      string         `db:"benchmark_args"`
-	Description        string         `db:"description"`
-	ChromiumPatch      string         `db:"chromium_patch"`
-	CatapultPatch      string         `db:"catapult_patch"`
-	RawOutput          sql.NullString `db:"raw_output"`
+	MetricName         string `db:"metric_name"`
+	CustomTraces       string `db:"custom_traces"`
+	AnalysisTaskId     string `db:"analysis_task_id"`
+	AnalysisOutputLink string `db:"analysis_output_link"`
+	BenchmarkArgs      string `db:"benchmark_args"`
+	Description        string `db:"description"`
+	ChromiumPatch      string `db:"chromium_patch"`
+	CatapultPatch      string `db:"catapult_patch"`
+	RawOutput          string `db:"raw_output"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -76,11 +78,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 }
 
 func (task DBTask) GetResultsLink() string {
-	if task.RawOutput.Valid {
-		return task.RawOutput.String
-	} else {
-		return ""
-	}
+	return task.RawOutput
 }
 
 func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
@@ -95,10 +93,31 @@ func (task DBTask) TableName() string {
 	return db.TABLE_METRICS_ANALYSIS_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DBTask) GetDatastoreKind() ds.Kind {
+	return ds.METRICS_ANALYSIS_TASKS
+}
+
+func (task DBTask) GetCommonCols() *task_common.CommonCols {
+	return &task.CommonCols
+}
+
+func (task DBTask) SetCommonCols(cols *task_common.CommonCols) {
+	task.CommonCols = *cols
+}
+
+func (task DBTask) Select(it *datastore.Iterator) (interface{}, error) {
+	return nil, nil
+	//result := []DBTask{}
+	//err := db.DB.Select(&result, query, args...)
+	//return result, err
+}
+
+func (task DBTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DBTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +135,10 @@ type AddTaskVars struct {
 	Description        string `json:"desc"`
 	ChromiumPatch      string `json:"chromium_patch"`
 	CatapultPatch      string `json:"catapult_patch"`
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
@@ -180,30 +203,23 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 
-	RawOutput sql.NullString
+	RawOutput string
 }
 
 func (vars *UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_METRICS_ANALYSIS_TASK_POST_URI
 }
 
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "RawOutput", Value: task.RawOutput.String, Limit: 255},
-	}); err != nil {
-		return nil, nil, err
+func (task *UpdateVars) AddUpdatesToDBTask(t task_common.Task) error {
+	dbTask := t.(DBTask)
+	if task.RawOutput != "" {
+		dbTask.RawOutput = task.RawOutput
 	}
-	clauses := []string{}
-	args := []interface{}{}
-	if task.RawOutput.Valid {
-		clauses = append(clauses, "raw_output = ?")
-		args = append(args, task.RawOutput.String)
-	}
-	return clauses, args, nil
+	return nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_METRICS_ANALYSIS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DBTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {

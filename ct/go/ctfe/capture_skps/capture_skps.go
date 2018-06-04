@@ -5,20 +5,24 @@
 package capture_skps
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/sklog"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -39,24 +43,35 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
+// Obviously change this to DatastoreTask.
 type DBTask struct {
 	task_common.CommonCols
 
-	PageSets    string `db:"page_sets"`
-	ChromiumRev string `db:"chromium_rev"`
-	SkiaRev     string `db:"skia_rev"`
-	Description string `db:"description"`
+	PageSets      string `db:"page_sets"`
+	IsTestPageSet bool
+	ChromiumRev   string `db:"chromium_rev"`
+	SkiaRev       string `db:"skia_rev"`
+	Description   string `db:"description"`
 }
 
-func (task DBTask) GetTaskName() string {
+func (task *DBTask) GetCommonCols() *task_common.CommonCols {
+	return &task.CommonCols
+}
+
+// needed? just experimenting!!!
+func (task *DBTask) SetCommonCols(cols *task_common.CommonCols) {
+	task.CommonCols = *cols
+}
+
+func (task *DBTask) GetTaskName() string {
 	return "CaptureSkps"
 }
 
-func (task DBTask) GetResultsLink() string {
+func (task *DBTask) GetResultsLink() string {
 	return ""
 }
 
-func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (dbTask *DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
@@ -82,16 +97,40 @@ func (task DBTask) TableName() string {
 	return db.TABLE_CAPTURE_SKPS_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DBTask) GetDatastoreKind() ds.Kind {
+	return ds.CAPTURE_SKPS_TASKS
+}
+
+func (task DBTask) Select(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*DBTask{}
+	for {
+		t := &DBTask{}
+		k, err := it.Next(t)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+		t.DatastoreId = k.ID
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
+}
+
+func (task DBTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DBTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
+// Think of where all to put noindex sutff. like datastore:",noindex"
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
@@ -100,6 +139,37 @@ type AddTaskVars struct {
 	Description   string                 `json:"desc"`
 }
 
+// Except ID ofcourse
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+
+	id, err := task_common.GetNextId(ds.CAPTURE_SKPS_TASKS)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get highest id: %s", err)
+	}
+
+	t := &DBTask{
+		PageSets:      task.PageSets,
+		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		ChromiumRev:   task.ChromiumBuild.ChromiumRev,
+		SkiaRev:       task.ChromiumBuild.SkiaRev,
+		Description:   task.Description,
+	}
+	tsAdded, err := strconv.ParseInt(task.TsAdded, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.TsAdded, err)
+	}
+	t.TsAdded = tsAdded
+	t.Username = task.Username
+	t.Id = id
+	repeatAfterDays, err := strconv.ParseInt(task.RepeatAfterDays, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.RepeatAfterDays, err)
+	}
+	t.RepeatAfterDays = repeatAfterDays
+	return t, nil
+}
+
+// Rename to get populated Datastore Task
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.PageSets == "" ||
 		task.ChromiumBuild.ChromiumRev == "" ||
@@ -139,6 +209,7 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Validate that the given skpRepository exists in the DB.
+// rmistry
 func Validate(skpRepository DBTask) error {
 	rowCount := []int{}
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE page_sets = ? AND chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CAPTURE_SKPS_TASKS)
@@ -157,12 +228,21 @@ func (vars *UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
 }
 
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	return nil, nil, nil
+func (task *UpdateVars) AddUpdatesToDBTask(t task_common.Task) error {
+	//dbTask := t.(*DBTask)
+	//key := ds.NewKey(t.GetDatastoreKind())
+	//key.ID = dbTask.DatastoreId
+	//cols := dbTask.CommonCols
+	//cols.TsStarted = 4
+	//dbTask.CommonCols = cols
+	//if _, err := ds.DS.Put(context.Background(), key, dbTask); err != nil {
+	//	return fmt.Errorf("Failed to update task %d in the datastore: %s", t.GetCommonCols().Id, err)
+	//}
+	return nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CAPTURE_SKPS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DBTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
