@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ce05bde6_3bafaddf",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-04T14:23:33Z",
+      "side": 1,
+      "message": "nit remove",
+      "range": {
+        "startLine": 315,
+        "startChar": 0,
+        "endLine": 316,
+        "endChar": 46
+      },
+      "revId": "e64b905b1734bc08ecc841728691e84823f6f1d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
