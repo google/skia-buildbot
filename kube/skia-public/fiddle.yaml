@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: fiddle
+  name: fiddle
+spec:
+  ports:
+    - name: metrics
+      port: 20000
+    - name: http
+      port: 8000
+  selector:
+    app: fiddle
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: fiddle
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fiddle
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: fiddle
+          image: gcr.io/skia-public/fiddlek:2018-05-24T13_05_09Z-jcgregorio-fcdc1ae-dirty
+          args:
+            - "--logtostderr"
+            - "--port=:8000"
+            - "--prom_port=:20000"
+            - "--resources_dir=/usr/local/share/fiddle/"
+            - "--source_image_dir=/etc/fiddle/source"
+          ports:
+            - containerPort: 8000
+            - containerPort: 20000
+          volumeMounts:
+            - name: skia-docs-sa
+              mountPath: /var/secrets/google
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
+          resources:
+            requests:
+              memory: "50M"
+              cpu: "100m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 45
+            periodSeconds: 3
+      volumes:
+        - name: skia-docs-sa
+          secret:
+            secretName: skia-docs
