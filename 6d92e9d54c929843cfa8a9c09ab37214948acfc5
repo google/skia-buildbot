@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da0b7a50_21363f4b",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-04T17:39:30Z",
+      "side": 1,
+      "message": "nit: maybe include filename in error message",
+      "revId": "6d92e9d54c929843cfa8a9c09ab37214948acfc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d56788d_4eac2157",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-04T17:39:30Z",
+      "side": 1,
+      "message": "nit: maybe mention that changes were committed to the config repo without being applied to kubernetes.",
+      "revId": "6d92e9d54c929843cfa8a9c09ab37214948acfc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
