@@ -312,8 +312,6 @@ var (
 	}
 
 	// Swarming machine dimensions.
-	// TODO(rmistry): Update this to 4 cores when we are ready to try the new CT
-	// swarming bots in ct-swarming-bots project.
 	GCE_WORKER_DIMENSIONS          = map[string]string{"pool": SWARMING_POOL, "cores": "4"}
 	GCE_ANDROID_BUILDER_DIMENSIONS = map[string]string{"pool": "CTAndroidBuilder", "cores": "64"}
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "CTLinuxBuilder", "cores": "64"}

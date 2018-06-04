@@ -65,7 +65,12 @@ if [[ $(hostname -s) = ct-*-builder* ]]; then
   echo "Checking out Chromium repository..."
   mkdir -p /b/storage/chromium
   cd /b/storage/chromium
-  /b/depot_tools/fetch chromium
+  if [[ $(hostname -s) = *android* ]]; then
+    # Say yes to prompts for installing Android SDK.
+    yes | /b/depot_tools/fetch android
+  else
+    /b/depot_tools/fetch chromium
+  fi
   cd src
   git checkout master
   /b/depot_tools/gclient sync
