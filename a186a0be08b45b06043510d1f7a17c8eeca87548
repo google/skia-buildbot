@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7265d495_f033ec1a",
+        "filename": "autoroll/go/strategy/afdo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-04T20:48:48Z",
+      "side": 1,
+      "message": "Did not look at this in detail.",
+      "revId": "a186a0be08b45b06043510d1f7a17c8eeca87548",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2c927840_5ac9d5b2",
+        "filename": "autoroll/go/strategy/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-04T20:48:48Z",
+      "side": 1,
+      "message": "Nit: GetStrategyHistory",
+      "range": {
+        "startLine": 60,
+        "startChar": 3,
+        "endLine": 60,
+        "endChar": 18
+      },
+      "revId": "a186a0be08b45b06043510d1f7a17c8eeca87548",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

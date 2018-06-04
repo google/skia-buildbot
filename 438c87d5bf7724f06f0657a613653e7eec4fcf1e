@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0ad2353e_8b06dfec",
+        "filename": "autoroll/go/repo_manager/manifest_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-04T20:48:48Z",
+      "side": 0,
+      "message": "Is removing this related to this change?",
+      "revId": "438c87d5bf7724f06f0657a613653e7eec4fcf1e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
