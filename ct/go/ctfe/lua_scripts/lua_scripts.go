@@ -5,20 +5,20 @@
 package lua_scripts
 
 import (
-	"database/sql"
-	"fmt"
+	"context"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -42,14 +42,14 @@ func ReloadTemplates(resourcesDir string) {
 type DBTask struct {
 	task_common.CommonCols
 
-	PageSets            string         `db:"page_sets"`
-	ChromiumRev         string         `db:"chromium_rev"`
-	SkiaRev             string         `db:"skia_rev"`
-	LuaScript           string         `db:"lua_script"`
-	LuaAggregatorScript string         `db:"lua_aggregator_script"`
-	Description         string         `db:"description"`
-	ScriptOutput        sql.NullString `db:"script_output"`
-	AggregatedOutput    sql.NullString `db:"aggregated_output"`
+	PageSets            string `db:"page_sets"`
+	ChromiumRev         string `db:"chromium_rev"`
+	SkiaRev             string `db:"skia_rev"`
+	LuaScript           string `db:"lua_script"`
+	LuaAggregatorScript string `db:"lua_aggregator_script"`
+	Description         string `db:"description"`
+	ScriptOutput        string `db:"script_output"`
+	AggregatedOutput    string `db:"aggregated_output"`
 }
 
 func (task DBTask) GetTaskName() string {
@@ -57,10 +57,10 @@ func (task DBTask) GetTaskName() string {
 }
 
 func (task DBTask) GetResultsLink() string {
-	if task.AggregatedOutput.Valid && task.AggregatedOutput.String != "" {
-		return task.AggregatedOutput.String
-	} else if task.ScriptOutput.Valid {
-		return task.ScriptOutput.String
+	if task.AggregatedOutput != "" {
+		return task.AggregatedOutput
+	} else if task.ScriptOutput != "" {
+		return task.ScriptOutput
 	}
 	return ""
 }
@@ -89,14 +89,23 @@ func (task DBTask) RunsOnGCEWorkers() bool {
 	return true
 }
 
-func (task DBTask) TableName() string {
-	return db.TABLE_LUA_SCRIPT_TASKS
+func (task DBTask) GetDatastoreKind() ds.Kind {
+	return ds.LUA_SCRIPT_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DBTask) Select(it *datastore.Iterator) (interface{}, error) {
+	//result := []DBTask{}
+	//err := db.DB.Select(&result, query, args...)
+	//return result, err
+	return nil, nil
+}
+
+func (task DBTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DBTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -112,39 +121,43 @@ type AddTaskVars struct {
 	Description         string              `json:"desc"`
 }
 
-func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
-	if task.SkpRepository.PageSets == "" ||
-		task.SkpRepository.ChromiumRev == "" ||
-		task.SkpRepository.SkiaRev == "" ||
-		task.LuaScript == "" ||
-		task.Description == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
-	}
-	if err := capture_skps.Validate(task.SkpRepository); err != nil {
-		return "", nil, err
-	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "lua_script", Value: task.LuaScript, Limit: db.TEXT_MAX_LENGTH},
-		{Name: "lua_aggregator_script", Value: task.LuaAggregatorScript, Limit: db.TEXT_MAX_LENGTH},
-		{Name: "description", Value: task.Description, Limit: 255},
-	}); err != nil {
-		return "", nil, err
-	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,lua_script,lua_aggregator_script,description,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?);",
-			db.TABLE_LUA_SCRIPT_TASKS),
-		[]interface{}{
-			task.Username,
-			task.SkpRepository.PageSets,
-			task.SkpRepository.ChromiumRev,
-			task.SkpRepository.SkiaRev,
-			task.LuaScript,
-			task.LuaAggregatorScript,
-			task.Description,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
 }
+
+//func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+//	if task.SkpRepository.PageSets == "" ||
+//		task.SkpRepository.ChromiumRev == "" ||
+//		task.SkpRepository.SkiaRev == "" ||
+//		task.LuaScript == "" ||
+//		task.Description == "" {
+//		return "", nil, fmt.Errorf("Invalid parameters")
+//	}
+//	if err := capture_skps.Validate(task.SkpRepository); err != nil {
+//		return "", nil, err
+//	}
+//	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
+//		{Name: "lua_script", Value: task.LuaScript, Limit: db.TEXT_MAX_LENGTH},
+//		{Name: "lua_aggregator_script", Value: task.LuaAggregatorScript, Limit: db.TEXT_MAX_LENGTH},
+//		{Name: "description", Value: task.Description, Limit: 255},
+//	}); err != nil {
+//		return "", nil, err
+//	}
+//	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,lua_script,lua_aggregator_script,description,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?);",
+//			db.TABLE_LUA_SCRIPT_TASKS),
+//		[]interface{}{
+//			task.Username,
+//			task.SkpRepository.PageSets,
+//			task.SkpRepository.ChromiumRev,
+//			task.SkpRepository.SkiaRev,
+//			task.LuaScript,
+//			task.LuaAggregatorScript,
+//			task.Description,
+//			task.TsAdded,
+//			task.RepeatAfterDays,
+//		},
+//		nil
+//}
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
@@ -156,36 +169,27 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
-	ScriptOutput     sql.NullString `db:"script_output"`
-	AggregatedOutput sql.NullString `db:"aggregated_output"`
+	ScriptOutput     string `db:"script_output"`
+	AggregatedOutput string `db:"aggregated_output"`
 }
 
 func (vars *UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
 }
 
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "ScriptOutput", Value: task.ScriptOutput.String, Limit: 255},
-		{Name: "AggregatedOutput", Value: task.AggregatedOutput.String, Limit: 255},
-	}); err != nil {
-		return nil, nil, err
+func (task *UpdateVars) AddUpdatesToDBTask(t task_common.Task) error {
+	dbTask := t.(*DBTask)
+	if task.ScriptOutput != "" {
+		dbTask.ScriptOutput = task.ScriptOutput
 	}
-	clauses := []string{}
-	args := []interface{}{}
-	if task.ScriptOutput.Valid {
-		clauses = append(clauses, "script_output = ?")
-		args = append(args, task.ScriptOutput.String)
+	if task.AggregatedOutput != "" {
+		dbTask.AggregatedOutput = task.AggregatedOutput
 	}
-	if task.AggregatedOutput.Valid {
-		clauses = append(clauses, "aggregated_output = ?")
-		args = append(args, task.AggregatedOutput.String)
-	}
-	return clauses, args, nil
+	return nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_LUA_SCRIPT_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DBTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {

@@ -5,7 +5,6 @@
 package pending_tasks
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,7 +25,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/webhook"
@@ -59,32 +57,34 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 func GetOldestPendingTask() (task_common.Task, error) {
 	var oldestTask task_common.Task
 	for _, task := range task_types.Prototypes() {
-		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NULL ORDER BY ts_added LIMIT 1;", task.TableName())
-		if err := db.DB.Get(task, query); err == sql.ErrNoRows {
-			continue
-		} else if err != nil {
-			return nil, fmt.Errorf("Failed to query DB: %v", err)
-		}
-		if oldestTask == nil {
-			oldestTask = task
-		} else if oldestTask.GetCommonCols().TsAdded.Int64 > task.GetCommonCols().TsAdded.Int64 {
-			oldestTask = task
-		}
+		fmt.Println(task)
+		//	query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NULL ORDER BY ts_added LIMIT 1;", task.TableName())
+		//	if err := db.DB.Get(task, query); err == sql.ErrNoRows {
+		//		continue
+		//	} else if err != nil {
+		//		return nil, fmt.Errorf("Failed to query DB: %v", err)
+		//	}
+		//	if oldestTask == nil {
+		//		oldestTask = task
+		//	} else if oldestTask.GetCommonCols().TsAdded > task.GetCommonCols().TsAdded {
+		//		oldestTask = task
+		//	}
 	}
 	return oldestTask, nil
 }
 
 // GetRunningTasks returns all running tasks from all task types.
+// rmistry: Fix!!!!!!!
 func GetRunningTasks() ([]task_common.Task, error) {
 	runningTasks := []task_common.Task{}
-	for _, task := range task_types.Prototypes() {
-		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NOT NULL AND ts_completed IS NULL ORDER BY ts_added;", task.TableName())
-		data, err := task.Select(query)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to query DB: %v", err)
-		}
-		runningTasks = append(runningTasks, task_common.AsTaskSlice(data)...)
-	}
+	//for _, task := range task_types.Prototypes() {
+	//	query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NOT NULL AND ts_completed IS NULL ORDER BY ts_added;", task.TableName())
+	//	data, err := task.Select(query)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("Failed to query DB: %v", err)
+	//	}
+	//	runningTasks = append(runningTasks, task_common.AsTaskSlice(data)...)
+	//}
 	return runningTasks, nil
 }
 
@@ -99,7 +99,7 @@ func TerminateRunningTasks() error {
 		commonUpdateVars := updateVars.GetUpdateTaskCommonVars()
 		commonUpdateVars.Id = task.GetCommonCols().Id
 		commonUpdateVars.SetCompleted(false)
-		if err := task_common.UpdateTask(updateVars, task.TableName()); err != nil {
+		if err := task_common.UpdateTask(updateVars, task); err != nil {
 			return fmt.Errorf("Failed to update %T task: %s", updateVars, err)
 		}
 		runningTasksOwners = append(runningTasksOwners, task.GetCommonCols().Username)
@@ -242,20 +242,21 @@ func getTerminateRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetPendingTaskCount returns the total number of pending tasks of all types. On error, the first
 // return value will be -1 and the second return value will be non-nil.
+// rmistry: Fix
 func GetPendingTaskCount() (int64, error) {
 	var result int64 = 0
-	params := task_common.QueryParams{
-		PendingOnly: true,
-		CountQuery:  true,
-	}
-	for _, prototype := range task_types.Prototypes() {
-		query, args := task_common.DBTaskQuery(prototype, params)
-		var countVal int64 = 0
-		if err := db.DB.Get(&countVal, query, args...); err != nil {
-			return -1, err
-		}
-		result += countVal
-	}
+	//params := task_common.QueryParams{
+	//	PendingOnly: true,
+	//	CountQuery:  true,
+	//}
+	//for _, prototype := range task_types.Prototypes() {
+	//	query, args := task_common.DBTaskQuery(prototype, params)
+	//	var countVal int64 = 0
+	//	if err := db.DB.Get(&countVal, query, args...); err != nil {
+	//		return -1, err
+	//	}
+	//	result += countVal
+	//}
 	return result, nil
 }
 
