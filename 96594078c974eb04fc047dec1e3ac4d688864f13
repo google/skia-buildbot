@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b7318b4_bb2ea5ba",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-04T17:24:09Z",
+      "side": 1,
+      "message": "This probably needs to be \"git push origin master\" right?",
+      "range": {
+        "startLine": 255,
+        "startChar": 38,
+        "endLine": 255,
+        "endChar": 39
+      },
+      "revId": "96594078c974eb04fc047dec1e3ac4d688864f13",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
