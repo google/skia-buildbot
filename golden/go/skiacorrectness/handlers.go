@@ -995,3 +995,24 @@ func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sendJsonResponse(w, compareResult)
 }
+
+func jsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
+	issueID := int64(0)
+	var err error
+	issueIDStr, ok := mux.Vars(r)["id"]
+	if ok {
+		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
+			return
+		}
+	}
+
+	baseline, err := storages.FetchBaseline(issueID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Fetching baselines failed.")
+		return
+	}
+
+	sendJsonResponse(w, baseline)
+}

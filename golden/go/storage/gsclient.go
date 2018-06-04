@@ -68,13 +68,43 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (s
 		return nil
 	}
 
+	outPath := g.getBaselinePath(baseLine.Issue)
+	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
+}
+
+func (g *GStorageClient) ReadBaseline(issueID int64) (*baseline.CommitableBaseLine, error) {
+	baselinePath := g.getBaselinePath(issueID)
+	bucketName, storagePath := gcs.SplitGSPath(baselinePath)
+
+	ctx := context.Background()
+	target := g.storageClient.Bucket(bucketName).Object(storagePath)
+
+	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
+	_, err := target.Attrs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	reader, err := target.NewReader(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(reader)
+
+	ret := &baseline.CommitableBaseLine{}
+	if err := json.NewDecoder(reader).Decode(ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func (g *GStorageClient) getBaselinePath(issueID int64) string {
 	// Change the output file based on whether it's the master branch or a Gerrit issue.
 	outPath := "master.json"
-	if baseLine.Issue > 0 {
-		outPath = fmt.Sprintf("issue_%d.json", baseLine.Issue)
+	if issueID > 0 {
+		outPath = fmt.Sprintf("issue_%d.json", issueID)
 	}
-	outPath = g.options.BaselineGSPath + "/" + outPath
-	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
+	return g.options.BaselineGSPath + "/" + outPath
 }
 
 // loadKnownDigests loads the digests that have previously been written

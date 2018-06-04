@@ -13,14 +13,14 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// BaseLine maps test names to a set of digests with their label.
+// Baseline maps test names to a set of digests with their label.
 // Test names are the names of individual tests, e.g. GMs and digests are
 // hashes that uniquely identify an output image.
 // This is used as the export format of baseline.
-type BaseLine map[string]types.TestClassification
+type Baseline map[string]types.TestClassification
 
 // add adds a test/digest pair to the baseline.
-func (b BaseLine) add(testName, digest string) {
+func (b Baseline) add(testName, digest string) {
 	if (testName == "") || (digest == types.MISSING_DIGEST) {
 		return
 	}
@@ -29,6 +29,10 @@ func (b BaseLine) add(testName, digest string) {
 	} else {
 		b[testName] = types.TestClassification{digest: types.POSITIVE}
 	}
+}
+
+func (b Baseline) Merge(right Baseline) {
+
 }
 
 // CommitableBaseLine captures the data necessary to verify test results on the
@@ -41,7 +45,7 @@ type CommitableBaseLine struct {
 	EndCommit *tiling.Commit `json:"endCommit"`
 
 	// Baseline captures the baseline of the current commit.
-	Baseline BaseLine `json:"master"`
+	Baseline Baseline `json:"master"`
 
 	// Issue indicates the Gerrit issue of this baseline. 0 indicates the master branch.
 	Issue int64
@@ -55,7 +59,7 @@ func GetBaselineForMaster(exps *expstorage.Expectations, tile *tiling.Tile) *Com
 	var startCommit *tiling.Commit = nil
 	var endCommit *tiling.Commit = nil
 
-	masterBaseline := BaseLine{}
+	masterBaseline := Baseline{}
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
@@ -85,7 +89,7 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 	var startCommit *tiling.Commit = nil
 	var endCommit *tiling.Commit = nil
 
-	baseLine := BaseLine{}
+	baseLine := Baseline{}
 	for idx, tryjob := range tryjobs {
 		for _, result := range tryjobResults[idx] {
 			// Ignore all digests that appear in the master.

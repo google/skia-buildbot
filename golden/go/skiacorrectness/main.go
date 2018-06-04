@@ -403,6 +403,10 @@ func main() {
 	router.HandleFunc("/json/tryjob", jsonTryjobListHandler).Methods("GET")
 	router.HandleFunc("/json/tryjob/{id}", jsonTryjobSummaryHandler).Methods("GET")
 
+	// Retrieving that baseline for master and an Gerrit issue are handled the same way
+	router.HandleFunc("/json/baseline", jsonBaselineHandler).Methods("GET")
+	router.HandleFunc("/json/baseline/{id}", jsonBaselineHandler).Methods("GET")
+
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
 		router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
