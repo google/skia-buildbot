@@ -22,3 +22,18 @@ ramdrive and unmount the ramdrive after they have been uploaded. See
 Reserving a named global IP address:
 
     gcloud compute addresses create skia-org --global
+
+pushk
+=====
+
+The configuration files are kept in a separate repo.
+
+    gcloud source repos clone skia-public-config --project=skia-public
+
+Then from within the checkout run:
+
+    $(./skia-public-env.sh)
+
+This will set the SKIA_PUBLIC_CONFIG environment variable to point
+to the checkout.
+
