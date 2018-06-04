@@ -149,6 +149,30 @@
     },
     {
       "key": {
+        "uuid": "ae2f6961_381e04ba",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-04T15:22:09Z",
+      "side": 1,
+      "message": "Auth should be global, right?",
+      "parentUuid": "b852fe1f_6a3f4324",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 2
+      },
+      "revId": "8abe9826d91492667213d88847f95c54191541e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "67e50b89_bfaba874",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
