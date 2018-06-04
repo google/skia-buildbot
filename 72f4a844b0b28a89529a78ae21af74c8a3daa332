@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a56a7321_f7536219",
+        "filename": "skolo/linux/nsswitch.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-04T21:50:20Z",
+      "side": 1,
+      "message": "nit: this is now a no-op",
+      "range": {
+        "startLine": 12,
+        "startChar": 40,
+        "endLine": 12,
+        "endChar": 57
+      },
+      "revId": "72f4a844b0b28a89529a78ae21af74c8a3daa332",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd0fda2b_172cffae",
+        "filename": "skolo/linux/nsswitch.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-04T21:50:20Z",
+      "side": 1,
+      "message": "Might as well just remove this -- we don\u0027t intentionally use mDNS, since we run DNS on the router. It can only mess things up.",
+      "range": {
+        "startLine": 12,
+        "startChar": 22,
+        "endLine": 12,
+        "endChar": 35
+      },
+      "revId": "72f4a844b0b28a89529a78ae21af74c8a3daa332",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
