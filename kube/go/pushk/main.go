@@ -1,15 +1,11 @@
 // pushk pushes a new version of an app.
 //
-// Actually just modifies kubernetes yaml files with the correct tag for the
-// given image. Prints the kubectl command to run to apply the changes,
-// or actually applied them if --apply is supplied.
-//
 // pushk
 // pushk docserver
 // pushk --rollback docserver
 // pushk --project=skia-public docserver
 // pushk --rollback --project=skia-public docserver
-// pushk --kube_dir=../kube --rollback --apply --project=skia-public docserver
+// pushk --dry-run my-new-service
 package main
 
 import (
@@ -28,8 +24,15 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcr"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+)
+
+const (
+	repoUrlTemplate = "https://skia.googlesource.com/%s-config"
+	repoBaseDir     = "/tmp"
+	repoDirTemplate = "/tmp/%s-config"
 )
 
 func init() {
@@ -37,9 +40,16 @@ func init() {
 		fmt.Printf("Usage: pushk <flags> [zero or more image names]\n\n")
 		fmt.Printf(`pushk pushes a new version of an app.
 
-Actually just modifies kubernetes yaml files with the correct tag for the given
-image. Prints the kubectl command to run to apply the changes, or actually
-applies them if --apply is supplied.
+The command:
+  1. Modifies the kubernetes yaml files with the new image.
+  2. Commits the changes to the config repo.
+  3. Applies the changes with kubectl.
+
+The config is stored in a separate repo that will automaticaly be checked out
+under /tmp.
+
+The command applies the changes by default, or just changes the local yaml files
+if --dry-run is supplied.
 
 If no image names are supplied then pushk looks through all the yaml files for
 appropriate images (ones that match the SERVER and project) and tries to push a
@@ -50,7 +60,7 @@ Examples:
   pushk
 
   # Push the latest version of docserver.
-  pushk docserver
+  pushk docserver --message="Fix bug #1234"
 
   # Push the latest version of docserver and iap-proxy
   pushk docserver iap-proxy
@@ -58,21 +68,31 @@ Examples:
   # Rollback docserver.
   pushk --rollback docserver
 
-  # Rollback docserver in the skia-public project and immediately apply
-  # the kubernetes configs.
-  pushk --rollback --apply --project=skia-public docserver
+  # Compute any changes a push to docserver will make, but do not apply them.
+  pushk --dry-run docserver
 
 `)
 		flag.PrintDefaults()
 	}
 }
 
+// toFullRepoURL converts the project name into a git repo URL.
+func toFullRepoURL(s string) string {
+	return fmt.Sprintf(repoUrlTemplate, s)
+
+}
+
+// toRepoDir converts the project name into a git repo directory name.
+func toRepoDir(s string) string {
+	return fmt.Sprintf(repoDirTemplate, s)
+}
+
 // flags
 var (
+	dryRun   = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
+	message  = flag.String("message", "Push", "Message to go along with the change.")
 	project  = flag.String("project", "skia-public", "The GCE project name.")
-	kubeDir  = flag.String("kube_dir", "../kube", "The directory with the kubernetes config files.")
 	rollback = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
-	apply    = flag.Bool("apply", false, "If true then run the kubectl command to apply the changes immediately.")
 )
 
 var (
@@ -121,14 +141,19 @@ func findAllImageNames(filenames []string, server, project string) []string {
 
 func main() {
 	common.Init()
-	if *apply {
-		// If running --apply we force log to stderr to pass through the output of
-		// running kubectl.
-		_ = flag.Lookup("logtostderr").Value.Set("true")
+
+	ctx := context.Background()
+	repoDir := toRepoDir(*project)
+	checkout, err := git.NewCheckout(ctx, toFullRepoURL(*project), repoBaseDir)
+	if err != nil {
+		sklog.Fatalf("Failed to check out config repo: %s", err)
+	}
+	if err := checkout.Update(ctx); err != nil {
+		sklog.Fatalf("Failed to update repo: %s", err)
 	}
 
 	// Get all the yaml files.
-	filenames, err := filepath.Glob(filepath.Join(*kubeDir, *project, "*.yaml"))
+	filenames, err := filepath.Glob(filepath.Join(repoDir, "*.yaml"))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -138,7 +163,7 @@ func main() {
 	if len(imageNames) == 0 {
 		imageNames = findAllImageNames(filenames, gcr.SERVER, *project)
 		if len(imageNames) == 0 {
-			fmt.Printf("Failed to find any images that match kubernetes directory: %q and project: %q.", *kubeDir, *project)
+			fmt.Printf("Failed to find any images that match kubernetes directory: %q and project: %q.", repoDir, *project)
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -216,7 +241,21 @@ func main() {
 	// Were any files updated?
 	if len(changed) != 0 {
 		filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(changed.Keys(), ","))
-		if *apply {
+		if !*dryRun {
+			for filename, _ := range changed {
+				msg, err := checkout.Git(ctx, "add", filepath.Base(filename))
+				if err != nil {
+					sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)
+				}
+			}
+			msg, err := checkout.Git(ctx, "commit", "-m", *message)
+			if err != nil {
+				sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
+			}
+			msg, err = checkout.Git(ctx, "push", "origin", "master")
+			if err != nil {
+				sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
+			}
 			if err := exec.Run(context.Background(), &exec.Command{
 				Name:      "kubectl",
 				Args:      []string{"apply", filenameFlag},

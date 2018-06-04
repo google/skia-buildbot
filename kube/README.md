@@ -22,3 +22,9 @@ ramdrive and unmount the ramdrive after they have been uploaded. See
 Reserving a named global IP address:
 
     gcloud compute addresses create skia-org --global
+
+Configuration
+=============
+
+The kubernetes configuration files are kept in a separate repo that will
+automaticaly be checked out under /tmp by the pushk command.

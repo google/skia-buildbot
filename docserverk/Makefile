@@ -23,7 +23,7 @@ release: default
 .PHONY: push
 push:
 	go install ../kube/go/pushk
-	pushk --apply docserverk
+	pushk docserverk
 
 .PHONY: run
 run:
