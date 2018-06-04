@@ -11,4 +11,4 @@ release:
 	./build_docker_release
 
 push:
-	pushk --apply jsdoc
+	pushk jsdoc
