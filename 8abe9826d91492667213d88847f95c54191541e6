@@ -197,6 +197,30 @@
     },
     {
       "key": {
+        "uuid": "ca623424_9b0da633",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-04T15:51:42Z",
+      "side": 1,
+      "message": "I would think auth should work the same either way, but IMO it makes sense to be consistent and always use GoB.",
+      "parentUuid": "5c99372e_d9aeab84",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 2
+      },
+      "revId": "8abe9826d91492667213d88847f95c54191541e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "67e50b89_bfaba874",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
