@@ -28,8 +28,15 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcr"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+)
+
+const (
+	// REPO_DIR_ENV is a template for the environment variable that points
+	// to the kubernetes configuration repo.
+	REPO_DIR_ENV = "%s_CONFIG"
 )
 
 func init() {
@@ -37,9 +44,22 @@ func init() {
 		fmt.Printf("Usage: pushk <flags> [zero or more image names]\n\n")
 		fmt.Printf(`pushk pushes a new version of an app.
 
-Actually just modifies kubernetes yaml files with the correct tag for the given
+The config is stored in a separate repo. Check out the config repo with:
+
+    gcloud source repos clone %s-config --project=%s
+
+Then from within the checkout run:
+
+    $(./%s-env.sh)
+
+This will set the %s environment variable to point
+to the checkout.
+
+Modifies the kubernetes yaml files with the correct tag for the given
 image. Prints the kubectl command to run to apply the changes, or actually
 applies them if --apply is supplied.
+
+The changes to the yaml files are always committed to the repo.
 
 If no image names are supplied then pushk looks through all the yaml files for
 appropriate images (ones that match the SERVER and project) and tries to push a
@@ -50,7 +70,7 @@ Examples:
   pushk
 
   # Push the latest version of docserver.
-  pushk docserver
+  pushk docserver --message="Fix bug #1234"
 
   # Push the latest version of docserver and iap-proxy
   pushk docserver iap-proxy
@@ -58,21 +78,28 @@ Examples:
   # Rollback docserver.
   pushk --rollback docserver
 
-  # Rollback docserver in the skia-public project and immediately apply
-  # the kubernetes configs.
-  pushk --rollback --apply --project=skia-public docserver
+  # Rollback docserver and immediately apply the kubernetes configs.
+  pushk --rollback --apply docserver
 
-`)
+`, *project, *project, *project, toEnvVar(*project))
 		flag.PrintDefaults()
 	}
+}
+
+// toEnvVar converts the project name into an environment variable name.
+func toEnvVar(s string) string {
+	s = strings.ToUpper(s)
+	s = strings.Replace(s, "-", "_", -1)
+	return fmt.Sprintf(REPO_DIR_ENV, s)
+
 }
 
 // flags
 var (
 	project  = flag.String("project", "skia-public", "The GCE project name.")
-	kubeDir  = flag.String("kube_dir", "../kube", "The directory with the kubernetes config files.")
 	rollback = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
 	apply    = flag.Bool("apply", false, "If true then run the kubectl command to apply the changes immediately.")
+	message  = flag.String("message", "Push", "Message to go along with the change.")
 )
 
 var (
@@ -121,6 +148,19 @@ func findAllImageNames(filenames []string, server, project string) []string {
 
 func main() {
 	common.Init()
+	repoDirEnv := toEnvVar(*project)
+	repoDir, ok := os.LookupEnv(repoDirEnv)
+	if !ok {
+		fmt.Printf("The %q environment variable needs to be set.", repoDirEnv)
+		flag.Usage()
+		os.Exit(1)
+	}
+	ctx := context.Background()
+	gitRepo := git.GitDir(repoDir)
+	msg, err := gitRepo.Git(ctx, "pull")
+	if err != nil {
+		sklog.Fatalf("Failed to pull the config repo: %s: %q", err, msg)
+	}
 	if *apply {
 		// If running --apply we force log to stderr to pass through the output of
 		// running kubectl.
@@ -128,7 +168,7 @@ func main() {
 	}
 
 	// Get all the yaml files.
-	filenames, err := filepath.Glob(filepath.Join(*kubeDir, *project, "*.yaml"))
+	filenames, err := filepath.Glob(filepath.Join(repoDir, "*.yaml"))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -138,7 +178,7 @@ func main() {
 	if len(imageNames) == 0 {
 		imageNames = findAllImageNames(filenames, gcr.SERVER, *project)
 		if len(imageNames) == 0 {
-			fmt.Printf("Failed to find any images that match kubernetes directory: %q and project: %q.", *kubeDir, *project)
+			fmt.Printf("Failed to find any images that match kubernetes directory: %q and project: %q.", repoDir, *project)
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -215,6 +255,18 @@ func main() {
 
 	// Were any files updated?
 	if len(changed) != 0 {
+		msg, err = gitRepo.Git(ctx, "add", "--all")
+		if err != nil {
+			sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)
+		}
+		msg, err = gitRepo.Git(ctx, "commit", "-m", *message)
+		if err != nil {
+			sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
+		}
+		msg, err = gitRepo.Git(ctx, "push")
+		if err != nil {
+			sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
+		}
 		filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(changed.Keys(), ","))
 		if *apply {
 			if err := exec.Run(context.Background(), &exec.Command{
