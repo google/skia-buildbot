@@ -33,7 +33,7 @@ release: build
 .PHONY: push
 push:
 	go install ../kube/go/pushk
-	pushk --apply debugger-assets
+	pushk debugger-assets
 
 .PHONY: run
 run:
