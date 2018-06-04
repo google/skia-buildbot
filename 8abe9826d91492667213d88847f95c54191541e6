@@ -60,6 +60,29 @@
     },
     {
       "key": {
+        "uuid": "6264feec_c1ffe383",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-04T15:02:50Z",
+      "side": 1,
+      "message": "Why are we using an environment variable for this?  Can\u0027t we check in a mapping of project name to config repo URL?",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 2
+      },
+      "revId": "8abe9826d91492667213d88847f95c54191541e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "67e50b89_bfaba874",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
@@ -71,6 +94,75 @@
       "writtenOn": "2018-06-04T15:00:00Z",
       "side": 1,
       "message": "nit: Unless there\u0027s a use-case for pushing from branches, it might be good to verify that the repo is on the master branch and there are no local modifications.",
+      "revId": "8abe9826d91492667213d88847f95c54191541e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e97871d0_a691fd91",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-04T15:02:50Z",
+      "side": 1,
+      "message": "There are a lot of potential problems which this does not account for.  I\u0027d recommend using git.Checkout.Update() instead: https://skia.googlesource.com/buildbot/+/master/go/git/checkout.go#89",
+      "range": {
+        "startLine": 160,
+        "startChar": 1,
+        "endLine": 160,
+        "endChar": 37
+      },
+      "revId": "8abe9826d91492667213d88847f95c54191541e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a359a2e_b49c99cf",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-04T15:02:50Z",
+      "side": 1,
+      "message": "In general I like to avoid \"git add --all\", as it\u0027s possible to check in undesired things.  Since we know the list of files we should\u0027ve changed, why not \"git add\" each file individually?",
+      "range": {
+        "startLine": 258,
+        "startChar": 13,
+        "endLine": 258,
+        "endChar": 45
+      },
+      "revId": "8abe9826d91492667213d88847f95c54191541e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccf44610_2c34abd5",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-04T15:02:50Z",
+      "side": 1,
+      "message": "This assumes that the repo is already on a branch which is up to date and tracking origin/master.  Instead, we should probably create the branch and properly clean up afterward.",
+      "range": {
+        "startLine": 258,
+        "startChar": 0,
+        "endLine": 269,
+        "endChar": 3
+      },
       "revId": "8abe9826d91492667213d88847f95c54191541e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
