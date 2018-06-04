@@ -72,9 +72,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		githubClient:    githubClient,
 	}
 
-	// TODO(borenet): This update can be extremely expensive. Consider
-	// moving it out of the startup critical path.
-	return gr, gr.Update(ctx)
+	return gr, nil
 }
 
 // See documentation for RepoManager interface.
@@ -142,12 +140,9 @@ func (rm *githubRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Get the next roll revision.
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
+	nextRollRev, err := rm.getNextRollRev(ctx, notRolled, lastRollRev)
 	if err != nil {
 		return err
-	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
 	}
 
 	rm.infoMtx.Lock()

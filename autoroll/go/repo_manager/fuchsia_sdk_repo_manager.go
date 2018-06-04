@@ -3,7 +3,6 @@ package repo_manager
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
@@ -76,14 +76,6 @@ type FuchsiaSDKRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
 }
 
-// Validate the config.
-func (c *FuchsiaSDKRepoManagerConfig) Validate() error {
-	if c.Strategy != ROLL_STRATEGY_FUCHSIA_SDK {
-		return errors.New("No custom strategy allowed for Fuchsia SDK RepoManager.")
-	}
-	return c.DepotToolsRepoManagerConfig.Validate()
-}
-
 // fuchsiaSDKRepoManager is a RepoManager which rolls the Fuchsia SDK version
 // into Chromium. Unlike other rollers, there is no child repo to sync; the
 // version number is obtained from Google Cloud Storage.
@@ -120,7 +112,7 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 		storageClient:         storageClient,
 		versionFile:           path.Join(drm.parentDir, FUCHSIA_SDK_VERSION_FILE_PATH),
 	}
-	return rv, rv.Update(ctx)
+	return rv, nil
 }
 
 // See documentation for RepoManager interface.
@@ -350,4 +342,16 @@ func (rm *fuchsiaSDKRepoManager) CommitsNotRolled() int {
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
 	return rm.commitsNotRolled
+}
+
+// See documentation for RepoManager interface.
+func (r *fuchsiaSDKRepoManager) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_FUCHSIA_SDK
+}
+
+// See documentation for RepoManager interface.
+func (r *fuchsiaSDKRepoManager) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_FUCHSIA_SDK,
+	}
 }

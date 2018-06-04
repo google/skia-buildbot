@@ -17,6 +17,9 @@ const (
 	bodyModeChange    = "{{.User}} changed the mode to \"{{.Mode}}\" with message: {{.Message}}"
 	subjectModeChange = "The {{.ChildName}} into {{.ParentName}} AutoRoller mode was changed"
 
+	bodyStrategyChange    = "{{.User}} changed the next-roll-revision strategy to \"{{.Strategy}}\" with message: {{.Message}}"
+	subjectStrategyChange = "The {{.ChildName}} into {{.ParentName}} AutoRoller next-roll-revision strategy was changed"
+
 	subjectThrottled     = "The {{.ChildName}} into {{.ParentName}} AutoRoller is throttled"
 	bodySafetyThrottled  = "The roller is throttled because it attempted to upload too many CLs in too short a time.  The roller will unthrottle at {{.ThrottledUntil}}."
 	bodySuccessThrottled = "The roller is throttled because it is configured not to land too many rolls within a time period. The roller will unthrottle at {{.ThrottledUntil}}."
@@ -36,6 +39,9 @@ var (
 
 	subjectTmplModeChange = template.Must(template.New("subjectModeChange").Parse(subjectModeChange))
 	bodyTmplModeChange    = template.Must(template.New("bodyModeChange").Parse(bodyModeChange))
+
+	subjectTmplStrategyChange = template.Must(template.New("subjectStrategyChange").Parse(subjectStrategyChange))
+	bodyTmplStrategyChange    = template.Must(template.New("bodyStrategyChange").Parse(bodyStrategyChange))
 
 	subjectTmplThrottled     = template.Must(template.New("subjectThrottled").Parse(subjectThrottled))
 	bodyTmplSafetyThrottled  = template.Must(template.New("bodySafetyThrottled").Parse(bodySafetyThrottled))
@@ -61,6 +67,7 @@ type tmplVars struct {
 	Message        string
 	N              int
 	ParentName     string
+	Strategy       string
 	ThrottledUntil string
 	User           string
 }
@@ -133,6 +140,15 @@ func (a *AutoRollNotifier) SendModeChange(ctx context.Context, user, mode, messa
 		Mode:    mode,
 		User:    user,
 	}, subjectTmplModeChange, bodyTmplModeChange, notifier.SEVERITY_WARNING)
+}
+
+// Send a strategy change message.
+func (a *AutoRollNotifier) SendStrategyChange(ctx context.Context, user, strategy, message string) {
+	a.send(ctx, &tmplVars{
+		Message:  message,
+		Strategy: strategy,
+		User:     user,
+	}, subjectTmplStrategyChange, bodyTmplStrategyChange, notifier.SEVERITY_WARNING)
 }
 
 // Send a notification that the roller is safety-throttled.
