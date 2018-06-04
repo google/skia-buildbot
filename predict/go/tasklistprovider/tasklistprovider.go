@@ -23,5 +23,5 @@ func New(client swarming.ApiClient) *Provider {
 // Since searches on Swarming can only be done on task "start" time, the value
 // of 'since' should be larger than the longest task that takes to complete.
 func (p *Provider) Get(since time.Duration) ([]*swarmingv1.SwarmingRpcsTaskRequestMetadata, error) {
-	return p.client.ListTasks(time.Now().Add(-1*since), time.Now(), []string{"pool:Skia"}, "completed_failure")
+	return p.client.ListTasks(time.Now().Add(-1*since), time.Now(), []string{"pool:Skia"}, "COMPLETED_FAILURE")
 }
