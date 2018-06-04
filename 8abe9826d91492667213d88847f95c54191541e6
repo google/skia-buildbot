@@ -173,6 +173,30 @@
     },
     {
       "key": {
+        "uuid": "5c99372e_d9aeab84",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-04T15:32:01Z",
+      "side": 1,
+      "message": "Oh, if we use a GoB repo then should be able to set it up so \"git push\" just works?\n\nI was using a git repo from with the GCE project: https://pantheon.corp.google.com/code/develop/repo?project\u003dskia-public\u0026organizationId\u003d433637338589 but can switch that to a GoB repo.",
+      "parentUuid": "ae2f6961_381e04ba",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 2
+      },
+      "revId": "8abe9826d91492667213d88847f95c54191541e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "67e50b89_bfaba874",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 5
