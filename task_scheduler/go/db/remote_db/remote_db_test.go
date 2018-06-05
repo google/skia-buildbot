@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -55,10 +56,10 @@ func (b *clientWithBackdoor) PutJobs(jobs []*db.Job) error {
 func makeDB(t *testing.T) db.DBCloser {
 	baseDB := db.NewInMemoryDB()
 	r := mux.NewRouter()
-	err := RegisterServer(baseDB, r.PathPrefix("/db").Subrouter())
+	err := RegisterServer(baseDB, r.PathPrefix("/db").Subrouter(), nil)
 	assert.NoError(t, err)
 	ts := httptest.NewServer(r)
-	dbclient, err := NewClient(ts.URL + "/db/")
+	dbclient, err := NewClient(ts.URL+"/db/", httputils.NewTimeoutClient())
 	assert.NoError(t, err)
 	return &clientWithBackdoor{
 		RemoteDB:   dbclient,

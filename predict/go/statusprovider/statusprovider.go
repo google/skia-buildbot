@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 )
@@ -18,7 +19,7 @@ type Provider struct {
 //
 // serverRoot is the URL of the task scheduler remote_db.
 func New(repos []string, serverRoot string) (*Provider, error) {
-	client, err := remote_db.NewClient(serverRoot)
+	client, err := remote_db.NewClient(serverRoot, httputils.NewTimeoutClient())
 	if err != nil {
 		return nil, err
 	}
