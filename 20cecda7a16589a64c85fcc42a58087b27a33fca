@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "4dfa7e5e_7a23c3f5",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-05T16:54:42Z",
+      "side": 1,
+      "message": "nit: just pass nil for 3rd arg; it\u0027s only used for logging, and both 3rd and 4th arg are logged.",
+      "range": {
+        "startLine": 101,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 53
+      },
+      "revId": "20cecda7a16589a64c85fcc42a58087b27a33fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0850f969_99862f02",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-05T16:54:42Z",
+      "side": 1,
+      "message": "nit: might be easier to do something like:\nrAuth :\u003d mux.NewRouter()\nr.HandleFunc(\"/\", restrict(rAuth))\n\nrAuth.HandleFunc(\"/\"+MODIFIED_TASKS_PATH, s.PostModifiedTasksHandler).Methods(http.MethodPost)\n...",
+      "range": {
+        "startLine": 109,
+        "startChar": 39,
+        "endLine": 109,
+        "endChar": 48
+      },
+      "revId": "20cecda7a16589a64c85fcc42a58087b27a33fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4e398425_67bceaa4",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 1
