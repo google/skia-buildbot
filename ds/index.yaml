@@ -8,3 +8,151 @@ indexes:
   - name: OK
   - name: TimeStamp
     direction: asc
+
+######### CT #########
+
+## RecreatePageSetsTasks ##
+
+# To make sure user does not exceed max CT tasks.
+- kind: RecreatePageSetsTasks
+  properties:
+  - name: TaskDone
+  - name: Username
+  - name: Id
+    direction: desc
+
+# For run history page.
+- kind: RecreatePageSetsTasks
+  properties:
+  - name: IsTestPageSet
+  - name: Id
+    direction: desc
+- kind: RecreatePageSetsTasks
+  properties:
+  - name: Username
+  - name: Id
+
+# For displaying queue size.
+- kind: RecreatePageSetsTasks
+  properties:
+  - name: TaskDone
+  - name: Id
+    direction: desc
+
+# For repeating runs.
+- kind: RecreatePageSetsTasks
+  properties:
+  - name: TaskDone
+  - name: RepeatAfterDays
+  - name: Id
+    direction: desc
+
+## RecreateWebpageArchivesTasks ##
+
+# To make sure user does not exceed max CT tasks.
+- kind: RecreateWebpageArchivesTasks
+  properties:
+  - name: TaskDone
+  - name: Username
+  - name: Id
+    direction: desc
+
+# For run history page.
+- kind: RecreateWebpageArchivesTasks
+  properties:
+  - name: IsTestPageSet
+  - name: Id
+    direction: desc
+- kind: RecreateWebpageArchivesTasks
+  properties:
+  - name: Username
+  - name: Id
+
+# For displaying queue size.
+- kind: RecreateWebpageArchivesTasks
+  properties:
+  - name: TaskDone
+  - name: Id
+    direction: desc
+
+# For repeating runs.
+- kind: RecreateWebpageArchivesTasks
+  properties:
+  - name: TaskDone
+  - name: RepeatAfterDays
+  - name: Id
+    direction: desc
+
+## CaptureSkpsTasks ##
+
+# To make sure user does not exceed max CT tasks.
+- kind: CaptureSkpsTasks
+  properties:
+  - name: TaskDone
+  - name: Username
+  - name: Id
+    direction: desc
+
+# For run history page.
+- kind: CaptureSkpsTasks
+  properties:
+  - name: IsTestPageSet
+  - name: Id
+    direction: desc
+- kind: CaptureSkpsTasks
+  properties:
+  - name: Username
+  - name: Id
+
+# For displaying queue size.
+- kind: CaptureSkpsTasks
+  properties:
+  - name: TaskDone
+  - name: Id
+    direction: desc
+
+# For repeating runs.
+- kind: CaptureSkpsTasks
+  properties:
+  - name: TaskDone
+  - name: RepeatAfterDays
+  - name: Id
+    direction: desc
+
+## ChromiumBuildTasks ##
+
+# To make sure user does not exceed max CT tasks.
+- kind: ChromiumBuildTasks
+  properties:
+  - name: TaskDone
+  - name: Username
+  - name: Id
+    direction: desc
+
+# For run history page.
+- kind: ChromiumBuildTasks
+  properties:
+  - name: Username
+  - name: Id
+
+# For displaying builds on admin tasks.
+- kind: ChromiumBuildTasks
+  properties:
+  - name: Failure
+  - name: Id
+    direction: desc
+
+# For displaying queue size.
+- kind: ChromiumBuildTasks
+  properties:
+  - name: TaskDone
+  - name: Id
+    direction: desc
+
+# For repeating runs.
+- kind: ChromiumBuildTasks
+  properties:
+  - name: TaskDone
+  - name: RepeatAfterDays
+  - name: Id
+    direction: desc

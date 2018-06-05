@@ -5,20 +5,22 @@
 package capture_skps
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/sklog"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -39,24 +41,26 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type DBTask struct {
+// Obviously change this to DatastoreTask.
+type DatastoreTask struct {
 	task_common.CommonCols
 
-	PageSets    string `db:"page_sets"`
-	ChromiumRev string `db:"chromium_rev"`
-	SkiaRev     string `db:"skia_rev"`
-	Description string `db:"description"`
+	PageSets      string
+	IsTestPageSet bool
+	ChromiumRev   string
+	SkiaRev       string
+	Description   string
 }
 
-func (task DBTask) GetTaskName() string {
+func (task DatastoreTask) GetTaskName() string {
 	return "CaptureSkps"
 }
 
-func (task DBTask) GetResultsLink() string {
+func (task DatastoreTask) GetResultsLink() string {
 	return ""
 }
 
-func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (dbTask *DatastoreTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
@@ -68,84 +72,151 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	return taskVars
 }
 
-func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
-func (task DBTask) RunsOnGCEWorkers() bool {
+func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	// Capture SKP tasks need to run on bare-metal machines because they have
 	// the right font packages installed.
 	return false
 }
 
-func (task DBTask) TableName() string {
-	return db.TABLE_CAPTURE_SKPS_TASKS
+func (task DatastoreTask) GetDatastoreKind() ds.Kind {
+	return ds.CAPTURE_SKPS_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DatastoreTask) Select(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*DatastoreTask{}
+	for {
+		t := &DatastoreTask{}
+		k, err := it.Next(t)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+		t.DatastoreId = k.ID
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
+}
+
+func (task DatastoreTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DatastoreTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
+// Think of where all to put noindex sutff. like datastore:",noindex"
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	PageSets      string                 `json:"page_sets"`
-	ChromiumBuild chromium_builds.DBTask `json:"chromium_build"`
-	Description   string                 `json:"desc"`
+	PageSets      string                        `json:"page_sets"`
+	ChromiumBuild chromium_builds.DatastoreTask `json:"chromium_build"`
+	Description   string                        `json:"desc"`
 }
 
-func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
+	return ds.CAPTURE_SKPS_TASKS
+}
+
+// Except ID ofcourse
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+
 	if task.PageSets == "" ||
 		task.ChromiumBuild.ChromiumRev == "" ||
 		task.ChromiumBuild.SkiaRev == "" ||
 		task.Description == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
+		return nil, fmt.Errorf("Invalid parameters")
 	}
-	if err := chromium_builds.Validate(task.ChromiumBuild); err != nil {
-		return "", nil, err
+	// TODO(rmistry): Uncomment this!
+	//if err := chromium_builds.Validate(task.ChromiumBuild); err != nil {
+	//	return nil, err
+	//}
+
+	id, err := task_common.GetNextId(ds.CAPTURE_SKPS_TASKS, &DatastoreTask{})
+	if err != nil {
+		return nil, fmt.Errorf("Could not get highest id: %s", err)
 	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "page_sets", Value: task.PageSets, Limit: 100},
-		{Name: "desc", Value: task.Description, Limit: 255},
-	}); err != nil {
-		return "", nil, err
+
+	t := &DatastoreTask{
+		PageSets:      task.PageSets,
+		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		ChromiumRev:   task.ChromiumBuild.ChromiumRev,
+		SkiaRev:       task.ChromiumBuild.SkiaRev,
+		Description:   task.Description,
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,description,ts_added, repeat_after_days) VALUES (?,?,?,?,?,?,?);",
-			db.TABLE_CAPTURE_SKPS_TASKS),
-		[]interface{}{
-			task.Username,
-			task.PageSets,
-			task.ChromiumBuild.ChromiumRev,
-			task.ChromiumBuild.SkiaRev,
-			task.Description,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
+	tsAdded, err := strconv.ParseInt(task.TsAdded, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.TsAdded, err)
+	}
+	t.TsAdded = tsAdded
+	t.Username = task.Username
+	t.Id = id
+	repeatAfterDays, err := strconv.ParseInt(task.RepeatAfterDays, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.RepeatAfterDays, err)
+	}
+	t.RepeatAfterDays = repeatAfterDays
+	return t, nil
 }
+
+//// Rename to get populated Datastore Task
+//func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+//	if task.PageSets == "" ||
+//		task.ChromiumBuild.ChromiumRev == "" ||
+//		task.ChromiumBuild.SkiaRev == "" ||
+//		task.Description == "" {
+//		return "", nil, fmt.Errorf("Invalid parameters")
+//	}
+//	if err := chromium_builds.Validate(task.ChromiumBuild); err != nil {
+//		return "", nil, err
+//	}
+//	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
+//		{Name: "page_sets", Value: task.PageSets, Limit: 100},
+//		{Name: "desc", Value: task.Description, Limit: 255},
+//	}); err != nil {
+//		return "", nil, err
+//	}
+//	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,description,ts_added, repeat_after_days) VALUES (?,?,?,?,?,?,?);",
+//			db.TABLE_CAPTURE_SKPS_TASKS),
+//		[]interface{}{
+//			task.Username,
+//			task.PageSets,
+//			task.ChromiumBuild.ChromiumRev,
+//			task.ChromiumBuild.SkiaRev,
+//			task.Description,
+//			task.TsAdded,
+//			task.RepeatAfterDays,
+//		},
+//		nil
+//}
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&DBTask{}, w, r)
+	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
 }
 
 // Validate that the given skpRepository exists in the DB.
-func Validate(skpRepository DBTask) error {
-	rowCount := []int{}
-	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE page_sets = ? AND chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CAPTURE_SKPS_TASKS)
-	if err := db.DB.Select(&rowCount, query, skpRepository.PageSets, skpRepository.ChromiumRev, skpRepository.SkiaRev); err != nil || len(rowCount) < 1 || rowCount[0] == 0 {
-		sklog.Info(err)
-		return fmt.Errorf("Unable to validate skp_repository parameter %v", skpRepository)
-	}
+// rmistry - where is this used? maybe from lua.. do it later!
+func Validate(skpRepository DatastoreTask) error {
+	//rowCount := []int{}
+	//query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE page_sets = ? AND chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CAPTURE_SKPS_TASKS)
+	//if err := db.DB.Select(&rowCount, query, skpRepository.PageSets, skpRepository.ChromiumRev, skpRepository.SkiaRev); err != nil || len(rowCount) < 1 || rowCount[0] == 0 {
+	//	sklog.Info(err)
+	//	return fmt.Errorf("Unable to validate skp_repository parameter %v", skpRepository)
+	//}
 	return nil
 }
 
@@ -157,20 +228,20 @@ func (vars *UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
 }
 
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	return nil, nil, nil
+func (task *UpdateVars) AddUpdatesToDatastoreTask(t task_common.Task) error {
+	return nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CAPTURE_SKPS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&DBTask{}, w, r)
+	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&DBTask{}, w, r)
+	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
