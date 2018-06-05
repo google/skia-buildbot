@@ -474,19 +474,19 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 	tasksMtx.Unlock()
 
 	if task.RunsOnGCEWorkers() {
-		if err := autoscaler.RegisterGCETask(taskId); err != nil {
-			sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
-			return &wg
-		}
+		//if err := autoscaler.RegisterGCETask(taskId); err != nil {
+		//	sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
+		//	return &wg
+		//}
 	}
 
 	sklog.Infof("Preparing to execute task %s", taskId)
 	if err = updateAndBuild(ctx); err != nil {
 		sklog.Error(err)
 		if task.RunsOnGCEWorkers() {
-			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
-				sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
-			}
+			//if err := autoscaler.UnregisterGCETask(taskId); err != nil {
+			//	sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
+			//}
 		}
 		return &wg
 	}
@@ -509,9 +509,9 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 		tasksMtx.Unlock()
 
 		if task.RunsOnGCEWorkers() {
-			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
-				sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
-			}
+			//if err := autoscaler.UnregisterGCETask(taskId); err != nil {
+			//	sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
+			//}
 		}
 	}()
 	// Return the WaitGroup to allow some callers to call wg.Wait()

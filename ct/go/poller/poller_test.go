@@ -484,8 +484,8 @@ func TestPollAndExecOnce(t *testing.T) {
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+	//expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	//expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
 	commands := mockExec.Commands()
 	assert.Len(t, commands, 3)
@@ -518,8 +518,8 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 
 	// Expect two pending task requests.
 	expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+	//expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	//expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
 	// make all; run_chromium_perf_on_workers ...
 	commands := mockExec.Commands()
@@ -550,8 +550,8 @@ func TestPollAndExecOnceError(t *testing.T) {
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+	//expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	//expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
 	commands := commandCollector.Commands()
 	assert.Len(t, commands, 3)
@@ -588,8 +588,8 @@ func TestPollAndExecOnceNoTasks(t *testing.T) {
 	wg2.Wait()
 	wg3.Wait()
 	expect.Equal(t, 3, mockServer.OldestPendingTaskReqCount())
-	expect.Equal(t, 0, mockCTAutoscaler.RegisterGCETaskTimesCalled)
-	expect.Equal(t, 0, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+	//expect.Equal(t, 0, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	//expect.Equal(t, 0, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect no commands.
 	expect.Empty(t, mockExec.Commands())
 	// No updates expected.
