@@ -5,6 +5,7 @@ import (
 	"flag"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/statusv2/go/ml/features"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -20,7 +21,7 @@ func main() {
 	common.Init()
 
 	ctx := context.Background()
-	d, err := remote_db.NewClient(*taskSchedulerDbUrl)
+	d, err := remote_db.NewClient(*taskSchedulerDbUrl, httputils.NewTimeoutClient())
 	if err != nil {
 		sklog.Fatal(err)
 	}

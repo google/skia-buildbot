@@ -6,14 +6,17 @@ package remote_db
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/httputils"
@@ -52,31 +55,73 @@ type server struct {
 //
 // Currently no authentication is required, so r should not be exposed on a
 // public port.
-func RegisterServer(d db.RemoteDB, r *mux.Router) error {
+func RegisterServer(d db.RemoteDB, r *mux.Router, emailWhitelist []string) error {
 	s := &server{
 		d: d,
 	}
-	s.registerHandlers(r)
+	s.registerHandlers(r, emailWhitelist)
 	return nil
 }
 
 // registerHandlers adds GET, POST, and DELETE handlers to r on various paths.
-func (s *server) registerHandlers(r *mux.Router) {
-	r.HandleFunc("/"+MODIFIED_TASKS_PATH, s.PostModifiedTasksHandler).Methods(http.MethodPost)
-	r.HandleFunc("/"+MODIFIED_TASKS_PATH, s.DeleteModifiedTasksHandler).Methods(http.MethodDelete)
-	r.HandleFunc("/"+MODIFIED_TASKS_PATH, s.GetModifiedTasksHandler).Methods(http.MethodGet)
-	r.HandleFunc("/"+TASKS_PATH, s.GetTasksHandler).Methods(http.MethodGet)
-	r.HandleFunc("/"+MODIFIED_JOBS_PATH, s.PostModifiedJobsHandler).Methods(http.MethodPost)
-	r.HandleFunc("/"+MODIFIED_JOBS_PATH, s.DeleteModifiedJobsHandler).Methods(http.MethodDelete)
-	r.HandleFunc("/"+MODIFIED_JOBS_PATH, s.GetModifiedJobsHandler).Methods(http.MethodGet)
-	r.HandleFunc("/"+JOBS_PATH, s.GetJobsHandler).Methods(http.MethodGet)
-	r.HandleFunc("/"+COMMENTS_PATH, s.GetCommentsHandler).Methods(http.MethodGet)
-	r.HandleFunc("/"+TASK_COMMENTS_PATH, s.PostTaskCommentsHandler).Methods(http.MethodPost)
-	r.HandleFunc("/"+TASK_COMMENTS_PATH, s.DeleteTaskCommentsHandler).Methods(http.MethodDelete)
-	r.HandleFunc("/"+TASK_SPEC_COMMENTS_PATH, s.PostTaskSpecCommentsHandler).Methods(http.MethodPost)
-	r.HandleFunc("/"+TASK_SPEC_COMMENTS_PATH, s.DeleteTaskSpecCommentsHandler).Methods(http.MethodDelete)
-	r.HandleFunc("/"+COMMIT_COMMENTS_PATH, s.PostCommitCommentsHandler).Methods(http.MethodPost)
-	r.HandleFunc("/"+COMMIT_COMMENTS_PATH, s.DeleteCommitCommentsHandler).Methods(http.MethodDelete)
+func (s *server) registerHandlers(r *mux.Router, emailWhitelist []string) {
+	var tokenCache util.LRUCache
+	if len(emailWhitelist) > 0 {
+		tokenCache = util.NewMemLRUCache(100)
+	}
+	getEmail := func(r *http.Request) (string, error) {
+		tok := r.Header.Get("Authorization")
+		if tok == "" {
+			return "", errors.New("User is not authenticated.")
+		}
+		tok = strings.TrimPrefix(tok, "Bearer ")
+		val, ok := tokenCache.Get(tok)
+		if ok {
+			return val.(string), nil
+		}
+		tokenInfo, err := auth.ValidateBearerToken(tok)
+		if err != nil {
+			return "", err
+		}
+		tokenCache.Add(tok, tokenInfo.Email)
+		return tokenInfo.Email, nil
+	}
+
+	restrict := func(h http.HandlerFunc) http.HandlerFunc {
+		if len(emailWhitelist) == 0 {
+			return h
+		}
+		f := func(w http.ResponseWriter, r *http.Request) {
+			email, err := getEmail(r)
+			if err != nil {
+				httputils.ReportError(w, r, err, "Failed to obtain email.")
+				return
+			}
+			if !util.In(email, emailWhitelist) {
+				msg := fmt.Sprintf("%s is not whitelisted for DB access.", email)
+				httputils.ReportError(w, r, nil, msg)
+				return
+			}
+			h.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(f)
+	}
+
+	r.HandleFunc("/"+MODIFIED_TASKS_PATH, restrict(s.PostModifiedTasksHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/"+MODIFIED_TASKS_PATH, restrict(s.DeleteModifiedTasksHandler)).Methods(http.MethodDelete)
+	r.HandleFunc("/"+MODIFIED_TASKS_PATH, restrict(s.GetModifiedTasksHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/"+TASKS_PATH, restrict(s.GetTasksHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/"+MODIFIED_JOBS_PATH, restrict(s.PostModifiedJobsHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/"+MODIFIED_JOBS_PATH, restrict(s.DeleteModifiedJobsHandler)).Methods(http.MethodDelete)
+	r.HandleFunc("/"+MODIFIED_JOBS_PATH, restrict(s.GetModifiedJobsHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/"+JOBS_PATH, restrict(s.GetJobsHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/"+COMMENTS_PATH, restrict(s.GetCommentsHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/"+TASK_COMMENTS_PATH, restrict(s.PostTaskCommentsHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/"+TASK_COMMENTS_PATH, restrict(s.DeleteTaskCommentsHandler)).Methods(http.MethodDelete)
+	r.HandleFunc("/"+TASK_SPEC_COMMENTS_PATH, restrict(s.PostTaskSpecCommentsHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/"+TASK_SPEC_COMMENTS_PATH, restrict(s.DeleteTaskSpecCommentsHandler)).Methods(http.MethodDelete)
+	r.HandleFunc("/"+COMMIT_COMMENTS_PATH, restrict(s.PostCommitCommentsHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/"+COMMIT_COMMENTS_PATH, restrict(s.DeleteCommitCommentsHandler)).Methods(http.MethodDelete)
 }
 
 // client translates db.RemoteDB method calls to HTTP requests.
@@ -87,10 +132,10 @@ type client struct {
 
 // NewClient returns a db.RemoteDB that connects to the server created by
 // NewServer. serverRoot should end with a slash.
-func NewClient(serverRoot string) (db.RemoteDB, error) {
+func NewClient(serverRoot string, c *http.Client) (db.RemoteDB, error) {
 	return &client{
 		serverRoot: serverRoot,
-		client:     httputils.NewTimeoutClient(),
+		client:     c,
 	}, nil
 }
 
