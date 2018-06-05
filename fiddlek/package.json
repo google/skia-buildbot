@@ -20,6 +20,7 @@
     "vulcanize": "^1.10.4"
   },
   "dependencies": {
-    "http-server": "^0.11.1"
+    "http-server": "^0.11.1",
+    "uglify-js": "^3.4.0"
   }
 }
