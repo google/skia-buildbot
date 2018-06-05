@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 
@@ -42,14 +43,6 @@ type AndroidRepoManagerConfig struct {
 	CommonRepoManagerConfig
 }
 
-// Validate the config.
-func (c *AndroidRepoManagerConfig) Validate() error {
-	if c.Strategy != ROLL_STRATEGY_REMOTE_BATCH {
-		return fmt.Errorf("Only %q strategy is allowed for AndroidRepoManager.", ROLL_STRATEGY_REMOTE_BATCH)
-	}
-	return c.CommonRepoManagerConfig.Validate()
-}
-
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
@@ -77,10 +70,7 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 		repoUrl:           g.GetRepoUrl(),
 		repoToolPath:      repoToolPath,
 	}
-
-	// TODO(borenet): This update can be extremely expensive. Consider
-	// moving it out of the startup critical path.
-	return r, r.Update(ctx)
+	return r, nil
 }
 
 // See documentation for RepoManager interface.
@@ -134,12 +124,9 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Get the next roll revision.
-	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolled)
+	nextRollRev, err := r.getNextRollRev(ctx, notRolled, lastRollRev)
 	if err != nil {
 		return err
-	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
 	}
 
 	r.infoMtx.Lock()
@@ -487,4 +474,21 @@ func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRe
 		notRolled = append(notRolled, details)
 	}
 	return notRolled, nil
+}
+
+// See documentation for RepoManager interface.
+func (r *androidRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_LKGR, UPSTREAM_REMOTE_NAME, r.childRepo, nil)
+}
+
+// See documentation for RepoManager interface.
+func (r *androidRepoManager) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_REMOTE_BATCH
+}
+
+// See documentation for RepoManager interface.
+func (r *androidRepoManager) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_REMOTE_BATCH,
+	}
 }

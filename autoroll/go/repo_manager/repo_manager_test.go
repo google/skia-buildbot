@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -12,7 +13,7 @@ func validCommonBaseConfig() *CommonRepoManagerConfig {
 		ChildBranch:  "childBranch",
 		ChildPath:    "childPath",
 		ParentBranch: "parentBranch",
-		Strategy:     ROLL_STRATEGY_BATCH,
+		Strategy:     strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 

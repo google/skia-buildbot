@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -33,7 +34,7 @@ func manifestCfg() *ManifestRepoManagerConfig {
 				ChildBranch:  "master",
 				ChildPath:    childPath,
 				ParentBranch: "master",
-				Strategy:     ROLL_STRATEGY_BATCH,
+				Strategy:     strategy.ROLL_STRATEGY_BATCH,
 			},
 		},
 	}
@@ -164,6 +165,8 @@ func TestManifestRepoManager(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
@@ -190,6 +193,8 @@ func TestCreateNewManifestRoll(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), manifestEmails, "", false)
@@ -210,6 +215,8 @@ func TestRanPreUploadStepsManifest(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{
 		func(context.Context, string) error {

@@ -3,28 +3,20 @@ package repo_manager
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
-	"regexp"
-	"sort"
-	"strconv"
 	"strings"
-	"sync"
 	"time"
 
-	"cloud.google.com/go/storage"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
-	"google.golang.org/api/option"
 )
 
 /*
@@ -32,12 +24,6 @@ import (
 */
 
 const (
-	AFDO_GS_BUCKET = "chromeos-prebuilt"
-	AFDO_GS_PATH   = "afdo-job/llvm/"
-
-	AFDO_VERSION_LENGTH               = 5
-	AFDO_VERSION_REGEX_EXPECT_MATCHES = AFDO_VERSION_LENGTH + 1
-
 	AFDO_COMMIT_MSG_TMPL = `Roll AFDO from %s to %s
 
 This CL may cause a small binary size increase, roughly proportional
@@ -50,141 +36,21 @@ gbiv@chromium.org. Additional context: https://crbug.com/805539
 var (
 	// "Constants"
 
-	// Example name: chromeos-chrome-amd64-63.0.3239.57_rc-r1.afdo.bz2
-	AFDO_VERSION_REGEX = regexp.MustCompile(
-		"^chromeos-chrome-amd64-" + // Prefix
-			"(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)" + // Version
-			"_rc-r(\\d+)" + // Revision
-			"\\.afdo\\.bz2$") // Suffix
-
 	AFDO_VERSION_FILE_PATH = path.Join("chrome", "android", "profiles", "newest.txt")
 
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
 	NewAFDORepoManager func(context.Context, *AFDORepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (RepoManager, error) = newAfdoRepoManager
-
-	// Error used to indicate that a version number is invalid.
-	errInvalidAFDOVersion = errors.New("Invalid AFDO version.")
 )
-
-// Parse the AFDO version.
-func parseAFDOVersion(ver string) ([AFDO_VERSION_LENGTH]int, error) {
-	matches := AFDO_VERSION_REGEX.FindStringSubmatch(ver)
-	var matchInts [AFDO_VERSION_LENGTH]int
-	if len(matches) == AFDO_VERSION_REGEX_EXPECT_MATCHES {
-		for idx, a := range matches[1:] {
-			i, err := strconv.Atoi(a)
-			if err != nil {
-				return matchInts, fmt.Errorf("Failed to parse int from regex match string; is the regex incorrect?")
-			}
-			matchInts[idx] = i
-		}
-		return matchInts, nil
-	} else {
-		return matchInts, errInvalidAFDOVersion
-	}
-}
-
-// Return true iff version a is greater than version b.
-func afdoVersionGreater(a, b string) (bool, error) {
-	verA, err := parseAFDOVersion(a)
-	if err != nil {
-		return false, err
-	}
-	verB, err := parseAFDOVersion(b)
-	if err != nil {
-		return false, err
-	}
-	for i := 0; i < AFDO_VERSION_LENGTH; i++ {
-		if verA[i] > verB[i] {
-			return true, nil
-		} else if verA[i] < verB[i] {
-			return false, nil
-		}
-	}
-	return false, nil
-}
-
-type afdoVersionSlice []string
-
-func (s afdoVersionSlice) Len() int {
-	return len(s)
-}
-
-func (s afdoVersionSlice) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-// We sort newest to oldest.
-func (s afdoVersionSlice) Less(i, j int) bool {
-	greater, err := afdoVersionGreater(s[i], s[j])
-	if err != nil {
-		// We should've caught any parsing errors before we inserted the
-		// versions into the slice.
-		sklog.Errorf("Failed to compare AFDO versions: %s", err)
-	}
-	return greater
-}
 
 // Shorten the AFDO version.
 func afdoShortVersion(long string) string {
 	return strings.TrimPrefix(strings.TrimSuffix(long, ".afdo.bz2"), "chromeos-chrome-amd64-")
 }
 
-// afdoStrategy is a NextRollStrategy which chooses the most recent AFDO profile
-// to roll.
-type afdoStrategy struct {
-	gcs      gcs.GCSClient
-	mtx      sync.Mutex
-	versions []string
-}
-
-// See documentation for Strategy interface.
-func (s *afdoStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.LongCommit) (string, error) {
-	// Find the available AFDO versions, sorted newest to oldest, and store.
-	available := []string{}
-	if err := s.gcs.AllFilesInDirectory(ctx, AFDO_GS_PATH, func(item *storage.ObjectAttrs) {
-		name := strings.TrimPrefix(item.Name, AFDO_GS_PATH)
-		if _, err := parseAFDOVersion(name); err == nil {
-			available = append(available, name)
-		} else if err == errInvalidAFDOVersion {
-			// There are files we don't care about in this bucket. Just ignore.
-		} else {
-			sklog.Error(err)
-		}
-	}); err != nil {
-		return "", err
-	}
-	if len(available) == 0 {
-		return "", fmt.Errorf("No valid AFDO profile names found.")
-	}
-	sort.Sort(afdoVersionSlice(available))
-
-	// Store the available versions. Return the newest.
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-	s.versions = available
-	return s.versions[0], nil
-}
-
-// Return the list of versions.
-func (s *afdoStrategy) GetVersions() []string {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-	return s.versions
-}
-
 // AFDORepoManagerConfig provides configuration for the AFDO RepoManager.
 type AFDORepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
-}
-
-// Validate the config.
-func (c *AFDORepoManagerConfig) Validate() error {
-	if c.Strategy != ROLL_STRATEGY_AFDO {
-		return errors.New("No custom strategy allowed for AFDO RepoManager.")
-	}
-	return c.DepotToolsRepoManagerConfig.Validate()
 }
 
 // afdoRepoManager is a RepoManager which rolls Android AFDO profile version
@@ -193,6 +59,7 @@ func (c *AFDORepoManagerConfig) Validate() error {
 type afdoRepoManager struct {
 	*depotToolsRepoManager
 	afdoVersionFile  string
+	authClient       *http.Client
 	commitsNotRolled int      // Protected by infoMtx.
 	versions         []string // Protected by infoMtx.
 }
@@ -206,19 +73,13 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 	if err != nil {
 		return nil, err
 	}
-	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
-	if err != nil {
-		return nil, err
-	}
-	drm.strategy = &afdoStrategy{
-		gcs: gcs.NewGCSClient(storageClient, AFDO_GS_BUCKET),
-	}
 
 	rv := &afdoRepoManager{
 		afdoVersionFile:       path.Join(drm.parentDir, AFDO_VERSION_FILE_PATH),
+		authClient:            authClient,
 		depotToolsRepoManager: drm,
 	}
-	return rv, rv.Update(ctx)
+	return rv, nil
 }
 
 // See documentation for RepoManager interface.
@@ -341,14 +202,13 @@ func (rm *afdoRepoManager) Update(ctx context.Context) error {
 	lastRollRev := strings.TrimSpace(string(lastRollRevBytes))
 
 	// Get the next roll rev.
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, nil)
+	nextRollRev, err := rm.getNextRollRev(ctx, nil, lastRollRev)
 	if err != nil {
 		return err
 	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
-	}
-	versions := rm.strategy.(*afdoStrategy).GetVersions()
+	rm.strategyMtx.RLock()
+	defer rm.strategyMtx.RUnlock()
+	versions := rm.strategy.(*strategy.AFDOStrategy).GetVersions()
 	lastIdx := -1
 	nextIdx := -1
 	for idx, v := range versions {
@@ -372,7 +232,7 @@ func (rm *afdoRepoManager) Update(ctx context.Context) error {
 	rm.nextRollRev = nextRollRev
 	// This seems backwards, but the versions are in descending order.
 	rm.commitsNotRolled = lastIdx - nextIdx
-	rm.versions = rm.strategy.(*afdoStrategy).GetVersions()
+	rm.versions = versions
 	return nil
 }
 
@@ -390,7 +250,7 @@ func (rm *afdoRepoManager) FullChildHash(ctx context.Context, ver string) (strin
 
 // See documentation for RepoManager interface.
 func (rm *afdoRepoManager) RolledPast(ctx context.Context, ver string) (bool, error) {
-	verIsNewer, err := afdoVersionGreater(ver, rm.LastRollRev())
+	verIsNewer, err := strategy.AFDOVersionGreater(ver, rm.LastRollRev())
 	if err != nil {
 		return false, err
 	}
@@ -402,4 +262,21 @@ func (rm *afdoRepoManager) CommitsNotRolled() int {
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
 	return rm.commitsNotRolled
+}
+
+// See documentation for RepoManager interface.
+func (r *afdoRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_LKGR, DEFAULT_REMOTE, r.childRepo, r.authClient)
+}
+
+// See documentation for RepoManager interface.
+func (r *afdoRepoManager) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_AFDO
+}
+
+// See documentation for RepoManager interface.
+func (r *afdoRepoManager) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_AFDO,
+	}
 }

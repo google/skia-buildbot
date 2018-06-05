@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 )
 
@@ -266,4 +267,21 @@ func (r *MockRepoManager) GetFullHistoryUrl() string {
 
 func (r *MockRepoManager) GetIssueUrlBase() string {
 	return "http://test/url/c/"
+}
+
+func (r *MockRepoManager) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_BATCH
+}
+
+func (r *MockRepoManager) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_BATCH,
+	}
+}
+
+func (r *MockRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
+	return nil, fmt.Errorf("Not implemented")
+}
+
+func (r *MockRepoManager) SetStrategy(strategy.NextRollStrategy) {
 }
