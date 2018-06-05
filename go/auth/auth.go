@@ -104,9 +104,10 @@ type gcloudTokenSource struct {
 // projectId - The name of the GCP project, e.g. 'skia-public'. If empty, "", then
 //    the default project id for gcloud is used.
 func NewGCloudTokenSource(projectId string) oauth2.TokenSource {
-	return &gcloudTokenSource{
+	ts := &gcloudTokenSource{
 		projectId: projectId,
 	}
+	return oauth2.ReuseTokenSource(nil, ts)
 }
 
 func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {

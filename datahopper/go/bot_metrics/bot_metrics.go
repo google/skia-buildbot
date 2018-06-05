@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
@@ -396,7 +397,7 @@ func Start(ctx context.Context, dbUrl, workdir, recipesCfgFile string) error {
 		return err
 	}
 
-	taskDb, err := remote_db.NewClient(dbUrl)
+	taskDb, err := remote_db.NewClient(dbUrl, httputils.NewTimeoutClient())
 	if err != nil {
 		return fmt.Errorf("Failed to create new DB client: %s", err)
 	}

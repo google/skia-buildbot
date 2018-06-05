@@ -52,6 +52,10 @@ const (
 
 var (
 	// "Constants"
+	VALID_DB_EMAILS = []string{
+		"status@skia-buildbots.google.com.iam.gserviceaccount.com",
+		"status-internal@skia-buildbots.google.com.iam.gserviceaccount.com",
+	}
 
 	// Task Scheduler instance.
 	ts *scheduling.TaskScheduler
@@ -549,7 +553,7 @@ func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func runServer(serverURL string) {
+func runServer(serverURL string, taskDb db.RemoteDB) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/blacklist", blacklistHandler)
@@ -576,6 +580,9 @@ func runServer(serverURL string) {
 
 	sklog.AddLogsRedirect(r)
 	swarming.RegisterPubSubServer(ts, r)
+	if err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter(), VALID_DB_EMAILS); err != nil {
+		sklog.Fatal(err)
+	}
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
@@ -586,7 +593,7 @@ func runServer(serverURL string) {
 // RPC calls to taskDb. Does not return.
 func runDbServer(taskDb db.RemoteDB) {
 	r := mux.NewRouter()
-	err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter())
+	err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter(), nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -743,7 +750,7 @@ func main() {
 		webhook.MustInitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT)
 	}
 
-	go runServer(serverURL)
+	go runServer(serverURL, tsDb)
 	go runDbServer(tsDb)
 
 	// Run indefinitely, responding to HTTP requests.

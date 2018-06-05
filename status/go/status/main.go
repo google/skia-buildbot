@@ -688,7 +688,7 @@ func main() {
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
-		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl)
+		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, httputils.NewTimeoutClient())
 		if err != nil {
 			sklog.Fatalf("Failed to create remote task DB: %s", err)
 		}
