@@ -3,7 +3,7 @@ package skiaversion
 import (
 	"time"
 
-	"github.com/skia-dev/glog"
+	"github.com/golang/glog"
 )
 
 // Date format as reported by 'date --rfc-3339="second"'
