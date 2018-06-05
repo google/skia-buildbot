@@ -8,3 +8,41 @@ indexes:
   - name: OK
   - name: TimeStamp
     direction: asc
+
+######### CT #########
+
+## CaptureSkpsTasks ##
+
+# To make sure user does not exceed max CT tasks.
+- kind: CaptureSkpsTasks
+  properties:
+  - name: TaskDone
+  - name: Username
+  - name: Id
+    direction: desc
+
+# For run history page.
+- kind: CaptureSkpsTasks
+  properties:
+  - name: IsTestPageSet
+  - name: Id
+    direction: desc
+- kind: CaptureSkpsTasks
+  properties:
+  - name: Username
+  - name: Id
+
+# For displaying completed skp repositories on lua page.
+- kind: CaptureSkpsTasks
+  properties:
+  - name: TaskDone
+  - name: Id
+    direction: desc
+
+# For repeating runs.
+- kind: CaptureSkpsTasks
+  properties:
+  - name: TaskDone
+  - name: RepeatAfterDays
+  - name: Id
+    direction: desc

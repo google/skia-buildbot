@@ -98,9 +98,9 @@ func runId(task Task) string {
 	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
 }
 
-// Define frontend.ChromiumAnalysisDBTask here so we can add methods.
+// Define frontend.ChromiumAnalysisDatastoreTask here so we can add methods.
 type ChromiumAnalysisTask struct {
-	chromium_analysis.DBTask
+	chromium_analysis.DatastoreTask
 }
 
 func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
@@ -143,9 +143,9 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
 	})
 }
 
-// Define frontend.ChromiumPerfDBTask here so we can add methods.
+// Define frontend.ChromiumPerfDatastoreTask here so we can add methods.
 type ChromiumPerfTask struct {
-	chromium_perf.DBTask
+	chromium_perf.DatastoreTask
 }
 
 func (task *ChromiumPerfTask) Execute(ctx context.Context) error {
@@ -192,9 +192,9 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context) error {
 	})
 }
 
-// Define frontend.MetricsAnalysisDBTask here so we can add methods.
+// Define frontend.MetricsAnalysisDatastoreTask here so we can add methods.
 type MetricsAnalysisTask struct {
-	metrics_analysis.DBTask
+	metrics_analysis.DatastoreTask
 }
 
 func (task *MetricsAnalysisTask) Execute(ctx context.Context) error {
@@ -230,9 +230,9 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context) error {
 	})
 }
 
-// Define frontend.PixelDiffDBTask here so we can add methods.
+// Define frontend.PixelDiffDatastoreTask here so we can add methods.
 type PixelDiffTask struct {
-	pixel_diff.DBTask
+	pixel_diff.DatastoreTask
 }
 
 func (task *PixelDiffTask) Execute(ctx context.Context) error {
@@ -270,9 +270,9 @@ func (task *PixelDiffTask) Execute(ctx context.Context) error {
 	})
 }
 
-// Define frontend.CaptureSkpsDBTask here so we can add methods.
+// Define frontend.CaptureSkpsDatastoreTask here so we can add methods.
 type CaptureSkpsTask struct {
-	capture_skps.DBTask
+	capture_skps.DatastoreTask
 }
 
 func (task *CaptureSkpsTask) Execute(ctx context.Context) error {
@@ -296,9 +296,9 @@ func (task *CaptureSkpsTask) Execute(ctx context.Context) error {
 	})
 }
 
-// Define frontend.LuaScriptDBTask here so we can add methods.
+// Define frontend.LuaScriptDatastoreTask here so we can add methods.
 type LuaScriptTask struct {
-	lua_scripts.DBTask
+	lua_scripts.DatastoreTask
 }
 
 func (task *LuaScriptTask) Execute(ctx context.Context) error {
@@ -338,9 +338,9 @@ func (task *LuaScriptTask) Execute(ctx context.Context) error {
 	})
 }
 
-// Define frontend.ChromiumBuildDBTask here so we can add methods.
+// Define frontend.ChromiumBuildDatastoreTask here so we can add methods.
 type ChromiumBuildTask struct {
-	chromium_builds.DBTask
+	chromium_builds.DatastoreTask
 }
 
 func (task *ChromiumBuildTask) Execute(ctx context.Context) error {
@@ -363,9 +363,9 @@ func (task *ChromiumBuildTask) Execute(ctx context.Context) error {
 	})
 }
 
-// Define frontend.RecreatePageSetsDBTask here so we can add methods.
+// Define frontend.RecreatePageSetsDatastoreTask here so we can add methods.
 type RecreatePageSetsTask struct {
-	admin_tasks.RecreatePageSetsDBTask
+	admin_tasks.RecreatePageSetsDatastoreTask
 }
 
 func (task *RecreatePageSetsTask) Execute(ctx context.Context) error {
@@ -385,9 +385,9 @@ func (task *RecreatePageSetsTask) Execute(ctx context.Context) error {
 	})
 }
 
-// Define frontend.RecreateWebpageArchivesDBTask here so we can add methods.
+// Define frontend.RecreateWebpageArchivesDatastoreTask here so we can add methods.
 type RecreateWebpageArchivesTask struct {
-	admin_tasks.RecreateWebpageArchivesDBTask
+	admin_tasks.RecreateWebpageArchivesDatastoreTask
 }
 
 func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context) error {
@@ -413,24 +413,24 @@ func asPollerTask(ctx context.Context, otherTask task_common.Task) Task {
 		return nil
 	}
 	switch t := otherTask.(type) {
-	case *admin_tasks.RecreatePageSetsDBTask:
-		return &RecreatePageSetsTask{RecreatePageSetsDBTask: *t}
-	case *admin_tasks.RecreateWebpageArchivesDBTask:
-		return &RecreateWebpageArchivesTask{RecreateWebpageArchivesDBTask: *t}
-	case *capture_skps.DBTask:
-		return &CaptureSkpsTask{DBTask: *t}
-	case *chromium_analysis.DBTask:
-		return &ChromiumAnalysisTask{DBTask: *t}
-	case *chromium_builds.DBTask:
-		return &ChromiumBuildTask{DBTask: *t}
-	case *chromium_perf.DBTask:
-		return &ChromiumPerfTask{DBTask: *t}
-	case *lua_scripts.DBTask:
-		return &LuaScriptTask{DBTask: *t}
-	case *metrics_analysis.DBTask:
-		return &MetricsAnalysisTask{DBTask: *t}
-	case *pixel_diff.DBTask:
-		return &PixelDiffTask{DBTask: *t}
+	case *admin_tasks.RecreatePageSetsDatastoreTask:
+		return &RecreatePageSetsTask{RecreatePageSetsDatastoreTask: *t}
+	case *admin_tasks.RecreateWebpageArchivesDatastoreTask:
+		return &RecreateWebpageArchivesTask{RecreateWebpageArchivesDatastoreTask: *t}
+	case *capture_skps.DatastoreTask:
+		return &CaptureSkpsTask{DatastoreTask: *t}
+	case *chromium_analysis.DatastoreTask:
+		return &ChromiumAnalysisTask{DatastoreTask: *t}
+	case *chromium_builds.DatastoreTask:
+		return &ChromiumBuildTask{DatastoreTask: *t}
+	case *chromium_perf.DatastoreTask:
+		return &ChromiumPerfTask{DatastoreTask: *t}
+	case *lua_scripts.DatastoreTask:
+		return &LuaScriptTask{DatastoreTask: *t}
+	case *metrics_analysis.DatastoreTask:
+		return &MetricsAnalysisTask{DatastoreTask: *t}
+	case *pixel_diff.DatastoreTask:
+		return &PixelDiffTask{DatastoreTask: *t}
 	default:
 		sklog.Errorf("Missing case for %T in asPollerTask", otherTask)
 		return nil

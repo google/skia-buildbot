@@ -6,19 +6,20 @@
 package admin_tasks
 
 import (
-	"fmt"
+	"context"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -45,17 +46,17 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type RecreatePageSetsDBTask struct {
+type RecreatePageSetsDatastoreTask struct {
 	task_common.CommonCols
 
 	PageSets string `db:"page_sets"`
 }
 
-func (task RecreatePageSetsDBTask) GetTaskName() string {
+func (task RecreatePageSetsDatastoreTask) GetTaskName() string {
 	return "RecreatePageSets"
 }
 
-func (dbTask RecreatePageSetsDBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (dbTask RecreatePageSetsDatastoreTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddRecreatePageSetsTaskVars{}
 	taskVars.Username = dbTask.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
@@ -65,29 +66,38 @@ func (dbTask RecreatePageSetsDBTask) GetPopulatedAddTaskVars() task_common.AddTa
 	return taskVars
 }
 
-func (task RecreatePageSetsDBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+func (task RecreatePageSetsDatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &RecreatePageSetsUpdateVars{}
 }
 
-func (task RecreatePageSetsDBTask) RunsOnGCEWorkers() bool {
+func (task RecreatePageSetsDatastoreTask) RunsOnGCEWorkers() bool {
 	return true
 }
 
-func (task RecreatePageSetsDBTask) TableName() string {
-	return db.TABLE_RECREATE_PAGE_SETS_TASKS
+func (task RecreatePageSetsDatastoreTask) GetDatastoreKind() ds.Kind {
+	return ds.RECREATE_PAGESETS_TASKS
 }
 
-func (task RecreatePageSetsDBTask) GetResultsLink() string {
+func (task RecreatePageSetsDatastoreTask) GetResultsLink() string {
 	return ""
 }
 
-func (task RecreatePageSetsDBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []RecreatePageSetsDBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task RecreatePageSetsDatastoreTask) Select(it *datastore.Iterator) (interface{}, error) {
+	return nil, nil
+	//result := []RecreatePageSetsDatastoreTask{}
+	//err := db.DB.Select(&result, query, args...)
+	//return result, err
 }
 
-type RecreateWebpageArchivesDBTask struct {
+func (task RecreatePageSetsDatastoreTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &RecreatePageSetsDatastoreTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+type RecreateWebpageArchivesDatastoreTask struct {
 	task_common.CommonCols
 
 	PageSets    string `db:"page_sets"`
@@ -95,15 +105,15 @@ type RecreateWebpageArchivesDBTask struct {
 	SkiaRev     string `db:"skia_rev"`
 }
 
-func (task RecreateWebpageArchivesDBTask) GetTaskName() string {
+func (task RecreateWebpageArchivesDatastoreTask) GetTaskName() string {
 	return "RecreateWebpageArchives"
 }
 
-func (task RecreateWebpageArchivesDBTask) GetResultsLink() string {
+func (task RecreateWebpageArchivesDatastoreTask) GetResultsLink() string {
 	return ""
 }
 
-func (dbTask RecreateWebpageArchivesDBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (dbTask RecreateWebpageArchivesDatastoreTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddRecreateWebpageArchivesTaskVars{}
 	taskVars.Username = dbTask.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
@@ -115,22 +125,31 @@ func (dbTask RecreateWebpageArchivesDBTask) GetPopulatedAddTaskVars() task_commo
 	return taskVars
 }
 
-func (task RecreateWebpageArchivesDBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+func (task RecreateWebpageArchivesDatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &RecreateWebpageArchivesUpdateVars{}
 }
 
-func (task RecreateWebpageArchivesDBTask) RunsOnGCEWorkers() bool {
+func (task RecreateWebpageArchivesDatastoreTask) RunsOnGCEWorkers() bool {
 	return true
 }
 
-func (task RecreateWebpageArchivesDBTask) TableName() string {
-	return db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS
+func (task RecreateWebpageArchivesDatastoreTask) GetDatastoreKind() ds.Kind {
+	return ds.RECREATE_WEBPAGE_ARCHIVES_TASKS
 }
 
-func (task RecreateWebpageArchivesDBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []RecreateWebpageArchivesDBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task RecreateWebpageArchivesDatastoreTask) Select(it *datastore.Iterator) (interface{}, error) {
+	return nil, nil
+	//result := []RecreateWebpageArchivesDatastoreTask{}
+	//err := db.DB.Select(&result, query, args...)
+	//return result, err
+}
+
+func (task RecreateWebpageArchivesDatastoreTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &RecreateWebpageArchivesDatastoreTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -151,23 +170,31 @@ type AddRecreatePageSetsTaskVars struct {
 	PageSets string `json:"page_sets"`
 }
 
-func (task *AddRecreatePageSetsTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
-	if task.PageSets == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
-	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{{Name: "page_sets", Value: task.PageSets, Limit: 100}}); err != nil {
-		return "", nil, err
-	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,ts_added,repeat_after_days) VALUES (?,?,?,?);",
-			db.TABLE_RECREATE_PAGE_SETS_TASKS),
-		[]interface{}{
-			task.Username,
-			task.PageSets,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
+func (task *AddRecreatePageSetsTaskVars) GetDatastoreKind() ds.Kind {
+	return ds.CAPTURE_SKPS_TASKS
 }
+
+func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
+}
+
+//func (task *AddRecreatePageSetsTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+//	if task.PageSets == "" {
+//		return "", nil, fmt.Errorf("Invalid parameters")
+//	}
+//	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{{Name: "page_sets", Value: task.PageSets, Limit: 100}}); err != nil {
+//		return "", nil, err
+//	}
+//	return fmt.Sprintf("INSERT INTO %s (username,page_sets,ts_added,repeat_after_days) VALUES (?,?,?,?);",
+//			db.TABLE_RECREATE_PAGE_SETS_TASKS),
+//		[]interface{}{
+//			task.Username,
+//			task.PageSets,
+//			task.TsAdded,
+//			task.RepeatAfterDays,
+//		},
+//		nil
+//}
 
 func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddRecreatePageSetsTaskVars{})
@@ -176,34 +203,42 @@ func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 // Represents the parameters sent as JSON to the add_recreate_webpage_archives_task handler.
 type AddRecreateWebpageArchivesTaskVars struct {
 	AddTaskVars
-	PageSets      string                 `json:"page_sets"`
-	ChromiumBuild chromium_builds.DBTask `json:"chromium_build"`
+	PageSets      string                        `json:"page_sets"`
+	ChromiumBuild chromium_builds.DatastoreTask `json:"chromium_build"`
 }
 
-func (task *AddRecreateWebpageArchivesTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
-	if task.PageSets == "" ||
-		task.ChromiumBuild.ChromiumRev == "" ||
-		task.ChromiumBuild.SkiaRev == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
-	}
-	if err := chromium_builds.Validate(task.ChromiumBuild); err != nil {
-		return "", nil, err
-	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{{Name: "page_sets", Value: task.PageSets, Limit: 100}}); err != nil {
-		return "", nil, err
-	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
-			db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS),
-		[]interface{}{
-			task.Username,
-			task.PageSets,
-			task.ChromiumBuild.ChromiumRev,
-			task.ChromiumBuild.SkiaRev,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
+func (task *AddRecreateWebpageArchivesTaskVars) GetDatastoreKind() ds.Kind {
+	return ds.CAPTURE_SKPS_TASKS
 }
+
+func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
+}
+
+//func (task *AddRecreateWebpageArchivesTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+//	if task.PageSets == "" ||
+//		task.ChromiumBuild.ChromiumRev == "" ||
+//		task.ChromiumBuild.SkiaRev == "" {
+//		return "", nil, fmt.Errorf("Invalid parameters")
+//	}
+//	if err := chromium_builds.Validate(task.ChromiumBuild); err != nil {
+//		return "", nil, err
+//	}
+//	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{{Name: "page_sets", Value: task.PageSets, Limit: 100}}); err != nil {
+//		return "", nil, err
+//	}
+//	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
+//			db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS),
+//		[]interface{}{
+//			task.Username,
+//			task.PageSets,
+//			task.ChromiumBuild.ChromiumRev,
+//			task.ChromiumBuild.SkiaRev,
+//			task.TsAdded,
+//			task.RepeatAfterDays,
+//		},
+//		nil
+//}
 
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddRecreateWebpageArchivesTaskVars{})
@@ -217,12 +252,12 @@ func (vars *RecreatePageSetsUpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI
 }
 
-func (task *RecreatePageSetsUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	return nil, nil, nil
+func (task *RecreatePageSetsUpdateVars) AddUpdatesToDatastoreTask(t task_common.Task) error {
+	return nil
 }
 
 func updateRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&RecreatePageSetsUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&RecreatePageSetsUpdateVars{}, &RecreatePageSetsDatastoreTask{}, w, r)
 }
 
 type RecreateWebpageArchivesUpdateVars struct {
@@ -233,28 +268,28 @@ func (vars *RecreateWebpageArchivesUpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI
 }
 
-func (task *RecreateWebpageArchivesUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	return nil, nil, nil
+func (task *RecreateWebpageArchivesUpdateVars) AddUpdatesToDatastoreTask(t task_common.Task) error {
+	return nil
 }
 
 func updateRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS, w, r)
+	task_common.UpdateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, &RecreateWebpageArchivesDatastoreTask{}, w, r)
 }
 
 func deleteRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&RecreatePageSetsDBTask{}, w, r)
+	task_common.DeleteTaskHandler(&RecreatePageSetsDatastoreTask{}, w, r)
 }
 
 func deleteRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+	task_common.DeleteTaskHandler(&RecreateWebpageArchivesDatastoreTask{}, w, r)
 }
 
 func redoRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&RecreatePageSetsDBTask{}, w, r)
+	task_common.RedoTaskHandler(&RecreatePageSetsDatastoreTask{}, w, r)
 }
 
 func redoRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+	task_common.RedoTaskHandler(&RecreateWebpageArchivesDatastoreTask{}, w, r)
 }
 
 func recreatePageSetsRunsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -266,11 +301,11 @@ func recreateWebpageArchivesRunsHistoryView(w http.ResponseWriter, r *http.Reque
 }
 
 func getRecreatePageSetsTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&RecreatePageSetsDBTask{}, w, r)
+	task_common.GetTasksHandler(&RecreatePageSetsDatastoreTask{}, w, r)
 }
 
 func getRecreateWebpageArchivesTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+	task_common.GetTasksHandler(&RecreateWebpageArchivesDatastoreTask{}, w, r)
 }
 
 func AddHandlers(r *mux.Router) {
