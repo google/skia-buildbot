@@ -43,7 +43,7 @@ type CTAutoscaler struct {
 
 // NewCTAutoscaler returns a CT Autoscaler instance.
 func NewCTAutoscaler() (*CTAutoscaler, error) {
-	a, err := autoscaler.NewAutoscaler(gce.ZONE_CT, util.StorageDir, MIN_CT_INSTANCE_NUM, MAX_CT_INSTANCE_NUM, instance_types.CTInstance)
+	a, err := autoscaler.NewAutoscaler(gce.PROJECT_ID_CT_SWARMING, gce.ZONE_CT, util.StorageDir, MIN_CT_INSTANCE_NUM, MAX_CT_INSTANCE_NUM, instance_types.CTInstance)
 	if err != nil {
 		return nil, fmt.Errorf("Could not instantiate Autoscaler: %s", err)
 	}
@@ -69,9 +69,11 @@ func NewCTAutoscaler() (*CTAutoscaler, error) {
 	if err := a.StopAllInstances(); err != nil {
 		return nil, err
 	}
-	if err := s.DeleteBots(a.GetNamesOfManagedInstances()); err != nil {
-		return nil, err
-	}
+	// Uncomment when https://bugs.chromium.org/p/skia/issues/detail?id=7900#c7
+	// is resolved.
+	//if err := s.DeleteBots(a.GetNamesOfManagedInstances()); err != nil {
+	//	return nil, err
+	//}
 
 	return &CTAutoscaler{a: a, s: s, upGauge: upGauge}, nil
 }
@@ -124,10 +126,13 @@ func (c *CTAutoscaler) UnregisterGCETask(taskId string) error {
 		if err := c.logRunningGCEInstances(); err != nil {
 			return err
 		}
+
 		// Delete all CT GCE instances from swarming.
-		if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
-			return err
-		}
+		// Uncomment when https://bugs.chromium.org/p/skia/issues/detail?id=7900#c7
+		// is resolved.
+		//if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
+		//	return err
+		//}
 	}
 	return nil
 }
