@@ -28,7 +28,7 @@ type Autoscaler struct {
 }
 
 // NewAutoscaler returns an Autoscaler instance.
-func NewAutoscaler(zone, workdir string, minInstanceNum, maxInstanceNum int, getInstance func(int) *gce.Instance) (*Autoscaler, error) {
+func NewAutoscaler(projectId, zone, workdir string, minInstanceNum, maxInstanceNum int, getInstance func(int) *gce.Instance) (*Autoscaler, error) {
 	// Get the absolute workdir.
 	wdAbs, err := filepath.Abs(workdir)
 	if err != nil {
@@ -40,7 +40,7 @@ func NewAutoscaler(zone, workdir string, minInstanceNum, maxInstanceNum int, get
 	if err != nil {
 		return nil, err
 	}
-	g, err := gce.NewGCloudWithClient(gce.PROJECT_ID_SERVER, zone, wdAbs, httpClient)
+	g, err := gce.NewGCloudWithClient(projectId, zone, wdAbs, httpClient)
 	if err != nil {
 		return nil, err
 	}
