@@ -45,6 +45,54 @@
       "revId": "72f4a844b0b28a89529a78ae21af74c8a3daa332",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f3cdab7_5fd5ff68",
+        "filename": "skolo/linux/nsswitch.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-05T12:55:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a56a7321_f7536219",
+      "range": {
+        "startLine": 12,
+        "startChar": 40,
+        "endLine": 12,
+        "endChar": 57
+      },
+      "revId": "72f4a844b0b28a89529a78ae21af74c8a3daa332",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ac69451_b14601e9",
+        "filename": "skolo/linux/nsswitch.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-05T12:55:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd0fda2b_172cffae",
+      "range": {
+        "startLine": 12,
+        "startChar": 22,
+        "endLine": 12,
+        "endChar": 35
+      },
+      "revId": "72f4a844b0b28a89529a78ae21af74c8a3daa332",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
