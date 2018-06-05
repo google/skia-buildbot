@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -23,7 +24,7 @@ func copyCfg() *CopyRepoManagerConfig {
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
 				ChildBranch:  "master",
 				ParentBranch: "master",
-				Strategy:     ROLL_STRATEGY_BATCH,
+				Strategy:     strategy.ROLL_STRATEGY_BATCH,
 			},
 		},
 	}
@@ -92,6 +93,8 @@ func TestCopyRepoManager(t *testing.T) {
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
 	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
@@ -135,6 +138,8 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
 	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)

@@ -14,6 +14,7 @@ import (
 	github_api "github.com/google/go-github/github"
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -42,7 +43,7 @@ func githubCfg() *GithubRepoManagerConfig {
 				ChildBranch:  "master",
 				ChildPath:    childPath,
 				ParentBranch: "master",
-				Strategy:     ROLL_STRATEGY_BATCH,
+				Strategy:     strategy.ROLL_STRATEGY_BATCH,
 			},
 		},
 	}
@@ -145,6 +146,8 @@ func TestGithubRepoManager(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
@@ -184,6 +187,8 @@ func TestCreateNewGithubRoll(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubRequests(t, urlMock, rm.LastRollRev(), rm.NextRollRev(), rm.CommitsNotRolled())
@@ -217,6 +222,8 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
 		func(context.Context, string) error {
@@ -245,6 +252,8 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	expectedErr := errors.New("Expected error")
 	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{

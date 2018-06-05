@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -44,7 +45,7 @@ func depsCfg() *DEPSRepoManagerConfig {
 				ChildBranch:  "master",
 				ChildPath:    childPath,
 				ParentBranch: "master",
-				Strategy:     ROLL_STRATEGY_BATCH,
+				Strategy:     strategy.ROLL_STRATEGY_BATCH,
 			},
 		},
 	}
@@ -134,6 +135,8 @@ func TestDEPSRepoManager(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, childCommits[0], rm.LastRollRev())
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
 
@@ -161,6 +164,15 @@ func TestDEPSRepoManager(t *testing.T) {
 
 	// User, name only.
 	assert.Equal(t, mockUser, rm.User())
+
+	// Switch next-roll-rev strategies.
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
+	assert.NoError(t, rm.Update(ctx))
+	assert.Equal(t, childCommits[1], rm.NextRollRev())
+	// And back again.
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
+	assert.Equal(t, lastCommit, rm.NextRollRev())
 }
 
 func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
@@ -176,6 +188,8 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	cfg.Strategy = strategy
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy))
+	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
@@ -193,12 +207,12 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 
 // TestDEPSRepoManagerBatch tests the batch roll strategy.
 func TestDEPSRepoManagerBatch(t *testing.T) {
-	testCreateNewDEPSRoll(t, ROLL_STRATEGY_BATCH, numChildCommits-1)
+	testCreateNewDEPSRoll(t, strategy.ROLL_STRATEGY_BATCH, numChildCommits-1)
 }
 
 // TestDEPSRepoManagerSingle tests the single-commit roll strategy.
 func TestDEPSRepoManagerSingle(t *testing.T) {
-	testCreateNewDEPSRoll(t, ROLL_STRATEGY_SINGLE, 1)
+	testCreateNewDEPSRoll(t, strategy.ROLL_STRATEGY_SINGLE, 1)
 }
 
 // Verify that we ran the PreUploadSteps.
@@ -214,6 +228,8 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 
 	ran := false
 	rm.(*depsRepoManager).preUploadSteps = []PreUploadStep{
@@ -244,6 +260,8 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		cfg.IncludeLog = includeLog
 		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 		assert.NoError(t, err)
+		assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+		assert.NoError(t, rm.Update(ctx))
 
 		// Create a roll.
 		_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
@@ -288,6 +306,8 @@ cache_dir=None
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll.
 	_, err = rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
@@ -324,6 +344,8 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		cfg.ParentRepo = parent.RepoUrl()
 		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 		assert.NoError(t, err)
+		assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+		assert.NoError(t, rm.Update(ctx))
 
 		// Insert a fake entry into the repo mapping.
 		issues.REPO_PROJECT_MAPPING[parent.RepoUrl()] = project

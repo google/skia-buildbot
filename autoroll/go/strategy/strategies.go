@@ -1,4 +1,4 @@
-package repo_manager
+package strategy
 
 import (
 	"context"
@@ -7,9 +7,12 @@ import (
 	"net/http"
 	"strings"
 
+	"cloud.google.com/go/storage"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -31,10 +34,16 @@ type NextRollStrategy interface {
 }
 
 // Return the NextRollStrategy indicated by the given string.
-func GetNextRollStrategy(strategy string, branch, lkgr string, repo *git.Checkout) (NextRollStrategy, error) {
+func GetNextRollStrategy(ctx context.Context, strategy, branch, lkgr, upstreamRemote string, repo *git.Checkout, authClient *http.Client) (NextRollStrategy, error) {
 	switch strategy {
 	case ROLL_STRATEGY_AFDO:
-		return nil, nil // Handled by ChromiumAFDORepoManager.
+		storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
+		if err != nil {
+			return nil, err
+		}
+		return &AFDOStrategy{
+			gcs: gcs.NewGCSClient(storageClient, AFDO_GS_BUCKET),
+		}, nil
 	case ROLL_STRATEGY_BATCH:
 		return StrategyHead(branch), nil
 	case ROLL_STRATEGY_FUCHSIA_SDK:
@@ -42,7 +51,7 @@ func GetNextRollStrategy(strategy string, branch, lkgr string, repo *git.Checkou
 	case ROLL_STRATEGY_LKGR:
 		return StrategyLKGR(lkgr), nil
 	case ROLL_STRATEGY_REMOTE_BATCH:
-		return StrategyRemoteHead(branch, repo), nil
+		return StrategyRemoteHead(branch, upstreamRemote, repo), nil
 	case ROLL_STRATEGY_SINGLE:
 		return StrategySingle(branch), nil
 	default:
@@ -74,13 +83,14 @@ func StrategyHead(branch string) NextRollStrategy {
 // remoteHeadStrategy is a NextRollStrategy which always rolls to HEAD of a
 // given branch, as defined by "git ls-remote".
 type remoteHeadStrategy struct {
-	branch string
-	repo   *git.Checkout
+	branch         string
+	repo           *git.Checkout
+	upstreamRemote string
 }
 
 // See documentation for NextRollStrategy interface.
 func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.LongCommit) (string, error) {
-	output, err := s.repo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", s.branch), "-1")
+	output, err := s.repo.Git(ctx, "ls-remote", s.upstreamRemote, fmt.Sprintf("refs/heads/%s", s.branch), "-1")
 	if err != nil {
 		return "", err
 	}
@@ -90,10 +100,11 @@ func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.Lo
 
 // StrategyRemoteHead returns a NextRollStrategy which always rolls to HEAD of a
 // given branch, as defined by "git ls-remote".
-func StrategyRemoteHead(branch string, repo *git.Checkout) NextRollStrategy {
+func StrategyRemoteHead(branch, upstreamRemote string, repo *git.Checkout) NextRollStrategy {
 	return &remoteHeadStrategy{
-		branch: branch,
-		repo:   repo,
+		branch:         branch,
+		repo:           repo,
+		upstreamRemote: upstreamRemote,
 	}
 }
 

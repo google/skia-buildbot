@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
@@ -17,6 +18,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -31,6 +33,10 @@ If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
 
 `
+
+	DEFAULT_LKGR   = "lkgr"
+	DEFAULT_REMOTE = "origin"
+
 	ROLL_BRANCH = "roll_branch"
 )
 
@@ -74,6 +80,18 @@ type RepoManager interface {
 
 	// Return the base URL used for building the URLs of uploaded rolls.
 	GetIssueUrlBase() string
+
+	// Create a new NextRollRevStrategy from the given name.
+	CreateNextRollStrategy(context.Context, string) (strategy.NextRollStrategy, error)
+
+	// Set the RepoManager's NextRollRevStrategy.
+	SetStrategy(strategy.NextRollStrategy)
+
+	// Return the default NextRollStrategy name.
+	DefaultStrategy() string
+
+	// Return the list of valid strategy names for this RepoManager.
+	ValidStrategies() []string
 }
 
 // Start makes the RepoManager begin the periodic update process.
@@ -128,7 +146,14 @@ func (c *CommonRepoManagerConfig) Validate() error {
 	if c.Strategy == "" {
 		return errors.New("Strategy is required.")
 	}
-	if _, err := GetNextRollStrategy(c.Strategy, "master", "lkgr", nil); err != nil {
+	// TODO(borenet): We have RepoManagerConfigs which inherit from
+	// CommonRepoManagerConfig, which may not have the same set of valid
+	// strategies.
+	/*valid := (&commonRepoManager{}).ValidStrategies()
+	if !util.In(c.Strategy, valid) {
+		return fmt.Errorf("Invalid next-roll-rev strategy %q; valid strategies: %v", c.Strategy, valid)
+	}*/
+	if _, err := strategy.GetNextRollStrategy(context.Background(), c.Strategy, "master", "lkgr", "origin", nil, nil); err != nil {
 		return err
 	}
 	for _, s := range c.PreUploadSteps {
@@ -156,7 +181,8 @@ type commonRepoManager struct {
 	preUploadSteps   []PreUploadStep
 	repoMtx          sync.RWMutex
 	serverURL        string
-	strategy         NextRollStrategy
+	strategy         strategy.NextRollStrategy
+	strategyMtx      sync.RWMutex
 	user             string
 	workdir          string
 }
@@ -178,10 +204,6 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 	if err != nil {
 		return nil, err
 	}
-	strategy, err := GetNextRollStrategy(c.Strategy, c.ChildBranch, "", childRepo)
-	if err != nil {
-		return nil, err
-	}
 	user := ""
 	if g.Initialized() {
 		user, err = g.GetUserEmail()
@@ -200,7 +222,6 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 		parentBranch:   c.ParentBranch,
 		preUploadSteps: preUploadSteps,
 		serverURL:      serverURL,
-		strategy:       strategy,
 		user:           user,
 		workdir:        workdir,
 	}, nil
@@ -257,6 +278,59 @@ func (r *commonRepoManager) User() string {
 // See documentation for RepoManager interface.
 func (r *commonRepoManager) CommitsNotRolled() int {
 	return r.commitsNotRolled
+}
+
+// See documentation for RepoManger interface.
+func (r *commonRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_LKGR, DEFAULT_REMOTE, r.childRepo, nil)
+}
+
+// See documentation for RepoManager interface.
+func (r *commonRepoManager) SetStrategy(s strategy.NextRollStrategy) {
+	r.strategyMtx.Lock()
+	defer r.strategyMtx.Unlock()
+	r.strategy = s
+}
+
+// Set the given strategy on the RepoManager.
+func SetStrategy(ctx context.Context, r RepoManager, s string) error {
+	valid := r.ValidStrategies()
+	if !util.In(s, valid) {
+		return fmt.Errorf("Invalid strategy %q; valid: %v", s, valid)
+	}
+	strat, err := r.CreateNextRollStrategy(ctx, s)
+	if err != nil {
+		return err
+	}
+	r.SetStrategy(strat)
+	return nil
+}
+
+func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit, lastRollRev string) (string, error) {
+	r.strategyMtx.RLock()
+	defer r.strategyMtx.RUnlock()
+	nextRollRev, err := r.strategy.GetNextRollRev(ctx, notRolled)
+	if err != nil {
+		return "", err
+	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
+	}
+	return nextRollRev, nil
+}
+
+// See documentation for RepoManager interface.
+func (r *commonRepoManager) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_BATCH
+}
+
+// See documentation for RepoManager interface.
+func (r *commonRepoManager) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_BATCH,
+		strategy.ROLL_STRATEGY_LKGR,
+		strategy.ROLL_STRATEGY_SINGLE,
+	}
 }
 
 // DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.

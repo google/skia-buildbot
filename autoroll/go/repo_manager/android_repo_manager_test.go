@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/testutils"
@@ -31,7 +32,7 @@ func androidCfg() *AndroidRepoManagerConfig {
 			ChildBranch:  "master",
 			ChildPath:    childPath,
 			ParentBranch: "master",
-			Strategy:     ROLL_STRATEGY_REMOTE_BATCH,
+			Strategy:     strategy.ROLL_STRATEGY_REMOTE_BATCH,
 		},
 	}
 }
@@ -76,6 +77,8 @@ func TestAndroidRepoManager(t *testing.T) {
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 
 	assert.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
 	assert.Equal(t, childCommits[len(childCommits)-1], rm.LastRollRev())
@@ -91,6 +94,8 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), androidEmails, "", false)
 	assert.NoError(t, err)
@@ -157,6 +162,8 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
 	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
+	assert.NoError(t, rm.Update(ctx))
 
 	ran := false
 	rm.(*androidRepoManager).preUploadSteps = []PreUploadStep{

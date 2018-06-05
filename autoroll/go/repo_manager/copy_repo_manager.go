@@ -92,10 +92,7 @@ func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir s
 		versionFile:           path.Join(drm.childDir, COPY_VERSION_HASH_FILE),
 		whitelist:             c.Whitelist,
 	}
-
-	// TODO(borenet): This update can be extremely expensive. Consider
-	// moving it out of the startup critical path.
-	return rm, rm.Update(ctx)
+	return rm, nil
 }
 
 // See documentation for RepoManager interface.
@@ -127,12 +124,9 @@ func (rm *copyRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Get the next roll revision.
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
+	nextRollRev, err := rm.getNextRollRev(ctx, notRolled, lastRollRev)
 	if err != nil {
 		return err
-	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
 	}
 
 	rm.infoMtx.Lock()

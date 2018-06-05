@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
@@ -57,6 +58,7 @@ type AutoRoller struct {
 	sm              *state_machine.AutoRollStateMachine
 	status          *AutoRollStatusCache
 	statusMtx       sync.RWMutex
+	strategyHistory *strategy.StrategyHistory
 	successThrottle *state_machine.Throttler
 	rollIntoAndroid bool
 }
@@ -102,6 +104,18 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, errors.New("Invalid roller config; no repo manager defined!")
 	}
 	if err != nil {
+		return nil, err
+	}
+
+	sh, err := strategy.NewStrategyHistory(path.Join(workdir, "autoroll_strategy.db"), rm.DefaultStrategy(), rm.ValidStrategies())
+	if err != nil {
+		return nil, err
+	}
+	initialStrategy := sh.CurrentStrategy().Strategy
+	if err := repo_manager.SetStrategy(ctx, rm, initialStrategy); err != nil {
+		return nil, err
+	}
+	if err := rm.Update(ctx); err != nil {
 		return nil, err
 	}
 
@@ -277,6 +291,20 @@ func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) er
 	r.notifier.SendModeChange(ctx, user, mode, message)
 
 	// Update the status so that the mode change shows up on the UI.
+	return r.updateStatus(false, "")
+}
+
+// SetStrategy sets the desired next-roll-revision strategy for the roller.
+func (r *AutoRoller) SetStrategy(ctx context.Context, strategy, user, message string) error {
+	if err := repo_manager.SetStrategy(ctx, r.rm, strategy); err != nil {
+		return err
+	}
+	if err := r.strategyHistory.Add(strategy, user, message); err != nil {
+		return err
+	}
+	r.notifier.SendStrategyChange(ctx, user, strategy, message)
+
+	// Update the status so that the strategy change shows up on the UI.
 	return r.updateStatus(false, "")
 }
 

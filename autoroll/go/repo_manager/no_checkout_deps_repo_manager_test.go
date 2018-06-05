@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -67,8 +68,17 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
+
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	assert.NoError(t, err)
+	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
+	mockChild.MockLog(ctx, childCommits[0], "master")
+
 	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", "", urlmock.Client())
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, cfg.Strategy))
+	assert.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -86,7 +96,7 @@ func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
 		GerritProject: childPath,
 		IncludeLog:    true,
 		ParentBranch:  "master",
-		Strategy:      ROLL_STRATEGY_BATCH,
+		Strategy:      strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
@@ -107,9 +117,9 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	assert.Equal(t, rm.CommitsNotRolled(), len(childCommits)-1)
 }
 
-func TestNoCheckoutDEPSRepoManagerSingle(t *testing.T) {
+func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
-	cfg.Strategy = ROLL_STRATEGY_SINGLE
+	cfg.Strategy = strategy.ROLL_STRATEGY_SINGLE
 	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
 	defer cleanup()
 
@@ -121,6 +131,21 @@ func TestNoCheckoutDEPSRepoManagerSingle(t *testing.T) {
 	nextRollRev := childCommits[1]
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, rm.NextRollRev(), nextRollRev)
+
+	// Switch next-roll-rev strategies.
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
+	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
+	mockChild.MockLog(ctx, childCommits[0], "master")
+	assert.NoError(t, rm.Update(ctx))
+	assert.Equal(t, childCommits[len(childCommits)-1], rm.NextRollRev())
+	// And back again.
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_SINGLE))
+	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
+	mockChild.MockLog(ctx, childCommits[0], "master")
+	assert.NoError(t, rm.Update(ctx))
+	assert.Equal(t, childCommits[1], rm.NextRollRev())
 }
 
 func TestNoCheckoutDEPSRepoManagerFullChildHash(t *testing.T) {

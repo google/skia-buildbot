@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -101,6 +102,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	cfg.ParentRepo = gb.RepoUrl()
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client())
 	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_FUCHSIA_SDK))
+	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, mockUser, rm.User())
 	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
 	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev())

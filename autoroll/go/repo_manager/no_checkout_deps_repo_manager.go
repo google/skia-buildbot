@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -73,8 +74,9 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
 	}
-	if c.Strategy != ROLL_STRATEGY_BATCH && c.Strategy != ROLL_STRATEGY_SINGLE {
-		return fmt.Errorf("Strategy must be either %q or %q.", ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE)
+	valid := (&noCheckoutDEPSRepoManager{}).ValidStrategies()
+	if !util.In(c.Strategy, valid) {
+		return fmt.Errorf("Invalid next-roll-rev strategy %q; valid strategies: %v", c.Strategy, valid)
 	}
 	for _, s := range c.PreUploadSteps {
 		if _, err := GetPreUploadStep(s); err != nil {
@@ -106,7 +108,8 @@ type noCheckoutDEPSRepoManager struct {
 	parentRepoUrl       string
 	preUploadSteps      []PreUploadStep
 	serverURL           string
-	strategy            NextRollStrategy
+	strategy            strategy.NextRollStrategy
+	strategyMtx         sync.RWMutex
 	user                string
 	workdir             string
 }
@@ -139,12 +142,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		return nil, err
 	}
 
-	strat, err := GetNextRollStrategy(c.Strategy, c.ChildBranch, "", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &noCheckoutDEPSRepoManager{
+	rm := &noCheckoutDEPSRepoManager{
 		childBranch:    c.ChildBranch,
 		childPath:      c.ChildPath,
 		childRepo:      gitiles.NewRepo(c.ChildRepo, gitcookiesPath, client),
@@ -159,10 +157,10 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		parentRepoUrl:  c.ParentRepo,
 		preUploadSteps: preUploadSteps,
 		serverURL:      serverURL,
-		strategy:       strat,
 		user:           user,
 		workdir:        workdir,
-	}, nil
+	}
+	return rm, nil
 }
 
 // See documentation for RepoManager interface.
@@ -291,6 +289,19 @@ func getDEPSFile(repo *gitiles.Repo, ref, dest string) error {
 	return depsFile.Close()
 }
 
+func (rm *noCheckoutDEPSRepoManager) getNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit, lastRollRev string) (string, error) {
+	rm.strategyMtx.RLock()
+	defer rm.strategyMtx.RUnlock()
+	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
+	if err != nil {
+		return "", err
+	}
+	if nextRollRev == "" {
+		nextRollRev = lastRollRev
+	}
+	return nextRollRev, nil
+}
+
 // See documentation for RepoManager interface.
 func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	wd, err := ioutil.TempDir("", "")
@@ -335,12 +346,9 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	notRolledCount := len(notRolled)
 
 	// Get the next roll revision.
-	nextRollRev, err := rm.strategy.GetNextRollRev(ctx, notRolled)
+	nextRollRev, err := rm.getNextRollRev(ctx, notRolled, lastRollRev)
 	if err != nil {
 		return err
-	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
 	}
 	nextRollCommits := make([]*vcsinfo.LongCommit, 0, notRolledCount)
 	found := false
@@ -400,4 +408,30 @@ func (rm *noCheckoutDEPSRepoManager) GetFullHistoryUrl() string {
 func (rm *noCheckoutDEPSRepoManager) GetIssueUrlBase() string {
 	// No locking required because rm.g is never changed after rm is created.
 	return rm.g.Url(0) + "/c/"
+}
+
+// See documentation for RepoManager interface.
+func (r *noCheckoutDEPSRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_LKGR, DEFAULT_REMOTE, nil, nil)
+}
+
+// See documentation for RepoManager interface.
+func (r *noCheckoutDEPSRepoManager) SetStrategy(s strategy.NextRollStrategy) {
+	r.strategyMtx.Lock()
+	defer r.strategyMtx.Unlock()
+	r.strategy = s
+}
+
+// See documentation for RepoManager interface.
+func (r *noCheckoutDEPSRepoManager) DefaultStrategy() string {
+	return strategy.ROLL_STRATEGY_BATCH
+}
+
+// See documentation for RepoManager interface.
+func (r *noCheckoutDEPSRepoManager) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_BATCH,
+		strategy.ROLL_STRATEGY_LKGR,
+		strategy.ROLL_STRATEGY_SINGLE,
+	}
 }

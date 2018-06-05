@@ -56,9 +56,7 @@ func newManifestRepoManager(ctx context.Context, c *ManifestRepoManagerConfig, w
 		depotToolsRepoManager: drm,
 	}
 
-	// TODO(borenet): This update can be extremely expensive. Consider
-	// moving it out of the startup critical path.
-	return mr, mr.Update(ctx)
+	return mr, nil
 }
 
 // See documentation for RepoManager interface.
@@ -88,12 +86,9 @@ func (mr *manifestRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Get the next roll revision.
-	nextRollRev, err := mr.strategy.GetNextRollRev(ctx, notRolled)
+	nextRollRev, err := mr.getNextRollRev(ctx, notRolled, lastRollRev)
 	if err != nil {
 		return err
-	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
 	}
 
 	mr.infoMtx.Lock()

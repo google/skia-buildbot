@@ -92,9 +92,7 @@ func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir s
 		includeLog:            c.IncludeLog,
 	}
 
-	// TODO(borenet): This update can be extremely expensive. Consider
-	// moving it out of the startup critical path.
-	return dr, dr.Update(ctx)
+	return dr, nil
 }
 
 // See documentation for RepoManager interface.
@@ -120,12 +118,9 @@ func (dr *depsRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Get the next roll revision.
-	nextRollRev, err := dr.strategy.GetNextRollRev(ctx, notRolled)
+	nextRollRev, err := dr.getNextRollRev(ctx, notRolled, lastRollRev)
 	if err != nil {
 		return err
-	}
-	if nextRollRev == "" {
-		nextRollRev = lastRollRev
 	}
 
 	dr.infoMtx.Lock()
