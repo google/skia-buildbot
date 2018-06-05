@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "bc23a9bf_e5bcb013",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-05T19:40:15Z",
+      "side": 1,
+      "message": "My first thought too, but removing the leading slashes from the sub-paths did not fix it.",
+      "parentUuid": "607cf4f4_6edb169c",
+      "range": {
+        "startLine": 109,
+        "startChar": 39,
+        "endLine": 109,
+        "endChar": 48
+      },
+      "revId": "20cecda7a16589a64c85fcc42a58087b27a33fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e398425_67bceaa4",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 1
