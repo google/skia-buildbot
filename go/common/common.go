@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/sklog"
 )
 
