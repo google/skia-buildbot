@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "00a0b51c_0f7859a7",
+        "filename": "autoroll/go/strategy/afdo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-05T16:36:19Z",
+      "side": 1,
+      "message": "Ack, it\u0027s just moved, not changed.",
+      "parentUuid": "7265d495_f033ec1a",
+      "revId": "a186a0be08b45b06043510d1f7a17c8eeca87548",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2c927840_5ac9d5b2",
         "filename": "autoroll/go/strategy/db.go",
         "patchSetId": 2
@@ -39,6 +57,30 @@
       "revId": "a186a0be08b45b06043510d1f7a17c8eeca87548",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5eb6d294_48bbf56d",
+        "filename": "autoroll/go/strategy/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-05T16:36:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c927840_5ac9d5b2",
+      "range": {
+        "startLine": 60,
+        "startChar": 3,
+        "endLine": 60,
+        "endChar": 18
+      },
+      "revId": "a186a0be08b45b06043510d1f7a17c8eeca87548",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
