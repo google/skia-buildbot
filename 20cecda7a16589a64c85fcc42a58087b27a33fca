@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d81c84ef_773bc56c",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-05T17:59:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4dfa7e5e_7a23c3f5",
+      "range": {
+        "startLine": 101,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 53
+      },
+      "revId": "20cecda7a16589a64c85fcc42a58087b27a33fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0850f969_99862f02",
         "filename": "task_scheduler/go/db/remote_db/remote_db.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "20cecda7a16589a64c85fcc42a58087b27a33fca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1eae0856_8a9a8ee7",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-05T17:59:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0850f969_99862f02",
+      "range": {
+        "startLine": 109,
+        "startChar": 39,
+        "endLine": 109,
+        "endChar": 48
+      },
+      "revId": "20cecda7a16589a64c85fcc42a58087b27a33fca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
