@@ -17,7 +17,7 @@ type Result struct {
 	Execute Execute `json:"execute"`
 }
 
-// Compile contains the out from compiling the user's fiddle.
+// Compile contains the output from compiling the user's fiddle.
 type Compile struct {
 	Errors string `json:"errors"`
 	Output string `json:"output"` // Compiler output.
@@ -114,7 +114,7 @@ func (o *Options) ComputeHash(code string) (string, error) {
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-// FiddleContext is the structure we use for the expanding the index.html template.
+// FiddleContext is the structure we use for expanding the index.html template.
 //
 // It is also used (without the Hash) as the incoming JSON request to /_/run.
 type FiddleContext struct {

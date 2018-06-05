@@ -11,8 +11,8 @@ import (
 	"os/user"
 	"path/filepath"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"

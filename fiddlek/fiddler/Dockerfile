@@ -1,0 +1,18 @@
+FROM gcr.io/skia-public/skia-release:prod
+
+USER root
+
+RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
+  libfontconfig1 \
+  libglu1-mesa \
+  ffmpeg \
+  xvfb \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY . /
+
+USER skia
+
+ENTRYPOINT ["/usr/local/bin/fiddler"]
+CMD ["--logtostderr", "--checkout=/tmp/skia/skia/", "--fiddle_root=/tmp", "--port=:8000"]
+
