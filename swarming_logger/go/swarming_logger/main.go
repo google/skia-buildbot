@@ -307,7 +307,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, swarming.PUBSUB_TOPIC_SWARMING_TASKS, PUBSUB_SUBSCRIBER_NAME); err != nil {
 		sklog.Fatal(err)
 	}
-	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl)
+	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl, httputils.NewTimeoutClient())
 	if err != nil {
 		sklog.Fatal(err)
 	}
