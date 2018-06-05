@@ -129,7 +129,7 @@
       if (!this.$.chromium_build.selected) {
         sk.errorMessage("Please select a Chromium build");
         this.$.chromium_build.focus();
-        return;
+        // return;
       }
       if (!this.$.desc.value) {
         sk.errorMessage("Please specify a description");
@@ -149,7 +149,8 @@
     queueTask: function() {
       var params = {};
       params["page_sets"] = this.$.page_sets.selected;
-      params["chromium_build"] = this.$.chromium_build.selected;
+      params["chromium_build"] = {"chromium_rev":"257f1cd", "skia_rev":"510e9e3"};
+      // params["chromium_build"] = this.$.chromium_build.selected;
       params["desc"] = this.$.desc.value;
       params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
