@@ -6,11 +6,10 @@ import (
 	"sort"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	"cloud.google.com/go/datastore"
 
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
