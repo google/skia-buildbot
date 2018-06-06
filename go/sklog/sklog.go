@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 )
 
 const (
