@@ -393,6 +393,11 @@ func (a *AutoRoller) SetMode(context.Context, string, string, string) error {
 	return errors.New("Not implemented for Google3 roller.")
 }
 
+// SetStrategy is not implemented for Google3 roller.
+func (a *AutoRoller) SetStrategy(context.Context, string, string, string) error {
+	return errors.New("Not implemented for Google3 roller.")
+}
+
 // Forcibly unthrottle the roller.
 func (a *AutoRoller) Unthrottle() error {
 	return errors.New("Not implemented for Google3 roller.")

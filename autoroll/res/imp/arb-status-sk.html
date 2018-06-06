@@ -28,7 +28,10 @@
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/res/imp/bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/paper-item/paper-item.html">
+<link rel="import" href="/res/imp/bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="stylesheet" href="/res/common/css/md.css">
 <dom-module id="arb-status-sk">
@@ -174,6 +177,26 @@
             </a>
           </div>
         </div>
+        <div class="tr">
+          <div class="td nowrap">Strategy for choosing next roll revision:</div>
+          <div class="td nowrap">
+            <paper-dropdown-menu id="strategyDropDown">
+              <paper-listbox id="strategyMenu" class="dropdown-content" selected="{{_selectedStrategy}}" id="strategy_listbox" attr-for-selected="value">
+                <template is="dom-repeat" items="[[validStrategies]]">
+                  <paper-item value="[[item]]">[[item]]</paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+          </div>
+        </div>
+        <div class="tr">
+          <div class="td nowrap">Set By:</div>
+          <div class="td nowrap unknown">
+            <!-- No line break below, or we get a space before the colon, eg.
+                 user@google.com : Strategy change message -->
+            <span>[[strategyChangeBy]]</span><template is="dom-if" if="{{strategyChangeMsg}}"><span>: [[strategyChangeMsg]]</span></template>
+          </div>
+        </div>
       </div>
     </div>
     <!-- Warning for future travelers: paper-dialog doesn't like to be inside of
@@ -181,6 +204,12 @@
     <paper-dialog id="mode_change_dialog" modal on-iron-overlay-closed="_changeMode">
       <h2>Enter a message:</h2>
       <paper-input type="text" id="mode_change_msg"></paper-input>
+      <paper-button dialog-dismiss>Cancel</paper-button>
+      <paper-button dialog-confirm>Submit</paper-button>
+    </paper-dialog>
+    <paper-dialog id="strategy_change_dialog" modal on-iron-overlay-closed="_changeStrategy">
+      <h2>Enter a message:</h2>
+      <paper-input type="text" id="strategy_change_msg"></paper-input>
       <paper-button dialog-dismiss>Cancel</paper-button>
       <paper-button dialog-confirm>Submit</paper-button>
     </paper-dialog>
@@ -259,7 +288,27 @@
           value: null,
           readOnly: true,
         },
+        strategy: {
+          type: String,
+          value: "(not yet loaded)",
+          readOnly: true,
+        },
+        strategyChangeBy: {
+          type: String,
+          value: "",
+          readOnly: true,
+        },
+        strategyChangeMsg: {
+          type: String,
+          value: "",
+          readOnly: true,
+        },
         validModes: {
+          type: Array,
+          value: function() { return []; },
+          readOnly: true,
+        },
+        validStrategies: {
           type: Array,
           value: function() { return []; },
           readOnly: true,
@@ -279,6 +328,11 @@
         _selectedMode: {
           type: String,
           value: "",
+        },
+        _selectedStrategy: {
+          type: String,
+          value: "",
+          observer: "_selectedStrategyChanged",
         },
         _timeout: {
           type: Object,
@@ -330,6 +384,25 @@
         }.bind(this), function(err) {
           this._modeChangePending = false;
           sk.errorMessage("Failed to change the mode: " + err);
+        });
+      },
+
+      _changeStrategy: function(e) {
+        if (e.detail.canceled || !e.detail.confirmed) {
+          return;
+        }
+        var url = "/json/strategy";
+        var body = JSON.stringify({
+            "message": this.$.strategy_change_msg.value,
+            "strategy": this._selectedStrategy,
+        });
+        sk.errorMessage("Strategy change in progress. This may take some time.");
+        sk.post(url, body).then(JSON.parse).then(function (json) {
+          this._update(json);
+          this.$.strategy_change_msg.value = "";
+          sk.errorMessage("Success!");
+        }.bind(this), function(err) {
+          sk.errorMessage("Failed to change the strategy: " + err);
         });
       },
 
@@ -438,6 +511,18 @@
         }[status] || "";
       },
 
+      _selectedStrategyChanged: function(e) {
+        console.log("selected strategy changed");
+        if (!this._editRights) {
+          sk.errorMessage("You must be logged in with an @google.com account to set the ARB strategy.");
+          return
+        }
+        if (!this._selectedStrategy || this._selectedStrategy == this.strategy) {
+          return;
+        }
+        this.$.strategy_change_dialog.open();
+      },
+
       _trybotClass: function(trybot) {
         if (trybot.status == "STARTED") {
           return "fg-unknown";
@@ -476,7 +561,11 @@
         this._setRecent(json.recent);
         this._setInitialSelectedMode(json.validModes.indexOf(json.mode).toString());
         this._setStatus(json.status);
+        this._setStrategy(json.strategy.strategy);
+        this._setStrategyChangeBy(json.strategy.user);
+        this._setStrategyChangeMsg(json.strategy.message);
         this._setValidModes(json.validModes);
+        this._setValidStrategies(json.validStrategies);
         var modeButtons = [];
         for (var i = 0; i < this.validModes.length; i++) {
           var m = this.validModes[i];
@@ -491,6 +580,7 @@
 
         this._lastLoaded = new Date().toLocaleTimeString();
         this._resetTimeout();
+        this._selectedStrategy = json.strategy.strategy
         console.log("Reloaded status.");
       },
     });
