@@ -9,7 +9,7 @@ Environment=DATA_DIR=/mnt/pd0/data  \
 
 ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --app_title="Pdfium Gold" \
-    --baseline_gs_path=skia-infra-gm/hash_files/gold-pdfium-baseline.json \
+    --baseline_gs_path=skia-infra-gm/hash_files/gold-pdfium-baselines \
     --cache_size=20 \
     --db_host=173.194.104.24  \
     --db_name=skiacorrectness_pdfium  \

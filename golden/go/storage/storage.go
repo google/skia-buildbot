@@ -118,6 +118,38 @@ func (s *Storage) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies *t
 	return nil
 }
 
+// FetchBaseline fetches the complete baseline for the given Gerrit issue by
+// loading the master baseline and the issue baseline from GCS and combining
+// them. If either of them doesn't exist an empty baseline is assumed.
+func (s *Storage) FetchBaseline(issueID int64) (*baseline.CommitableBaseLine, error) {
+	var masterBaseline *baseline.CommitableBaseLine
+	var issueBaseline *baseline.CommitableBaseLine
+
+	var egroup errgroup.Group
+	egroup.Go(func() error {
+		var err error
+		masterBaseline, err = s.GStorageClient.ReadBaseline(0)
+		return err
+	})
+
+	if issueID > 0 {
+		egroup.Go(func() error {
+			var err error
+			issueBaseline, err = s.GStorageClient.ReadBaseline(issueID)
+			return err
+		})
+	}
+
+	if err := egroup.Wait(); err != nil {
+		return nil, err
+	}
+
+	if issueBaseline != nil {
+		masterBaseline.Baseline.Merge(issueBaseline.Baseline)
+	}
+	return masterBaseline, nil
+}
+
 // LoadWhiteList loads the given JSON5 file that defines that query to
 // whitelist traces. If the given path is emtpy or the file cannot be parsed
 // an error will be returned.

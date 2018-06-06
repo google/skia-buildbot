@@ -995,3 +995,32 @@ func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sendJsonResponse(w, compareResult)
 }
+
+// jsonBaselineHandler returns a JSON representation of that baseline including
+// baselines for a options issue. It can respond to requests like these:
+//    /json/baseline
+//    /json/baseline/64789
+// where the latter contains the issue id for which we would like to retrieve
+// the baseline. In that case the returned options will be blend of the master
+// baseline and the baseline defined for the issue (usually based on tryjob
+// results).
+func jsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
+	issueID := int64(0)
+	var err error
+	issueIDStr, ok := mux.Vars(r)["id"]
+	if ok {
+		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
+			return
+		}
+	}
+
+	baseline, err := storages.FetchBaseline(issueID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Fetching baselines failed.")
+		return
+	}
+
+	sendJsonResponse(w, baseline)
+}
