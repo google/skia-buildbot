@@ -2,7 +2,6 @@ package pending_tasks
 
 import (
 	"bytes"
-	"database/sql"
 	"testing"
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
@@ -35,7 +34,7 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		Failure:         sql.NullBool{Bool: false, Valid: true},
 		RepeatAfterDays: 2,
 	}
-	test(&chromium_perf.DBTask{
+	test(&chromium_perf.DatastoreTask{
 		CommonCols:           common,
 		Benchmark:            "benchmark",
 		Platform:             "Linux",
@@ -48,10 +47,10 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		ChromiumPatch:        "chromiumpatch",
 		SkiaPatch:            "skiapatch",
 	})
-	test(&capture_skps.DBTask{
+	test(&capture_skps.DatastoreTask{
 		CommonCols: task_common.CommonCols{
 			Id:       17,
-			TsAdded:  sql.NullInt64{Int64: 20080726180513, Valid: true},
+			TsAdded:  20080726180513,
 			Username: "nobody@chromium.org",
 		},
 		PageSets:    "All",
@@ -59,7 +58,7 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		SkiaRev:     "586101c79b0490b50623e76c71a5fd67d8d92b08",
 		Description: "description",
 	})
-	test(&lua_scripts.DBTask{
+	test(&lua_scripts.DatastoreTask{
 		CommonCols:          common,
 		PageSets:            "All",
 		ChromiumRev:         "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
@@ -70,17 +69,17 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		ScriptOutput:        sql.NullString{String: "lualualua", Valid: true},
 		AggregatedOutput:    sql.NullString{String: "aaallluuu", Valid: true},
 	})
-	test(&chromium_builds.DBTask{
+	test(&chromium_builds.DatastoreTask{
 		CommonCols:    common,
 		ChromiumRev:   "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
 		ChromiumRevTs: sql.NullInt64{Int64: 20080726180513, Valid: true},
 		SkiaRev:       "586101c79b0490b50623e76c71a5fd67d8d92b08",
 	})
-	test(&admin_tasks.RecreatePageSetsDBTask{
+	test(&admin_tasks.RecreatePageSetsDatastoreTask{
 		CommonCols: common,
 		PageSets:   "All",
 	})
-	test(&admin_tasks.RecreateWebpageArchivesDBTask{
+	test(&admin_tasks.RecreateWebpageArchivesDatastoreTask{
 		CommonCols:  common,
 		PageSets:    "All",
 		ChromiumRev: "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
