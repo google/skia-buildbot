@@ -53,8 +53,8 @@ const (
 var (
 	// "Constants"
 	VALID_DB_EMAILS = []string{
-		"status@skia-buildbots.google.com.iam.gserviceaccount.com",
-		"status-internal@skia-buildbots.google.com.iam.gserviceaccount.com",
+		"skia-status@skia-public.iam.gserviceaccount.com",
+		"skia-status-internal@skia-public.iam.gserviceaccount.com",
 	}
 
 	// Task Scheduler instance.
