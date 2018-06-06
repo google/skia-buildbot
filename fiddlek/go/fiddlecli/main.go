@@ -11,12 +11,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/fiddle/go/types"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+)
+
+const (
+	RETRIES = 5
 )
 
 // flags
@@ -37,7 +43,7 @@ type chanRequest struct {
 
 func main() {
 	// Check flags.
-	flag.Parse()
+	common.Init()
 	if *input == "" {
 		flag.Usage()
 		log.Fatalf("--input is a required flag.")
@@ -70,17 +76,6 @@ func main() {
 	mutex := sync.Mutex{}
 	response := types.BulkResponse{}
 
-	c := httputils.NewTimeoutClient()
-	resp, err := c.Get("https://fiddle.skia.org/reset_gpu/")
-	if resp.StatusCode != 200 {
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalf("Failed to read response when resetting GPU: %s", err)
-		} else {
-			log.Fatalf("Failed to reset GPU: %s", string(b))
-		}
-	}
-
 	// Spin up workers.
 	for i := 0; i < *procs; i++ {
 		g.Go(func() error {
@@ -109,18 +104,23 @@ func main() {
 				if err != nil {
 					return fmt.Errorf("Failed to encode an individual request: %s", err)
 				}
-				resp, err := c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
-				if err != nil || resp.StatusCode != 200 {
-					return fmt.Errorf("Failed to make request: %s", err)
+				var resp *http.Response
+				success := false
+				for tries := 0; tries < RETRIES; tries++ {
+					resp, err = c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
+					if err == nil && resp.StatusCode == 200 {
+						success = true
+						break
+					}
+				}
+				if !success {
+					return fmt.Errorf("Failed to make request: %s %s", err, resp.Status)
 				}
 
 				// Decode response and add to all responses.
 				runResults := types.RunResults{}
 				if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
 					return fmt.Errorf("Failed to read response: %s", err)
-				}
-				if resp.StatusCode != 200 {
-					return fmt.Errorf("Request failed with %d: %s", resp.StatusCode, string(b))
 				}
 				mutex.Lock()
 				response[req.id] = &runResults
