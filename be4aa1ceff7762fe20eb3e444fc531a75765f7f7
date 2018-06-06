@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5b508f09_4db9a376",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1018,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-06T19:16:21Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "611c8277_1363b305",
+      "range": {
+        "startLine": 1018,
+        "startChar": 7,
+        "endLine": 1018,
+        "endChar": 11
+      },
+      "revId": "be4aa1ceff7762fe20eb3e444fc531a75765f7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ca2c74b3_44a063f1",
         "filename": "golden/go/storage/gsclient.go",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "8377b3e7_a0f37095",
+        "filename": "golden/go/storage/gsclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-06T19:16:21Z",
+      "side": 1,
+      "message": "The doc is a negation of that code:\nif issueID \u003e 0 { .... \n... \n\nit will change the path to fetch that issue. Otherwise it returns \"master.json\"",
+      "parentUuid": "ca2c74b3_44a063f1",
+      "range": {
+        "startLine": 107,
+        "startChar": 14,
+        "endLine": 107,
+        "endChar": 16
+      },
+      "revId": "be4aa1ceff7762fe20eb3e444fc531a75765f7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "09f230b8_45e6aee2",
         "filename": "golden/go/storage/storage_test.go",
         "patchSetId": 4
@@ -68,6 +116,30 @@
       "revId": "be4aa1ceff7762fe20eb3e444fc531a75765f7f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b3b8dc1_c17ea383",
+        "filename": "golden/go/storage/storage_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-06T19:16:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "09f230b8_45e6aee2",
+      "range": {
+        "startLine": 99,
+        "startChar": 4,
+        "endLine": 99,
+        "endChar": 53
+      },
+      "revId": "be4aa1ceff7762fe20eb3e444fc531a75765f7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
