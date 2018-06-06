@@ -512,13 +512,12 @@
       },
 
       _selectedStrategyChanged: function(e) {
-        console.log("selected strategy changed");
+        if (!this._selectedStrategy || this._selectedStrategy == this.strategy) {
+          return;
+        }
         if (!this._editRights) {
           sk.errorMessage("You must be logged in with an @google.com account to set the ARB strategy.");
           return
-        }
-        if (!this._selectedStrategy || this._selectedStrategy == this.strategy) {
-          return;
         }
         this.$.strategy_change_dialog.open();
       },
