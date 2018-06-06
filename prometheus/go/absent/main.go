@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/skia-dev/glog"
+	"github.com/golang/glog"
 	"go.skia.org/infra/go/common"
 )
 
