@@ -14,7 +14,6 @@
       "includeLog": true,
       "parentBranch": "master",
       "parentRepo": "git@github.com:flutter/engine.git",
-      "preUploadSteps": ["FlutterLicenseScripts"],
-      "strategy": "batch"
+      "preUploadSteps": ["FlutterLicenseScripts"]
     }
 }

@@ -9,7 +9,6 @@
     "childBranch": "master",
     "childPath": "external/skia",
     "parentBranch": "master",
-    "parentRepo": "android",
-    "strategy": "remote batch"
+    "parentRepo": "android"
   }
 }

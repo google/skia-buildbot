@@ -46,8 +46,6 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 	ParentBranch string `json:"parentBranch"`
 	// URL of the parent repo.
 	ParentRepo string `json:"parentRepo"`
-	// Strategy for determining which commit(s) to roll.
-	Strategy string `json:"strategy"`
 
 	// Optional fields.
 
@@ -73,10 +71,6 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 	}
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
-	}
-	valid := (&noCheckoutDEPSRepoManager{}).ValidStrategies()
-	if !util.In(c.Strategy, valid) {
-		return fmt.Errorf("Invalid next-roll-rev strategy %q; valid strategies: %v", c.Strategy, valid)
 	}
 	for _, s := range c.PreUploadSteps {
 		if _, err := GetPreUploadStep(s); err != nil {

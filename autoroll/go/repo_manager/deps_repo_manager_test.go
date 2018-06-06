@@ -45,7 +45,6 @@ func depsCfg() *DEPSRepoManagerConfig {
 				ChildBranch:  "master",
 				ChildPath:    childPath,
 				ParentBranch: "master",
-				Strategy:     strategy.ROLL_STRATEGY_BATCH,
 			},
 		},
 	}
@@ -185,7 +184,6 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	g := setupFakeGerrit(t, wd)
 	cfg := depsCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	cfg.Strategy = strategy
 	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy))

@@ -9,7 +9,6 @@
     "childBranch": "android/o-mr1-release",
     "childPath": "external/skia",
     "parentBranch": "oc-mr1-dev",
-    "parentRepo": "android",
-    "strategy": "remote batch"
+    "parentRepo": "android"
   }
 }

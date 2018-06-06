@@ -38,7 +38,6 @@ func afdoCfg() *AFDORepoManagerConfig {
 				ChildBranch:  "master",
 				ChildPath:    "unused/by/afdo/repomanager",
 				ParentBranch: "master",
-				Strategy:     "afdo",
 			},
 		},
 	}

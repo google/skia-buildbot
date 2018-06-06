@@ -118,8 +118,6 @@ type CommonRepoManagerConfig struct {
 	ChildPath string `json:"childPath"`
 	// Branch of the parent repo we want to roll into.
 	ParentBranch string `json:"parentBranch"`
-	// Strategy for determining which commit(s) to roll.
-	Strategy string `json:"strategy"`
 
 	// Optional fields.
 
@@ -142,19 +140,6 @@ func (c *CommonRepoManagerConfig) Validate() error {
 	}
 	if c.ParentBranch == "" {
 		return errors.New("ParentBranch is required.")
-	}
-	if c.Strategy == "" {
-		return errors.New("Strategy is required.")
-	}
-	// TODO(borenet): We have RepoManagerConfigs which inherit from
-	// CommonRepoManagerConfig, which may not have the same set of valid
-	// strategies.
-	/*valid := (&commonRepoManager{}).ValidStrategies()
-	if !util.In(c.Strategy, valid) {
-		return fmt.Errorf("Invalid next-roll-rev strategy %q; valid strategies: %v", c.Strategy, valid)
-	}*/
-	if _, err := strategy.GetNextRollStrategy(context.Background(), c.Strategy, "master", "lkgr", "origin", nil, nil); err != nil {
-		return err
 	}
 	for _, s := range c.PreUploadSteps {
 		if _, err := GetPreUploadStep(s); err != nil {

@@ -24,7 +24,6 @@ func copyCfg() *CopyRepoManagerConfig {
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
 				ChildBranch:  "master",
 				ParentBranch: "master",
-				Strategy:     strategy.ROLL_STRATEGY_BATCH,
 			},
 		},
 	}

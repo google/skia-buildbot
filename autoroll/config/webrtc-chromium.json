@@ -29,7 +29,6 @@
     "gerritProject": "chromium/src",
     "includeLog": true,
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "strategy": "batch"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   }
 }

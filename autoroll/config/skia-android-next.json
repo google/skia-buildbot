@@ -9,7 +9,6 @@
     "childBranch": "android/next-release",
     "childPath": "external/skia",
     "parentBranch": "pi-dev",
-    "parentRepo": "android",
-    "strategy": "remote batch"
+    "parentRepo": "android"
   }
 }
