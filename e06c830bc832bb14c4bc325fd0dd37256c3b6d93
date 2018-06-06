@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37ba7c93_9250a070",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 7711
+      },
+      "writtenOn": "2018-06-06T21:40:44Z",
+      "side": 1,
+      "message": "Where does this come from? Is this the isolated client or something else?",
+      "revId": "e06c830bc832bb14c4bc325fd0dd37256c3b6d93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
