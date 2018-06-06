@@ -5,7 +5,7 @@
 package chromium_analysis
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -13,12 +13,14 @@ import (
 	"strings"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 )
 
@@ -42,32 +44,33 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type DBTask struct {
+type DatastoreTask struct {
 	task_common.CommonCols
 
-	Benchmark      string         `db:"benchmark"`
-	PageSets       string         `db:"page_sets"`
-	CustomWebpages string         `db:"custom_webpages"`
-	BenchmarkArgs  string         `db:"benchmark_args"`
-	BrowserArgs    string         `db:"browser_args"`
-	Description    string         `db:"description"`
-	ChromiumPatch  string         `db:"chromium_patch"`
-	SkiaPatch      string         `db:"skia_patch"`
-	CatapultPatch  string         `db:"catapult_patch"`
-	BenchmarkPatch string         `db:"benchmark_patch"`
-	V8Patch        string         `db:"v8_patch"`
-	RunInParallel  bool           `db:"run_in_parallel"`
-	Platform       string         `db:"platform"`
-	RunOnGCE       bool           `db:"run_on_gce"`
-	RawOutput      sql.NullString `db:"raw_output"`
-	MatchStdoutTxt string         `db:"match_stdout_txt"`
+	Benchmark      string
+	PageSets       string
+	IsTestPageSet  bool
+	CustomWebpages string
+	BenchmarkArgs  string
+	BrowserArgs    string
+	Description    string
+	ChromiumPatch  string `datastore:",noindex"`
+	SkiaPatch      string `datastore:",noindex"`
+	CatapultPatch  string `datastore:",noindex"`
+	BenchmarkPatch string `datastore:",noindex"`
+	V8Patch        string `datastore:",noindex"`
+	RunInParallel  bool
+	Platform       string
+	RunOnGCE       bool
+	RawOutput      string
+	MatchStdoutTxt string
 }
 
-func (task DBTask) GetTaskName() string {
+func (task DatastoreTask) GetTaskName() string {
 	return "ChromiumAnalysis"
 }
 
-func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (dbTask *DatastoreTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
@@ -90,30 +93,45 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	return taskVars
 }
 
-func (task DBTask) GetResultsLink() string {
-	if task.RawOutput.Valid {
-		return task.RawOutput.String
-	} else {
-		return ""
-	}
+func (task DatastoreTask) GetResultsLink() string {
+	return task.RawOutput
 }
 
-func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
-func (task DBTask) RunsOnGCEWorkers() bool {
+func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	return task.RunOnGCE && task.Platform != ctutil.PLATFORM_ANDROID
 }
 
-func (task DBTask) TableName() string {
-	return db.TABLE_CHROMIUM_ANALYSIS_TASKS
+func (task DatastoreTask) GetDatastoreKind() ds.Kind {
+	return ds.CHROMIUM_ANALYSIS_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DatastoreTask) Select(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*DatastoreTask{}
+	for {
+		t := &DatastoreTask{}
+		k, err := it.Next(t)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+		t.DatastoreId = k.ID
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
+}
+
+func (task DatastoreTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DatastoreTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -140,65 +158,58 @@ type AddTaskVars struct {
 	MatchStdoutTxt string `json:"match_stdout_txt"`
 }
 
-func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
+	return ds.CHROMIUM_ANALYSIS_TASKS
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
 	if task.Benchmark == "" ||
 		task.PageSets == "" ||
 		task.Platform == "" ||
 		task.Description == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
+		return nil, fmt.Errorf("Invalid parameters")
 	}
 	customWebpages, err := ctfeutil.GetQualifiedCustomWebpages(task.CustomWebpages, task.BenchmarkArgs)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "benchmark", Value: task.Benchmark, Limit: 100},
-		{Name: "platform", Value: task.Platform, Limit: 100},
-		{Name: "page_sets", Value: task.PageSets, Limit: 100},
-		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
-		{Name: "browser_args", Value: task.BrowserArgs, Limit: 255},
-		{Name: "desc", Value: task.Description, Limit: 255},
-		{Name: "custom_webpages", Value: strings.Join(customWebpages, ","), Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "skia_patch", Value: task.SkiaPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "benchmark_patch", Value: task.BenchmarkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "v8_patch", Value: task.V8Patch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "match_stdout_txt", Value: task.MatchStdoutTxt, Limit: db.LONG_TEXT_MAX_LENGTH},
-	}); err != nil {
-		return "", nil, err
+
+	id, err := task_common.GetNextId(ds.CHROMIUM_ANALYSIS_TASKS, &DatastoreTask{})
+	if err != nil {
+		return nil, fmt.Errorf("Could not get highest id: %s", err)
 	}
-	runInParallel := 0
-	if task.RunInParallel {
-		runInParallel = 1
+
+	t := &DatastoreTask{
+		Benchmark:      task.Benchmark,
+		PageSets:       task.PageSets,
+		IsTestPageSet:  task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		CustomWebpages: strings.Join(customWebpages, ","),
+		BenchmarkArgs:  task.BenchmarkArgs,
+		BrowserArgs:    task.BrowserArgs,
+		Description:    task.Description,
+		ChromiumPatch:  task.ChromiumPatch,
+		SkiaPatch:      task.SkiaPatch,
+		CatapultPatch:  task.CatapultPatch,
+		BenchmarkPatch: task.BenchmarkPatch,
+		V8Patch:        task.V8Patch,
+		RunInParallel:  task.RunInParallel,
+		Platform:       task.Platform,
+		RunOnGCE:       task.RunOnGCE,
+		MatchStdoutTxt: task.MatchStdoutTxt,
 	}
-	runOnGCE := 0
-	if task.RunOnGCE {
-		runOnGCE = 1
+	tsAdded, err := strconv.ParseInt(task.TsAdded, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.TsAdded, err)
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,custom_webpages,benchmark_args,browser_args,description,chromium_patch,skia_patch,catapult_patch,benchmark_patch,v8_patch,ts_added,repeat_after_days,run_in_parallel,platform,run_on_gce,match_stdout_txt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
-			db.TABLE_CHROMIUM_ANALYSIS_TASKS),
-		[]interface{}{
-			task.Username,
-			task.Benchmark,
-			task.PageSets,
-			strings.Join(customWebpages, ","),
-			task.BenchmarkArgs,
-			task.BrowserArgs,
-			task.Description,
-			task.ChromiumPatch,
-			task.SkiaPatch,
-			task.CatapultPatch,
-			task.BenchmarkPatch,
-			task.V8Patch,
-			task.TsAdded,
-			task.RepeatAfterDays,
-			runInParallel,
-			task.Platform,
-			runOnGCE,
-			task.MatchStdoutTxt,
-		},
-		nil
+	t.TsAdded = tsAdded
+	t.Username = task.Username
+	t.Id = id
+	repeatAfterDays, err := strconv.ParseInt(task.RepeatAfterDays, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.RepeatAfterDays, err)
+	}
+	t.RepeatAfterDays = repeatAfterDays
+	return t, nil
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -206,44 +217,37 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&DBTask{}, w, r)
+	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
 }
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 
-	RawOutput sql.NullString
+	RawOutput string
 }
 
 func (vars *UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_CHROMIUM_ANALYSIS_TASK_POST_URI
 }
 
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "RawOutput", Value: task.RawOutput.String, Limit: 255},
-	}); err != nil {
-		return nil, nil, err
+func (task *UpdateVars) AddUpdatesToDatastoreTask(t task_common.Task) error {
+	if task.RawOutput != "" {
+		dbTask := t.(*DatastoreTask)
+		dbTask.RawOutput = task.RawOutput
 	}
-	clauses := []string{}
-	args := []interface{}{}
-	if task.RawOutput.Valid {
-		clauses = append(clauses, "raw_output = ?")
-		args = append(args, task.RawOutput.String)
-	}
-	return clauses, args, nil
+	return nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_ANALYSIS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&DBTask{}, w, r)
+	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&DBTask{}, w, r)
+	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
