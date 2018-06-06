@@ -5,19 +5,19 @@
 package metrics_analysis
 
 import (
-	"database/sql"
-	"fmt"
+	"context"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 )
 
@@ -41,25 +41,25 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type DBTask struct {
+type DatastoreTask struct {
 	task_common.CommonCols
 
-	MetricName         string         `db:"metric_name"`
-	CustomTraces       string         `db:"custom_traces"`
-	AnalysisTaskId     string         `db:"analysis_task_id"`
-	AnalysisOutputLink string         `db:"analysis_output_link"`
-	BenchmarkArgs      string         `db:"benchmark_args"`
-	Description        string         `db:"description"`
-	ChromiumPatch      string         `db:"chromium_patch"`
-	CatapultPatch      string         `db:"catapult_patch"`
-	RawOutput          sql.NullString `db:"raw_output"`
+	MetricName         string `db:"metric_name"`
+	CustomTraces       string `db:"custom_traces"`
+	AnalysisTaskId     string `db:"analysis_task_id"`
+	AnalysisOutputLink string `db:"analysis_output_link"`
+	BenchmarkArgs      string `db:"benchmark_args"`
+	Description        string `db:"description"`
+	ChromiumPatch      string `db:"chromium_patch"`
+	CatapultPatch      string `db:"catapult_patch"`
+	RawOutput          string `db:"raw_output"`
 }
 
-func (task DBTask) GetTaskName() string {
+func (task DatastoreTask) GetTaskName() string {
 	return "MetricsAnalysis"
 }
 
-func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (dbTask DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
@@ -72,33 +72,38 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.Description = dbTask.Description
 	taskVars.ChromiumPatch = dbTask.ChromiumPatch
 	taskVars.CatapultPatch = dbTask.CatapultPatch
-	return taskVars
+	return taskVars, nil
 }
 
-func (task DBTask) GetResultsLink() string {
-	if task.RawOutput.Valid {
-		return task.RawOutput.String
-	} else {
-		return ""
-	}
+func (task DatastoreTask) GetResultsLink() string {
+	return task.RawOutput
 }
 
-func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
-func (task DBTask) RunsOnGCEWorkers() bool {
+func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	return true
 }
 
-func (task DBTask) TableName() string {
-	return db.TABLE_METRICS_ANALYSIS_TASKS
+func (task DatastoreTask) GetDatastoreKind() ds.Kind {
+	return ds.METRICS_ANALYSIS_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DatastoreTask) Select(it *datastore.Iterator) (interface{}, error) {
+	return nil, nil
+	//result := []DatastoreTask{}
+	//err := db.DB.Select(&result, query, args...)
+	//return result, err
+}
+
+func (task DatastoreTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DatastoreTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -118,100 +123,101 @@ type AddTaskVars struct {
 	CatapultPatch      string `json:"catapult_patch"`
 }
 
-func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
-	if task.MetricName == "" {
-		return "", nil, fmt.Errorf("Must specify metric name")
-	}
-	if task.CustomTraces == "" && task.AnalysisTaskId == "" {
-		return "", nil, fmt.Errorf("Must specify one of custom traces or analysis task id")
-	}
-	if task.Description == "" {
-		return "", nil, fmt.Errorf("Must specify description")
-	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "metric_name", Value: task.MetricName, Limit: 255},
-		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
-		{Name: "desc", Value: task.Description, Limit: 255},
-		{Name: "custom_traces", Value: task.CustomTraces, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-	}); err != nil {
-		return "", nil, err
-	}
-	if task.AnalysisTaskId != "" && task.AnalysisTaskId != "0" {
-		// Get analysis output link from analysis task id.
-		outputLinks := []string{}
-		query := fmt.Sprintf("SELECT raw_output FROM %s WHERE id = ?", db.TABLE_CHROMIUM_ANALYSIS_TASKS)
-		if err := db.DB.Select(&outputLinks, query, task.AnalysisTaskId); err != nil || len(outputLinks) < 1 {
-			return "", nil, fmt.Errorf("Unable to validate analysis task id parameter %v", task.AnalysisTaskId)
-		}
-		if len(outputLinks) != 1 {
-			return "", nil, fmt.Errorf("Unable to find requested analysis task id.")
-		}
-		task.AnalysisOutputLink = outputLinks[0]
-	}
-
-	return fmt.Sprintf("INSERT INTO %s (username,metric_name,custom_traces,analysis_task_id,analysis_output_link,benchmark_args,description,chromium_patch,catapult_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
-			db.TABLE_METRICS_ANALYSIS_TASKS),
-		[]interface{}{
-			task.Username,
-			task.MetricName,
-			task.CustomTraces,
-			task.AnalysisTaskId,
-			task.AnalysisOutputLink,
-			task.BenchmarkArgs,
-			task.Description,
-			task.ChromiumPatch,
-			task.CatapultPatch,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
+func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
+	return ds.CAPTURE_SKPS_TASKS
 }
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
+	return nil, nil
+}
+
+//func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+//	if task.MetricName == "" {
+//		return "", nil, fmt.Errorf("Must specify metric name")
+//	}
+//	if task.CustomTraces == "" && task.AnalysisTaskId == "" {
+//		return "", nil, fmt.Errorf("Must specify one of custom traces or analysis task id")
+//	}
+//	if task.Description == "" {
+//		return "", nil, fmt.Errorf("Must specify description")
+//	}
+//	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
+//		{Name: "metric_name", Value: task.MetricName, Limit: 255},
+//		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
+//		{Name: "desc", Value: task.Description, Limit: 255},
+//		{Name: "custom_traces", Value: task.CustomTraces, Limit: db.LONG_TEXT_MAX_LENGTH},
+//		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+//		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
+//	}); err != nil {
+//		return "", nil, err
+//	}
+//	if task.AnalysisTaskId != "" && task.AnalysisTaskId != "0" {
+//		// Get analysis output link from analysis task id.
+//		outputLinks := []string{}
+//		query := fmt.Sprintf("SELECT raw_output FROM %s WHERE id = ?", db.TABLE_CHROMIUM_ANALYSIS_TASKS)
+//		if err := db.DB.Select(&outputLinks, query, task.AnalysisTaskId); err != nil || len(outputLinks) < 1 {
+//			return "", nil, fmt.Errorf("Unable to validate analysis task id parameter %v", task.AnalysisTaskId)
+//		}
+//		if len(outputLinks) != 1 {
+//			return "", nil, fmt.Errorf("Unable to find requested analysis task id.")
+//		}
+//		task.AnalysisOutputLink = outputLinks[0]
+//	}
+
+//	return fmt.Sprintf("INSERT INTO %s (username,metric_name,custom_traces,analysis_task_id,analysis_output_link,benchmark_args,description,chromium_patch,catapult_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
+//			db.TABLE_METRICS_ANALYSIS_TASKS),
+//		[]interface{}{
+//			task.Username,
+//			task.MetricName,
+//			task.CustomTraces,
+//			task.AnalysisTaskId,
+//			task.AnalysisOutputLink,
+//			task.BenchmarkArgs,
+//			task.Description,
+//			task.ChromiumPatch,
+//			task.CatapultPatch,
+//			task.TsAdded,
+//			task.RepeatAfterDays,
+//		},
+//		nil
+//}
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&DBTask{}, w, r)
+	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
 }
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 
-	RawOutput sql.NullString
+	RawOutput string
 }
 
 func (vars *UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_METRICS_ANALYSIS_TASK_POST_URI
 }
 
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "RawOutput", Value: task.RawOutput.String, Limit: 255},
-	}); err != nil {
-		return nil, nil, err
+func (task *UpdateVars) AddUpdatesToDatastoreTask(t task_common.Task) error {
+	dbTask := t.(*DatastoreTask)
+	if task.RawOutput != "" {
+		dbTask.RawOutput = task.RawOutput
 	}
-	clauses := []string{}
-	args := []interface{}{}
-	if task.RawOutput.Valid {
-		clauses = append(clauses, "raw_output = ?")
-		args = append(args, task.RawOutput.String)
-	}
-	return clauses, args, nil
+	return nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_METRICS_ANALYSIS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&DBTask{}, w, r)
+	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&DBTask{}, w, r)
+	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
