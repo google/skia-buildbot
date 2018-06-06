@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "0eab48a8_0249b03e",
+        "filename": "golden/go/storage/gsclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-06T19:22:54Z",
+      "side": 1,
+      "message": "Ah, I misread that originally.  Carry on",
+      "parentUuid": "8377b3e7_a0f37095",
+      "range": {
+        "startLine": 107,
+        "startChar": 14,
+        "endLine": 107,
+        "endChar": 16
+      },
+      "revId": "be4aa1ceff7762fe20eb3e444fc531a75765f7f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "09f230b8_45e6aee2",
         "filename": "golden/go/storage/storage_test.go",
         "patchSetId": 4
