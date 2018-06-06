@@ -4,24 +4,28 @@ import (
 	"sync"
 
 	"go.skia.org/infra/autoroll/go/modes"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/util"
 )
 
 // AutoRollStatus is a struct which provides roll-up status information about
 // the AutoRoll Bot.
 type AutoRollStatus struct {
 	AutoRollMiniStatus
-	ChildHead      string                    `json:"childHead"`
-	CurrentRoll    *autoroll.AutoRollIssue   `json:"currentRoll"`
-	Error          string                    `json:"error"`
-	FullHistoryUrl string                    `json:"fullHistoryUrl"`
-	IssueUrlBase   string                    `json:"issueUrlBase"`
-	LastRoll       *autoroll.AutoRollIssue   `json:"lastRoll"`
-	LastRollRev    string                    `json:"lastRollRev"`
-	Mode           *modes.ModeChange         `json:"mode"`
-	Recent         []*autoroll.AutoRollIssue `json:"recent"`
-	Status         string                    `json:"status"`
-	ValidModes     []string                  `json:"validModes"`
+	ChildHead       string                    `json:"childHead"`
+	CurrentRoll     *autoroll.AutoRollIssue   `json:"currentRoll"`
+	Error           string                    `json:"error"`
+	FullHistoryUrl  string                    `json:"fullHistoryUrl"`
+	IssueUrlBase    string                    `json:"issueUrlBase"`
+	LastRoll        *autoroll.AutoRollIssue   `json:"lastRoll"`
+	LastRollRev     string                    `json:"lastRollRev"`
+	Mode            *modes.ModeChange         `json:"mode"`
+	Recent          []*autoroll.AutoRollIssue `json:"recent"`
+	Status          string                    `json:"status"`
+	Strategy        *strategy.StrategyChange  `json:"strategy"`
+	ValidModes      []string                  `json:"validModes"`
+	ValidStrategies []string                  `json:"validStrategies"`
 }
 
 // AutoRollMiniStatus is a struct which provides a minimal amount of status
@@ -49,18 +53,20 @@ type AutoRollMiniStatus struct {
 // AutoRollStatusCache is a struct used for caching roll-up status
 // information about the AutoRoll Bot.
 type AutoRollStatusCache struct {
-	currentRoll    *autoroll.AutoRollIssue
-	fullHistoryUrl string
-	issueUrlBase   string
-	lastError      string
-	lastRoll       *autoroll.AutoRollIssue
-	lastRollRev    string
-	numFailed      int
-	numNotRolled   int
-	mode           *modes.ModeChange
-	mtx            sync.RWMutex
-	recent         []*autoroll.AutoRollIssue
-	status         string
+	currentRoll     *autoroll.AutoRollIssue
+	fullHistoryUrl  string
+	issueUrlBase    string
+	lastError       string
+	lastRoll        *autoroll.AutoRollIssue
+	lastRollRev     string
+	numFailed       int
+	numNotRolled    int
+	mode            *modes.ModeChange
+	mtx             sync.RWMutex
+	recent          []*autoroll.AutoRollIssue
+	status          string
+	strategy        *strategy.StrategyChange
+	validStrategies []string
 }
 
 // Get returns the current status information.
@@ -88,13 +94,15 @@ func (c *AutoRollStatusCache) Get(includeError bool, cleanIssue func(*autoroll.A
 			NumFailedRolls:      c.numFailed,
 			NumNotRolledCommits: c.numNotRolled,
 		},
-		FullHistoryUrl: c.fullHistoryUrl,
-		IssueUrlBase:   c.issueUrlBase,
-		LastRollRev:    c.lastRollRev,
-		Mode:           mode,
-		Recent:         recent,
-		Status:         c.status,
-		ValidModes:     validModes,
+		FullHistoryUrl:  c.fullHistoryUrl,
+		IssueUrlBase:    c.issueUrlBase,
+		LastRollRev:     c.lastRollRev,
+		Mode:            mode,
+		Recent:          recent,
+		Status:          c.status,
+		Strategy:        c.strategy,
+		ValidModes:      validModes,
+		ValidStrategies: util.CopyStringSlice(c.validStrategies),
 	}
 	if c.currentRoll != nil {
 		s.CurrentRoll = c.currentRoll.Copy()
@@ -133,13 +141,15 @@ func (c *AutoRollStatusCache) Set(s *AutoRollStatus) error {
 	}
 	c.fullHistoryUrl = s.FullHistoryUrl
 	c.issueUrlBase = s.IssueUrlBase
+	c.lastError = s.Error
 	c.lastRollRev = s.LastRollRev
 	c.mode = s.Mode.Copy()
 	c.numFailed = s.NumFailedRolls
 	c.numNotRolled = s.NumNotRolledCommits
 	c.recent = recent
 	c.status = s.Status
-	c.lastError = s.Error
+	c.strategy = s.Strategy
+	c.validStrategies = util.CopyStringSlice(s.ValidStrategies)
 
 	return nil
 }

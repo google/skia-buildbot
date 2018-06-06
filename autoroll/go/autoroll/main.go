@@ -72,9 +72,10 @@ type AutoRollerI interface {
 	Start(ctx context.Context, tickFrequency, repoFrequency time.Duration)
 	// AddHandlers allows the AutoRoller to respond to specific HTTP requests.
 	AddHandlers(r *mux.Router)
-	// SetMode sets the desired mode of the bot. This forces the bot to run and
-	// blocks until it finishes.
+	// SetMode sets the desired mode of the bot.
 	SetMode(ctx context.Context, m, user, message string) error
+	// SetStrategy sets the desired next-roll-rev strategy.
+	SetStrategy(ctx context.Context, strategy, user, message string) error
 	// Return the roll-up status of the bot.
 	GetStatus(isGoogler bool) *roller.AutoRollStatus
 	// Return minimal status information for the bot.
@@ -119,6 +120,31 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := arb.SetMode(context.Background(), mode.Mode, login.LoggedInAs(r), mode.Message); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set AutoRoll mode.")
+		return
+	}
+
+	// Return the ARB status.
+	statusJsonHandler(w, r)
+}
+
+func strategyJsonHandler(w http.ResponseWriter, r *http.Request) {
+	if !login.IsGoogler(r) {
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in with an @google.com account to do that.")
+		return
+	}
+
+	var strategy struct {
+		Message  string `json:"message"`
+		Strategy string `json:"strategy"`
+	}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(&strategy); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode request body.")
+		return
+	}
+
+	if err := arb.SetStrategy(context.Background(), strategy.Strategy, login.LoggedInAs(r), strategy.Message); err != nil {
+		httputils.ReportError(w, r, err, "Failed to set AutoRoll strategy.")
 		return
 	}
 
@@ -188,6 +214,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/mode", modeJsonHandler).Methods("POST")
 	r.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	r.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
+	r.HandleFunc("/json/strategy", strategyJsonHandler).Methods("POST")
 	r.HandleFunc("/json/unthrottle", unthrottleHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

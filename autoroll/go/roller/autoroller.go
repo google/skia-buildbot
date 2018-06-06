@@ -179,6 +179,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		serverURL:       serverURL,
 		sheriff:         c.Sheriff,
 		status:          &AutoRollStatusCache{},
+		strategyHistory: sh,
 		successThrottle: successThrottle,
 	}
 	sm, err := state_machine.New(arb, workdir, n)
@@ -419,15 +420,17 @@ func (r *AutoRoller) updateStatus(replaceLastError bool, lastError string) error
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: r.rm.CommitsNotRolled(),
 		},
-		CurrentRoll:    r.recent.CurrentRoll(),
-		Error:          lastError,
-		FullHistoryUrl: r.rm.GetFullHistoryUrl(),
-		IssueUrlBase:   r.rm.GetIssueUrlBase(),
-		LastRoll:       r.recent.LastRoll(),
-		LastRollRev:    r.rm.LastRollRev(),
-		Mode:           r.modeHistory.CurrentMode(),
-		Recent:         recent,
-		Status:         string(r.sm.Current()),
+		CurrentRoll:     r.recent.CurrentRoll(),
+		Error:           lastError,
+		FullHistoryUrl:  r.rm.GetFullHistoryUrl(),
+		IssueUrlBase:    r.rm.GetIssueUrlBase(),
+		LastRoll:        r.recent.LastRoll(),
+		LastRollRev:     r.rm.LastRollRev(),
+		Mode:            r.modeHistory.CurrentMode(),
+		Recent:          recent,
+		Status:          string(r.sm.Current()),
+		Strategy:        r.strategyHistory.CurrentStrategy(),
+		ValidStrategies: r.rm.ValidStrategies(),
 	})
 }
 

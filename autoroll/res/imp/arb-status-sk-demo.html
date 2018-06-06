@@ -263,10 +263,20 @@
             }
         ],
         "status": "active",
+        "strategy": {
+            "message": "Setting initial strategy",
+            "strategy": "batch",
+            "time": "2017-08-19T21:37:00.149346729Z",
+            "user": "user@google.com"
+        },
         "validModes": [
             "running",
             "stopped",
             "dry run"
+        ],
+        "validStrategies": [
+            "batch",
+            "single"
         ]
     };
 
@@ -301,6 +311,18 @@
             resolve(JSON.stringify(fakeStatus));
           } else {
             reject("Invalid mode: " + res.mode + "; valid modes: " + fakeStatus["validModes"]);
+          }
+        });
+      } else if (url === "/json/strategy") {
+        return new Promise(function(resolve, reject) {
+          var res = JSON.parse(body);
+          res["user"] = "you@google.com";
+          var validStrategy = fakeStatus["validStrategies"].indexOf(res.strategy);
+          if (validStrategy >= 0) {
+            fakeStatus["strategy"] = res;
+            resolve(JSON.stringify(fakeStatus));
+          } else {
+            reject("Invalid strategy: " + res.strategy + "; valid strategies: " + fakeStatus["validStrategies"]);
           }
         });
       } else if (url === "/json/unthrottle") {
