@@ -9,7 +9,6 @@
     "childBranch": "master",
     "childPath": "chrome/android/profiles/newest.txt",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "strategy": "afdo"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   }
 }

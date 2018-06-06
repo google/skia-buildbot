@@ -37,7 +37,6 @@ func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
 				ChildBranch:  "master",
 				ChildPath:    "unused/by/fuchsiaSDK/repomanager",
 				ParentBranch: "master",
-				Strategy:     "fuchsiaSDK",
 			},
 		},
 	}

@@ -15,7 +15,6 @@
     "gerritProject": "skia",
     "includeLog": true,
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/skia.git",
-    "strategy": "batch"
+    "parentRepo": "https://skia.googlesource.com/skia.git"
   }
 }

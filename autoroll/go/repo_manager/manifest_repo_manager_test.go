@@ -34,7 +34,6 @@ func manifestCfg() *ManifestRepoManagerConfig {
 				ChildBranch:  "master",
 				ChildPath:    childPath,
 				ParentBranch: "master",
-				Strategy:     strategy.ROLL_STRATEGY_BATCH,
 			},
 		},
 	}

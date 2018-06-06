@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -13,7 +12,6 @@ func validCommonBaseConfig() *CommonRepoManagerConfig {
 		ChildBranch:  "childBranch",
 		ChildPath:    "childPath",
 		ParentBranch: "parentBranch",
-		Strategy:     strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
@@ -46,14 +44,6 @@ func TestCommonConfigValidation(t *testing.T) {
 	testErr(func(c *CommonRepoManagerConfig) {
 		c.ParentBranch = ""
 	}, "ParentBranch is required.")
-
-	testErr(func(c *CommonRepoManagerConfig) {
-		c.Strategy = ""
-	}, "Strategy is required.")
-
-	testErr(func(c *CommonRepoManagerConfig) {
-		c.Strategy = "bogus"
-	}, "Unknown roll strategy \"bogus\"")
 
 	testErr(func(c *CommonRepoManagerConfig) {
 		c.PreUploadSteps = []string{

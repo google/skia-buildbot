@@ -9,7 +9,6 @@
     "childBranch": "master",
     "childPath": "skia",
     "parentBranch": "master",
-    "parentRepo": "https://fuchsia.googlesource.com/topaz.git",
-    "strategy": "batch"
+    "parentRepo": "https://fuchsia.googlesource.com/topaz.git"
   }
 }

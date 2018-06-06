@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strategy string) (context.Context, string, RepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
@@ -77,7 +77,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 
 	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", "", urlmock.Client())
 	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, cfg.Strategy))
+	assert.NoError(t, SetStrategy(ctx, rm, strategy))
 	assert.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
@@ -96,13 +96,12 @@ func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
 		GerritProject: childPath,
 		IncludeLog:    true,
 		ParentBranch:  "master",
-		Strategy:      strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
 func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
@@ -119,8 +118,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 
 func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
-	cfg.Strategy = strategy.ROLL_STRATEGY_SINGLE
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_SINGLE)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
@@ -150,7 +148,7 @@ func TestNoCheckoutDEPSRepoManagerStrategies(t *testing.T) {
 
 func TestNoCheckoutDEPSRepoManagerFullChildHash(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
@@ -174,7 +172,7 @@ func TestNoCheckoutDEPSRepoManagerFullChildHash(t *testing.T) {
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	cfg := noCheckoutDEPSCfg()
-	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg, strategy.ROLL_STRATEGY_BATCH)
 	defer cleanup()
 
 	mockParent.MockGetCommit(ctx, "master")
