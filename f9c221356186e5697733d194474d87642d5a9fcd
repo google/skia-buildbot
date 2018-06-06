@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e40087d9_0e40df9f",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-06T17:56:51Z",
+      "side": 1,
+      "message": "Can make this is a user friendly string since it is in the UI:\n* Next Roll Strategy\n* Strategy for Next Roll\n* How many changes to include in next roll\n* ???",
+      "range": {
+        "startLine": 180,
+        "startChar": 33,
+        "endLine": 180,
+        "endChar": 46
+      },
+      "revId": "f9c221356186e5697733d194474d87642d5a9fcd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40919bed_1fa8116e",
+        "filename": "autoroll/res/imp/arb-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-06T17:56:51Z",
+      "side": 1,
+      "message": "I wish there were a way in the UI to see the history of both mode and strategy changes.",
+      "range": {
+        "startLine": 192,
+        "startChar": 33,
+        "endLine": 192,
+        "endChar": 39
+      },
+      "revId": "f9c221356186e5697733d194474d87642d5a9fcd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
