@@ -14,7 +14,7 @@ all: clean_webtools status
 include ../go/skiaversion/skiaversion.mk
 
 status: web skiaversion
-	go install -v ./go/status
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/status
 
 # Build the web assets in production mode.
 .PHONY: web
@@ -30,19 +30,13 @@ testgo: skiaversion
 	go test ./go/... -v
 
 release: all
-	./build_release "$(MESSAGE)"
+	./build_docker_release
+
+run: release
+	docker run status
 
 push: all
-	./build_release "`git log -n1 --format=%s`"
-	pushcli statusd skia-status
-
-push_internal: all
-	./build_internal_release "`git log -n1 --format=%s`"
-	pushcli status-internal skia-status-internal
-
-push_staging: all
-	./build_release "`git log -n1 --format=%s`"
-	pushcli statusd skia-status-staging
+	pushk status
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
