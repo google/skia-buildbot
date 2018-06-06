@@ -188,7 +188,7 @@ func main() {
 	}
 
 	// Get the client to be used to access GCS and the Monorail issue tracker.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, http.DefaultTransport, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
@@ -402,6 +402,10 @@ func main() {
 	router.HandleFunc("/json/export", jsonExportHandler).Methods("GET")
 	router.HandleFunc("/json/tryjob", jsonTryjobListHandler).Methods("GET")
 	router.HandleFunc("/json/tryjob/{id}", jsonTryjobSummaryHandler).Methods("GET")
+
+	// Retrieving that baseline for master and an Gerrit issue are handled the same way
+	router.HandleFunc("/json/baseline", jsonBaselineHandler).Methods("GET")
+	router.HandleFunc("/json/baseline/{id}", jsonBaselineHandler).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
