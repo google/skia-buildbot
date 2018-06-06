@@ -23,7 +23,7 @@ import (
 
 const (
 	DEFAULT_NAMESPACE          = "default-gzip"
-	ISOLATE_EXE_SHA1           = "b1c3c39fe8fe084bd2ec4ed0f03037751a3a8650"
+	ISOLATE_EXE_SHA1           = "af227603890ea1d8c082b5caf15e46a6bf060a2e"
 	ISOLATESERVER_EXE_SHA1     = "23dfc04c65f2ddf2f8dc8dce0fcdcf57ed6b98a3"
 	ISOLATE_SERVER_URL         = "https://isolateserver.appspot.com"
 	ISOLATE_SERVER_URL_FAKE    = "fake"
