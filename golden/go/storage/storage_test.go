@@ -2,32 +2,33 @@ package storage
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/testutils"
+	assert "github.com/stretchr/testify/require"
 
-	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/golden/go/mocks"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/baseline"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	// TEST_HASHES_GS_PATH is the bucket/path combination where the test file will be written.
-	TEST_HASHES_GS_PATH = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
+	TEST_HASHES_GS_PATH   = "skia-infra-testdata/hash_files/testing-known-hashes.txt"
+	TEST_BASELINE_GS_PATH = "skia-infra-testdata/hash_files/testing-baselines"
 )
 
 func TestGStorageClient(t *testing.T) {
 	testutils.MediumTest(t)
 
-	client := mocks.GetHTTPClient(t)
 	timeStamp := fmt.Sprintf("%032d", time.Now().UnixNano())
-
-	opt := &GSClientOptions{HashesGSPath: TEST_HASHES_GS_PATH + "-" + timeStamp}
-	gsClient, err := NewGStorageClient(client, opt)
+	opt := &GSClientOptions{
+		HashesGSPath:   TEST_HASHES_GS_PATH + "-" + timeStamp,
+		BaselineGSPath: TEST_BASELINE_GS_PATH + "-" + timeStamp,
+	}
+	gsClient, err := NewGStorageClient(nil, opt)
 	assert.NoError(t, err)
-	defer func() {
-		assert.NoError(t, gsClient.removeGSPath(opt.HashesGSPath))
-	}()
 
 	knownDigests := []string{
 		"c003788f8d306ff1226e2a460835dae4",
@@ -43,8 +44,76 @@ func TestGStorageClient(t *testing.T) {
 		timeStamp,
 	}
 	assert.NoError(t, gsClient.WriteKnownDigests(knownDigests))
+	removePaths := []string{opt.HashesGSPath}
+	defer func() {
+		for _, path := range removePaths {
+			_ = gsClient.removeGSPath(path)
+		}
+	}()
 
 	found, err := gsClient.loadKnownDigests()
 	assert.NoError(t, err)
 	assert.Equal(t, knownDigests, found)
+
+	masterBaseline := &baseline.CommitableBaseLine{
+		StartCommit: nil,
+		EndCommit:   nil,
+		Baseline: baseline.Baseline{
+			"test-1": map[string]types.Label{"d1": types.POSITIVE},
+		},
+		Issue: 0,
+	}
+
+	emptyBaseline := &baseline.CommitableBaseLine{Baseline: map[string]types.TestClassification{}}
+	foundBaseline, err := gsClient.ReadBaseline(0)
+	assert.NoError(t, err)
+	assert.Equal(t, emptyBaseline, foundBaseline)
+
+	path, err := gsClient.WriteBaseLine(masterBaseline)
+	assert.NoError(t, err)
+	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
+
+	foundBaseline, err = gsClient.ReadBaseline(0)
+	assert.NoError(t, err)
+	assert.Equal(t, masterBaseline, foundBaseline)
+
+	// Add a baseline for an issue
+	issueID := int64(5678)
+	issueBaseline := &baseline.CommitableBaseLine{
+		StartCommit: nil,
+		EndCommit:   nil,
+		Baseline: baseline.Baseline{
+			"test-3": map[string]types.Label{"d2": types.POSITIVE},
+		},
+		Issue: issueID,
+	}
+
+	path, err = gsClient.WriteBaseLine(issueBaseline)
+	assert.NoError(t, err)
+	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
+
+	foundBaseline, err = gsClient.ReadBaseline(issueID)
+	assert.NoError(t, err)
+	assert.Equal(t, issueBaseline, foundBaseline)
+
+	// Test reading a non-existing baseline for an issue
+	foundBaseline, err = gsClient.ReadBaseline(5344)
+	assert.NoError(t, err)
+	assert.Equal(t, emptyBaseline, foundBaseline)
+
+	// Fetch the combined baselines
+	storages := &Storage{GStorageClient: gsClient}
+	combined := &baseline.CommitableBaseLine{}
+	*combined = *masterBaseline
+	combined.Baseline = masterBaseline.Baseline.DeepCopy().Merge(issueBaseline.Baseline)
+	assert.NotEqual(t, masterBaseline, combined)
+	assert.True(t, len(masterBaseline.Baseline) > 0)
+	foundBaseline, err = storages.FetchBaseline(issueID)
+	assert.NoError(t, err)
+	assert.Equal(t, combined, foundBaseline)
+
+	// Fetch the combined baselines when there are no baselines for the issue
+	foundBaseline, err = storages.FetchBaseline(5344)
+	assert.NoError(t, err)
+	assert.Equal(t, masterBaseline, foundBaseline)
 }
