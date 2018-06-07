@@ -414,6 +414,18 @@ func (r *AutoRoller) updateStatus(replaceLastError bool, lastError string) error
 	if !replaceLastError {
 		lastError = r.status.Get(true, nil).Error
 	}
+
+	failureThrottledUntil := r.failureThrottled.ThrottledUntil().Unix()
+	safetyThrottledUntil := r.safetyThrottled.ThrottledUntil().Unix()
+	successThrottledUntil := r.successThrottled.ThrottledUntil().Unix()
+	throttledUntil := failureThrottledUntil
+	if safetyThrottledUntil > throttledUntil {
+		throttledUntil = safetyThrottledUntil
+	}
+	if successThrottledUntil > throttledUntil {
+		throttledUntil = successThrottledUntil
+	}
+
 	sklog.Infof("Updating status (%d)", r.rm.CommitsNotRolled())
 	return r.status.Set(&AutoRollStatus{
 		AutoRollMiniStatus: AutoRollMiniStatus{
@@ -430,6 +442,7 @@ func (r *AutoRoller) updateStatus(replaceLastError bool, lastError string) error
 		Recent:          recent,
 		Status:          string(r.sm.Current()),
 		Strategy:        r.strategyHistory.CurrentStrategy(),
+		ThrottledUntil:  throttledUntil,
 		ValidStrategies: r.rm.ValidStrategies(),
 	})
 }
