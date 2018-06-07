@@ -366,9 +366,7 @@
   },
   {
     "cmd": [
-      "go",
-      "get",
-      "golang.org/x/tools/cmd/goimports"
+      "./scripts/install_go_deps.sh"
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
     "env": {
@@ -378,57 +376,7 @@
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
     },
-    "name": "install goimports"
-  },
-  {
-    "cmd": [
-      "go",
-      "get",
-      "github.com/kisielk/errcheck"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[START_DIR]/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
-    },
-    "name": "install errcheck"
-  },
-  {
-    "cmd": [
-      "go",
-      "get",
-      "-u",
-      "github.com/golang/protobuf/protoc-gen-go"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[START_DIR]/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
-    },
-    "name": "install protoc-gen-go"
-  },
-  {
-    "cmd": [
-      "go",
-      "get",
-      "-u",
-      "golang.org/x/tools/cmd/stringer"
-    ],
-    "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOPATH": "[START_DIR]/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
-    },
-    "name": "install stringer"
+    "name": "install go deps"
   },
   {
     "cmd": [

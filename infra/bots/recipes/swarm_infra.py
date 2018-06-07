@@ -152,17 +152,9 @@ def RunSteps(api):
           'install bower',
           cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
       api.step(
-          'install goimports',
-          cmd=['go', 'get', 'golang.org/x/tools/cmd/goimports'])
-      api.step(
-          'install errcheck',
-          cmd=['go', 'get', 'github.com/kisielk/errcheck'])
-    api.step(
-        'install protoc-gen-go',
-        cmd=['go', 'get', '-u', 'github.com/golang/protobuf/protoc-gen-go'])
-    api.step(
-        'install stringer',
-        cmd=['go', 'get', '-u', 'golang.org/x/tools/cmd/stringer'])
+          'install go deps',
+          cmd=['./scripts/install_go_deps.sh'])
+
   with api.context(cwd=infra_dir.join('go', 'database'), env=env):
     api.step(
         'setup database',
