@@ -103,6 +103,7 @@
           <div class="td nowrap">
             <span class$="{{_statusClass(status)}}"><span class="big">{{status}}</span></span>
             <template is="dom-if" if="{{_isThrottled(status)}}">
+              <span>until <human-date-sk date="[[throttledUntil]]" seconds></human-date-sk></span>
               <button on-tap="_unthrottle">Force Unthrottle</button>
             </template>
           </div>
@@ -286,6 +287,11 @@
         parentWaterfall: {
           type: String,
           value: null,
+          readOnly: true,
+        },
+        throttledUntil: {
+          type: Number,
+          value: 0,
           readOnly: true,
         },
         strategy: {
@@ -563,6 +569,7 @@
         this._setStrategy(json.strategy.strategy);
         this._setStrategyChangeBy(json.strategy.user);
         this._setStrategyChangeMsg(json.strategy.message);
+        this._setThrottledUntil(json.throttledUntil);
         this._setValidModes(json.validModes);
         this._setValidStrategies(json.validStrategies);
         var modeButtons = [];
