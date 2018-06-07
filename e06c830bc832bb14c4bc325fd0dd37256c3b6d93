@@ -34,6 +34,24 @@
       "revId": "e06c830bc832bb14c4bc325fd0dd37256c3b6d93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f3c2d21_650dbb65",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 7711
+      },
+      "writtenOn": "2018-06-07T21:15:36Z",
+      "side": 1,
+      "message": "All right, that should be isolated. I\u0027ve updated its sha1 as well.",
+      "parentUuid": "33475e00_3ed0f050",
+      "revId": "e06c830bc832bb14c4bc325fd0dd37256c3b6d93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
