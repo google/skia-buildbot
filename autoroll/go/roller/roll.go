@@ -349,6 +349,13 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 	}
 	a.TryResults = tryResults
 
+	sklog.Error("LOGGING LOGGING LOGGING LOGGING LOGGING LOGGING")
+	sklog.Errorf("a.TryResults: %s", a.TryResults)
+	sklog.Errorf("a.AllTrybotsSucceeded: %s", a.AllTrybotsSucceeded())
+	sklog.Errorf("pullRequest.GetState() is: %s", pullRequest.GetState())
+	sklog.Errorf("github.CLOSED_STATE: %s", github.CLOSED_STATE)
+	sklog.Errorf("pullRequest.GetMergeableState() is: %s", pullRequest.GetMergeableState())
+	sklog.Errorf("github.MERGEABLE_STATE_CLEAN: %s", github.MERGEABLE_STATE_CLEAN)
 	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
 		// Add a comment and close the roll.
 		if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
@@ -361,7 +368,9 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 	} else if len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
+		sklog.Error("ABOUT TO MERGE PULL REQUEST")
 		if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging.", github.MERGE_METHOD_SQUASH); err != nil {
+			sklog.Errorf("ERROR WHILE MERGING: %s", err)
 			return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
 		}
 	}

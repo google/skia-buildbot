@@ -16,6 +16,7 @@ import (
 	"strconv"
 
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -71,7 +72,9 @@ func (t *TravisCI) GetPullRequestBuilds(pullNumber int, createdBy string) ([]*Bu
 	params.Add("sort_by", "id:desc")
 	params.Add("event_type", "pull_request")
 	params.Add("created_by", createdBy)
-	suburl := fmt.Sprintf("/builds?%s", params.Encode())
+	// Same as {repository.owner.name}/{repository.name}.
+	repositorySlug := fmt.Sprintf("%s/%s", t.repoOwner, t.repoName)
+	suburl := fmt.Sprintf("/repo/%s/builds?%s", url.QueryEscape(repositorySlug), params.Encode())
 
 	builds := &Builds{}
 	if err := t.get(suburl, builds); err != nil {
@@ -93,6 +96,7 @@ func (t *TravisCI) GetBuildURL(buildID int) string {
 // get retrieves the given suburl and populates 'rv' with the result.
 func (t *TravisCI) get(suburl string, rv interface{}) error {
 	getURL := t.apiURL + suburl
+	sklog.Errorf("travisci getURL is: %s", getURL)
 	req, err := http.NewRequest("GET", getURL, nil)
 	if err != nil {
 		return err
