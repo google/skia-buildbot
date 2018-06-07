@@ -16,6 +16,24 @@
       "revId": "e06c830bc832bb14c4bc325fd0dd37256c3b6d93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33475e00_3ed0f050",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-07T12:14:09Z",
+      "side": 1,
+      "message": "Yes, I believe so.  It\u0027s the Go equivalent of isolateserver.py from the luci-py repo.  If they\u0027re the same, I\u0027m not sure why they\u0027re named differently.",
+      "parentUuid": "37ba7c93_9250a070",
+      "revId": "e06c830bc832bb14c4bc325fd0dd37256c3b6d93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
