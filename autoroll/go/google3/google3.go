@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/state_machine"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/git"
@@ -176,6 +177,12 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		},
 		Recent: recent,
 		Status: state_machine.S_NORMAL_ACTIVE,
+		Strategy: &strategy.StrategyChange{
+			Message:  "Google3 roller strategy cannot be changed.",
+			Strategy: strategy.ROLL_STRATEGY_BATCH,
+			User:     "AutoRoller",
+		},
+		ValidStrategies: []string{strategy.ROLL_STRATEGY_BATCH},
 	}); err != nil {
 		return err
 	}
