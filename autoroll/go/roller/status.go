@@ -24,6 +24,7 @@ type AutoRollStatus struct {
 	Recent          []*autoroll.AutoRollIssue `json:"recent"`
 	Status          string                    `json:"status"`
 	Strategy        *strategy.StrategyChange  `json:"strategy"`
+	ThrottledUntil  int64                     `json:"throttledUntil"`
 	ValidModes      []string                  `json:"validModes"`
 	ValidStrategies []string                  `json:"validStrategies"`
 }
