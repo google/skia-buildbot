@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6d28737_7e2b8df6",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 33
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-07T16:23:36Z",
+      "side": 0,
+      "message": "Maybe add a pointer to how/where the skia-public image is built.",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 24
+      },
+      "revId": "7f8ffae0d496ba34eeb9fb77a89a18e62dd4af88",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
