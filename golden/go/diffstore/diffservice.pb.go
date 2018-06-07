@@ -54,9 +54,9 @@ func (m *Empty) XXX_DiscardUnknown() {
 var xxx_messageInfo_Empty proto.InternalMessageInfo
 
 type GetDiffsRequest struct {
-	Priority             int64    `protobuf:"varint,1,opt,name=priority" json:"priority,omitempty"`
-	MainDigest           string   `protobuf:"bytes,2,opt,name=mainDigest" json:"mainDigest,omitempty"`
-	RightDigests         []string `protobuf:"bytes,3,rep,name=rightDigests" json:"rightDigests,omitempty"`
+	Priority             int64    `protobuf:"varint,1,opt,name=priority,proto3" json:"priority,omitempty"`
+	MainDigest           string   `protobuf:"bytes,2,opt,name=mainDigest,proto3" json:"mainDigest,omitempty"`
+	RightDigests         []string `protobuf:"bytes,3,rep,name=rightDigests,proto3" json:"rightDigests,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -146,8 +146,8 @@ func (m *GetDiffsResponse) GetDiffs() []byte {
 }
 
 type PurgeDigestsRequest struct {
-	Digests              []string `protobuf:"bytes,1,rep,name=digests" json:"digests,omitempty"`
-	PurgeGCS             bool     `protobuf:"varint,2,opt,name=purgeGCS" json:"purgeGCS,omitempty"`
+	Digests              []string `protobuf:"bytes,1,rep,name=digests,proto3" json:"digests,omitempty"`
+	PurgeGCS             bool     `protobuf:"varint,2,opt,name=purgeGCS,proto3" json:"purgeGCS,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -192,7 +192,7 @@ func (m *PurgeDigestsRequest) GetPurgeGCS() bool {
 }
 
 type UnavailableDigestsResponse struct {
-	DigestFailures       map[string]*DigestFailureResponse `protobuf:"bytes,1,rep,name=digestFailures" json:"digestFailures,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	DigestFailures       map[string]*DigestFailureResponse `protobuf:"bytes,1,rep,name=digestFailures,proto3" json:"digestFailures,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
 	XXX_unrecognized     []byte                            `json:"-"`
 	XXX_sizecache        int32                             `json:"-"`
@@ -230,9 +230,9 @@ func (m *UnavailableDigestsResponse) GetDigestFailures() map[string]*DigestFailu
 }
 
 type WarmDigestsRequest struct {
-	Priority             int64    `protobuf:"varint,1,opt,name=priority" json:"priority,omitempty"`
-	Digests              []string `protobuf:"bytes,2,rep,name=digests" json:"digests,omitempty"`
-	Sync                 bool     `protobuf:"varint,3,opt,name=sync" json:"sync,omitempty"`
+	Priority             int64    `protobuf:"varint,1,opt,name=priority,proto3" json:"priority,omitempty"`
+	Digests              []string `protobuf:"bytes,2,rep,name=digests,proto3" json:"digests,omitempty"`
+	Sync                 bool     `protobuf:"varint,3,opt,name=sync,proto3" json:"sync,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -284,9 +284,9 @@ func (m *WarmDigestsRequest) GetSync() bool {
 }
 
 type WarmDiffsRequest struct {
-	Priority             int64    `protobuf:"varint,1,opt,name=priority" json:"priority,omitempty"`
-	LeftDigests          []string `protobuf:"bytes,2,rep,name=leftDigests" json:"leftDigests,omitempty"`
-	RightDigests         []string `protobuf:"bytes,3,rep,name=rightDigests" json:"rightDigests,omitempty"`
+	Priority             int64    `protobuf:"varint,1,opt,name=priority,proto3" json:"priority,omitempty"`
+	LeftDigests          []string `protobuf:"bytes,2,rep,name=leftDigests,proto3" json:"leftDigests,omitempty"`
+	RightDigests         []string `protobuf:"bytes,3,rep,name=rightDigests,proto3" json:"rightDigests,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -338,9 +338,9 @@ func (m *WarmDiffsRequest) GetRightDigests() []string {
 }
 
 type DigestFailureResponse struct {
-	Digest               string   `protobuf:"bytes,1,opt,name=Digest" json:"Digest,omitempty"`
-	Reason               string   `protobuf:"bytes,2,opt,name=Reason" json:"Reason,omitempty"`
-	TS                   int64    `protobuf:"varint,3,opt,name=TS" json:"TS,omitempty"`
+	Digest               string   `protobuf:"bytes,1,opt,name=Digest,proto3" json:"Digest,omitempty"`
+	Reason               string   `protobuf:"bytes,2,opt,name=Reason,proto3" json:"Reason,omitempty"`
+	TS                   int64    `protobuf:"varint,3,opt,name=TS,proto3" json:"TS,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
