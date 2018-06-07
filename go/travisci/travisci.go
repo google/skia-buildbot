@@ -71,7 +71,8 @@ func (t *TravisCI) GetPullRequestBuilds(pullNumber int, createdBy string) ([]*Bu
 	params.Add("sort_by", "id:desc")
 	params.Add("event_type", "pull_request")
 	params.Add("created_by", createdBy)
-	suburl := fmt.Sprintf("/builds?%s", params.Encode())
+	repositorySlug := fmt.Sprintf("%s/%s", t.repoOwner, t.repoName)
+	suburl := fmt.Sprintf("/repo/%s/builds?%s", url.QueryEscape(repositorySlug), params.Encode())
 
 	builds := &Builds{}
 	if err := t.get(suburl, builds); err != nil {
