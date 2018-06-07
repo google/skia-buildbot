@@ -31,6 +31,7 @@ const (
 	FIX_ARCHIVE_TASKS_DIR_NAME       = "fix_archive_runs"
 	TRACE_DOWNLOADS_DIR_NAME         = "trace_downloads"
 	CHROMIUM_BUILD_ZIP_NAME          = "chromium_build.zip"
+	PATCHES_DIR_NAME                 = "patches"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
