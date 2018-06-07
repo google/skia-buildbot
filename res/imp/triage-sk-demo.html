@@ -2,7 +2,7 @@
 <head>
   <title>triage-sk demo</title>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="../../node_modules/native-promise-only/npo.js"></script>
   <script src="../common/js/common.js"></script>
@@ -35,15 +35,15 @@
           properties: {
             val: "triaged",
             eventTriggered: {
-              type: String, 
+              type: String,
               value: ''
             }
           },
 
           ready: function() {
             this.addEventListener('change', function(e) {
-              this.eventTriggered = this.eventTriggered + "."; 
-              e.stopPropagation(); 
+              this.eventTriggered = this.eventTriggered + ".";
+              e.stopPropagation();
             }.bind(this));
           }
 
@@ -51,8 +51,8 @@
       });
     </script>
   </dom-module>
-  
-  <!-- Instantite the element defined above --> 
+
+  <!-- Instantite the element defined above -->
   <main-document-element></main-document-element>
 
 </body>
