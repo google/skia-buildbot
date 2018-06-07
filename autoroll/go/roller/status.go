@@ -24,6 +24,7 @@ type AutoRollStatus struct {
 	Recent          []*autoroll.AutoRollIssue `json:"recent"`
 	Status          string                    `json:"status"`
 	Strategy        *strategy.StrategyChange  `json:"strategy"`
+	ThrottledUntil  int64                     `json:"throttledUntil"`
 	ValidModes      []string                  `json:"validModes"`
 	ValidStrategies []string                  `json:"validStrategies"`
 }
@@ -66,6 +67,7 @@ type AutoRollStatusCache struct {
 	recent          []*autoroll.AutoRollIssue
 	status          string
 	strategy        *strategy.StrategyChange
+	throttledUntil  int64
 	validStrategies []string
 }
 
@@ -101,6 +103,7 @@ func (c *AutoRollStatusCache) Get(includeError bool, cleanIssue func(*autoroll.A
 		Recent:          recent,
 		Status:          c.status,
 		Strategy:        c.strategy,
+		ThrottledUntil:  c.throttledUntil,
 		ValidModes:      validModes,
 		ValidStrategies: util.CopyStringSlice(c.validStrategies),
 	}
@@ -149,6 +152,7 @@ func (c *AutoRollStatusCache) Set(s *AutoRollStatus) error {
 	c.recent = recent
 	c.status = s.Status
 	c.strategy = s.Strategy
+	c.throttledUntil = s.ThrottledUntil
 	c.validStrategies = util.CopyStringSlice(s.ValidStrategies)
 
 	return nil
