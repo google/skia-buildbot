@@ -1,26 +1,29 @@
-// Functions for the last mile of a fiddle, i.e. writing out
-// draw.cpp and then calling fiddle_run to compile and execute
-// the code.
+// Functions for the last mile of a fiddle, i.e. formatting the draw.cpp and
+// then compiling and executing the code by dispatching a request to a fiddler.
 package runner
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"os"
+	"net/http"
 	"path/filepath"
 	"time"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-
-	"go.skia.org/infra/fiddle/go/linenumbers"
-	"go.skia.org/infra/fiddle/go/types"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util/limitwriter"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+
+	"go.skia.org/infra/fiddlek/go/linenumbers"
+	"go.skia.org/infra/fiddlek/go/types"
 )
 
 const (
@@ -36,8 +39,14 @@ DrawOptions GetDrawOptions() {
 )
 
 var (
-	runTotal    = metrics2.GetCounter("run_total", nil)
-	runFailures = metrics2.GetCounter("run_failures", nil)
+	runTotal      = metrics2.GetCounter("run_total", nil)
+	runFailures   = metrics2.GetCounter("run_failures", nil)
+	runExhaustion = metrics2.GetCounter("run_exhaustion", nil)
+	podsTotal     = metrics2.GetInt64Metric("pods_total", nil)
+	podsIdle      = metrics2.GetInt64Metric("pods_idle", nil)
+
+	alreadyRunningFiddleErr = errors.New("Fiddle already running.")
+	failedToSendErr         = errors.New("Failed to send request to fiddler.")
 )
 
 func toGrMipMapped(b bool) string {
@@ -48,20 +57,49 @@ func toGrMipMapped(b bool) string {
 	}
 }
 
+type Runner struct {
+	sourceDir  string
+	client     *http.Client
+	fastClient *http.Client
+	localUrl   string
+	clientset  *kubernetes.Clientset
+}
+
+func New(local bool, sourceDir string) (*Runner, error) {
+	ret := &Runner{
+		sourceDir:  sourceDir,
+		client:     httputils.NewTimeoutClient(),
+		fastClient: httputils.NewFastTimeoutClient(),
+		localUrl:   "http://localhost:8000/run",
+	}
+	if !local {
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get in-cluster config: %s", err)
+		}
+		sklog.Infof("Auth username: %s", config.Username)
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get in-cluster clientset: %s", err)
+		}
+		ret.clientset = clientset
+	}
+	return ret, nil
+}
+
 // prepCodeToCompile adds the line numbers and the right prefix code
 // to the fiddle so it compiles and links correctly.
 //
-//    fiddleRoot - The root of the fiddle working directory. See DESIGN.md.
 //    code - The code to compile.
 //    opts - The user's options about how to run that code.
 //
 // Returns the prepped code.
-func prepCodeToCompile(fiddleRoot, code string, opts *types.Options) string {
+func (r *Runner) prepCodeToCompile(code string, opts *types.Options) string {
 	code = linenumbers.LineNumbers(code)
 	sourceImage := "0"
 	if opts.Source != 0 {
 		filename := fmt.Sprintf("%d.png", opts.Source)
-		sourceImage = fmt.Sprintf("%q", filepath.Join(fiddleRoot, "images", filename))
+		sourceImage = fmt.Sprintf("%q", filepath.Join(r.sourceDir, filename))
 	}
 	pdf := true
 	skp := true
@@ -83,7 +121,7 @@ func prepCodeToCompile(fiddleRoot, code string, opts *types.Options) string {
 }
 
 // ValidateOptions validates that the options make sense.
-func ValidateOptions(opts *types.Options) error {
+func (r *Runner) ValidateOptions(opts *types.Options) error {
 	if opts.Animated {
 		if opts.Duration <= 0 {
 			return fmt.Errorf("Animation duration must be > 0.")
@@ -110,225 +148,138 @@ func ValidateOptions(opts *types.Options) error {
 	return nil
 }
 
-// WriteDrawCpp takes the given code, modifies it so that it can be compiled
-// and then writes the "draw.cpp" file to the correct location, based on
-// 'local'.
-//
-//    fiddleRoot - The root of the fiddle working directory. See DESIGN.md.
-//    code - The code to compile.
-//    opts - The user's options about how to run that code.
-//    local - If true then we are running locally, so write the code to
-//        fiddleRoot/src/draw.cpp.
-//
-// Returns a temp directory. Depending on 'local' this is where the 'draw.cpp' file was written.
-func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options) (string, error) {
-	code = prepCodeToCompile(fiddleRoot, code, opts)
-	dstDir := filepath.Join(fiddleRoot, "src")
-	var err error
-	tmpDir := filepath.Join(fiddleRoot, "tmp")
-	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil && err != os.ErrExist {
-		return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
-	}
-	dstDir, err = ioutil.TempDir(tmpDir, "code")
-	sklog.Infof("Created tmp dir: %s %s", dstDir, err)
+func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
+	var output bytes.Buffer
+	resp, err := r.client.Post(url, "application/json", body)
 	if err != nil {
-		return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
+		return nil, failedToSendErr
 	}
-
-	drawPath := filepath.Join(dstDir, "upper", "skia", "tools", "fiddle")
-	if err := os.MkdirAll(drawPath, 0755); err != nil {
-		return dstDir, fmt.Errorf("failed to create dir %q: %s", drawPath, err)
+	defer util.Close(resp.Body)
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return nil, alreadyRunningFiddleErr
 	}
-
-	sklog.Infof("About to write to: %s", drawPath)
-	w, err := os.Create(filepath.Join(drawPath, "draw.cpp"))
-	sklog.Infof("Create: %v %v", *w, err)
+	_, err = io.Copy(limitwriter.New(&output, types.MAX_JSON_SIZE), resp.Body)
+	sklog.Infof("Got response: %q", output.String())
 	if err != nil {
-		return dstDir, fmt.Errorf("Failed to open destination: %s", err)
+		return nil, fmt.Errorf("Failed to read response: %s", err)
 	}
-	defer util.Close(w)
-	_, err = w.Write([]byte(code))
-	if err != nil {
-		return dstDir, fmt.Errorf("Failed to write draw.cpp file: %s", err)
-	}
-	return dstDir, nil
-}
-
-// GitHashTimeStamp finds the timestamp, in UTC, of the given checkout of Skia under fiddleRoot.
-//
-//    fiddleRoot - The root of the fiddle working directory. See DESIGN.md.
-//    gitHash - The git hash of the version of Skia we have checked out.
-//
-// Returns the timestamp of the git commit in UTC.
-func GitHashTimeStamp(ctx context.Context, fiddleRoot, gitHash string) (time.Time, error) {
-	g, err := gitinfo.NewGitInfo(ctx, filepath.Join(fiddleRoot, "versions", gitHash), false, false)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("Failed to create gitinfo: %s", err)
-	}
-	commit, err := g.Details(ctx, gitHash, false)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("Failed to retrieve info on the git commit %s: %s", gitHash, err)
-	}
-	return commit.Timestamp.In(time.UTC), nil
-}
-
-// Run executes fiddle_run and then parses the JSON output into types.Results.
-//
-//    fiddleRoot - The root of the fiddle working directory. See DESIGN.md.
-//    gitHash - The git hash of the version of Skia we have checked out.
-//    local - Boolean, true if we are running locally, else we should execute
-//        fiddle_run under fiddle_secwrap.
-//    tmpDir - The directory outside the container to mount as FIDDLE_ROOT/src
-//        that contains the user's draw.cpp file. Only used if local is false.
-//    opts - The compile time options that are passed to draw.cpp.
-//    preserve - Should the overlay mount be preserverd?
-//
-// Returns the parsed JSON that fiddle_run emits to stdout.
-//
-// If non-local this should run something like:
-//
-// sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network
-//  --machine foo
-//  --overlay=/mnt/pd0/fiddle:/tmp:/mnt/pd0/fiddle
-//  --bind-ro /tmp/draw.cpp:/mnt/pd0/fiddle/versions/d6dd44140d8dd6d18aba1dfe9edc5582dcd73d2f/tools/fiddle/draw.cpp
-//  xargs --arg-file=/dev/null \
-//    /mnt/pd0/fiddle/bin/fiddle_run \
-//    --fiddle_root /mnt/pd0/fiddle \
-//    --git_hash 5280dcbae3affd73be5d5e0ff3db8823e26901e6 \
-//    --alsologtostderr
-//
-// OVERLAY
-//    The use of --overlay=/mnt/pd0/fiddle:/tmp:/mnt/pd0/fiddle sets up an interesting directory
-//    /mnt/pd0/fiddle in the container, where the entire contents of the host's
-//    /mnt/pd0/fiddle is available read-only, and if the container tries to write
-//    to any files there, or create new files, they end up in /tmp and the first
-//    directory stays untouched. See https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt
-//    and the documentation for the --overlay flag of systemd-nspawn.
-//
-// Why xargs?
-//    When trying to run a binary that exists on a mounted directory under nspawn, it will fail with:
-//
-//    $ sudo systemd-nspawn -D /mnt/pd0/container/ --bind=/mnt/pd0/fiddle /mnt/pd0/fiddle/bin/fiddle_run
-//    Directory /mnt/pd0/container lacks the binary to execute or doesn't look like a binary tree. Refusing.
-//
-// That's because nspawn is looking for the exe before doing the bindings. The
-// fix? A pure hack, insert "xargs --arg-file=/dev/null " before the command
-// you want to run. Since xargs exists in the container this will proceed to
-// the point of making the bindings and then xargs will be able to execute the
-// exe within the container.
-//
-func Run(ctx context.Context, checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string, opts *types.Options, preserve bool) (*types.Result, error) {
-	/*
-		Do the equivalent of the following bash script that creates the overlayfs
-		mount.
-
-			#!/bin/bash
-
-			set -e -x
-
-			RUNID=runid2222
-			GITHASH=c34a946d5a975ba8b8cd51f79b55174a5ec0f99f
-			FIDDLE_ROOT=/usr/local/google/home/jcgregorio/projects/temp
-			TMP_DIR=${FIDDLE_ROOT}/tmp/${RUNID}
-
-			mkdir --parents ${TMP_DIR}/upper/skia/tools/fiddle
-			mkdir ${TMP_DIR}/work
-			mkdir ${TMP_DIR}/overlay
-			cp ${TMP_DIR}/draw.cpp ${TMP_DIR}/upper/skia/tools/fiddle/draw.cpp
-
-			LOWER=${FIDDLE_ROOT}/versions/${GITHASH}
-			UPPER=${TMP_DIR}/upper
-			WORK=${TMP_DIR}/work
-			OVERLAY=${TMP_DIR}/overlay
-
-			sudo mount -t overlay -o lowerdir=$LOWER,upperdir=$UPPER,workdir=$WORK none ${OVERLAY}
-
-	*/
-	runTotal.Inc(1)
-	upper := filepath.Join(tmpDir, "upper")
-	work := filepath.Join(tmpDir, "work")
-	overlay := filepath.Join(tmpDir, "overlay")
-	lower := filepath.Join(fiddleRoot, "versions", gitHash)
-	if err := os.MkdirAll(upper, 0755); err != nil {
-		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", upper, err)
-	}
-	if err := os.MkdirAll(work, 0755); err != nil {
-		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", work, err)
-	}
-	if err := os.MkdirAll(overlay, 0755); err != nil {
-		return nil, fmt.Errorf("fiddle_run failed to create dir %q: %s", overlay, err)
-	}
-	mounttype := "overlay"
-	if local {
-		mounttype = "overlayfs"
-	}
-	name := "sudo"
-	args := []string{
-		"mount", "-t", mounttype,
-		"-o",
-		fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", lower, upper, work),
-		"none",
-		overlay,
-	}
-	output := &bytes.Buffer{}
-	mountCmd := &exec.Command{
-		Name:      name,
-		Args:      args,
-		LogStderr: true,
-		Stdout:    output,
-	}
-	if err := exec.Run(ctx, mountCmd); err != nil {
-		return nil, fmt.Errorf("mount failed to run %#v: %s", *mountCmd, err)
-	}
-
-	// Queue up the umount in a defer.
-	if !preserve {
-		defer func() {
-			name = "sudo"
-			args = []string{
-				"umount", overlay,
-			}
-			output = &bytes.Buffer{}
-			umountCmd := &exec.Command{
-				Name:      name,
-				Args:      args,
-				LogStderr: true,
-				Stdout:    output,
-			}
-
-			if err := exec.Run(ctx, umountCmd); err != nil {
-				sklog.Errorf("umount failed to run %#v: %s", *umountCmd, err)
-			}
-		}()
-	}
-
-	// Run fiddle_run.
-	name = filepath.Join(fiddleRoot, "bin", "fiddle_run")
-	if local {
-		name = "fiddle_run"
-	}
-	args = []string{"--fiddle_root", fiddleRoot, "--checkout", overlay, "--git_hash", gitHash, "--alsologtostderr"}
-	args = append(args, "--duration", fmt.Sprintf("%f", opts.Duration))
-	if local {
-		args = append(args, "--local")
-	}
-	output = &bytes.Buffer{}
-	runCmd := &exec.Command{
-		Name:      name,
-		Args:      args,
-		LogStderr: true,
-		Stdout:    output,
-	}
-	if err := exec.Run(ctx, runCmd); err != nil {
-		runFailures.Inc(1)
-		return nil, fmt.Errorf("fiddle_run failed to run %#v: %s", *runCmd, err)
-	}
-
 	// Parse the output into types.Result.
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
 		sklog.Errorf("Received erroneous output: %q", output.String())
-		return nil, fmt.Errorf("Failed to decode results from run: %s", err)
+		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String())
 	}
 	return res, nil
+}
+
+// Run executes fiddle_run and then parses the JSON output into types.Results.
+//
+//    local - Boolean, true if we are running locally.
+func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error) {
+	if len(req.Code) > types.MAX_CODE_SIZE {
+		return nil, fmt.Errorf("Code size is too large.")
+	}
+	reqToSend := *req
+	reqToSend.Code = r.prepCodeToCompile(req.Code, &req.Options)
+	runTotal.Inc(1)
+	sklog.Infof("Sending: %q", reqToSend.Code)
+
+	b, err := json.Marshal(reqToSend)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to encode request: %s", err)
+	}
+	body := bytes.NewReader(b)
+
+	// If not local then use the k8s api to pick an open fiddler pod to send
+	// the request to. Send a GET / to each one until you find an idle instance.
+	if local {
+		return r.singleRun(r.localUrl, body)
+	} else {
+		// Try to run the fiddle on an open pod. If all pods are busy then
+		// wait a bit and try again.
+		for tries := 0; tries < 6; tries++ {
+			pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+				LabelSelector: "app=fiddler",
+			})
+			if err != nil {
+				return nil, fmt.Errorf("Could not list fiddler pods: %s", err)
+			}
+			// Loop over all the pods looking for an open one.
+			for i, p := range pods.Items {
+				sklog.Infof("Found pod %d: %s", i, p.Name)
+				rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
+				resp, err := r.fastClient.Get(rootURL)
+				if err != nil {
+					sklog.Infof("Failed to request fiddler status: %s", err)
+					continue
+				}
+				defer util.Close(resp.Body)
+				state, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					sklog.Warningf("Failed to read status: %s", err)
+					continue
+				}
+				if string(state) == string(types.IDLE) {
+					// Run the fiddle in the open pod.
+					ret, err := r.singleRun(rootURL+"/run", body)
+					if err == alreadyRunningFiddleErr || err == failedToSendErr {
+						continue
+					} else {
+						// Kill the pod once we have a result.
+						if err := r.clientset.CoreV1().Pods("default").Delete(p.Name, &metav1.DeleteOptions{}); err != nil {
+							sklog.Warningf("Delete Pod returned: %s", err)
+						}
+						if err != nil {
+							runFailures.Inc(1)
+						}
+						return ret, err
+					}
+				}
+			}
+			// Let the pods run and see of any new ones open up.
+			time.Sleep(time.Second)
+		}
+		runExhaustion.Inc(1)
+		return nil, fmt.Errorf("Failed to find an available server to run the fiddle.")
+	}
+}
+
+func (r *Runner) metricsSingleStep() {
+	pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+		LabelSelector: "app=fiddler",
+	})
+	if err != nil {
+		sklog.Errorf("Could not list fiddler pods: %s", err)
+		return
+	}
+	idleCount := 0
+	for _, p := range pods.Items {
+		rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
+		resp, err := r.client.Get(rootURL)
+		if err != nil {
+			sklog.Infof("Failed to request fiddler status: %s", err)
+			continue
+		}
+		defer util.Close(resp.Body)
+		state, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			sklog.Warningf("Failed to read status: %s", err)
+			continue
+		}
+		if types.State(state) == types.IDLE {
+			idleCount += 1
+		}
+	}
+	podsIdle.Update(int64(idleCount))
+	podsTotal.Update(int64(len(pods.Items)))
+}
+
+// Metrics captures metrics on the state of all the fiddler pods.
+func (r *Runner) Metrics(local bool) {
+	if local {
+		return
+	}
+	for _ = range time.Tick(15 * time.Second) {
+		r.metricsSingleStep()
+	}
 }

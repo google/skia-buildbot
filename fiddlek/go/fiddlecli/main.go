@@ -11,14 +11,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
 
-	"go.skia.org/infra/fiddle/go/types"
+	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/sklog"
+)
+
+const (
+	RETRIES = 5
 )
 
 // flags
@@ -100,10 +104,17 @@ func main() {
 				if err != nil {
 					return fmt.Errorf("Failed to encode an individual request: %s", err)
 				}
-				resp, err := c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
-				if err != nil || resp.StatusCode != 200 {
-					sklog.Warningf("Failed to make request: %s %s", err, resp.Status)
-					continue
+				var resp *http.Response
+				success := false
+				for tries := 0; tries < RETRIES; tries++ {
+					resp, err = c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
+					if err == nil && resp.StatusCode == 200 {
+						success = true
+						break
+					}
+				}
+				if !success {
+					return fmt.Errorf("Failed to make request: %s %s", err, resp.Status)
 				}
 
 				// Decode response and add to all responses.

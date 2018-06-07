@@ -1,16 +1,13 @@
 package runner
 
 import (
-	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strings"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/fiddle/go/types"
+	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
 )
@@ -22,9 +19,11 @@ func TestPrep(t *testing.T) {
 		Height: 256,
 		Source: 2,
 	}
+	r, err := New(true, "/etc/fiddle/source")
+	assert.NoError(t, err)
 	want := `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
-  static const char *path = "/mnt/pd0/fiddle/images/2.png"; // Either a string, or 0.
+  static const char *path = "/etc/fiddle/source/2.png"; // Either a string, or 0.
   return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 64, 64, 0, GrMipMapped::kNo);
 }
 
@@ -33,7 +32,7 @@ void draw(SkCanvas* canvas) {
 #line 2
 }
 `
-	got := prepCodeToCompile("/mnt/pd0/fiddle/", "void draw(SkCanvas* canvas) {\n}", opts)
+	got := r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
 	assert.Equal(t, want, got)
 
 	opts = &types.Options{
@@ -52,7 +51,7 @@ void draw(SkCanvas* canvas) {
 #line 2
 }
 `
-	got = prepCodeToCompile("/mnt/pd0/fiddle/", "void draw(SkCanvas* canvas) {\n}", opts)
+	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
 	assert.Equal(t, want, got)
 
 	opts = &types.Options{
@@ -75,7 +74,7 @@ void draw(SkCanvas* canvas) {
 #line 2
 }
 `
-	got = prepCodeToCompile("/mnt/pd0/fiddle/", "void draw(SkCanvas* canvas) {\n}", opts)
+	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
 	assert.Equal(t, want, got)
 
 	opts = &types.Options{
@@ -102,43 +101,9 @@ void draw(SkCanvas* canvas) {
 #line 2
 }
 `
-	got = prepCodeToCompile("/mnt/pd0/fiddle/", "void draw(SkCanvas* canvas) {\n}", opts)
+	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
 	assert.Equal(t, want, got)
 
-}
-
-func TestWriteDrawCpp(t *testing.T) {
-	testutils.SmallTest(t)
-	// Create a temp fiddleRoot that gets cleaned up.
-	fiddleRoot, err := ioutil.TempDir("", "runner-test")
-	assert.NoError(t, err)
-	defer func() {
-		err := os.RemoveAll(fiddleRoot)
-		if err != nil {
-			t.Logf("Failed to clean up fiddleRoot: %s", err)
-		}
-	}()
-
-	// Create a temp checkout that gets cleaned up.
-	checkout, err := ioutil.TempDir("", "runner-test")
-	assert.NoError(t, err)
-	defer func() {
-		err := os.RemoveAll(checkout)
-		if err != nil {
-			t.Logf("Failed to clean up checkout: %s", err)
-		}
-	}()
-	err = os.MkdirAll(filepath.Join(checkout, "tools", "fiddle"), 0777)
-	assert.NoError(t, err)
-
-	opts := &types.Options{
-		Width:  128,
-		Height: 256,
-		Source: 2,
-	}
-	dir, err := WriteDrawCpp(checkout, fiddleRoot, "void draw(SkCanvas* canvas) {\n}", opts)
-	assert.NoError(t, err)
-	assert.True(t, strings.HasPrefix(dir, filepath.Join(fiddleRoot, "tmp")))
 }
 
 // execStrings are the command lines that would have been run through exec.
@@ -156,33 +121,20 @@ func testRun(cmd *exec.Command) error {
 
 func TestRun(t *testing.T) {
 	testutils.SmallTest(t)
-	// Now test local runs, first set up exec for testing.
-	ctx := exec.NewContext(context.Background(), testRun)
 
-	opts := &types.Options{
-		Duration: 2.0,
-	}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := fmt.Fprintln(w, `{"Errors": "Compile Failed."}`)
+		assert.NoError(t, err)
+	}))
+	defer ts.Close()
 
-	tmp, err := ioutil.TempDir("", "runner_test")
+	r, err := New(true, "/etc/fiddle/source")
 	assert.NoError(t, err)
-
-	execStrings = []string{}
-	res, err := Run(ctx, tmp+"/checkout/", tmp+"/fiddleroot/", tmp+"/depot_tools/", "abcdef", true, "", opts, false)
+	r.localUrl = ts.URL
+	req := &types.FiddleContext{}
+	res, err := r.Run(true, req)
 	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	assert.Equal(t, fmt.Sprintf("sudo mount -t overlayfs -o lowerdir=%s/fiddleroot/versions/abcdef,upperdir=upper,workdir=work none overlay", tmp), execStrings[0])
-
-	err = os.RemoveAll(tmp)
-	assert.NoError(t, err)
-
-	execStrings = []string{}
-	res, err = Run(ctx, tmp+"/checkout/", tmp+"/fiddleroot/", tmp+"/depot_tools/", "abcdef", false, tmp+"/draw0123", opts, false)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	assert.Equal(t, fmt.Sprintf("sudo mount -t overlay -o lowerdir=%s/fiddleroot/versions/abcdef,upperdir=%s/draw0123/upper,workdir=%s/draw0123/work none %s/draw0123/overlay", tmp, tmp, tmp, tmp), execStrings[0])
-
-	err = os.RemoveAll(tmp)
-	assert.NoError(t, err)
+	assert.Equal(t, "Compile Failed.", res.Errors)
 }
 
 func TestValidateOptions(t *testing.T) {
@@ -243,8 +195,10 @@ func TestValidateOptions(t *testing.T) {
 		},
 	}
 
+	r, err := New(true, "/etc/fiddle/source")
+	assert.NoError(t, err)
 	for _, tc := range testCases {
-		if got, want := ValidateOptions(tc.value) != nil, tc.errorExpected; got != want {
+		if got, want := r.ValidateOptions(tc.value) != nil, tc.errorExpected; got != want {
 			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
 		}
 	}
