@@ -56,11 +56,11 @@ var xxx_messageInfo_Empty proto.InternalMessageInfo
 // CommitID identifies one commit, or trybot try.
 type CommitID struct {
 	// The id of a commit, either a git hash, or a Reitveld patch id.
-	Id string `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// The source of the commit, either a git branch name, or a Reitveld issue id.
-	Source string `protobuf:"bytes,2,opt,name=source" json:"source,omitempty"`
+	Source string `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
 	// The timestamp of the commit or trybot patch.
-	Timestamp            int64    `protobuf:"varint,3,opt,name=timestamp" json:"timestamp,omitempty"`
+	Timestamp            int64    `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -116,7 +116,7 @@ func (m *CommitID) GetTimestamp() int64 {
 // All of the key-value parameters should be present, the ones used to
 // construct the traceid, along with optional parameters.
 type Params struct {
-	Params               map[string]string `protobuf:"bytes,1,rep,name=params" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Params               map[string]string `protobuf:"bytes,1,rep,name=params,proto3" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -154,7 +154,7 @@ func (m *Params) GetParams() map[string]string {
 }
 
 type MissingParamsRequest struct {
-	Traceids             []string `protobuf:"bytes,1,rep,name=traceids" json:"traceids,omitempty"`
+	Traceids             []string `protobuf:"bytes,1,rep,name=traceids,proto3" json:"traceids,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -192,7 +192,7 @@ func (m *MissingParamsRequest) GetTraceids() []string {
 }
 
 type MissingParamsResponse struct {
-	Traceids             []string `protobuf:"bytes,1,rep,name=traceids" json:"traceids,omitempty"`
+	Traceids             []string `protobuf:"bytes,1,rep,name=traceids,proto3" json:"traceids,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -230,8 +230,8 @@ func (m *MissingParamsResponse) GetTraceids() []string {
 }
 
 type ParamsPair struct {
-	Key                  string            `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
-	Params               map[string]string `protobuf:"bytes,2,rep,name=params" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Key                  string            `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Params               map[string]string `protobuf:"bytes,2,rep,name=params,proto3" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -276,7 +276,7 @@ func (m *ParamsPair) GetParams() map[string]string {
 }
 
 type AddParamsRequest struct {
-	Params               []*ParamsPair `protobuf:"bytes,4,rep,name=params" json:"params,omitempty"`
+	Params               []*ParamsPair `protobuf:"bytes,4,rep,name=params,proto3" json:"params,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
@@ -315,7 +315,7 @@ func (m *AddParamsRequest) GetParams() []*ParamsPair {
 
 // StoredEntry is used to serialize the Params to be stored in the BoltBD.
 type StoredEntry struct {
-	Params               *Params  `protobuf:"bytes,2,opt,name=params" json:"params,omitempty"`
+	Params               *Params  `protobuf:"bytes,2,opt,name=params,proto3" json:"params,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -353,7 +353,7 @@ func (m *StoredEntry) GetParams() *Params {
 }
 
 type ValuePair struct {
-	Key                  string   `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Value                []byte   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -400,8 +400,8 @@ func (m *ValuePair) GetValue() []byte {
 
 type AddRequest struct {
 	// The id of the commit/trybot we are adding data about.
-	Commitid             *CommitID    `protobuf:"bytes,1,opt,name=commitid" json:"commitid,omitempty"`
-	Values               []*ValuePair `protobuf:"bytes,3,rep,name=values" json:"values,omitempty"`
+	Commitid             *CommitID    `protobuf:"bytes,1,opt,name=commitid,proto3" json:"commitid,omitempty"`
+	Values               []*ValuePair `protobuf:"bytes,3,rep,name=values,proto3" json:"values,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
 	XXX_unrecognized     []byte       `json:"-"`
 	XXX_sizecache        int32        `json:"-"`
@@ -447,9 +447,9 @@ func (m *AddRequest) GetValues() []*ValuePair {
 
 type ListRequest struct {
 	// begin is the unix timestamp to start searching from.
-	Begin int64 `protobuf:"varint,1,opt,name=begin" json:"begin,omitempty"`
+	Begin int64 `protobuf:"varint,1,opt,name=begin,proto3" json:"begin,omitempty"`
 	// end is the unix timestamp to search to (inclusive).
-	End                  int64    `protobuf:"varint,2,opt,name=end" json:"end,omitempty"`
+	End                  int64    `protobuf:"varint,2,opt,name=end,proto3" json:"end,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -496,7 +496,7 @@ func (m *ListRequest) GetEnd() int64 {
 type ListResponse struct {
 	// A list of CommitIDs that fall between the given timestamps in
 	// ListRequest.
-	Commitids            []*CommitID `protobuf:"bytes,3,rep,name=commitids" json:"commitids,omitempty"`
+	Commitids            []*CommitID `protobuf:"bytes,3,rep,name=commitids,proto3" json:"commitids,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -534,7 +534,7 @@ func (m *ListResponse) GetCommitids() []*CommitID {
 }
 
 type GetValuesRequest struct {
-	Commitid             *CommitID `protobuf:"bytes,1,opt,name=commitid" json:"commitid,omitempty"`
+	Commitid             *CommitID `protobuf:"bytes,1,opt,name=commitid,proto3" json:"commitid,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
 	XXX_sizecache        int32     `json:"-"`
@@ -572,8 +572,8 @@ func (m *GetValuesRequest) GetCommitid() *CommitID {
 }
 
 type GetValuesResponse struct {
-	Values               []*ValuePair `protobuf:"bytes,4,rep,name=values" json:"values,omitempty"`
-	Md5                  string       `protobuf:"bytes,5,opt,name=md5" json:"md5,omitempty"`
+	Values               []*ValuePair `protobuf:"bytes,4,rep,name=values,proto3" json:"values,omitempty"`
+	Md5                  string       `protobuf:"bytes,5,opt,name=md5,proto3" json:"md5,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
 	XXX_unrecognized     []byte       `json:"-"`
 	XXX_sizecache        int32        `json:"-"`
@@ -619,7 +619,7 @@ func (m *GetValuesResponse) GetMd5() string {
 
 type GetParamsRequest struct {
 	// A list of traceids.
-	Traceids             []string `protobuf:"bytes,1,rep,name=traceids" json:"traceids,omitempty"`
+	Traceids             []string `protobuf:"bytes,1,rep,name=traceids,proto3" json:"traceids,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -657,7 +657,7 @@ func (m *GetParamsRequest) GetTraceids() []string {
 }
 
 type GetParamsResponse struct {
-	Params               []*ParamsPair `protobuf:"bytes,4,rep,name=params" json:"params,omitempty"`
+	Params               []*ParamsPair `protobuf:"bytes,4,rep,name=params,proto3" json:"params,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
@@ -697,7 +697,7 @@ func (m *GetParamsResponse) GetParams() []*ParamsPair {
 type GetValuesRawResponse struct {
 	// Raw byte slice that can be decoded with NewCommitInfo.
 	Value                []byte   `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	Md5                  string   `protobuf:"bytes,2,opt,name=md5" json:"md5,omitempty"`
+	Md5                  string   `protobuf:"bytes,2,opt,name=md5,proto3" json:"md5,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -742,7 +742,7 @@ func (m *GetValuesRawResponse) GetMd5() string {
 }
 
 type GetTraceIDsRequest struct {
-	Id                   []uint64 `protobuf:"varint,1,rep,packed,name=id" json:"id,omitempty"`
+	Id                   []uint64 `protobuf:"varint,1,rep,packed,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -780,8 +780,8 @@ func (m *GetTraceIDsRequest) GetId() []uint64 {
 }
 
 type TraceIDPair struct {
-	Id64                 uint64   `protobuf:"varint,1,opt,name=id64" json:"id64,omitempty"`
-	Id                   string   `protobuf:"bytes,2,opt,name=id" json:"id,omitempty"`
+	Id64                 uint64   `protobuf:"varint,1,opt,name=id64,proto3" json:"id64,omitempty"`
+	Id                   string   `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -826,7 +826,7 @@ func (m *TraceIDPair) GetId() string {
 }
 
 type GetTraceIDsResponse struct {
-	Ids                  []*TraceIDPair `protobuf:"bytes,1,rep,name=ids" json:"ids,omitempty"`
+	Ids                  []*TraceIDPair `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
 	XXX_unrecognized     []byte         `json:"-"`
 	XXX_sizecache        int32          `json:"-"`
@@ -864,8 +864,8 @@ func (m *GetTraceIDsResponse) GetIds() []*TraceIDPair {
 }
 
 type CommitMD5 struct {
-	Commitid             *CommitID `protobuf:"bytes,1,opt,name=commitid" json:"commitid,omitempty"`
-	Md5                  string    `protobuf:"bytes,2,opt,name=md5" json:"md5,omitempty"`
+	Commitid             *CommitID `protobuf:"bytes,1,opt,name=commitid,proto3" json:"commitid,omitempty"`
+	Md5                  string    `protobuf:"bytes,2,opt,name=md5,proto3" json:"md5,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
 	XXX_sizecache        int32     `json:"-"`
