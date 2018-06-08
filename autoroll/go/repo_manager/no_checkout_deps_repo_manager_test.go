@@ -167,7 +167,7 @@ func TestNoCheckoutDEPSRepoManagerFullChildHash(t *testing.T) {
 	}
 
 	test("master", nextRollRev)
-	test(childCommits[1][:7], childCommits[1])
+	test(childCommits[1][:12], childCommits[1])
 }
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
@@ -221,7 +221,7 @@ If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
 
 
-TBR=`, childPath, lastRollRev[:7], nextRollRev[:7], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:7], nextRollRev[:7], lastRollRev[:7], nextRollRev[:7], logStr, childPath, nextRollRev[:7], "fake.server.com")
+TBR=`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, childPath, nextRollRev[:12], "fake.server.com")
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, cfg.GerritProject, subject, cfg.ParentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{

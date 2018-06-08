@@ -163,8 +163,8 @@ func buildCommitMsg(from, to, childPath, cqExtraTrybots, remoteUrl, serverURL, l
 	}{
 		ChildPath:  childPath,
 		ChildRepo:  remoteUrl,
-		From:       from[:7],
-		To:         to[:7],
+		From:       from[:12],
+		To:         to[:12],
 		NumCommits: numCommits,
 		LogStr:     "",
 		ServerURL:  serverURL,
@@ -177,7 +177,7 @@ func buildCommitMsg(from, to, childPath, cqExtraTrybots, remoteUrl, serverURL, l
 		data.Footer += "\n\nBUG=" + strings.Join(bugs, ",")
 	}
 	if includeLog {
-		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from[:7], to[:7])
+		data.LogStr = fmt.Sprintf("\ngit log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'\n", from[:12], to[:12])
 		data.LogStr += logStr + "\n"
 	}
 	var buf bytes.Buffer
