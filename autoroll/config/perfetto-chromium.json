@@ -1,0 +1,17 @@
+{
+  "childName": "Perfetto",
+  "gerritURL": "https://chromium-review.googlesource.com",
+  "maxRollFrequency": "0m",
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "sheriff": ["perfetto-bugs@google.com"],
+  "noCheckoutDepsRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/perfetto",
+    "childRepo": "https://android.googlesource.com/platform/external/perfetto.git",
+    "gerritProject": "chromium/src",
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  }
+}
