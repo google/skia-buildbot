@@ -16,6 +16,24 @@
       "revId": "f1113d632619b0acfa9a7311701aa9c511934a67",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bd1335e2_10c672ec",
+        "filename": "skottie/pages/index.html",
+        "patchSetId": 18
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T12:34:50Z",
+      "side": 1,
+      "message": "This was the simplest thing that could possibly work, I am already working on the follow-on CL that turns this into a module.",
+      "parentUuid": "ea51ed66_8229470b",
+      "revId": "f1113d632619b0acfa9a7311701aa9c511934a67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
