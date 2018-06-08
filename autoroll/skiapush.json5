@@ -104,6 +104,13 @@
         "pulld",
       ],
     },
+    "perfetto-chromium-autoroll": {
+      "AppNames": [
+        "perfetto-chromium-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "skcms-skia-autoroll": {
       "AppNames": [
         "skcms-skia-autorolld",

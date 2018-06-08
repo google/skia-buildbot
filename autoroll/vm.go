@@ -124,6 +124,15 @@ func PDFium() *gce.Instance {
 	return vm
 }
 
+func PerfettoChromium() *gce.Instance {
+	vm := AutoRollBase("perfetto-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"primiano@chromium.org",
+	}
+	vm.ServiceAccount = "perfetto-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func Fuchsia() *gce.Instance {
 	vm := AutoRollBase("fuchsia-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -261,6 +270,7 @@ func main() {
 		"ios-internal-chromium": IosInternal_Chromium(),
 		"nacl":                  NaCl(),
 		"pdfium":                PDFium(),
+		"perfetto-chromium":     PerfettoChromium(),
 		"skcms-skia":            SkCMS_Skia(),
 		"skia":                  Skia(),
 		"skia-flutter":          Skia_Flutter(),
