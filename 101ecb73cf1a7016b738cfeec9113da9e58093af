@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e95a656c_445ea226",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 33
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf1cb472_81d53ee8",
+      "range": {
+        "startLine": 8,
+        "startChar": 47,
+        "endLine": 8,
+        "endChar": 54
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "99222efb_029096a0",
         "filename": "fiddlek/DESIGN.md",
         "patchSetId": 33
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "915a1fcc_0fbe5198",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 33
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99222efb_029096a0",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 0
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "04361036_41bb82c5",
         "filename": "fiddlek/DESIGN.md",
         "patchSetId": 33
@@ -68,6 +116,30 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ecfe1a4_197f03a1",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 33
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04361036_41bb82c5",
+      "range": {
+        "startLine": 121,
+        "startChar": 4,
+        "endLine": 121,
+        "endChar": 38
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "a66a70e7_fa597acf",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 33
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c912537_2b7bf0ca",
+      "range": {
+        "startLine": 149,
+        "startChar": 54,
+        "endLine": 149,
+        "endChar": 65
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "34c4d3af_9e1aebf5",
         "filename": "fiddlek/Makefile",
         "patchSetId": 33
@@ -134,6 +230,24 @@
     },
     {
       "key": {
+        "uuid": "d3309259_bfec7fea",
+        "filename": "fiddlek/Makefile",
+        "patchSetId": 33
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "No, that\u0027s done via the \u0027build\u0027 target.\nAlso fiddler runs in a debian image so we don\u0027t need to do the static link.",
+      "parentUuid": "34c4d3af_9e1aebf5",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9d7ef51a_ba66a80c",
         "filename": "fiddlek/Makefile",
         "patchSetId": 33
@@ -145,6 +259,24 @@
       "writtenOn": "2018-06-07T16:23:36Z",
       "side": 1,
       "message": "ditto",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39b8eabb_e7366b99",
+        "filename": "fiddlek/Makefile",
+        "patchSetId": 33
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "same",
+      "parentUuid": "9d7ef51a_ba66a80c",
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -171,6 +303,30 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9989a0e_037e922e",
+        "filename": "fiddlek/build_fiddle_release",
+        "patchSetId": 33
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "579e6a30_cdef3d08",
+      "range": {
+        "startLine": 10,
+        "startChar": 13,
+        "endLine": 10,
+        "endChar": 21
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -220,6 +376,30 @@
     },
     {
       "key": {
+        "uuid": "25f2cc69_f23c0a61",
+        "filename": "fiddlek/create-fiddle-sa.sh",
+        "patchSetId": 33
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c406010_2dfc82d2",
+      "range": {
+        "startLine": 14,
+        "startChar": 64,
+        "endLine": 14,
+        "endChar": 123
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7be4fd76_a6ea93ae",
         "filename": "fiddlek/fiddle/Dockerfile",
         "patchSetId": 33
@@ -243,6 +423,30 @@
     },
     {
       "key": {
+        "uuid": "859bda46_07420cde",
+        "filename": "fiddlek/fiddle/Dockerfile",
+        "patchSetId": 33
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7be4fd76_a6ea93ae",
+      "range": {
+        "startLine": 8,
+        "startChar": 124,
+        "endLine": 8,
+        "endChar": 143
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a8d61e2_53cd74c8",
         "filename": "fiddlek/go/fiddle/main.go",
         "patchSetId": 33
@@ -254,6 +458,24 @@
       "writtenOn": "2018-06-07T16:23:36Z",
       "side": 1,
       "message": "What\u0027s the reason for handling /healthz here and below?",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77045d98_ac028495",
+        "filename": "fiddlek/go/fiddle/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "The /healthz requests were getting logged and made debugging harder.",
+      "parentUuid": "1a8d61e2_53cd74c8",
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -283,6 +505,30 @@
     },
     {
       "key": {
+        "uuid": "127afbd9_dbf3451b",
+        "filename": "fiddlek/go/fiddlecli/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "afa98562_54dbc8ab",
+      "range": {
+        "startLine": 19,
+        "startChar": 20,
+        "endLine": 19,
+        "endChar": 26
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a8e972f8_cb00ef0a",
         "filename": "fiddlek/go/fiddler/main.go",
         "patchSetId": 33
@@ -294,6 +540,24 @@
       "writtenOn": "2018-06-07T16:23:36Z",
       "side": 1,
       "message": "Are there any metrics being produced? If not, we can remove this so that I don\u0027t need to imagine ways an attacker could vandalize our Prometheus instance via Fiddle.",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cce0a634_53534b72",
+        "filename": "fiddlek/go/fiddler/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Actually I dropped gathering metrics for fiddler, so yeah, this could be dropped.",
+      "parentUuid": "a8e972f8_cb00ef0a",
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -323,6 +587,30 @@
     },
     {
       "key": {
+        "uuid": "a1c11be9_13bca780",
+        "filename": "fiddlek/go/fiddler/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Added limitwriter.\n\nSince we have all the contents in memory the process will get killed if it exceeds the memory limits on the process, currently set to 6GB.",
+      "parentUuid": "6368e54f_a3551b97",
+      "range": {
+        "startLine": 75,
+        "startChar": 39,
+        "endLine": 75,
+        "endChar": 42
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8627d03f_4a58c0af",
         "filename": "fiddlek/go/fiddler/main.go",
         "patchSetId": 33
@@ -340,6 +628,24 @@
     },
     {
       "key": {
+        "uuid": "9a5b22f3_94202eaf",
+        "filename": "fiddlek/go/fiddler/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8627d03f_4a58c0af",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f4253230_39c92a87",
         "filename": "fiddlek/go/fiddler/main.go",
         "patchSetId": 33
@@ -354,6 +660,24 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b686a04a_c17cd64c",
+        "filename": "fiddlek/go/fiddler/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f4253230_39c92a87",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -391,6 +715,24 @@
     },
     {
       "key": {
+        "uuid": "a7636ca6_13072e41",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70a861ae_baff575d",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ae9b396_abe9b713",
         "filename": "fiddlek/go/runner/runner.go",
         "patchSetId": 33
@@ -402,6 +744,30 @@
       "writtenOn": "2018-06-07T16:23:36Z",
       "side": 1,
       "message": "Same comment as in fiddler/main.go: attacker can control this log message and potentially vandalize our logging infrastructure.",
+      "range": {
+        "startLine": 161,
+        "startChar": 33,
+        "endLine": 161,
+        "endChar": 48
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "528b4662_ef185d84",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Added limitwriter.",
+      "parentUuid": "9ae9b396_abe9b713",
       "range": {
         "startLine": 161,
         "startChar": 33,
@@ -437,6 +803,30 @@
     },
     {
       "key": {
+        "uuid": "a2af6471_d0ea6916",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dd6479d5_2214f92e",
+      "range": {
+        "startLine": 168,
+        "startChar": 48,
+        "endLine": 168,
+        "endChar": 63
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7cbf5791_99610b85",
         "filename": "fiddlek/go/runner/runner.go",
         "patchSetId": 33
@@ -460,6 +850,30 @@
     },
     {
       "key": {
+        "uuid": "a60e5e27_25506e0a",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7cbf5791_99610b85",
+      "range": {
+        "startLine": 169,
+        "startChar": 75,
+        "endLine": 169,
+        "endChar": 90
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00cd5d0a_5b1eb24e",
         "filename": "fiddlek/go/runner/runner.go",
         "patchSetId": 33
@@ -480,6 +894,30 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fdbab4a_a8a3e978",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00cd5d0a_5b1eb24e",
+      "range": {
+        "startLine": 177,
+        "startChar": 27,
+        "endLine": 177,
+        "endChar": 41
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -523,6 +961,30 @@
     },
     {
       "key": {
+        "uuid": "980ad1fd_1e352a7a",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "limited to 28k",
+      "parentUuid": "4528725f_7b2ed707",
+      "range": {
+        "startLine": 180,
+        "startChar": 38,
+        "endLine": 180,
+        "endChar": 46
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "948e2d02_9db3f19a",
         "filename": "fiddlek/go/runner/runner.go",
         "patchSetId": 33
@@ -543,6 +1005,30 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88eff82d_52d01671",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "948e2d02_9db3f19a",
+      "range": {
+        "startLine": 191,
+        "startChar": 41,
+        "endLine": 191,
+        "endChar": 43
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -569,6 +1055,30 @@
     },
     {
       "key": {
+        "uuid": "3d2b1507_0c01a57c",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d87b562_e425b2cf",
+      "range": {
+        "startLine": 219,
+        "startChar": 24,
+        "endLine": 219,
+        "endChar": 30
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f25937d_a9d3b6ff",
         "filename": "fiddlek/go/runner/runner.go",
         "patchSetId": 33
@@ -580,6 +1090,24 @@
       "writtenOn": "2018-06-07T16:23:36Z",
       "side": 1,
       "message": "nit: maybe add a metric and alert for this so we know if there\u0027s a problem",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fbda1b8_7bffe8b1",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "There is a metric below on available pods and an alert for a low average number of pods.",
+      "parentUuid": "4f25937d_a9d3b6ff",
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -632,6 +1160,30 @@
     },
     {
       "key": {
+        "uuid": "26d7837f_e6d6573c",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Changed to 15.",
+      "parentUuid": "afd91094_fe7058e7",
+      "range": {
+        "startLine": 279,
+        "startChar": 25,
+        "endLine": 279,
+        "endChar": 40
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2caa8138_620753d5",
         "filename": "fiddlek/go/runner/runner_test.go",
         "patchSetId": 33
@@ -649,6 +1201,24 @@
     },
     {
       "key": {
+        "uuid": "80298ff0_069807fa",
+        "filename": "fiddlek/go/runner/runner_test.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2caa8138_620753d5",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0a2f14e3_aff47d78",
         "filename": "fiddlek/go/runner/runner_test.go",
         "patchSetId": 33
@@ -663,6 +1233,24 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed1d4ac6_fda2f071",
+        "filename": "fiddlek/go/runner/runner_test.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0a2f14e3_aff47d78",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -700,6 +1288,24 @@
       "writtenOn": "2018-06-07T16:23:36Z",
       "side": 1,
       "message": "doc for lru.Cache says it is not safe for concurrent access.",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3141da3_2d1e0e2a",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Switched to github.com/hashicorp/golang-lru",
+      "parentUuid": "5343ab13_991e37c6",
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -760,6 +1366,30 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05ec5bd2_bcbb664e",
+        "filename": "fiddlek/go/types/types.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-08T02:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46594b91_01960997",
+      "range": {
+        "startLine": 9,
+        "startChar": 20,
+        "endLine": 9,
+        "endChar": 26
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
