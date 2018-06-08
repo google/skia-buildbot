@@ -1,0 +1,141 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "59a7346a_ff0c8c37",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-08T17:32:50Z",
+      "side": 1,
+      "message": "Nit: Since this is required and does not have a default value maybe check for \u003d\u003d \"\" in main and fail early?",
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60af0e75_f70656d0",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-08T17:32:50Z",
+      "side": 1,
+      "message": "Nit: lottie.webm",
+      "range": {
+        "startLine": 85,
+        "startChar": 77,
+        "endLine": 85,
+        "endChar": 88
+      },
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d184da8f_18cd6904",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-08T17:32:50Z",
+      "side": 1,
+      "message": "nit: This is used in a few places. Make a constant?",
+      "range": {
+        "startLine": 92,
+        "startChar": 3,
+        "endLine": 92,
+        "endChar": 14
+      },
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f1ba930_225d864b",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-08T17:32:50Z",
+      "side": 1,
+      "message": "Should this be httputils.ReportError(w, r, err, \"...\") ?",
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "267e059a_1cf5702c",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-08T17:32:50Z",
+      "side": 1,
+      "message": "Should this be httputils.ReportError(w, r, err, \"...\") ?",
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32ec55a4_2d2905a2",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-08T17:32:50Z",
+      "side": 1,
+      "message": "Nit: move to line 163",
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4744aea5_c249f2e9",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-08T17:32:50Z",
+      "side": 1,
+      "message": "Nit: This is used in a few places. Make constant?",
+      "range": {
+        "startLine": 176,
+        "startChar": 42,
+        "endLine": 176,
+        "endChar": 53
+      },
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
