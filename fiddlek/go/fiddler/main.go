@@ -9,25 +9,24 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"os"
+	"net/http"
 	"path"
 	"path/filepath"
-	"runtime"
 	"sync"
-	"syscall"
 	"time"
 
-	"github.com/skia-dev/glog"
-
+	"github.com/gorilla/mux"
 	"golang.org/x/sync/errgroup"
 
-	"go.skia.org/infra/fiddle/go/config"
-	"go.skia.org/infra/fiddle/go/types"
-	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util/limitwriter"
 )
 
 const (
@@ -40,19 +39,60 @@ var (
 	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	fiddleRoot = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 	checkout   = flag.String("checkout", "", "Directory where Skia is checked out.")
-	gitHash    = flag.String("git_hash", "", "The version of Skia code to run against.")
-	duration   = flag.Float64("duration", 0.0, "If an animation, the duration of the animation. 0 for no animation.")
+	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 )
 
-func serializeOutput(res *types.Result) {
-	enc := json.NewEncoder(os.Stdout)
-	if err := enc.Encode(res); err != nil {
-		fmt.Printf("Failed to encode: %s", err)
+var (
+	mutex        sync.Mutex
+	currentState types.State = types.IDLE
+)
+
+func setStateStart() error {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if currentState != types.IDLE {
+		return fmt.Errorf("Fiddle already being run.")
+	}
+	currentState = types.WRITING
+	return nil
+}
+
+func setState(s types.State) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	currentState = s
+}
+
+func getState() types.State {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return currentState
+}
+
+func serializeOutput(w io.Writer, res *types.Result) {
+	w = limitwriter.New(w, types.MAX_JSON_SIZE)
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		sklog.Errorf("Failed to encode: %s", err)
 	}
 }
 
-func main() {
-	common.Init()
+func mainHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	_, err := w.Write([]byte(getState()))
+	if err != nil {
+		sklog.Warningf("Failed to write response: %s", err)
+	}
+}
+
+func runHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	defer util.Close(r.Body)
+	if setStateStart() != nil {
+		http.Error(w, "Currently running a fiddle.", http.StatusTooManyRequests)
+		return
+	}
+	var request types.FiddleContext
+
 	res := &types.Result{
 		Compile: types.Compile{},
 		Execute: types.Execute{
@@ -60,59 +100,36 @@ func main() {
 			Output: types.Output{},
 		},
 	}
-	if *fiddleRoot == "" {
-		res.Errors = "fiddle_run: The --fiddle_root flag is required."
-	}
-	if *gitHash == "" {
-		res.Errors = "fiddle_run: The --git_hash flag is required."
-	}
-	if *checkout == "" {
-		res.Errors = "fiddle_run: The --checkout flag is required."
-	}
 
-	ctx := context.Background()
-	depotTools := filepath.Join(*fiddleRoot, "depot_tools")
-
-	// Set limits on this process and all its children.
-
-	// Limit total CPU seconds.
-	rLimit := &syscall.Rlimit{
-		Cur: 30,
-		Max: 30,
-	}
-	if err := syscall.Setrlimit(syscall.RLIMIT_CPU, rLimit); err != nil {
-		fmt.Println("Error Setting Rlimit ", err)
-	}
-	// Do not emit core dumps.
-	rLimit = &syscall.Rlimit{
-		Cur: 0,
-		Max: 0,
-	}
-	if err := syscall.Setrlimit(syscall.RLIMIT_CORE, rLimit); err != nil {
-		fmt.Println("Error Setting Rlimit ", err)
-	}
-
-	// Re-run GN since the directory changes under overlayfs.
-	if err := buildskia.GNGen(ctx, *checkout, depotTools, "Release", config.GN_FLAGS); err != nil {
-		glog.Errorf("gn gen failed: %s", err)
-		res.Compile.Errors = err.Error()
-		serializeOutput(res)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		res.Execute.Errors = fmt.Sprintf("Invalid JSON Request: %s", err)
+		serializeOutput(w, res)
 		return
 	}
 
 	// Compile draw.cpp into 'fiddle'.
-	if output, err := buildskia.GNNinjaBuild(ctx, *checkout, depotTools, "Release", "fiddle", true); err != nil {
-		res.Compile.Errors = err.Error()
-		res.Compile.Output = output
-		serializeOutput(res)
+	if err := ioutil.WriteFile(filepath.Join(*checkout, "tools", "fiddle", "draw.cpp"), []byte(request.Code), 0644); err != nil {
+		res.Execute.Errors = fmt.Sprintf("Failed to write draw.cpp: %s", err)
+		serializeOutput(w, res)
 		return
-	} else {
-		res.Compile.Output = output
 	}
 
-	if *duration == 0 {
-		oneStep(ctx, *checkout, res, 0.0)
-		serializeOutput(res)
+	setState(types.COMPILING)
+
+	// TODO(jcgregorio) Put a timeout here.
+	buildResults, err := exec.RunCwd(ctx, *checkout, filepath.Join(*fiddleRoot, "depot_tools", "ninja"), "-C", "out/Static")
+	if err != nil {
+		res.Execute.Errors = fmt.Sprintf("Failed to build: %s\n%s", err, buildResults)
+		serializeOutput(w, res)
+		return
+	}
+
+	// We stay in the RUNNING state forever.
+	setState(types.RUNNING)
+
+	if request.Options.Duration == 0 {
+		oneStep(ctx, *checkout, res, 0.0, request.Options.Duration)
+		serializeOutput(w, res)
 	} else {
 
 		var g errgroup.Group
@@ -124,11 +141,12 @@ func main() {
 		//   - Run ffmpeg over the resulting PNG's to generate the webm files.
 		//   - Clean up tmp file.
 		//   - Encode resulting webm files as base64 strings and return in JSON.
-		numFrames := int(FPS * (*duration))
+		numFrames := int(FPS * (request.Options.Duration))
 		tmpDir, err := ioutil.TempDir("", "animation")
+		defer util.RemoveAll(tmpDir)
 		if err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to create tmp dir for storing animation PNGs: %s", err)
-			serializeOutput(res)
+			serializeOutput(w, res)
 			return
 		}
 
@@ -142,7 +160,7 @@ func main() {
 		glinfo := ""
 
 		// Start a pool of workers to do the rendering.
-		for i := 0; i <= runtime.NumCPU(); i++ {
+		for i := 0; i <= 5; i++ {
 			g.Go(func() error {
 				// Each Go func should have its own 'res'.
 				res := &types.Result{
@@ -155,7 +173,7 @@ func main() {
 				for frameIndex := range frameCh {
 					sklog.Infof("Parallel render: %d", frameIndex)
 					frame := float64(frameIndex) / float64(numFrames)
-					oneStep(ctx, *checkout, res, frame)
+					oneStep(ctx, *checkout, res, frame, request.Options.Duration)
 					// Check for errors.
 					if res.Execute.Errors != "" {
 						return fmt.Errorf("Failed to render: %s", res.Execute.Errors)
@@ -186,20 +204,20 @@ func main() {
 		// Wait for all the work to be done.
 		if err := g.Wait(); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
-			serializeOutput(res)
+			serializeOutput(w, res)
 			return
 		}
 		// Run ffmpeg for CPU and GPU.
 		if err := createWebm(ctx, "CPU", tmpDir); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
-			serializeOutput(res)
+			serializeOutput(w, res)
 			return
 		}
 		res.Execute.Output.AnimatedRaster = encodeWebm("CPU", tmpDir, res)
 
 		if err := createWebm(ctx, "GPU", tmpDir); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
-			serializeOutput(res)
+			serializeOutput(w, res)
 			return
 		}
 		res.Execute.Output.AnimatedGpu = encodeWebm("GPU", tmpDir, res)
@@ -207,7 +225,7 @@ func main() {
 		res.Execute.Output.Gpu = ""
 		res.Execute.Output.GLInfo = glinfo
 
-		serializeOutput(res)
+		serializeOutput(w, res)
 	}
 }
 
@@ -261,24 +279,9 @@ func extractPNG(b64 string, res *types.Result, i int, prefix string, tmpDir stri
 	return nil
 }
 
-// Now that we've built fiddle we want to run it as:
-//
-//    $ bin/fiddle_secwrap out/fiddle
-//
-// in the container, or as
-//
-//    $ out/Release/fiddle
-//
-// if running locally.
-func oneStep(ctx context.Context, checkout string, res *types.Result, frame float64) {
-	name := path.Join(*fiddleRoot, "bin", "fiddle_secwrap")
-	args := []string{path.Join(checkout, "skia", "out", "Release", "fiddle")}
-	if *local {
-		name = path.Join(checkout, "skia", "out", "Release", "fiddle")
-		args = []string{}
-	}
-	args = append(args, "--duration", fmt.Sprintf("%f", *duration), "--frame", fmt.Sprintf("%f", frame))
-
+func oneStep(ctx context.Context, checkout string, res *types.Result, frame float64, duration float64) {
+	name := path.Join(checkout, "out", "Static", "fiddle")
+	args := []string{"--duration", fmt.Sprintf("%f", duration), "--frame", fmt.Sprintf("%f", frame)}
 	stderr := bytes.Buffer{}
 	stdout := bytes.Buffer{}
 	runCmd := &exec.Command{
@@ -286,7 +289,7 @@ func oneStep(ctx context.Context, checkout string, res *types.Result, frame floa
 		Args:        args,
 		Dir:         *fiddleRoot,
 		InheritPath: true,
-		Env:         []string{"LD_LIBRARY_PATH=" + config.EGL_LIB_PATH, "HOME=/tmp"},
+		Env:         []string{"HOME=/tmp"},
 		InheritEnv:  true,
 		Stdout:      &stdout,
 		Stderr:      &stderr,
@@ -309,4 +312,30 @@ func oneStep(ctx context.Context, checkout string, res *types.Result, frame floa
 		res.Execute.Errors += err.Error()
 		res.Execute.Errors += fmt.Sprintf("\nOutput was %q", stdout.Bytes())
 	}
+}
+
+func main() {
+	common.InitWithMust(
+		"fiddler",
+	)
+	if *fiddleRoot == "" {
+		sklog.Fatalf("The --fiddle_root flag is required.")
+	}
+	if *checkout == "" {
+		sklog.Fatalf("The --checkout flag is required.")
+	}
+
+	r := mux.NewRouter()
+	r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/run", runHandler)
+
+	sklog.Infoln("Ready to serve.")
+	srv := &http.Server{
+		Handler:      httputils.LoggingGzipRequestResponse(r),
+		Addr:         *port,
+		WriteTimeout: 120 * time.Second,
+		ReadTimeout:  120 * time.Second,
+	}
+
+	sklog.Fatal(srv.ListenAndServe())
 }
