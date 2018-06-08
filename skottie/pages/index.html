@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Main Page</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" charset="utf-8">
+      // This bit of script loads the custom elements v1 polyfill, but only if required.
+      if (!window.customElements) {
+        let newScript = document.createElement('script');
+        newScript.src = "https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.0.8/custom-elements.min.js";
+        document.write(newScript.outerHTML);
+      }
+    </script>
+</head>
+<body>
+  <header>
+    <h2>Skottie</h2>
+  </header>
+  <main>
+    <h2>Skottie allows you to view a lottie file played through Skia.</h2>
+    <form enctype="multipart/form-data" method="post" id=post_lottie action="/_/upload" name="post_lottie">
+      <label>Lottie file to upload:</label>
+      <input type="file" name="file" required />
+      <button class=action>Go</button>
+    </form>
+  </main>
+</body>
+</html>
