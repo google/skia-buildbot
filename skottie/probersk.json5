@@ -1,0 +1,10 @@
+{
+   "skottie": {
+     "urls": [
+       "https://skottie.skia.org/"
+     ],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+   },
+}

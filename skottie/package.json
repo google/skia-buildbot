@@ -1,0 +1,20 @@
+{
+  "name": "skottie",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "common-sk": "^2.0.1",
+    "elements-sk": "^1.0.0",
+    "pulito": "^4.0.1",
+    "webpack": "^4.11.1",
+    "webpack-cli": "^3.0.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT"
+}
