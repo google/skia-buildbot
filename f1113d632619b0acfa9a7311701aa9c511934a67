@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ea51ed66_8229470b",
+        "filename": "skottie/pages/index.html",
+        "patchSetId": 18
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-08T12:21:01Z",
+      "side": 1,
+      "message": "It seems a little strange to me to have all this here and not in a modules/index-skottie or something, but I think it works for now since it\u0027s simple enough.  If it were to get more complicated (or use common-sk/app-sk), I think I would prefer it to be broken out into its own module.",
+      "revId": "f1113d632619b0acfa9a7311701aa9c511934a67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
