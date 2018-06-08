@@ -66,6 +66,12 @@ func main() {
 	defer common.LogPanic()
 	master_common.Init("create_pagesets")
 
+	// TESTING
+	//frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreatePageSetsUpdateVars{}, *taskID, *runID)
+	//*taskCompletedSuccessfully = true
+	updateWebappTask()
+	sklog.Fatal("HERE")
+
 	ctx := context.Background()
 
 	// Send start email.
