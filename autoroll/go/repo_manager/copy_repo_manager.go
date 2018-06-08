@@ -245,7 +245,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Build the commit message.
-	commitRange := fmt.Sprintf("%s..%s", from[:7], to[:7])
+	commitRange := fmt.Sprintf("%s..%s", from[:12], to[:12])
 	commitMsg := fmt.Sprintf(COPY_COMMIT_MSG, rm.childPath, commitRange, len(commits), rm.childRepoUrl, commitRange, changeSummaryBlob, fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, rm.serverURL))
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
