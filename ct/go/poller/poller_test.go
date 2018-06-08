@@ -111,7 +111,7 @@ func TestChromiumPerfExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
 	expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -140,7 +140,7 @@ func TestPixelDiffExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "pixel_diff_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 12)
+	expect.Equal(t, len(cmd.Args), 11)
 	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
@@ -153,7 +153,6 @@ func TestPixelDiffExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--run_on_gce="+strconv.FormatBool(task.RunsOnGCEWorkers()))
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -181,7 +180,7 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "metrics_analysis_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 10)
+	expect.Equal(t, len(cmd.Args), 9)
 	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
@@ -192,7 +191,6 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--local=false")
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -224,7 +222,7 @@ func TestCaptureSkpsExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -266,7 +264,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -303,7 +301,7 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -335,7 +333,7 @@ func TestChromiumBuildExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args,
 		"--skia_hash=586101c79b0490b50623e76c71a5fd67d8d92b08")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -362,7 +360,7 @@ func TestRecreatePageSetsExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -391,7 +389,7 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
+	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 

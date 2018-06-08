@@ -137,7 +137,6 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
 			"--match_stdout_txt=" + task.MatchStdoutTxt,
 			"--run_id=" + runId,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -186,7 +185,6 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context) error {
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -224,7 +222,6 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context) error {
 			"--benchmark_extra_args=" + task.BenchmarkArgs,
 			"--run_id=" + runId,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -264,7 +261,6 @@ func (task *PixelDiffTask) Execute(ctx context.Context) error {
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -290,7 +286,6 @@ func (task *CaptureSkpsTask) Execute(ctx context.Context) error {
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -332,7 +327,6 @@ func (task *LuaScriptTask) Execute(ctx context.Context) error {
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -357,7 +351,6 @@ func (task *ChromiumBuildTask) Execute(ctx context.Context) error {
 			"--chromium_hash=" + task.ChromiumRev,
 			"--skia_hash=" + task.SkiaRev,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -379,7 +372,6 @@ func (task *RecreatePageSetsTask) Execute(ctx context.Context) error {
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -401,7 +393,6 @@ func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context) error {
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
 			"--logtostderr",
-			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
