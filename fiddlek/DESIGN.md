@@ -1,175 +1,39 @@
-Fiddle 2.0 Design
+Fiddle 3.0 Design
 =================
 
-Requirements
-------------
+Fiddle is broken in to two pieces, each run as containers on kubernetes.
 
-1. URLs must not break from the old version of fiddle to the new version of
-   fiddle.
-1. Must be able to build and run the same fiddle at different versions of
-   Skia, for example, HEAD, m50, and m49. (Where HEAD actually means last roll
-   of Skia into Blink.)
-1. Need to be able to run a local version for testing.
-1. Must use our latest techniques and tools, i.e. InfluxDB metrics, push, and
-   logging.
-1. Polymer 1.0 only.
-1. Drop support for workspaces. They never appeared in humper's UI and they
-   appear to have been broken for at least the last 6 months, if not longer,
-   and no one noticed.
-1. Add an admin UI that allows deleting uploaded images, including the
-   generated images from fiddles run against that image.
+1. Fiddle
+  1. Handles serving the web UI.
+  1. Reads/writes results to/from Google Cloud Storage.
+  1. Is exposed to Ingress.
+1. Fiddler
+  1. Accepts code to run via POST.
+  1. Compiles and runs code.
+  1. Returns results of run as JSON.
+  1. The pods are never exposed as a Service.
+  1. The pods are severely locked down.
+  1. Fiddler pods are killed after 1 run.
 
-Building
---------
+A number of fiddlers are run on kubernetes and await code sent by fiddle.
+After a single run the container is deleted and kubernetes will schedule
+a replacement pod.
 
-There are several executables that need to get built at various times
-and places that go into compiling and running user's untrusted C++ code.
-The following executables part of that process:
-
-  * overlayfs - Allows creating an overlay filesystem so writes never
-                reach the true file system.
-  * fiddle\_secwrap - Runs a program under the control of ptrace.
-  * fiddle\_main - The user's code with a wrapper to load a source
-                  image and to write out the resulting PNGs, PDF,
-                  an SKP data.
-  * fiddle\_run - This is run on top of the overlayfs. It compiles
-                 the user's code against fiddle\_main.o and
-                 libskia.a and then runs the resulting executable
-                 under the control of fiddle\_secwrap. It gathers
-                 the output of all steps and emits it as one large
-                 JSON file written to stdout.
-
-
-Some of these are built and included as part of the push package:
-
-~~~~
-    build_release
-    +---------------------------------------------+
-    |                                             |
-    |  fiddle_secwrap.cpp +----> fiddle_secwrap   |
-    |  fiddle_run/main.go +----> fiddle_run       |
-    |                                             |
-    +---------------------------------------------+
-~~~~
-
-The rest are built on the server as it runs:
-
-~~~~
-    skia-fiddle
-    +----------------------------------------------------------+
-    |                                                          |
-    |                                    gn/ninja              |
-    |  FIDDLE_ROOT/versions/<githash>/  +-----> libskia.a      |
-    |  FIDDLE_ROOT/.../fiddle_main.cpp  +-----> fiddle         |
-    |                                                          |
-    |                                                          |
-    |                                                          |
-    |  User's code written and mounted in overlayfs to         |
-    |  overwrite the default tools/fiddle/draw.cpp.            |
-    |                                                          |
-    |                                                          |
-    |  overlayfs                                               |
-    |    +                                                     |
-    |    |                                                     |
-    |    +-> fiddle_run (stdout produces JSON)                 |
-    |           +       (capture stdout/stderr of child procs) |
-    |           |                                              |
-    |           |                   ninja                      |
-    |           +-> draw.cpp       +----->  fiddle             |
-    |           |                                              |
-    |           |                                              |
-    |           |                                              |
-    |           +-> fiddle_secwrap                             |
-    |                   +                                      |
-    |                   |                                      |
-    |                   +-> fiddle                             |
-    |                                                          |
-    |                                                          |
-    +----------------------------------------------------------+
-~~~~
-
-
-By default $FIDDLE\_ROOT is /mnt/pd0, but can be another directory when running
-locally and not using overlayfs.
-
-Skia is checked out into $FIDDLE\_ROOT/versions/<githash>, and gn/ninja built.
-Good builds are recorded in $FIDDLE\_ROOT/goodbuilds.txt, which is just a text
-file of good builds in the order they are done, that is, new good builds are
-appended to the end of the file.
-
-The rest of the work, compiling the user's code and then running it, is done
-in the overlay filesystem.
-
-In the overlayfs, / is mounted as an overlay filesystem created to mirror
-/mnt/pd0/fiddle so the full contents are available to read, but any writes are
-directed into the temp directory created for each run.
-
-The source for draw.cpp is mounted readonly as a file that takes the place of
-the default draw.cpp.
-
-Compile 'fiddle' using Ninja and run via ptrace control with fiddle\_secwrap.
-Source images will be loaded in $FIDDLE\_ROOT/images.  The output from running
-fiddle\_main is piped to stdout and contains the images as base64 encoded
-values in JSON. The $FIDDLE\_ROOT/images directory is whitelisted for access
-by fiddle\_secwrap so that fiddle\_main can read the source image.
-
-Summary of directories and files and how they are mounted in the overlayfs:
-
-
- Directory                                            | Description
-------------------------------------------------------|-----------
- $FIDDLE\_ROOT/goodbuilds.txt                         | Good git hashes.
- $FIDDLE\_ROOT/<githash>/skia/tools/fiddle/draw.cpp   | Original to hide.
- $FIDDLE\_ROOT/tmp/<runid>/                           | Dir per run.
- $FIDDLE\_ROOT/tmp/<runid>/skiawork/                  | Temp file for overlayfs.
- $FIDDLE\_ROOT/tmp/<runid>/                           |
-             ./skiaupper/skia/tools/fiddle/draw.cpp   | Overwrites orig draw.cpp.
- $FIDDLE\_ROOT/tmp/<runid>/overlay/                   | The overlay fs.
- $FIDDLE\_ROOT/images/                                | Source images.
- $FIDDLE\_ROOT/bin/fiddle\_secwrap                    | fiddle\_secwrap.
-
-Each run has a unique id associated with it, that id used to segregate the
-overlay file systems created to handle that run.
-
-    mkdir /mnt/pd0/tmp/<runid>/
-    mkdir /mnt/pd0/tmp/<runid>/skiawork
-    mkdir /mnt/pd0/tmp/<runid>/skiaupper/skia/tools/fiddle/
-    cp draw.cpp /mnt/pd0/tmp/<runid>/skiaupper/skia/tools/fiddle/draw.cpp
-
-    export UPPER=/mnt/pd0/tmp/<runid>/skiaupper
-    export WORK=/mnt/pd0/tmp/<runid>/skiawork
-    export LOWER=$fiddle\_root/versions/<githash>
-    mount -t overlay -o lowerdir=$LOWER,upperdir=$UPPER,workdir=$WORK /mnt/pd0/tmp/<runid>/overlay
-
-When done:
-
-    umount /mnt/pd0/tmp/<runid>/overlay
-    rmdir /mnt/pd0/tmp/<runid>
-
-
-Decimation
-----------
-
-We could continuously add new builds to /versions/ but each checkout and build
-is ~1.3GB. So we'll fill up our 1TB disk in under a year. So we need to keep
-around older builds, but can't keep them all. Having finer-grained history for
-recent builds is also important, while we can tolerate gaps in older builds.
-I.e. we don't really need a build from 30 days ago, and 30 days and 1 hr ago,
-but we would like to have almost all of the last weeks worth of commits
-available. So we end up with a decimation strategy that is simple but also
-accomplishes the above goals. For example:
-
-  * Keep N/2 or more builds.
-  * Preserve all builds that are spaced one month apart.
-  * If there are more than N remaining builds (after removing
-    from consideration the builds that are one month apart)
-    remove every other one to bring the count down to N/2.
-
-Named Fiddles
--------------
-Named fiddles are actually just like soft links from a name to the fiddleHash
-of a fiddle. They can only be created by logged in users and the id of the
-person that created the named shortcut is attached as metadata to the file.
+    +-------------------+
+    |                   |                    +--------------------+
+    |                   |                    |                    |
+    | Fiddle            +------------------->+ Fiddler            |
+    |                   |                    |                    |
+    |                   |                    +--------------------+
+    +-------------------+
+                                                .
+                                                .
+                                                .
+                                             +--------------------+
+                                             |                    |
+                                             | Fiddler            |
+                                             |                    |
+                                             +--------------------+
 
 URLs
 ----
@@ -224,32 +88,16 @@ The image width, height, and source (as a 64bit int) values are stored as metada
 Note that the fiddlehash must match the hash generated by fiddle 1.0, so that
 hash is actually the hash of the user's code with line numbers added, along
 with the width and height added in a comment.  We also store the rendered
-images as directories below each fiddlehash directory:
+images:
 
 
-    gs://skia-fiddle/fiddle/<fiddlehash>/<ts-hash>-<githash>/cpu.png
-    gs://skia-fiddle/fiddle/<fiddlehash>/<ts-hash>-<githash>/gpu.png
-    gs://skia-fiddle/fiddle/<fiddlehash>/<ts-hash>-<githash>/skp.skp
-    gs://skia-fiddle/fiddle/<fiddlehash>/<ts-hash>-<githash>/pdf.pdf
+    gs://skia-fiddle/fiddle/<fiddlehash>/cpu.png
+    gs://skia-fiddle/fiddle/<fiddlehash>/gpu.png
+    gs://skia-fiddle/fiddle/<fiddlehash>/skp.skp
+    gs://skia-fiddle/fiddle/<fiddlehash>/pdf.pdf
 
-Note that <ts-hash> is the timestamp of the git commit time in RFC3339 format,
-followed by a dash, and then by the githash (revision) of the Skia commit.
-This allows the directories to be sorted quickly by name to find the most
-recent version of the images, which is what will be displayed by default.
-
-The only other thing that needs to be stored are the source images, which are
-stored as files in the /source directory:
-
-    gs://skia-fiddle/source/1
-    gs://skia-fiddle/source/2
-
-In addition there is a text file:
-
-    gs://skia-fiddle/source/lastid.txt
-
-That contains in text the largest ID for a source image ever used. This should
-be incremented and written back to Google Storage before adding a new image.
-Note that writing using generations can prevent the lost update problem.
+Named Fiddles
+-------------
 
 Named fiddles are actually just like soft links from a name to the fiddleHash
 of a fiddle. The named fiddles are stored in:
@@ -260,39 +108,41 @@ Where the name of the fiddle is the filename, and the contents of the file is
 the fiddleHash. The id of the person that created the named shortcut is
 attached as metadata to the file.
 
-Drive
------
+Source
+======
 
-An attached disk will reside at /mnt/pd0 and will be populated as:
-
-     /mnt/pd0/fiddle  - $FIDDLE_ROOT
-     /mnt/pd0/fiddle/depot_tools
-
-Startup
--------
-
-During instance startup git will be installed and depot\_tools will also be
-installed.
-
-All other exe's will be installed via push.
+Source images are packaged into each container.
 
 Security
 --------
 
 We're putting a C++ compiler on the web, and promising to run the results of
 user submitted code, so security is a large concern. Security is handled in a
-layered approach, using a combination of seccomp-bpf, overlayfs, and rlimits.
+layered approach, using a combination of limits, AppArmor, and network
+profiles.
 
-seccomp-bpf - Used to limit the types of system calls that the user code can
-make. Any attempts to make a system call that isn't allowed causes the
-application to terminate immediately. Seccomp-bpf and ptrace are used from
-fiddle\_secwrap.cpp.
+limits
+  - Each run of the fiddle executable is restricted to 30 seconds.
+  - Each request to a fiddler times out after 2 minutes.
 
-overlayfs - Creates an overlay filesystem that stops writes from reaching
-the main tree.
+AppArmor
+  - We use the default kubernetes profile.
 
-rlimits - Used to limit the resources the running code can get access to, for
-example runtime is limited to 10s of CPU. The limits are set in fiddle\_run.
+Network
+  - Each fiddler pod is restricted to only allow ingress on ports
+    8000 and 20000 and is totally blocked on network egress.
+
+Capabilities
+  - Each fiddler pod drops all capabilites.
+
+User
+  - Each image runs as user skia (2000) with no extra priviledges.
+
+Lifetime
+  - Each fiddler pod is deleted after it handles 1 fiddle.
+
+RBAC
+  - Fiddler pods don't load any mounts, secrets, or service accounts.
 
 Backups
 -------
@@ -301,5 +151,4 @@ A backup of all the named fiddles from gs://skia-fiddle/named
 to gs://skia-fiddle-backup takes placed on a daily basis. See:
 
 https://console.cloud.google.com/storage/transfer?project=google.com:skia-buildbots
-
 

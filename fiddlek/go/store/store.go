@@ -5,22 +5,16 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"image"
-	"image/png"
-	"io"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/golang/groupcache/lru"
-	"go.skia.org/infra/fiddle/go/types"
+	lru "github.com/hashicorp/golang-lru"
+	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -33,8 +27,7 @@ const (
 
 	LRU_CACHE_SIZE = 10000
 
-	// *_METADATA are the keys used to store the metadata values in Google
-	// Storage.
+	// *_METADATA are the keys used to store the metadata values in Google Storage.
 	USER_METADATA                   = "user"
 	WIDTH_METADATA                  = "width"
 	HEIGHT_METADATA                 = "height"
@@ -93,8 +86,7 @@ var (
 
 // cacheEntry is used to store PNGs in the Store lru cache.
 type cacheEntry struct {
-	body  []byte
-	runId string
+	body []byte
 }
 
 // Store is used to read and write user code and media to and from Google
@@ -114,20 +106,26 @@ func shouldBeCached(media Media) bool {
 	return media == CPU || media == GPU
 }
 
-// New create a new Store.
-func New() (*Store, error) {
-	// TODO(jcgregorio) Decide is this needs to be a backoff client. May not be necessary if we add caching at this layer.
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+// New creates a new Store.
+//
+// local - True if running locally.
+func New(local bool) (*Store, error) {
+	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
+	client := auth.ClientFromTokenSource(ts)
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Problem creating storage client: %s", err)
 	}
+	cache, err := lru.New(LRU_CACHE_SIZE)
+	if err != nil {
+		return nil, fmt.Errorf("Failed creating cache: %s", err)
+	}
 	return &Store{
 		bucket: storageClient.Bucket(FIDDLE_STORAGE_BUCKET),
-		cache:  lru.New(LRU_CACHE_SIZE),
+		cache:  cache,
 	}, nil
 }
 
@@ -135,9 +133,8 @@ func New() (*Store, error) {
 //
 //    media - The type of the file to write.
 //    fiddleHash - The hash of the fiddle.
-//    runId - A unique identifier for the specific run (git checkout of Skia).
 //    b64 - The contents of the media file base64 encoded.
-func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error {
+func (s *Store) writeMediaFile(media Media, fiddleHash, b64 string) error {
 	if b64 == "" && media != TXT {
 		return fmt.Errorf("An empty file is not a valid %s file.", string(media))
 	}
@@ -156,17 +153,11 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 		sklog.Infof("Cache write: %s", key)
 		if c, ok := s.cache.Get(key); !ok {
 			s.cache.Add(key, &cacheEntry{
-				runId: runId,
-				body:  body,
+				body: body,
 			})
 		} else {
 			if entry, ok := c.(*cacheEntry); ok {
-				if runId > entry.runId {
-					entry.body = body
-					entry.runId = runId
-				} else {
-					sklog.Infof("Ran an older version of Skia, not caching: %v <= %v", runId, entry.runId)
-				}
+				entry.body = body
 			} else {
 				sklog.Errorf("Found a non-cacheEntry in the lru Cache: %v", reflect.TypeOf(c))
 			}
@@ -179,7 +170,7 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 	// this fails the user can always 'rerun' the fiddle to generate an image
 	// that failed to write.
 	go func() {
-		path := strings.Join([]string{"fiddle", fiddleHash, runId, p.filename}, "/")
+		path := strings.Join([]string{"fiddle", fiddleHash, p.filename}, "/")
 		w := s.bucket.Object(path).NewWriter(context.Background())
 		defer util.Close(w)
 		w.ObjectAttrs.ContentEncoding = p.contentType
@@ -194,8 +185,6 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 //
 //    code - The user's code.
 //    options - The options the user chose to run the code under.
-//    gitHash - The git checkout this was built under.
-//    ts - The timestamp of the gitHash.
 //    results - The results from running fiddle_run.
 //
 // Code is written to:
@@ -204,17 +193,15 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 //
 // And media files are written to:
 //
-//   gs://skia-fiddle/fiddle/<fiddleHash>/<runId>/cpu.png
-//   gs://skia-fiddle/fiddle/<fiddleHash>/<runId>/gpu.png
-//   gs://skia-fiddle/fiddle/<fiddleHash>/<runId>/skp.skp
-//   gs://skia-fiddle/fiddle/<fiddleHash>/<runId>/pdf.pdf
-//
-// Where runId is <git commit timestamp in RFC3339>:<git commit hash>.
+//   gs://skia-fiddle/fiddle/<fiddleHash>/cpu.png
+//   gs://skia-fiddle/fiddle/<fiddleHash>/gpu.png
+//   gs://skia-fiddle/fiddle/<fiddleHash>/skp.skp
+//   gs://skia-fiddle/fiddle/<fiddleHash>/pdf.pdf
 //
 // If results is nil then only the code is written.
 //
 // Returns the fiddleHash.
-func (s *Store) Put(code string, options types.Options, gitHash string, ts time.Time, results *types.Result) (string, error) {
+func (s *Store) Put(code string, options types.Options, results *types.Result) (string, error) {
 	fiddleHash, err := options.ComputeHash(code)
 	if err != nil {
 		return "", fmt.Errorf("Could not compute hash for the code: %s", err)
@@ -248,7 +235,7 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 	if results == nil {
 		return fiddleHash, nil
 	}
-	if err := s.PutMedia(options, fiddleHash, gitHash, ts, results); err != nil {
+	if err := s.PutMedia(options, fiddleHash, results); err != nil {
 		return fiddleHash, err
 	}
 	return fiddleHash, nil
@@ -257,61 +244,56 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 // PutMedia writes the media for the given fiddleHash to Google Storage.
 //
 //    fiddleHash - The fiddle hash.
-//    gitHash - The git checkout this was built under.
-//    ts - The timestamp of the gitHash.
 //    results - The results from running fiddle_run.
 //
 // Media files are written to:
 //
-//   gs://skia-fiddle/fiddle/<fiddleHash>/<runId>/cpu.png
-//   gs://skia-fiddle/fiddle/<fiddleHash>/<runId>/gpu.png
-//   gs://skia-fiddle/fiddle/<fiddleHash>/<runId>/skp.skp
-//   gs://skia-fiddle/fiddle/<fiddleHash>/<runId>/pdf.pdf
-//
-// Where runId is <git commit timestamp in RFC3339>:<git commit hash>.
+//   gs://skia-fiddle/fiddle/<fiddleHash>/cpu.png
+//   gs://skia-fiddle/fiddle/<fiddleHash>/gpu.png
+//   gs://skia-fiddle/fiddle/<fiddleHash>/skp.skp
+//   gs://skia-fiddle/fiddle/<fiddleHash>/pdf.pdf
 //
 // If results is nil then only the code is written.
 //
 // Returns the fiddleHash.
-func (s *Store) PutMedia(options types.Options, fiddleHash string, gitHash string, ts time.Time, results *types.Result) error {
+func (s *Store) PutMedia(options types.Options, fiddleHash string, results *types.Result) error {
 	// Write each of the media files.
-	runId := fmt.Sprintf("%s:%s", ts.UTC().Format(time.RFC3339), gitHash)
 	if options.TextOnly {
-		err := s.writeMediaFile(TXT, fiddleHash, runId, results.Execute.Output.Text)
+		err := s.writeMediaFile(TXT, fiddleHash, results.Execute.Output.Text)
 		if err != nil {
 			return err
 		}
 	} else {
 		if options.Animated {
-			err := s.writeMediaFile(ANIM_CPU, fiddleHash, runId, results.Execute.Output.AnimatedRaster)
+			err := s.writeMediaFile(ANIM_CPU, fiddleHash, results.Execute.Output.AnimatedRaster)
 			if err != nil {
 				return err
 			}
-			err = s.writeMediaFile(ANIM_GPU, fiddleHash, runId, results.Execute.Output.AnimatedGpu)
+			err = s.writeMediaFile(ANIM_GPU, fiddleHash, results.Execute.Output.AnimatedGpu)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := s.writeMediaFile(CPU, fiddleHash, runId, results.Execute.Output.Raster)
+			err := s.writeMediaFile(CPU, fiddleHash, results.Execute.Output.Raster)
 			if err != nil {
 				return err
 			}
-			err = s.writeMediaFile(GPU, fiddleHash, runId, results.Execute.Output.Gpu)
+			err = s.writeMediaFile(GPU, fiddleHash, results.Execute.Output.Gpu)
 			if err != nil {
 				return err
 			}
-			err = s.writeMediaFile(PDF, fiddleHash, runId, results.Execute.Output.Pdf)
+			err = s.writeMediaFile(PDF, fiddleHash, results.Execute.Output.Pdf)
 			if err != nil {
 				return err
 			}
-			err = s.writeMediaFile(SKP, fiddleHash, runId, results.Execute.Output.Skp)
+			err = s.writeMediaFile(SKP, fiddleHash, results.Execute.Output.Skp)
 			if err != nil {
 				return err
 			}
 		}
 	}
 	if results.Execute.Output.GLInfo != "" {
-		err := s.writeMediaFile(GLINFO, fiddleHash, runId, results.Execute.Output.GLInfo)
+		err := s.writeMediaFile(GLINFO, fiddleHash, results.Execute.Output.GLInfo)
 		if err != nil {
 			sklog.Warningf("Failed to save GLInfo: %s", err)
 		}
@@ -395,6 +377,7 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 //
 // Returns the media file contents as a byte slice, the content-type, and the filename of the media.
 func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string, error) {
+	ctx := context.Background()
 	key := cacheKey(fiddleHash, media)
 	if c, ok := s.cache.Get(key); ok {
 		if entry, ok := c.(*cacheEntry); ok {
@@ -402,31 +385,40 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 			return entry.body, mediaProps[media].contentType, mediaProps[media].filename, nil
 		}
 	}
-	// List the dirs under gs://skia-fiddle/fiddle/<fiddleHash>/ and find the most recent one.
-	// Use Delimiter and Prefix to get a directory listing of sub-directories. See
-	// https://cloud.google.com/storage/docs/json_api/v1/objects/list
-	q := &storage.Query{
-		Delimiter: "/",
-		Prefix:    fmt.Sprintf("fiddle/%s/", fiddleHash),
-	}
-	runIds := []string{}
-	ctx := context.Background()
-	it := s.bucket.Objects(ctx, q)
-	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
-		if err != nil {
-			return nil, "", "", fmt.Errorf("Failed to retrieve list of results for (%s, %s): %s", fiddleHash, string(media), err)
-		}
-		if obj.Prefix != "" {
-			runIds = append(runIds, obj.Prefix)
-		}
-	}
-	if len(runIds) == 0 {
-		return nil, "", "", fmt.Errorf("This fiddle has no valid output written (%s, %s)", fiddleHash, string(media))
-	}
-	sort.Strings(runIds)
-	r, err := s.bucket.Object(runIds[len(runIds)-1] + mediaProps[media].filename).NewReader(ctx)
+
+	prefix := fmt.Sprintf("fiddle/%s/", fiddleHash)
+	r, err := s.bucket.Object(prefix + mediaProps[media].filename).NewReader(ctx)
 	if err != nil {
-		return nil, "", "", fmt.Errorf("Unable to get reader for the media file (%s, %s): %s", fiddleHash, string(media), err)
+		// Legacy support for how images used to be stored.
+		//
+		// Fiddle results used to be stored per 'run' which included the githash and timestamp
+		// of the githash.
+		//
+		// List the dirs under gs://skia-fiddle/fiddle/<fiddleHash>/ and find the most recent one.
+		// Use Delimiter and Prefix to get a directory listing of sub-directories. See
+		// https://cloud.google.com/storage/docs/json_api/v1/objects/list
+		q := &storage.Query{
+			Delimiter: "/",
+			Prefix:    prefix,
+		}
+		runIds := []string{}
+		it := s.bucket.Objects(ctx, q)
+		for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
+			if err != nil {
+				return nil, "", "", fmt.Errorf("Failed to retrieve list of results for (%s, %s): %s", fiddleHash, string(media), err)
+			}
+			if obj.Prefix != "" {
+				runIds = append(runIds, obj.Prefix)
+			}
+		}
+		if len(runIds) == 0 {
+			return nil, "", "", fmt.Errorf("This fiddle has no valid output written (%s, %s)", fiddleHash, string(media))
+		}
+		sort.Strings(runIds)
+		r, err = s.bucket.Object(runIds[len(runIds)-1] + mediaProps[media].filename).NewReader(ctx)
+		if err != nil {
+			return nil, "", "", fmt.Errorf("Unable to get reader for the media file (%s, %s): %s", fiddleHash, string(media), err)
+		}
 	}
 	defer util.Close(r)
 	b, err := ioutil.ReadAll(r)
@@ -439,108 +431,6 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 		})
 	}
 	return b, mediaProps[media].contentType, mediaProps[media].filename, nil
-}
-
-// AddSource adds a new source image. The image must be a PNG.
-//
-//    image - The bytes on the PNG file.
-//
-// Returns the id of the source image.
-func AddSource(image []byte) (int, error) {
-	// Use the file 'lastid.txt' in the bucket that contains the last id used.
-	// Read, record gen, increments, write with condition of unchanged generation.
-
-	// TODO(jcgregorio) Implement.
-	return 0, fmt.Errorf("Not implemented yet.")
-}
-
-// downloadSingleSourceImage downloads a single source image from the Google Storage bucket.
-//
-//    ctx - The context of the request.
-//    bucket - The Google Storage bucket.
-//    srcName - The full Google Storage path of the source image.
-//    dstName - The full local file system name where the source image will be written to.
-func downloadSingleSourceImage(ctx context.Context, bucket *storage.BucketHandle, srcName, dstName string) error {
-	r, err := bucket.Object(srcName).NewReader(ctx)
-	if err != nil {
-		return fmt.Errorf("Failed to open reader for image %s: %s", srcName, err)
-	}
-	defer util.Close(r)
-	w, err := os.Create(dstName)
-	if err != nil {
-		return fmt.Errorf("Failed to open writer for image %s: %s", dstName, err)
-	}
-	defer util.Close(w)
-	_, err = io.Copy(w, r)
-	if err != nil {
-		return fmt.Errorf("Failed to copy bytes for image %s: %s", dstName, err)
-	}
-	return nil
-}
-
-// DownloadAllSourceImages downloads all the images under gs://skia-fiddles/source/
-// and copies them as PNG images under FIDDLE_ROOT/images/.
-//
-//    fiddleRoot - The root directory where fiddle is working. See DESIGN.md.
-func (s *Store) DownloadAllSourceImages(fiddleRoot string) error {
-	ctx := context.Background()
-	q := &storage.Query{
-		Prefix: fmt.Sprintf("source/"),
-	}
-	if err := os.MkdirAll(filepath.Join(fiddleRoot, "images"), 0755); err != nil {
-		return fmt.Errorf("Failed to create images directory: %s", err)
-	}
-	it := s.bucket.Objects(ctx, q)
-	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
-		if err != nil {
-			return fmt.Errorf("Failed to retrieve image list: %s", err)
-		}
-		filename := strings.Split(obj.Name, "/")[1]
-		dstFullPath := filepath.Join(fiddleRoot, "images", filename)
-		if err := downloadSingleSourceImage(ctx, s.bucket, obj.Name, dstFullPath); err != nil {
-			sklog.Errorf("Failed to download image %q: %s", obj.Name, err)
-		}
-	}
-	return nil
-}
-
-// GetSourceImage downloads a single source image from the Google Storage bucket.
-func (s *Store) GetSourceImage(i int) (image.Image, error) {
-	ctx := context.Background()
-	r, err := s.bucket.Object(fmt.Sprintf("source/%d.png", i)).NewReader(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to open reader for image: %s", err)
-	}
-	defer util.Close(r)
-	return png.Decode(r)
-}
-
-// ListSourceImages returns the ids of all the images under gs://skia-fiddles/source/.
-func (s *Store) ListSourceImages() ([]int, error) {
-	ret := []int{}
-	ctx := context.Background()
-	q := &storage.Query{
-		Prefix: fmt.Sprintf("source/"),
-	}
-	it := s.bucket.Objects(ctx, q)
-	for obj, err := it.Next(); err != iterator.Done; obj, err = it.Next() {
-		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve image list: %s", err)
-		}
-		filename := strings.Split(obj.Name, "/")[1]
-		matches := sourceFileName.FindAllStringSubmatch(filename, -1)
-		if len(matches) != 1 || len(matches[0]) != 2 {
-			sklog.Infof("Filename %s is not a source image.", filename)
-			continue
-		}
-		i, err := strconv.Atoi(matches[0][1])
-		if err != nil {
-			sklog.Errorf("Failed to parse souce image filename: %s", err)
-			continue
-		}
-		ret = append(ret, i)
-	}
-	return ret, nil
 }
 
 // Named is the information about a named fiddle.

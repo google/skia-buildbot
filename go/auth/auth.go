@@ -19,7 +19,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/compute/v1"
+	compute "google.golang.org/api/compute/v1"
 	oauth2_api "google.golang.org/api/oauth2/v2"
 	storage "google.golang.org/api/storage/v1"
 )

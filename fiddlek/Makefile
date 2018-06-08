@@ -11,11 +11,25 @@ VULCANIZE1=true
 
 .PHONY: build
 build: elements_html core_js
-	go install -v ./go/fiddle_build
-	go install -v ./go/fiddle_run
-	go install -v ./go/webtry_extract
 	go install -v ./go/fiddle
+	go install -v ./go/fiddler
 	go install -v ./go/fiddlecli
+
+.PHONY: image
+image: build
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/fiddle
+	SKIP_UPLOAD=1 ./build_fiddle_release
+	SKIP_UPLOAD=1 ./build_fiddler_release
+
+.PHONY: release
+release: build
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/fiddle
+	./build_fiddle_release
+	./build_fiddler_release
+
+.PHONY: push
+push:
+	pushk fiddle fiddler
 
 .PHONY: cli
 cli:
@@ -25,19 +39,8 @@ cli:
 testgo:
 	go test -v ./...
 
-.PHONY: push
-push: build
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli fiddle skia-fiddle
-
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
-
-.PHONY: secwraplive
-secwraplive:
-	c++ cpp/fiddle_secwrap.cpp -o fiddle_secwrap
-	gcloud compute scp fiddle_secwrap default@skia-fiddle:/mnt/pd0/fiddle/bin/ --zone us-east1-d
 
 include ../webtools/webtools.mk

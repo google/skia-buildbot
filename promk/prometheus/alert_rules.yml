@@ -89,3 +89,12 @@ groups:
     annotations:
       abbr: 'JSDoc documentation building is failing.'
       description: '{{ $labels.instance }} has failed to rebuild documentation for the last 2 hours. https://skia.googlesource.com/buildbot/%2B/master/jsdoc/PROD.md#build_liveness'
+  # Fiddle
+  - alert: FiddlerPodsTooLow
+    expr: avg_over_time(pods_idle[2m]) < 5
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: 'Insufficient fiddler pods.'
+      description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/master/fiddlek/PROD.md#fiddler_pods'

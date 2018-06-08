@@ -8,8 +8,7 @@ import (
 	"runtime"
 	"sort"
 
-	"github.com/skia-dev/glog"
-
+	"github.com/golang/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/httputils"

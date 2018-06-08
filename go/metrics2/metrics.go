@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/skia-dev/glog"
 )
 
 // Timer is a struct used for measuring elapsed time. Unlike the other metrics

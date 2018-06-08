@@ -46,6 +46,7 @@ gcloud container clusters create "${CLUSTER_NAME}" \
   --network "default" \
   --no-enable-basic-auth \
   --no-enable-legacy-authorization \
+  --enable-network-policy \
   --num-nodes "3" \
   --subnetwork "default" \
   --zone "us-central1-a"

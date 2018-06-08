@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/skia-dev/glog"
+	"github.com/golang/glog"
 	logging "google.golang.org/api/logging/v2"
 )
 

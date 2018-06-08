@@ -6,8 +6,15 @@ import (
 	"fmt"
 	"strings"
 
-	"go.skia.org/infra/fiddle/go/linenumbers"
+	"go.skia.org/infra/fiddlek/go/linenumbers"
 	"go.skia.org/infra/go/vcsinfo"
+)
+
+const (
+	// MAX_JSON_SIZE is the limit on the size of JSON produced by a single fiddle run.
+	MAX_JSON_SIZE = 100 * 1024 * 1024
+
+	MAX_CODE_SIZE = 128 * 1024
 )
 
 // Result is the JSON output format from fiddle_run.
@@ -17,7 +24,7 @@ type Result struct {
 	Execute Execute `json:"execute"`
 }
 
-// Compile contains the out from compiling the user's fiddle.
+// Compile contains the output from compiling the user's fiddle.
 type Compile struct {
 	Errors string `json:"errors"`
 	Output string `json:"output"` // Compiler output.
@@ -114,7 +121,7 @@ func (o *Options) ComputeHash(code string) (string, error) {
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-// FiddleContext is the structure we use for the expanding the index.html template.
+// FiddleContext is the structure we use for expanding the index.html template.
 //
 // It is also used (without the Hash) as the incoming JSON request to /_/run.
 type FiddleContext struct {
@@ -146,3 +153,13 @@ type RunResults struct {
 
 type BulkRequest map[string]*FiddleContext
 type BulkResponse map[string]*RunResults
+
+// State is the state of a fiddler.
+type State string
+
+const (
+	IDLE      State = "idle"
+	WRITING   State = "writing"
+	COMPILING State = "compiling"
+	RUNNING   State = "running"
+)

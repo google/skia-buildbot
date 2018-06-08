@@ -9,8 +9,8 @@ import (
 
 	"go.skia.org/infra/go/util"
 
+	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/skia-dev/glog"
 )
 
 var (

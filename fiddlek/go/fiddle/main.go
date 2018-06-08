@@ -2,7 +2,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -11,49 +10,35 @@ import (
 	"html/template"
 	ttemplate "html/template"
 	"net/http"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	_ "net/http/pprof"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/fiddle/go/buildlib"
-	"go.skia.org/infra/fiddle/go/buildsecwrap"
-	"go.skia.org/infra/fiddle/go/named"
-	"go.skia.org/infra/fiddle/go/runner"
-	"go.skia.org/infra/fiddle/go/source"
-	"go.skia.org/infra/fiddle/go/store"
-	"go.skia.org/infra/fiddle/go/types"
-	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/fiddlek/go/named"
+	"go.skia.org/infra/fiddlek/go/runner"
+	"go.skia.org/infra/fiddlek/go/source"
+	"go.skia.org/infra/fiddlek/go/store"
+	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
-const (
-	FIDDLE_HASH_LENGTH = 32
-)
-
 // flags
 var (
-	fiddleRoot        = flag.String("fiddle_root", "", "Directory location where all the work is done.")
-	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	port              = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	preserveTemp      = flag.Bool("preserve_temp", false, "If true then preserve the build artifacts in the fiddle/tmp directory. Used for debugging only.")
-	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	timeBetweenBuilds = flag.Duration("time_between_builds", time.Hour, "How long to wait between building LKGR of Skia.")
-	tryNamed          = flag.Bool("try_named", true, "Start the Go routine that periodically tries all the named fiddles.")
+	fiddleRoot     = flag.String("fiddle_root", "", "Directory location where all the work is done.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	sourceImageDir = flag.String("source_image_dir", "./source", "The directory to load the source images from.")
 )
 
 var (
@@ -121,16 +106,13 @@ var (
 	maybeSecViolations  = metrics2.GetCounter("maybe_sec_container_violation", nil)
 	runs                = metrics2.GetCounter("runs", nil)
 	tryNamedLiveness    = metrics2.NewLiveness("try_named")
-	smiLiveness         = metrics2.NewLiveness("smi")
 
-	build        *buildskia.ContinuousBuilder
 	fiddleStore  *store.Store
-	repo         *gitinfo.GitInfo
 	src          *source.Source
 	names        *named.Named
 	failingNamed = []store.Named{}
 	failingMutex = sync.Mutex{}
-	depotTools   string
+	run          *runner.Runner
 )
 
 func loadTemplates() {
@@ -145,6 +127,10 @@ func loadTemplates() {
 	))
 }
 
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if *local {
@@ -152,7 +138,6 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	cp := *defaultFiddle
 	cp.Sources = src.ListAsJSON()
-	cp.Build = build.Current()
 	if err := templates.ExecuteTemplate(w, "index.html", cp); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
@@ -226,7 +211,6 @@ func loadContext(w http.ResponseWriter, r *http.Request) (*types.FiddleContext, 
 		return nil, fmt.Errorf("Fiddle not found.")
 	}
 	return &types.FiddleContext{
-		Build:   build.Current(),
 		Sources: src.ListAsJSON(),
 		Hash:    id,
 		Code:    code,
@@ -348,7 +332,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := run(context.Background(), login.LoggedInAs(r), req)
+	resp, err := runImpl(context.Background(), req)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to run the fiddle.")
 		return
@@ -362,12 +346,12 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func run(ctx context.Context, user string, req *types.FiddleContext) (*types.RunResults, error) {
+func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, error) {
 	resp := &types.RunResults{
 		CompileErrors: []types.CompileError{},
 		FiddleHash:    "",
 	}
-	if err := runner.ValidateOptions(&req.Options); err != nil {
+	if err := run.ValidateOptions(&req.Options); err != nil {
 		return resp, fmt.Errorf("Invalid Options: %s", err)
 	}
 	sklog.Infof("Request: %#v", *req)
@@ -396,21 +380,9 @@ func run(ctx context.Context, user string, req *types.FiddleContext) (*types.Run
 		}
 	}
 
-	current := build.Current()
-	sklog.Infof("Building at: %s", current.Hash)
-	checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
-	tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, req.Code, &req.Options)
+	res, err := run.Run(*local, req)
 	if err != nil {
-		return resp, fmt.Errorf("Failed to write the fiddle.")
-	}
-	res, err := runner.Run(ctx, checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, &req.Options, *preserveTemp)
-	if !*local && !*preserveTemp {
-		if err := os.RemoveAll(tmpDir); err != nil {
-			sklog.Errorf("Failed to remove temp dir: %s", err)
-		}
-	}
-	if err != nil {
-		return resp, fmt.Errorf("Failed to run the fiddle")
+		return resp, fmt.Errorf("Failed to run the fiddle: %s", err)
 	}
 	maybeSecViolation := false
 	if res.Execute.Errors != "" {
@@ -463,9 +435,9 @@ func run(ctx context.Context, user string, req *types.FiddleContext) (*types.Run
 	fiddleHash := ""
 	// Store the fiddle, but only if we are not in Fast mode and errors occurred.
 	if !(res == nil && req.Fast) {
-		fiddleHash, err = fiddleStore.Put(req.Code, req.Options, current.Hash, current.Timestamp, res)
+		fiddleHash, err = fiddleStore.Put(req.Code, req.Options, res)
 		if err != nil {
-			return resp, fmt.Errorf("Failed to store the fiddle")
+			return resp, fmt.Errorf("Failed to store the fiddle: %s", err)
 		}
 	}
 	if maybeSecViolation {
@@ -484,19 +456,6 @@ func run(ctx context.Context, user string, req *types.FiddleContext) (*types.Run
 		resp.Text = string(decodedText)
 	}
 
-	// Only logged in users can create named fiddles.
-	if req.Name != "" && user != "" && fiddleHash != "" {
-		// Create a name for this fiddle. Validation is done in this func.
-		err := names.Add(req.Name, fiddleHash, user, req.Overwrite)
-		if err == named.DuplicateNameErr {
-			return resp, fmt.Errorf("Duplicate fiddle name.")
-		}
-		if err != nil {
-			return resp, fmt.Errorf("Failed to store the name.")
-		}
-		// Replace fiddleHash with name.
-		resp.FiddleHash = "@" + req.Name
-	}
 	return resp, nil
 }
 
@@ -521,153 +480,28 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func singleStepTryNamed(ctx context.Context) {
-	sklog.Infoln("Begin: Try all named fiddles.")
-	allNames, err := fiddleStore.ListAllNames()
-	if err != nil {
-		sklog.Errorf("Failed to list all named fiddles: %s", err)
-		return
-	}
-	failing := []store.Named{}
-	current := build.Current()
-	for _, name := range allNames {
-		sklog.Infof("Trying: %s", name.Name)
-		fiddleHash, err := names.DereferenceID("@" + name.Name)
-		if err != nil {
-			sklog.Errorf("Can't dereference %s: %s", name.Name, err)
-			continue
-		}
-		code, options, err := fiddleStore.GetCode(fiddleHash)
-		if err != nil {
-			sklog.Errorf("Can't get code for %s: %s", name.Name, err)
-			continue
-		}
-		checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
-		tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, code, options)
-		if err != nil {
-			sklog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
-			continue
-		}
-		res, err := runner.Run(ctx, checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir, options, *preserveTemp)
-		if err != nil {
-			sklog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
-			failing = append(failing, name)
-		} else if res.Compile.Errors != "" || res.Execute.Errors != "" {
-			sklog.Errorf("Failed to compile or run the named fiddle: %s", name.Name)
-			failing = append(failing, name)
-		}
-		if !*preserveTemp {
-			if err := os.RemoveAll(tmpDir); err != nil {
-				sklog.Errorf("Failed to remove temp dir: %s", err)
-			}
-		}
-	}
-	sklog.Infof("The following named fiddles are failing: %v", failing)
-	namedFailures.Reset()
-	namedFailures.Inc(int64(len(failing)))
-	tryNamedLiveness.Reset()
-	failingMutex.Lock()
-	defer failingMutex.Unlock()
-	failingNamed = failing
-}
-
-// StartTryNamed starts the Go routine that daily tests all of the named
-// fiddles and reports the ones that fail to build or run.
-func StartTryNamed(ctx context.Context) {
-	go func() {
-		singleStepTryNamed(ctx)
-		for range time.Tick(24 * time.Hour) {
-			singleStepTryNamed(ctx)
-		}
-	}()
-}
-
-func smi(ctx context.Context) error {
-	output := &bytes.Buffer{}
-	runCmd := &exec.Command{
-		Name:      "nvidia-smi",
-		LogStderr: true,
-		LogStdout: true,
-		Stdout:    output,
-	}
-	var err error
-	if err = exec.Run(ctx, runCmd); err != nil {
-		sklog.Errorf("nvidia-smi failed %#v: %s", *runCmd, err)
-	}
-	sklog.Infof("nvidia-smi output: %s", output.String())
-	return err
-}
-
-func smiStep(ctx context.Context) {
-	defer metrics2.FuncTimer().Stop()
-	if err := smi(ctx); err != nil {
-		smiLiveness.Reset()
-	}
-}
-
-// StartSMI starts a Go routine that periodically runs 'nvidia-smi' which seems
-// to knock the GPU back into a running state.
-func StartSMI(ctx context.Context) {
-	go func() {
-		smiStep(ctx)
-		for range time.Tick(5 * time.Minute) {
-			smiStep(ctx)
-		}
-	}()
-}
-
-func resetGpuHandler(w http.ResponseWriter, r *http.Request) {
-	if err := smi(r.Context()); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to run smi: %s", err))
-	}
-}
-
 func main() {
 	defer common.LogPanic()
 	common.InitWithMust(
 		"fiddle",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
-	login.SimpleInitMust(*port, *local)
-	ctx := context.Background()
-	if *fiddleRoot == "" {
-		sklog.Fatal("The --fiddle_root flag is required.")
-	}
-	if !*local {
-		if err := buildsecwrap.Build(ctx, *fiddleRoot); err != nil {
-			sklog.Fatalf("Failed to compile fiddle_secwrap: %s", err)
-		}
-	}
-	depotTools = filepath.Join(*fiddleRoot, "depot_tools")
 	loadTemplates()
 	var err error
-	repo, err = gitinfo.CloneOrUpdate(ctx, common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
-	if err != nil {
-		sklog.Fatalf("Failed to clone Skia: %s", err)
-	}
-	fiddleStore, err = store.New()
+	fiddleStore, err = store.New(*local)
 	if err != nil {
 		sklog.Fatalf("Failed to connect to store: %s", err)
 	}
-	if err := fiddleStore.DownloadAllSourceImages(*fiddleRoot); err != nil {
-		sklog.Fatalf("Failed to download source images: %s", err)
+	run, err = runner.New(*local, *sourceImageDir)
+	if err != nil {
+		sklog.Fatalf("Failed to initialize runner: %s", err)
 	}
-	src, err = source.New(fiddleStore)
+	go run.Metrics(*local)
+	src, err = source.New(*sourceImageDir)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize source images: %s", err)
 	}
 	names = named.New(fiddleStore)
-	build = buildskia.New(ctx, *fiddleRoot, depotTools, repo, buildlib.BuildLib, 64, *timeBetweenBuilds, true)
-	build.Start(ctx)
-	if *tryNamed {
-		StartTryNamed(ctx)
-	}
-	StartSMI(ctx)
-
-	go func() {
-		sklog.Fatal(http.ListenAndServe("localhost:6060", nil))
-	}()
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
@@ -678,14 +512,13 @@ func main() {
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/f/", failedHandler)
 	r.HandleFunc("/named/", namedHandler)
-	r.HandleFunc("/reset_gpu/", resetGpuHandler).Methods("GET")
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc("/healthz", healthzHandler)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	// Do not log healthz requests.
+	http.HandleFunc("/healthz", healthzHandler)
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

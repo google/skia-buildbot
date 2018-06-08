@@ -44,7 +44,6 @@
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
 <link rel="import" href="/res/common/imp/details-summary.html">
 <link rel="import" href="/res/common/imp/toggle.html">
-<link rel="import" href="/res/common/imp/login.html">
 
 <link rel="import" href="/res/imp/text-src.html">
 <dom-module id="fiddle-sk">
@@ -281,14 +280,6 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
           <input type="text" readonly size=150 value="&lt;a href='https://fiddle.skia.org/c/{{fiddlehash}}'>&lt;img src='https://fiddle.skia.org/i/{{fiddlehash}}_raster.png'>&lt;/a>">
           <h3>Embed as custom element (skia.org only):</h3>
           <input type="text" readonly size=150 value="&lt;fiddle-embed name='{{fiddlehash}}'>&lt;/fiddle-embed> ">
-        </div>
-        <toggle-display-sk disabled$={{_not_logged_in}}>Name</toggle-display-sk>
-        <div id=namer>
-          <h3>Create a name for this fiddle:</h3>
-          <paper-input id=name label="Name" placeholder="fiddle_name_goes_here" size=40 auto-validate allowed-pattern="[0-9a-zA-Z_]" value="{{_name}}"></paper-input>
-          <!-- Add a pop-up menu here that has completions based on what's been typed so far, and also any names that this page has loaded previously.-->
-          <paper-checkbox id=overwrite title="Overwrite the existing name if one exists.">Overwrite</paper-checkbox>
-          <button class=save on-tap="_submit_name" disabled="{{_isEmpty(_name)}}">Save</button>
         </div>
       </template>
     </div>
@@ -545,11 +536,6 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
         value: "",
         reflectToAttribute: false,
       },
-      _not_logged_in: {
-        type: Boolean,
-        value: true,
-        reflectToAttribute: false,
-      },
       _name: {
         type: String,
         value: "",
@@ -560,10 +546,6 @@ GrBackendTexture backEndTexture; // GPU Only.</pre>
     ready: function() {
       this._errorLinesRe = /draw.cpp:([0-9]+):([0-9]+):/;
       this._editor = $$$('textarea-numbers-sk', this);
-
-      sk.Login.then(function(status) {
-        this._not_logged_in = (status.Email == "");
-      }.bind(this));
     },
 
     _run: function() {

@@ -1,5 +1,4 @@
-// Keeps a cache of all the source image thumbnails, updating the cache when
-// new images are added.
+// Keeps a cache of all the source image thumbnails.
 package source
 
 import (
@@ -7,42 +6,53 @@ import (
 	"encoding/json"
 	"fmt"
 	"image/png"
+	"io"
+	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/nfnt/resize"
-	"go.skia.org/infra/fiddle/go/store"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 // Source handles the source images that may be used by fiddles.
 type Source struct {
 	// thumbnails maps source image ids to the PNG bytes of the thumbnail.
 	thumbnails map[int][]byte
-	st         *store.Store
 }
 
 // New create a new Source.
-func New(st *store.Store) (*Source, error) {
+func New(dir string) (*Source, error) {
 	s := &Source{
 		thumbnails: map[int][]byte{},
-		st:         st,
 	}
-	// Populate the cache.
-	ids, err := st.ListSourceImages()
+	filenames, err := filepath.Glob(filepath.Join(dir, "*.png"))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to list source images: %s", err)
+		return nil, fmt.Errorf("Failed loading sources: %s", err)
 	}
-	for _, i := range ids {
-		img, err := st.GetSourceImage(i)
+	for _, filename := range filenames {
+		err := util.WithReadFile(filename, func(f io.Reader) error {
+			img, err := png.Decode(f)
+			if err != nil {
+				return err
+			}
+			img = resize.Resize(64, 64, img, resize.NearestNeighbor)
+			buf := &bytes.Buffer{}
+			if err := png.Encode(buf, img); err != nil {
+				return fmt.Errorf("Failed to encode thumbnail: %s", err)
+			}
+			i, err := strconv.Atoi(strings.Split(filepath.Base(filename), ".")[0])
+			if err != nil {
+				return fmt.Errorf("Source filename isn't an integer: %s", err)
+			}
+			s.thumbnails[i] = buf.Bytes()
+			return nil
+		})
 		if err != nil {
 			return nil, fmt.Errorf("Failed to download source image: %s", err)
 		}
-		img = resize.Resize(64, 64, img, resize.NearestNeighbor)
-		buf := &bytes.Buffer{}
-		if err := png.Encode(buf, img); err != nil {
-			return nil, fmt.Errorf("Failed to encode thumbnail: %s", err)
-		}
-		s.thumbnails[i] = buf.Bytes()
 	}
 	return s, err
 }
