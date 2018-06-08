@@ -213,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "a3432113_7dc5f540",
+        "filename": "fiddlek/DESIGN.md",
+        "patchSetId": 33
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "Still typo",
+      "parentUuid": "a66a70e7_fa597acf",
+      "range": {
+        "startLine": 149,
+        "startChar": 54,
+        "endLine": 149,
+        "endChar": 65
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "34c4d3af_9e1aebf5",
         "filename": "fiddlek/Makefile",
         "patchSetId": 33
@@ -242,6 +266,24 @@
       "side": 1,
       "message": "No, that\u0027s done via the \u0027build\u0027 target.\nAlso fiddler runs in a debian image so we don\u0027t need to do the static link.",
       "parentUuid": "34c4d3af_9e1aebf5",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0822c9c4_c6753247",
+        "filename": "fiddlek/Makefile",
+        "patchSetId": 33
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "Ah, ok. Might be good to add a comment explaining that.",
+      "parentUuid": "d3309259_bfec7fea",
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -482,6 +524,24 @@
     },
     {
       "key": {
+        "uuid": "cb2b10de_61085e2b",
+        "filename": "fiddlek/go/fiddle/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "I guess what I mean is this line doesn\u0027t actually have any effect, since it\u0027s overridden below, correct?",
+      "parentUuid": "77045d98_ac028495",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "afa98562_54dbc8ab",
         "filename": "fiddlek/go/fiddlecli/main.go",
         "patchSetId": 33
@@ -564,6 +624,24 @@
     },
     {
       "key": {
+        "uuid": "e779472a_2270fb9a",
+        "filename": "fiddlek/go/fiddler/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "cce0a634_53534b72",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6368e54f_a3551b97",
         "filename": "fiddlek/go/fiddler/main.go",
         "patchSetId": 33
@@ -608,6 +686,30 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "843453db_5557e431",
+        "filename": "fiddlek/go/fiddler/main.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "Understood. I\u0027m more worried about our logs being unreadable.",
+      "parentUuid": "a1c11be9_13bca780",
+      "range": {
+        "startLine": 75,
+        "startChar": 39,
+        "endLine": 75,
+        "endChar": 42
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -777,6 +879,30 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "010e2d44_cd5d9fc5",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "528b4662_ef185d84",
+      "range": {
+        "startLine": 161,
+        "startChar": 33,
+        "endLine": 161,
+        "endChar": 48
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -985,6 +1111,30 @@
     },
     {
       "key": {
+        "uuid": "1db55a68_a337190c",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "980ad1fd_1e352a7a",
+      "range": {
+        "startLine": 180,
+        "startChar": 38,
+        "endLine": 180,
+        "endChar": 46
+      },
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "948e2d02_9db3f19a",
         "filename": "fiddlek/go/runner/runner.go",
         "patchSetId": 33
@@ -1111,6 +1261,24 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "193e3102_a327ce50",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6fbda1b8_7bffe8b1",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1309,6 +1477,24 @@
       "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a048cd23_ccf85f0b",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-08T14:23:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b3141da3_2d1e0e2a",
+      "revId": "101ecb73cf1a7016b738cfeec9113da9e58093af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
