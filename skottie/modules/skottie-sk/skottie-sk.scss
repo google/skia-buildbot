@@ -1,0 +1,52 @@
+skottie-sk {
+  display: block;
+
+  header {
+    background: #1f78b4;
+    color: white;
+    padding: 0.5em;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  header > * {
+    display: inline-block;
+  }
+
+  header h2 {
+    margin: 0;
+  }
+
+  main {
+    padding: 1em;
+  }
+
+  label[for=file] {
+    min-width: 5.14em;
+    background-color: #fff;
+    color: #175A87;
+    fill: #175A87;
+    text-align: center;
+    outline: none;
+    border-radius: 4px;
+    padding: 0.6em 1.2em;
+    border: solid lightgray 1px;
+    margin: 0.6em;
+    height: 3em;
+    transition: box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 2px 8px 0 rgba(0, 0, 0, 0.6);
+  }
+
+  input[type=file] {
+    visibility: hidden;
+  }
+
+  .filename {
+    border: solid lightgray 1px;
+    padding: 0.4em;
+    margin: 0.6em;
+    display: inline-block;
+  }
+}
