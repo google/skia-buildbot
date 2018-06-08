@@ -73,19 +73,23 @@ func main() {
 
 	ctx := context.Background()
 
-	// Send start email.
-	emailsArr := util.ParseEmails(*emails)
-	emailsArr = append(emailsArr, util.CtAdmins...)
-	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
-	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&capture_skps.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Capture SKPs", *runID, *description))
+	//// Send start email.
+	//emailsArr := util.ParseEmails(*emails)
+	//emailsArr = append(emailsArr, util.CtAdmins...)
+	//if len(emailsArr) == 0 {
+	//	sklog.Error("At least one email address must be specified")
+	//	return
+	//}
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&capture_skps.UpdateVars{}, *taskID, *runID))
+	taskCompletedSuccessfully = true
+	updateWebappTask()
+	fmt.Println("WHAT HAPPENS NOW????????????????")
+	sklog.Fatal("Testing")
+	//skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Capture SKPs", *runID, *description))
 	// Ensure webapp is updated and completion email is sent even if task
 	// fails.
 	defer updateWebappTask()
-	defer sendEmail(emailsArr)
+	//defer sendEmail(emailsArr)
 
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running capture skps task on workers")
