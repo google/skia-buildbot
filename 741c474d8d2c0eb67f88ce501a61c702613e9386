@@ -22,6 +22,30 @@
       "revId": "741c474d8d2c0eb67f88ce501a61c702613e9386",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aca172d7_6a09c190",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 7711
+      },
+      "writtenOn": "2018-06-08T21:18:52Z",
+      "side": 1,
+      "message": "Yes, but you\u0027ve named these *_EXE_SHA1 which is the naming scheme we use for Windows only.\n\nChanged to Linux.",
+      "parentUuid": "d9c4c3d9_6493c352",
+      "range": {
+        "startLine": 26,
+        "startChar": 31,
+        "endLine": 26,
+        "endChar": 72
+      },
+      "revId": "741c474d8d2c0eb67f88ce501a61c702613e9386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
