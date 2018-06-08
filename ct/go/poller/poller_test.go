@@ -66,7 +66,7 @@ func assertFileContents(t *testing.T, filepath, expected string) {
 
 func pendingChromiumPerfTask() ChromiumPerfTask {
 	return ChromiumPerfTask{
-		DBTask: chromium_perf.DBTask{
+		DatastoreTask: chromium_perf.DatastoreTask{
 			CommonCols:           pendingCommonCols(),
 			Benchmark:            "benchmark",
 			Platform:             "Linux",
@@ -111,13 +111,12 @@ func TestChromiumPerfExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--browser_extra_args_nopatch=banp")
 	expect.Contains(t, cmd.Args, "--browser_extra_args_withpatch=bawp")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
 func pendingPixelDiffTask() PixelDiffTask {
 	return PixelDiffTask{
-		DBTask: pixel_diff.DBTask{
+		DatastoreTask: pixel_diff.DatastoreTask{
 			CommonCols:           pendingCommonCols(),
 			PageSets:             "All",
 			BenchmarkArgs:        "benchmarkargs",
@@ -153,13 +152,12 @@ func TestPixelDiffExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--run_on_gce="+strconv.FormatBool(task.RunsOnGCEWorkers()))
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
 func pendingMetricsAnalysisTask() MetricsAnalysisTask {
 	return MetricsAnalysisTask{
-		DBTask: metrics_analysis.DBTask{
+		DatastoreTask: metrics_analysis.DatastoreTask{
 			CommonCols:         pendingCommonCols(),
 			MetricName:         "loadingMetric",
 			AnalysisOutputLink: "http://test/outputlink",
@@ -192,13 +190,12 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--local=false")
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
 func pendingCaptureSkpsTask() CaptureSkpsTask {
 	return CaptureSkpsTask{
-		DBTask: capture_skps.DBTask{
+		DatastoreTask: capture_skps.DatastoreTask{
 			CommonCols:  pendingCommonCols(),
 			PageSets:    "All",
 			ChromiumRev: "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
@@ -224,13 +221,12 @@ func TestCaptureSkpsExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
 func pendingLuaScriptTaskWithAggregator(ctx context.Context) LuaScriptTask {
 	return LuaScriptTask{
-		DBTask: lua_scripts.DBTask{
+		DatastoreTask: lua_scripts.DatastoreTask{
 			CommonCols:          pendingCommonCols(),
 			PageSets:            "All",
 			ChromiumRev:         "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
@@ -266,7 +262,6 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -283,7 +278,7 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 	task := LuaScriptTask{
-		DBTask: lua_scripts.DBTask{
+		DatastoreTask: lua_scripts.DatastoreTask{
 			CommonCols:          pendingCommonCols(),
 			PageSets:            "All",
 			ChromiumRev:         "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
@@ -303,13 +298,12 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891d44f0af-586101c79b0490")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
 func pendingChromiumBuildTask() ChromiumBuildTask {
 	return ChromiumBuildTask{
-		DBTask: chromium_builds.DBTask{
+		DatastoreTask: chromium_builds.DatastoreTask{
 			CommonCols:    pendingCommonCols(),
 			ChromiumRev:   "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
 			ChromiumRevTs: sql.NullInt64{Int64: 20080726180513, Valid: true},
@@ -335,13 +329,12 @@ func TestChromiumBuildExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args,
 		"--skia_hash=586101c79b0490b50623e76c71a5fd67d8d92b08")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
 func pendingRecreatePageSetsTask() RecreatePageSetsTask {
 	return RecreatePageSetsTask{
-		RecreatePageSetsDBTask: admin_tasks.RecreatePageSetsDBTask{
+		RecreatePageSetsDatastoreTask: admin_tasks.RecreatePageSetsDatastoreTask{
 			CommonCols: pendingCommonCols(),
 			PageSets:   "All",
 		},
@@ -362,13 +355,12 @@ func TestRecreatePageSetsExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
 func pendingRecreateWebpageArchivesTask() RecreateWebpageArchivesTask {
 	return RecreateWebpageArchivesTask{
-		RecreateWebpageArchivesDBTask: admin_tasks.RecreateWebpageArchivesDBTask{
+		RecreateWebpageArchivesDatastoreTask: admin_tasks.RecreateWebpageArchivesDatastoreTask{
 			CommonCols:  pendingCommonCols(),
 			PageSets:    "All",
 			ChromiumRev: "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
@@ -391,7 +383,6 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	runId := getRunId(t, cmd)
-	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
 }
 
@@ -401,32 +392,32 @@ func TestAsPollerTask(t *testing.T) {
 	expect.Nil(t, asPollerTask(ctx, nil))
 	{
 		taskStruct := pendingChromiumPerfTask()
-		taskInterface := asPollerTask(ctx, &taskStruct.DBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.DatastoreTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*ChromiumPerfTask))
 	}
 	{
 		taskStruct := pendingCaptureSkpsTask()
-		taskInterface := asPollerTask(ctx, &taskStruct.DBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.DatastoreTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*CaptureSkpsTask))
 	}
 	{
 		taskStruct := pendingLuaScriptTaskWithAggregator(ctx)
-		taskInterface := asPollerTask(ctx, &taskStruct.DBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.DatastoreTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*LuaScriptTask))
 	}
 	{
 		taskStruct := pendingChromiumBuildTask()
-		taskInterface := asPollerTask(ctx, &taskStruct.DBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.DatastoreTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*ChromiumBuildTask))
 	}
 	{
 		taskStruct := pendingRecreatePageSetsTask()
-		taskInterface := asPollerTask(ctx, &taskStruct.RecreatePageSetsDBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.RecreatePageSetsDatastoreTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*RecreatePageSetsTask))
 	}
 	{
 		taskStruct := pendingRecreateWebpageArchivesTask()
-		taskInterface := asPollerTask(ctx, &taskStruct.RecreateWebpageArchivesDBTask)
+		taskInterface := asPollerTask(ctx, &taskStruct.RecreateWebpageArchivesDatastoreTask)
 		expect.Equal(t, taskStruct, *taskInterface.(*RecreateWebpageArchivesTask))
 	}
 }
@@ -478,7 +469,7 @@ func TestPollAndExecOnce(t *testing.T) {
 	task := pendingRecreateWebpageArchivesTask()
 	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
-	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
+	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	wg := pollAndExecOnce(ctx, mockCTAutoscaler)
 	wg.Wait()
@@ -504,14 +495,14 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	task1 := pendingRecreateWebpageArchivesTask()
 	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
-	mockServer.SetCurrentTask(&task1.RecreateWebpageArchivesDBTask)
+	mockServer.SetCurrentTask(&task1.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	// Poll frontend and execute the first task.
 	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler)
 	wg1.Wait() // Wait for task to return to make asserting commands deterministic.
 	// Update current task.
 	task2 := pendingChromiumPerfTask()
-	mockServer.SetCurrentTask(&task2.DBTask)
+	mockServer.SetCurrentTask(&task2.DatastoreTask)
 	// Poll frontend and execute the second task.
 	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler)
 	wg2.Wait() // Wait for task to return to make asserting commands deterministic.
@@ -543,7 +534,7 @@ func TestPollAndExecOnceError(t *testing.T) {
 	task := pendingRecreateWebpageArchivesTask()
 	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
-	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDBTask)
+	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	mockRun.AddRule("capture_archives_on_workers", fmt.Errorf("workers too lazy"))
 	wg := pollAndExecOnce(ctx, mockCTAutoscaler)
