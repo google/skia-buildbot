@@ -22,6 +22,30 @@
       "revId": "7bef1b0f66d3047577f957d488578c6d2ce000d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "582d0a7d_a2683449",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-11T16:40:52Z",
+      "side": 1,
+      "message": "Shrug. No other uses in this function.  I think it\u0027s okay.",
+      "parentUuid": "2e351002_3021ba59",
+      "range": {
+        "startLine": 397,
+        "startChar": 2,
+        "endLine": 397,
+        "endChar": 6
+      },
+      "revId": "7bef1b0f66d3047577f957d488578c6d2ce000d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
