@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e65c5c9_dbf434c4",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-11T20:20:47Z",
+      "side": 1,
+      "message": "nit: between\nx 3",
+      "range": {
+        "startLine": 163,
+        "startChar": 29,
+        "endLine": 163,
+        "endChar": 35
+      },
+      "revId": "c59260ebd0575af621fcf59a9dcae0532b51b029",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
