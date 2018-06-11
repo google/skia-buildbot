@@ -61,6 +61,18 @@ func main() {
 	defer common.LogPanic()
 	master_common.Init("build_chromium")
 
+	// TESTING
+
+	//if err := frontend.UpdateWebappTaskSetStarted(&chromium_builds.UpdateVars{}, *taskID, *runID); err != nil {
+	//	fmt.Println("ERROR ERROR")
+	//	fmt.Println(err)
+	//}
+
+	taskCompletedSuccessfully = true
+	updateWebappTask()
+
+	sklog.Fatal("DONE TESTING")
+
 	ctx := context.Background()
 
 	// Send start email.

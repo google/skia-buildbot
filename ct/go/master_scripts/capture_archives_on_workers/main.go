@@ -65,6 +65,12 @@ func main() {
 	defer common.LogPanic()
 	master_common.Init("capture_archives")
 
+	// TESTING
+	//frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreateWebpageArchivesUpdateVars{}, *taskID, *runID)
+	*taskCompletedSuccessfully = true
+	updateWebappTask()
+	sklog.Fatal("HERE")
+
 	ctx := context.Background()
 
 	// Send start email.

@@ -10,7 +10,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -98,13 +97,19 @@ func updateWebappTask() {
 	vars := metrics_analysis.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
-	vars.RawOutput = sql.NullString{String: outputLink, Valid: true}
+	vars.RawOutput = outputLink
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
 func main() {
 	defer common.LogPanic()
 	master_common.Init("run_metrics_analysis")
+
+	// TESTING
+	frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *taskID, *runID)
+	taskCompletedSuccessfully = true
+	updateWebappTask()
+	sklog.Fatal("HERE")
 
 	ctx := context.Background()
 
