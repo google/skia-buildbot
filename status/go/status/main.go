@@ -21,9 +21,11 @@ import (
 	"unicode"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
@@ -61,14 +63,17 @@ var (
 
 // flags
 var (
+	aud                         = flag.String("aud", "", "The aud value, from the Identity-Aware Proxy JWT Audience for the given backend.")
+	authGroup                   = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	serviceAccountJWT           = flag.String("service_account_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
-	taskSchedulerDbUrl          = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
+	taskSchedulerDbUrl          = flag.String("task_db_url", "https://task-scheduler.skia.org/db/", "Where the Skia task scheduler database is hosted.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
@@ -624,6 +629,7 @@ func lkgrHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
+	// TODO(borenet): "/" is used to determine readiness. Remove the redirect.
 	r.HandleFunc("/", defaultRedirectHandler)
 	r.HandleFunc("/repo/{repo}", statusHandler)
 	r.HandleFunc("/capacity", capacityHandler)
@@ -631,8 +637,6 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	taskComments := r.PathPrefix("/json/tasks/{id}").Subrouter()
@@ -647,7 +651,19 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
 	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
 	sklog.AddLogsRedirect(r)
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	h := httputils.LoggingGzipRequestResponse(r)
+	if !*testing {
+		client, err := auth.NewJWTServiceAccountClient("", *serviceAccountJWT, nil, auth.SCOPE_USERINFO_EMAIL)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		allowed, err := iap.NewAllowedFromChromeInfraAuth(client, *authGroup)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		h = iap.New(h, *aud, allowed)
+	}
+	http.Handle("/", h)
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
@@ -657,7 +673,6 @@ func main() {
 	common.InitWithMust(
 		"status",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
 
 	skiaversion.MustLogVersion()
@@ -688,13 +703,16 @@ func main() {
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
-		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, httputils.NewTimeoutClient())
+		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		c := auth.ClientFromTokenSource(ts)
+		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, c)
 		if err != nil {
 			sklog.Fatalf("Failed to create remote task DB: %s", err)
 		}
 	}
-
-	login.SimpleInitMust(*port, *testing)
 
 	// Check out source code.
 	reposDir := path.Join(*workdir, "repos")
