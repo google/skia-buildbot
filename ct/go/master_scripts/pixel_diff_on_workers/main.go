@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -97,7 +96,7 @@ func updateWebappTask() {
 	vars := pixel_diff.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
-	vars.Results = sql.NullString{String: pixelDiffResultsLink, Valid: true}
+	vars.Results = pixelDiffResultsLink
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
