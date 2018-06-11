@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -144,16 +145,24 @@ func (srv *Server) webmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type UploadRequest struct {
+	Lottie string `json:"lottie"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	FPS    int    `json:"fps"`
+}
+
+type UploadRespnse struct {
+	Hash string `json:"hash"`
+}
+
 func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Extract json file.
-	if err := r.ParseMultipartForm(10 * 1024 * 1024); err != nil {
-		httputils.ReportError(w, r, err, "Error handling form data.")
-		return
-	}
-	f, _, err := r.FormFile("file")
-	if err != nil {
-		httputils.ReportError(w, r, err, "Can't find file.")
+	defer util.Close(r.Body)
+	var req UploadRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Error decoding JSON.")
 		return
 	}
 	source, err := ioutil.TempDir("", "source")
@@ -168,14 +177,9 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.RemoveAll(source)
 	defer util.RemoveAll(dest)
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Can't read file.")
-		return
-	}
 	sourceFullPath := filepath.Join(source, "lottie.json")
 	destFullPath := filepath.Join(dest, "lottie.webm")
-	if err := ioutil.WriteFile(sourceFullPath, b, 0644); err != nil {
+	if err := ioutil.WriteFile(sourceFullPath, []byte(req.Lottie), 0644); err != nil {
 		httputils.ReportError(w, r, err, "Can't write file.")
 		return
 	}
@@ -195,7 +199,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Calculate md5 of file.
 	// TODO(jcgregorio) include options in md5 calculation once they're added to the UI.
 	h := md5.New()
-	if _, err = h.Write(b); err != nil {
+	if _, err = h.Write([]byte(req.Lottie)); err != nil {
 		httputils.ReportError(w, r, err, "Failed calculating hash.")
 		return
 	}
@@ -206,7 +210,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	wr := srv.bucket.Object(path).NewWriter(ctx)
 	defer util.Close(wr)
 	wr.ObjectAttrs.ContentEncoding = "application/json"
-	if _, err := wr.Write(b); err != nil {
+	if _, err := wr.Write([]byte(req.Lottie)); err != nil {
 		httputils.ReportError(w, r, err, "Failed writing JSON to GCS.")
 		return
 	}
@@ -216,7 +220,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	wr = srv.bucket.Object(path).NewWriter(ctx)
 	defer util.Close(wr)
 	wr.ObjectAttrs.ContentEncoding = "video/webm"
-	f, err = os.Open(destFullPath)
+	f, err := os.Open(destFullPath)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed opening webm.")
 		return
@@ -227,7 +231,13 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect to display page that takes arg of md5 hash.
+	resp := UploadRespnse{
+		Hash: hash,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
+	}
+
 	http.Redirect(w, r, fmt.Sprintf("/display/%s", hash), http.StatusTemporaryRedirect)
 }
 
