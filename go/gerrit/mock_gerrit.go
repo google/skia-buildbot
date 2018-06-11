@@ -35,7 +35,7 @@ func (g *MockedGerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 func (g *MockedGerrit) GetPatch(issue int64, revision string) (string, error) {
 	return "", nil
 }
-func (g *MockedGerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}) error {
+func (g *MockedGerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}, reviewers []string) error {
 	return nil
 }
 func (g *MockedGerrit) AddComment(issue *ChangeInfo, message string) error {

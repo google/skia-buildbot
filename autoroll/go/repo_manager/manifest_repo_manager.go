@@ -262,7 +262,7 @@ func (r *manifestRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun 
 	} else {
 		labelValues[gerrit.COMMITQUEUE_LABEL] = gerrit.COMMITQUEUE_LABEL_SUBMIT
 	}
-	return r.g.SetReview(change, "Roller setting labels to auto-land change.", labelValues)
+	return r.g.SetReview(change, "Roller setting labels to auto-land change.", labelValues, nil)
 }
 
 func (mr *manifestRepoManager) updateManifestFile(prevHash, newHash string) error {

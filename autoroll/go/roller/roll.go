@@ -255,21 +255,21 @@ func (r *gerritAndroidRoll) IsDryRunSuccess() bool {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) SwitchToDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL to dry run", func() error {
-		return r.g.SetReview(r.ci, "Mode was changed to dry run", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE})
+		return r.g.SetReview(r.ci, "Mode was changed to dry run", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_NONE}, nil)
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) SwitchToNormal(ctx context.Context) error {
 	return r.withModify(ctx, "switch the CL out of dry run", func() error {
-		return r.g.SetReview(r.ci, "Mode was changed to normal", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT})
+		return r.g.SetReview(r.ci, "Mode was changed to normal", map[string]interface{}{gerrit.AUTOSUBMIT_LABEL: gerrit.AUTOSUBMIT_LABEL_SUBMIT}, nil)
 	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) RetryCQ(ctx context.Context) error {
 	return r.withModify(ctx, "retry TH", func() error {
-		return r.g.SetReview(r.ci, "TH failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"})
+		return r.g.SetReview(r.ci, "TH failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"}, nil)
 
 	})
 }
@@ -277,7 +277,7 @@ func (r *gerritAndroidRoll) RetryCQ(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritAndroidRoll) RetryDryRun(ctx context.Context) error {
 	return r.withModify(ctx, "retry the TH (dry run)", func() error {
-		return r.g.SetReview(r.ci, "Dry run failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"})
+		return r.g.SetReview(r.ci, "Dry run failed but there are no new commits. Retrying...", map[string]interface{}{gerrit.PRESUBMIT_READY_LABEL: "1"}, nil)
 	})
 }
 
