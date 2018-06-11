@@ -160,15 +160,15 @@ type UploadResponse struct {
 
 func (req *UploadRequest) validate(w http.ResponseWriter) error {
 	if req.FPS < 1 || req.FPS > 120 {
-		http.Error(w, "FPS must be betwee 1 and 120.", http.StatusBadRequest)
+		http.Error(w, "FPS must be between 1 and 120.", http.StatusBadRequest)
 		return invalidRequestErr
 	}
 	if req.Width < 1 || req.Width > 1024 {
-		http.Error(w, "Width must be betwee 1 and 1024.", http.StatusBadRequest)
+		http.Error(w, "Width must be between 1 and 1024.", http.StatusBadRequest)
 		return invalidRequestErr
 	}
 	if req.Height < 1 || req.Height > 1024 {
-		http.Error(w, "Height must be betwee 1 and 1024.", http.StatusBadRequest)
+		http.Error(w, "Height must be between 1 and 1024.", http.StatusBadRequest)
 		return invalidRequestErr
 	}
 	return nil
