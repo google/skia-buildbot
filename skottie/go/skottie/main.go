@@ -82,7 +82,7 @@ func (srv *Server) loadTemplates() {
 
 // createWebm runs ffmpeg over the images in the given dir.
 func createWebm(ctx context.Context, dir string) error {
-	// ffmpeg -r $FPS -pattern_type glob -i '*.png' -c:v libvpx-vp9 -lossless 1 output.webm
+	// ffmpeg -r $FPS -pattern_type glob -i '*.png' -c:v libvpx-vp9 -lossless 1 lottie.webm
 	name := "ffmpeg"
 	args := []string{
 		"-r", fmt.Sprintf("%d", FPS),
@@ -161,12 +161,12 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Can't create temp space.")
 		return
 	}
+	defer util.RemoveAll(source)
 	dest, err := ioutil.TempDir("", "dest")
 	if err != nil {
 		httputils.ReportError(w, r, err, "Can't create temp space.")
 		return
 	}
-	defer util.RemoveAll(source)
 	defer util.RemoveAll(dest)
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
@@ -236,6 +236,10 @@ func main() {
 		"skottie",
 		common.PrometheusOpt(promPort),
 	)
+
+	if *skottieTool == "" {
+		sklog.Fatal("The --skottie_tool flag is required.")
+	}
 
 	srv, err := New()
 	if err != nil {
