@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2e351002_3021ba59",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-11T16:38:15Z",
+      "side": 1,
+      "message": "Nit: revs is very overloaded. But not a big deal.",
+      "range": {
+        "startLine": 397,
+        "startChar": 2,
+        "endLine": 397,
+        "endChar": 6
+      },
+      "revId": "7bef1b0f66d3047577f957d488578c6d2ce000d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
