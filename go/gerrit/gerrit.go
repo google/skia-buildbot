@@ -179,7 +179,7 @@ type GerritInterface interface {
 	SendToCQ(*ChangeInfo, string) error
 	SendToDryRun(*ChangeInfo, string) error
 	SetCommitMessage(*ChangeInfo, string) error
-	SetReview(*ChangeInfo, string, map[string]interface{}) error
+	SetReview(*ChangeInfo, string, map[string]interface{}, []string) error
 	SetTopic(string, int64) error
 	TurnOnAuthenticatedGets()
 	Url(int64) string
@@ -380,13 +380,27 @@ func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
 	return patch, nil
 }
 
+type reviewer struct {
+	Reviewer string `json:"reviewer"`
+}
+
 // setReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
-func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}) error {
+func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}, reviewers []string) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
+	}
+
+	if len(reviewers) > 0 {
+		revs := make([]*reviewer, 0, len(reviewers))
+		for _, r := range reviewers {
+			revs = append(revs, &reviewer{
+				Reviewer: r,
+			})
+		}
+		postData["reviewers"] = revs
 	}
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
 	return g.postJson(fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
@@ -394,35 +408,35 @@ func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]
 
 // AddComment adds a message to the issue.
 func (g *Gerrit) AddComment(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{})
+	return g.SetReview(issue, message, map[string]interface{}{}, nil)
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
 func (g *Gerrit) SendToDryRun(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN})
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN}, nil)
 }
 
 func (g *Gerrit) SendToCQ(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT})
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT}, nil)
 }
 
 func (g *Gerrit) RemoveFromCQ(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE})
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE}, nil)
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
 func (g *Gerrit) Approve(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE})
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
 }
 
 func (g *Gerrit) NoScore(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE})
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
 }
 
 func (g *Gerrit) DisApprove(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE})
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
 }
 
 // Abandon abandons the issue with the given message.

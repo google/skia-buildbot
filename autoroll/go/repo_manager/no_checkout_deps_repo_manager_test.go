@@ -221,7 +221,7 @@ If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
 
 
-TBR=`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, childPath, nextRollRev[:12], "fake.server.com")
+TBR=me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, childPath, nextRollRev[:12], "fake.server.com")
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, cfg.GerritProject, subject, cfg.ParentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
@@ -261,10 +261,10 @@ TBR=`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNotRolled(), chi
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 
 	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":""}`)
+	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
-	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), nil, "", false)
+	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), []string{"me@google.com"}, "", false)
 	assert.NoError(t, err)
 	assert.NotEqual(t, 0, issue)
 }

@@ -221,7 +221,7 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	if err = rm.g.SetReview(ci, "", map[string]interface{}{
 		gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
 		gerrit.COMMITQUEUE_LABEL: cq,
-	}); err != nil {
+	}, emails); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
 		return 0, err
 	}

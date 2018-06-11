@@ -217,7 +217,7 @@ func (r *androidRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun b
 	} else {
 		labelValues[gerrit.AUTOSUBMIT_LABEL] = gerrit.AUTOSUBMIT_LABEL_SUBMIT
 	}
-	return r.g.SetReview(change, "Roller setting labels to auto-land change.", labelValues)
+	return r.g.SetReview(change, "Roller setting labels to auto-land change.", labelValues, nil)
 }
 
 func ExtractBugNumbers(line string) map[string]bool {
