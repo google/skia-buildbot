@@ -9,4 +9,7 @@ push: default
 indexes:
 	gcloud datastore create-indexes ./index.yaml
 
+cleanup-indexes:
+	gcloud datastore cleanup-indexes ./index.yaml
+
 .PHONY: default push indexes

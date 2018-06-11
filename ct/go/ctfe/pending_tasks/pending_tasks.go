@@ -5,7 +5,7 @@
 package pending_tasks
 
 import (
-	"database/sql"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,6 +14,7 @@ import (
 	"text/template"
 
 	"github.com/gorilla/mux"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
@@ -26,8 +27,8 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/webhook"
 )
@@ -59,18 +60,27 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 func GetOldestPendingTask() (task_common.Task, error) {
 	var oldestTask task_common.Task
 	for _, task := range task_types.Prototypes() {
-		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NULL ORDER BY ts_added LIMIT 1;", task.TableName())
-		if err := db.DB.Get(task, query); err == sql.ErrNoRows {
-			continue
-		} else if err != nil {
-			return nil, fmt.Errorf("Failed to query DB: %v", err)
+		q := ds.NewQuery(task.GetDatastoreKind()).EventualConsistency()
+		q = q.Filter("TsStarted =", 0)
+		q = q.Order("-Id")
+		q = q.Limit(1)
+		it := ds.DS.Run(context.Background(), q)
+		s, err := task.Select(it)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to query datastore for oldest pending task: %v", err)
 		}
+		tasks := task_common.AsTaskSlice(s)
+		if len(tasks) == 0 {
+			continue
+		}
+		t := tasks[0]
 		if oldestTask == nil {
-			oldestTask = task
-		} else if oldestTask.GetCommonCols().TsAdded.Int64 > task.GetCommonCols().TsAdded.Int64 {
-			oldestTask = task
+			oldestTask = t
+		} else if oldestTask.GetCommonCols().TsAdded > t.GetCommonCols().TsAdded {
+			oldestTask = t
 		}
 	}
+
 	return oldestTask, nil
 }
 
@@ -78,12 +88,20 @@ func GetOldestPendingTask() (task_common.Task, error) {
 func GetRunningTasks() ([]task_common.Task, error) {
 	runningTasks := []task_common.Task{}
 	for _, task := range task_types.Prototypes() {
-		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NOT NULL AND ts_completed IS NULL ORDER BY ts_added;", task.TableName())
-		data, err := task.Select(query)
+		q := ds.NewQuery(task.GetDatastoreKind()).EventualConsistency()
+		q = q.Filter("TaskDone =", false)
+		q = q.Order("-Id")
+		it := ds.DS.Run(context.Background(), q)
+		s, err := task.Select(it)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to query DB: %v", err)
+			return nil, fmt.Errorf("Failed to query datastore for oldest pending task: %v", err)
 		}
-		runningTasks = append(runningTasks, task_common.AsTaskSlice(data)...)
+		tasks := task_common.AsTaskSlice(s)
+		for _, t := range tasks {
+			if t.GetCommonCols().TsStarted != 0 {
+				runningTasks = append(runningTasks, t)
+			}
+		}
 	}
 	return runningTasks, nil
 }
@@ -99,7 +117,7 @@ func TerminateRunningTasks() error {
 		commonUpdateVars := updateVars.GetUpdateTaskCommonVars()
 		commonUpdateVars.Id = task.GetCommonCols().Id
 		commonUpdateVars.SetCompleted(false)
-		if err := task_common.UpdateTask(updateVars, task.TableName()); err != nil {
+		if err := task_common.UpdateTask(updateVars, task); err != nil {
 			return fmt.Errorf("Failed to update %T task: %s", updateVars, err)
 		}
 		runningTasksOwners = append(runningTasksOwners, task.GetCommonCols().Username)
@@ -118,15 +136,15 @@ func TerminateRunningTasks() error {
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
 // should be non-nil when serialized as JSON.
 type oldestPendingTask struct {
-	CaptureSkps             *capture_skps.DBTask
-	ChromiumAnalysis        *chromium_analysis.DBTask
-	ChromiumBuild           *chromium_builds.DBTask
-	ChromiumPerf            *chromium_perf.DBTask
-	LuaScript               *lua_scripts.DBTask
-	MetricsAnalysis         *metrics_analysis.DBTask
-	PixelDiff               *pixel_diff.DBTask
-	RecreatePageSets        *admin_tasks.RecreatePageSetsDBTask
-	RecreateWebpageArchives *admin_tasks.RecreateWebpageArchivesDBTask
+	CaptureSkps             *capture_skps.DatastoreTask
+	ChromiumAnalysis        *chromium_analysis.DatastoreTask
+	ChromiumBuild           *chromium_builds.DatastoreTask
+	ChromiumPerf            *chromium_perf.DatastoreTask
+	LuaScript               *lua_scripts.DatastoreTask
+	MetricsAnalysis         *metrics_analysis.DatastoreTask
+	PixelDiff               *pixel_diff.DatastoreTask
+	RecreatePageSets        *admin_tasks.RecreatePageSetsDatastoreTask
+	RecreateWebpageArchives *admin_tasks.RecreateWebpageArchivesDatastoreTask
 }
 
 // Writes JSON representation of oldestTask to taskJson. Returns an error if oldestTask's type is
@@ -137,23 +155,23 @@ func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
 	switch task := oldestTask.(type) {
 	case nil:
 		// No fields set.
-	case *admin_tasks.RecreatePageSetsDBTask:
+	case *admin_tasks.RecreatePageSetsDatastoreTask:
 		oldestTaskJsonRepr.RecreatePageSets = task
-	case *admin_tasks.RecreateWebpageArchivesDBTask:
+	case *admin_tasks.RecreateWebpageArchivesDatastoreTask:
 		oldestTaskJsonRepr.RecreateWebpageArchives = task
-	case *capture_skps.DBTask:
+	case *capture_skps.DatastoreTask:
 		oldestTaskJsonRepr.CaptureSkps = task
-	case *chromium_analysis.DBTask:
+	case *chromium_analysis.DatastoreTask:
 		oldestTaskJsonRepr.ChromiumAnalysis = task
-	case *chromium_builds.DBTask:
+	case *chromium_builds.DatastoreTask:
 		oldestTaskJsonRepr.ChromiumBuild = task
-	case *chromium_perf.DBTask:
+	case *chromium_perf.DatastoreTask:
 		oldestTaskJsonRepr.ChromiumPerf = task
-	case *lua_scripts.DBTask:
+	case *lua_scripts.DatastoreTask:
 		oldestTaskJsonRepr.LuaScript = task
-	case *metrics_analysis.DBTask:
+	case *metrics_analysis.DatastoreTask:
 		oldestTaskJsonRepr.MetricsAnalysis = task
-	case *pixel_diff.DBTask:
+	case *pixel_diff.DatastoreTask:
 		oldestTaskJsonRepr.PixelDiff = task
 	default:
 		return fmt.Errorf("Missing case for %T", oldestTask)
@@ -249,10 +267,17 @@ func GetPendingTaskCount() (int64, error) {
 		CountQuery:  true,
 	}
 	for _, prototype := range task_types.Prototypes() {
-		query, args := task_common.DBTaskQuery(prototype, params)
+		it := task_common.DatastoreTaskQuery(prototype, params)
 		var countVal int64 = 0
-		if err := db.DB.Get(&countVal, query, args...); err != nil {
-			return -1, err
+		for {
+			var i int
+			_, err := it.Next(i)
+			if err == iterator.Done {
+				break
+			} else if err != nil {
+				return -1, fmt.Errorf("Failed to query %s tasks for pending task count: %s", prototype.GetTaskName(), err)
+			}
+			countVal++
 		}
 		result += countVal
 	}

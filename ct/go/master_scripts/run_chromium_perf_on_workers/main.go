@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"os"
@@ -102,9 +101,9 @@ func updateWebappTask() {
 	vars := chromium_perf.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
-	vars.Results = sql.NullString{String: htmlOutputLink, Valid: true}
-	vars.NoPatchRawOutput = sql.NullString{String: noPatchOutputLink, Valid: true}
-	vars.WithPatchRawOutput = sql.NullString{String: withPatchOutputLink, Valid: true}
+	vars.Results = htmlOutputLink
+	vars.NoPatchRawOutput = noPatchOutputLink
+	vars.WithPatchRawOutput = withPatchOutputLink
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
