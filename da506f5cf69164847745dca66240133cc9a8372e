@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a799f87f_62ab1e58",
+        "filename": "kube/create-skia-status-internal-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-11T17:38:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c54ff944_fed1020b",
+      "range": {
+        "startLine": 3,
+        "startChar": 38,
+        "endLine": 4,
+        "endChar": 29
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "50044650_394f5a8f",
         "filename": "kube/create-skia-status-sa.sh",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "53403362_408eb496",
+        "filename": "kube/create-skia-status-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-11T17:38:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50044650_394f5a8f",
+      "range": {
+        "startLine": 3,
+        "startChar": 54,
+        "endLine": 3,
+        "endChar": 75
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2364001a_902ba161",
         "filename": "status/Dockerfile",
         "patchSetId": 2
@@ -68,6 +116,30 @@
       "revId": "da506f5cf69164847745dca66240133cc9a8372e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab186761_9fbab803",
+        "filename": "status/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-11T17:38:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2364001a_902ba161",
+      "range": {
+        "startLine": 1,
+        "startChar": 5,
+        "endLine": 1,
+        "endChar": 18
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +189,54 @@
     },
     {
       "key": {
+        "uuid": "25f99fa4_589cb60b",
+        "filename": "status/build_docker_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-11T17:38:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a022ac7c_bb672284",
+      "range": {
+        "startLine": 12,
+        "startChar": 57,
+        "endLine": 12,
+        "endChar": 58
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16ae7e30_865dd06f",
+        "filename": "status/build_docker_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-11T17:38:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1ec947f_0e31c54d",
+      "range": {
+        "startLine": 11,
+        "startChar": 37,
+        "endLine": 12,
+        "endChar": 68
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "076286a9_e0727cc3",
         "filename": "status/go/status/main.go",
         "patchSetId": 2
@@ -137,6 +257,30 @@
       "revId": "da506f5cf69164847745dca66240133cc9a8372e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e959fbd_832f7a76",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-11T17:38:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "076286a9_e0727cc3",
+      "range": {
+        "startLine": 74,
+        "startChar": 1,
+        "endLine": 74,
+        "endChar": 18
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
