@@ -23,8 +23,8 @@ import (
 
 const (
 	DEFAULT_NAMESPACE          = "default-gzip"
-	ISOLATE_EXE_SHA1           = "b1c3c39fe8fe084bd2ec4ed0f03037751a3a8650"
-	ISOLATESERVER_EXE_SHA1     = "23dfc04c65f2ddf2f8dc8dce0fcdcf57ed6b98a3"
+	ISOLATE_EXE_SHA1           = "9734e966a14f9e26f86e38a020fcd7584248d285"
+	ISOLATESERVER_EXE_SHA1     = "f4715e284c74ead3a0a6d4928b557f3029b38774"
 	ISOLATE_SERVER_URL         = "https://isolateserver.appspot.com"
 	ISOLATE_SERVER_URL_FAKE    = "fake"
 	ISOLATE_SERVER_URL_PRIVATE = "https://chrome-isolated.appspot.com"
@@ -37,7 +37,7 @@ const (
 var (
 	DEFAULT_BLACKLIST = []string{"*.pyc", ".git", "out", ".recipe_deps"}
 
-	isolatedHashRegexpPattern = fmt.Sprintf("^([a-f0-9]{40})\\s+.*(%s)\\.isolated$", fmt.Sprintf(TASK_ID_TMPL, "\\d+"))
+	isolatedHashRegexpPattern = fmt.Sprintf("([a-f0-9]{40})\\s+.*(%s)\\.isolated$", fmt.Sprintf(TASK_ID_TMPL, "\\d+"))
 	isolatedHashRegexp        = regexp.MustCompile(isolatedHashRegexpPattern)
 )
 
@@ -336,7 +336,8 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 		"--isolate-server", c.serverUrl,
 	}
 	for _, f := range isolatedFiles {
-		cmd = append(cmd, "--files", f)
+		dirname, filename := path.Split(f)
+		cmd = append(cmd, "--files", fmt.Sprintf("%s:%s", dirname, filename))
 	}
 	output, err := exec.RunCwd(ctx, c.workdir, cmd...)
 	if err != nil {
@@ -355,7 +356,7 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 		}
 	}
 	if len(hashes) != len(tasks) {
-		return nil, fmt.Errorf("Ended up with an incorrect number of isolated hashes!")
+		return nil, fmt.Errorf("Ended up with an incorrect number of isolated hashes:\n%s", string(output))
 	}
 	rv := make([]string, 0, len(tasks))
 	for i := range tasks {
