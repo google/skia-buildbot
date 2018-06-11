@@ -46,6 +46,30 @@
       "revId": "741c474d8d2c0eb67f88ce501a61c702613e9386",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "00655d37_55e093f0",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-11T13:25:23Z",
+      "side": 1,
+      "message": "In this case it\u0027s just shorthand for \"executable\".  Sorry for the confusion.",
+      "parentUuid": "aca172d7_6a09c190",
+      "range": {
+        "startLine": 26,
+        "startChar": 31,
+        "endLine": 26,
+        "endChar": 72
+      },
+      "revId": "741c474d8d2c0eb67f88ce501a61c702613e9386",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
