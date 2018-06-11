@@ -5,7 +5,7 @@
 package chromium_perf
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -13,12 +13,14 @@ import (
 	"strings"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -39,83 +41,151 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type DBTask struct {
+type DatastoreTask struct {
 	task_common.CommonCols
 
-	Benchmark            string         `db:"benchmark"`
-	Platform             string         `db:"platform"`
-	PageSets             string         `db:"page_sets"`
-	CustomWebpages       string         `db:"custom_webpages"`
-	RepeatRuns           int64          `db:"repeat_runs"`
-	RunInParallel        bool           `db:"run_in_parallel"`
-	BenchmarkArgs        string         `db:"benchmark_args"`
-	BrowserArgsNoPatch   string         `db:"browser_args_nopatch"`
-	BrowserArgsWithPatch string         `db:"browser_args_withpatch"`
-	Description          string         `db:"description"`
-	ChromiumPatch        string         `db:"chromium_patch"`
-	BlinkPatch           string         `db:"blink_patch"`
-	SkiaPatch            string         `db:"skia_patch"`
-	CatapultPatch        string         `db:"catapult_patch"`
-	BenchmarkPatch       string         `db:"benchmark_patch"`
-	V8Patch              string         `db:"v8_patch"`
-	Results              sql.NullString `db:"results"`
-	NoPatchRawOutput     sql.NullString `db:"nopatch_raw_output"`
-	WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
+	Benchmark            string
+	Platform             string
+	PageSets             string
+	IsTestPageSet        bool
+	CustomWebpages       string
+	RepeatRuns           int64
+	RunInParallel        bool
+	BenchmarkArgs        string
+	BrowserArgsNoPatch   string
+	BrowserArgsWithPatch string
+	Description          string
+	ChromiumPatchGSPath  string
+	BlinkPatchGSPath     string
+	SkiaPatchGSPath      string
+	CatapultPatchGSPath  string
+	BenchmarkPatchGSPath string
+	V8PatchGSPath        string
+	Results              string
+	NoPatchRawOutput     string
+	WithPatchRawOutput   string
+
+	ChromiumPatch  string `datastore:"-"`
+	BlinkPatch     string `datastore:"-"`
+	SkiaPatch      string `datastore:"-"`
+	CatapultPatch  string `datastore:"-"`
+	BenchmarkPatch string `datastore:"-"`
+	V8Patch        string `datastore:"-"`
 }
 
-func (task DBTask) GetTaskName() string {
+func (task DatastoreTask) GetTaskName() string {
 	return "ChromiumPerf"
 }
 
-func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
 	taskVars := &AddTaskVars{}
-	taskVars.Username = dbTask.Username
+	taskVars.Username = task.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
-	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
-	taskVars.Benchmark = dbTask.Benchmark
-	taskVars.Platform = dbTask.Platform
-	taskVars.PageSets = dbTask.PageSets
-	taskVars.CustomWebpages = dbTask.CustomWebpages
-	taskVars.RepeatRuns = strconv.FormatInt(dbTask.RepeatRuns, 10)
-	taskVars.RunInParallel = strconv.FormatBool(dbTask.RunInParallel)
-	taskVars.BenchmarkArgs = dbTask.BenchmarkArgs
-	taskVars.BrowserArgsNoPatch = dbTask.BrowserArgsNoPatch
-	taskVars.BrowserArgsWithPatch = dbTask.BrowserArgsWithPatch
-	taskVars.Description = dbTask.Description
-	taskVars.ChromiumPatch = dbTask.ChromiumPatch
-	taskVars.BlinkPatch = dbTask.BlinkPatch
-	taskVars.SkiaPatch = dbTask.SkiaPatch
-	taskVars.CatapultPatch = dbTask.CatapultPatch
-	taskVars.BenchmarkPatch = dbTask.BenchmarkPatch
-	taskVars.V8Patch = dbTask.V8Patch
-	return taskVars
-}
+	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
+	taskVars.Benchmark = task.Benchmark
+	taskVars.Platform = task.Platform
+	taskVars.PageSets = task.PageSets
+	taskVars.CustomWebpages = task.CustomWebpages
+	taskVars.RepeatRuns = strconv.FormatInt(task.RepeatRuns, 10)
+	taskVars.RunInParallel = strconv.FormatBool(task.RunInParallel)
+	taskVars.BenchmarkArgs = task.BenchmarkArgs
+	taskVars.BrowserArgsNoPatch = task.BrowserArgsNoPatch
+	taskVars.BrowserArgsWithPatch = task.BrowserArgsWithPatch
+	taskVars.Description = task.Description
 
-func (task DBTask) GetResultsLink() string {
-	if task.Results.Valid {
-		return task.Results.String
-	} else {
-		return ""
+	var err error
+	taskVars.ChromiumPatch, err = ctutil.GetPatchFromStorage(task.ChromiumPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.ChromiumPatchGSPath, err)
 	}
+	taskVars.BlinkPatch, err = ctutil.GetPatchFromStorage(task.BlinkPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.BlinkPatchGSPath, err)
+	}
+	taskVars.SkiaPatch, err = ctutil.GetPatchFromStorage(task.SkiaPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.SkiaPatchGSPath, err)
+	}
+	taskVars.CatapultPatch, err = ctutil.GetPatchFromStorage(task.CatapultPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.CatapultPatchGSPath, err)
+	}
+	taskVars.BenchmarkPatch, err = ctutil.GetPatchFromStorage(task.BenchmarkPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.BenchmarkPatchGSPath, err)
+	}
+	taskVars.V8Patch, err = ctutil.GetPatchFromStorage(task.V8PatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.V8PatchGSPath, err)
+	}
+
+	return taskVars, nil
 }
 
-func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+func (task DatastoreTask) GetResultsLink() string {
+	return task.Results
+}
+
+func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
-func (task DBTask) RunsOnGCEWorkers() bool {
+func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	// Perf tasks should always run on bare-metal machines.
 	return false
 }
 
-func (task DBTask) TableName() string {
-	return db.TABLE_CHROMIUM_PERF_TASKS
+func (task DatastoreTask) GetDatastoreKind() ds.Kind {
+	return ds.CHROMIUM_PERF_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DatastoreTask) Select(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*DatastoreTask{}
+	for {
+		t := &DatastoreTask{}
+		k, err := it.Next(t)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+		t.DatastoreId = k.ID
+		t.ChromiumPatch, err = ctutil.GetPatchFromStorage(t.ChromiumPatchGSPath)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read from %s: %s", t.ChromiumPatchGSPath, err)
+		}
+		t.BlinkPatch, err = ctutil.GetPatchFromStorage(t.BlinkPatchGSPath)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read from %s: %s", t.BlinkPatchGSPath, err)
+		}
+		t.SkiaPatch, err = ctutil.GetPatchFromStorage(t.SkiaPatchGSPath)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read from %s: %s", t.SkiaPatchGSPath, err)
+		}
+		t.CatapultPatch, err = ctutil.GetPatchFromStorage(t.CatapultPatchGSPath)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read from %s: %s", t.CatapultPatchGSPath, err)
+		}
+		t.BenchmarkPatch, err = ctutil.GetPatchFromStorage(t.BenchmarkPatchGSPath)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read from %s: %s", t.BenchmarkPatchGSPath, err)
+		}
+		t.V8Patch, err = ctutil.GetPatchFromStorage(t.V8PatchGSPath)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read from %s: %s", t.V8PatchGSPath, err)
+		}
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
+}
+
+func (task DatastoreTask) Find(c context.Context, key *datastore.Key) (interface{}, error) {
+	t := &DatastoreTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -143,65 +213,95 @@ type AddTaskVars struct {
 	V8Patch              string `json:"v8_patch"`
 }
 
-func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
+	return ds.CHROMIUM_PERF_TASKS
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask() (task_common.Task, error) {
 	if task.Benchmark == "" ||
 		task.Platform == "" ||
 		task.PageSets == "" ||
 		task.RepeatRuns == "" ||
 		task.RunInParallel == "" ||
 		task.Description == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
+		return nil, fmt.Errorf("Invalid parameters")
 	}
+
 	customWebpages, err := ctfeutil.GetQualifiedCustomWebpages(task.CustomWebpages, task.BenchmarkArgs)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "benchmark", Value: task.Benchmark, Limit: 100},
-		{Name: "platform", Value: task.Platform, Limit: 100},
-		{Name: "page_sets", Value: task.PageSets, Limit: 100},
-		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
-		{Name: "browser_args_nopatch", Value: task.BrowserArgsNoPatch, Limit: 255},
-		{Name: "browser_args_withpatch", Value: task.BrowserArgsWithPatch, Limit: 255},
-		{Name: "desc", Value: task.Description, Limit: 255},
-		{Name: "custom_webpages", Value: strings.Join(customWebpages, ","), Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "blink_patch", Value: task.BlinkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "skia_patch", Value: task.SkiaPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "catapult_patch", Value: task.CatapultPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "benchmark_patch", Value: task.BenchmarkPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "v8_patch", Value: task.V8Patch, Limit: db.LONG_TEXT_MAX_LENGTH},
-	}); err != nil {
-		return "", nil, err
+
+	chromiumPatchGSPath, err := ctutil.SavePatchToStorage(task.ChromiumPatch)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save chromium patch to storage: %s", err)
 	}
-	runInParallel := 0
-	if strings.EqualFold(task.RunInParallel, "True") {
-		runInParallel = 1
+	blinkPatchGSPath, err := ctutil.SavePatchToStorage(task.BlinkPatch)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save blink patch to storage: %s", err)
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,custom_webpages,repeat_runs,run_in_parallel, benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,catapult_patch,benchmark_patch,v8_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
-			db.TABLE_CHROMIUM_PERF_TASKS),
-		[]interface{}{
-			task.Username,
-			task.Benchmark,
-			task.Platform,
-			task.PageSets,
-			strings.Join(customWebpages, ","),
-			task.RepeatRuns,
-			runInParallel,
-			task.BenchmarkArgs,
-			task.BrowserArgsNoPatch,
-			task.BrowserArgsWithPatch,
-			task.Description,
-			task.ChromiumPatch,
-			task.BlinkPatch,
-			task.SkiaPatch,
-			task.CatapultPatch,
-			task.BenchmarkPatch,
-			task.V8Patch,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
+	skiaPatchGSPath, err := ctutil.SavePatchToStorage(task.SkiaPatch)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save skia patch to storage: %s", err)
+	}
+	catapultPatchGSPath, err := ctutil.SavePatchToStorage(task.CatapultPatch)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save catapult patch to storage: %s", err)
+	}
+	benchmarkPatchGSPath, err := ctutil.SavePatchToStorage(task.BenchmarkPatch)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save benchmark patch to storage: %s", err)
+	}
+	v8PatchGSPath, err := ctutil.SavePatchToStorage(task.V8Patch)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save v8 patch to storage: %s", err)
+	}
+
+	id, err := task_common.GetNextId(ds.CHROMIUM_PERF_TASKS, &DatastoreTask{})
+	if err != nil {
+		return nil, fmt.Errorf("Could not get highest id: %s", err)
+	}
+
+	t := &DatastoreTask{
+		Benchmark:            task.Benchmark,
+		Platform:             task.Platform,
+		PageSets:             task.PageSets,
+		IsTestPageSet:        task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		CustomWebpages:       strings.Join(customWebpages, ","),
+		BenchmarkArgs:        task.BenchmarkArgs,
+		BrowserArgsNoPatch:   task.BrowserArgsNoPatch,
+		BrowserArgsWithPatch: task.BrowserArgsWithPatch,
+		Description:          task.Description,
+		ChromiumPatchGSPath:  chromiumPatchGSPath,
+		BlinkPatchGSPath:     blinkPatchGSPath,
+		SkiaPatchGSPath:      skiaPatchGSPath,
+		CatapultPatchGSPath:  catapultPatchGSPath,
+		BenchmarkPatchGSPath: benchmarkPatchGSPath,
+		V8PatchGSPath:        v8PatchGSPath,
+	}
+	runInParallel, err := strconv.ParseBool(task.RunInParallel)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not bool: %s", task.RunInParallel, err)
+	}
+	t.RunInParallel = runInParallel
+	repeatRuns, err := strconv.ParseInt(task.RepeatRuns, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.RepeatRuns, err)
+	}
+	t.RepeatRuns = repeatRuns
+	tsAdded, err := strconv.ParseInt(task.TsAdded, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.TsAdded, err)
+	}
+	t.TsAdded = tsAdded
+	t.Username = task.Username
+	t.Id = id
+	repeatAfterDays, err := strconv.ParseInt(task.RepeatAfterDays, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int64: %s", task.RepeatAfterDays, err)
+	}
+	t.RepeatAfterDays = repeatAfterDays
+	return t, nil
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -209,56 +309,45 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&DBTask{}, w, r)
+	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
 }
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 
-	Results            sql.NullString
-	NoPatchRawOutput   sql.NullString
-	WithPatchRawOutput sql.NullString
+	Results            string
+	NoPatchRawOutput   string
+	WithPatchRawOutput string
 }
 
 func (vars *UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
 }
 
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "NoPatchRawOutput", Value: task.NoPatchRawOutput.String, Limit: 255},
-		{Name: "WithPatchRawOutput", Value: task.WithPatchRawOutput.String, Limit: 255},
-		{Name: "Results", Value: task.Results.String, Limit: 255},
-	}); err != nil {
-		return nil, nil, err
+func (vars *UpdateVars) AddUpdatesToDatastoreTask(t task_common.Task) error {
+	task := t.(*DatastoreTask)
+	if vars.NoPatchRawOutput != "" {
+		task.NoPatchRawOutput = vars.NoPatchRawOutput
 	}
-	clauses := []string{}
-	args := []interface{}{}
-	if task.Results.Valid {
-		clauses = append(clauses, "results = ?")
-		args = append(args, task.Results.String)
+	if vars.WithPatchRawOutput != "" {
+		task.WithPatchRawOutput = vars.WithPatchRawOutput
 	}
-	if task.NoPatchRawOutput.Valid {
-		clauses = append(clauses, "nopatch_raw_output = ?")
-		args = append(args, task.NoPatchRawOutput.String)
+	if vars.Results != "" {
+		task.Results = vars.Results
 	}
-	if task.WithPatchRawOutput.Valid {
-		clauses = append(clauses, "withpatch_raw_output = ?")
-		args = append(args, task.WithPatchRawOutput.String)
-	}
-	return clauses, args, nil
+	return nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_PERF_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&DBTask{}, w, r)
+	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&DBTask{}, w, r)
+	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
