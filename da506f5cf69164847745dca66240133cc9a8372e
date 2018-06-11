@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c54ff944_fed1020b",
+        "filename": "kube/create-skia-status-internal-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-11T17:21:46Z",
+      "side": 1,
+      "message": "Seems like wrong comment.",
+      "range": {
+        "startLine": 3,
+        "startChar": 38,
+        "endLine": 4,
+        "endChar": 29
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50044650_394f5a8f",
+        "filename": "kube/create-skia-status-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-11T17:21:46Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 3,
+        "startChar": 54,
+        "endLine": 3,
+        "endChar": 75
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2364001a_902ba161",
+        "filename": "status/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-11T17:21:46Z",
+      "side": 1,
+      "message": "Unless you need to run node on the server this should be gcr.io/skia-public/basealpine:3.7",
+      "range": {
+        "startLine": 1,
+        "startChar": 5,
+        "endLine": 1,
+        "endChar": 18
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1ec947f_0e31c54d",
+        "filename": "status/build_docker_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-11T17:21:46Z",
+      "side": 1,
+      "message": "Please vertically align the ${ROOT}\u0027s.",
+      "range": {
+        "startLine": 11,
+        "startChar": 37,
+        "endLine": 12,
+        "endChar": 68
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a022ac7c_bb672284",
+        "filename": "status/build_docker_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-11T17:21:46Z",
+      "side": 1,
+      "message": "Copy the exe to /usr/local/bin:\n\n${INSTALL} --mode\u003d755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}",
+      "range": {
+        "startLine": 12,
+        "startChar": 57,
+        "endLine": 12,
+        "endChar": 58
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "076286a9_e0727cc3",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-11T17:21:46Z",
+      "side": 1,
+      "message": "Can this be renamed to chromeInfraAuthJWT, the name \u0027serviceAccountJWT\u0027 makes me think of the global JWT we use back in skia-public:buildbots.",
+      "range": {
+        "startLine": 74,
+        "startChar": 1,
+        "endLine": 74,
+        "endChar": 18
+      },
+      "revId": "da506f5cf69164847745dca66240133cc9a8372e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
