@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -129,6 +130,21 @@ func (srv *Server) displayHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	hash := mux.Vars(r)["hash"]
+	path := strings.Join([]string{hash, "lottie.json"}, "/")
+	reader, err := srv.bucket.Object(path).NewReader(r.Context())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Can't load file from GCS")
+		return
+	}
+	if _, err = io.Copy(w, reader); err != nil {
+		httputils.ReportError(w, r, err, "Failed to write JSON file.")
+		return
+	}
+}
+
 func (srv *Server) webmHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "video/webm")
 	hash := mux.Vars(r)["hash"]
@@ -144,16 +160,24 @@ func (srv *Server) webmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type UploadRequest struct {
+	Lottie interface{} `json:"lottie"`
+	Width  int         `json:"width"`
+	Height int         `json:"height"`
+	FPS    int         `json:"fps"`
+}
+
+type UploadRespnse struct {
+	Hash string `json:"hash"`
+}
+
 func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Extract json file.
-	if err := r.ParseMultipartForm(10 * 1024 * 1024); err != nil {
-		httputils.ReportError(w, r, err, "Error handling form data.")
-		return
-	}
-	f, _, err := r.FormFile("file")
-	if err != nil {
-		httputils.ReportError(w, r, err, "Can't find file.")
+	defer util.Close(r.Body)
+	var req UploadRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Error decoding JSON.")
 		return
 	}
 	source, err := ioutil.TempDir("", "source")
@@ -168,13 +192,14 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.RemoveAll(source)
 	defer util.RemoveAll(dest)
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Can't read file.")
-		return
-	}
 	sourceFullPath := filepath.Join(source, "lottie.json")
 	destFullPath := filepath.Join(dest, "lottie.webm")
+
+	b, err := json.Marshal(req.Lottie)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Can't re-encode lottie file.")
+		return
+	}
 	if err := ioutil.WriteFile(sourceFullPath, b, 0644); err != nil {
 		httputils.ReportError(w, r, err, "Can't write file.")
 		return
@@ -195,6 +220,11 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Calculate md5 of file.
 	// TODO(jcgregorio) include options in md5 calculation once they're added to the UI.
 	h := md5.New()
+	b, err = json.Marshal(req)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Can't re-encode request.")
+		return
+	}
 	if _, err = h.Write(b); err != nil {
 		httputils.ReportError(w, r, err, "Failed calculating hash.")
 		return
@@ -216,7 +246,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	wr = srv.bucket.Object(path).NewWriter(ctx)
 	defer util.Close(wr)
 	wr.ObjectAttrs.ContentEncoding = "video/webm"
-	f, err = os.Open(destFullPath)
+	f, err := os.Open(destFullPath)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed opening webm.")
 		return
@@ -227,7 +257,13 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect to display page that takes arg of md5 hash.
+	resp := UploadRespnse{
+		Hash: hash,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
+	}
+
 	http.Redirect(w, r, fmt.Sprintf("/display/%s", hash), http.StatusTemporaryRedirect)
 }
 
@@ -243,10 +279,11 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", srv.mainHandler)
+	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.mainHandler)
 	r.HandleFunc("/display/{hash:[0-9A-Za-z]+}", srv.displayHandler)
 
 	r.HandleFunc("/_/i/{hash:[0-9A-Za-z]+}", srv.webmHandler)
+	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler)
 	r.HandleFunc("/_/upload", srv.uploadHandler)
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
