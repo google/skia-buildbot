@@ -1,2 +1,2 @@
-import 'elements-sk/buttons'
 import './index.scss'
+import '../modules/skottie-sk'
