@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6062c272_25214c2b",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T16:38:48Z",
+      "side": 1,
+      "message": "The defaults in the constructor use 256 for width and height should that (or this) change?",
+      "range": {
+        "startLine": 104,
+        "startChar": 38,
+        "endLine": 104,
+        "endChar": 41
+      },
+      "revId": "3a1d8f051fcfbd46acbf83fef1f2298cfc191db0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
