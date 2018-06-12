@@ -148,10 +148,11 @@ func (srv *Server) webmHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type UploadRequest struct {
-	Lottie interface{} `json:"lottie"`
-	Width  int         `json:"width"`
-	Height int         `json:"height"`
-	FPS    float32     `json:"fps"`
+	Lottie   interface{} `json:"lottie"`
+	Width    int         `json:"width"`
+	Height   int         `json:"height"`
+	FPS      float32     `json:"fps"`
+	Filename string      `json:"filename"`
 }
 
 type UploadResponse struct {
