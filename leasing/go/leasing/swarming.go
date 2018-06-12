@@ -196,6 +196,9 @@ func GetIsolateDetails(ctx context.Context, properties *swarming_api.SwarmingRpc
 	}
 	details.IsolateDep = inputsRef.Isolated
 	details.CipdInput = properties.CipdInput
+	if len(details.Command) == 0 {
+		details.Command = append(details.Command, properties.Command...)
+	}
 	// Append extra arguments to the command.
 	details.Command = append(details.Command, properties.ExtraArgs...)
 
