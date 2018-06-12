@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04e7bc86_c8bd4a04",
+        "filename": "leasing/res/imp/leasing-selections-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-12T12:41:41Z",
+      "side": 1,
+      "message": "suggestion: link to screenshot with arrow",
+      "range": {
+        "startLine": 154,
+        "startChar": 48,
+        "endLine": 154,
+        "endChar": 55
+      },
+      "revId": "c0e3a0efecd0a95c041367ac78200f2f6399b4c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
