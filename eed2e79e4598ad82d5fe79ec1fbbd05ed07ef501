@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "a3f14787_d07ab25d",
+        "filename": "ct/go/ctfe/admin_tasks/admin_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: add to struct initializer\n\nSame comment in other GetPopulatedDatastoreTask methods.",
+      "range": {
+        "startLine": 213,
+        "startChar": 1,
+        "endLine": 213,
+        "endChar": 10
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b7bffd8_5fc1cffe",
+        "filename": "ct/go/ctfe/capture_skps/capture_skps.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: context.TODO() or pass in context\n\nSame for Validate in ct/go/ctfe/chromium_builds/chromium_builds.go",
+      "range": {
+        "startLine": 173,
+        "startChar": 27,
+        "endLine": 173,
+        "endChar": 47
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c90592a6_8f98f1b0",
         "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
         "patchSetId": 37
@@ -13,6 +59,236 @@
       "writtenOn": "2018-06-12T18:59:59Z",
       "side": 1,
       "message": "IMO, FooPatch should be set iff FooPatchGSPath is set. Otherwise it gets too confusing where we need to load patches or not. This is missing all the FooPatch fields.",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20d61d99_cad8fe7b",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: %s",
+      "range": {
+        "startLine": 207,
+        "startChar": 43,
+        "endLine": 207,
+        "endChar": 45
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8070af50_69d44612",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: ctx",
+      "range": {
+        "startLine": 193,
+        "startChar": 18,
+        "endLine": 193,
+        "endChar": 38
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cababc8b_3aac435e",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: context.TODO() or pass in context",
+      "range": {
+        "startLine": 67,
+        "startChar": 18,
+        "endLine": 67,
+        "endChar": 38
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d16b65a_12d14a1e",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: %s",
+      "range": {
+        "startLine": 70,
+        "startChar": 78,
+        "endLine": 70,
+        "endChar": 80
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28d46cb7_50edfe9d",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: context.TODO() or pass in context",
+      "range": {
+        "startLine": 94,
+        "startChar": 18,
+        "endLine": 94,
+        "endChar": 38
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3215607_85f21979",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: \"running tasks\"",
+      "range": {
+        "startLine": 97,
+        "startChar": 57,
+        "endLine": 97,
+        "endChar": 76
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f87c600_e30795e5",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: %s",
+      "range": {
+        "startLine": 97,
+        "startChar": 78,
+        "endLine": 97,
+        "endChar": 80
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb1a5340_7d60854c",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: Might be less confusing to call this \"Key\" or \"DatastoreKey\" to differentiate from Id.\n\nAlternatively, why not just use the Id from GetNextId as the Key ID?\n\nAlso note that Javascript doesn\u0027t support 64-bit integers. I assume Datastore will assign Ids using the full 64 bits. (We use int64 for some of the fields below, but the timestamp format fits in 52 bits, which JS supports, and RepeatAfterDays is never more than 7.)",
+      "range": {
+        "startLine": 49,
+        "startChar": 1,
+        "endLine": 49,
+        "endChar": 12
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0201ed49_5947f579",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: maybe rename \"Query\"",
+      "range": {
+        "startLine": 65,
+        "startChar": 1,
+        "endLine": 65,
+        "endChar": 7
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca61ac5b_e1dfd145",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "nit: maybe rename \"Get\"",
+      "range": {
+        "startLine": 67,
+        "startChar": 1,
+        "endLine": 67,
+        "endChar": 5
+      },
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -36,6 +312,64 @@
         "endLine": 295,
         "endChar": 0
       },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81c4732d_d1e19b1c",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "Oops, s/StringId/Name/",
+      "parentUuid": "78b3f744_55e8f5f6",
+      "range": {
+        "startLine": 260,
+        "startChar": 0,
+        "endLine": 295,
+        "endChar": 0
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13fa1852_371eb798",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "I don\u0027t see corresponding html changes.\n\nHowever, also see above my comment about Javascript and 64-bit integers.",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ed7ff02_df8c6ff2",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T21:19:30Z",
+      "side": 1,
+      "message": "Ditto.",
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
