@@ -763,6 +763,30 @@
     },
     {
       "key": {
+        "uuid": "27d0d5d4_4d460ac3",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T19:05:34Z",
+      "side": 1,
+      "message": "Do we ever update RepeatAfterDays other than ClearRepeatAfterDays?",
+      "parentUuid": "44b98943_ada25a06",
+      "range": {
+        "startLine": 352,
+        "startChar": 1,
+        "endLine": 352,
+        "endChar": 29
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed1a9f3b_6693616d",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
