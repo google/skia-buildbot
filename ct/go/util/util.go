@@ -7,6 +7,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"io/ioutil"
 	"math"
@@ -1163,6 +1164,49 @@ func GetBasePixelDiffRemoteDir(runID string) (string, error) {
 		return "", fmt.Errorf("Could not parse runID %s with the regex %q", runID, regex.String())
 	}
 	return filepath.Join(PixelDiffRunsDir, matches[1], matches[2], matches[3], matches[4], runID), nil
+}
+
+func SavePatchToStorage(patch string) (string, error) {
+	h := fnv.New32a()
+	_, err := h.Write([]byte(patch))
+	if err != nil {
+		return "", fmt.Errorf("Could not write patch %s to fnv.New32a: %s", patch, err)
+	}
+	patchHash := h.Sum32()
+
+	gs, err := NewGcsUtil(nil)
+	gsDir := filepath.Join("patches", strconv.Itoa(int(patchHash)))
+	patchFileName := fmt.Sprintf("%d.patch", patchHash)
+	count, err := gs.GetRemoteDirCount(gsDir)
+	if err != nil {
+		return "", fmt.Errorf("Could not access %s: %s", gsDir, err)
+	}
+	if count == 0 {
+		// Patch does not exist in Google Storage yet so upload it.
+		patchPath := filepath.Join(os.TempDir(), patchFileName)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return "", err
+		}
+		defer util.Remove(patchPath)
+		if err := gs.UploadFile(patchFileName, os.TempDir(), gsDir); err != nil {
+			return "", err
+		}
+	}
+	return filepath.Join(gsDir, patchFileName), nil
+}
+
+func GetPatchFromStorage(patchId string) (string, error) {
+	gs, err := NewGcsUtil(nil)
+	respBody, err := gs.GetRemoteFileContents(patchId)
+	if err != nil {
+		return "", fmt.Errorf("Could not fetch %s: %s", patchId, err)
+	}
+	defer util.Close(respBody)
+	patch, err := ioutil.ReadAll(respBody)
+	if err != nil {
+		return "", fmt.Errorf("Could not read from %s: %s", patchId, err)
+	}
+	return string(patch), nil
 }
 
 func GetRankFromPageset(pagesetFileName string) (int, error) {
