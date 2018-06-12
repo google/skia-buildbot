@@ -83,11 +83,11 @@ func (srv *Server) loadTemplates() {
 }
 
 // createWebm runs ffmpeg over the images in the given dir.
-func createWebm(ctx context.Context, dir string, fps int) error {
+func createWebm(ctx context.Context, dir string, fps float32) error {
 	// ffmpeg -r $FPS -pattern_type glob -i '*.png' -c:v libvpx-vp9 -lossless 1 lottie.webm
 	name := "ffmpeg"
 	args := []string{
-		"-r", fmt.Sprintf("%d", fps),
+		"-r", fmt.Sprintf("%f", fps),
 		"-pattern_type", "glob", "-i", "*.png",
 		"-c:v", "libvpx-vp9",
 		"-lossless", "1",
@@ -151,7 +151,7 @@ type UploadRequest struct {
 	Lottie interface{} `json:"lottie"`
 	Width  int         `json:"width"`
 	Height int         `json:"height"`
-	FPS    int         `json:"fps"`
+	FPS    float32     `json:"fps"`
 }
 
 type UploadResponse struct {
@@ -212,7 +212,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Run through skottie_tool.
-	toolResults, err := exec.RunSimple(ctx, fmt.Sprintf("%s --input %s --writePath %s --width %d --height %d --fps %d", *skottieTool, sourceFullPath, dest, req.Width, req.Height, req.FPS))
+	toolResults, err := exec.RunSimple(ctx, fmt.Sprintf("%s --input %s --writePath %s --width %d --height %d --fps %f", *skottieTool, sourceFullPath, dest, req.Width, req.Height, req.FPS))
 	if err != nil {
 		sklog.Warningf("Failed running: %q", toolResults)
 		httputils.ReportError(w, r, err, "Failed running skottie_tool.")
