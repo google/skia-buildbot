@@ -27,9 +27,21 @@ skottie-sk {
     display: inline-block;
   }
 
-  video {
+  figure {
+    display: flex;
+    flex-flow: column;
+  }
+
+  figure video,
+  figure div {
     border: solid lightgray 1px;
-    margin: 1em;
+  }
+
+  figcaption {
+    align-self: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin: 0.6em;
   }
 
   button.edit-config {
@@ -46,5 +58,10 @@ skottie-sk {
 
   .loading span {
     margin-left: 0.5em;
+  }
+
+  .figures {
+    display: flex;
+    flex-flow: row wrap;
   }
 }
