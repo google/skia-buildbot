@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "50541b08_60eb7da0",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 0,
+      "message": "That is what it was doing before anyway. It made sense when CT was open to everyone, this was then restricted to only Googlers. Now only Googlers have access anyway.",
+      "parentUuid": "d1f307e9_4b5705de",
+      "range": {
+        "startLine": 459,
+        "startChar": 1,
+        "endLine": 459,
+        "endChar": 56
+      },
+      "revId": "56a02e0ec8f8ca18495b254bc55a2578ea83ddc1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d38e31c4_8368ef60",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
@@ -39,6 +63,24 @@
       "revId": "56a02e0ec8f8ca18495b254bc55a2578ea83ddc1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f81be31c_b08a0e00",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "d38e31c4_8368ef60",
+      "revId": "56a02e0ec8f8ca18495b254bc55a2578ea83ddc1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

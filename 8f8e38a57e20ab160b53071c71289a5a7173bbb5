@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d3311bac_0de7c483",
+        "filename": "ct/go/ctfe/admin_tasks/admin_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d02c9f11_14949760",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 226,
+        "endChar": 36
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3bae47e5_281ab4bf",
         "filename": "ct/go/ctfe/capture_skps/capture_skps.go",
         "patchSetId": 35
@@ -45,6 +69,30 @@
       "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97daf6b6_0e2b2cea",
+        "filename": "ct/go/ctfe/capture_skps/capture_skps.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3bae47e5_281ab4bf",
+      "range": {
+        "startLine": 178,
+        "startChar": 51,
+        "endLine": 178,
+        "endChar": 73
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9d17d197_6ff3f987",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Here it reads from a DatastoreTask and writes to a AddTaskVars.\nIn Select it reads from a DatastoreTask and writes to a DatastoreTask.\nFind needs what select does so I extracted that part out.\n\nRegarding goroutines, not sure we need it seems to be fast enough, but we can revisit if needed later.",
+      "parentUuid": "07668409_14fc4e9f",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 0
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "285ff9e2_3e023a20",
         "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
         "patchSetId": 35
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "808f4afd_8f39f988",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "285ff9e2_3e023a20",
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a1eee939_d0d70eaf",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
@@ -102,6 +192,24 @@
       "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f252b92_0695ad0b",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "I saw that in gold but did not bother to try to understand how it worked. It does make things easier. Done.",
+      "parentUuid": "a1eee939_d0d70eaf",
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "6c04786b_40f5597e",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c75c839_1a9f0297",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 30
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "278efce8_36dfa93d",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
@@ -148,6 +280,30 @@
       "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85ec4218_ebf955f5",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "278efce8_36dfa93d",
+      "range": {
+        "startLine": 151,
+        "startChar": 22,
+        "endLine": 151,
+        "endChar": 42
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -174,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "ae9001ad_51420cfa",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5be28997_adbe09b5",
+      "range": {
+        "startLine": 152,
+        "startChar": 85,
+        "endLine": 152,
+        "endChar": 88
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9606bbce_72a28ff4",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
@@ -194,6 +374,30 @@
       "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcb4c49f_51e5fad8",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Yes right. I think I had this before I added that method.",
+      "parentUuid": "9606bbce_72a28ff4",
+      "range": {
+        "startLine": 158,
+        "startChar": 34,
+        "endLine": 158,
+        "endChar": 46
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -220,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "d74596da_c692d376",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5850c677_463a9aa8",
+      "range": {
+        "startLine": 227,
+        "startChar": 6,
+        "endLine": 227,
+        "endChar": 29
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "90fbc3f5_652dcf47",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
@@ -240,6 +468,30 @@
       "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e50a398a_4b2ce2f8",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90fbc3f5_652dcf47",
+      "range": {
+        "startLine": 230,
+        "startChar": 18,
+        "endLine": 230,
+        "endChar": 38
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -266,6 +518,30 @@
     },
     {
       "key": {
+        "uuid": "0d5866b4_df22f8d9",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "593bc0f5_cc0ec946",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 268,
+        "endChar": 0
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30fe07c1_d0719315",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
@@ -286,6 +562,30 @@
       "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a30e67f5_506531b9",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "TaskDone was added because we cannot do b). Before we were doing TsCompleted !\u003d 0 but cannot anymore because of inequality searches in datastore.\nReturning error now if TsCompleted is not set.",
+      "parentUuid": "30fe07c1_d0719315",
+      "range": {
+        "startLine": 351,
+        "startChar": 0,
+        "endLine": 351,
+        "endChar": 28
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -312,6 +612,30 @@
     },
     {
       "key": {
+        "uuid": "44b98943_ada25a06",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "This is used for repeated runs.",
+      "parentUuid": "d7c3e784_11e8981c",
+      "range": {
+        "startLine": 352,
+        "startChar": 1,
+        "endLine": 352,
+        "endChar": 29
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed1a9f3b_6693616d",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
@@ -335,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "0d477ce3_63f5cb14",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed1a9f3b_6693616d",
+      "range": {
+        "startLine": 369,
+        "startChar": 34,
+        "endLine": 369,
+        "endChar": 57
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "35f93990_88cf08f9",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
@@ -349,6 +697,24 @@
       "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8744cfe_c97dec47",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-12T18:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "35f93990_88cf08f9",
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
