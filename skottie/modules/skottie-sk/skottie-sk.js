@@ -25,9 +25,19 @@ const displayDialog = (ele) => html`
 
 const displayLoaded= (ele) => html`
 <button class=edit-config on-click=${(e) => ele._startEdit()}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
-<video title=lottie autoplay loop src="/_/i/${ele._hash}" width=${ele._state.width} height=${ele._state.height}>
-  <spinner-sk active></spinner-sk>
-</video>
+<section class=figures>
+  <figure>
+    <video title=lottie autoplay loop src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
+      <spinner-sk active></spinner-sk>
+    </video>
+    <figcaption>skottie</figcaption>
+  </figure>
+  <figure>
+    <div id=container style='width: ${ele._state.width}px; height: ${ele._state.height}px'>
+    </div>
+    <figcaption>lottie-web (${bodymovin.version})</figcaption>
+  </figure>
+</section>
 `;
 
 const displayLoading = (ele) => html`
@@ -142,6 +152,19 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
 
   _render() {
     render(template(this), this);
+    if (this._ui == LOADED_MODE) {
+      bodymovin.loadAnimation({
+        container: $$('#container'),
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        // Apparently the lottie player modifies the data as it runs?
+        animationData: JSON.parse(JSON.stringify(this._state.lottie)),
+        rendererSettings: {
+          preserveAspectRatio:'xMidYMid meet'
+        },
+      });
+    }
   }
 
   handleEvent(e) {
