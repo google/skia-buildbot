@@ -7,6 +7,7 @@
   "dependencies": {
     "common-sk": "^2.0.1",
     "elements-sk": "^1.0.0",
+    "lottie-web": "^5.1.16",
     "pulito": "^4.0.1",
     "webpack": "^4.11.1",
     "webpack-cli": "^3.0.3"
