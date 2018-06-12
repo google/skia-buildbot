@@ -1,0 +1,354 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d02c9f11_14949760",
+        "filename": "ct/go/ctfe/admin_tasks/admin_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "nit: could move this to the caller",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 226,
+        "endChar": 36
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bae47e5_281ab4bf",
+        "filename": "ct/go/ctfe/capture_skps/capture_skps.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "nit: docs say this only has an effect for ancestor queries. Might as well leave it off. https://godoc.org/cloud.google.com/go/datastore#Query.EventualConsistency",
+      "range": {
+        "startLine": 178,
+        "startChar": 51,
+        "endLine": 178,
+        "endChar": 73
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07668409_14fc4e9f",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "nit: maybe add method getAllPatchesFromStorage; use here and in Select.\n\nAlso, I suspect that we\u0027ll want to do this in goroutines.",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 0
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "285ff9e2_3e023a20",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "nit: should be consistent about whether patches are loaded or not when loading from datastore.",
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1eee939_d0d70eaf",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "It\u0027s possible that this will make things easier: https://godoc.org/cloud.google.com/go/datastore#hdr-Key_Field",
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c75c839_1a9f0297",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "I\u0027m pretty sure you can just do findResult.(Task)",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 30
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "278efce8_36dfa93d",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "nit: r.Context() (many other instances)",
+      "range": {
+        "startLine": 151,
+        "startChar": 22,
+        "endLine": 151,
+        "endChar": 42
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5be28997_adbe09b5",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "Previously we tried to ensure all errors are XSS-safe so that we could return them in the HTTP response. It looks like you have added some errors that echo the input, so we should not include the error message in the HTTP response.",
+      "range": {
+        "startLine": 152,
+        "startChar": 85,
+        "endLine": 152,
+        "endChar": 88
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9606bbce_72a28ff4",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "This should always be task.GetDatastoreKind(), right?",
+      "range": {
+        "startLine": 158,
+        "startChar": 34,
+        "endLine": 158,
+        "endChar": 46
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5850c677_463a9aa8",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "At some point we should consider switching from offset to cursor.",
+      "range": {
+        "startLine": 227,
+        "startChar": 6,
+        "endLine": 227,
+        "endChar": 29
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90fbc3f5_652dcf47",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "nit: context.TODO() or pass in context (many other instances)",
+      "range": {
+        "startLine": 230,
+        "startChar": 18,
+        "endLine": 230,
+        "endChar": 38
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "593bc0f5_cc0ec946",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "There is no way to make this work correctly unless you explicitly store the next ID.",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 268,
+        "endChar": 0
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30fe07c1_d0719315",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "I assume that for a valid UpdateTaskCommonVars, TaskDone is true iff TsCompleted is non-empty. Would it make sense to either a) return an error if this is not true, or b) remove TaskDone here and set it implicitly based on TsCompleted?",
+      "range": {
+        "startLine": 351,
+        "startChar": 0,
+        "endLine": 351,
+        "endChar": 28
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7c3e784_11e8981c",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "Is this actually used? Maybe we can remove it.",
+      "range": {
+        "startLine": 352,
+        "startChar": 1,
+        "endLine": 352,
+        "endChar": 29
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed1a9f3b_6693616d",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "nit: maybe just remove this method and use this as the field name",
+      "range": {
+        "startLine": 369,
+        "startChar": 34,
+        "endLine": 369,
+        "endChar": 57
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35f93990_88cf08f9",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 1,
+      "message": "nit: name is confusing -- sounds like it is also applying updates from UpdateTaskCommonVars. Maybe \"UpdateExtraFields\"?",
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

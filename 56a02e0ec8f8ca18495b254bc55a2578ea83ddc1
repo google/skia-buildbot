@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d1f307e9_4b5705de",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 0,
+      "message": "You want to allow any user to delete other user\u0027s tasks?",
+      "range": {
+        "startLine": 459,
+        "startChar": 1,
+        "endLine": 459,
+        "endChar": 56
+      },
+      "revId": "56a02e0ec8f8ca18495b254bc55a2578ea83ddc1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d38e31c4_8368ef60",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T02:11:33Z",
+      "side": 0,
+      "message": "nit: might be good to keep this log message",
+      "revId": "56a02e0ec8f8ca18495b254bc55a2578ea83ddc1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
