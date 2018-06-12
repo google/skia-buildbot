@@ -25,9 +25,11 @@ const displayDialog = (ele) => html`
 
 const displayLoaded= (ele) => html`
 <button class=edit-config on-click=${(e) => ele._startEdit()}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
+<button on-click=${(e) => ele._rewind(e)}>Rewind</button>
+<button id=playpause on-click=${(e) => ele._playpause(e)}>Pause</button>
 <section class=figures>
   <figure>
-    <video title=lottie autoplay loop src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
+    <video id=video muted on-loadeddata=${(e) => ele._videoLoaded(e)} title=lottie loop src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
       <spinner-sk active></spinner-sk>
     </video>
     <figcaption>skottie</figcaption>
@@ -83,6 +85,8 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     // One of "dialog", "loading", or "loaded"
     this._ui = DIALOG_MODE;
     this._hash = '';
+    this._anim = null;
+    this._video = null;
   }
 
   connectedCallback() {
@@ -150,20 +154,49 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     });
   }
 
+  _playpause(e) {
+    if (e.target.textContent == "Pause") {
+      this._anim.pause();
+      this._video.pause();
+      e.target.textContent = "Play";
+    } else {
+      this._anim.play();
+      this._video.play();
+      e.target.textContent = "Pause";
+    }
+  }
+
+  _rewind(e) {
+    if ($$('#playpause', this).textContent == "Play") {
+      this._anim.goToAndStop(0);
+      this._video.currentTime = 0;
+    } else {
+      this._anim.goToAndPlay(0);
+      this._video.currentTime = 0;
+      this._video.play();
+    }
+  }
+
+  _videoLoaded(e) {
+    e.target.play();
+    this._anim.play();
+  }
+
   _render() {
     render(template(this), this);
     if (this._ui == LOADED_MODE) {
-      bodymovin.loadAnimation({
+      this._anim = bodymovin.loadAnimation({
         container: $$('#container'),
         renderer: 'svg',
         loop: true,
-        autoplay: true,
+        autoplay: false,
         // Apparently the lottie player modifies the data as it runs?
         animationData: JSON.parse(JSON.stringify(this._state.lottie)),
         rendererSettings: {
           preserveAspectRatio:'xMidYMid meet'
         },
       });
+      this._video = $$('#video', this);
     }
   }
 
