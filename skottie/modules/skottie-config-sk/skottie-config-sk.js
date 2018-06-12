@@ -31,6 +31,12 @@ import { html, render } from 'lit-html/lib/lit-extended'
 import { $$ } from 'common-sk/modules/dom'
 
 const template = (ele) => html`
+  <label class='file'>Lottie file to upload
+    <input type=file name=file id=file on-change=${(e) => ele._onFileChange(e)}/>
+  </label>
+  <div class$="filename ${ele._state.filename ? '' : 'empty'}">
+    ${ele._state.filename ? ele._state.filename : 'No file selected.'}
+  </div>
   <label class=number>
     <input type=number id=width value=${ele._state.width} required /> Width (px)
     <span class="validity"></span>
@@ -40,15 +46,9 @@ const template = (ele) => html`
     <span class="validity"></span>
   </label>
   <label class=number title='Frames Per Second'>
-    <input type=number id=fps value=${ele._state.fps} required /> FPS (Hz)
+    <input type=number id=fps value=${ele._state.fps} required  step='0.01'/> FPS (Hz)
     <span class='validity'></span>
   </label>
-  <label class='file'>Lottie file to upload
-    <input type=file name=file id=file on-change=${(e) => ele._onFileChange(e)}/>
-  </label>
-  <div class$="filename ${ele._state.filename ? '' : 'empty'}">
-    ${ele._state.filename ? ele._state.filename : 'No file selected.'}
-  </div>
   <div id=dialog-buttons>
     ${ele._hasCancel() ? html`<button id=cancel on-click=${(e) => ele._cancel()}>Cancel</button>` : html`` }
     <button class=action disabled?=${ele._readyToGo()} on-click=${(e) => ele._go()}>Go</button>
@@ -101,6 +101,9 @@ class SkottieConfigSk extends HTMLElement {
       }
       this._state.lottie = parsed;
       this._state.filename = e.target.files[0].name;
+      this._state.width = parsed.w || 128;
+      this._state.height = parsed.h || 128;
+      this._state.fps = parsed.fr || 30;
       this._render();
     });
     reader.addEventListener('error', () => {
