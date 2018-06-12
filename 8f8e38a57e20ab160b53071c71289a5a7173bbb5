@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "01104a91_438d73cb",
+        "filename": "ct/go/ctfe/admin_tasks/admin_tasks.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T18:59:59Z",
+      "side": 1,
+      "message": "nit: It might be less confusing if only a \"DatastoreTask\" has a variable name of \"task\". AddTaskVars could be \"vars\" or \"a\" or \"avars\" or something.",
+      "range": {
+        "startLine": 201,
+        "startChar": 6,
+        "endLine": 201,
+        "endChar": 10
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d02c9f11_14949760",
         "filename": "ct/go/ctfe/admin_tasks/admin_tasks.go",
         "patchSetId": 35
@@ -96,6 +119,23 @@
     },
     {
       "key": {
+        "uuid": "c136d4d4_688c441c",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T18:59:59Z",
+      "side": 1,
+      "message": "Discussed in person about possible improvements.",
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "07668409_14fc4e9f",
         "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
         "patchSetId": 35
@@ -175,6 +215,69 @@
       "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ed3bb46d_865b23ff",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T18:59:59Z",
+      "side": 1,
+      "message": "nit: either the default should be empty or you should refuse to accept \"cluster-telemetry\" when *local is true.\n\nHere is the way Perf does it: https://skia.googlesource.com/buildbot/+/master/perf/go/skiaperf/main.go#204",
+      "range": {
+        "startLine": 59,
+        "startChar": 41,
+        "endLine": 59,
+        "endChar": 58
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69d0b572_865740aa",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T18:59:59Z",
+      "side": 1,
+      "message": "For other task types, we validate TaskDone and Failure. Is that needed here?",
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afa5a91a_e62c6f85",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T18:59:59Z",
+      "side": 1,
+      "message": "Do we need to check if RawOutput is empty?",
+      "range": {
+        "startLine": 192,
+        "startChar": 37,
+        "endLine": 192,
+        "endChar": 48
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -577,6 +680,30 @@
       "side": 1,
       "message": "TaskDone was added because we cannot do b). Before we were doing TsCompleted !\u003d 0 but cannot anymore because of inequality searches in datastore.\nReturning error now if TsCompleted is not set.",
       "parentUuid": "30fe07c1_d0719315",
+      "range": {
+        "startLine": 351,
+        "startChar": 0,
+        "endLine": 351,
+        "endChar": 28
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "12630401_0f0e2809",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T18:59:59Z",
+      "side": 1,
+      "message": "This is UpdateTaskCommonVars, which is not stored in Datastore. We can make it look however we want.",
+      "parentUuid": "a30e67f5_506531b9",
       "range": {
         "startLine": 351,
         "startChar": 0,

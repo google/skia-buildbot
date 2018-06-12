@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c90592a6_8f98f1b0",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T18:59:59Z",
+      "side": 1,
+      "message": "IMO, FooPatch should be set iff FooPatchGSPath is set. Otherwise it gets too confusing where we need to load patches or not. This is missing all the FooPatch fields.",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78b3f744_55e8f5f6",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-12T18:59:59Z",
+      "side": 1,
+      "message": "func GetNextId(ctx context.Context, kind ds.Kind) (int64, error) {\n\t// Hit the datastore to get the current highest ID.\n\tkey :\u003d ds.NewKey(ds.CLUSTER_TELEMETRY_IDS)\n\tkey.StringId \u003d string(kind)\n\tvar nextId int64 \u003d -1\n\t_, err :\u003d ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {\n\t\tif err :\u003d ds.DS.Get(key, \u0026nextId); err !\u003d nil {\n\t\t\treturn err\n\t\t}\n\t\tnextId++\n\t\t_, err :\u003d ds.DS.Put(ctx, key, nextId)\n\t\treturn err\n\t})\n\treturn nextId, err\n}",
+      "range": {
+        "startLine": 260,
+        "startChar": 0,
+        "endLine": 295,
+        "endChar": 0
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
