@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6afcde71_1cf1ac80",
+        "filename": "ct/go/ctfe/admin_tasks/admin_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Id comes from task_common.CommonCols.\nWhen I add it to struct initializer it says:\n\"unknown field \u0027Id\u0027 in struct literal of type RecreatePageSetsDatastoreTask\".\n\nAnyway, it\u0027s been moved to the caller now because of DatastoreKey.",
+      "parentUuid": "a3f14787_d07ab25d",
+      "range": {
+        "startLine": 213,
+        "startChar": 1,
+        "endLine": 213,
+        "endChar": 10
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b7bffd8_5fc1cffe",
         "filename": "ct/go/ctfe/capture_skps/capture_skps.go",
         "patchSetId": 37
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "23e3383d_a8b1493d",
+        "filename": "ct/go/ctfe/capture_skps/capture_skps.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Grepped for context.Background in ctfe/... and fixed all of them (except in main.go).",
+      "parentUuid": "4b7bffd8_5fc1cffe",
+      "range": {
+        "startLine": 173,
+        "startChar": 27,
+        "endLine": 173,
+        "endChar": 47
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c90592a6_8f98f1b0",
         "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
         "patchSetId": 37
@@ -62,6 +110,24 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da633729_7565c8f5",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "I think I agree.\nDone in other patch tasks as well.",
+      "parentUuid": "c90592a6_8f98f1b0",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "af03b328_f3928032",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "20d61d99_cad8fe7b",
+      "range": {
+        "startLine": 207,
+        "startChar": 43,
+        "endLine": 207,
+        "endChar": 45
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8070af50_69d44612",
         "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
         "patchSetId": 37
@@ -108,6 +198,30 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ecf51c3_d0e19781",
+        "filename": "ct/go/ctfe/metrics_analysis/metrics_analysis.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8070af50_69d44612",
+      "range": {
+        "startLine": 193,
+        "startChar": 18,
+        "endLine": 193,
+        "endChar": 38
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "140399a0_76fe6c16",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cababc8b_3aac435e",
+      "range": {
+        "startLine": 67,
+        "startChar": 18,
+        "endLine": 67,
+        "endChar": 38
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d16b65a_12d14a1e",
         "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
         "patchSetId": 37
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "19150a2b_4b826737",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d16b65a_12d14a1e",
+      "range": {
+        "startLine": 70,
+        "startChar": 78,
+        "endLine": 70,
+        "endChar": 80
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28d46cb7_50edfe9d",
         "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
         "patchSetId": 37
@@ -177,6 +339,30 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa9196db_3518d85b",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28d46cb7_50edfe9d",
+      "range": {
+        "startLine": 94,
+        "startChar": 18,
+        "endLine": 94,
+        "endChar": 38
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +412,54 @@
     },
     {
       "key": {
+        "uuid": "42bf62f8_5d4f1f99",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3215607_85f21979",
+      "range": {
+        "startLine": 97,
+        "startChar": 57,
+        "endLine": 97,
+        "endChar": 76
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c4f5089_534b341d",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f87c600_e30795e5",
+      "range": {
+        "startLine": 97,
+        "startChar": 78,
+        "endLine": 97,
+        "endChar": 80
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bb1a5340_7d60854c",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 37
@@ -246,6 +480,30 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f30d4b11_cb62896d",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Called it DatastoreKey and removed Id. I think I got everything working with that now.",
+      "parentUuid": "bb1a5340_7d60854c",
+      "range": {
+        "startLine": 49,
+        "startChar": 1,
+        "endLine": 49,
+        "endChar": 12
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "34b29c6a_a6ba5177",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0201ed49_5947f579",
+      "range": {
+        "startLine": 65,
+        "startChar": 1,
+        "endLine": 65,
+        "endChar": 7
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ca61ac5b_e1dfd145",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 37
@@ -295,6 +577,30 @@
     },
     {
       "key": {
+        "uuid": "a62ff40b_9847d287",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ca61ac5b_e1dfd145",
+      "range": {
+        "startLine": 67,
+        "startChar": 1,
+        "endLine": 67,
+        "endChar": 5
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "367d8e88_e9d048e5",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 37
@@ -315,6 +621,30 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7039b12d_daa0a49e",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Eh. Yes. Not sure why I did this.\nI think I was following the example of Query/Select a little too closely.",
+      "parentUuid": "367d8e88_e9d048e5",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 1
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -365,6 +695,30 @@
     },
     {
       "key": {
+        "uuid": "997f23a3_f970bd17",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Had to tweak this. Putting nextId did not work (\"datastore: invalid entity type\") because I think you need a pointer to a struct. Using named key was a good idea. PTAL.",
+      "parentUuid": "81c4732d_d1e19b1c",
+      "range": {
+        "startLine": 260,
+        "startChar": 0,
+        "endLine": 295,
+        "endChar": 0
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13fa1852_371eb798",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 37
@@ -382,6 +736,24 @@
     },
     {
       "key": {
+        "uuid": "38095e16_545fb4f2",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "HTML now returns IDs here.",
+      "parentUuid": "13fa1852_371eb798",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8ed7ff02_df8c6ff2",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 37
@@ -396,6 +768,24 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "602d423e_ae2cea5a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ed7ff02_df8c6ff2",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -422,6 +812,30 @@
     },
     {
       "key": {
+        "uuid": "ea0564c3_7ccc944f",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "You still need Find for the getAllPatchesFromStorage. Eg for chromium_perf-\n\nfunc (task DatastoreTask) Get(c context.Context, key *datastore.Key) (interface{}, error) {\n\tt :\u003d \u0026DatastoreTask{}\n\tif err :\u003d ds.DS.Get(c, key, t); err !\u003d nil {\n\t\treturn nil, err\n\t}\n\tif err :\u003d getAllPatchesFromStorage(t); err !\u003d nil {\n\t\treturn nil, fmt.Errorf(\"Could not get all patches from storage: %s\", err)\n\t}\n\treturn t, nil\n}\n\nAlso makes it convenient to use for different callers.",
+      "parentUuid": "5fb78f51_7ca8b45a",
+      "range": {
+        "startLine": 551,
+        "startChar": 0,
+        "endLine": 551,
+        "endChar": 51
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c3caa00a_719b8e31",
         "filename": "ct/go/util/util.go",
         "patchSetId": 37
@@ -442,6 +856,30 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d081119_74cca2fd",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done. Moved the utilities here from ctfeutil.",
+      "parentUuid": "c3caa00a_719b8e31",
+      "range": {
+        "startLine": 1169,
+        "startChar": 24,
+        "endLine": 1169,
+        "endChar": 36
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -468,6 +906,30 @@
     },
     {
       "key": {
+        "uuid": "35a51c81_d27e31d6",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1170,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f7854500_67bc7ef1",
+      "range": {
+        "startLine": 1170,
+        "startChar": 6,
+        "endLine": 1170,
+        "endChar": 18
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e83199d_65f8d3fe",
         "filename": "ct/go/util/util.go",
         "patchSetId": 37
@@ -488,6 +950,30 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0792c78e_d4bc126c",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1177,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e83199d_65f8d3fe",
+      "range": {
+        "startLine": 1177,
+        "startChar": 5,
+        "endLine": 1177,
+        "endChar": 8
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -514,6 +1000,30 @@
     },
     {
       "key": {
+        "uuid": "8ec616a7_e047d9cc",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1178,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d5f25bf7_adccba0d",
+      "range": {
+        "startLine": 1178,
+        "startChar": 35,
+        "endLine": 1178,
+        "endChar": 63
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de663e6e_0ec444f4",
         "filename": "ct/go/util/util.go",
         "patchSetId": 37
@@ -525,6 +1035,30 @@
       "writtenOn": "2018-06-13T15:06:29Z",
       "side": 1,
       "message": "nit: I would do something like this:\npatchFileName :\u003d fmt.Sprintf(\"%s.patch\", hex.EncodeToString(patchHash))\ngsPath :\u003d path.Join(\"patches\", patchFileName)\nres, err :\u003d gs.service.Objects.Get(bucket, filePath).Do()\nif err !\u003d nil {\n  if gapierr, ok :\u003d error.(*googleapi.Error); !ok || gapierr.Code !\u003d http.StatusNotFound {\n    return \"\", fmt.Errorf(\"Could not retrieve object metadata for %s: %s\", filePath, err)\n  }\n}\nif res \u003d\u003d nil || res.Size !\u003d len(patch) {\n  // Patch does not exist in Google Storage yet so upload it.\n  ...\n}\nreturn gsPath, nil",
+      "range": {
+        "startLine": 1178,
+        "startChar": 0,
+        "endLine": 1194,
+        "endChar": 2
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60eeb861_9727cf6f",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1194,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Did this but without the statusNotFound checking. Strangely the error coming back is url.Error not googleapi.Error.\nIt still says that OBJECT NOT FOUND but I\u0027m not sure how to check for StatusCode in there.",
+      "parentUuid": "de663e6e_0ec444f4",
       "range": {
         "startLine": 1178,
         "startChar": 0,
@@ -560,6 +1094,30 @@
     },
     {
       "key": {
+        "uuid": "eebd2ed2_da40b265",
+        "filename": "ct/maintenance.md",
+        "patchSetId": 37
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4c53c5c6_b2a2bef7",
+      "range": {
+        "startLine": 133,
+        "startChar": 15,
+        "endLine": 133,
+        "endChar": 39
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aae15661_8fc26fea",
         "filename": "ct/maintenance.md",
         "patchSetId": 37
@@ -583,6 +1141,30 @@
     },
     {
       "key": {
+        "uuid": "66555158_45fcd6c9",
+        "filename": "ct/maintenance.md",
+        "patchSetId": 37
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aae15661_8fc26fea",
+      "range": {
+        "startLine": 135,
+        "startChar": 15,
+        "endLine": 135,
+        "endChar": 39
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d3c72033_7607d951",
         "filename": "ct/res/imp/capture-skp-runs-sk.html",
         "patchSetId": 37
@@ -600,6 +1182,24 @@
     },
     {
       "key": {
+        "uuid": "c020c0d9_b7045600",
+        "filename": "ct/res/imp/capture-skp-runs-sk.html",
+        "patchSetId": 37
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "Oops. Done.",
+      "parentUuid": "d3c72033_7607d951",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "45cac50a_2b98b694",
         "filename": "ds/index.yaml",
         "patchSetId": 37
@@ -614,6 +1214,24 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4bd16e1_b1bbe4f7",
+        "filename": "ds/index.yaml",
+        "patchSetId": 37
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-13T19:05:43Z",
+      "side": 1,
+      "message": "I don\u0027t think so. Pantheon shows size and entries but nothing else.",
+      "parentUuid": "45cac50a_2b98b694",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
