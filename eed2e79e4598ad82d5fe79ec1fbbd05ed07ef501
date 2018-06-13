@@ -295,6 +295,29 @@
     },
     {
       "key": {
+        "uuid": "367d8e88_e9d048e5",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T01:48:29Z",
+      "side": 1,
+      "message": "nit: Couldn\u0027t Find just return Task?",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 1
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "78b3f744_55e8f5f6",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 37
@@ -370,6 +393,29 @@
       "writtenOn": "2018-06-12T21:19:30Z",
       "side": 1,
       "message": "Ditto.",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fb78f51_7ca8b45a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T01:48:29Z",
+      "side": 1,
+      "message": "nit: Couldn\u0027t this just be ds.DS.Get(r.Context(), \u0026vars.Id, \u0026prototype)? (Maybe also rename prototype to \"task\".)\n\nIf so, I think you can remove Find altogether.",
+      "range": {
+        "startLine": 551,
+        "startChar": 0,
+        "endLine": 551,
+        "endChar": 51
+      },
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
