@@ -11,10 +11,16 @@
  *    }).catch(errorMessage);
  *
  * @returns {Promise}
+ * @throws {Object} with status, body, and message elements. See the docs on
+ *         a fetch Response for more detail on reading body (e.g. body.text()).
  */
 export function jsonOrThrow(resp) {
   if (resp.ok) {
     return resp.json();
   }
-  throw 'Bad network response.';
+  throw {
+    message: `Bad network response: ${resp.statusText}`,
+    body: resp.body,
+    status: resp.status
+  };
 }
