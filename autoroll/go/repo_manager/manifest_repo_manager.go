@@ -183,6 +183,7 @@ https://%s.googlesource.com/%s.git/+log/%s
 %s
 
 %s
+TEST=CQ
 `, mr.childPath, commitRange, len(commits), childRepoName, childRepoName, commitRange, strings.Join(changeSummaries, "\n"), fmt.Sprintf(COMMIT_MSG_FOOTER_TMPL, mr.serverURL))
 
 	// Commit the change with the above message.
