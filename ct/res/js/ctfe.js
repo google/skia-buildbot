@@ -114,7 +114,7 @@ this.ctfe = this.ctfe || function() {
   ctfe.chromiumBuild.getDescription = function(build) {
     return ctfe.chromiumBuild.shortHash(build.ChromiumRev) + "-" +
         ctfe.chromiumBuild.shortHash(build.SkiaRev) + " (Chromium rev created on " +
-        ctfe.getFormattedTimestamp(build.ChromiumRevTs.Int64) + ")";
+        ctfe.getFormattedTimestamp(build.ChromiumRevTs) + ")";
   }
 
   /**

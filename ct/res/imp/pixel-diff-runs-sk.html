@@ -129,10 +129,10 @@
         <tr style="border: 1px solid black;">
           <!-- Id col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{pixelDiffTask.Results.String}}">
-              <a href="{{pixelDiffTask.Results.String}}" target="_blank">{{pixelDiffTask.Id}}</a>
+            <template is="dom-if" if="{{pixelDiffTask.Results}}">
+              <a href="{{pixelDiffTask.Results}}" target="_blank">{{pixelDiffTask.Id}}</a>
             </template>
-            <template is="dom-if" if="{{!pixelDiffTask.Results.String}}">
+            <template is="dom-if" if="{{!pixelDiffTask.Results}}">
               <span>{{pixelDiffTask.Id}}</span>
             </template>
             <paper-icon-button icon="delete" mini
@@ -159,15 +159,15 @@
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(pixelDiffTask.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
@@ -194,16 +194,16 @@
 
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{pixelDiffTask.Failure.Bool}}">
+            <template is="dom-if" if="{{pixelDiffTask.Failure}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!pixelDiffTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!pixelDiffTask.TaskDone}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{pixelDiffTask.Results.String}}">
-              <a href="{{pixelDiffTask.Results.String}}" target="_blank">Output</a>
+            <template is="dom-if" if="{{pixelDiffTask.Results}}">
+              <a href="{{pixelDiffTask.Results}}" target="_blank">Output</a>
               <br/>
-              <a href="{{pixelDiffTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+              <a href="{{pixelDiffTask.SwarmingLogs}}" target="_blank">Swarming Logs</a>
             </template>
           </td>
 
@@ -348,6 +348,7 @@
          for (var i = 0; i < that.pixelDiffTasks.length; i++) {
            that.pixelDiffTasks[i].canDelete = json.permissions[i].DeleteAllowed;
            that.pixelDiffTasks[i].canRedo = json.permissions[i].RedoAllowed;
+           that.pixelDiffTasks[i].Id = json.ids[i];
          }
        }).catch(sk.errorMessage);
      },
@@ -407,7 +408,7 @@
 
      deleteTask: function(deleteIndex) {
        var params = {};
-       params["id"] = this.pixelDiffTasks[deleteIndex].Id;;
+       params["id"] = this.pixelDiffTasks[deleteIndex].Id;
        sk.post("/_/delete_pixel_diff_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Deleted task " + params["id"];
          $$$("#confirm_toast").show();

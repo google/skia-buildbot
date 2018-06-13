@@ -108,15 +108,15 @@
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
@@ -142,18 +142,18 @@
 
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{captureSkpsTask.Failure.Bool}}">
+            <template is="dom-if" if="{{captureSkpsTask.Failure}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!captureSkpsTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!captureSkpsTask.TaskDone}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{isDone(captureSkpsTask.Failure.Bool, captureSkpsTask.TsCompleted.Int64)}}">
+            <template is="dom-if" if="{{isDone(captureSkpsTask.Failure, captureSkpsTask.TaskDone)}}">
               Done
             </template>
-            <template is="dom-if" if="{{captureSkpsTask.SwarmingLogs.String}}">
+            <template is="dom-if" if="{{captureSkpsTask.SwarmingLogs}}">
               <br/>
-              <a href="{{captureSkpsTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+              <a href="{{captureSkpsTask.SwarmingLogs}}" target="_blank">Swarming Logs</a>
             </template>
           </td>
 
@@ -254,6 +254,7 @@
          for (var i = 0; i < that.captureSkpsTasks.length; i++) {
            that.captureSkpsTasks[i].canDelete = json.permissions[i].DeleteAllowed;
            that.captureSkpsTasks[i].canRedo = json.permissions[i].RedoAllowed;
+           that.captureSkpsTasks[i].Id = json.ids[i];
          }
        }).catch(sk.errorMessage);
      },
@@ -285,8 +286,8 @@
 
      deleteNote: function(captureSkpsTasks, deleteIndex) {
        if (deleteIndex >= 0 &&
-           captureSkpsTasks[deleteIndex].TsCompleted.Valid &&
-           !captureSkpsTasks[deleteIndex].Failure.Bool) {
+           captureSkpsTasks[deleteIndex].TaskDone &&
+           !captureSkpsTasks[deleteIndex].Failure) {
          return " Note: This SKP repository will no longer be available for running Lua Scripts.";
        } else {
          return "";
@@ -323,8 +324,8 @@
      formatTimestamp: ctfe.getFormattedTimestamp,
      formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
 
-     isDone: function(failure, tsCompleted) {
-       return !failure && tsCompleted;
+     isDone: function(failure, taskDone) {
+       return !failure && taskDone;
      },
   });
 </script>
