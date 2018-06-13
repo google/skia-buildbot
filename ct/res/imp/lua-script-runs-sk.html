@@ -128,15 +128,15 @@
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
@@ -172,23 +172,23 @@
 
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{luaScriptTask.Failure.Bool}}">
+            <template is="dom-if" if="{{luaScriptTask.Failure}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!luaScriptTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!luaScriptTask.TaskDone}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{luaScriptTask.ScriptOutput.String}}">
-              <a href="{{luaScriptTask.ScriptOutput.String}}" target="_blank">Script Output</a>
+            <template is="dom-if" if="{{luaScriptTask.ScriptOutput}}">
+              <a href="{{luaScriptTask.ScriptOutput}}" target="_blank">Script Output</a>
             </template>
-            <template is="dom-if" if="{{luaScriptTask.AggregatedOutput.String}}">
+            <template is="dom-if" if="{{luaScriptTask.AggregatedOutput}}">
               <br/>
-              <a href="{{luaScriptTask.AggregatedOutput.String}}"
+              <a href="{{luaScriptTask.AggregatedOutput}}"
                  target="_blank">Aggregated Output</a>
             </template>
-            <template is="dom-if" if="{{luaScriptTask.SwarmingLogs.String}}">
+            <template is="dom-if" if="{{luaScriptTask.SwarmingLogs}}">
               <br/>
-              <a href="{{luaScriptTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+              <a href="{{luaScriptTask.SwarmingLogs}}" target="_blank">Swarming Logs</a>
             </template>
           </td>
 
@@ -297,6 +297,7 @@
          for (var i = 0; i < this.luaScriptTasks.length; i++) {
            this.luaScriptTasks[i].canDelete = json.permissions[i].DeleteAllowed;
            this.luaScriptTasks[i].canRedo = json.permissions[i].RedoAllowed;
+           this.luaScriptTasks[i].Id = json.ids[i];
          }
        }.bind(this)).catch(sk.errorMessage);
      },
@@ -340,7 +341,7 @@
 
      deleteTask: function(deleteIndex) {
        var params = {};
-       params["id"] = this.luaScriptTasks[deleteIndex].Id;;
+       params["id"] = this.luaScriptTasks[deleteIndex].Id;
        sk.post("/_/delete_lua_script_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Deleted task " + params["id"];
          $$$("#confirm_toast").show();
