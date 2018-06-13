@@ -419,6 +419,201 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3caa00a_719b8e31",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "IMO we should put some limit on the max size of patches, e.g. 16MiB.",
+      "range": {
+        "startLine": 1169,
+        "startChar": 24,
+        "endLine": 1169,
+        "endChar": 36
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7854500_67bc7ef1",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1170,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "nit: I would use SHA-1 (same as git), unless you have a reason to use FNV.",
+      "range": {
+        "startLine": 1170,
+        "startChar": 6,
+        "endLine": 1170,
+        "endChar": 18
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e83199d_65f8d3fe",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1177,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "ignoring err",
+      "range": {
+        "startLine": 1177,
+        "startChar": 5,
+        "endLine": 1177,
+        "endChar": 8
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5f25bf7_adccba0d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "nit: hex makes more sense -- hex.EncodeToString",
+      "range": {
+        "startLine": 1178,
+        "startChar": 35,
+        "endLine": 1178,
+        "endChar": 63
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de663e6e_0ec444f4",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "nit: I would do something like this:\npatchFileName :\u003d fmt.Sprintf(\"%s.patch\", hex.EncodeToString(patchHash))\ngsPath :\u003d path.Join(\"patches\", patchFileName)\nres, err :\u003d gs.service.Objects.Get(bucket, filePath).Do()\nif err !\u003d nil {\n  if gapierr, ok :\u003d error.(*googleapi.Error); !ok || gapierr.Code !\u003d http.StatusNotFound {\n    return \"\", fmt.Errorf(\"Could not retrieve object metadata for %s: %s\", filePath, err)\n  }\n}\nif res \u003d\u003d nil || res.Size !\u003d len(patch) {\n  // Patch does not exist in Google Storage yet so upload it.\n  ...\n}\nreturn gsPath, nil",
+      "range": {
+        "startLine": 1178,
+        "startChar": 0,
+        "endLine": 1194,
+        "endChar": 2
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c53c5c6_b2a2bef7",
+        "filename": "ct/maintenance.md",
+        "patchSetId": 37
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "console.cloud.google.com",
+      "range": {
+        "startLine": 133,
+        "startChar": 15,
+        "endLine": 133,
+        "endChar": 39
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aae15661_8fc26fea",
+        "filename": "ct/maintenance.md",
+        "patchSetId": 37
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 135,
+        "startChar": 15,
+        "endLine": 135,
+        "endChar": 39
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3c72033_7607d951",
+        "filename": "ct/res/imp/capture-skp-runs-sk.html",
+        "patchSetId": 37
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "unintentional change?",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45cac50a_2b98b694",
+        "filename": "ds/index.yaml",
+        "patchSetId": 37
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 1,
+      "message": "Is there any way to audit that these indexes are used?",
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

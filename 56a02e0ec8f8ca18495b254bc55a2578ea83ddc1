@@ -105,6 +105,23 @@
       "revId": "56a02e0ec8f8ca18495b254bc55a2578ea83ddc1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "759f7fd2_9759e52f",
+        "filename": "ct/maintenance.md",
+        "patchSetId": 37
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T15:06:29Z",
+      "side": 0,
+      "message": "nit: add --namespace flag required for running locally",
+      "revId": "56a02e0ec8f8ca18495b254bc55a2578ea83ddc1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
