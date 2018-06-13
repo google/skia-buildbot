@@ -719,6 +719,30 @@
     },
     {
       "key": {
+        "uuid": "6bdf3a54_53f230f3",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "Ah, ok, sorry, I misread/misunderstood the documentation. LGTM",
+      "parentUuid": "997f23a3_f970bd17",
+      "range": {
+        "startLine": 260,
+        "startChar": 0,
+        "endLine": 295,
+        "endChar": 0
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13fa1852_371eb798",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 37
@@ -824,6 +848,30 @@
       "side": 1,
       "message": "You still need Find for the getAllPatchesFromStorage. Eg for chromium_perf-\n\nfunc (task DatastoreTask) Get(c context.Context, key *datastore.Key) (interface{}, error) {\n\tt :\u003d \u0026DatastoreTask{}\n\tif err :\u003d ds.DS.Get(c, key, t); err !\u003d nil {\n\t\treturn nil, err\n\t}\n\tif err :\u003d getAllPatchesFromStorage(t); err !\u003d nil {\n\t\treturn nil, fmt.Errorf(\"Could not get all patches from storage: %s\", err)\n\t}\n\treturn t, nil\n}\n\nAlso makes it convenient to use for different callers.",
       "parentUuid": "5fb78f51_7ca8b45a",
+      "range": {
+        "startLine": 551,
+        "startChar": 0,
+        "endLine": 551,
+        "endChar": 51
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7537c597_ab8a820a",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "Right, sorry for the confusion.",
+      "parentUuid": "ea0564c3_7ccc944f",
       "range": {
         "startLine": 551,
         "startChar": 0,
@@ -1068,6 +1116,30 @@
       "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d64a77d_d88da26f",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "Huh, that\u0027s very strange. It would be nice to move to the newer GCS golang client.",
+      "parentUuid": "60eeb861_9727cf6f",
+      "range": {
+        "startLine": 1178,
+        "startChar": 0,
+        "endLine": 1194,
+        "endChar": 2
+      },
+      "revId": "eed2e79e4598ad82d5fe79ec1fbbd05ed07ef501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a842b261_74972486",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "nit: You should be able to just copy from task to taskVars, assuming we are correctly loading the patches anytime we load the tasks.",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 0
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c9cff3e_5cd6d82d",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "nit: probably should do \u0027datastoreTask.DatastoreKey \u003d key\u0027 just to be safe",
+      "range": {
+        "startLine": 160,
+        "startChar": 1,
+        "endLine": 160,
+        "endChar": 4
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7efeeff8_8ca350a7",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "I think you should only continue for datastore.ErrNoSuchEntity, otherwise you risk overwriting the existing entity when other errors occur.",
+      "range": {
+        "startLine": 273,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 3
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "066c825b_e1e978f8",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "Is this just for convenience or do datastore Keys not serialize to JSON?",
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "809604d5_30370445",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1192,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "nit: Could reduce this to three lines:\nif len(patch) \u003e PATCH_LIMIT {\n  return \"\", fmt.Errorf(\"Patch is too long; limit %d bytes\", PATCH_LIMIT)\n}",
+      "range": {
+        "startLine": 1171,
+        "startChar": 0,
+        "endLine": 1192,
+        "endChar": 2
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d843155_3888f857",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "The doc and API are extremely confusing, but based on my reading, this is going to return the bytes of patch plus 40 arbitrary bytes. I think this is what you want instead:\npatchHash :\u003d sha1.Sum([]byte(patch))[:]\n\nhttps://play.golang.org/p/aIlKxqYSChz",
+      "range": {
+        "startLine": 1193,
+        "startChar": 0,
+        "endLine": 1194,
+        "endChar": 34
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d49da167_81a5535d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1201,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "nit: since you don\u0027t need to list the dir, you can just put all the patches in the same dir, i.e. gsDir :\u003d \"patches\"",
+      "range": {
+        "startLine": 1201,
+        "startChar": 35,
+        "endLine": 1201,
+        "endChar": 47
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0296d997_01aa6459",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1203,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "uber-nit: s/filepath/path/ (there\u0027s a difference for Windows)",
+      "range": {
+        "startLine": 1203,
+        "startChar": 11,
+        "endLine": 1203,
+        "endChar": 19
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a61d144_6225fb2d",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1209,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-13T20:40:03Z",
+      "side": 1,
+      "message": "nit: log error, maybe at info or warning level.",
+      "range": {
+        "startLine": 1207,
+        "startChar": 0,
+        "endLine": 1209,
+        "endChar": 5
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
