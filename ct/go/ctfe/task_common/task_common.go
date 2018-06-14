@@ -5,7 +5,7 @@
 package task_common
 
 import (
-	"database/sql"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,18 +13,20 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
+	"sync"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/sklog"
+	"google.golang.org/api/iterator"
 
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 )
@@ -39,31 +41,35 @@ const (
 
 var (
 	httpClient = httputils.NewTimeoutClient()
+	idMutex    sync.Mutex
 )
 
 type CommonCols struct {
-	Id              int64          `db:"id"`
-	TsAdded         sql.NullInt64  `db:"ts_added"`
-	TsStarted       sql.NullInt64  `db:"ts_started"`
-	TsCompleted     sql.NullInt64  `db:"ts_completed"`
-	Username        string         `db:"username"`
-	Failure         sql.NullBool   `db:"failure"`
-	RepeatAfterDays int64          `db:"repeat_after_days"`
-	SwarmingLogs    sql.NullString `db:"swarming_logs"`
+	DatastoreKey    *datastore.Key `datastore:"__key__"`
+	TsAdded         int64
+	TsStarted       int64
+	TsCompleted     int64
+	Username        string
+	Failure         bool
+	RepeatAfterDays int64
+	SwarmingLogs    string
+	TaskDone        bool
 }
 
 type Task interface {
 	GetCommonCols() *CommonCols
 	GetTaskName() string
-	TableName() string
+	GetDatastoreKind() ds.Kind
 	// Returns a slice of the struct type.
-	Select(query string, args ...interface{}) (interface{}, error)
+	Query(it *datastore.Iterator) (interface{}, error)
+	// Returns the struct type.
+	Get(c context.Context, key *datastore.Key) (Task, error)
 	// Returns the corresponding UpdateTaskVars instance of this Task. The
 	// returned instance is not populated.
 	GetUpdateTaskVars() UpdateTaskVars
 	// Returns the corresponding AddTaskVars instance of this Task. The returned
 	// instance is populated.
-	GetPopulatedAddTaskVars() AddTaskVars
+	GetPopulatedAddTaskVars() (AddTaskVars, error)
 	// Returns the results link for this task if it completed successfully and if
 	// the task supports results links.
 	GetResultsLink() string
@@ -73,13 +79,16 @@ func (dbrow *CommonCols) GetCommonCols() *CommonCols {
 	return dbrow
 }
 
-// Takes the result of Task.Select and returns a slice of Tasks containing the same objects.
+// Takes the result of Task.Query and returns a slice of Tasks containing the same objects.
 func AsTaskSlice(selectResult interface{}) []Task {
+	if selectResult == nil {
+		return []Task{}
+	}
 	sliceValue := reflect.ValueOf(selectResult)
 	sliceLen := sliceValue.Len()
 	result := make([]Task, sliceLen)
 	for i := 0; i < sliceLen; i++ {
-		result[i] = sliceValue.Index(i).Addr().Interface().(Task)
+		result[i] = sliceValue.Index(i).Interface().(Task)
 	}
 	return result
 }
@@ -94,7 +103,8 @@ type AddTaskCommonVars struct {
 type AddTaskVars interface {
 	GetAddTaskCommonVars() *AddTaskCommonVars
 	IsAdminTask() bool
-	GetInsertQueryAndBinds() (string, []interface{}, error)
+	GetDatastoreKind() ds.Kind
+	GetPopulatedDatastoreTask(ctx context.Context) (Task, error)
 }
 
 func (vars *AddTaskCommonVars) GetAddTaskCommonVars() *AddTaskCommonVars {
@@ -128,23 +138,46 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 		return
 	}
 
-	if _, err := AddTask(task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task: %s", task, err))
+	if _, err := AddTask(r.Context(), task); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
 		return
 	}
 }
 
 // Returns the ID of the inserted task if the operation was successful.
-func AddTask(task AddTaskVars) (int64, error) {
-	query, binds, err := task.GetInsertQueryAndBinds()
+func AddTask(ctx context.Context, task AddTaskVars) (int64, error) {
+	datastoreTask, err := task.GetPopulatedDatastoreTask(ctx)
 	if err != nil {
-		return -1, fmt.Errorf("Failed to marshal %T task: %v", task, err)
+		return -1, fmt.Errorf("Could not get populated datastore task: %s", err)
 	}
-	result, err := db.DB.Exec(query, binds...)
+
+	// Create the key.
+	id, err := GetNextId(ctx, task.GetDatastoreKind(), datastoreTask)
 	if err != nil {
-		return -1, fmt.Errorf("Failed to insert %T task: %v", task, err)
+		return -1, fmt.Errorf("Could not get highest id for %s: %s", task.GetDatastoreKind(), err)
 	}
-	return result.LastInsertId()
+	key := ds.NewKey(task.GetDatastoreKind())
+	key.ID = id
+	datastoreTask.GetCommonCols().DatastoreKey = key
+
+	// Add the common columns to the task.
+	tsAdded, err := strconv.ParseInt(task.GetAddTaskCommonVars().TsAdded, 10, 64)
+	if err != nil {
+		return -1, fmt.Errorf("%s is not int64: %s", task.GetAddTaskCommonVars().TsAdded, err)
+	}
+	datastoreTask.GetCommonCols().TsAdded = tsAdded
+	datastoreTask.GetCommonCols().Username = task.GetAddTaskCommonVars().Username
+	repeatAfterDays, err := strconv.ParseInt(task.GetAddTaskCommonVars().RepeatAfterDays, 10, 64)
+	if err != nil {
+		return -1, fmt.Errorf("%s is not int64: %s", task.GetAddTaskCommonVars().RepeatAfterDays, err)
+	}
+	datastoreTask.GetCommonCols().RepeatAfterDays = repeatAfterDays
+
+	ret, err := ds.DS.Put(ctx, key, datastoreTask)
+	if err != nil {
+		return -1, fmt.Errorf("Error putting task in datastore: %s", err)
+	}
+	return ret.ID, nil
 }
 
 // Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
@@ -177,41 +210,36 @@ type QueryParams struct {
 	Size int
 }
 
-func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
-	args := []interface{}{}
-	query := "SELECT "
+func DatastoreTaskQuery(ctx context.Context, prototype Task, params QueryParams) *datastore.Iterator {
+	q := ds.NewQuery(prototype.GetDatastoreKind())
 	if params.CountQuery {
-		query += "COUNT(*)"
-	} else {
-		query += "*"
+		q = q.KeysOnly()
 	}
-	query += fmt.Sprintf(" FROM %s", prototype.TableName())
-	clauses := []string{}
 	if params.Username != "" {
-		clauses = append(clauses, "username=?")
-		args = append(args, params.Username)
+		q = q.Filter("Username =", params.Username)
 	}
 	if params.SuccessfulOnly {
-		clauses = append(clauses, "(ts_completed IS NOT NULL AND failure = 0)")
+		q = q.Filter("TaskDone =", true)
+		q = q.Filter("Failure =", false)
 	}
 	if params.PendingOnly {
-		clauses = append(clauses, "ts_completed IS NULL")
+		q = q.Filter("TaskDone =", false)
 	}
 	if params.FutureRunsOnly {
-		clauses = append(clauses, "(repeat_after_days != 0 AND ts_completed IS NOT NULL)")
+		q = q.Filter("RepeatAfterDays >", 0)
+		q = q.Order("RepeatAfterDays")
+		q = q.Filter("TaskDone =", true)
 	}
 	if params.ExcludeDummyPageSets {
-		clauses = append(clauses, fmt.Sprintf("page_sets != '%s'", ctutil.PAGESET_TYPE_DUMMY_1k))
-	}
-	if len(clauses) > 0 {
-		query += " WHERE "
-		query += strings.Join(clauses, " AND ")
+		q = q.Filter("IsTestPageSet =", false)
 	}
 	if !params.CountQuery {
-		query += " ORDER BY id DESC LIMIT ?,?"
-		args = append(args, params.Offset, params.Size)
+		q = q.Order("-__key__")
+		q = q.Limit(params.Size)
+		q = q.Offset(params.Offset)
 	}
-	return query, args
+
+	return ds.DS.Run(ctx, q)
 }
 
 func HasPageSetsColumn(prototype Task) bool {
@@ -222,11 +250,36 @@ func HasPageSetsColumn(prototype Task) bool {
 	t := v.Type()
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
-		if strings.Contains(string(f.Tag), `db:"page_sets"`) {
+		if f.Name == "PageSets" {
 			return true
 		}
 	}
 	return false
+}
+
+type ClusterTelemetryIDs struct {
+	HighestID int64
+}
+
+func GetNextId(ctx context.Context, kind ds.Kind, task Task) (int64, error) {
+	idMutex.Lock()
+	defer idMutex.Unlock()
+
+	// Hit the datastore to get the current highest ID.
+	key := ds.NewKey(ds.CLUSTER_TELEMETRY_IDS)
+	key.Name = string(kind)
+	var nextId int64 = -1
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+		ids := ClusterTelemetryIDs{}
+		if err := ds.DS.Get(ctx, key, &ids); err != nil && err != datastore.ErrNoSuchEntity {
+			return err
+		}
+		nextId = ids.HighestID + 1
+		ids.HighestID = nextId
+		_, err := ds.DS.Put(ctx, key, &ids)
+		return err
+	})
+	return nextId, err
 }
 
 func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
@@ -256,44 +309,51 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	params.CountQuery = false
-	query, args := DBTaskQuery(prototype, params)
-	sklog.Infof("Running %s", query)
-	data, err := prototype.Select(query, args...)
+	it := DatastoreTaskQuery(r.Context(), prototype, params)
+	data, err := prototype.Query(it)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
 		return
 	}
 
 	params.CountQuery = true
-	query, args = DBTaskQuery(prototype, params)
-	// Get the total count.
-	sklog.Infof("Running %s", query)
-	countVal := []int{}
-	if err := db.DB.Select(&countVal, query, args...); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
-		return
+	it = DatastoreTaskQuery(r.Context(), prototype, params)
+	count := 0
+	for {
+		var i int
+		_, err := it.Next(i)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
+			return
+		}
+		count++
 	}
 
 	pagination := &httputils.ResponsePagination{
 		Offset: offset,
 		Size:   size,
-		Total:  countVal[0],
+		Total:  count,
 	}
 	type Permissions struct {
 		DeleteAllowed bool
 		RedoAllowed   bool
 	}
 	tasks := AsTaskSlice(data)
+	ids := make([]int64, len(tasks))
 	permissions := make([]Permissions, len(tasks))
 	for i := 0; i < len(tasks); i++ {
 		deleteAllowed, _ := canDeleteTask(tasks[i], r)
 		redoAllowed, _ := canRedoTask(tasks[i], r)
 		permissions[i] = Permissions{DeleteAllowed: deleteAllowed, RedoAllowed: redoAllowed}
+		ids[i] = tasks[i].GetCommonCols().DatastoreKey.ID
 	}
 	jsonResponse := map[string]interface{}{
 		"data":        data,
 		"permissions": permissions,
 		"pagination":  pagination,
+		"ids":         ids,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		httputils.ReportError(w, r, err, "Failed to encode JSON")
@@ -303,27 +363,26 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 
 // Data included in all update requests.
 type UpdateTaskCommonVars struct {
-	Id              int64
-	TsStarted       sql.NullString
-	TsCompleted     sql.NullString
-	Failure         sql.NullBool
-	RepeatAfterDays sql.NullInt64
-	SwarmingLogs    sql.NullString
+	Id                   int64
+	TsStarted            string
+	TsCompleted          string
+	Failure              bool
+	TaskDone             bool
+	RepeatAfterDays      int64
+	ClearRepeatAfterDays bool
+	SwarmingLogs         string
 }
 
 func (vars *UpdateTaskCommonVars) SetStarted(runID string) {
-	vars.TsStarted = sql.NullString{String: ctutil.GetCurrentTs(), Valid: true}
+	vars.TsStarted = ctutil.GetCurrentTs()
 	swarmingLogsLink := fmt.Sprintf(ctutil.SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
-	vars.SwarmingLogs = sql.NullString{String: swarmingLogsLink, Valid: true}
+	vars.SwarmingLogs = swarmingLogsLink
 }
 
 func (vars *UpdateTaskCommonVars) SetCompleted(success bool) {
-	vars.TsCompleted = sql.NullString{String: ctutil.GetCurrentTs(), Valid: true}
-	vars.Failure = sql.NullBool{Bool: !success, Valid: true}
-}
-
-func (vars *UpdateTaskCommonVars) ClearRepeatAfterDays() {
-	vars.RepeatAfterDays = sql.NullInt64{Int64: 0, Valid: true}
+	vars.TsCompleted = ctutil.GetCurrentTs()
+	vars.Failure = !success
+	vars.TaskDone = true
 }
 
 func (vars *UpdateTaskCommonVars) GetUpdateTaskCommonVars() *UpdateTaskCommonVars {
@@ -333,53 +392,51 @@ func (vars *UpdateTaskCommonVars) GetUpdateTaskCommonVars() *UpdateTaskCommonVar
 type UpdateTaskVars interface {
 	GetUpdateTaskCommonVars() *UpdateTaskCommonVars
 	UriPath() string
-	// Produces SQL query clauses and binds for fields not in UpdateTaskCommonVars. First return
-	// value is a slice of strings like "results = ?". Second return value contains a value for
-	// each "?" bind.
-	GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error)
+	// Adds CT task specific updates for fields not in UpdateTaskCommonVars.
+	UpdateExtraFields(Task) error
 }
 
-func getUpdateQueryAndBinds(vars UpdateTaskVars, tableName string) (string, []interface{}, error) {
+func updateDatastoreTask(vars UpdateTaskVars, task Task) error {
 	common := vars.GetUpdateTaskCommonVars()
-	query := fmt.Sprintf("UPDATE %s SET ", tableName)
-	clauses := []string{}
-	args := []interface{}{}
-	if common.TsStarted.Valid {
-		clauses = append(clauses, "ts_started = ?")
-		args = append(args, common.TsStarted.String)
+
+	if common.TsStarted != "" {
+		tsStarted, err := strconv.ParseInt(common.TsStarted, 10, 64)
+		if err != nil {
+			return fmt.Errorf("Invalid TsStarted %s: %s", common.TsStarted, err)
+		}
+		task.GetCommonCols().TsStarted = tsStarted
 	}
-	if common.TsCompleted.Valid {
-		clauses = append(clauses, "ts_completed = ?")
-		args = append(args, common.TsCompleted.String)
+	if common.TsCompleted != "" {
+		tsCompleted, err := strconv.ParseInt(common.TsCompleted, 10, 64)
+		if err != nil {
+			return fmt.Errorf("Invalid TsCompleted %s: %s", common.TsCompleted, err)
+		}
+		task.GetCommonCols().TsCompleted = tsCompleted
 	}
-	if common.Failure.Valid {
-		clauses = append(clauses, "failure = ?")
-		args = append(args, common.Failure.Bool)
+	if common.Failure {
+		task.GetCommonCols().Failure = common.Failure
 	}
-	if common.RepeatAfterDays.Valid {
-		clauses = append(clauses, "repeat_after_days = ?")
-		args = append(args, common.RepeatAfterDays)
+	if common.TaskDone {
+		if task.GetCommonCols().TsCompleted == 0 {
+			return fmt.Errorf("TsCompleted must be set before TaskDone can be set to true")
+		}
+		task.GetCommonCols().TaskDone = common.TaskDone
 	}
-	if common.SwarmingLogs.Valid {
-		clauses = append(clauses, "swarming_logs = ?")
-		args = append(args, common.SwarmingLogs.String)
+	if common.ClearRepeatAfterDays {
+		task.GetCommonCols().RepeatAfterDays = 0
+	} else if common.RepeatAfterDays != 0 {
+		task.GetCommonCols().RepeatAfterDays = common.RepeatAfterDays
 	}
-	additionalClauses, additionalArgs, err := vars.GetUpdateExtraClausesAndBinds()
-	if err != nil {
-		return "", nil, err
+	if common.SwarmingLogs != "" {
+		task.GetCommonCols().SwarmingLogs = common.SwarmingLogs
 	}
-	clauses = append(clauses, additionalClauses...)
-	args = append(args, additionalArgs...)
-	if len(clauses) == 0 {
-		return "", nil, fmt.Errorf("Invalid parameters")
+	if err := vars.UpdateExtraFields(task); err != nil {
+		return err
 	}
-	query += strings.Join(clauses, ", ")
-	query += " WHERE id = ?"
-	args = append(args, common.Id)
-	return query, args, nil
+	return nil
 }
 
-func UpdateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWriter, r *http.Request) {
+func UpdateTaskHandler(vars UpdateTaskVars, prototype Task, w http.ResponseWriter, r *http.Request) {
 	data, err := webhook.AuthenticateRequest(r)
 	if err != nil {
 		if data == nil {
@@ -398,23 +455,27 @@ func UpdateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWri
 	}
 	defer skutil.Close(r.Body)
 
-	if err := UpdateTask(vars, tableName); err != nil {
+	key := ds.NewKey(prototype.GetDatastoreKind())
+	key.ID = vars.GetUpdateTaskCommonVars().Id
+	task, err := prototype.Get(r.Context(), key)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to find %T task", vars))
+		return
+	}
+
+	if err := UpdateTask(r.Context(), vars, task); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to update %T task", vars))
 		return
 	}
 }
 
-func UpdateTask(vars UpdateTaskVars, tableName string) error {
-	query, binds, err := getUpdateQueryAndBinds(vars, tableName)
-	if err != nil {
+func UpdateTask(ctx context.Context, vars UpdateTaskVars, task Task) error {
+	if err := updateDatastoreTask(vars, task); err != nil {
 		return fmt.Errorf("Failed to marshal %T update: %v", vars, err)
 	}
-	result, err := db.DB.Exec(query, binds...)
-	if err != nil {
-		return fmt.Errorf("Failed to update using %T: %v", vars, err)
-	}
-	if rowsUpdated, _ := result.RowsAffected(); rowsUpdated != 1 {
-		return fmt.Errorf("No rows updated. Likely invalid parameters.")
+
+	if _, err := ds.DS.Put(ctx, task.GetCommonCols().DatastoreKey, task); err != nil {
+		return fmt.Errorf("Failed to update task %d in the datastore: %s", task.GetCommonCols().DatastoreKey.ID, err)
 	}
 	return nil
 }
@@ -429,7 +490,7 @@ func canDeleteTask(task Task, r *http.Request) (bool, error) {
 			return false, fmt.Errorf("Task is owned by %s but you are logged in as %s", taskUser, username)
 		}
 	}
-	if task.GetCommonCols().TsStarted.Valid && !task.GetCommonCols().TsCompleted.Valid {
+	if task.GetCommonCols().TsStarted != 0 && task.GetCommonCols().TsCompleted == 0 {
 		return false, fmt.Errorf("Cannot delete currently running tasks.")
 	}
 	return true, nil
@@ -438,7 +499,7 @@ func canDeleteTask(task Task, r *http.Request) (bool, error) {
 // Returns true if the given task can be re-added by the logged-in user; otherwise false and an
 // error describing the problem.
 func canRedoTask(task Task, r *http.Request) (bool, error) {
-	if !task.GetCommonCols().TsCompleted.Valid {
+	if !task.GetCommonCols().TaskDone {
 		return false, fmt.Errorf("Cannot redo pending tasks.")
 	}
 	return true, nil
@@ -456,43 +517,14 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer skutil.Close(r.Body)
-	requireUsernameMatch := !ctfeutil.UserHasAdminRights(r)
-	username := login.LoggedInAs(r)
-	// Put all conditions in delete request; only if the delete fails, do a select to determine the cause.
-	deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE id = ? AND (ts_started IS NULL OR ts_completed IS NOT NULL)", prototype.TableName())
-	binds := []interface{}{vars.Id}
-	if requireUsernameMatch {
-		deleteQuery += " AND username = ?"
-		binds = append(binds, username)
-	}
-	result, err := db.DB.Exec(deleteQuery, binds...)
-	if err != nil {
+
+	key := ds.NewKey(prototype.GetDatastoreKind())
+	key.ID = vars.Id
+	if err := ds.DS.Delete(r.Context(), key); err != nil {
 		httputils.ReportError(w, r, err, "Failed to delete")
 		return
 	}
-	// Check result to ensure that the row was deleted.
-	if rowsDeleted, _ := result.RowsAffected(); rowsDeleted == 1 {
-		sklog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), vars.Id, username)
-		return
-	}
-	// The code below determines the reason that no rows were deleted.
-	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", prototype.TableName())
-	data, err := prototype.Select(rowQuery, vars.Id)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to validate request.")
-		return
-	}
-	tasks := AsTaskSlice(data)
-	if len(tasks) != 1 {
-		// Row already deleted; return success.
-		return
-	}
-	if ok, err := canDeleteTask(tasks[0], r); !ok {
-		httputils.ReportError(w, r, err, "Do not have permission to delete task")
-	} else {
-		httputils.ReportError(w, r, nil, "Failed to delete; reason unknown")
-		return
-	}
+	sklog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), vars.Id, login.LoggedInAs(r))
 }
 
 func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
@@ -508,26 +540,24 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 	defer skutil.Close(r.Body)
 
-	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ? AND ts_completed IS NOT NULL", prototype.TableName())
-	binds := []interface{}{vars.Id}
-	data, err := prototype.Select(rowQuery, binds...)
+	key := ds.NewKey(prototype.GetDatastoreKind())
+	key.ID = vars.Id
+	task, err := prototype.Get(r.Context(), key)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Unable to find requested task.")
-		return
-	}
-	tasks := AsTaskSlice(data)
-	if len(tasks) != 1 {
-		httputils.ReportError(w, r, err, "Unable to find requested task.")
+		httputils.ReportError(w, r, err, "Failed to find requested task")
 		return
 	}
 
-	addTaskVars := tasks[0].GetPopulatedAddTaskVars()
+	addTaskVars, err := task.GetPopulatedAddTaskVars()
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not GetPopulatedAddTaskVars")
+	}
 	// Replace the username with the new requester.
 	addTaskVars.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
 	// Do not preserve repeat_after_days for retried tasks. Carrying over
 	// repeat_after_days causes the same task to be unknowingly repeated.
 	addTaskVars.GetAddTaskCommonVars().RepeatAfterDays = "0"
-	if _, err := AddTask(addTaskVars); err != nil {
+	if _, err := AddTask(r.Context(), addTaskVars); err != nil {
 		httputils.ReportError(w, r, err, "Could not redo the task.")
 		return
 	}

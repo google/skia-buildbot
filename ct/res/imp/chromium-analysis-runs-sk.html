@@ -147,10 +147,10 @@
         <tr style="border: 1px solid black;">
           <!-- Id col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{chromiumAnalysisTask.RawOutput.String}}">
-              <a href="{{chromiumAnalysisTask.RawOutput.String}}" target="_blank">{{chromiumAnalysisTask.Id}}</a>
+            <template is="dom-if" if="{{chromiumAnalysisTask.RawOutput}}">
+              <a href="{{chromiumAnalysisTask.RawOutput}}" target="_blank">{{chromiumAnalysisTask.Id}}</a>
             </template>
-            <template is="dom-if" if="{{!chromiumAnalysisTask.RawOutput.String}}">
+            <template is="dom-if" if="{{!chromiumAnalysisTask.RawOutput}}">
               <span>{{chromiumAnalysisTask.Id}}</span>
             </template>
             <paper-icon-button icon="delete" mini
@@ -177,15 +177,15 @@
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumAnalysisTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumAnalysisTask.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumAnalysisTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumAnalysisTask.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumAnalysisTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumAnalysisTask.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
@@ -227,18 +227,18 @@
 
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{chromiumAnalysisTask.Failure.Bool}}">
+            <template is="dom-if" if="{{chromiumAnalysisTask.Failure}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!chromiumAnalysisTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!chromiumAnalysisTask.TaskDone}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{chromiumAnalysisTask.RawOutput.String}}">
-              <a href="{{chromiumAnalysisTask.RawOutput.String}}" target="_blank">Output</a>
+            <template is="dom-if" if="{{chromiumAnalysisTask.RawOutput}}">
+              <a href="{{chromiumAnalysisTask.RawOutput}}" target="_blank">Output</a>
             </template>
-            <template is="dom-if" if="{{chromiumAnalysisTask.SwarmingLogs.String}}">
+            <template is="dom-if" if="{{chromiumAnalysisTask.SwarmingLogs}}">
               <br/>
-              <a href="{{chromiumAnalysisTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+              <a href="{{chromiumAnalysisTask.SwarmingLogs}}" target="_blank">Swarming Logs</a>
             </template>
           </td>
 
@@ -401,6 +401,7 @@
          for (var i = 0; i < that.chromiumAnalysisTasks.length; i++) {
            that.chromiumAnalysisTasks[i].canDelete = json.permissions[i].DeleteAllowed;
            that.chromiumAnalysisTasks[i].canRedo = json.permissions[i].RedoAllowed;
+           that.chromiumAnalysisTasks[i].Id = json.ids[i];
          }
        }).catch(sk.errorMessage);
      },
@@ -472,7 +473,7 @@
 
      deleteTask: function(deleteIndex) {
        var params = {};
-       params["id"] = this.chromiumAnalysisTasks[deleteIndex].Id;;
+       params["id"] = this.chromiumAnalysisTasks[deleteIndex].Id;
        sk.post("/_/delete_chromium_analysis_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Deleted task " + params["id"];
          $$$("#confirm_toast").show();
