@@ -2,6 +2,17 @@
   "childName": "Chromite",
   "gerritURL": "https://chromium-review.googlesource.com",
   "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "filter": "warning",
+      "email": {
+        "emails": [
+          "achuith@google.com",
+          "bpastene@google.com"
+        ]
+      }
+    }
+  ],
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "sheriff": ["chrome-os-gardeners@google.com"],
