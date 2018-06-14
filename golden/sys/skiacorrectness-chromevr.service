@@ -9,7 +9,7 @@ Environment=DATA_DIR=/mnt/pd0/data  \
 
 ExecStart=/usr/local/bin/skiacorrectness-chromevr  \
     --app_title="Chrome VR Gold" \
-    --baseline_gs_path=skia-chromevr-gm/hash_files/gold-chromevr-baseline.json \
+    --baseline_gs_path=skia-chromevr-gm/hash_files/gold-chromevr-baselines \
     --cache_size=20 \
     --db_host=173.194.104.24  \
     --db_name=skiacorrectness_chromevr  \
@@ -25,7 +25,7 @@ ExecStart=/usr/local/bin/skiacorrectness-chromevr  \
     --n_commits=100   \
     --port=:8001  \
     --prom_port=:20001 \
-    --public_whitelist=${RESOURCE_DIR}/skiacorrectness-chromevr-whitelist.json5 \
+    --public_whitelist=all \
     --redirect_url=https://chrome-vr-gold.skia.org/oauth2callback/  \
     --resources_dir=${RESOURCE_DIR}  \
     --resources_dir=/usr/local/share/skiacorrectness/frontend \

@@ -141,30 +141,35 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	dmResults, err := processDMResults(resultsFile)
 	if err != nil {
-		return err
+		sklog.Errorf("Error processing result: %s", err)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	// Make sure we have an issue, patchset and a buildbucket id.
 	if (dmResults.Issue <= 0) || (dmResults.Patchset <= 0) || (dmResults.BuildBucketID <= 0) {
-		return fmt.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.Issue, dmResults.Patchset, dmResults.BuildBucketID)
+		sklog.Errorf("Invalid data. issue, patchset and buildbucket id must be > 0. Got (%d, %d, %d).", dmResults.Issue, dmResults.Patchset, dmResults.BuildBucketID)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	entries, err := dmResults.getTraceDBEntries()
 	if err != nil {
-		return err
+		sklog.Errorf("Error getting tracedb entries: %s", err)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	// Save the results to the trybot store.
 	issueID := dmResults.Issue
 	tryjob, err := g.tryjobStore.GetTryjob(issueID, dmResults.BuildBucketID)
 	if err != nil {
-		return err
+		sklog.Errorf("Error retrieving tryjob: %s", err)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	// Fetch the issue and check if the trybot is contained.
 	issue, err := g.tryjobStore.GetIssue(issueID, false)
 	if err != nil {
-		return sklog.FmtErrorf("Unable to retrieve issue %d to process file %s. Got error: %s", issueID, resultsFile.Name(), err)
+		sklog.Errorf("Unable to retrieve issue %d to process file %s. Got error: %s", issueID, resultsFile.Name(), err)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	// If we haven't loaded the tryjob then see if we can fetch it from
@@ -172,7 +177,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	// be picket up by BuildBucketState as they are added.
 	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
 		if issue, tryjob, err = g.issueBuildFetcher.FetchIssueAndTryjob(issueID, dmResults.BuildBucketID); err != nil {
-			return err
+			sklog.Errorf("Error fetching the issue and tryjob informaton: %s", err)
+			return ingestion.IgnoreResultsFileErr
 		}
 	}
 
@@ -180,7 +186,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	if tryjob.MasterCommit == "" {
 		tryjob.MasterCommit = dmResults.GitHash
 	} else if tryjob.MasterCommit != dmResults.GitHash {
-		return sklog.FmtErrorf("Master commit in tryjob and ingested results do not match.")
+		sklog.Errorf("Master commit in tryjob and ingested results do not match.")
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	// Convert to a trybotstore.TryjobResult slice by aggregating parameters for each test/digest pair.
@@ -206,7 +213,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 
 	// Update the database with the results.
 	if err := g.tryjobStore.UpdateTryjobResult(tryjob, tjResults); err != nil {
-		return err
+		sklog.Errorf("Error updating tryjob results: %s", err)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	tryjob.Status = tryjobstore.TRYJOB_INGESTED
