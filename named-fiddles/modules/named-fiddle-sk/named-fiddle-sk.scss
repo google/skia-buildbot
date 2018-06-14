@@ -1,0 +1,39 @@
+@import '~common-sk/modules/colors';
+
+named-fiddle-sk {
+  display: flex;
+  align-items: center;
+  font-family: sans-serif;
+
+  * {
+    padding: 0 0.4em;
+  }
+
+  button {
+    height: initial;
+    padding: 0.3em 0.8em;
+    min-width: initial;
+    text-transform: none;
+  }
+
+  span {
+    display: inline-block;
+  }
+
+  .name {
+    width: 20em;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .name a {
+    color: $blue;
+    font-size: 110%;
+  }
+
+  .status {
+    font-weight: bold;
+    width: 3em;
+    color: $red;
+  }
+}
