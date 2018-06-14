@@ -110,15 +110,15 @@
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(adminTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(adminTask.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(adminTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(adminTask.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(adminTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(adminTask.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
@@ -143,18 +143,18 @@
 
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{adminTask.Failure.Bool}}">
+            <template is="dom-if" if="{{adminTask.Failure}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!adminTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!adminTask.TaskDone}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{isDone(adminTask.Failure.Bool, adminTask.TsCompleted.Int64)}}">
+            <template is="dom-if" if="{{isDone(adminTask.Failure, adminTask.TaskDone)}}">
               Done
             </template>
             <br/>
-            <template is="dom-if" if="{{adminTask.SwarmingLogs.String}}">
-              <a href="{{adminTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+            <template is="dom-if" if="{{adminTask.SwarmingLogs}}">
+              <a href="{{adminTask.SwarmingLogs}}" target="_blank">Swarming Logs</a>
             </template>
           </td>
 
@@ -257,6 +257,7 @@
          for (var i = 0; i < this.adminTasks.length; i++) {
            this.adminTasks[i].canDelete = json.permissions[i].DeleteAllowed;
            this.adminTasks[i].canRedo = json.permissions[i].RedoAllowed;
+           this.adminTasks[i].Id = json.ids[i];
          }
        }.bind(this)).catch(sk.errorMessage);
      },
@@ -318,8 +319,8 @@
        return this.taskType == "RecreateWebpageArchives";
      },
 
-     isDone: function(failure, tsCompleted) {
-       return !failure && tsCompleted;
+     isDone: function(failure, taskDone) {
+       return !failure && taskDone;
      },
   });
 </script>
