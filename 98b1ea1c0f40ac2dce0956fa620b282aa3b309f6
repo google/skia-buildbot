@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e657a59c_b9dac503",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-14T18:34:10Z",
+      "side": 1,
+      "message": "I think you want to use NewDefaultTokenSource and remove *serviceAccountFile",
+      "range": {
+        "startLine": 41,
+        "startChar": 21,
+        "endLine": 41,
+        "endChar": 47
+      },
+      "revId": "98b1ea1c0f40ac2dce0956fa620b282aa3b309f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
