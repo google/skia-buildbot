@@ -1,16 +1,11 @@
-package main
+package web
 
 import (
 	"encoding/json"
 	"net/http"
 
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/indexer"
-	"go.skia.org/infra/golden/go/search"
-	"go.skia.org/infra/golden/go/status"
-	"go.skia.org/infra/golden/go/storage"
 )
 
 // TODO(stephana): Simplify
@@ -27,15 +22,6 @@ type ResponseEnvelope struct {
 	Pagination *httputils.ResponsePagination `json:"pagination"`
 }
 
-var (
-	// Module level variables that need to be accessible to handler.go.
-	storages      *storage.Storage
-	statusWatcher *status.StatusWatcher
-	ixr           *indexer.Indexer
-	issueTracker  issues.IssueTracker
-	searchAPI     *search.SearchAPI
-)
-
 // setJSONHeaders sets secure headers for JSON responses.
 func setJSONHeaders(w http.ResponseWriter) {
 	h := w.Header()
@@ -44,7 +30,7 @@ func setJSONHeaders(w http.ResponseWriter) {
 	h.Set("X-Content-Type-Options", "nosniff")
 }
 
-// sendResponse wraps the data of a succesful response in a response envelope
+// sendResponse wraps the data of a successful response in a response envelope
 // and sends it to the client.
 func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *httputils.ResponsePagination) {
 	resp := ResponseEnvelope{&data, nil, status, pagination}
