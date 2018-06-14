@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e1eb3bc2_8080580f",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "Ah that\u0027s right. Done.",
+      "parentUuid": "a842b261_74972486",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 0
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c9cff3e_5cd6d82d",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 39
@@ -45,6 +69,30 @@
       "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2218546d_3b55754b",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c9cff3e_5cd6d82d",
+      "range": {
+        "startLine": 160,
+        "startChar": 1,
+        "endLine": 160,
+        "endChar": 4
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "69e224cb_32dc1535",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7efeeff8_8ca350a7",
+      "range": {
+        "startLine": 273,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 3
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "066c825b_e1e978f8",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 39
@@ -85,6 +157,24 @@
       "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b516ffde_7f4479b9",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "They do not serialize to JSON. It shows up as a toString representation.",
+      "parentUuid": "066c825b_e1e978f8",
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "ea951910_a930db2f",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1192,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "SGTM. No point having the rest if it\u0027s not really used.",
+      "parentUuid": "809604d5_30370445",
+      "range": {
+        "startLine": 1171,
+        "startChar": 0,
+        "endLine": 1192,
+        "endChar": 2
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d843155_3888f857",
         "filename": "ct/go/util/util.go",
         "patchSetId": 39
@@ -131,6 +245,30 @@
       "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b244212_0638cf16",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1194,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "Thanks for looking into it! Done*\n\n* Cannot do \"[:]\" because of \"(slice of unaddressable value)\".\nI think you meant\n        patchHash :\u003d sha1.Sum([]byte(patch))\n        patchHashHex :\u003d hex.EncodeToString(patchHash[:])\n(yes you did, that is what you did in the playground link)",
+      "parentUuid": "7d843155_3888f857",
+      "range": {
+        "startLine": 1193,
+        "startChar": 0,
+        "endLine": 1194,
+        "endChar": 34
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "2c60305d_87420e5a",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1201,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "True. I had it in their own subdirs because I would previously doing a count items in dir. Done.",
+      "parentUuid": "d49da167_81a5535d",
+      "range": {
+        "startLine": 1201,
+        "startChar": 35,
+        "endLine": 1201,
+        "endChar": 47
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0296d997_01aa6459",
         "filename": "ct/go/util/util.go",
         "patchSetId": 39
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "d6787b33_97b8d9d4",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1203,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "I thought we had to use filepath for GS paths because they are all always gs://xyz/abc/ (even for windows).",
+      "parentUuid": "0296d997_01aa6459",
+      "range": {
+        "startLine": 1203,
+        "startChar": 11,
+        "endLine": 1203,
+        "endChar": 19
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a61d144_6225fb2d",
         "filename": "ct/go/util/util.go",
         "patchSetId": 39
@@ -200,6 +386,30 @@
       "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6794ef5a_ce29f90f",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1209,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-14T13:33:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a61d144_6225fb2d",
+      "range": {
+        "startLine": 1207,
+        "startChar": 0,
+        "endLine": 1209,
+        "endChar": 5
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
