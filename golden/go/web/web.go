@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"encoding/json"
@@ -11,9 +11,12 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/status"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/httputils"
@@ -32,6 +35,15 @@ import (
 	"go.skia.org/infra/golden/go/validation"
 )
 
+// Define common routes used by multiple servers
+const (
+	// BASELINE_ROUTE serves the baseline of the master branch
+	BASELINE_ROUTE = "/json/baseline"
+
+	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
+	BASELINE_ISSUE_ROUTE = "/json/baseline/{id}"
+)
+
 const (
 	// DEFAULT_PAGE_SIZE is the default page size used for pagination.
 	DEFAULT_PAGE_SIZE = 20
@@ -40,12 +52,22 @@ const (
 	MAX_PAGE_SIZE = 100
 )
 
+// WebHandlers holds the environment needed by the various http hander functions
+// that have WebHandlers as its receiver.
+type WebHandlers struct {
+	Storages      *storage.Storage
+	StatusWatcher *status.StatusWatcher
+	Indexer       *indexer.Indexer
+	IssueTracker  issues.IssueTracker
+	SearchAPI     *search.SearchAPI
+}
+
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
 // remove the redundant types ByBlameEntry and ByBlame.
 
-// jsonByBlameHandler returns a json object with the digests to be triaged grouped by blamelist.
-func jsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
-	idx := ixr.GetIndex()
+// JsonByBlameHandler returns a json object with the digests to be triaged grouped by blamelist.
+func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
+	idx := wh.Indexer.GetIndex()
 
 	// Extract the corpus from the query.
 	var query url.Values = nil
@@ -211,15 +233,15 @@ type TestRollup struct {
 	SampleDigest string `json:"sample_digest"`
 }
 
-// jsonTryjobListHandler returns the list of Gerrit issues that have triggered
+// JsonTryjobListHandler returns the list of Gerrit issues that have triggered
 // or produced tryjob results recently.
-func jsonTryjobListHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonTryjobListHandler(w http.ResponseWriter, r *http.Request) {
 	var tryjobRuns []*tryjobstore.Issue
 	var total int
 
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
-		tryjobRuns, total, err = storages.TryjobStore.ListIssues(offset, size)
+		tryjobRuns, total, err = wh.Storages.TryjobStore.ListIssues(offset, size)
 	}
 
 	if err != nil {
@@ -235,9 +257,9 @@ func jsonTryjobListHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, tryjobRuns, 200, pagination)
 }
 
-// jsonTryjobsSummaryHandler is the endpoint to get a summary of the tryjob
+// JsonTryjobsSummaryHandler is the endpoint to get a summary of the tryjob
 // results for a Gerrit issue.
-func jsonTryjobSummaryHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonTryjobSummaryHandler(w http.ResponseWriter, r *http.Request) {
 	issueID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
 		httputils.ReportError(w, r, err, "ID must be valid integer.")
@@ -249,7 +271,7 @@ func jsonTryjobSummaryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := searchAPI.Summary(issueID)
+	resp, err := wh.SearchAPI.Summary(issueID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to retrieve tryjobs summary.")
 		return
@@ -257,14 +279,14 @@ func jsonTryjobSummaryHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, resp)
 }
 
-// jsonSearchHandler is the endpoint for all searches.
-func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
+// JsonSearchHandler is the endpoint for all searches.
+func (wh *WebHandlers) JsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	query, ok := parseSearchQuery(w, r)
 	if !ok {
 		return
 	}
 
-	searchResponse, err := searchAPI.Search(r.Context(), query)
+	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -272,9 +294,9 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, searchResponse)
 }
 
-// jsonExportHandler is the endpoint to export the Gold knowledge base.
+// JsonExportHandler is the endpoint to export the Gold knowledge base.
 // It has the same interface as the search endpoint.
-func jsonExportHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonExportHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	query, ok := parseSearchQuery(w, r)
@@ -292,7 +314,7 @@ func jsonExportHandler(w http.ResponseWriter, r *http.Request) {
 	query.NoDiff = true
 
 	// Execute the search
-	searchResponse, err := searchAPI.Search(ctx, query)
+	searchResponse, err := wh.SearchAPI.Search(ctx, query)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -328,8 +350,8 @@ func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search.Query, bo
 	return &query, true
 }
 
-// jsonDetailsHandler returns the details about a single digest.
-func jsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
+// JsonDetailsHandler returns the details about a single digest.
+func (wh *WebHandlers) JsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract: test, digest.
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form values")
@@ -342,7 +364,7 @@ func jsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := searchAPI.GetDigestDetails(test, digest)
+	ret, err := wh.SearchAPI.GetDigestDetails(test, digest)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to get digest details.")
 		return
@@ -350,8 +372,8 @@ func jsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, ret)
 }
 
-// jsonDiffHandler returns difference between two digests.
-func jsonDiffHandler(w http.ResponseWriter, r *http.Request) {
+// JsonDiffHandler returns difference between two digests.
+func (wh *WebHandlers) JsonDiffHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract: test, left, right where left and right are digests.
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form values")
@@ -365,7 +387,7 @@ func jsonDiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := search.CompareDigests(test, left, right, storages, ixr.GetIndex())
+	ret, err := search.CompareDigests(test, left, right, wh.Storages, wh.Indexer.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to compare digests")
 		return
@@ -381,13 +403,13 @@ type IgnoresRequest struct {
 	Note     string `json:"note"`
 }
 
-// jsonIgnoresHandler returns the current ignore rules in JSON format.
-func jsonIgnoresHandler(w http.ResponseWriter, r *http.Request) {
+// JsonIgnoresHandler returns the current ignore rules in JSON format.
+func (wh *WebHandlers) JsonIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	ignores := []*ignore.IgnoreRule{}
 	var err error
-	ignores, err = storages.IgnoreStore.List(true)
+	ignores, err = wh.Storages.IgnoreStore.List(true)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve ignored traces.")
 		return
@@ -400,8 +422,8 @@ func jsonIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jsonIgnoresUpdateHandler updates an existing ignores rule.
-func jsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
+// JsonIgnoresUpdateHandler updates an existing ignores rule.
+func (wh *WebHandlers) JsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.")
@@ -433,18 +455,18 @@ func jsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ignoreRule.ID = id
 
-	err = storages.IgnoreStore.Update(id, ignoreRule)
+	err = wh.Storages.IgnoreStore.Update(id, ignoreRule)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to update ignore rule.")
 		return
 	}
 
 	// If update worked just list the current ignores and return them.
-	jsonIgnoresHandler(w, r)
+	wh.JsonIgnoresHandler(w, r)
 }
 
-// jsonIgnoresDeleteHandler deletes an existing ignores rule.
-func jsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
+// JsonIgnoresDeleteHandler deletes an existing ignores rule.
+func (wh *WebHandlers) JsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
@@ -456,16 +478,16 @@ func jsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = storages.IgnoreStore.Delete(id); err != nil {
+	if _, err = wh.Storages.IgnoreStore.Delete(id); err != nil {
 		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
 	} else {
 		// If delete worked just list the current ignores and return them.
-		jsonIgnoresHandler(w, r)
+		wh.JsonIgnoresHandler(w, r)
 	}
 }
 
-// jsonIgnoresAddHandler is for adding a new ignore rule.
-func jsonIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
+// JsonIgnoresAddHandler is for adding a new ignore rule.
+func (wh *WebHandlers) JsonIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
@@ -491,12 +513,12 @@ func jsonIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = storages.IgnoreStore.Create(ignoreRule); err != nil {
+	if err = wh.Storages.IgnoreStore.Create(ignoreRule); err != nil {
 		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
 
-	jsonIgnoresHandler(w, r)
+	wh.JsonIgnoresHandler(w, r)
 }
 
 // TriageRequest is the form of the JSON posted to jsonTriageHandler.
@@ -508,12 +530,12 @@ type TriageRequest struct {
 	Issue int64 `json:"issue"`
 }
 
-// jsonTriageHandler handles a request to change the triage status of one or more
+// JsonTriageHandler handles a request to change the triage status of one or more
 // digests of one test.
 //
 // It accepts a POST'd JSON serialization of TriageRequest and updates
 // the expectations.
-func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
@@ -529,7 +551,7 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 
 	var tc map[string]types.TestClassification
 
-	// Build the expecations change request from the list of digests passed in.
+	// Build the expectations change request from the list of digests passed in.
 	tc = make(map[string]types.TestClassification, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
 		labeledDigests := make(map[string]types.Label, len(digests))
@@ -545,12 +567,12 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// If it's an issue set the expectations for the given issue.
 	if req.Issue > 0 {
-		if err := storages.TryjobStore.AddChange(req.Issue, tc, user); err != nil {
+		if err := wh.Storages.TryjobStore.AddChange(req.Issue, tc, user); err != nil {
 			httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
 			return
 		}
 	} else {
-		if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
+		if err := wh.Storages.ExpectationsStore.AddChange(tc, user); err != nil {
 			httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
 			return
 		}
@@ -563,15 +585,15 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jsonStatusHandler returns the current status of with respect to HEAD.
-func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
-	sendJsonResponse(w, statusWatcher.GetStatus())
+// JsonStatusHandler returns the current status of with respect to HEAD.
+func (wh *WebHandlers) JsonStatusHandler(w http.ResponseWriter, r *http.Request) {
+	sendJsonResponse(w, wh.StatusWatcher.GetStatus())
 }
 
-// jsonClusterDiffHandler calculates the NxN diffs of all the digests that match
+// JsonClusterDiffHandler calculates the NxN diffs of all the digests that match
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
-func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Extract the test name as we only allow clustering within a test.
@@ -586,8 +608,8 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idx := ixr.GetIndex()
-	searchResponse, err := searchAPI.Search(ctx, &q)
+	idx := wh.Indexer.GetIndex()
+	searchResponse, err := wh.SearchAPI.Search(ctx, &q)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -621,7 +643,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			Status: d.Status,
 		})
 		remaining := digests[i:]
-		diffs, err := storages.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
+		diffs, err := wh.Storages.DiffStore.Get(diff.PRIORITY_NOW, d.Digest, remaining)
 		if err != nil {
 			sklog.Errorf("Failed to calculate differences: %s", err)
 			continue
@@ -686,7 +708,7 @@ type ClusterDiffResult struct {
 	ParamsetsUnion   map[string][]string            `json:"paramsetsUnion"`
 }
 
-// jsonListTestsHandler returns a JSON list with high level information about
+// JsonListTestsHandler returns a JSON list with high level information about
 // each test.
 //
 // It takes these parameters:
@@ -709,7 +731,7 @@ type ClusterDiffResult struct {
 //    ...
 //  ]
 //
-func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the query object like with the other searches.
 	query := search.Query{}
 	if err := search.ParseQuery(r, &query); err != nil {
@@ -725,7 +747,7 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idx := ixr.GetIndex()
+	idx := wh.Indexer.GetIndex()
 	corpus, hasSourceType := query.Query[types.CORPUS_FIELD]
 	sumSlice := []*summary.Summary{}
 	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
@@ -778,9 +800,9 @@ type FailureList struct {
 	DigestFailures []*diff.DigestFailure `json:"failures"`
 }
 
-// jsonListFailureHandler returns the digests that have failed to load.
-func jsonListFailureHandler(w http.ResponseWriter, r *http.Request) {
-	unavailable := storages.DiffStore.UnavailableDigests()
+// JsonListFailureHandler returns the digests that have failed to load.
+func (wh *WebHandlers) JsonListFailureHandler(w http.ResponseWriter, r *http.Request) {
+	unavailable := wh.Storages.DiffStore.UnavailableDigests()
 	ret := FailureList{
 		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
 		Count:          len(unavailable),
@@ -799,18 +821,18 @@ func jsonListFailureHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, &ret)
 }
 
-// jsonClearFailureHandler removes failing digests from the local cache and
+// JsonClearFailureHandler removes failing digests from the local cache and
 // returns the current failures.
-func jsonClearFailureHandler(w http.ResponseWriter, r *http.Request) {
-	if !purgeDigests(w, r) {
+func (wh *WebHandlers) JsonClearFailureHandler(w http.ResponseWriter, r *http.Request) {
+	if !wh.purgeDigests(w, r) {
 		return
 	}
-	jsonListFailureHandler(w, r)
+	wh.JsonListFailureHandler(w, r)
 }
 
-// jsonClearDigests clears digests from the local cache and GS.
-func jsonClearDigests(w http.ResponseWriter, r *http.Request) {
-	if !purgeDigests(w, r) {
+// JsonClearDigests clears digests from the local cache and GS.
+func (wh *WebHandlers) JsonClearDigests(w http.ResponseWriter, r *http.Request) {
+	if !wh.purgeDigests(w, r) {
 		return
 	}
 	sendJsonResponse(w, &struct{}{})
@@ -818,7 +840,7 @@ func jsonClearDigests(w http.ResponseWriter, r *http.Request) {
 
 // purgeDigests removes digests from the local cache and from GS if a query argument is set.
 // Returns true if there was no error sent to the response writer.
-func purgeDigests(w http.ResponseWriter, r *http.Request) bool {
+func (wh *WebHandlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool {
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.")
@@ -833,16 +855,16 @@ func purgeDigests(w http.ResponseWriter, r *http.Request) bool {
 	}
 	purgeGCS := r.URL.Query().Get("purge") == "true"
 
-	if err := storages.DiffStore.PurgeDigests(digests, purgeGCS); err != nil {
+	if err := wh.Storages.DiffStore.PurgeDigests(digests, purgeGCS); err != nil {
 		httputils.ReportError(w, r, err, "Unable to clear digests.")
 		return false
 	}
 	return true
 }
 
-// jsonTriageLogHandler returns the entries in the triagelog paginated
+// JsonTriageLogHandler returns the entries in the triagelog paginated
 // in reverse chronological order.
-func jsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the pagination params.
 	var logEntries []*expstorage.TriageLogEntry
 	var total int
@@ -859,9 +881,9 @@ func jsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 
 		details := q.Get("details") == "true"
 		if issue > 0 {
-			logEntries, total, err = storages.TryjobStore.QueryLog(issue, offset, size, details)
+			logEntries, total, err = wh.Storages.TryjobStore.QueryLog(issue, offset, size, details)
 		} else {
-			logEntries, total, err = storages.ExpectationsStore.QueryLog(offset, size, details)
+			logEntries, total, err = wh.Storages.ExpectationsStore.QueryLog(offset, size, details)
 		}
 	}
 
@@ -879,13 +901,13 @@ func jsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, logEntries, http.StatusOK, pagination)
 }
 
-// jsonTriageUndoHandler performs an "undo" for a given change id.
+// JsonTriageUndoHandler performs an "undo" for a given change id.
 // The change id's are returned in the result of jsonTriageLogHandler.
 // It accepts one query parameter 'id' which is the id if the change
 // that should be reversed.
 // If successful it returns the same result as a call to jsonTriageLogHandler
 // to reflect the changed triagelog.
-func jsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the user and make sure they are logged in.
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -901,37 +923,28 @@ func jsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Do the undo procedure.
-	_, err = storages.ExpectationsStore.UndoChange(changeID, user)
+	_, err = wh.Storages.ExpectationsStore.UndoChange(changeID, user)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to undo.")
 		return
 	}
 
 	// Send the same response as a query for the first page.
-	jsonTriageLogHandler(w, r)
+	wh.JsonTriageLogHandler(w, r)
 }
 
-// makeResourceHandler creates a static file handler that sets a caching policy.
-func makeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(resourceDir))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", "max-age=300")
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
-// jsonParamsHandler returns the union of all parameters.
-func jsonParamsHandler(w http.ResponseWriter, r *http.Request) {
-	tile := ixr.GetIndex().GetTile(true)
+// JsonParamsHandler returns the union of all parameters.
+func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request) {
+	tile := wh.Indexer.GetIndex().GetTile(true)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tile.ParamSet); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
-// jsonParamsHandler returns the most current commits.
-func jsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
-	tilePair, err := storages.GetLastTileTrimmed()
+// JsonParamsHandler returns the most current commits.
+func (wh *WebHandlers) JsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
+	tilePair, err := wh.Storages.GetLastTileTrimmed()
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load tile")
 		return
@@ -945,10 +958,10 @@ func jsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
 // textAllHashesHandler returns the list of all hashes we currently know about
 // regardless of triage status.
 // Endpoint used by the buildbots to avoid transferring already known images.
-func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
-	unavailableDigests := storages.DiffStore.UnavailableDigests()
+func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Request) {
+	unavailableDigests := wh.Storages.DiffStore.UnavailableDigests()
 
-	idx := ixr.GetIndex()
+	idx := wh.Indexer.GetIndex()
 	byTest := idx.TalliesByTest(true)
 	hashes := map[string]bool{}
 	for _, test := range byTest {
@@ -972,7 +985,7 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jsonCompareTestHandler returns a JSON description for the given test.
+// JsonCompareTestHandler returns a JSON description for the given test.
 // The result is intended to be displayed in a grid-like fashion.
 //
 // Input format of a POST request:
@@ -980,7 +993,7 @@ func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 // Output format in JSON:
 //
 //
-func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	// Note that testName cannot be empty by definition of the route that got us here.
 	var ctQuery search.CTQuery
 	if err := search.ParseCTQuery(r.Body, 5, &ctQuery); err != nil {
@@ -988,7 +1001,7 @@ func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	compareResult, err := search.CompareTest(&ctQuery, storages, ixr.GetIndex())
+	compareResult, err := search.CompareTest(&ctQuery, wh.Storages, wh.Indexer.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -996,7 +1009,7 @@ func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, compareResult)
 }
 
-// jsonBaselineHandler returns a JSON representation of that baseline including
+// JsonBaselineHandler returns a JSON representation of that baseline including
 // baselines for a options issue. It can respond to requests like these:
 //    /json/baseline
 //    /json/baseline/64789
@@ -1004,7 +1017,7 @@ func jsonCompareTestHandler(w http.ResponseWriter, r *http.Request) {
 // the baseline. In that case the returned options will be blend of the master
 // baseline and the baseline defined for the issue (usually based on tryjob
 // results).
-func jsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
 	issueID := int64(0)
 	var err error
 	issueIDStr, ok := mux.Vars(r)["id"]
@@ -1016,11 +1029,20 @@ func jsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	baseline, err := storages.FetchBaseline(issueID)
+	baseline, err := wh.Storages.FetchBaseline(issueID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return
 	}
 
 	sendJsonResponse(w, baseline)
+}
+
+// MakeResourceHandler creates a static file handler that sets a caching policy.
+func MakeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourceDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "max-age=300")
+		fileServer.ServeHTTP(w, r)
+	}
 }
