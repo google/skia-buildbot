@@ -194,7 +194,7 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 		}
 	}
 
-	commitMsg, err := buildCommitMsg(from, to, rm.childPath, cqExtraTrybots, rm.childRepoUrl, rm.serverURL, logStr, bugs, rm.commitsNotRolled, rm.includeLog)
+	commitMsg, err := buildCommitMsg(from, to, rm.childPath, cqExtraTrybots, rm.childRepoUrl, rm.serverURL, logStr, bugs, len(rm.nextRollCommits), rm.includeLog)
 	if err != nil {
 		return 0, err
 	}
