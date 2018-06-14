@@ -25,7 +25,7 @@
   "gold-tryjob": {
     RunEvery: "5m",
     NCommits: 10,
-    MinDays: 10,
+    MinDays: 120,
     StatusDir: "/mnt/pd0/chromevr-gold-ingestion/tryjobs/ingest_status",
     MetricName: "chromevr-gold-ingest-tryjob",
     Sources: [
@@ -40,7 +40,7 @@
       BuildBucketName: "master.tryserver.chromium.linux",
       BuildBucketPollInterval: "10m",
       BuildBucketTimeWindow: "5d",
-      BuilderRegEx: "^.+_vr",
+      BuilderRegEx: "linux_chromium_rel_ng",
     }
   }
  }
