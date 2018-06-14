@@ -12,7 +12,7 @@ import (
 
 const (
 	// Maximum number of simultaneous GetModifiedTasks users.
-	MAX_MODIFIED_DATA_USERS = 10
+	MAX_MODIFIED_DATA_USERS = 20
 
 	// Expiration for GetModifiedTasks users.
 	MODIFIED_DATA_TIMEOUT = 10 * time.Minute
