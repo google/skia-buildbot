@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/web"
+
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
@@ -307,7 +309,7 @@ func main() {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
 
-	storages = &storage.Storage{
+	storages := &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
 		MasterTileBuilder: masterTileBuilder,
@@ -342,12 +344,12 @@ func main() {
 	}
 
 	// Rebuild the index every two minutes.
-	ixr, err = indexer.New(storages, *indexInterval)
+	ixr, err := indexer.New(storages, *indexInterval)
 	if err != nil {
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
 
-	searchAPI, err = search.NewSearchAPI(storages, ixr)
+	searchAPI, err := search.NewSearchAPI(storages, ixr)
 	if err != nil {
 		sklog.Fatalf("Failed to create instance of search API: %s", err)
 	}
@@ -356,13 +358,21 @@ func main() {
 		*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
 	}
 
-	issueTracker = issues.NewMonorailIssueTracker(client)
+	issueTracker := issues.NewMonorailIssueTracker(client)
 
-	statusWatcher, err = status.New(storages)
+	statusWatcher, err := status.New(storages)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
 	mainTimer.Stop()
+
+	handlers := web.WebHandlers{
+		Storages:      storages,
+		StatusWatcher: statusWatcher,
+		Indexer:       ixr,
+		IssueTracker:  issueTracker,
+		SearchAPI:     searchAPI,
+	}
 
 	router := mux.NewRouter()
 
@@ -374,45 +384,45 @@ func main() {
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgHandler)
 
 	// New Polymer based UI endpoints.
-	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler(*resourcesDir))
+	router.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(*resourcesDir))
 	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 
 	// /_/hashes is used by the bots to find hashes it does not need to upload.
-	router.HandleFunc("/_/hashes", textAllHashesHandler).Methods("GET")
+	router.HandleFunc("/_/hashes", handlers.TextAllHashesHandler).Methods("GET")
 	router.HandleFunc("/json/version", skiaversion.JsonHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 
 	// json handlers only used by the new UI.
-	router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
-	router.HandleFunc("/json/list", jsonListTestsHandler).Methods("GET")
-	router.HandleFunc("/json/paramset", jsonParamsHandler).Methods("GET")
-	router.HandleFunc("/json/commits", jsonCommitsHandler).Methods("GET")
-	router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
-	router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
-	router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
-	router.HandleFunc("/json/clusterdiff", jsonClusterDiffHandler).Methods("GET")
-	router.HandleFunc("/json/cmp", jsonCompareTestHandler).Methods("POST")
-	router.HandleFunc("/json/triagelog", jsonTriageLogHandler).Methods("GET")
-	router.HandleFunc("/json/triagelog/undo", jsonTriageUndoHandler).Methods("POST")
-	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
-	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
-	router.HandleFunc("/json/cleardigests", jsonClearDigests).Methods("POST")
-	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
-	router.HandleFunc("/json/export", jsonExportHandler).Methods("GET")
-	router.HandleFunc("/json/tryjob", jsonTryjobListHandler).Methods("GET")
-	router.HandleFunc("/json/tryjob/{id}", jsonTryjobSummaryHandler).Methods("GET")
+	router.HandleFunc("/json/byblame", handlers.JsonByBlameHandler).Methods("GET")
+	router.HandleFunc("/json/list", handlers.JsonListTestsHandler).Methods("GET")
+	router.HandleFunc("/json/paramset", handlers.JsonParamsHandler).Methods("GET")
+	router.HandleFunc("/json/commits", handlers.JsonCommitsHandler).Methods("GET")
+	router.HandleFunc("/json/diff", handlers.JsonDiffHandler).Methods("GET")
+	router.HandleFunc("/json/details", handlers.JsonDetailsHandler).Methods("GET")
+	router.HandleFunc("/json/triage", handlers.JsonTriageHandler).Methods("POST")
+	router.HandleFunc("/json/clusterdiff", handlers.JsonClusterDiffHandler).Methods("GET")
+	router.HandleFunc("/json/cmp", handlers.JsonCompareTestHandler).Methods("POST")
+	router.HandleFunc("/json/triagelog", handlers.JsonTriageLogHandler).Methods("GET")
+	router.HandleFunc("/json/triagelog/undo", handlers.JsonTriageUndoHandler).Methods("POST")
+	router.HandleFunc("/json/failure", handlers.JsonListFailureHandler).Methods("GET")
+	router.HandleFunc("/json/failure/clear", handlers.JsonClearFailureHandler).Methods("POST")
+	router.HandleFunc("/json/cleardigests", handlers.JsonClearDigests).Methods("POST")
+	router.HandleFunc("/json/search", handlers.JsonSearchHandler).Methods("GET")
+	router.HandleFunc("/json/export", handlers.JsonExportHandler).Methods("GET")
+	router.HandleFunc("/json/tryjob", handlers.JsonTryjobListHandler).Methods("GET")
+	router.HandleFunc("/json/tryjob/{id}", handlers.JsonTryjobSummaryHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
-	router.HandleFunc("/json/baseline", jsonBaselineHandler).Methods("GET")
-	router.HandleFunc("/json/baseline/{id}", jsonBaselineHandler).Methods("GET")
+	router.HandleFunc(web.BASELINE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(web.BASELINE_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
-		router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
-		router.HandleFunc("/json/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
-		router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
-		router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
+		router.HandleFunc("/json/ignores", handlers.JsonIgnoresHandler).Methods("GET")
+		router.HandleFunc("/json/ignores/add/", handlers.JsonIgnoresAddHandler).Methods("POST")
+		router.HandleFunc("/json/ignores/del/{id}", handlers.JsonIgnoresDeleteHandler).Methods("POST")
+		router.HandleFunc("/json/ignores/save/{id}", handlers.JsonIgnoresUpdateHandler).Methods("POST")
 	}
 
 	// For everything else serve the same markup.
@@ -449,7 +459,7 @@ func main() {
 
 	// set up a router that logs for all URLs except the status endpoint.
 	appRouter := mux.NewRouter()
-	appRouter.HandleFunc("/json/trstatus", jsonStatusHandler)
+	appRouter.HandleFunc("/json/trstatus", handlers.JsonStatusHandler)
 
 	// Wrap all other routes in in logging middleware.
 	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(router))
