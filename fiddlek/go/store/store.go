@@ -492,3 +492,11 @@ func (s *Store) WriteName(name, hash, user string) error {
 	}
 	return nil
 }
+
+// DeleteName deletes a named fiddle.
+//
+//   name - The name of the fidde.
+func (s *Store) DeleteName(name, hash, user string) error {
+	ctx := context.Background()
+	return s.bucket.Object(fmt.Sprintf("named/%s", name)).Delete(ctx)
+}

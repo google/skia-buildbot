@@ -1,0 +1,33 @@
+@import '~common-sk/modules/colors';
+
+named-fiddles-sk {
+  .buttons {
+    display: grid;
+    grid-template-columns: minmax(max-content, 25em) 4em 1fr;
+    align-items: center;
+  }
+
+  .buttons spinner-sk[active] {
+    visibility: initial;
+  }
+
+  .buttons spinner-sk {
+    visibility: hidden;
+    display: inline-block;
+  }
+
+  header {
+    margin: 0;
+    padding: 0.2em 1em;
+    color: white;
+    background: $blue;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-size: 110%;
+  }
+}
+
