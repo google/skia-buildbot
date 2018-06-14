@@ -178,6 +178,24 @@
     },
     {
       "key": {
+        "uuid": "8f7b7c8f_a5832f59",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-14T14:28:49Z",
+      "side": 1,
+      "message": ":-(",
+      "parentUuid": "b516ffde_7f4479b9",
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "809604d5_30370445",
         "filename": "ct/go/util/util.go",
         "patchSetId": 39
@@ -272,6 +290,30 @@
     },
     {
       "key": {
+        "uuid": "5236c65d_2e29e2ec",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1194,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-14T14:28:49Z",
+      "side": 1,
+      "message": "Oh, sorry, didn\u0027t realize you can\u0027t turn a temporary array into a slice.",
+      "parentUuid": "0b244212_0638cf16",
+      "range": {
+        "startLine": 1193,
+        "startChar": 0,
+        "endLine": 1194,
+        "endChar": 34
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d49da167_81a5535d",
         "filename": "ct/go/util/util.go",
         "patchSetId": 39
@@ -354,6 +396,30 @@
       "side": 1,
       "message": "I thought we had to use filepath for GS paths because they are all always gs://xyz/abc/ (even for windows).",
       "parentUuid": "0296d997_01aa6459",
+      "range": {
+        "startLine": 1203,
+        "startChar": 11,
+        "endLine": 1203,
+        "endChar": 19
+      },
+      "revId": "ea7d8ec6261825f8bea53dffb229177837ed41f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1e6f2ada_309bc5e4",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 1203,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-14T14:28:49Z",
+      "side": 1,
+      "message": "\"The path package should only be used for paths separated by forward slashes, such as the paths in URLs. This package does not deal with Windows paths with drive letters or backslashes; to manipulate operating system paths, use the path/filepath package.\"\n\nhttps://golang.org/pkg/path/",
+      "parentUuid": "d6787b33_97b8d9d4",
       "range": {
         "startLine": 1203,
         "startChar": 11,
