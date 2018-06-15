@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0bef8976_10546757",
+        "filename": "ap/elements-sk/icon-sk/icon-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-15T21:34:25Z",
+      "side": 1,
+      "message": "I\u0027m not quite sure what to do with this documentation. I think I\u0027d like to have a central spot for it rather than sharding it to all the mini modules.",
+      "revId": "b95a3c5c388efa4421c1f905b43aef6567976005",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
