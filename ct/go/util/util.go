@@ -4,7 +4,9 @@ package util
 import (
 	"bytes"
 	"context"
+	"crypto/sha1"
 	"encoding/csv"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,10 +26,9 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
-
-	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -38,6 +39,8 @@ const (
 	REMOVE_INVALID_SKPS_WORKER_POOL = 20
 
 	MAX_SIMULTANEOUS_SWARMING_TASKS_PER_RUN = 10000
+
+	PATCH_LIMIT = 1 << 26
 )
 
 func TimeTrack(start time.Time, name string) {
@@ -1163,6 +1166,56 @@ func GetBasePixelDiffRemoteDir(runID string) (string, error) {
 		return "", fmt.Errorf("Could not parse runID %s with the regex %q", runID, regex.String())
 	}
 	return filepath.Join(PixelDiffRunsDir, matches[1], matches[2], matches[3], matches[4], runID), nil
+}
+
+func SavePatchToStorage(patch string) (string, error) {
+
+	if len(patch) > PATCH_LIMIT {
+		return "", fmt.Errorf("Patch is too long with %d bytes; limit %d bytes", len(patch), PATCH_LIMIT)
+	}
+
+	patchHash := sha1.Sum([]byte(patch))
+	patchHashHex := hex.EncodeToString(patchHash[:])
+
+	gs, err := NewGcsUtil(nil)
+	if err != nil {
+		return "", err
+	}
+	gsDir := "patches"
+	patchFileName := fmt.Sprintf("%s.patch", patchHashHex)
+	gsPath := path.Join(gsDir, patchFileName)
+
+	res, err := gs.service.Objects.Get(GCSBucketName, gsPath).Do()
+	if err != nil {
+		sklog.Infof("This is expected for patches we have not seen before:\nCould not retrieve object metadata for %s: %s", gsPath, err)
+	}
+	if res == nil || res.Size != uint64(len(patch)) {
+		// Patch does not exist in Google Storage yet so upload it.
+		patchPath := filepath.Join(os.TempDir(), patchFileName)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return "", err
+		}
+		defer util.Remove(patchPath)
+		if err := gs.UploadFile(patchFileName, os.TempDir(), gsDir); err != nil {
+			return "", err
+		}
+	}
+
+	return gsPath, nil
+}
+
+func GetPatchFromStorage(patchId string) (string, error) {
+	gs, err := NewGcsUtil(nil)
+	respBody, err := gs.GetRemoteFileContents(patchId)
+	if err != nil {
+		return "", fmt.Errorf("Could not fetch %s: %s", patchId, err)
+	}
+	defer util.Close(respBody)
+	patch, err := ioutil.ReadAll(respBody)
+	if err != nil {
+		return "", fmt.Errorf("Could not read from %s: %s", patchId, err)
+	}
+	return string(patch), nil
 }
 
 func GetRankFromPageset(pagesetFileName string) (int, error) {

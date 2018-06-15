@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"os"
@@ -102,9 +101,9 @@ func updateWebappTask() {
 	vars := chromium_perf.UpdateVars{}
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
-	vars.Results = sql.NullString{String: htmlOutputLink, Valid: true}
-	vars.NoPatchRawOutput = sql.NullString{String: noPatchOutputLink, Valid: true}
-	vars.WithPatchRawOutput = sql.NullString{String: withPatchOutputLink, Valid: true}
+	vars.Results = htmlOutputLink
+	vars.NoPatchRawOutput = noPatchOutputLink
+	vars.WithPatchRawOutput = withPatchOutputLink
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
@@ -336,8 +335,6 @@ func main() {
 		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_perf_"),
 		"--total_archives=" + strconv.Itoa(totalArchivedWebpages),
 	}
-	// TODO(rmistry): Remove the below debugging stmt.
-	sklog.Errorf("Args of csv_comparer.py: %v", args)
 	err = util.ExecuteCmd(ctx, "python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
 		sklog.Errorf("Error running csv_comparer.py: %s", err)

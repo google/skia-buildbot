@@ -47,6 +47,18 @@ const (
 
 	// Leasing
 	TASK Kind = "Task"
+
+	// CT
+	CAPTURE_SKPS_TASKS              Kind = "CaptureSkpsTasks"
+	CHROMIUM_ANALYSIS_TASKS         Kind = "ChromiumAnalysisTasks"
+	CHROMIUM_BUILD_TASKS            Kind = "ChromiumBuildTasks"
+	CHROMIUM_PERF_TASKS             Kind = "ChromiumPerfTasks"
+	LUA_SCRIPT_TASKS                Kind = "LuaScriptTasks"
+	METRICS_ANALYSIS_TASKS          Kind = "MetricsAnalysisTasks"
+	PIXEL_DIFF_TASKS                Kind = "PixelDiffTasks"
+	RECREATE_PAGESETS_TASKS         Kind = "RecreatePageSetsTasks"
+	RECREATE_WEBPAGE_ARCHIVES_TASKS Kind = "RecreateWebpageArchivesTasks"
+	CLUSTER_TELEMETRY_IDS           Kind = "ClusterTelemetryIDs"
 )
 
 // Namespaces that are used in production, and thus might be backed up.
@@ -64,6 +76,9 @@ const (
 
 	// Leasing
 	LEASING_SERVER_NS = "leasing-server"
+
+	// CT
+	CT_NS = "cluster-telemetry"
 )
 
 var (
@@ -87,6 +102,7 @@ var (
 		},
 		ANDROID_COMPILE_NS: []Kind{COMPILE_TASK},
 		LEASING_SERVER_NS:  []Kind{TASK},
+		CT_NS:              []Kind{CAPTURE_SKPS_TASKS, CHROMIUM_ANALYSIS_TASKS, CHROMIUM_BUILD_TASKS, CHROMIUM_PERF_TASKS, LUA_SCRIPT_TASKS, METRICS_ANALYSIS_TASKS, PIXEL_DIFF_TASKS, RECREATE_PAGESETS_TASKS, RECREATE_WEBPAGE_ARCHIVES_TASKS, CLUSTER_TELEMETRY_IDS},
 	}
 )
 

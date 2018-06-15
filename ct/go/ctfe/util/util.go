@@ -134,21 +134,6 @@ func ExecuteSimpleTemplate(template *template.Template, w http.ResponseWriter, r
 	}
 }
 
-type LengthCheck struct {
-	Name  string
-	Value string
-	Limit int64
-}
-
-func CheckLengths(checks []LengthCheck) error {
-	for _, check := range checks {
-		if int64(len(check.Value)) > check.Limit {
-			return fmt.Errorf("Value of %s is too long; limit %d bytes", check.Name, check.Limit)
-		}
-	}
-	return nil
-}
-
 func GetQualifiedCustomWebpages(customWebpages, benchmarkArgs string) ([]string, error) {
 	qualifiedWebpages := []string{}
 	if customWebpages != "" {

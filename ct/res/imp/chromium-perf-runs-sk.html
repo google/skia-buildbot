@@ -153,10 +153,10 @@
         <tr style="border: 1px solid black;">
           <!-- Id col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{chromiumPerfTask.Results.String}}">
-              <a href="{{chromiumPerfTask.Results.String}}" target="_blank">{{chromiumPerfTask.Id}}</a>
+            <template is="dom-if" if="{{chromiumPerfTask.Results}}">
+              <a href="{{chromiumPerfTask.Results}}" target="_blank">{{chromiumPerfTask.Id}}</a>
             </template>
-            <template is="dom-if" if="{{!chromiumPerfTask.Results.String}}">
+            <template is="dom-if" if="{{!chromiumPerfTask.Results}}">
               <span>{{chromiumPerfTask.Id}}</span>
             </template>
             <paper-icon-button icon="delete" mini
@@ -183,15 +183,15 @@
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
@@ -234,22 +234,22 @@
 
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{chromiumPerfTask.Failure.Bool}}">
+            <template is="dom-if" if="{{chromiumPerfTask.Failure}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!chromiumPerfTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!chromiumPerfTask.TaskDone}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{chromiumPerfTask.Results.String}}">
-              <a href="{{chromiumPerfTask.Results.String}}" target="_blank">Overall Result</a>
+            <template is="dom-if" if="{{chromiumPerfTask.Results}}">
+              <a href="{{chromiumPerfTask.Results}}" target="_blank">Overall Result</a>
               <br/>
-              <a href="{{chromiumPerfTask.NoPatchRawOutput.String}}" target="_blank">NoPatch Raw Output</a>
+              <a href="{{chromiumPerfTask.NoPatchRawOutput}}" target="_blank">NoPatch Raw Output</a>
               <br/>
-              <a href="{{chromiumPerfTask.WithPatchRawOutput.String}}" target="_blank">WithPatch Raw Output</a>
+              <a href="{{chromiumPerfTask.WithPatchRawOutput}}" target="_blank">WithPatch Raw Output</a>
             </template>
-            <template is="dom-if" if="{{chromiumPerfTask.SwarmingLogs.String}}">
+            <template is="dom-if" if="{{chromiumPerfTask.SwarmingLogs}}">
               <br/>
-              <a href="{{chromiumPerfTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+              <a href="{{chromiumPerfTask.SwarmingLogs}}" target="_blank">Swarming Logs</a>
             </template>
           </td>
 
@@ -418,6 +418,7 @@
          for (var i = 0; i < that.chromiumPerfTasks.length; i++) {
            that.chromiumPerfTasks[i].canDelete = json.permissions[i].DeleteAllowed;
            that.chromiumPerfTasks[i].canRedo = json.permissions[i].RedoAllowed;
+           that.chromiumPerfTasks[i].Id = json.ids[i];
          }
        }).catch(sk.errorMessage);
      },
@@ -493,7 +494,7 @@
 
      deleteTask: function(deleteIndex) {
        var params = {};
-       params["id"] = this.chromiumPerfTasks[deleteIndex].Id;;
+       params["id"] = this.chromiumPerfTasks[deleteIndex].Id;
        sk.post("/_/delete_chromium_perf_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Deleted task " + params["id"];
          $$$("#confirm_toast").show();

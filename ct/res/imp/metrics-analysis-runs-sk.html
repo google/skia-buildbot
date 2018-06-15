@@ -104,10 +104,10 @@
         <tr style="border: 1px solid black;">
           <!-- Id col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{metricsAnalysisTask.RawOutput.String}}">
-              <a href="{{metricsAnalysisTask.RawOutput.String}}" target="_blank">{{metricsAnalysisTask.Id}}</a>
+            <template is="dom-if" if="{{metricsAnalysisTask.RawOutput}}">
+              <a href="{{metricsAnalysisTask.RawOutput}}" target="_blank">{{metricsAnalysisTask.Id}}</a>
             </template>
-            <template is="dom-if" if="{{!metricsAnalysisTask.RawOutput.String}}">
+            <template is="dom-if" if="{{!metricsAnalysisTask.RawOutput}}">
               <span>{{metricsAnalysisTask.Id}}</span>
             </template>
             <paper-icon-button icon="delete" mini
@@ -134,15 +134,15 @@
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(metricsAnalysisTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(metricsAnalysisTask.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(metricsAnalysisTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(metricsAnalysisTask.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(metricsAnalysisTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(metricsAnalysisTask.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
@@ -178,18 +178,18 @@
 
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{metricsAnalysisTask.Failure.Bool}}">
+            <template is="dom-if" if="{{metricsAnalysisTask.Failure}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!metricsAnalysisTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!metricsAnalysisTask.TaskDone}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{metricsAnalysisTask.RawOutput.String}}">
-              <a href="{{metricsAnalysisTask.RawOutput.String}}" target="_blank">Output</a>
+            <template is="dom-if" if="{{metricsAnalysisTask.RawOutput}}">
+              <a href="{{metricsAnalysisTask.RawOutput}}" target="_blank">Output</a>
             </template>
-            <template is="dom-if" if="{{metricsAnalysisTask.SwarmingLogs.String}}">
+            <template is="dom-if" if="{{metricsAnalysisTask.SwarmingLogs}}">
               <br/>
-              <a href="{{metricsAnalysisTask.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+              <a href="{{metricsAnalysisTask.SwarmingLogs}}" target="_blank">Swarming Logs</a>
             </template>
           </td>
 
@@ -308,6 +308,7 @@
          for (var i = 0; i < that.metricsAnalysisTasks.length; i++) {
            that.metricsAnalysisTasks[i].canDelete = json.permissions[i].DeleteAllowed;
            that.metricsAnalysisTasks[i].canRedo = json.permissions[i].RedoAllowed;
+           that.metricsAnalysisTasks[i].Id = json.ids[i];
          }
        }).catch(sk.errorMessage);
      },
@@ -353,7 +354,7 @@
 
      deleteTask: function(deleteIndex) {
        var params = {};
-       params["id"] = this.metricsAnalysisTasks[deleteIndex].Id;;
+       params["id"] = this.metricsAnalysisTasks[deleteIndex].Id;
        sk.post("/_/delete_metrics_analysis_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Deleted task " + params["id"];
          $$$("#confirm_toast").show();

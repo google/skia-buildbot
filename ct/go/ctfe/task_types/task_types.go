@@ -19,14 +19,14 @@ import (
 // Slice of all tasks supported by CTFE.
 func Prototypes() []task_common.Task {
 	return []task_common.Task{
-		&admin_tasks.RecreatePageSetsDBTask{},
-		&admin_tasks.RecreateWebpageArchivesDBTask{},
-		&capture_skps.DBTask{},
-		&chromium_analysis.DBTask{},
-		&chromium_builds.DBTask{},
-		&chromium_perf.DBTask{},
-		&lua_scripts.DBTask{},
-		&metrics_analysis.DBTask{},
-		&pixel_diff.DBTask{},
+		&admin_tasks.RecreatePageSetsDatastoreTask{},
+		&admin_tasks.RecreateWebpageArchivesDatastoreTask{},
+		&capture_skps.DatastoreTask{},
+		&chromium_analysis.DatastoreTask{},
+		&chromium_builds.DatastoreTask{},
+		&chromium_perf.DatastoreTask{},
+		&lua_scripts.DatastoreTask{},
+		&metrics_analysis.DatastoreTask{},
+		&pixel_diff.DatastoreTask{},
 	}
 }

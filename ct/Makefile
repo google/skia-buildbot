@@ -12,17 +12,13 @@ VULCANIZE1=true
 
 include ../go/skiaversion/skiaversion.mk
 
-.PHONY: ctfe_migratedb
-ctfe_migratedb:
-	go install -v ./go/ctfe_migratedb
-
 # Require clean_webtools to ensure changes to res/common/imp/*.html are reflected.
 .PHONY: ctfe
-ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion ctfe_migratedb
+ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion
 	go install -v ./go/ctfe
 
 .PHONY: ctfe_debug
-ctfe_debug: res/css/ctfe.css debug skiaversion ctfe_migratedb
+ctfe_debug: res/css/ctfe.css debug skiaversion
 	go install -v ./go/ctfe
 
 .PHONY: ctfe_release

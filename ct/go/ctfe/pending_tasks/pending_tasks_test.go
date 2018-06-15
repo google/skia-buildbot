@@ -2,8 +2,9 @@ package pending_tasks
 
 import (
 	"bytes"
-	"database/sql"
 	"testing"
+
+	"cloud.google.com/go/datastore"
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
@@ -11,11 +12,27 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/testutils"
 
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
 )
+
+func getCommonCols(kind ds.Kind) task_common.CommonCols {
+	return task_common.CommonCols{
+		DatastoreKey: &datastore.Key{
+			ID:   17,
+			Kind: string(kind),
+		},
+		TsAdded:         20080726180513,
+		TsStarted:       20091011121314,
+		TsCompleted:     20150106171819,
+		Username:        "nobody@chromium.org",
+		Failure:         false,
+		RepeatAfterDays: 2,
+	}
+}
 
 func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 	testutils.SmallTest(t)
@@ -26,17 +43,8 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		assert.NoError(t, err)
 		expect.Equal(t, task, newTask)
 	}
-	common := task_common.CommonCols{
-		Id:              42,
-		TsAdded:         sql.NullInt64{Int64: 20080726180513, Valid: true},
-		TsStarted:       sql.NullInt64{Int64: 20091011121314, Valid: true},
-		TsCompleted:     sql.NullInt64{Int64: 20150106171819, Valid: true},
-		Username:        "nobody@chromium.org",
-		Failure:         sql.NullBool{Bool: false, Valid: true},
-		RepeatAfterDays: 2,
-	}
-	test(&chromium_perf.DBTask{
-		CommonCols:           common,
+	test(&chromium_perf.DatastoreTask{
+		CommonCols:           getCommonCols(ds.CHROMIUM_PERF_TASKS),
 		Benchmark:            "benchmark",
 		Platform:             "Linux",
 		PageSets:             "All",
@@ -48,10 +56,13 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		ChromiumPatch:        "chromiumpatch",
 		SkiaPatch:            "skiapatch",
 	})
-	test(&capture_skps.DBTask{
+	test(&capture_skps.DatastoreTask{
 		CommonCols: task_common.CommonCols{
-			Id:       17,
-			TsAdded:  sql.NullInt64{Int64: 20080726180513, Valid: true},
+			DatastoreKey: &datastore.Key{
+				ID:   17,
+				Kind: string(ds.CAPTURE_SKPS_TASKS),
+			},
+			TsAdded:  20080726180513,
 			Username: "nobody@chromium.org",
 		},
 		PageSets:    "All",
@@ -59,29 +70,29 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		SkiaRev:     "586101c79b0490b50623e76c71a5fd67d8d92b08",
 		Description: "description",
 	})
-	test(&lua_scripts.DBTask{
-		CommonCols:          common,
+	test(&lua_scripts.DatastoreTask{
+		CommonCols:          getCommonCols(ds.LUA_SCRIPT_TASKS),
 		PageSets:            "All",
 		ChromiumRev:         "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
 		SkiaRev:             "586101c79b0490b50623e76c71a5fd67d8d92b08",
 		LuaScript:           `print("lualualua")`,
 		LuaAggregatorScript: `print("aaallluuu")`,
 		Description:         "description",
-		ScriptOutput:        sql.NullString{String: "lualualua", Valid: true},
-		AggregatedOutput:    sql.NullString{String: "aaallluuu", Valid: true},
+		ScriptOutput:        "lualualua",
+		AggregatedOutput:    "aaallluuu",
 	})
-	test(&chromium_builds.DBTask{
-		CommonCols:    common,
+	test(&chromium_builds.DatastoreTask{
+		CommonCols:    getCommonCols(ds.CHROMIUM_BUILD_TASKS),
 		ChromiumRev:   "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
-		ChromiumRevTs: sql.NullInt64{Int64: 20080726180513, Valid: true},
+		ChromiumRevTs: 20080726180513,
 		SkiaRev:       "586101c79b0490b50623e76c71a5fd67d8d92b08",
 	})
-	test(&admin_tasks.RecreatePageSetsDBTask{
-		CommonCols: common,
+	test(&admin_tasks.RecreatePageSetsDatastoreTask{
+		CommonCols: getCommonCols(ds.RECREATE_PAGESETS_TASKS),
 		PageSets:   "All",
 	})
-	test(&admin_tasks.RecreateWebpageArchivesDBTask{
-		CommonCols:  common,
+	test(&admin_tasks.RecreateWebpageArchivesDatastoreTask{
+		CommonCols:  getCommonCols(ds.RECREATE_WEBPAGE_ARCHIVES_TASKS),
 		PageSets:    "All",
 		ChromiumRev: "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
 		SkiaRev:     "586101c79b0490b50623e76c71a5fd67d8d92b08",
