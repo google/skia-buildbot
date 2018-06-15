@@ -457,6 +457,30 @@
     },
     {
       "key": {
+        "uuid": "616e68b8_d29851df",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-15T13:31:10Z",
+      "side": 1,
+      "message": "Adding back error here because there are some errors that the user should know about:\n\"Failed to insert *chromium_analysis.AddTaskVars task Could not get populated datastore task: Cannot use custom webpages without --use-live-sites\"\n\nAlso since the page is restricted to Googlers only, I\u0027m not sure how much we need to worry about this.",
+      "parentUuid": "ae9001ad_51420cfa",
+      "range": {
+        "startLine": 152,
+        "startChar": 85,
+        "endLine": 152,
+        "endChar": 88
+      },
+      "revId": "8f8e38a57e20ab160b53071c71289a5a7173bbb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9606bbce_72a28ff4",
         "filename": "ct/go/ctfe/task_common/task_common.go",
         "patchSetId": 35
