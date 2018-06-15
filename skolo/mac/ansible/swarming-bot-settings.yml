@@ -1,0 +1,13 @@
+---
+# Ensure Swarming can reboot the host.
+- hosts: all
+  remote_user: chrome-bot
+  become: yes
+
+  tasks:
+    - name: Add shutdown command to sudoers for chrome-bot
+      lineinfile:
+        path: /private/etc/sudoers.d/swarming
+        state: present
+        line: 'chrome-bot ALL=NOPASSWD:/sbin/shutdown -r now'
+        validate: '/usr/sbin/visudo -cf %s'
