@@ -58,9 +58,9 @@ const listServices = (ele, server, installed) => servicesOf(ele, installed).map(
 
 const listApplications = (ele, server) => server.Installed.map(installed => html`
 <div class=applicationRow>
-  <button class=application data-server$='${server.Name}' data-name$='${installed}' data-app$='${prefixOf(installed)}' on-click=${e => ele._startChoose(e)}><icon-create-sk title='Edit which package is installed.'></icon-create-sk></button>
-  <icon-warning-sk class$='${dirtyVisibility(ele, installed)}' title='Out of date.'></icon-warning-sk>
-  <icon-alarm-sk class$='${alarmVisibility(ele, installed)}' title='Uncommited changes when the package was built.'></icon-alarm-sk>
+  <button class=application data-server$='${server.Name}' data-name$='${installed}' data-app$='${prefixOf(installed)}' on-click=${e => ele._startChoose(e)}><create-icon-sk title='Edit which package is installed.'></create-icon-sk></button>
+  <warning-icon-sk class$='${dirtyVisibility(ele, installed)}' title='Out of date.'></warning-icon-sk>
+  <alarm-icon-sk class$='${alarmVisibility(ele, installed)}' title='Uncommited changes when the package was built.'></alarm-icon-sk>
   <div class=serviceName><a href$='https://github.com/google/skia-buildbot/compare/${fullHash(installed)}...HEAD'>${shorten(installed)}</a></div>
   <div><a href$='${logsFullURI(server.Name, installed)}'>logs</a></div>
   <div>

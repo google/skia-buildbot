@@ -26,7 +26,7 @@
  *
  * // Using a button instead of nav-button-sk:
  * <button onclick="this.nextElementSibling.shown = true;">
- *   <icon-create-sk></icon-create-sk>
+ *   <create-icon-sk></create-icon-sk>
  * </button>
  * <nav-links-sk>
  *   <a href="">New A</a>
