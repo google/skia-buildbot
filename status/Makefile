@@ -44,6 +44,18 @@ push_staging: all
 	./build_release "`git log -n1 --format=%s`"
 	pushcli statusd skia-status-staging
 
+statusk: web skiaversion
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/statusk
+
+release_kube: all
+	./build_docker_release
+
+run_kube: release
+	docker run status
+
+push_kube: release
+	pushk status
+
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
