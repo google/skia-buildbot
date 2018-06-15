@@ -16,6 +16,24 @@
       "revId": "c8947ea847b8e99a8981897eb2eec0a5fcd1aaf0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "136b5cbb_78bd4997",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-15T14:20:26Z",
+      "side": 1,
+      "message": "Did you see a particular new err that could be a problem?\nThe main new ones are from SavePatchToStorage and it returns ioutil.WriteFile and gs.UploadFile none of which AFAICT should echo inputs?",
+      "parentUuid": "dc9a7f25_1c11b238",
+      "revId": "c8947ea847b8e99a8981897eb2eec0a5fcd1aaf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
