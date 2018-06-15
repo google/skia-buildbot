@@ -4,12 +4,18 @@ package ds
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"cloud.google.com/go/datastore"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 type Kind string
@@ -41,6 +47,8 @@ const (
 	MASTER_TEST_DIGEST_EXP Kind = "MasterTestDigestExp"
 	IGNORE_RULE            Kind = "IgnoreRule"
 	HELPER_RECENT_KEYS     Kind = "HelperRecentKeys"
+	EXPECTATIONS_BLOB      Kind = "ExpectationsBlob"
+	EXPECTATIONS_BLOB_ROOT Kind = "ExpectationsBlobRoot"
 
 	// Android Compile
 	COMPILE_TASK Kind = "CompileTask"
@@ -135,7 +143,7 @@ func Init(project string, ns string) error {
 //
 // project - The project name, i.e. "google.com:skia-buildbots".
 // ns      - The datastore namespace to store data into.
-func InitForTesting(project string, ns string) error {
+func InitForTesting(project string, ns string, kinds ...Kind) error {
 	Namespace = ns
 	var err error
 	DS, err = datastore.NewClient(context.Background(), project)
@@ -143,6 +151,70 @@ func InitForTesting(project string, ns string) error {
 		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
 	}
 	return nil
+}
+
+func Count(client *datastore.Client, kind Kind) (int, error) {
+	return client.Count(context.TODO(), NewQuery(kind))
+}
+
+func DeleteAll(client *datastore.Client, kind Kind, wait bool) (int, error) {
+	overallCount := -1
+	for {
+		// We choose 500 as the page size, because that's the maximum
+		// number of keys that can be deleted in one call.
+		sliceIter := newKeySliceIterator(client, kind, 10000)
+		slice, done, err := sliceIter.next()
+		ctx := context.TODO()
+		keySlices := [][]*datastore.Key{}
+
+		totalKeyCount := 0
+		for !done && (err == nil) {
+			keySlices = append(keySlices, slice)
+			totalKeyCount += len(slice)
+			slice, done, err = sliceIter.next()
+			sklog.Infof("Loaded %s %d keys %d", kind, len(slice), totalKeyCount)
+		}
+		if err != nil {
+			return 0, err
+		}
+
+		// Delete all slices in parallel.
+		var egroup errgroup.Group
+		for _, slice := range keySlices {
+			func(slice []*datastore.Key) {
+				egroup.Go(func() error {
+					for len(slice) > 0 {
+						targetSlice := slice[:util.MinInt(500, len(slice))]
+						if err := client.DeleteMulti(ctx, targetSlice); err != nil {
+							return err
+						}
+						slice = slice[len(targetSlice):]
+					}
+					return nil
+				})
+			}(slice)
+		}
+		if err := egroup.Wait(); err != nil {
+			return 0, sklog.FmtErrorf("Error deleting entities: %s", err)
+		}
+
+		if overallCount == -1 {
+			overallCount = totalKeyCount
+		}
+
+		// If we need to wait loop until the entity count goes to zero.
+		found := 0
+		if wait {
+			time.Sleep(10 * time.Second)
+			if found, err = Count(client, kind); err != nil {
+				return 0, err
+			}
+		}
+		if found == 0 {
+			break
+		}
+	}
+	return overallCount, nil
 }
 
 // Creates a new indeterminate key of the given kind.
@@ -162,4 +234,166 @@ func NewKeyWithParent(kind Kind, parent *datastore.Key) *datastore.Key {
 // Creates a new query of the given kind with the right namespace.
 func NewQuery(kind Kind) *datastore.Query {
 	return datastore.NewQuery(string(kind)).Namespace(Namespace)
+}
+
+type Item struct {
+	Key      *datastore.Key
+	Instance interface{}
+}
+
+func IterKind(client *datastore.Client, kind Kind, instance interface{}, orderedBy ...string) (<-chan *Item, error) {
+	// TODO: set the right page size to get the maximum number of keys at once.
+	pageSize := 500
+
+	// Get the type information about the target type
+	targetType := reflect.TypeOf(instance)
+	if targetType.Kind() == reflect.Ptr {
+		targetType = targetType.Elem()
+	}
+	typeKind := targetType.Kind()
+	stripPtr := (typeKind == reflect.Slice) || (typeKind == reflect.Map)
+
+	// Get the first slice of keys.
+	sliceIter := newKeySliceIterator(client, kind, pageSize, orderedBy...)
+	keySlice, done, err := sliceIter.next()
+	if err != nil {
+		return nil, err
+	}
+
+	retCh := make(chan *Item)
+	go func() {
+		// Close the channel when we are done
+		defer close(retCh)
+
+		var err error
+		keyCount := 0
+		ctx := context.TODO()
+
+		// Process keys until there are no more
+		for !done {
+			keyCount += len(keySlice)
+			sklog.Infof("LOOP: Retrieved %d keys.   Total: %d", len(keySlice), keyCount)
+
+			for _, key := range keySlice {
+				// Create a new instance, load it and write it to the output channel
+				loadedVal := reflect.New(targetType).Interface()
+				if err := client.Get(ctx, key, loadedVal); err != nil {
+					sklog.Errorf("Error loading entity with key %v: %s", key, err)
+					continue
+				}
+
+				// Strip the pointer for slices and maps.
+				if stripPtr {
+					loadedVal = reflect.ValueOf(loadedVal).Elem().Interface()
+				}
+				retCh <- &Item{Key: key, Instance: loadedVal}
+			}
+
+			// Get the next slice of keys.
+			keySlice, done, err = sliceIter.next()
+			if err != nil {
+				sklog.Errorf("Error retrieving next key slice: %s", err)
+				return
+			}
+		}
+	}()
+
+	return retCh, nil
+}
+
+func IterKeys(client *datastore.Client, kind Kind, pageSize int) (<-chan []*datastore.Key, error) {
+	sliceIter := newKeySliceIterator(client, kind, pageSize)
+	keySlice, done, err := sliceIter.next()
+	if err != nil {
+		return nil, err
+	}
+
+	retCh := make(chan []*datastore.Key)
+	go func() {
+		defer close(retCh)
+
+		keyCount := 0
+		for !done {
+			keyCount += len(keySlice)
+			sklog.Infof("LOOP: Retrieved %d keys.   Total: %d", len(keySlice), keyCount)
+			retCh <- keySlice
+
+			// Get the next slice of keys.
+			keySlice, done, err = sliceIter.next()
+			if err != nil {
+				sklog.Errorf("Error retrieving next key slice: %s", err)
+				return
+			}
+		}
+	}()
+	return retCh, nil
+}
+
+type keySliceIterator struct {
+	client    *datastore.Client
+	kind      Kind
+	pageSize  int
+	orderedBy []string
+	cursorStr string
+	done      bool
+}
+
+func newKeySliceIterator(client *datastore.Client, kind Kind, pageSize int, orderedBy ...string) *keySliceIterator {
+	return &keySliceIterator{
+		client:    client,
+		kind:      kind,
+		pageSize:  pageSize,
+		orderedBy: orderedBy,
+		cursorStr: "",
+	}
+}
+
+func (k *keySliceIterator) next() ([]*datastore.Key, bool, error) {
+	// Once we have reached the end, don't run the query again.
+	if k.done {
+		return nil, true, nil
+	}
+
+	query := NewQuery(k.kind).KeysOnly().Limit(k.pageSize)
+	for _, ob := range k.orderedBy {
+		query = query.Order(ob)
+	}
+
+	if k.cursorStr != "" {
+		cursor, err := datastore.DecodeCursor(k.cursorStr)
+		if err != nil {
+			return nil, false, sklog.FmtErrorf("Bad cursor %s: %s", k.cursorStr, err)
+		}
+		query = query.Start(cursor)
+	}
+
+	it := k.client.Run(context.TODO(), query)
+	var err error
+	var key *datastore.Key
+	retKeys := make([]*datastore.Key, 0, k.pageSize)
+
+	for {
+		if key, err = it.Next(nil); err != nil {
+			break
+		}
+		retKeys = append(retKeys, key)
+	}
+
+	if err != iterator.Done {
+		return nil, false, sklog.FmtErrorf("Error retrieving keys: %s", err)
+	}
+
+	// Get the string for the next page.
+	cursor, err := it.Cursor()
+	if err != nil {
+		return nil, false, sklog.FmtErrorf("Error retrieving next cursor: %s", err)
+	}
+
+	// Check if the string representation of the cursor has changed.
+	newCursorStr := cursor.String()
+	k.done = (k.cursorStr == newCursorStr)
+	k.cursorStr = newCursorStr
+
+	// We are not officially done while we have results to return.
+	return retKeys, !(len(retKeys) > 0), nil
 }
