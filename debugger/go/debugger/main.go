@@ -182,6 +182,7 @@ func main() {
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
 	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/healthz", httputils.HealthCheckHandler).Methods("GET")
 	router.HandleFunc("/admin", adminHandler)
 	router.HandleFunc("/loadfrom", loadHandler)
 
