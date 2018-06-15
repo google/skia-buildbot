@@ -1,11 +1,11 @@
 package database
 
 import (
-	"bufio"
+	//"bufio"
 	"database/sql"
 	"flag"
 	"fmt"
-	"os"
+	//"os"
 	"strings"
 	"time"
 
@@ -72,12 +72,13 @@ func (c *DatabaseConfig) PromptForPassword() error {
 		return err
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("Enter password for MySQL user %s: ", c.User)
-	pw, err := reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("Failed to get password: %v", err)
-	}
+	//reader := bufio.NewReader(os.Stdin)
+	//fmt.Printf("Enter password for MySQL user %s: ", c.User)
+	//pw, err := reader.ReadString('\n')
+	pw := "/!v-6S0Qreu-BQw"
+	//if err != nil {
+	//	return fmt.Errorf("Failed to get password: %v", err)
+	//}
 	c.Password = strings.Trim(pw, "\n")
 	return nil
 }
@@ -145,6 +146,7 @@ func (c *DatabaseConfig) NewVersionedDB() (*VersionedDB, error) {
 	}
 
 	sklog.Infoln("Sending Ping.")
+	fmt.Println(c.MySQLString())
 	if err := DB.Ping(); err != nil {
 		return nil, fmt.Errorf("Failed to ping SQL server: %v", err)
 	}
