@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc9a7f25_1c11b238",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 44
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-15T14:07:53Z",
+      "side": 1,
+      "message": "Need to ensure err is XSS-safe.",
+      "revId": "c8947ea847b8e99a8981897eb2eec0a5fcd1aaf0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
