@@ -192,7 +192,7 @@ lMgnmZhQXYTaxTcUmaV2zxD/U3fSoPyzliWdVHK6Zc5wW6kYVYuT5e9/Kg==
 	assert.Equal(t, "test@example.org", r.Header.Get(EMAIL_HEADER))
 
 	// Now remove claims one at a time and confirm we get a 500 each time.
-	for _, remove := range []string{"iat", "exp", "aud", "iss", "email", "hd"} {
+	for _, remove := range []string{"iat", "exp", "aud", "iss", "email"} {
 		claims, token := goodClaimsAndToken()
 
 		tokenString, err := token.SignedString(key)

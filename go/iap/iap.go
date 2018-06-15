@@ -115,7 +115,9 @@ func None(h http.Handler) http.Handler {
 	return http.HandlerFunc(s)
 }
 
-func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// Validate identity for the given request. Returns true if it's okay to
+// continue processing the request.
+func (i *IAPHandler) handle(w http.ResponseWriter, r *http.Request) bool {
 	// Only this func is allowed to set x-user-email.
 	r.Header.Set(EMAIL_HEADER, "")
 	jwtAssertion := r.Header.Get("x-goog-iap-jwt-assertion")
@@ -126,18 +128,18 @@ func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// header and respond with a bodyless 200 OK.
 	if r.URL.Path == "/" && jwtAssertion == "" {
 		w.WriteHeader(http.StatusOK)
-		return
+		return false
 	}
 	if jwtAssertion == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Missing jwt assertion for non-'/' path."), "Identity Aware Proxy has been disabled, all access is denied.")
-		return
+		return false
 	}
 	email, err := i.getEmail(jwtAssertion)
 	// A user may have been previously allowed, but has since been removed from
 	// the list, so check here.
 	if err == nil && i.allow != nil && !i.allow.Member(email) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
+		return false
 	}
 	if err != nil {
 		// Validate jwtAsssertion
@@ -161,9 +163,6 @@ func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if !mapClaims.VerifyIssuer("https://cloud.google.com/iap", true) {
 				return nil, fmt.Errorf("Wrong issuer.")
 			}
-			if mapClaims["hd"] == nil || mapClaims["hd"].(string) != "google.com" {
-				return nil, fmt.Errorf("Missing or incorrect hd claims: %v", mapClaims["hd"])
-			}
 			if token.Header["alg"] == nil {
 				return nil, fmt.Errorf("Missing 'alg'.")
 			}
@@ -186,25 +185,43 @@ func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to validate JWT.")
-			return
+			return false
 		}
 		email_b, ok := token.Claims.(jwt.MapClaims)["email"]
 		if !ok {
 			httputils.ReportError(w, r, nil, "Failed to find email in validated JWT.")
-			return
+			return false
 		}
 		email, ok = email_b.(string)
 		if !ok {
 			httputils.ReportError(w, r, nil, "Failed to find email string in validated JWT.")
-			return
+			return false
 		}
 		if i.allow != nil && !i.allow.Member(email) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
+			return false
 		}
 		i.setEmail(jwtAssertion, email)
 	}
 	r.Header.Set(EMAIL_HEADER, email)
+	return true
+}
+
+// Middleware function, which can be enabled for particular handlers, rather
+// than using the IAPHandler for all requests.
+func (i *IAPHandler) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !i.handle(w, r) {
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !i.handle(w, r) {
+		return
+	}
 	i.handler.ServeHTTP(w, r)
 }
 
