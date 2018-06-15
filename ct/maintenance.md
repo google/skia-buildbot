@@ -14,7 +14,6 @@ General overview of CT is available [here](https://skia.org/dev/testing/ct).
 Frontend server code lives in:
 
 - go/ctfe/...
-- go/ctfe_migratedb/...
 - res/...
 - templates/...
 - elements.html
@@ -24,8 +23,6 @@ Frontend server code lives in:
 To build the frontend server, use `make ctfe`. To create a new DEB for
 [push](https://push.skia.org/), use `MESSAGE="<release message>" make
 ctfe_release`.
-
-The frontend DB schema is defined in go/db/db.go.
 
 Master code lives in:
 
@@ -52,28 +49,14 @@ Prober config is in ../prober/probers.json. Alerts config is in
 
 ### Frontend
 
-To set up or upgrade the CTFE DB, run
-
-```
-make ctfe && ctfe_migratedb --local=true \
-  --logtostderr \
-  --ctfe_db_host=localhost \
-  --ctfe_db_user=root
-```
-
-Occasionally you may find it useful to downgrade the local DB; specify the
-`--target_version` flag to achieve this. Run `mysql -u root -D ctfe` to access
-the DB using SQL.
-
 To start a local server, run:
 
 ```
 make ctfe_debug && ctfe --local=true \
   --logtostderr \
-  --ctfe_db_host=localhost \
   --port=:8000 \
-  --ctfe_db_user=readwrite \
-  --host=<your hostname>.cnc.corp.google.com
+  --host=<your hostname>.cnc.corp.google.com \
+  --namespace=cluster-telemetry-staging
 ```
 
 You can then access the server at [localhost:8000](http://localhost:8000/) or
@@ -147,11 +130,10 @@ TODO(benjaminwagner): Add local flag and kill e2e_tests from Makefile.
 
 ### Frontend
 
-The CTFE DB is a
-[Cloud SQL](https://console.cloud.google.com/project/31977622648/sql/instances)
-instance named ctfe. The IP address of this instance is the default value of the
-`--ctfe_db_host` argument. The DB is created/upgraded automatically with an
-`ExecStartPre` configuration in sys/ctfe.service.
+The CTFE production datastore instance is
+[here](https://console.cloud.google.com/datastore/entities/query?organizationId=433637338589&project=google.com:skia-buildbots&ns=cluster-telemetry&kind=CaptureSkpsTasks).
+The staging datastore instance is
+[here](https://console.cloud.google.com/datastore/entities/query?organizationId=433637338589&project=google.com:skia-buildbots&ns=cluster-telemetry-staging&kind=CaptureSkpsTasks).
 
 The frontend runs on a GCE instance named
 [skia-ctfe](https://console.cloud.google.com/project/31977622648/compute/instancesDetail/zones/us-central1-c/instances/skia-ctfe).

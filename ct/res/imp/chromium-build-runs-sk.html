@@ -82,7 +82,7 @@
           <td><a href="{{chromiumCommitUrl(chromiumBuild.ChromiumRev)}}">{{shortHash(chromiumBuild.ChromiumRev)}}</a></td>
 
           <!-- Submitted On col -->
-          <td class="nowrap">{{ formatTimestamp(chromiumBuild.ChromiumRevTs.Int64) }}</td>
+          <td class="nowrap">{{ formatTimestamp(chromiumBuild.ChromiumRevTs) }}</td>
 
           <!-- Skia Commit Hash col -->
           <td><a href="{{skiaCommitUrl(chromiumBuild.SkiaRev)}}">{{shortHash(chromiumBuild.SkiaRev)}}</a></td>
@@ -95,37 +95,37 @@
             <table>
               <tr>
                 <td>Requested:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsAdded) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsStarted) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsCompleted) }}</td>
               </tr>
             </table>
           </td>
 
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{chromiumBuild.Failure.Bool}}">
+            <template is="dom-if" if="{{chromiumBuild.Failure}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!chromiumBuild.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!chromiumBuild.TaskDone}}">
               <div style="color:green;">Waiting</div>
             </template>
             <template is="dom-if"
-                      if="{{isDone(chromiumBuild.Failure.Bool, chromiumBuild.TsCompleted.Int64)}}">
+                      if="{{isDone(chromiumBuild.Failure, chromiumBuild.TaskDone)}}">
               Done
             </template>
-            <template is="dom-if" if="{{chromiumBuild.Log.String}}">
-              <a href="{{chromiumBuild.Log.String}}" target="_blank">log</a>
+            <template is="dom-if" if="{{chromiumBuild.Log}}">
+              <a href="{{chromiumBuild.Log}}" target="_blank">log</a>
             </template>
-            <template is="dom-if" if="{{chromiumBuild.SwarmingLogs.String}}">
+            <template is="dom-if" if="{{chromiumBuild.SwarmingLogs}}">
               <br/>
-              <a href="{{chromiumBuild.SwarmingLogs.String}}" target="_blank">Swarming Logs</a>
+              <a href="{{chromiumBuild.SwarmingLogs}}" target="_blank">Swarming Logs</a>
             </template>
           </td>
 
@@ -195,14 +195,15 @@
          for (var i = 0; i < this.chromiumBuilds.length; i++) {
            this.chromiumBuilds[i].canDelete = json.permissions[i].DeleteAllowed;
            this.chromiumBuilds[i].canRedo = json.permissions[i].RedoAllowed;
+           this.chromiumBuilds[i].Id = json.ids[i];
          }
        }.bind(this)).catch(sk.errorMessage);
      },
 
      deleteNote: function(chromiumBuilds, deleteIndex) {
        if (deleteIndex >= 0 &&
-           chromiumBuilds[deleteIndex].TsCompleted.Valid &&
-           !chromiumBuilds[deleteIndex].Failure.Bool) {
+           chromiumBuilds[deleteIndex].TaskDone &&
+           !chromiumBuilds[deleteIndex].Failure) {
          return " Note: This build will no longer be available for running other tasks.";
        } else {
          return "";
@@ -211,7 +212,7 @@
 
      deleteTask: function(deleteIndex) {
        var params = {};
-       params["id"] = this.chromiumBuilds[deleteIndex].Id;;
+       params["id"] = this.chromiumBuilds[deleteIndex].Id;
        sk.post("/_/delete_chromium_build_task", JSON.stringify(params)).then(function() {
          $$$("#confirm_toast").text = "Deleted task " + params["id"];
          $$$("#confirm_toast").show();
@@ -237,8 +238,8 @@
      formatTimestamp: ctfe.getFormattedTimestamp,
      formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
 
-     isDone: function(failure, tsCompleted) {
-       return !failure && tsCompleted;
+     isDone: function(failure, taskDone) {
+       return !failure && taskDone;
      },
   });
 </script>
