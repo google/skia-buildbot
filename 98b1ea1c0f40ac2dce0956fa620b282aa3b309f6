@@ -22,6 +22,30 @@
       "revId": "98b1ea1c0f40ac2dce0956fa620b282aa3b309f6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec7a8fa5_fa88f391",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-15T15:03:23Z",
+      "side": 1,
+      "message": "Yes and no. \nI\u0027d like to stick with this for now, it\u0027s the same as Gold uses. I know that it needs to \ngo away, but I don\u0027t think NewDefaultTokenSource does exactly what I want either. \nWe have ~14 different functions in the auth packages, which reflect personal preferences of the various implementers. It needs to be cleaned up and refactor its dependencies.",
+      "parentUuid": "e657a59c_b9dac503",
+      "range": {
+        "startLine": 41,
+        "startChar": 21,
+        "endLine": 41,
+        "endChar": 47
+      },
+      "revId": "98b1ea1c0f40ac2dce0956fa620b282aa3b309f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
