@@ -18,9 +18,11 @@ export function jsonOrThrow(resp) {
   if (resp.ok) {
     return resp.json();
   }
-  throw {
-    message: `Bad network response: ${resp.statusText}`,
-    body: resp.body,
-    status: resp.status
-  };
+  resp.text().then((text) => {
+    throw {
+      message: `Bad network response: ${resp.statusText}`,
+      body: text,
+      status: resp.status
+    };
+  });
 }
