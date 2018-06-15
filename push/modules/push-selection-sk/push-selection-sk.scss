@@ -14,11 +14,11 @@ push-selection-sk {
     background: lightgray;
   }
 
-  .pushSelection icon-check-sk {
+  .pushSelection check-icon-sk {
     visibility: hidden;
   }
 
-  .pushSelection[selected] icon-check-sk {
+  .pushSelection[selected] check-icon-sk {
     visibility: visible;
   }
 
