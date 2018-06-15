@@ -52,7 +52,7 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:70be31c3bdd7641a2648ad4a495612e923158b4b"
+          "version": "git_revision:546aae39f1fb9dce9add528e2011afa574535ecd"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
@@ -216,7 +216,7 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:70be31c3bdd7641a2648ad4a495612e923158b4b"
+          "version": "git_revision:546aae39f1fb9dce9add528e2011afa574535ecd"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
@@ -356,7 +356,7 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:70be31c3bdd7641a2648ad4a495612e923158b4b"
+          "version": "git_revision:546aae39f1fb9dce9add528e2011afa574535ecd"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
@@ -486,7 +486,7 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:70be31c3bdd7641a2648ad4a495612e923158b4b"
+          "version": "git_revision:546aae39f1fb9dce9add528e2011afa574535ecd"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
@@ -622,7 +622,7 @@
         {
           "name": "infra/tools/luci/kitchen/${platform}",
           "path": ".",
-          "version": "git_revision:70be31c3bdd7641a2648ad4a495612e923158b4b"
+          "version": "git_revision:546aae39f1fb9dce9add528e2011afa574535ecd"
         },
         {
           "name": "infra/tools/luci-auth/${platform}",
