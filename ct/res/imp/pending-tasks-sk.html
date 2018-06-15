@@ -79,7 +79,7 @@
           </td>
 
           <!-- Added col --> 
-          <td>{{ formatTimestamp(pendingTask.TsAdded.Int64) }}
+          <td>{{ formatTimestamp(pendingTask.TsAdded) }}
             <template is="dom-if" if="{{ pendingTask.FutureDate }}">
               <br/>
               <div style="color:red;">(scheduled in the future)</div>
@@ -206,21 +206,22 @@
        for (index in tasks) {
          var task = tasks[index];
          task["canDelete"] = json.permissions[index].DeleteAllowed;
+         task["Id"] = json.ids[index];
          task["TaskType"] = taskDescriptor.type;
          task["GetURL"] = taskDescriptor.get_url;
          task["DeleteURL"] = taskDescriptor.delete_url;
          // Check if this is a completed task set to repeat.
-         if (task["RepeatAfterDays"] != 0 && task["TsCompleted"]["Int64"]) {
+         if (task["RepeatAfterDays"] != 0 && task["TaskDone"]) {
            // Calculate the future date.
-           var timestamp = ctfe.getTimestamp(task["TsAdded"]["Int64"]);
+           var timestamp = ctfe.getTimestamp(task["TsAdded"]);
            timestamp.setDate(timestamp.getDate() + task["RepeatAfterDays"]);
            task["FutureDate"] = true;
-           task["TsAdded"]["Int64"] = ctfe.getCtDbTimestamp(timestamp);
+           task["TsAdded"] = ctfe.getCtDbTimestamp(timestamp);
          }
        }
        this.pendingTasks = this.pendingTasks.concat(tasks)
        // Sort pending tasks according to TsAdded.
-       this.pendingTasks.sort(function(a, b){return a["TsAdded"]["Int64"] - b["TsAdded"]["Int64"]});
+       this.pendingTasks.sort(function(a, b){return a["TsAdded"] - b["TsAdded"]});
      },
 
      deleteTask: function(deleteIndex) {

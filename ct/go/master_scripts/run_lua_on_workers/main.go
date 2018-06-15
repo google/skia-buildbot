@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"io"
@@ -81,10 +80,10 @@ func updateWebappTask() {
 	vars.Id = *taskID
 	vars.SetCompleted(taskCompletedSuccessfully)
 	if luaOutputRemoteLink != "" {
-		vars.ScriptOutput = sql.NullString{String: luaOutputRemoteLink, Valid: true}
+		vars.ScriptOutput = luaOutputRemoteLink
 	}
 	if luaAggregatorOutputRemoteLink != "" {
-		vars.AggregatedOutput = sql.NullString{String: luaAggregatorOutputRemoteLink, Valid: true}
+		vars.AggregatedOutput = luaAggregatorOutputRemoteLink
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }

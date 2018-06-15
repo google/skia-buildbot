@@ -7,7 +7,7 @@ package chromium_builds
 import (
 	"bufio"
 	"bytes"
-	"database/sql"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,15 +20,17 @@ import (
 	"text/template"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/sklog"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -63,52 +65,70 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type DBTask struct {
+type DatastoreTask struct {
 	task_common.CommonCols
 
-	ChromiumRev   string        `db:"chromium_rev"`
-	ChromiumRevTs sql.NullInt64 `db:"chromium_rev_ts"`
-	SkiaRev       string        `db:"skia_rev"`
+	ChromiumRev   string
+	ChromiumRevTs int64
+	SkiaRev       string
 }
 
-func (task DBTask) GetTaskName() string {
+func (task DatastoreTask) GetTaskName() string {
 	return "ChromiumBuild"
 }
 
-func (task DBTask) GetResultsLink() string {
+func (task DatastoreTask) GetResultsLink() string {
 	return ""
 }
 
-func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
 	taskVars := &AddTaskVars{}
-	taskVars.Username = dbTask.Username
+	taskVars.Username = task.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
-	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
+	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
 
-	taskVars.ChromiumRev = dbTask.ChromiumRev
-	taskVars.ChromiumRevTs = strconv.FormatInt(dbTask.ChromiumRevTs.Int64, 10)
-	taskVars.SkiaRev = dbTask.SkiaRev
-	return taskVars
+	taskVars.ChromiumRev = task.ChromiumRev
+	taskVars.ChromiumRevTs = strconv.FormatInt(task.ChromiumRevTs, 10)
+	taskVars.SkiaRev = task.SkiaRev
+	return taskVars, nil
 }
 
-func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
-func (task DBTask) RunsOnGCEWorkers() bool {
+func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	// Unused for chromium_builds because it always runs on the GCE builders not
 	// the workers or bare-metal machines.
 	return false
 }
 
-func (task DBTask) TableName() string {
-	return db.TABLE_CHROMIUM_BUILD_TASKS
+func (task DatastoreTask) GetDatastoreKind() ds.Kind {
+	return ds.CHROMIUM_BUILD_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*DatastoreTask{}
+	for {
+		t := &DatastoreTask{}
+		_, err := it.Next(t)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
+}
+
+func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_common.Task, error) {
+	t := &DatastoreTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -123,37 +143,39 @@ type AddTaskVars struct {
 	SkiaRev       string `json:"skia_rev"`
 }
 
-func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
+	return ds.CHROMIUM_BUILD_TASKS
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_common.Task, error) {
 	if task.ChromiumRev == "" ||
 		task.SkiaRev == "" ||
 		task.ChromiumRevTs == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
+		return nil, fmt.Errorf("Invalid parameters")
 	}
+
 	// Example timestamp format: "Wed Jul 15 13:42:19 2015"
-	var chromiumRevTs string
+	var chromiumRevTs int64
 	if parsedTs, err := time.Parse(time.ANSIC, task.ChromiumRevTs); err != nil {
 		// ChromiumRevTs is likely already in the expected format.
-		chromiumRevTs = task.ChromiumRevTs
+		chromiumRevTs, err = strconv.ParseInt(task.ChromiumRevTs, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("%s is not int64: %s", task.ChromiumRevTs, err)
+		}
 	} else {
-		chromiumRevTs = parsedTs.UTC().Format("20060102150405")
+		ts := parsedTs.UTC().Format("20060102150405")
+		chromiumRevTs, err = strconv.ParseInt(ts, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("%s is not int64: %s", ts, err)
+		}
 	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "chromium_rev", Value: task.ChromiumRev, Limit: 100},
-		{Name: "skia_rev", Value: task.SkiaRev, Limit: 100},
-	}); err != nil {
-		return "", nil, err
+
+	t := &DatastoreTask{
+		ChromiumRev:   task.ChromiumRev,
+		SkiaRev:       task.SkiaRev,
+		ChromiumRevTs: chromiumRevTs,
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,chromium_rev,chromium_rev_ts,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
-			db.TABLE_CHROMIUM_BUILD_TASKS),
-		[]interface{}{
-			task.Username,
-			task.ChromiumRev,
-			chromiumRevTs,
-			task.SkiaRev,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
+	return t, nil
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -249,16 +271,20 @@ func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}
 	return nil, nil, nil
 }
 
+func (task *UpdateVars) UpdateExtraFields(t task_common.Task) error {
+	return nil
+}
+
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_BUILD_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&DBTask{}, w, r)
+	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&DBTask{}, w, r)
+	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -266,15 +292,23 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&DBTask{}, w, r)
+	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
 }
 
-// Validate that the given chromiumBuild exists in the DB.
-func Validate(chromiumBuild DBTask) error {
-	buildCount := []int{}
-	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CHROMIUM_BUILD_TASKS)
-	if err := db.DB.Select(&buildCount, query, chromiumBuild.ChromiumRev, chromiumBuild.SkiaRev); err != nil || len(buildCount) < 1 || buildCount[0] == 0 {
+// Validate that the given chromiumBuild exists in the Datastore.
+func Validate(ctx context.Context, chromiumBuild DatastoreTask) error {
+	q := ds.NewQuery(chromiumBuild.GetDatastoreKind())
+	q = q.Filter("ChromiumRev =", chromiumBuild.ChromiumRev)
+	q = q.Filter("SkiaRev =", chromiumBuild.SkiaRev)
+	q = q.Filter("TaskDone =", true)
+	q = q.Filter("Failure =", false)
+
+	count, err := ds.DS.Count(ctx, q)
+	if err != nil {
 		sklog.Info(err)
+		return fmt.Errorf("Error when validating chromium build %v: %s", chromiumBuild, err)
+	}
+	if count == 0 {
 		return fmt.Errorf("Unable to validate chromium_build parameter %v", chromiumBuild)
 	}
 	return nil

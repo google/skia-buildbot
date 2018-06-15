@@ -5,7 +5,7 @@
 package pixel_diff
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -13,12 +13,14 @@ import (
 	"strings"
 	"text/template"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
-	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/ds"
 )
 
 var (
@@ -39,64 +41,108 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type DBTask struct {
+type DatastoreTask struct {
 	task_common.CommonCols
 
-	PageSets             string         `db:"page_sets"`
-	CustomWebpages       string         `db:"custom_webpages"`
-	BenchmarkArgs        string         `db:"benchmark_args"`
-	BrowserArgsNoPatch   string         `db:"browser_args_nopatch"`
-	BrowserArgsWithPatch string         `db:"browser_args_withpatch"`
-	Description          string         `db:"description"`
-	ChromiumPatch        string         `db:"chromium_patch"`
-	SkiaPatch            string         `db:"skia_patch"`
-	Results              sql.NullString `db:"results"`
+	PageSets             string
+	IsTestPageSet        bool
+	BenchmarkArgs        string
+	BrowserArgsNoPatch   string
+	BrowserArgsWithPatch string
+	Description          string
+	CustomWebpagesGSPath string
+	ChromiumPatchGSPath  string
+	SkiaPatchGSPath      string
+	Results              string
+
+	CustomWebpages string `datastore:"-"`
+	ChromiumPatch  string `datastore:"-"`
+	SkiaPatch      string `datastore:"-"`
 }
 
-func (task DBTask) GetTaskName() string {
+func getAllPatchesFromStorage(t *DatastoreTask) error {
+	var err error
+	t.CustomWebpages, err = ctutil.GetPatchFromStorage(t.CustomWebpagesGSPath)
+	if err != nil {
+		return fmt.Errorf("Could not read from %s: %s", t.CustomWebpagesGSPath, err)
+	}
+	t.ChromiumPatch, err = ctutil.GetPatchFromStorage(t.ChromiumPatchGSPath)
+	if err != nil {
+		return fmt.Errorf("Could not read from %s: %s", t.ChromiumPatchGSPath, err)
+	}
+	t.SkiaPatch, err = ctutil.GetPatchFromStorage(t.SkiaPatchGSPath)
+	if err != nil {
+		return fmt.Errorf("Could not read from %s: %s", t.SkiaPatchGSPath, err)
+	}
+	return nil
+}
+
+func (task DatastoreTask) GetTaskName() string {
 	return "PixelDiff"
 }
 
-func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
 	taskVars := &AddTaskVars{}
-	taskVars.Username = dbTask.Username
+	taskVars.Username = task.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
-	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
-	taskVars.PageSets = dbTask.PageSets
-	taskVars.CustomWebpages = dbTask.CustomWebpages
-	taskVars.BenchmarkArgs = dbTask.BenchmarkArgs
-	taskVars.BrowserArgsNoPatch = dbTask.BrowserArgsNoPatch
-	taskVars.BrowserArgsWithPatch = dbTask.BrowserArgsWithPatch
-	taskVars.Description = dbTask.Description
-	taskVars.ChromiumPatch = dbTask.ChromiumPatch
-	taskVars.SkiaPatch = dbTask.SkiaPatch
-	return taskVars
+	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
+	taskVars.PageSets = task.PageSets
+	taskVars.BenchmarkArgs = task.BenchmarkArgs
+	taskVars.BrowserArgsNoPatch = task.BrowserArgsNoPatch
+	taskVars.BrowserArgsWithPatch = task.BrowserArgsWithPatch
+	taskVars.Description = task.Description
+
+	taskVars.CustomWebpages = task.CustomWebpages
+	taskVars.ChromiumPatch = task.ChromiumPatch
+	taskVars.SkiaPatch = task.SkiaPatch
+
+	return taskVars, nil
 }
 
-func (task DBTask) GetResultsLink() string {
-	if task.Results.Valid {
-		return task.Results.String
-	} else {
-		return ""
-	}
+func (task DatastoreTask) GetResultsLink() string {
+	return task.Results
 }
 
-func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }
 
-func (task DBTask) RunsOnGCEWorkers() bool {
+func (task DatastoreTask) RunsOnGCEWorkers() bool {
 	return true
 }
 
-func (task DBTask) TableName() string {
-	return db.TABLE_PIXEL_DIFF_TASKS
+func (task DatastoreTask) GetDatastoreKind() ds.Kind {
+	return ds.PIXEL_DIFF_TASKS
 }
 
-func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []DBTask{}
-	err := db.DB.Select(&result, query, args...)
-	return result, err
+func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*DatastoreTask{}
+	for {
+		t := &DatastoreTask{}
+		_, err := it.Next(t)
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
+		}
+		if err := getAllPatchesFromStorage(t); err != nil {
+			return nil, fmt.Errorf("Could not get all patches from storage: %s", err)
+		}
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
+}
+
+func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_common.Task, error) {
+	t := &DatastoreTask{}
+	if err := ds.DS.Get(c, key, t); err != nil {
+		return nil, err
+	}
+	if err := getAllPatchesFromStorage(t); err != nil {
+		return nil, fmt.Errorf("Could not get all patches from storage: %s", err)
+	}
+	return t, nil
 }
 
 func addTaskView(w http.ResponseWriter, r *http.Request) {
@@ -116,43 +162,53 @@ type AddTaskVars struct {
 	SkiaPatch            string `json:"skia_patch"`
 }
 
-func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
+	return ds.PIXEL_DIFF_TASKS
+}
+
+func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_common.Task, error) {
 	if task.PageSets == "" ||
 		task.Description == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
+		return nil, fmt.Errorf("Invalid parameters")
 	}
-	customWebpages, err := ctfeutil.GetQualifiedCustomWebpages(task.CustomWebpages, task.BenchmarkArgs)
+
+	customWebpagesSlice, err := ctfeutil.GetQualifiedCustomWebpages(task.CustomWebpages, task.BenchmarkArgs)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "page_sets", Value: task.PageSets, Limit: 100},
-		{Name: "benchmark_args", Value: task.BenchmarkArgs, Limit: 255},
-		{Name: "browser_args_nopatch", Value: task.BrowserArgsNoPatch, Limit: 255},
-		{Name: "browser_args_withpatch", Value: task.BrowserArgsWithPatch, Limit: 255},
-		{Name: "desc", Value: task.Description, Limit: 255},
-		{Name: "custom_webpages", Value: strings.Join(customWebpages, ","), Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "chromium_patch", Value: task.ChromiumPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-		{Name: "skia_patch", Value: task.SkiaPatch, Limit: db.LONG_TEXT_MAX_LENGTH},
-	}); err != nil {
-		return "", nil, err
+	customWebpages := strings.Join(customWebpagesSlice, ",")
+	customWebpagesGSPath, err := ctutil.SavePatchToStorage(customWebpages)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save custom webpages to storage: %s", err)
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,custom_webpages,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,skia_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
-			db.TABLE_PIXEL_DIFF_TASKS),
-		[]interface{}{
-			task.Username,
-			task.PageSets,
-			strings.Join(customWebpages, ","),
-			task.BenchmarkArgs,
-			task.BrowserArgsNoPatch,
-			task.BrowserArgsWithPatch,
-			task.Description,
-			task.ChromiumPatch,
-			task.SkiaPatch,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
+
+	chromiumPatchGSPath, err := ctutil.SavePatchToStorage(task.ChromiumPatch)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save chromium patch to storage: %s", err)
+	}
+	skiaPatchGSPath, err := ctutil.SavePatchToStorage(task.SkiaPatch)
+	if err != nil {
+		return nil, fmt.Errorf("Could not save skia patch to storage: %s", err)
+	}
+
+	t := &DatastoreTask{
+		PageSets:             task.PageSets,
+		IsTestPageSet:        task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
+		BenchmarkArgs:        task.BenchmarkArgs,
+		BrowserArgsNoPatch:   task.BrowserArgsNoPatch,
+		BrowserArgsWithPatch: task.BrowserArgsWithPatch,
+		Description:          task.Description,
+
+		CustomWebpagesGSPath: customWebpagesGSPath,
+		CustomWebpages:       customWebpages,
+
+		ChromiumPatchGSPath: chromiumPatchGSPath,
+		ChromiumPatch:       task.ChromiumPatch,
+
+		SkiaPatchGSPath: skiaPatchGSPath,
+		SkiaPatch:       task.SkiaPatch,
+	}
+	return t, nil
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -160,44 +216,37 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&DBTask{}, w, r)
+	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
 }
 
 type UpdateVars struct {
 	task_common.UpdateTaskCommonVars
 
-	Results sql.NullString
+	Results string
 }
 
 func (vars *UpdateVars) UriPath() string {
 	return ctfeutil.UPDATE_PIXEL_DIFF_TASK_POST_URI
 }
 
-func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
-	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
-		{Name: "Results", Value: task.Results.String, Limit: 255},
-	}); err != nil {
-		return nil, nil, err
+func (vars *UpdateVars) UpdateExtraFields(t task_common.Task) error {
+	task := t.(*DatastoreTask)
+	if vars.Results != "" {
+		task.Results = vars.Results
 	}
-	clauses := []string{}
-	args := []interface{}{}
-	if task.Results.Valid {
-		clauses = append(clauses, "results = ?")
-		args = append(args, task.Results.String)
-	}
-	return clauses, args, nil
+	return nil
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_PIXEL_DIFF_TASKS, w, r)
+	task_common.UpdateTaskHandler(&UpdateVars{}, &DatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&DBTask{}, w, r)
+	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&DBTask{}, w, r)
+	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
