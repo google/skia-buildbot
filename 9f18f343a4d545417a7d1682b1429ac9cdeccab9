@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "393bc036_0851317f",
+        "filename": "scripts/run_on_swarming_bots/reboot_bot.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-16T12:48:30Z",
+      "side": 1,
+      "message": "Copied from https://skia.googlesource.com/buildbot/+/master/scripts/run_on_swarming_bots/power_off_bot.py",
+      "revId": "9f18f343a4d545417a7d1682b1429ac9cdeccab9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
