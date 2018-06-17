@@ -85,10 +85,15 @@ var (
 	// writeTimings is a file in which to write the test timings in JSON
 	// format.
 	writeTimings = flag.String("write_timings", "", "JSON file in which to write the test timings.")
+
+	// Every call to cmdTest uses a different KARMA_PORT.
+	nextKarmaPort = 9876
 )
 
 // cmdTest returns a test which runs a command and fails if the command fails.
 func cmdTest(cmd []string, cwd, name, testType string) *test {
+	karmaPort := nextKarmaPort
+	nextKarmaPort++
 	return &test{
 		Name: name,
 		Cmd:  strings.Join(cmd, " "),
@@ -97,6 +102,7 @@ func cmdTest(cmd []string, cwd, name, testType string) *test {
 			if cwd != "" {
 				command.Dir = cwd
 			}
+			command.Env = append(os.Environ(), fmt.Sprintf("KARMA_PORT=%d", karmaPort))
 			output, err := command.CombinedOutput()
 			if err != nil {
 				if _, err2 := exec.LookPath(cmd[0]); err2 != nil {

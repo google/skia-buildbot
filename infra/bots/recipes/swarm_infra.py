@@ -168,8 +168,6 @@ def RunSteps(api):
     env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
 
   # Run tests.
-  karma_port = '9876'
-  env['KARMA_PORT'] = karma_port
   env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']
   env['TMPDIR'] = None
   env['PATH'] = api.path.pathsep.join([
