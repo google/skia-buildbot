@@ -6,10 +6,13 @@ package main
    Bot numbers should be assigned as follows:
      1-99 (skia-gce-0..): Temporary or experimental bots.
      100-499 (skia-gce-[1234]..): Linux
-       400-499: Skylake
+       100-199: Haswell, Debian9, n1-highmem-2
+       200-299: Haswell, Debian9, n1-standard-16
+       300-399: Haswell, Debian9, n1-highcpu-64
+       400-499: Skylake, Debian9, n1-standard-16
      500-699 (skia-gce-[56]..): Windows
-       500-599: Win2016, n1-standard-16
-       600-699: Win2016, n1-highcpu-64
+       500-599: Haswell, Win2016, n1-highmem-2
+       600-699: Haswell, Win2016, n1-highcpu-64
      700-999: unassigned
 */
 
