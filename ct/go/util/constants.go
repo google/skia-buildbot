@@ -187,7 +187,9 @@ type PagesetTypeInfo struct {
 }
 
 var (
-	CtUser        = "chrome-bot"
+	CtUser = "chrome-bot"
+	// Whenever the bucket name changes, getGSLink in ctfe.js will have to be
+	// updated as well.
 	GCSBucketName = "cluster-telemetry"
 
 	// Email address of cluster telemetry admins. They will be notified everytime

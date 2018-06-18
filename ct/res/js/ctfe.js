@@ -174,6 +174,22 @@ this.ctfe = this.ctfe || function() {
   }
 
   /**
+   * Returns a link to the specified google storage path.
+   */
+  ctfe.getGSLink = function(gsPath) {
+    return "https://ct.skia.org/results/cluster-telemetry/" + gsPath;
+  }
+
+  /**
+   * Returns whether the patch's SHA1 digest in the specified google storage
+   * path is for an empty string or not.
+   */
+  ctfe.isEmptyPatch = function(gsPath) {
+    // This is the SHA1 digest of an empty string.
+    return gsPath === "patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch";
+  }
+
+  /**
    * Returns a string that describes the specified CLs.
    **/
   ctfe.getDescriptionOfCls = function(chromiumClDesc, skiaClDesc, v8ClDesc, catapultClDesc) {

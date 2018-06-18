@@ -62,29 +62,12 @@
     <!-- Section for popups. -->
     <template is="dom-repeat" items="{{metricsAnalysisTasks}}" as="metricsAnalysisTask" index-as="index">
 
-      <paper-dialog heading="Custom Traces" id="{{ getCustomTracesId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{metricsAnalysisTask.CustomTraces}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
       <paper-dialog heading="Benchmark Args" id="{{ getBenchmarkArgsId(index) }}">
         <paper-dialog-scrollable>
           <pre>{{metricsAnalysisTask.BenchmarkArgs}}</pre>
         </paper-dialog-scrollable>
       </paper-dialog>
 
-      <paper-dialog heading="Chromium Patch" id="{{ getChromiumPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{metricsAnalysisTask.ChromiumPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Catapult Patch" id="{{ getCatapultPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{metricsAnalysisTask.CatapultPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
     </template>
 
     <table class="runshistory" id="runshistory" cellpadding="5" border="1">
@@ -162,11 +145,11 @@
                   </td>
                 </tr>
               </template>
-              <template is="dom-if" if="{{metricsAnalysisTask.CustomTraces}}">
+              <template is="dom-if" if="{{ !isEmptyPatch(metricsAnalysisTask.CustomTracesGSPath) }}">
                 <tr>
                   <td class="nowrap">Custom Traces:</td>
                   <td class="nowrap">
-                    <a href="javascript:void(0);" data-index$="{{index}}" data-type="customTraces">traces</a>
+                    <a href="{{ getGSLink(metricsAnalysisTask.CustomTracesGSPath) }}" target="_blank">traces</a>
                   </td>
                 </tr>
               </template>
@@ -203,12 +186,12 @@
 
           <!-- Patches -->
           <td>
-            <template is="dom-if" if="{{metricsAnalysisTask.ChromiumPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="chromiumPatch">Chromium</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(metricsAnalysisTask.ChromiumPatchGSPath) }}">
+              <a href="{{ getGSLink(metricsAnalysisTask.ChromiumPatchGSPath) }}" target="_blank">Chromium</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{metricsAnalysisTask.CatapultPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="catapultPatch">Catapult</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(metricsAnalysisTask.CatapultPatchGSPath) }}">
+              <a href="{{ getGSLink(metricsAnalysisTask.CatapultPatchGSPath) }}" target="_blank">Catapult</a>
               <br/>
             </template>
           </td>
@@ -269,12 +252,6 @@
            var id = anchor.dataset.index;
            if (anchor.dataset.type == "benchmarkArgs") {
              that.toggleDialog(that.getBenchmarkArgsId(id));
-           } else if (anchor.dataset.type == "chromiumPatch") {
-             that.toggleDialog(that.getChromiumPatchId(id));
-           } else if (anchor.dataset.type == "catapultPatch") {
-             that.toggleDialog(that.getCatapultPatchId(id));
-           } else if (anchor.dataset.type == "customTraces") {
-             that.toggleDialog(that.getCustomTracesId(id));
            }
          }
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
@@ -315,18 +292,6 @@
 
      getBenchmarkArgsId: function(index) {
        return "benchmark_args" + index;
-     },
-
-     getChromiumPatchId: function(index) {
-       return "chromium_patch" + index;
-     },
-
-     getCatapultPatchId: function(index) {
-       return "catapult_patch" + index;
-     },
-
-     getCustomTracesId: function(index) {
-       return "custom_traces" + index;
      },
 
      resetPagination: function() {
@@ -376,5 +341,7 @@
 
      formatTimestamp: ctfe.getFormattedTimestamp,
      formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
+     getGSLink: ctfe.getGSLink,
+     isEmptyPatch: ctfe.isEmptyPatch,
   });
 </script>
