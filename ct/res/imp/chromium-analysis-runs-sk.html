@@ -92,42 +92,6 @@
           <pre>{{chromiumAnalysisTask.MatchStdoutTxt}}</pre>
         </paper-dialog-scrollable>
       </paper-dialog>
-
-      <paper-dialog heading="Chromium Patch" id="{{ getChromiumPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumAnalysisTask.ChromiumPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Skia Patch" id="{{ getSkiaPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumAnalysisTask.SkiaPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="V8 Patch" id="{{ getV8PatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumAnalysisTask.V8Patch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Catapult Patch" id="{{ getCatapultPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumAnalysisTask.CatapultPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Telemetry Patch" id="{{ getBenchmarkPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumAnalysisTask.BenchmarkPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Custom Webpages" id="{{ getCustomWebpagesId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumAnalysisTask.CustomWebpages}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
     </template>
 
     <table class="runshistory" id="runshistory" cellpadding="5" border="1">
@@ -207,10 +171,10 @@
               </tr>
               <tr>
                 <td>PageSet:</td>
-                  <template is="dom-if" if="{{chromiumAnalysisTask.CustomWebpages}}">
-                    <a href="javascript:void(0);" data-index$="{{index}}" data-type="customWebpages">Custom Webpages</a>
+                  <template is="dom-if" if="{{ !isEmptyPatch(chromiumAnalysisTask.CustomWebpagesGSPath) }}">
+                    <a href="{{ getGSLink(chromiumAnalysisTask.CustomWebpagesGSPath) }}" target="_blank">Custom Webpages</a>
                   </template>
-                  <template is="dom-if" if="{{!chromiumAnalysisTask.CustomWebpages}}">
+                  <template is="dom-if" if="{{ isEmptyPatch(chromiumAnalysisTask.CustomWebpagesGSPath) }}">
                     {{chromiumAnalysisTask.PageSets}}
                   </template>
                 </td>
@@ -260,24 +224,24 @@
 
           <!-- Patches -->
           <td>
-            <template is="dom-if" if="{{chromiumAnalysisTask.ChromiumPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="chromiumPatch">Chromium</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumAnalysisTask.ChromiumPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumAnalysisTask.ChromiumPatchGSPath) }}" target="_blank">Chromium</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumAnalysisTask.SkiaPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="skiaPatch">Skia</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumAnalysisTask.SkiaPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumAnalysisTask.SkiaPatchGSPath) }}" target="_blank">Skia</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumAnalysisTask.V8Patch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="v8Patch">V8</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumAnalysisTask.V8PatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumAnalysisTask.V8PatchGSPath) }}" target="_blank">V8</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumAnalysisTask.CatapultPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="catapultPatch">Catapult</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumAnalysisTask.CatapultPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumAnalysisTask.CatapultPatchGSPath) }}" target="_blank">Catapult</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumAnalysisTask.BenchmarkPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="benchmarkPatch">Telemetry</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumAnalysisTask.BenchmarkPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumAnalysisTask.BenchmarkPatchGSPath) }}" target="_blank">Telemetry</a>
             </template>
           </td>
 
@@ -353,18 +317,6 @@
              that.toggleDialog(that.getBrowserArgsId(id));
            } else if (anchor.dataset.type == "matchStdoutTxt") {
              that.toggleDialog(that.getMatchStdoutTxtId(id));
-           } else if (anchor.dataset.type == "chromiumPatch") {
-             that.toggleDialog(that.getChromiumPatchId(id));
-           } else if (anchor.dataset.type == "skiaPatch") {
-             that.toggleDialog(that.getSkiaPatchId(id));
-           } else if (anchor.dataset.type == "v8Patch") {
-             that.toggleDialog(that.getV8PatchId(id));
-           } else if (anchor.dataset.type == "catapultPatch") {
-             that.toggleDialog(that.getCatapultPatchId(id));
-           } else if (anchor.dataset.type == "benchmarkPatch") {
-             that.toggleDialog(that.getBenchmarkPatchId(id));
-           } else if (anchor.dataset.type == "customWebpages") {
-             that.toggleDialog(that.getCustomWebpagesId(id));
            }
          }
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
@@ -416,30 +368,6 @@
 
      getMatchStdoutTxtId: function(index) {
        return "match_stdout_txt" + index;
-     },
-
-     getChromiumPatchId: function(index) {
-       return "chromium_patch" + index;
-     },
-
-     getSkiaPatchId: function(index) {
-       return "skia_patch" + index;
-     },
-
-     getV8PatchId: function(index) {
-       return "v8_patch" + index;
-     },
-
-     getCatapultPatchId: function(index) {
-       return "catapult_patch" + index;
-     },
-
-     getBenchmarkPatchId: function(index) {
-       return "benchmark_patch" + index;
-     },
-
-     getCustomWebpagesId: function(index) {
-       return "custom_webpages" + index;
      },
 
      resetPagination: function() {
@@ -495,5 +423,7 @@
 
      formatTimestamp: ctfe.getFormattedTimestamp,
      formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
+     getGSLink: ctfe.getGSLink,
+     isEmptyPatch: ctfe.isEmptyPatch,
   });
 </script>

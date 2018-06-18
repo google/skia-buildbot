@@ -1174,6 +1174,8 @@ func SavePatchToStorage(patch string) (string, error) {
 		return "", fmt.Errorf("Patch is too long with %d bytes; limit %d bytes", len(patch), PATCH_LIMIT)
 	}
 
+	// If sha1 below ever changes, then isEmptyPatch in ctfe.js will also need to
+	// be updated.
 	patchHash := sha1.Sum([]byte(patch))
 	patchHashHex := hex.EncodeToString(patchHash[:])
 
