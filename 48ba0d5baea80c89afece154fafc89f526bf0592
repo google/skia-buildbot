@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c14c22da_f50dd1e3",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 740,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-18T16:19:41Z",
+      "side": 0,
+      "message": "This timer wasn\u0027t defined, so this was triggering warnings.",
+      "range": {
+        "startLine": 740,
+        "startChar": 7,
+        "endLine": 740,
+        "endChar": 41
+      },
+      "revId": "48ba0d5baea80c89afece154fafc89f526bf0592",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
