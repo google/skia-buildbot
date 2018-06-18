@@ -1272,3 +1272,39 @@ func (t *TimeoutTracker) Read() int {
 	defer t.timeoutCounterMutex.Unlock()
 	return t.timeoutCounter
 }
+
+func SavePatchToStorage(patch string) (string, error) {
+
+	if len(patch) > PATCH_LIMIT {
+		return "", fmt.Errorf("Patch is too long with %d bytes; limit %d bytes", len(patch), PATCH_LIMIT)
+	}
+
+	patchHash := sha1.Sum([]byte(patch))
+	patchHashHex := hex.EncodeToString(patchHash[:])
+
+	gs, err := NewGcsUtil(nil)
+	if err != nil {
+		return "", err
+	}
+	gsDir := "patches"
+	patchFileName := fmt.Sprintf("%s.patch", patchHashHex)
+	gsPath := path.Join(gsDir, patchFileName)
+
+	res, err := gs.service.Objects.Get(GCSBucketName, gsPath).Do()
+	if err != nil {
+		//sklog.Infof("This is expected for patches we have not seen before:\nCould not retrieve object metadata for %s: %s", gsPath, err)
+	}
+	if res == nil || res.Size != uint64(len(patch)) {
+		// Patch does not exist in Google Storage yet so upload it.
+		patchPath := filepath.Join(os.TempDir(), patchFileName)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return "", err
+		}
+		defer util.Remove(patchPath)
+		if err := gs.UploadFile(patchFileName, os.TempDir(), gsDir); err != nil {
+			return "", err
+		}
+	}
+
+	return gsPath, nil
+}

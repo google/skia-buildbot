@@ -145,6 +145,7 @@ func (c *DatabaseConfig) NewVersionedDB() (*VersionedDB, error) {
 	}
 
 	sklog.Infoln("Sending Ping.")
+	fmt.Println(c.MySQLString())
 	if err := DB.Ping(); err != nil {
 		return nil, fmt.Errorf("Failed to ping SQL server: %v", err)
 	}
