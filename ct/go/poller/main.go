@@ -85,7 +85,7 @@ type Task interface {
 	GetTaskName() string
 	GetCommonCols() *task_common.CommonCols
 	// Writes any files required by the task and then uses exec.Run to run the task command.
-	Execute(ctx context.Context) error
+	Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error
 	// Returns the corresponding UpdateTaskVars instance of this Task. The
 	// returned instance is not populated.
 	GetUpdateTaskVars() task_common.UpdateTaskVars
@@ -103,7 +103,7 @@ type ChromiumAnalysisTask struct {
 	chromium_analysis.DatastoreTask
 }
 
-func (task *ChromiumAnalysisTask) Execute(ctx context.Context) error {
+func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":      task.ChromiumPatch,
@@ -147,7 +147,7 @@ type ChromiumPerfTask struct {
 	chromium_perf.DatastoreTask
 }
 
-func (task *ChromiumPerfTask) Execute(ctx context.Context) error {
+func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
 	// TODO(benjaminwagner): Since run_chromium_perf_on_workers only reads these in order to
 	// upload to Google Storage, eventually we should move the upload step here to avoid writing
@@ -195,7 +195,7 @@ type MetricsAnalysisTask struct {
 	metrics_analysis.DatastoreTask
 }
 
-func (task *MetricsAnalysisTask) Execute(ctx context.Context) error {
+func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch": task.ChromiumPatch,
@@ -232,13 +232,17 @@ type PixelDiffTask struct {
 	pixel_diff.DatastoreTask
 }
 
-func (task *PixelDiffTask) Execute(ctx context.Context) error {
+func (task *PixelDiffTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
-	for fileSuffix, patch := range map[string]string{
-		".chromium.patch":      task.ChromiumPatch,
-		".skia.patch":          task.SkiaPatch,
-		".custom_webpages.csv": task.CustomWebpages,
+	for fileSuffix, patchGSPath := range map[string]string{
+		".chromium.patch":      task.ChromiumPatchGSPath,
+		".skia.patch":          task.SkiaPatchGSPath,
+		".custom_webpages.csv": task.CustomWebpagesGSPath,
 	} {
+		patch, err := getPatchFunc(patchGSPath)
+		if err != nil {
+			return err
+		}
 		// Add an extra newline at the end because git sometimes rejects patches due to
 		// missing newlines.
 		patch = patch + "\n"
@@ -271,7 +275,7 @@ type CaptureSkpsTask struct {
 	capture_skps.DatastoreTask
 }
 
-func (task *CaptureSkpsTask) Execute(ctx context.Context) error {
+func (task *CaptureSkpsTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
 	return exec.Run(ctx, &exec.Command{
@@ -296,7 +300,7 @@ type LuaScriptTask struct {
 	lua_scripts.DatastoreTask
 }
 
-func (task *LuaScriptTask) Execute(ctx context.Context) error {
+func (task *LuaScriptTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
 	// TODO(benjaminwagner): Since run_lua_on_workers only reads the lua script in order to
@@ -337,7 +341,7 @@ type ChromiumBuildTask struct {
 	chromium_builds.DatastoreTask
 }
 
-func (task *ChromiumBuildTask) Execute(ctx context.Context) error {
+func (task *ChromiumBuildTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
 	// We do not pass --run_on_gce to the below because build tasks always run
 	// on GCE builders not GCE workers or bare-metal machines.
@@ -361,7 +365,7 @@ type RecreatePageSetsTask struct {
 	admin_tasks.RecreatePageSetsDatastoreTask
 }
 
-func (task *RecreatePageSetsTask) Execute(ctx context.Context) error {
+func (task *RecreatePageSetsTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
 	return exec.Run(ctx, &exec.Command{
 		Name: "create_pagesets_on_workers",
@@ -382,7 +386,7 @@ type RecreateWebpageArchivesTask struct {
 	admin_tasks.RecreateWebpageArchivesDatastoreTask
 }
 
-func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context) error {
+func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context, getPatchFunc func(patchId string) (string, error)) error {
 	runId := runId(task)
 	return exec.Run(ctx, &exec.Command{
 		Name: "capture_archives_on_workers",
@@ -487,7 +491,7 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 	go func() {
 		// Decrement the counter when the goroutine completes.
 		defer wg.Done()
-		if err = task.Execute(ctx); err == nil {
+		if err = task.Execute(ctx, ctutil.GetPatchFromStorage); err == nil {
 			sklog.Infof("Completed task %s", taskId)
 		} else {
 			sklog.Errorf("Task %s failed: %s", taskId, err)
