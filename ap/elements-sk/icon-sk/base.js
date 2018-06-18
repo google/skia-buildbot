@@ -1,12 +1,13 @@
 const iconSkTemplate = document.createElement('template');
-iconSkTemplate.innerHTML = `<svg class="icon-sk-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false">
-  <g><path d=""></path></g>
-</svg>`;
 
 export class IconSk extends HTMLElement {
+  constructor() {
+    super()
+    iconSkTemplate.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">${this.constructor._svg}</svg>`;
+  }
+
   connectedCallback() {
     let icon = iconSkTemplate.content.cloneNode(true);
-    icon.querySelector('path').setAttribute('d', this.constructor._path);
     this.appendChild(icon);
   }
 }

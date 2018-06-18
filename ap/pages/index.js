@@ -14,7 +14,7 @@ import 'elements-sk/nav-links-sk';
 
 import 'elements-sk/icon-sk/alarm-icon-sk';
 import 'elements-sk/icon-sk/check-icon-sk';
-import 'elements-sk/icon-sk/create-icon-sk';
-import 'elements-sk/icon-sk/link-icon-sk';
+//import 'elements-sk/icon-sk/create-icon-sk';
+//import 'elements-sk/icon-sk/link-icon-sk';
 import 'elements-sk/icon-sk/menu-icon-sk';
-import 'elements-sk/icon-sk/warning-icon-sk';
+//import 'elements-sk/icon-sk/warning-icon-sk';
