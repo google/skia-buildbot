@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7bc6e35_e7a712ee",
+        "filename": "autoroll/go/roller/sheriff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-18T19:39:51Z",
+      "side": 1,
+      "message": "Remove this line since it is apparently needed?",
+      "revId": "8c90198ffa53cf3447d5da3ab64cbbc081075e41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
