@@ -16,6 +16,24 @@
       "revId": "8c90198ffa53cf3447d5da3ab64cbbc081075e41",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e84517b2_d050b10a",
+        "filename": "autoroll/go/roller/sheriff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-18T19:40:42Z",
+      "side": 1,
+      "message": "I haven\u0027t determined whether it\u0027s needed or not in general.  It\u0027s not needed for these two particular rollers.",
+      "parentUuid": "c7bc6e35_e7a712ee",
+      "revId": "8c90198ffa53cf3447d5da3ab64cbbc081075e41",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
