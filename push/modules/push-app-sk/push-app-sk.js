@@ -1,7 +1,7 @@
 import 'elements-sk/buttons'
-import 'elements-sk/icon-sk/alarm-icon-sk'
-import 'elements-sk/icon-sk/create-icon-sk'
-import 'elements-sk/icon-sk/warning-icon-sk'
+import 'elements-sk/icon/alarm-icon-sk'
+import 'elements-sk/icon/create-icon-sk'
+import 'elements-sk/icon/warning-icon-sk'
 import 'elements-sk/spinner-sk'
 
 import 'common-sk/modules/confirm-dialog-sk'

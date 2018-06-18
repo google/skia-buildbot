@@ -1,4 +1,4 @@
-import 'elements-sk/icon-sk/create-icon-sk'
+import 'elements-sk/icon/create-icon-sk'
 
 import './index.js'
 import '../error-toast-sk'
