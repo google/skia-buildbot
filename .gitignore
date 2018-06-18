@@ -103,3 +103,4 @@ lottiecap/filmstrip.png
 promk/tmp
 # kube
 **/chat_config.txt
+.vscode
