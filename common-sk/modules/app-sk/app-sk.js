@@ -40,8 +40,8 @@
 const button_template = document.createElement('template');
 button_template.innerHTML =`
   <button class=toggle-button>
-   <icon-menu-sk>
-   </icon-menu-sk>
+   <menu-icon-sk>
+   </menu-icon-sk>
   </button>
 `
 

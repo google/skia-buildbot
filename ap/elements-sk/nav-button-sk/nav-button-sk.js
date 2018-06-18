@@ -27,7 +27,7 @@
  *
  * // Using a button instead of nav-button-sk:
  * <button onclick="this.nextElementSibling.shown = true;">
- *   <icon-create-sk></icon-create-sk>
+ *   <create-icon-sk></create-icon-sk>
  * </button>
  * <nav-links-sk>
  *   <a href="">New A</a>
@@ -36,14 +36,16 @@
  * </nav-links-sk>
  *
  */
-import '../icon-sk';
+
 import '../buttons';
+import '../icon-sk/menu-icon-sk';
+
 import { upgradeProperty } from '../upgradeProperty'
 
 window.customElements.define('nav-button-sk', class extends HTMLElement {
   connectedCallback() {
     this.addEventListener('click', this);
-    this.innerHTML = `<button><icon-menu-sk></icon-menu-sk></button>`;
+    this.innerHTML = `<button><menu-icon-sk></menu-icon-sk></button>`;
   }
 
   disconnectedCallback() {

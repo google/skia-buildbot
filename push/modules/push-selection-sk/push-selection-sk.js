@@ -1,6 +1,7 @@
 import 'elements-sk/buttons'
 import 'elements-sk/dialog-sk'
-import 'elements-sk/icon-sk'
+import 'elements-sk/icon-sk/check-icon-sk'
+import 'elements-sk/icon-sk/warning-icon-sk'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 import 'common-sk/modules/select-sk'
@@ -17,13 +18,13 @@ function shorten(s) {
 }
 
 function dirtyIndicator(choice) {
-    return choice.Dirty ? html`<icon-warning-sk title="Uncommited changes when the package was built."></icon-warning-sk>` : ``;
+    return choice.Dirty ? html`<warning-icon-sk title="Uncommited changes when the package was built."></warning-icon-sk>` : ``;
 }
 
 function listChoices(choices) {
   return choices.map((choice) => html`
 <div class=pushSelection data-name$="${choice.Name}">
-  <icon-check-sk title="Currently installed."></icon-check-sk>
+  <check-icon-sk title="Currently installed."></check-icon-sk>
   <pre><a target=_blank href="${linkToCommit(choice.Hash)}">${shorten(choice.Hash)}</a></pre>
   <pre class=built>${diffDate(choice.Built)}</pre>
   <pre class=userid title$="${choice.UserID}">${shorten(choice.UserID)}</pre>
