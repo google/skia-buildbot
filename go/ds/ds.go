@@ -4,6 +4,7 @@ package ds
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -236,6 +237,99 @@ func NewKeyWithParent(kind Kind, parent *datastore.Key) *datastore.Key {
 // Creates a new query of the given kind with the right namespace.
 func NewQuery(kind Kind) *datastore.Query {
 	return datastore.NewQuery(string(kind)).Namespace(Namespace)
+}
+
+type Item struct {
+	Key      *datastore.Key
+	Instance interface{}
+}
+
+func IterKind(client *datastore.Client, kind Kind, instance interface{}, orderedBy ...string) (<-chan *Item, error) {
+	// TODO: set the right page size to get the maximum number of keys at once.
+	pageSize := 500
+
+	// Get the type information about the target type
+	targetType := reflect.TypeOf(instance)
+	if targetType.Kind() == reflect.Ptr {
+		targetType = targetType.Elem()
+	}
+	typeKind := targetType.Kind()
+	stripPtr := (typeKind == reflect.Slice) || (typeKind == reflect.Map)
+
+	// Get the first slice of keys.
+	sliceIter := newKeySliceIterator(client, kind, pageSize, orderedBy...)
+	keySlice, done, err := sliceIter.next()
+	if err != nil {
+		return nil, err
+	}
+
+	retCh := make(chan *Item)
+	go func() {
+		// Close the channel when we are done
+		defer close(retCh)
+
+		var err error
+		keyCount := 0
+		ctx := context.TODO()
+
+		// Process keys until there are no more
+		for !done {
+			keyCount += len(keySlice)
+			sklog.Infof("LOOP: Retrieved %d keys.   Total: %d", len(keySlice), keyCount)
+
+			for _, key := range keySlice {
+				// Create a new instance, load it and write it to the output channel
+				loadedVal := reflect.New(targetType).Interface()
+				if err := client.Get(ctx, key, loadedVal); err != nil {
+					sklog.Errorf("Error loading entity with key %v: %s", key, err)
+					continue
+				}
+
+				// Strip the pointer for slices and maps.
+				if stripPtr {
+					loadedVal = reflect.ValueOf(loadedVal).Elem().Interface()
+				}
+				retCh <- &Item{Key: key, Instance: loadedVal}
+			}
+
+			// Get the next slice of keys.
+			keySlice, done, err = sliceIter.next()
+			if err != nil {
+				sklog.Errorf("Error retrieving next key slice: %s", err)
+				return
+			}
+		}
+	}()
+
+	return retCh, nil
+}
+
+func IterKeys(client *datastore.Client, kind Kind, pageSize int) (<-chan []*datastore.Key, error) {
+	sliceIter := newKeySliceIterator(client, kind, pageSize)
+	keySlice, done, err := sliceIter.next()
+	if err != nil {
+		return nil, err
+	}
+
+	retCh := make(chan []*datastore.Key)
+	go func() {
+		defer close(retCh)
+
+		keyCount := 0
+		for !done {
+			keyCount += len(keySlice)
+			sklog.Infof("LOOP: Retrieved %d keys.   Total: %d", len(keySlice), keyCount)
+			retCh <- keySlice
+
+			// Get the next slice of keys.
+			keySlice, done, err = sliceIter.next()
+			if err != nil {
+				sklog.Errorf("Error retrieving next key slice: %s", err)
+				return
+			}
+		}
+	}()
+	return retCh, nil
 }
 
 // keySliceIterator allows to iterate over the keys of a specific entity
