@@ -344,6 +344,10 @@
          this.$.benchmark_name.focus();
          return;
        }
+       if (ctfe.missingLiveSitesWithCustomWebpages(
+               this.$.custom_webpages.value, this.$.benchmark_args.value)) {
+         return;
+       }
        if (ctfe.moreThanThreeActiveTasks($$$("drawer-sk").sizeOfUserQueue)) {
          return;
        }
