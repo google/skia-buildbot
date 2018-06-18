@@ -1,7 +1,7 @@
 import 'elements-sk/buttons'
 import 'elements-sk/dialog-sk'
-import 'elements-sk/icon-sk/check-icon-sk'
-import 'elements-sk/icon-sk/warning-icon-sk'
+import 'elements-sk/icon/check-icon-sk'
+import 'elements-sk/icon/warning-icon-sk'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 import 'common-sk/modules/select-sk'

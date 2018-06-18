@@ -6,7 +6,7 @@
   "main": "index.js",
   "license": "Apache 2.0",
   "dependencies": {
-    "elements-sk": "^2.0.0",
+    "elements-sk": "^2.1.0",
     "lit-html": "^0.10.0"
   },
   "devDependencies": {

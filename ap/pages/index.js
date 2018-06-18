@@ -12,9 +12,9 @@ import 'elements-sk/tabs-panel-sk';
 import 'elements-sk/nav-button-sk';
 import 'elements-sk/nav-links-sk';
 
-import 'elements-sk/icon-sk/alarm-icon-sk';
-import 'elements-sk/icon-sk/check-icon-sk';
-import 'elements-sk/icon-sk/create-icon-sk';
-import 'elements-sk/icon-sk/link-icon-sk';
-import 'elements-sk/icon-sk/menu-icon-sk';
-import 'elements-sk/icon-sk/warning-icon-sk';
+import 'elements-sk/icon/alarm-icon-sk';
+import 'elements-sk/icon/check-icon-sk';
+import 'elements-sk/icon/create-icon-sk';
+import 'elements-sk/icon/link-icon-sk';
+import 'elements-sk/icon/menu-icon-sk';
+import 'elements-sk/icon/warning-icon-sk';

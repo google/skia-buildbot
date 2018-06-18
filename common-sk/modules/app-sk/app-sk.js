@@ -36,7 +36,7 @@
  *  </app-sk>
  *
  */
-
+import 'elements-sk/icon/menu-icon-sk'
 const button_template = document.createElement('template');
 button_template.innerHTML =`
   <button class=toggle-button>

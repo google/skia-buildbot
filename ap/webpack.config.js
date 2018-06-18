@@ -5,7 +5,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    index: './pages/index.js',
+    'index'   : './pages/index.js',
+    'icon-sk' : './pages/icon-sk.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -51,6 +52,11 @@ module.exports = {
       filename: 'index.html',
       template: './pages/index.html',
       chunks: ['index'],
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'icon-sk.html',
+      template: './pages/icon-sk.html',
+      chunks: ['icon-sk'],
     }),
     new CleanWebpackPlugin(['dist']),
   ],

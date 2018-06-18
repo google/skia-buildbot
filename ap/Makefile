@@ -6,7 +6,7 @@ release:
 	npx webpack --mode=production
 
 serve:
-	npx webpack-dev-server --content-base ./dist --watch-poll
+	npx webpack-dev-server --mode=production --content-base ./dist --watch-poll
 
 publish:
 	cd elements-sk; npm publish
@@ -25,6 +25,9 @@ update-patch:
 
 docs:
 	npx jsdoc -c jsdoc.config.js
+
+icons:
+	go run generate_icons.go
 
 package-lock.json: package.json
 	npm install

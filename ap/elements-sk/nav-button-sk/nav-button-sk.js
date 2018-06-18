@@ -38,7 +38,7 @@
  */
 
 import '../buttons';
-import '../icon-sk/menu-icon-sk';
+import '../icon/menu-icon-sk';
 
 import { upgradeProperty } from '../upgradeProperty'
 
