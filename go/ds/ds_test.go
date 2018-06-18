@@ -3,6 +3,7 @@ package ds
 import (
 	"context"
 	"math/rand"
+	"os"
 	"sort"
 	"testing"
 	"time"
@@ -37,6 +38,94 @@ func TestDeleteAll(t *testing.T) {
 	assert.Equal(t, 0, count)
 }
 
+func TestIterKind(t *testing.T) {
+	testutils.LargeTest(t)
+
+	os.Setenv("DATASTORE_EMULATOR_HOST", "localhost:8891")
+
+	nEntries := 1200
+	maxID := int64(nEntries / 2)
+	client, exp, cleanup := setupForTesting(t, nEntries, maxID)
+	defer cleanup()
+
+	found := make([]*testEntity, 0, nEntries)
+	iter := newKeySliceIterator(client, TEST_KIND, 500, "Sortable", "Random")
+	slice, done, err := iter.next()
+	assert.NoError(t, err)
+	total := 0
+	for !done {
+		total += len(slice)
+		slice, done, err = iter.next()
+		assert.NoError(t, err)
+	}
+	assert.Equal(t, nEntries, total)
+
+	// Iterate over the type and collect the instances
+	iterCh, err := IterKind(client, TEST_KIND, &testEntity{}, "Sortable", "Random")
+	assert.NoError(t, err)
+	seen := map[int64]bool{}
+	for item := range iterCh {
+		assert.False(t, seen[item.Key.ID])
+		seen[item.Key.ID] = true
+		found = append(found, item.Instance.(*testEntity))
+	}
+	assert.Equal(t, exp, found)
+}
+
+// func TestIterKeys(t *testing.T) {
+// 	//	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/usr/local/google/home/stephana/gospace/src/go.skia.org/infra/cmd/dstool/service-account.json")
+// 	sklog.Infof("Before: %s", os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+// 	assert.NoError(t, InitForTesting(common.PROJECT_ID, "gold-tryjob-ingestion-localhost-stephana"))
+// 	client := DS
+// 	sklog.Infof("Client created.")
+
+// 	iterCh, err := IterKeys(client, "TryjobResult", 500)
+// 	assert.NoError(t, err)
+// 	sklog.Infof("Iter created.")
+
+// 	seen := map[string]bool{}
+// 	totalCount := 0
+// 	//	ctx := context.TODO()
+// 	for keySlice := range iterCh {
+// 		for _, key := range keySlice {
+// 			strKey := fmt.Sprintf("%d : %d", key.Parent.ID, key.ID)
+// 			assert.False(t, seen[strKey])
+// 			seen[strKey] = true
+// 			sklog.Infof("%s", strKey)
+// 		}
+
+// 		// err := client.DeleteMulti(ctx, keySlice)
+// 		// _s_.Fatalf("Error deleting slice: %s", err)
+// 		totalCount += len(keySlice)
+// 		if totalCount%1000 == 0 {
+// 			sklog.Infof("Found %d keys so far", totalCount)
+// 		}
+// 	}
+// }
+
+func setupForTesting(t *testing.T, nEntries int, maxID int64) (*datastore.Client, []*testEntity, func()) {
+	assert.NoError(t, InitForTesting("test-project", "test-namespace"))
+	client := DS
+
+	cleanup := func() {
+		_, err := DeleteAll(client, TEST_KIND, true)
+		assert.NoError(t, err)
+	}
+
+	return client, []*testEntity{}, cleanup
+}
+
+func wait(t *testing.T, client *datastore.Client, kind Kind, expectedCount int) {
+	for {
+		count, err := client.Count(context.TODO(), NewQuery(kind))
+		assert.NoError(t, err)
+		if count == expectedCount {
+			return
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+}
+
 func addRandEntities(t *testing.T, client *datastore.Client, nEntries int, maxID int64) {
 	_, err := DeleteAll(client, TEST_KIND, true)
 	assert.NoError(t, err)
@@ -61,15 +150,4 @@ func addRandEntities(t *testing.T, client *datastore.Client, nEntries int, maxID
 
 	wait(t, client, TEST_KIND, nEntries)
 	assert.Equal(t, nEntries, len(exp))
-}
-
-func wait(t *testing.T, client *datastore.Client, kind Kind, expectedCount int) {
-	for {
-		count, err := client.Count(context.TODO(), NewQuery(kind))
-		assert.NoError(t, err)
-		if count == expectedCount {
-			return
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
 }
