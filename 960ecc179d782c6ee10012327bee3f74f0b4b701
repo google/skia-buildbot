@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b73fdcf_888efea8",
+        "filename": "ct/res/js/ctfe.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-18T13:15:31Z",
+      "side": 1,
+      "message": "Oops. We probably should have used FooGsPath \u003d\u003d \"\" for empty patches to avoid loading/storing empty patches.",
+      "range": {
+        "startLine": 189,
+        "startChar": 31,
+        "endLine": 189,
+        "endChar": 71
+      },
+      "revId": "960ecc179d782c6ee10012327bee3f74f0b4b701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
