@@ -64,42 +64,6 @@ type DatastoreTask struct {
 	RunOnGCE             bool
 	RawOutput            string
 	MatchStdoutTxt       string
-
-	CustomWebpages string `datastore:"-"`
-	ChromiumPatch  string `datastore:"-"`
-	SkiaPatch      string `datastore:"-"`
-	CatapultPatch  string `datastore:"-"`
-	BenchmarkPatch string `datastore:"-"`
-	V8Patch        string `datastore:"-"`
-}
-
-func getAllPatchesFromStorage(t *DatastoreTask) error {
-	var err error
-	t.CustomWebpages, err = ctutil.GetPatchFromStorage(t.CustomWebpagesGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.CustomWebpagesGSPath, err)
-	}
-	t.ChromiumPatch, err = ctutil.GetPatchFromStorage(t.ChromiumPatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.ChromiumPatchGSPath, err)
-	}
-	t.SkiaPatch, err = ctutil.GetPatchFromStorage(t.SkiaPatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.SkiaPatchGSPath, err)
-	}
-	t.CatapultPatch, err = ctutil.GetPatchFromStorage(t.CatapultPatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.CatapultPatchGSPath, err)
-	}
-	t.BenchmarkPatch, err = ctutil.GetPatchFromStorage(t.BenchmarkPatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.BenchmarkPatchGSPath, err)
-	}
-	t.V8Patch, err = ctutil.GetPatchFromStorage(t.V8PatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.V8PatchGSPath, err)
-	}
-	return nil
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -117,12 +81,31 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	taskVars.BrowserArgs = task.BrowserArgs
 	taskVars.Description = task.Description
 
-	taskVars.CustomWebpages = task.CustomWebpages
-	taskVars.ChromiumPatch = task.ChromiumPatch
-	taskVars.SkiaPatch = task.SkiaPatch
-	taskVars.CatapultPatch = task.CatapultPatch
-	taskVars.BenchmarkPatch = task.BenchmarkPatch
-	taskVars.V8Patch = task.V8Patch
+	var err error
+	taskVars.CustomWebpages, err = ctutil.GetPatchFromStorage(task.CustomWebpagesGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.CustomWebpagesGSPath, err)
+	}
+	taskVars.ChromiumPatch, err = ctutil.GetPatchFromStorage(task.ChromiumPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.ChromiumPatchGSPath, err)
+	}
+	taskVars.SkiaPatch, err = ctutil.GetPatchFromStorage(task.SkiaPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.SkiaPatchGSPath, err)
+	}
+	taskVars.CatapultPatch, err = ctutil.GetPatchFromStorage(task.CatapultPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.CatapultPatchGSPath, err)
+	}
+	taskVars.BenchmarkPatch, err = ctutil.GetPatchFromStorage(task.BenchmarkPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.BenchmarkPatchGSPath, err)
+	}
+	taskVars.V8Patch, err = ctutil.GetPatchFromStorage(task.V8PatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.V8PatchGSPath, err)
+	}
 
 	taskVars.RunInParallel = task.RunInParallel
 	taskVars.Platform = task.Platform
@@ -157,9 +140,6 @@ func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
 		} else if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
 		}
-		if err := getAllPatchesFromStorage(t); err != nil {
-			return nil, fmt.Errorf("Could not get all patches from storage: %s", err)
-		}
 		tasks = append(tasks, t)
 	}
 
@@ -170,9 +150,6 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	t := &DatastoreTask{}
 	if err := ds.DS.Get(c, key, t); err != nil {
 		return nil, err
-	}
-	if err := getAllPatchesFromStorage(t); err != nil {
-		return nil, fmt.Errorf("Could not get all patches from storage: %s", err)
 	}
 	return t, nil
 }
@@ -252,22 +229,11 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		Description:   task.Description,
 
 		CustomWebpagesGSPath: customWebpagesGSPath,
-		CustomWebpages:       customWebpages,
-
-		ChromiumPatchGSPath: chromiumPatchGSPath,
-		ChromiumPatch:       task.ChromiumPatch,
-
-		SkiaPatchGSPath: skiaPatchGSPath,
-		SkiaPatch:       task.SkiaPatch,
-
-		CatapultPatchGSPath: catapultPatchGSPath,
-		CatapultPatch:       task.CatapultPatch,
-
+		ChromiumPatchGSPath:  chromiumPatchGSPath,
+		SkiaPatchGSPath:      skiaPatchGSPath,
+		CatapultPatchGSPath:  catapultPatchGSPath,
 		BenchmarkPatchGSPath: benchmarkPatchGSPath,
-		BenchmarkPatch:       task.BenchmarkPatch,
-
-		V8PatchGSPath: v8PatchGSPath,
-		V8Patch:       task.V8Patch,
+		V8PatchGSPath:        v8PatchGSPath,
 
 		RunInParallel:  task.RunInParallel,
 		Platform:       task.Platform,

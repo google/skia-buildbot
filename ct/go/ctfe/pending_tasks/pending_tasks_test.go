@@ -53,8 +53,8 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		BrowserArgsNoPatch:   "banp",
 		BrowserArgsWithPatch: "bawp",
 		Description:          "description",
-		ChromiumPatch:        "chromiumpatch",
-		SkiaPatch:            "skiapatch",
+		ChromiumPatchGSPath:  "patches/abc.patch",
+		SkiaPatchGSPath:      "patches/xyz.patch",
 	})
 	test(&capture_skps.DatastoreTask{
 		CommonCols: task_common.CommonCols{

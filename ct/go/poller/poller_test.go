@@ -82,8 +82,8 @@ func pendingChromiumPerfTask() ChromiumPerfTask {
 			BrowserArgsNoPatch:   "banp",
 			BrowserArgsWithPatch: "bawp",
 			Description:          "description",
-			ChromiumPatch:        "chromiumpatch",
-			SkiaPatch:            "skiapatch",
+			ChromiumPatchGSPath:  "patches/abc.patch",
+			SkiaPatchGSPath:      "patches/xyz.patch",
 		},
 	}
 }
@@ -94,9 +94,9 @@ func TestChromiumPerfExecute(t *testing.T) {
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		runId := getRunId(t, cmd)
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".chromium.patch"),
-			"chromiumpatch\n")
+			"patches/abc.patch\n")
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".skia.patch"),
-			"skiapatch\n")
+			"patches/xyz.patch\n")
 		return nil
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
@@ -126,7 +126,7 @@ func TestChromiumPerfExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
-	expect.Equal(t, 0, getPatchCalls)
+	expect.Equal(t, 5, getPatchCalls)
 }
 
 func pendingPixelDiffTask() PixelDiffTask {
@@ -181,13 +181,13 @@ func TestPixelDiffExecute(t *testing.T) {
 func pendingMetricsAnalysisTask() MetricsAnalysisTask {
 	return MetricsAnalysisTask{
 		DatastoreTask: metrics_analysis.DatastoreTask{
-			CommonCols:         pendingCommonCols(ds.METRICS_ANALYSIS_TASKS),
-			MetricName:         "loadingMetric",
-			AnalysisOutputLink: "http://test/outputlink",
-			BenchmarkArgs:      "benchmarkargs",
-			Description:        "description",
-			ChromiumPatch:      "chromiumpatch",
-			CatapultPatch:      "catapultpatch",
+			CommonCols:          pendingCommonCols(ds.METRICS_ANALYSIS_TASKS),
+			MetricName:          "loadingMetric",
+			AnalysisOutputLink:  "http://test/outputlink",
+			BenchmarkArgs:       "benchmarkargs",
+			Description:         "description",
+			ChromiumPatchGSPath: "patches/abc.patch",
+			CatapultPatchGSPath: "patches/xyz.path",
 		},
 	}
 }
@@ -221,7 +221,7 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
-	expect.Equal(t, 0, getPatchCalls)
+	expect.Equal(t, 3, getPatchCalls)
 }
 
 func pendingCaptureSkpsTask() CaptureSkpsTask {
@@ -556,12 +556,19 @@ func TestPollAndExecOnce(t *testing.T) {
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
-	wg := pollAndExecOnce(ctx, mockCTAutoscaler)
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
+	wg := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
 	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
 	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+	expect.Equal(t, 0, getPatchCalls)
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
 	commands := mockExec.Commands()
 	assert.Len(t, commands, 3)
@@ -582,14 +589,20 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task1.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	// Poll frontend and execute the first task.
-	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler)
+	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	wg1.Wait() // Wait for task to return to make asserting commands deterministic.
 	// Update current task.
 	task2 := pendingChromiumPerfTask()
 	mockServer.SetCurrentTask(&task2.DatastoreTask)
 	// Poll frontend and execute the second task.
-	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler)
+	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	wg2.Wait() // Wait for task to return to make asserting commands deterministic.
 
 	// Expect two pending task requests.
@@ -608,6 +621,7 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	expect.Equal(t, "run_chromium_perf_on_workers", commands[5].Name)
 	// No updates expected when commands succeed.
 	expect.Empty(t, mockServer.UpdateTaskReqs())
+	expect.Equal(t, 5, getPatchCalls)
 }
 
 func TestPollAndExecOnceError(t *testing.T) {
@@ -622,7 +636,13 @@ func TestPollAndExecOnceError(t *testing.T) {
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	mockRun.AddRule("capture_archives_on_workers", fmt.Errorf("workers too lazy"))
-	wg := pollAndExecOnce(ctx, mockCTAutoscaler)
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
+	wg := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
@@ -645,6 +665,7 @@ func TestPollAndExecOnceError(t *testing.T) {
 	assert.Equal(t, int64(0), updateReq.Vars.RepeatAfterDays)
 	assert.False(t, updateReq.Vars.ClearRepeatAfterDays)
 	assert.Equal(t, int64(42), updateReq.Vars.Id)
+	assert.Equal(t, 0, getPatchCalls)
 }
 
 func TestPollAndExecOnceNoTasks(t *testing.T) {
@@ -655,10 +676,16 @@ func TestPollAndExecOnceNoTasks(t *testing.T) {
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
 	mockExec := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockExec.Run)
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	// Poll frontend, no tasks.
-	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler)
-	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler)
-	wg3 := pollAndExecOnce(ctx, mockCTAutoscaler)
+	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
+	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
+	wg3 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	// Expect three polls.
 	wg1.Wait()
 	wg2.Wait()
@@ -666,6 +693,7 @@ func TestPollAndExecOnceNoTasks(t *testing.T) {
 	expect.Equal(t, 3, mockServer.OldestPendingTaskReqCount())
 	expect.Equal(t, 0, mockCTAutoscaler.RegisterGCETaskTimesCalled)
 	expect.Equal(t, 0, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
+	expect.Equal(t, 0, getPatchCalls)
 	// Expect no commands.
 	expect.Empty(t, mockExec.Commands())
 	// No updates expected.
