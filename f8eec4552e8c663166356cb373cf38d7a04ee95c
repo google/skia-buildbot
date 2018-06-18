@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73d0e84e_f755fb46",
+        "filename": "ap/elements-sk/icon-sk/icon-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-18T12:49:48Z",
+      "side": 1,
+      "message": "Why not write a script and import all the Polymer icons?",
+      "revId": "f8eec4552e8c663166356cb373cf38d7a04ee95c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbe63a24_753c8060",
+        "filename": "ap/elements-sk/nav-button-sk/index.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-18T12:49:48Z",
+      "side": 1,
+      "message": "These should go in ./nav-button-sk.js.",
+      "revId": "f8eec4552e8c663166356cb373cf38d7a04ee95c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b115e6c_faefa233",
+        "filename": "push/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-18T12:49:48Z",
+      "side": 1,
+      "message": "Should be 2.0.0 since this is a breaking change.",
+      "revId": "f8eec4552e8c663166356cb373cf38d7a04ee95c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
