@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8da5cd5d_4df7df4d",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-18T14:54:40Z",
+      "side": 1,
+      "message": "nit: make alias, e.g.\ntype GetPatchFunc func(patchId string) (string, error)",
+      "range": {
+        "startLine": 88,
+        "startChar": 43,
+        "endLine": 88,
+        "endChar": 79
+      },
+      "revId": "7f1af2c1263dfe41e7b7af8bc2bc4aa44061866c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2aac00ed_862677d7",
+        "filename": "ct/go/poller/poller_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-18T14:54:40Z",
+      "side": 1,
+      "message": "typo patch",
+      "range": {
+        "startLine": 142,
+        "startChar": 41,
+        "endLine": 142,
+        "endChar": 42
+      },
+      "revId": "7f1af2c1263dfe41e7b7af8bc2bc4aa44061866c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
