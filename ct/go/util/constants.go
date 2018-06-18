@@ -69,7 +69,7 @@ const (
 	BENCHMARK_REPAINT           = "repaint_ct"
 	BENCHMARK_LOADING           = "loading.cluster_telemetry"
 	BENCHMARK_SCREENSHOT        = "screenshot_ct"
-	BENCHMARK_SMOOTHNESS        = "smoothness_ct"
+	BENCHMARK_RENDERING         = "rendering.cluster_telemetry"
 	BENCHMARK_USECOUNTER        = "usecounter_ct"
 	BENCHMARK_LEAK_DETECTION    = "leak_detection.cluster_telemetry"
 	BENCHMARK_MEMORY            = "memory.cluster_telemetry"
@@ -304,7 +304,7 @@ var (
 		BENCHMARK_LOADING,
 		BENCHMARK_USECOUNTER,
 		BENCHMARK_LEAK_DETECTION,
-		BENCHMARK_SMOOTHNESS,
+		BENCHMARK_RENDERING,
 		BENCHMARK_MEMORY,
 	}
 
