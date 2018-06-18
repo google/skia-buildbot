@@ -46,6 +46,30 @@
       "revId": "960ecc179d782c6ee10012327bee3f74f0b4b701",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1e88d603_4f6ca4f1",
+        "filename": "ct/res/js/ctfe.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-18T13:16:51Z",
+      "side": 1,
+      "message": "Yea. I don\u0027t think this is too terrible though.",
+      "parentUuid": "6b73fdcf_888efea8",
+      "range": {
+        "startLine": 189,
+        "startChar": 31,
+        "endLine": 189,
+        "endChar": 71
+      },
+      "revId": "960ecc179d782c6ee10012327bee3f74f0b4b701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
