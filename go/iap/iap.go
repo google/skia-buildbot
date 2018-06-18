@@ -225,6 +225,28 @@ func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	i.handler.ServeHTTP(w, r)
 }
 
+type LoginInfo struct {
+	Email string                 `json:"Email"`
+	Data  map[string]interface{} `json:"Data"`
+}
+
+// LoginInfoHandler can only be used when wrapped in an IAPHandler. The provided
+// function can modify the provided LoginInfo with extra information in the Data
+// field.
+func LoginInfoHandler(fn func(http.ResponseWriter, *http.Request, *LoginInfo)) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		info := LoginInfo{
+			Email: r.Header.Get(EMAIL_HEADER),
+			Data:  map[string]interface{}{},
+		}
+		fn(w, r, &info)
+		if err := json.NewEncoder(w).Encode(info); err != nil {
+			httputils.ReportError(w, r, err, "Failed to encode response.")
+			return
+		}
+	})
+}
+
 func (i *IAPHandler) setEmail(jwtAssertion, email string) {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()

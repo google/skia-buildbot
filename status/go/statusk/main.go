@@ -26,7 +26,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/iap"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -114,10 +113,6 @@ func reloadTemplates() {
 
 func Init() {
 	reloadTemplates()
-}
-
-func userHasEditRights(r *http.Request) bool {
-	return strings.HasSuffix(login.LoggedInAs(r), "@google.com")
 }
 
 func getIntParam(name string, r *http.Request) (*int64, error) {
@@ -250,10 +245,6 @@ func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	defer util.Close(r.Body)
-	if !userHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 
 	id, ok := mux.Vars(r)["id"]
@@ -280,7 +271,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Name:      task.Name,
 		Timestamp: time.Now().UTC(),
 		TaskId:    task.Id,
-		User:      login.LoggedInAs(r),
+		User:      r.Header.Get(iap.EMAIL_HEADER),
 		Message:   comment.Comment,
 	}
 	if err := taskDb.PutTaskComment(&c); err != nil {
@@ -295,10 +286,6 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if !userHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 
 	id, ok := mux.Vars(r)["id"]
@@ -336,10 +323,6 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if !userHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	taskSpec, ok := mux.Vars(r)["taskSpec"]
 	if !ok {
@@ -367,7 +350,7 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Repo:          repoUrl,
 		Name:          taskSpec,
 		Timestamp:     time.Now().UTC(),
-		User:          login.LoggedInAs(r),
+		User:          r.Header.Get(iap.EMAIL_HEADER),
 		Flaky:         comment.Flaky,
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
@@ -384,10 +367,6 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if !userHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	taskSpec, ok := mux.Vars(r)["taskSpec"]
 	if !ok {
@@ -421,10 +400,6 @@ func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if !userHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
@@ -446,7 +421,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Repo:          repoUrl,
 		Revision:      commit,
 		Timestamp:     time.Now().UTC(),
-		User:          login.LoggedInAs(r),
+		User:          r.Header.Get(iap.EMAIL_HEADER),
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
 	}
@@ -462,10 +437,6 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if !userHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	_, repoUrl, err := getRepo(r)
 	if err != nil {
@@ -631,6 +602,7 @@ func lkgrHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	var client *http.Client
+	var editAllowed iap.Allow
 	var editHandler *iap.IAPHandler
 	var err error
 	if !*testing {
@@ -638,24 +610,27 @@ func runServer(serverURL string) {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		allowed, err := iap.NewAllowedFromChromeInfraAuth(client, AUTH_GROUP_EDIT_RIGHTS)
+		editAllowed, err = iap.NewAllowedFromChromeInfraAuth(client, AUTH_GROUP_EDIT_RIGHTS)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		editHandler = iap.New(nil, *aud, allowed)
+		editHandler = iap.New(nil, *aud, editAllowed)
 	}
 
 	r := mux.NewRouter()
 	// TODO(borenet): "/" is used to determine readiness. Remove the redirect.
 	r.HandleFunc("/", defaultRedirectHandler)
 	r.HandleFunc("/repo/{repo}", statusHandler)
-	r.Handle("/capacity", editHandler.Middleware(http.HandlerFunc(capacityHandler)))
+	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
+	r.Handle("/loginstatus/", iap.LoginInfoHandler(func(_ http.ResponseWriter, _ *http.Request, info *iap.LoginInfo) {
+		info.Data["editRights"] = editAllowed.Member(info.Email)
+	}))
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	// These endpoints are restricted.
