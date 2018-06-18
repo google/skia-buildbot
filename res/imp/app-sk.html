@@ -92,7 +92,7 @@ Events:
           <content select="[mtoolbar], mtoolbar"></content>
         </div>
         <content select="[rtoolbar], rtoolbar"></content>
-        <login-sk id="login" email="{{logged_in_email}}"></login-sk>
+        <login-sk id="login" email="{{logged_in_email}}" login_data="{{login_data}}"></login-sk>
       </paper-toolbar>
       <template is="dom-if" if="{{no_drawer}}">
         <div main id="mainContent" class="layout vertical">
@@ -152,6 +152,10 @@ Events:
         },
         logged_in_email: {
           type: String,
+          notify: true,
+        },
+        login_data: {
+          type: Object,
           notify: true,
         },
         narrow: {

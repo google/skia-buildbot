@@ -157,6 +157,7 @@
         header_height="56px"
         header_responsive_height="56px"
         logged_in_email="{{email}}"
+        login_data="{{login_data}}"
         narrow="{{narrow}}">
 
       <div class="container" navigation>
@@ -340,7 +341,10 @@
       },
       logged_in: {
         type: Boolean,
-        computed: "_isGoogler(email)",
+        computed: "_editRights(email, login_data)",
+      },
+      login_data: { 
+        type: Object,
       },
       narrow: {
         type: Boolean,
@@ -368,8 +372,8 @@
       this.$.data.forceUpdate();
     },
 
-    _isGoogler: function(email) {
-      return sk.isGoogler(email);
+    _editRights: function(email, login_data) {
+      return login_data["editRights"] === true
     },
 
     _or: function(a, b) {

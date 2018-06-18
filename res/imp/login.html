@@ -87,7 +87,11 @@
         type: String,
         value: '',
         notify: true,
-      }
+      },
+      login_data: {
+        type: Object,
+        notify: true,
+      },
     },
 
     ready: function() {
@@ -109,6 +113,7 @@
     _handleStatusCheck: function(promise) {
       promise.then(function(status) {
         this.email = status['Email'];
+        this.data = status['Data'];
         if (this.email == '') {
           this.$.logInOut.href = status['LoginURL'];
           this.$.logInOut.innerText = 'Login';
