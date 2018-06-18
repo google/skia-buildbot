@@ -55,7 +55,7 @@ inhibit_rules:
 receivers:
 - name: 'skiabot'
   webhook_configs:
-    - url: 'http://notifier:9000/chat?room=skiabot_alerts'
+    - url: 'http://notifier:9000/chat?room=skia_public'
 
 - name: 'general'
   webhook_configs:
