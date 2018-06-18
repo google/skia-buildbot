@@ -22,6 +22,30 @@
       "revId": "960ecc179d782c6ee10012327bee3f74f0b4b701",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10afa77d_816201e4",
+        "filename": "ct/res/js/ctfe.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-18T13:16:45Z",
+      "side": 1,
+      "message": "Might still be worthwhile to do that for new tasks.",
+      "parentUuid": "6b73fdcf_888efea8",
+      "range": {
+        "startLine": 189,
+        "startChar": 31,
+        "endLine": 189,
+        "endChar": 71
+      },
+      "revId": "960ecc179d782c6ee10012327bee3f74f0b4b701",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
