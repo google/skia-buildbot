@@ -100,8 +100,15 @@ func TestChromiumPerfExecute(t *testing.T) {
 		return nil
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	task := pendingChromiumPerfTask()
-	err := task.Execute(ctx)
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -119,6 +126,7 @@ func TestChromiumPerfExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 0, getPatchCalls)
 }
 
 func pendingPixelDiffTask() PixelDiffTask {
@@ -130,8 +138,8 @@ func pendingPixelDiffTask() PixelDiffTask {
 			BrowserArgsNoPatch:   "banp",
 			BrowserArgsWithPatch: "bawp",
 			Description:          "description",
-			ChromiumPatch:        "chromiumpatch",
-			SkiaPatch:            "skiapatch",
+			ChromiumPatchGSPath:  "patches/abc.patch",
+			SkiaPatchGSPath:      "patches/xyz.patch",
 		},
 	}
 }
@@ -140,8 +148,15 @@ func TestPixelDiffExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	task := pendingPixelDiffTask()
-	err := task.Execute(ctx)
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -160,6 +175,7 @@ func TestPixelDiffExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 3, getPatchCalls)
 }
 
 func pendingMetricsAnalysisTask() MetricsAnalysisTask {
@@ -180,8 +196,15 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	task := pendingMetricsAnalysisTask()
-	err := task.Execute(ctx)
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -198,6 +221,7 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 0, getPatchCalls)
 }
 
 func pendingCaptureSkpsTask() CaptureSkpsTask {
@@ -216,8 +240,15 @@ func TestCaptureSkpsExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	task := pendingCaptureSkpsTask()
-	err := task.Execute(ctx)
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -230,6 +261,7 @@ func TestCaptureSkpsExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 0, getPatchCalls)
 }
 
 func pendingLuaScriptTaskWithAggregator(ctx context.Context) LuaScriptTask {
@@ -259,7 +291,14 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 			`print("aaallluuu")`)
 		return nil
 	})
-	err := task.Execute(ctx)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -272,6 +311,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 0, getPatchCalls)
 }
 
 func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
@@ -286,6 +326,13 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 		return nil
 	})
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	task := LuaScriptTask{
 		DatastoreTask: lua_scripts.DatastoreTask{
 			CommonCols:          pendingCommonCols(ds.LUA_SCRIPT_TASKS),
@@ -297,7 +344,7 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 			Description:         "description",
 		},
 	}
-	err := task.Execute(ctx)
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -309,6 +356,7 @@ func TestLuaScriptExecuteWithoutAggregator(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 0, getPatchCalls)
 }
 
 func pendingChromiumBuildTask() ChromiumBuildTask {
@@ -326,8 +374,15 @@ func TestChromiumBuildExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	task := pendingChromiumBuildTask()
-	err := task.Execute(ctx)
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -341,6 +396,7 @@ func TestChromiumBuildExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 0, getPatchCalls)
 }
 
 func pendingRecreatePageSetsTask() RecreatePageSetsTask {
@@ -356,8 +412,15 @@ func TestRecreatePageSetsExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	task := pendingRecreatePageSetsTask()
-	err := task.Execute(ctx)
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -368,6 +431,7 @@ func TestRecreatePageSetsExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 0, getPatchCalls)
 }
 
 func pendingRecreateWebpageArchivesTask() RecreateWebpageArchivesTask {
@@ -385,8 +449,15 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 	testutils.SmallTest(t)
 	mockRun := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
+
+	getPatchCalls := 0
+	mockGetPatchFromStorageFunc := func(patchId string) (string, error) {
+		getPatchCalls++
+		return patchId, nil
+	}
+
 	task := pendingRecreateWebpageArchivesTask()
-	err := task.Execute(ctx)
+	err := task.Execute(ctx, mockGetPatchFromStorageFunc)
 	assert.NoError(t, err)
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
@@ -397,6 +468,7 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--run_id="+runId)
 	expect.NotNil(t, cmd.Timeout)
+	expect.Equal(t, 0, getPatchCalls)
 }
 
 func TestAsPollerTask(t *testing.T) {

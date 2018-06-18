@@ -54,27 +54,6 @@ type DatastoreTask struct {
 	ChromiumPatchGSPath  string
 	SkiaPatchGSPath      string
 	Results              string
-
-	CustomWebpages string `datastore:"-"`
-	ChromiumPatch  string `datastore:"-"`
-	SkiaPatch      string `datastore:"-"`
-}
-
-func getAllPatchesFromStorage(t *DatastoreTask) error {
-	var err error
-	t.CustomWebpages, err = ctutil.GetPatchFromStorage(t.CustomWebpagesGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.CustomWebpagesGSPath, err)
-	}
-	t.ChromiumPatch, err = ctutil.GetPatchFromStorage(t.ChromiumPatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.ChromiumPatchGSPath, err)
-	}
-	t.SkiaPatch, err = ctutil.GetPatchFromStorage(t.SkiaPatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.SkiaPatchGSPath, err)
-	}
-	return nil
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -92,9 +71,19 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.BrowserArgsWithPatch = task.BrowserArgsWithPatch
 	taskVars.Description = task.Description
 
-	taskVars.CustomWebpages = task.CustomWebpages
-	taskVars.ChromiumPatch = task.ChromiumPatch
-	taskVars.SkiaPatch = task.SkiaPatch
+	var err error
+	taskVars.CustomWebpages, err = ctutil.GetPatchFromStorage(task.CustomWebpagesGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.CustomWebpagesGSPath, err)
+	}
+	taskVars.ChromiumPatch, err = ctutil.GetPatchFromStorage(task.ChromiumPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.ChromiumPatchGSPath, err)
+	}
+	taskVars.SkiaPatch, err = ctutil.GetPatchFromStorage(task.SkiaPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.SkiaPatchGSPath, err)
+	}
 
 	return taskVars, nil
 }
@@ -125,9 +114,6 @@ func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
 		} else if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
 		}
-		if err := getAllPatchesFromStorage(t); err != nil {
-			return nil, fmt.Errorf("Could not get all patches from storage: %s", err)
-		}
 		tasks = append(tasks, t)
 	}
 
@@ -138,9 +124,6 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	t := &DatastoreTask{}
 	if err := ds.DS.Get(c, key, t); err != nil {
 		return nil, err
-	}
-	if err := getAllPatchesFromStorage(t); err != nil {
-		return nil, fmt.Errorf("Could not get all patches from storage: %s", err)
 	}
 	return t, nil
 }
@@ -200,13 +183,8 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		Description:          task.Description,
 
 		CustomWebpagesGSPath: customWebpagesGSPath,
-		CustomWebpages:       customWebpages,
-
-		ChromiumPatchGSPath: chromiumPatchGSPath,
-		ChromiumPatch:       task.ChromiumPatch,
-
-		SkiaPatchGSPath: skiaPatchGSPath,
-		SkiaPatch:       task.SkiaPatch,
+		ChromiumPatchGSPath:  chromiumPatchGSPath,
+		SkiaPatchGSPath:      skiaPatchGSPath,
 	}
 	return t, nil
 }
