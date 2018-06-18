@@ -92,48 +92,6 @@
         </paper-dialog-scrollable>
       </paper-dialog>
 
-      <paper-dialog heading="Chromium Patch" id="{{ getChromiumPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumPerfTask.ChromiumPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Blink Patch" id="{{ getBlinkPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumPerfTask.BlinkPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Skia Patch" id="{{ getSkiaPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumPerfTask.SkiaPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="V8 Patch" id="{{ getV8PatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumPerfTask.V8Patch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Catapult Patch" id="{{ getCatapultPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumPerfTask.CatapultPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Telemetry Patch" id="{{ getBenchmarkPatchId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumPerfTask.BenchmarkPatch}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
-      <paper-dialog heading="Custom Webpages" id="{{ getCustomWebpagesId(index) }}">
-        <paper-dialog-scrollable>
-          <pre>{{chromiumPerfTask.CustomWebpages}}</pre>
-        </paper-dialog-scrollable>
-      </paper-dialog>
-
     </template>
 
     <table class="runshistory" id="runshistory" cellpadding="5" border="1">
@@ -210,10 +168,10 @@
               <tr>
                 <td>PageSet:</td>
                 <td>
-                  <template is="dom-if" if="{{chromiumPerfTask.CustomWebpages}}">
-                    <a href="javascript:void(0);" data-index$="{{index}}" data-type="customWebpages">Custom Webpages</a>
+                  <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.CustomWebpagesGSPath) }}">
+                    <a href="{{ getGSLink(chromiumPerfTask.CustomWebpagesGSPath) }}" target="_blank">Custom Webpages</a>
                   </template>
-                  <template is="dom-if" if="{{!chromiumPerfTask.CustomWebpages}}">
+                  <template is="dom-if" if="{{ isEmptyPatch(chromiumPerfTask.CustomWebpagesGSPath) }}">
                     {{chromiumPerfTask.PageSets}}
                   </template>
                 </td>
@@ -271,28 +229,28 @@
 
           <!-- Patches -->
           <td>
-            <template is="dom-if" if="{{chromiumPerfTask.ChromiumPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}" data-type="chromiumPatch">Chromium</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.ChromiumPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumPerfTask.ChromiumPatchGSPath) }}" target="_blank">Chromium</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumPerfTask.BlinkPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}" data-type="blinkPatch">Blink</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.BlinkPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumPerfTask.BlinkPatchGSPath) }}" target="_blank">Blink</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumPerfTask.SkiaPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}" data-type="skiaPatch">Skia</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.SkiaPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumPerfTask.SkiaPatchGSPath) }}" target="_blank">Skia</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumPerfTask.V8Patch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}" data-type="v8Patch">V8</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.V8PatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumPerfTask.V8PatchGSPath) }}" target="_blank">V8</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumPerfTask.CatapultPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="catapultPatch">Catapult</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.CatapultPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumPerfTask.CatapultPatchGSPath) }}" target="_blank">Catapult</a>
               <br/>
             </template>
-            <template is="dom-if" if="{{chromiumPerfTask.BenchmarkPatch}}">
-              <a href="javascript:void(0);" data-index$="{{index}}" data-type="benchmarkPatch">Telemetry</a>
+            <template is="dom-if" if="{{ !isEmptyPatch(chromiumPerfTask.BenchmarkPatchGSPath) }}">
+              <a href="{{ getGSLink(chromiumPerfTask.BenchmarkPatchGSPath) }}" target="_blank">Telemetry</a>
             </template>
           </td>
 
@@ -368,20 +326,6 @@
              that.toggleDialog(that.getBrowserArgsNoPatchId(id));
            } else if (anchor.dataset.type == "withpatchBrowserArgs") {
              that.toggleDialog(that.getBrowserArgsWithPatchId(id));
-           } else if (anchor.dataset.type == "chromiumPatch") {
-             that.toggleDialog(that.getChromiumPatchId(id));
-           } else if (anchor.dataset.type == "blinkPatch") {
-             that.toggleDialog(that.getBlinkPatchId(id));
-           } else if (anchor.dataset.type == "skiaPatch") {
-             that.toggleDialog(that.getSkiaPatchId(id));
-           } else if (anchor.dataset.type == "v8Patch") {
-             that.toggleDialog(that.getV8PatchId(id));
-           } else if (anchor.dataset.type == "catapultPatch") {
-             that.toggleDialog(that.getCatapultPatchId(id));
-           } else if (anchor.dataset.type == "benchmarkPatch") {
-             that.toggleDialog(that.getBenchmarkPatchId(id));
-           } else if (anchor.dataset.type == "customWebpages") {
-             that.toggleDialog(that.getCustomWebpagesId(id));
            }
          }
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
@@ -433,34 +377,6 @@
 
      getBrowserArgsWithPatchId: function(index) {
        return "browser_args_withpatch" + index;
-     },
-
-     getChromiumPatchId: function(index) {
-       return "chromium_patch" + index;
-     },
-
-     getBlinkPatchId: function(index) {
-       return "blink_patch" + index;
-     },
-
-     getSkiaPatchId: function(index) {
-       return "skia_patch" + index;
-     },
-
-     getV8PatchId: function(index) {
-       return "v8_patch" + index;
-     },
-
-     getCatapultPatchId: function(index) {
-       return "catapult_patch" + index;
-     },
-
-     getBenchmarkPatchId: function(index) {
-       return "benchmark_patch" + index;
-     },
-
-     getCustomWebpagesId: function(index) {
-       return "custom_webpages" + index;
      },
 
      resetPagination: function() {
@@ -516,5 +432,7 @@
 
      formatTimestamp: ctfe.getFormattedTimestamp,
      formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
+     getGSLink: ctfe.getGSLink,
+     isEmptyPatch: ctfe.isEmptyPatch,
   });
 </script>
