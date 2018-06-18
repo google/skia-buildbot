@@ -20,7 +20,7 @@ func getSheriff(parentName, childName string, sheriffSources []string) ([]string
 			return nil, err
 		}
 		// TODO(borenet): Do we need this any more?
-		if strings.Contains(parentName, "Chromium") && childName != "WebRTC" {
+		if strings.Contains(parentName, "Chromium") && childName != "WebRTC" && childName != "Perfetto" {
 			for i, s := range emails {
 				emails[i] = strings.Replace(s, "google.com", "chromium.org", 1)
 			}
