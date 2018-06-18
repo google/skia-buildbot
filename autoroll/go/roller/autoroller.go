@@ -507,6 +507,9 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished RollImpl) er
 	var lastRoll *autoroll.AutoRollIssue
 	if len(recent) > 1 {
 		lastRoll = recent[1]
+	} else {
+		// If there are no other rolls, then the below alerts do not apply.
+		return nil
 	}
 
 	issueURL := fmt.Sprintf("%s%d", r.rm.GetIssueUrlBase(), currentRoll.Issue)
