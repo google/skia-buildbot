@@ -56,27 +56,6 @@ type DatastoreTask struct {
 	ChromiumPatchGSPath string
 	CatapultPatchGSPath string
 	RawOutput           string
-
-	CustomTraces  string `datastore:"-"`
-	ChromiumPatch string `datastore:"-"`
-	CatapultPatch string `datastore:"-"`
-}
-
-func getAllPatchesFromStorage(t *DatastoreTask) error {
-	var err error
-	t.CustomTraces, err = ctutil.GetPatchFromStorage(t.CustomTracesGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.CustomTracesGSPath, err)
-	}
-	t.ChromiumPatch, err = ctutil.GetPatchFromStorage(t.ChromiumPatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.ChromiumPatchGSPath, err)
-	}
-	t.CatapultPatch, err = ctutil.GetPatchFromStorage(t.CatapultPatchGSPath)
-	if err != nil {
-		return fmt.Errorf("Could not read from %s: %s", t.CatapultPatchGSPath, err)
-	}
-	return nil
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -94,9 +73,19 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.BenchmarkArgs = task.BenchmarkArgs
 	taskVars.Description = task.Description
 
-	taskVars.CustomTraces = task.CustomTraces
-	taskVars.ChromiumPatch = task.ChromiumPatch
-	taskVars.CatapultPatch = task.CatapultPatch
+	var err error
+	taskVars.CustomTraces, err = ctutil.GetPatchFromStorage(task.CustomTracesGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.CustomTracesGSPath, err)
+	}
+	taskVars.ChromiumPatch, err = ctutil.GetPatchFromStorage(task.ChromiumPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.ChromiumPatchGSPath, err)
+	}
+	taskVars.CatapultPatch, err = ctutil.GetPatchFromStorage(task.CatapultPatchGSPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read from %s: %s", task.CatapultPatchGSPath, err)
+	}
 
 	return taskVars, nil
 }
@@ -127,9 +116,6 @@ func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
 		} else if err != nil {
 			return nil, fmt.Errorf("Failed to retrieve list of tasks: %s", err)
 		}
-		if err := getAllPatchesFromStorage(t); err != nil {
-			return nil, fmt.Errorf("Could not get all patches from storage: %s", err)
-		}
 		tasks = append(tasks, t)
 	}
 
@@ -140,9 +126,6 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	t := &DatastoreTask{}
 	if err := ds.DS.Get(c, key, t); err != nil {
 		return nil, err
-	}
-	if err := getAllPatchesFromStorage(t); err != nil {
-		return nil, fmt.Errorf("Could not get all patches from storage: %s", err)
 	}
 	return t, nil
 }
@@ -214,14 +197,9 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		BenchmarkArgs:      task.BenchmarkArgs,
 		Description:        task.Description,
 
-		CustomTracesGSPath: customTracesGSPath,
-		CustomTraces:       task.CustomTraces,
-
+		CustomTracesGSPath:  customTracesGSPath,
 		ChromiumPatchGSPath: chromiumPatchGSPath,
-		ChromiumPatch:       task.ChromiumPatch,
-
 		CatapultPatchGSPath: catapultPatchGSPath,
-		CatapultPatch:       task.CatapultPatch,
 	}
 	return t, nil
 }

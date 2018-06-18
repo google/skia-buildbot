@@ -107,13 +107,17 @@ type ChromiumAnalysisTask struct {
 
 func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPatchFunc) error {
 	runId := runId(task)
-	for fileSuffix, patch := range map[string]string{
-		".chromium.patch":      task.ChromiumPatch,
-		".skia.patch":          task.SkiaPatch,
-		".v8.patch":            task.V8Patch,
-		".catapult.patch":      task.CatapultPatch,
-		".custom_webpages.csv": task.CustomWebpages,
+	for fileSuffix, patchGSPath := range map[string]string{
+		".chromium.patch":      task.ChromiumPatchGSPath,
+		".skia.patch":          task.SkiaPatchGSPath,
+		".v8.patch":            task.V8PatchGSPath,
+		".catapult.patch":      task.CatapultPatchGSPath,
+		".custom_webpages.csv": task.CustomWebpagesGSPath,
 	} {
+		patch, err := getPatchFunc(patchGSPath)
+		if err != nil {
+			return err
+		}
 		// Add an extra newline at the end because git sometimes rejects patches due to
 		// missing newlines.
 		patch = patch + "\n"
@@ -154,13 +158,17 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 	// TODO(benjaminwagner): Since run_chromium_perf_on_workers only reads these in order to
 	// upload to Google Storage, eventually we should move the upload step here to avoid writing
 	// to disk.
-	for fileSuffix, patch := range map[string]string{
-		".chromium.patch":      task.ChromiumPatch,
-		".skia.patch":          task.SkiaPatch,
-		".v8.patch":            task.V8Patch,
-		".catapult.patch":      task.CatapultPatch,
-		".custom_webpages.csv": task.CustomWebpages,
+	for fileSuffix, patchGSPath := range map[string]string{
+		".chromium.patch":      task.ChromiumPatchGSPath,
+		".skia.patch":          task.SkiaPatchGSPath,
+		".v8.patch":            task.V8PatchGSPath,
+		".catapult.patch":      task.CatapultPatchGSPath,
+		".custom_webpages.csv": task.CustomWebpagesGSPath,
 	} {
+		patch, err := getPatchFunc(patchGSPath)
+		if err != nil {
+			return err
+		}
 		// Add an extra newline at the end because git sometimes rejects patches due to
 		// missing newlines.
 		patch = patch + "\n"
@@ -199,11 +207,15 @@ type MetricsAnalysisTask struct {
 
 func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPatchFunc) error {
 	runId := runId(task)
-	for fileSuffix, patch := range map[string]string{
-		".chromium.patch": task.ChromiumPatch,
-		".catapult.patch": task.CatapultPatch,
-		".traces.csv":     task.CustomTraces,
+	for fileSuffix, patchGSPath := range map[string]string{
+		".chromium.patch": task.ChromiumPatchGSPath,
+		".catapult.patch": task.CatapultPatchGSPath,
+		".traces.csv":     task.CustomTracesGSPath,
 	} {
+		patch, err := getPatchFunc(patchGSPath)
+		if err != nil {
+			return err
+		}
 		// Add an extra newline at the end because git sometimes rejects patches due to
 		// missing newlines.
 		patch = patch + "\n"
@@ -447,7 +459,7 @@ func updateWebappTaskSetFailed(task Task) error {
 // go routine. The function returns without waiting for the task to finish and the
 // WaitGroup of the goroutine is returned to the caller. The caller can then call
 // wg.Wait() if they would like to wait for the task to finish.
-func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler) *sync.WaitGroup {
+func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler, getPatchFunc GetPatchFunc) *sync.WaitGroup {
 	pending, err := frontend.GetOldestPendingTaskV2()
 	var wg sync.WaitGroup
 	if err != nil {
@@ -493,7 +505,7 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 	go func() {
 		// Decrement the counter when the goroutine completes.
 		defer wg.Done()
-		if err = task.Execute(ctx, ctutil.GetPatchFromStorage); err == nil {
+		if err = task.Execute(ctx, getPatchFunc); err == nil {
 			sklog.Infof("Completed task %s", taskId)
 		} else {
 			sklog.Errorf("Task %s failed: %s", taskId, err)
@@ -533,10 +545,10 @@ func main() {
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
 	ctx := context.Background()
-	pollAndExecOnce(ctx, autoscaler)
+	pollAndExecOnce(ctx, autoscaler, ctutil.GetPatchFromStorage)
 	for range time.Tick(*pollInterval) {
 		healthyGauge.Update(1)
-		pollAndExecOnce(ctx, autoscaler)
+		pollAndExecOnce(ctx, autoscaler, ctutil.GetPatchFromStorage)
 		// Sleeping for a second to avoid the small probability of ending up
 		// with 2 tasks with the same runID. For context see
 		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
