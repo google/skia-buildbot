@@ -173,6 +173,15 @@ this.ctfe = this.ctfe || function() {
     return sizeOfUserQueue > 3;
   }
 
+  ctfe.getGSLink = function(gsPath) {
+    return "https://ct.skia.org/results/cluster-telemetry/" + gsPath;
+  }
+
+  ctfe.isEmptyPatch = function(gsPath) {
+    // This is the SHA1 digest of an empty string.
+    return gsPath === "patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch";
+  }
+
   /**
    * Returns a string that describes the specified CLs.
    **/
