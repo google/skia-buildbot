@@ -173,6 +173,15 @@ this.ctfe = this.ctfe || function() {
     return sizeOfUserQueue > 3;
   }
 
+  ctfe.missingLiveSitesWithCustomWebpages = function(customWebpages, benchmarkArgs) {
+    if (customWebpages && !benchmarkArgs.includes("--use-live-sites")) {
+      sk.errorMessage("Please specify --use-live-sites in benchmark arguments " +
+                      "when using custom web pages.");
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Returns a link to the specified google storage path.
    */
