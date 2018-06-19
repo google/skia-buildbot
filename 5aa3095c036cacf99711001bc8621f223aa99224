@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7d963cb1_273ef0e0",
+        "filename": "ap/pages/icon-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-19T20:57:14Z",
+      "side": 1,
+      "message": "I think I\u0027d prefer them a bit darker or make this a configurable thing and allow arbitrary colors (nothing too fancy, maybe just a box to type in a hex code).",
+      "range": {
+        "startLine": 24,
+        "startChar": 10,
+        "endLine": 24,
+        "endChar": 14
+      },
+      "revId": "5aa3095c036cacf99711001bc8621f223aa99224",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
