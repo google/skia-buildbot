@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c6a8345c_238965ce",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-19T20:28:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eae5d1fb_be417ec9",
+      "range": {
+        "startLine": 37,
+        "startChar": 15,
+        "endLine": 37,
+        "endChar": 21
+      },
+      "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b02539fc_e28329e0",
         "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a43f05bd_d070f2f3",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-19T20:28:17Z",
+      "side": 1,
+      "message": "Added clarifying text above.",
+      "parentUuid": "b02539fc_e28329e0",
+      "range": {
+        "startLine": 58,
+        "startChar": 52,
+        "endLine": 58,
+        "endChar": 67
+      },
+      "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1e49cef7_7b9fe6bb",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-19T20:28:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b414bcf_851a9e5a",
+      "range": {
+        "startLine": 64,
+        "startChar": 25,
+        "endLine": 64,
+        "endChar": 106
+      },
+      "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b9d4d2f_e4de14e6",
         "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f9a829e_e597fa5f",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-19T20:28:17Z",
+      "side": 1,
+      "message": "changed to this._inputEvent().\n\nAlso added removeEventListener in disconnected callback.",
+      "parentUuid": "8b9d4d2f_e4de14e6",
+      "range": {
+        "startLine": 84,
+        "startChar": 35,
+        "endLine": 84,
+        "endChar": 39
+      },
+      "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
