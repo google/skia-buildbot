@@ -8,8 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/git/repograph"
@@ -29,7 +28,7 @@ type tasksPerCommitCache struct {
 }
 
 // newTasksPerCommitCache returns a tasksPerCommitCache instance.
-func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []string, period time.Duration) (*tasksPerCommitCache, error) {
+func newTasksPerCommitCache(ctx context.Context, workdir, recipesCfgFile string, repos repograph.Map, period time.Duration) (*tasksPerCommitCache, error) {
 	wd := path.Join(workdir, "tasksPerCommitCache")
 	if _, err := os.Stat(wd); err != nil {
 		if os.IsNotExist(err) {
@@ -40,19 +39,12 @@ func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []stri
 			return nil, fmt.Errorf("There is a problem with the workdir: %s", err)
 		}
 	}
-	repos, err := repograph.NewMap(ctx, repoUrls, wd)
+	depotTools, err := depot_tools.GetDepotTools(ctx, wd, recipesCfgFile)
 	if err != nil {
-		return nil, err
-	}
-	depotTools, err := git.NewCheckout(ctx, common.REPO_DEPOT_TOOLS, wd)
-	if err != nil {
-		return nil, err
-	}
-	if err := depotTools.Update(ctx); err != nil {
 		return nil, err
 	}
 	gitCache := path.Join(wd, "cache")
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools.Dir(), gitCache, 3)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, gitCache, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -106,9 +98,6 @@ func (c *tasksPerCommitCache) Get(ctx context.Context, rs db.RepoState) (int, er
 
 // update pulls down new commits and evicts old entries from the cache.
 func (c *tasksPerCommitCache) update(ctx context.Context) error {
-	if err := c.repos.Update(ctx); err != nil {
-		return err
-	}
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	start := time.Now().Add(-c.period)

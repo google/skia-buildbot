@@ -40,7 +40,14 @@
     });
 
     var login = {"Email":"test@google.com","Data":{"editRights":true}};
-    server.respondWith("GET","/loginstatus/", JSON.stringify(login));
+    var loginCount = 0;
+    server.respondWith("GET","/loginstatus/", function(request) {
+      loginCount++;
+      if (loginCount > 3) {
+        return request.respond(401, {}, "");
+      }
+      return request.respond(200, {}, JSON.stringify(login));
+    });
 
     var version = {"commit":"3e0fcf9b99baf4256851a6767bc6955266fc2369","date":"2016-02-19T13:57:18-05:00"};
     server.respondWith("GET","/json/version", JSON.stringify(version));
