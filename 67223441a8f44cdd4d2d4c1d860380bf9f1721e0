@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0da2fe4_e41b8ef4",
+        "filename": "jsdoc/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-19T20:03:21Z",
+      "side": 1,
+      "message": "Change to use the public URL.",
+      "range": {
+        "startLine": 21,
+        "startChar": 73,
+        "endLine": 21,
+        "endChar": 81
+      },
+      "revId": "67223441a8f44cdd4d2d4c1d860380bf9f1721e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
