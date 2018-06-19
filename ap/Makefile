@@ -1,11 +1,10 @@
-default:
-	npm install
+default: package-lock.json
 	npx webpack --mode=development
 
-release:
+release: package-lock.json
 	npx webpack --mode=production
 
-serve:
+serve: package-lock.json
 	npx webpack-dev-server --mode=production --content-base ./dist --watch-poll
 
 publish:
@@ -23,10 +22,10 @@ update-patch:
 	cd elements-sk; npm version patch
 	echo "Don't forget to publish."
 
-docs:
+docs: package-lock.json
 	npx jsdoc -c jsdoc.config.js
 
-icons:
+icons: package-lock.json
 	go run generate_icons.go
 
 package-lock.json: package.json
