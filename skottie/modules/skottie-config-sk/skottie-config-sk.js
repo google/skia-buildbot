@@ -42,16 +42,24 @@ const template = (ele) => html`
   </div>
   <label class=number>
     <input type=number id=width value=${ele._state.width} required /> Width (px)
-    <span class="validity"></span>
   </label>
   <label class=number>
     <input type=number id=height value=${ele._state.height} required /> Height (px)
-    <span class="validity"></span>
   </label>
   <label class=number title='Frames Per Second'>
     <input type=number id=fps value=${ele._state.fps} required  step='0.01'/> FPS (Hz)
-    <span class='validity'></span>
   </label>
+  <div class=warning hidden?=${ele._warningHidden()}>
+    <p>
+    The width or height of your file exceeds 1024, which will be very slow to render.
+    Press a 'Rescale' button to fix the dimensions.
+    </p>
+    <div>
+      <button on-click=${(e) => ele._rescale(1024)}>Rescale to 1024</button>
+      <button on-click=${(e) => ele._rescale(512)}>Rescale to 512</button>
+      <button on-click=${(e) => ele._rescale(128)}>Rescale to 128</button>
+    </div>
+  </div>
   <div id=dialog-buttons>
     ${ele._hasCancel() ? html`<button id=cancel on-click=${(e) => ele._cancel()}>Cancel</button>` : html`` }
     <button class=action disabled?=${ele._readyToGo()} on-click=${(e) => ele._go()}>Go</button>
@@ -73,6 +81,7 @@ class SkottieConfigSk extends HTMLElement {
 
   connectedCallback() {
     this._render();
+    this.addEventListener('input', this);
   }
 
   /** @prop state {string} Object that describes the state of the config dialog. */
@@ -115,15 +124,38 @@ class SkottieConfigSk extends HTMLElement {
     reader.readAsText(e.target.files[0]);
   }
 
-  _go() {
+  _rescale(n) {
+    let max = Math.max(this._state.width, this._state.height);
+    if (max <= n) {
+      return
+    }
+    this._state.width = Math.floor(this._state.width * n / max);
+    this._state.height = Math.floor(this._state.height * n / max);
+    this._render();
+  }
+
+  _warningHidden() {
+    return this._state.width <= 1024 && this._state.width <= 1024;
+  }
+
+  _updateState() {
     this._state.width = +$$('#width', this).value;
     this._state.height = +$$('#height', this).value;
     this._state.fps = +$$('#fps', this).value;
+  }
+
+  _go() {
+    this._updateState();
     this.dispatchEvent(new CustomEvent('skottie-selected', { detail: this._state, bubbles: true }));
   }
 
   _cancel() {
     this.dispatchEvent(new CustomEvent('cancelled', { bubbles: true }));
+  }
+
+  handleEvent(e) {
+    this._updateState();
+    this._render();
   }
 
   _render() {
