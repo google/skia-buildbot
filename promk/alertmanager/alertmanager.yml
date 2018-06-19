@@ -54,8 +54,8 @@ inhibit_rules:
 # gmail API.
 receivers:
 - name: 'skiabot'
-  webhook_configs:
-    - url: 'http://notifier:9000/chat?room=skiabot_alerts'
+  pagerduty_configs:
+    - service_key: ${PAGERDUTY_SECRET}
 
 - name: 'general'
   webhook_configs:

@@ -27,6 +27,9 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['prometheus:9090']
+  - job_name: 'expand-and-reload'
+    static_configs:
+      - targets: ['alertmanager:10001']
 
   - job_name: 'kubernetes-apiservers'
 
