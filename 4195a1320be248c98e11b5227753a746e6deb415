@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c86d8eb_826dd96e",
+        "filename": "kube/build_expand_and_reload_release",
+        "patchSetId": 10
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-19T16:31:47Z",
+      "side": 1,
+      "message": "I think this name could be more descriptive, but I don\u0027t have an actual suggestion.",
+      "range": {
+        "startLine": 5,
+        "startChar": 8,
+        "endLine": 5,
+        "endChar": 25
+      },
+      "revId": "4195a1320be248c98e11b5227753a746e6deb415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
