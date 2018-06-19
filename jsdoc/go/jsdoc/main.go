@@ -55,9 +55,10 @@ func step() error {
 		return fmt.Errorf("Failed building docs: %s", err)
 	}
 
-	// Build element demo.
+	// Build element-sk demo.
 	buildElementDemoCmd := &exec.Command{
 		Name:        "make",
+		Args:        []string{"release"},
 		Dir:         path.Join(*gitRepoDir, "ap"),
 		InheritPath: false,
 		LogStdout:   true,
@@ -67,7 +68,7 @@ func step() error {
 		return fmt.Errorf("Failed building element demos: %s", err)
 	}
 
-	// Build common demo pages.
+	// Build common-sk demo pages.
 	buildCommonDemoCmd := &exec.Command{
 		Name:        "make",
 		Args:        []string{"demos"},
