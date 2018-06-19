@@ -38,7 +38,7 @@ groups:
       category: infra
       severity: warning
     annotations:
-      abbr: 'Too many Go routines in {{ $labels.job }}'
+      abbr: '{{ $labels.job }}'
       description: 'Too many Go routines in {{ $labels.job }} running on {{ $labels.instance
         }}. Logs:
 
