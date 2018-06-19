@@ -51,7 +51,7 @@ Did you run 'npm install' first?
 
 				err := createIconFile(name, file)
 				if err != nil {
-					fmt.Printf("Error making icon file from %s: %s", file, err)
+					fmt.Printf("Error making icon file from %s: %s\n", file, err)
 					return
 				}
 				fmt.Printf("%s ", name)
