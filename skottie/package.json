@@ -5,13 +5,13 @@
   "main": "index.js",
   "private": true,
   "dependencies": {
-    "common-sk": "^2.0.1",
+    "common-sk": "^2.0.3",
     "copy-webpack-plugin": "^4.5.1",
-    "elements-sk": "^1.0.0",
-    "lottie-web": "^5.1.16",
-    "pulito": "^4.0.1",
-    "webpack": "^4.11.1",
-    "webpack-cli": "^3.0.3"
+    "elements-sk": "^2.1.0",
+    "lottie-web": "^5.1.17",
+    "pulito": "^4.1.0",
+    "webpack": "^4.12.0",
+    "webpack-cli": "^3.0.8"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
