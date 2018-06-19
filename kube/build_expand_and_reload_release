@@ -2,7 +2,7 @@
 # Builds and uploads a container that triggers an app like prometheus to reload its config file.
 set -x -e
 
-APPNAME=configmap-reload
+APPNAME=expand-and-reload
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
