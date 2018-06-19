@@ -1,0 +1,314 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a49b2e3_e2cf1f81",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 463,
+        "startChar": 24,
+        "endLine": 463,
+        "endChar": 30
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9fa630d_3394c452",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "(Not changed in this CL, but...) ignoring error from Close.",
+      "range": {
+        "startLine": 512,
+        "startChar": 1,
+        "endLine": 512,
+        "endChar": 20
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb99d1ca_bbb2c434",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "nit: Doc seems wrong -- this checks a hash, not a name.",
+      "range": {
+        "startLine": 531,
+        "startChar": 1,
+        "endLine": 533,
+        "endChar": 34
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "873fd27d_3e082956",
+        "filename": "named-fiddles/build_release",
+        "patchSetId": 37
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "nit copy/pasto",
+      "range": {
+        "startLine": 2,
+        "startChar": 42,
+        "endLine": 2,
+        "endChar": 48
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7ca67e1_746e197c",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "nit: Do we have a reason to trust these libs and their dependencies?",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 29
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cbcae7e_8c34b8ed",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "This field isn\u0027t set anywhere.",
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66cd5e22_69316285",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "nit: seems like we shouldn\u0027t log unless the update actually happens",
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24b18420_35b3dcf1",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "Won\u0027t this condition be true for an Update also?",
+      "range": {
+        "startLine": 161,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 41
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf52bd06_c74ecac6",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "nit: Doc for secure says it should be the outer layer. What are the pros/cons of making csrf the outer layer instead?",
+      "range": {
+        "startLine": 235,
+        "startChar": 0,
+        "endLine": 238,
+        "endChar": 52
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61ba2ab7_75dd2db9",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "For any handler that you want to protect with the csrf package, you should allow only \"POST/PUT/PATCH/DELETE/etc. requests\". The csrf.Secure only \"[o]perates on a \u0027whitelist only\u0027 approach where safe (non-mutating) HTTP methods (GET, HEAD, OPTIONS, TRACE) are the only methods where token validation is not enforced.\" https://github.com/gorilla/csrf\n\nThe examples on that page don\u0027t seem to do this correctly, so it\u0027s possible that I\u0027m misunderstanding something. But if you agree, I\u0027ll open an issue on that repo.",
+      "range": {
+        "startLine": 255,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 43
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df86c74c_44e87f5b",
+        "filename": "named-fiddles/modules/named-edit-sk/named-edit-sk.js",
+        "patchSetId": 37
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "Either I don\u0027t understand something or this is not a string.",
+      "range": {
+        "startLine": 46,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 52
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "202dd2b9_3a821af4",
+        "filename": "named-fiddles/modules/named-fiddle-sk/named-fiddle-sk.js",
+        "patchSetId": 37
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "nit: nothing seems to look at this; same for delete below.",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 27
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "267bb797_b9f397d1",
+        "filename": "named-fiddles/modules/named-fiddle-sk/named-fiddle-sk.js",
+        "patchSetId": 37
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "nit: can omit?",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 3
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45f42a45_b61eefa5",
+        "filename": "named-fiddles/probersk.json5",
+        "patchSetId": 37
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-19T20:46:12Z",
+      "side": 1,
+      "message": "Is this a login redirect?",
+      "range": {
+        "startLine": 5,
+        "startChar": 18,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
