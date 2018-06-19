@@ -6,11 +6,10 @@ import (
 	"sort"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	"cloud.google.com/go/datastore"
 
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -272,4 +271,58 @@ func toMap(keys []*datastore.Key) map[int64]*datastore.Key {
 		ret[k.ID] = k
 	}
 	return ret
+}
+
+// GetFn is a utility function that provides a uniform interface to a Get function
+// of the datastore regardless whether we use a transaction or the client.
+func GetFn(client *datastore.Client, tx *datastore.Transaction) func(*datastore.Key, interface{}) error {
+	if tx != nil {
+		return tx.Get
+	}
+	return func(k *datastore.Key, dst interface{}) error {
+		return client.Get(context.TODO(), k, dst)
+	}
+}
+
+// PutFn is a utility function that provides a uniform interface to a Put function
+// of the datastore regardless whether we use a transaction or the client.
+func PutFn(client *datastore.Client, tx *datastore.Transaction) func(*datastore.Key, interface{}) (*datastore.Key, error) {
+	if tx != nil {
+		return func(k *datastore.Key, val interface{}) (*datastore.Key, error) {
+			_, err := tx.Put(k, val)
+			return nil, err
+		}
+	}
+	return func(k *datastore.Key, val interface{}) (*datastore.Key, error) {
+		return client.Put(context.TODO(), k, val)
+	}
+}
+
+type ActionFn func() error
+
+type TxActions struct {
+	commitActions   []ActionFn
+	rollbackActions []ActionFn
+}
+
+func (t *TxActions) Run(err error) {
+	runFNs := t.commitActions
+	successType := "Commit"
+	if err != nil {
+		runFNs = t.rollbackActions
+		successType = "Rollback"
+	}
+	for _, fn := range runFNs {
+		if err := fn(); err != nil {
+			sklog.Errorf("Error during %s: %s", successType, err)
+		}
+	}
+}
+
+func (t *TxActions) AddCommitFn(fn ActionFn) {
+	t.commitActions = append(t.commitActions, fn)
+}
+
+func (t *TxActions) AddRollbackFn(fn ActionFn) {
+	t.rollbackActions = append(t.rollbackActions, fn)
 }
