@@ -164,12 +164,12 @@ func (req *UploadRequest) validate(w http.ResponseWriter) error {
 		http.Error(w, "FPS must be between 1 and 120.", http.StatusBadRequest)
 		return invalidRequestErr
 	}
-	if req.Width < 1 || req.Width > 1024 {
-		http.Error(w, "Width must be between 1 and 1024.", http.StatusBadRequest)
+	if req.Width < 1 || req.Width > 2048 {
+		http.Error(w, "Width must be between 1 and 2048.", http.StatusBadRequest)
 		return invalidRequestErr
 	}
-	if req.Height < 1 || req.Height > 1024 {
-		http.Error(w, "Height must be between 1 and 1024.", http.StatusBadRequest)
+	if req.Height < 1 || req.Height > 2048 {
+		http.Error(w, "Height must be between 1 and 2048.", http.StatusBadRequest)
 		return invalidRequestErr
 	}
 	return nil

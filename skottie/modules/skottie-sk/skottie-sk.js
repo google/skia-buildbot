@@ -115,7 +115,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         this._ui = LOADED_MODE;
         this._render();
       }).catch((msg) => {
-        errorMessage(msg);
+        msg.resp.text().then(errorMessage);
         window.history.pushState(null, '', '/');
         this._ui = DIALOG_MODE;
         this._render();
@@ -150,7 +150,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     }).catch(msg => {
       this._ui = DIALOG_MODE;
       this._render();
-      errorMessage(msg);
+      msg.resp.text().then(errorMessage);
     });
   }
 

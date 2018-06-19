@@ -1,3 +1,5 @@
+@import '~common-sk/modules/colors';
+
 skottie-config-sk {
   display: block;
 
@@ -43,11 +45,6 @@ skottie-config-sk {
     border: solid lightgray 1px;
   }
 
-  input[type=number]:invalid + span:after {
-    content: '✖';
-    padding-left: 5px;
-  }
-
   label.number {
     display: block;
     margin: 0.6em;
@@ -57,5 +54,14 @@ skottie-config-sk {
     width: 21em;
     margin-top: 1em;
     text-align: right;
+  }
+
+  .warning {
+    margin: 1em 0 0.2em 0.6em;
+  }
+
+  .warning p {
+    font-weight: bold;
+    color: $red;
   }
 }
