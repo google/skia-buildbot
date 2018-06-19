@@ -317,8 +317,7 @@ func TestFiles(t *testing.T) {
     "size_delta": 861,
     "size": 861
   }
-}
-`)
+}`)
 		assert.NoError(t, err)
 	}))
 
@@ -367,8 +366,7 @@ func TestGetFileNames(t *testing.T) {
     "size_delta": 861,
     "size": 861
   }
-}
-`)
+}`)
 		assert.NoError(t, err)
 	}))
 
@@ -395,8 +393,7 @@ func TestIsBinaryPatch(t *testing.T) {
     "size_delta": 353,
     "size": 353
   }
-}
-`)
+}`)
 		assert.NoError(t, err)
 	}))
 	defer tsNoBinary.Close()
@@ -422,8 +419,7 @@ func TestIsBinaryPatch(t *testing.T) {
     "size_delta": 49030,
     "size": 49030
   }
-}
-`)
+}`)
 		assert.NoError(t, err)
 	}))
 	defer tsBinary.Close()

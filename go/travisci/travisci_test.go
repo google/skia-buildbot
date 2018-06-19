@@ -41,8 +41,7 @@ func TestGetPullRequestBuilds(t *testing.T) {
 	  "state": "passed"
 	}
   ]
-}
-`)
+}`)
 		assert.NoError(t, err)
 	}))
 	defer ts.Close()
