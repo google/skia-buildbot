@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eae5d1fb_be417ec9",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-19T20:07:55Z",
+      "side": 1,
+      "message": "drive-by nit no quotes here",
+      "range": {
+        "startLine": 37,
+        "startChar": 15,
+        "endLine": 37,
+        "endChar": 21
+      },
+      "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b02539fc_e28329e0",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-19T20:07:55Z",
+      "side": 1,
+      "message": "It\u0027s unclear if it will rescale the width to 1024, the height to 1024, both to 1024 or just the largest one, keeping the aspect ratio the same.",
+      "range": {
+        "startLine": 58,
+        "startChar": 52,
+        "endLine": 58,
+        "endChar": 67
+      },
+      "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b414bcf_851a9e5a",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-19T20:07:55Z",
+      "side": 1,
+      "message": "drive-by nit: I\u0027m not a fan of the nested templates (I could be swayed, though); consider breaking this out.",
+      "range": {
+        "startLine": 64,
+        "startChar": 25,
+        "endLine": 64,
+        "endChar": 106
+      },
+      "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b9d4d2f_e4de14e6",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-19T20:07:55Z",
+      "side": 1,
+      "message": "I\u0027m a fan of just having a () \u003d\u003e {} instead of binding this as a listener.  It allows for easier management of multiple events",
+      "range": {
+        "startLine": 84,
+        "startChar": 35,
+        "endLine": 84,
+        "endChar": 39
+      },
+      "revId": "548cc293f8e66d12b0d2d2120ebb0116e1c27f2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
