@@ -22,6 +22,30 @@
       "revId": "4195a1320be248c98e11b5227753a746e6deb415",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b11dea0_d1cce5d0",
+        "filename": "kube/build_expand_and_reload_release",
+        "patchSetId": 10
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-19T17:55:36Z",
+      "side": 1,
+      "message": "I initially started with the following names, but ended up with expand-and-reload:\n\n   configmap-expand\n   expand-config",
+      "parentUuid": "9c86d8eb_826dd96e",
+      "range": {
+        "startLine": 5,
+        "startChar": 8,
+        "endLine": 5,
+        "endChar": 25
+      },
+      "revId": "4195a1320be248c98e11b5227753a746e6deb415",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
