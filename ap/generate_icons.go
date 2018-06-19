@@ -51,7 +51,7 @@ Did you run 'npm install' first?
 
 				err := createIconFile(name, file)
 				if err != nil {
-					fmt.Println("Error making icon file from %s: %s", file, err)
+					fmt.Printf("Error making icon file from %s: %s", file, err)
 					return
 				}
 				fmt.Printf("%s ", name)
@@ -68,16 +68,16 @@ Did you run 'npm install' first?
 
 	h, err := os.Create(DEMO_HTML_PATH)
 	if err != nil {
-		fmt.Println("cannot make demo html: %s", err)
+		fmt.Printf("cannot make demo html: %s\n", err)
 		return
 	}
 	if err = DEMO_PAGE_HTML_TEMPLATE.Execute(h, htmlStruct{Icons: generatedMap}); err != nil {
-		fmt.Println("HTML template error %s", err)
+		fmt.Printf("HTML template error %s\n", err)
 	}
 
 	j, err := os.Create(DEMO_JS_PATH)
 	if err != nil {
-		fmt.Println("cannot make demo js: %s", err)
+		fmt.Printf("cannot make demo js: %s\n", err)
 		return
 	}
 
@@ -87,7 +87,7 @@ Did you run 'npm install' first?
 	}
 	sort.Strings(names)
 	if err = DEMO_PAGE_JS_TEMPLATE.Execute(j, jsStruct{Names: names}); err != nil {
-		fmt.Println("JS template error %s", err)
+		fmt.Printf("JS template error %s\n", err)
 	}
 }
 
