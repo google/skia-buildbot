@@ -70,6 +70,7 @@ var (
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	recipesCfgFile              = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	chromeInfraAuthJWT          = flag.String("service_account_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
@@ -729,7 +730,7 @@ func main() {
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour)
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *recipesCfgFile, repos, 14*24*time.Hour)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}

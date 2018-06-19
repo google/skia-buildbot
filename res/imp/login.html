@@ -92,6 +92,14 @@
         type: Object,
         notify: true,
       },
+      refresh: {
+        type: Number,
+        value: 0,
+      },
+      reload_on_error: {
+        type: Boolean,
+        value: false,
+      },
     },
 
     ready: function() {
@@ -104,10 +112,10 @@
       // dependency in comments-sk.html.
       var p = new Promise(function(resolve, reject) {
         sk.get('/loginstatus/').then(JSON.parse).then(resolve).catch(function(reason){
-            reject("Problem reaching /loginstatus/ "+reason);
+          reject("Problem reaching /loginstatus/ "+reason);
         });
-       });
-       this._handleStatusCheck(p);
+      });
+      this._handleStatusCheck(p);
     },
 
     _handleStatusCheck: function(promise) {
@@ -120,6 +128,15 @@
         } else {
           this.$.logInOut.href = "/logout/?redirect=" + encodeURIComponent(document.location);
           this.$.logInOut.innerText = 'Logout';
+        }
+        if (this.refresh) {
+          setTimeout(this.checkLogin.bind(this), this.refresh);
+        }
+      }.bind(this), function(error) {
+        if (this.reload_on_error) {
+          location.reload(true);
+        } else if (this.refresh) {
+          setTimeout(this.checkLogin.bind(this), this.refresh);
         }
       }.bind(this));
     }
