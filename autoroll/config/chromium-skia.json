@@ -5,7 +5,7 @@
     "skia.primary:Test-Mac-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Debug-All-CommandBuffer"
   ],
   "gerritURL": "https://skia-review.googlesource.com",
-  "maxRollFrequency": "8h",
+  "maxRollFrequency": "24h",
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
