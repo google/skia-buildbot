@@ -107,6 +107,7 @@ func createWebm(ctx context.Context, dir string, fps float32) error {
 
 	return nil
 }
+
 func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if *local {

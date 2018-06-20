@@ -1,0 +1,36 @@
+@import '~common-sk/modules/colors';
+
+named-fiddles-sk {
+  button.fab {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  spinner-sk[active] {
+    visibility: initial;
+  }
+
+  spinner-sk {
+    visibility: hidden;
+    display: inline-block;
+    position: fixed;
+    top: 4em;
+    left: 34em;
+  }
+
+  header {
+    margin: 0;
+    padding: 0.2em 1em;
+    color: white;
+    background: $blue;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-size: 110%;
+  }
+}
+

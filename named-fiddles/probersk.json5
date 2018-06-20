@@ -1,0 +1,9 @@
+{
+   "named-fiddles": {
+     "urls": ["https://named-fiddles.skia.org"],
+     "method": "GET",
+     "expected": [302],
+     "body": "",
+     "mimetype": ""
+   },
+}
