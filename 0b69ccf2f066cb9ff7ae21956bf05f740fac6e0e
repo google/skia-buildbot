@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f0311a4d_69ed0240",
+        "filename": "golden/go/dsutil/blob.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-20T13:52:30Z",
+      "side": 1,
+      "message": "bikeshed: maxBlobFragBytes",
+      "range": {
+        "startLine": 18,
+        "startChar": 6,
+        "endLine": 18,
+        "endChar": 21
+      },
+      "revId": "0b69ccf2f066cb9ff7ae21956bf05f740fac6e0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe6245bd_99c2f29e",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-20T13:52:30Z",
+      "side": 1,
+      "message": "Thanks, I like this helper a lot - makes things a bit more clear.",
+      "range": {
+        "startLine": 301,
+        "startChar": 3,
+        "endLine": 301,
+        "endChar": 12
+      },
+      "revId": "0b69ccf2f066cb9ff7ae21956bf05f740fac6e0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8559b07_3f7b1576",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-20T13:52:30Z",
+      "side": 1,
+      "message": "bikeshed: phase",
+      "range": {
+        "startLine": 321,
+        "startChar": 1,
+        "endLine": 321,
+        "endChar": 12
+      },
+      "revId": "0b69ccf2f066cb9ff7ae21956bf05f740fac6e0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bee3929d_90acbcd6",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-20T13:52:30Z",
+      "side": 1,
+      "message": "small readability thing.  do actions :\u003d dsutil.TxActions{} here and then pass in \u0026actions on line 360 to make it a little more clear a pointer is getting passed in.\n\nSame thing in makeChange() below",
+      "range": {
+        "startLine": 357,
+        "startChar": 13,
+        "endLine": 357,
+        "endChar": 31
+      },
+      "revId": "0b69ccf2f066cb9ff7ae21956bf05f740fac6e0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b82b8fce_c6f2bb11",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 35
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-20T13:52:30Z",
+      "side": 1,
+      "message": "err :\u003d here and line 434",
+      "range": {
+        "startLine": 428,
+        "startChar": 5,
+        "endLine": 428,
+        "endChar": 10
+      },
+      "revId": "0b69ccf2f066cb9ff7ae21956bf05f740fac6e0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
