@@ -29,6 +29,7 @@ const (
 
 	// *_METADATA are the keys used to store the metadata values in Google Storage.
 	USER_METADATA                   = "user"
+	HASH_METADATA                   = "hash"
 	WIDTH_METADATA                  = "width"
 	HEIGHT_METADATA                 = "height"
 	SOURCE_METADATA                 = "source"
@@ -80,8 +81,8 @@ var (
 		GLINFO:   {filename: "glinfo.text", contentType: "text/plain"},
 	}
 
-	// sourceFileName parses a souce image filename as stored in Google Storage.
-	sourceFileName = regexp.MustCompile("^([0-9]+).png$")
+	// validName validates a fiddle name.
+	validName = regexp.MustCompile("^[0-9a-zA-Z_]+$")
 )
 
 // cacheEntry is used to store PNGs in the Store lru cache.
@@ -437,6 +438,7 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 type Named struct {
 	Name string
 	User string
+	Hash string
 }
 
 // ListAllNames returns the list of all named fiddles.
@@ -452,10 +454,24 @@ func (s *Store) ListAllNames() ([]Named, error) {
 			return nil, fmt.Errorf("Failed to retrieve name list: %s", err)
 		}
 		filename := strings.Split(obj.Name, "/")[1]
-		ret = append(ret, Named{
+		named := Named{
 			Name: filename,
 			User: obj.Metadata[USER_METADATA],
-		})
+			Hash: obj.Metadata[HASH_METADATA],
+		}
+		if named.Hash == "" {
+			sklog.Infof("Need to update metadata: %v", named)
+			// Read the file contents and update the hash metadata.
+			hash, err := s.GetHashFromName(named.Name)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to read named hash in ListAllNames: %s", err)
+			}
+			named.Hash = hash
+			if err := s.WriteName(named.Name, named.Hash, named.User); err != nil {
+				return nil, fmt.Errorf("Failed to update hash metadata: %s", err)
+			}
+		}
+		ret = append(ret, named)
 	}
 	return ret, nil
 }
@@ -475,20 +491,51 @@ func (s *Store) GetHashFromName(name string) (string, error) {
 	return string(b), nil
 }
 
+// ValidName returns true if the name conforms to the restrictions on names.
+//
+//   name - The name of the fidde.
+func (s *Store) ValidName(name string) bool {
+	return validName.MatchString(name)
+}
+
 // WriteName writes the name file for a named fiddle.
 //
 //   name - The name of the fidde.
 //   hash - The fiddle hash.
 //   user - The email of the user that created the name.
 func (s *Store) WriteName(name, hash, user string) error {
+	if !s.ValidName(name) {
+		return fmt.Errorf("Invalid character found in name.")
+	}
 	ctx := context.Background()
 	w := s.bucket.Object(fmt.Sprintf("named/%s", name)).NewWriter(ctx)
-	defer util.Close(w)
 	w.ObjectAttrs.Metadata = map[string]string{
 		USER_METADATA: user,
+		HASH_METADATA: hash,
 	}
 	if _, err := w.Write([]byte(hash)); err != nil {
 		return fmt.Errorf("Failed to write named file %q: %s", name, err)
 	}
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("Failed to close after writing named file %q: %s", name, err)
+	}
 	return nil
+}
+
+// DeleteName deletes a named fiddle.
+//
+//   name - The name of the fidde.
+func (s *Store) DeleteName(name string) error {
+	ctx := context.Background()
+	return s.bucket.Object(fmt.Sprintf("named/%s", name)).Delete(ctx)
+}
+
+// Exists returns true if the hash exists.
+//
+//   hash - A fiddle hash, maybe.
+func (s *Store) Exists(hash string) error {
+	ctx := context.Background()
+	o := s.bucket.Object(fmt.Sprintf("fiddle/%s/draw.cpp", hash))
+	_, err := o.Attrs(ctx)
+	return err
 }
