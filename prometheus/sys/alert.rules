@@ -241,31 +241,6 @@ ALERT IngestErrorTooHigh
     description = "{{ $labels.ingester }} ingestion error rate too high. See https://prom.skia.org/graph?g0.range_input=1h&g0.expr=rate(ingestion%7Bmetric%3D%22errors%22%7D%5B5m%5D)&g0.tab=0"
   }
 
-# For fiddle.
-
-ALERT BuildsFailed
-  IF builds_failed >= 2
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.job }}",
-    description = "Build for {{ $labels.job }} has failed for the last 2 chrome DEPS rolls. https://skia.googlesource.com/buildbot/%2B/master/{{ $labels.job }}/PROD.md#build_fail"
-  }
-
-ALERT SyncFailed
-  IF repo_sync_failed >= 2
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.job }}",
-    description = "Sync for {{ $labels.job }} has failed 2 times in a row. https://skia.googlesource.com/buildbot/%2B/master/{{ $labels.job }}/PROD.md#sync_fail"
-  }
-
-ALERT NamedFiddles
-  IF named_failures > 0
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "See https://fiddle.skia.org/f/ and https://skia.googlesource.com/buildbot/%2B/master/fiddle/PROD.md#named_fail"
-  }
-
 # Datahopper
 
 ALERT DatahopperErrorRate

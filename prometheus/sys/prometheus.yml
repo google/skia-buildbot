@@ -89,10 +89,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-diffserver-stage:20000']
 
-  - job_name: 'fiddle'
-    static_configs:
-      - targets: ['skia-fiddle:20000']
-
   - job_name: 'fuzzer-be'
     static_configs:
       - targets: ['skia-fuzzer-be-1:20000']
@@ -231,7 +227,6 @@ scrape_configs:
       - targets: ['skia-datahopper2:11000']
       - targets: ['skia-diffserver-prod:11000']
       - targets: ['skia-diffserver-stage:11000']
-      - targets: ['skia-fiddle:11000']
       - targets: ['skia-flutter-autoroll:11000']
       - targets: ['skia-fuzzer-be-1:11000']
       - targets: ['skia-fuzzer-be-2:11000']
