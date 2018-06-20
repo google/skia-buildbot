@@ -1,7 +1,7 @@
 {
   "childName": "WebRTC",
   "cqExtraTrybots": [
-    "master.tryserver.chromium.linux:linux_chromium_archive_rel_ng",
+    "luci.chromium.try:linux_chromium_archive_rel_ng",
     "master.tryserver.chromium.mac:mac_chromium_archive_rel_ng"
   ],
   "gerritURL": "https://chromium-review.googlesource.com",
