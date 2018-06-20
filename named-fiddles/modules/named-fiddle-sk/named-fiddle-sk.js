@@ -25,6 +25,7 @@ const template = (ele) => html`<span class=name><a href='https://fiddle.skia.org
   <span class=status>${status(ele)}</span>
   <button on-click=${(e) => ele._editClick(e)}>Edit</button>
   <button on-click=${(e) => ele._deleteClick(e)}>Delete</button>
+  <span class=user>${ele._state.user}</span>
 `;
 
 window.customElements.define('named-fiddle-sk', class extends HTMLElement {
@@ -34,6 +35,7 @@ window.customElements.define('named-fiddle-sk', class extends HTMLElement {
       name: '',
       status: '',
       hash: '',
+      user: '',
     };
   }
 
