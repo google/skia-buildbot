@@ -92,6 +92,7 @@ groups:
   # Fiddle
   - alert: FiddlerPodsTooLow
     expr: avg_over_time(pods_idle[2m]) < 5
+    for: 15m
     labels:
       category: infra
       severity: warning
