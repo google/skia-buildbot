@@ -7,7 +7,11 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
   libglu1-mesa \
   ffmpeg \
   xvfb \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  && useradd you-are-still \
+  && useradd in-a \
+  && useradd container
+
 
 COPY . /
 

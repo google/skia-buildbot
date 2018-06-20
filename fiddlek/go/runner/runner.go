@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/httputils"
@@ -39,6 +40,10 @@ DrawOptions GetDrawOptions() {
 )
 
 var (
+	LOCALRUN_URL = "http://localhost:8000/run"
+)
+
+var (
 	runTotal      = metrics2.GetCounter("run_total", nil)
 	runFailures   = metrics2.GetCounter("run_failures", nil)
 	runExhaustion = metrics2.GetCounter("run_exhaustion", nil)
@@ -61,8 +66,11 @@ type Runner struct {
 	sourceDir  string
 	client     *http.Client
 	fastClient *http.Client
-	localUrl   string
+	local      bool
 	clientset  *kubernetes.Clientset
+
+	mutex       sync.Mutex // mutex protects skiaGitHash.
+	skiaGitHash string
 }
 
 func New(local bool, sourceDir string) (*Runner, error) {
@@ -70,7 +78,7 @@ func New(local bool, sourceDir string) (*Runner, error) {
 		sourceDir:  sourceDir,
 		client:     httputils.NewTimeoutClient(),
 		fastClient: httputils.NewFastTimeoutClient(),
-		localUrl:   "http://localhost:8000/run",
+		local:      local,
 	}
 	if !local {
 		config, err := rest.InClusterConfig()
@@ -193,7 +201,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 	// If not local then use the k8s api to pick an open fiddler pod to send
 	// the request to. Send a GET / to each one until you find an idle instance.
 	if local {
-		return r.singleRun(r.localUrl, body)
+		return r.singleRun(LOCALRUN_URL, body)
 	} else {
 		// Try to run the fiddle on an open pod. If all pods are busy then
 		// wait a bit and try again.
@@ -214,12 +222,13 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 					continue
 				}
 				defer util.Close(resp.Body)
-				state, err := ioutil.ReadAll(resp.Body)
-				if err != nil {
+
+				var fiddlerResp types.FiddlerMainResponse
+				if err := json.NewDecoder(resp.Body).Decode(&fiddlerResp); err != nil {
 					sklog.Warningf("Failed to read status: %s", err)
 					continue
 				}
-				if string(state) == string(types.IDLE) {
+				if fiddlerResp.State == types.IDLE {
 					// Run the fiddle in the open pod.
 					ret, err := r.singleRun(rootURL+"/run", body)
 					if err == alreadyRunningFiddleErr || err == failedToSendErr {
@@ -244,42 +253,84 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 	}
 }
 
-func (r *Runner) metricsSingleStep() {
-	pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
-		LabelSelector: "app=fiddler",
-	})
-	if err != nil {
-		sklog.Errorf("Could not list fiddler pods: %s", err)
-		return
+func (r *Runner) podIPs() []string {
+	if r.local {
+		return []string{"127.0.0.1"}
+	} else {
+		pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+			LabelSelector: "app=fiddler",
+		})
+		if err != nil {
+			sklog.Errorf("Could not list fiddler pods: %s", err)
+			return []string{}
+		}
+		ret := make([]string, 0, len(pods.Items))
+		for _, p := range pods.Items {
+			ret = append(ret, p.Status.PodIP)
+		}
+		return ret
 	}
+}
+
+func (r *Runner) metricsSingleStep() {
 	idleCount := 0
-	for _, p := range pods.Items {
-		rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
+	// What versions of skia are all the fiddlers running.
+	versions := map[string]int{}
+	ips := r.podIPs()
+	for _, address := range ips {
+		rootURL := fmt.Sprintf("http://%s:8000", address)
 		resp, err := r.client.Get(rootURL)
 		if err != nil {
 			sklog.Infof("Failed to request fiddler status: %s", err)
 			continue
 		}
 		defer util.Close(resp.Body)
-		state, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			sklog.Warningf("Failed to read status: %s", err)
-			continue
+		if resp.Header.Get("Content-Type") == "application/json" {
+			var fiddlerResp types.FiddlerMainResponse
+			if err := json.NewDecoder(resp.Body).Decode(&fiddlerResp); err != nil {
+				sklog.Warningf("Failed to read status: %s", err)
+				continue
+			}
+			if fiddlerResp.State == types.IDLE {
+				idleCount += 1
+			}
+			versions[fiddlerResp.Version] += 1
+		} else {
+			state, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				sklog.Warningf("Failed to read status: %s", err)
+				continue
+			}
+			if types.State(state) == types.IDLE {
+				idleCount += 1
+			}
 		}
-		if types.State(state) == types.IDLE {
-			idleCount += 1
+	}
+	// Report the version that appears the most. Usually there will only be one
+	// hash, but we might run this in the middle of a fiddler rollout.
+	max := 0
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	for k, v := range versions {
+		if v > max {
+			max = v
+			r.skiaGitHash = k
 		}
 	}
 	podsIdle.Update(int64(idleCount))
-	podsTotal.Update(int64(len(pods.Items)))
+	podsTotal.Update(int64(len(ips)))
 }
 
 // Metrics captures metrics on the state of all the fiddler pods.
-func (r *Runner) Metrics(local bool) {
-	if local {
-		return
-	}
+func (r *Runner) Metrics() {
+	r.metricsSingleStep()
 	for _ = range time.Tick(15 * time.Second) {
 		r.metricsSingleStep()
 	}
+}
+
+func (r *Runner) Version() string {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.skiaGitHash
 }
