@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c8fb50b9_9af88837",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a49b2e3_e2cf1f81",
+      "range": {
+        "startLine": 463,
+        "startChar": 24,
+        "endLine": 463,
+        "endChar": 30
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e9fa630d_3394c452",
         "filename": "fiddlek/go/store/store.go",
         "patchSetId": 37
@@ -45,6 +69,30 @@
       "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c66aa55b_e945de44",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9fa630d_3394c452",
+      "range": {
+        "startLine": 512,
+        "startChar": 1,
+        "endLine": 512,
+        "endChar": 20
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "b46bc5c2_6401b168",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bb99d1ca_bbb2c434",
+      "range": {
+        "startLine": 531,
+        "startChar": 1,
+        "endLine": 533,
+        "endChar": 34
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "873fd27d_3e082956",
         "filename": "named-fiddles/build_release",
         "patchSetId": 37
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "617fa496_02426cb2",
+        "filename": "named-fiddles/build_release",
+        "patchSetId": 37
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "873fd27d_3e082956",
+      "range": {
+        "startLine": 2,
+        "startChar": 42,
+        "endLine": 2,
+        "endChar": 48
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a7ca67e1_746e197c",
         "filename": "named-fiddles/go/named-fiddles/main.go",
         "patchSetId": 37
@@ -105,6 +201,30 @@
       "writtenOn": "2018-06-19T20:46:12Z",
       "side": 1,
       "message": "nit: Do we have a reason to trust these libs and their dependencies?",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 29
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "285ef0d7_5cbb5f5b",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "csp is trivial, gorilla is in third_party, and secure has no deps outside the std lib.\n\nCould someone introduce a change that allowed us to be expoited? Sure, but that\u0027s the same risk we have for using any Go lib.",
+      "parentUuid": "a7ca67e1_746e197c",
       "range": {
         "startLine": 14,
         "startChar": 0,
@@ -134,6 +254,24 @@
     },
     {
       "key": {
+        "uuid": "925d5aec_69c67f9b",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "It will be in a later CL when this app starts testing named fiddles to see if they still run.",
+      "parentUuid": "8cbcae7e_8c34b8ed",
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "66cd5e22_69316285",
         "filename": "named-fiddles/go/named-fiddles/main.go",
         "patchSetId": 37
@@ -151,6 +289,24 @@
     },
     {
       "key": {
+        "uuid": "2872645a_7d733d61",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "If we get this far it means they\u0027ve passed all of our security checks, which is worth logging.",
+      "parentUuid": "66cd5e22_69316285",
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "24b18420_35b3dcf1",
         "filename": "named-fiddles/go/named-fiddles/main.go",
         "patchSetId": 37
@@ -162,6 +318,30 @@
       "writtenOn": "2018-06-19T20:46:12Z",
       "side": 1,
       "message": "Won\u0027t this condition be true for an Update also?",
+      "range": {
+        "startLine": 161,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 41
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9aaf8c7f_42f0ae51",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Fixed!",
+      "parentUuid": "24b18420_35b3dcf1",
       "range": {
         "startLine": 161,
         "startChar": 0,
@@ -220,6 +400,30 @@
     },
     {
       "key": {
+        "uuid": "d3095cbd_5e5c87c2",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Added .Method(\"POST\") to update and delete.\n\nOpening an issue on that repo sounds like a good idea.",
+      "parentUuid": "61ba2ab7_75dd2db9",
+      "range": {
+        "startLine": 255,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 43
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "df86c74c_44e87f5b",
         "filename": "named-fiddles/modules/named-edit-sk/named-edit-sk.js",
         "patchSetId": 37
@@ -240,6 +444,30 @@
       "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5d3160f_70e6baed",
+        "filename": "named-fiddles/modules/named-edit-sk/named-edit-sk.js",
+        "patchSetId": 37
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "df86c74c_44e87f5b",
+      "range": {
+        "startLine": 46,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 52
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -266,6 +494,30 @@
     },
     {
       "key": {
+        "uuid": "7276625d_47d695cb",
+        "filename": "named-fiddles/modules/named-fiddle-sk/named-fiddle-sk.js",
+        "patchSetId": 37
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "202dd2b9_3a821af4",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 27
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "267bb797_b9f397d1",
         "filename": "named-fiddles/modules/named-fiddle-sk/named-fiddle-sk.js",
         "patchSetId": 37
@@ -289,6 +541,30 @@
     },
     {
       "key": {
+        "uuid": "253a8a07_35017a80",
+        "filename": "named-fiddles/modules/named-fiddle-sk/named-fiddle-sk.js",
+        "patchSetId": 37
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "267bb797_b9f397d1",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 3
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "45f42a45_b61eefa5",
         "filename": "named-fiddles/probersk.json5",
         "patchSetId": 37
@@ -300,6 +576,30 @@
       "writtenOn": "2018-06-19T20:46:12Z",
       "side": 1,
       "message": "Is this a login redirect?",
+      "range": {
+        "startLine": 5,
+        "startChar": 18,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b112e35_c7040873",
+        "filename": "named-fiddles/probersk.json5",
+        "patchSetId": 37
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-20T12:44:20Z",
+      "side": 1,
+      "message": "This response is served from IAP, but if the entire fiddle service becomes unhealthy then this will become a 5xx response code.",
+      "parentUuid": "45f42a45_b61eefa5",
       "range": {
         "startLine": 5,
         "startChar": 18,
