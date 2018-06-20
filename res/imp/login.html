@@ -104,10 +104,10 @@
       // dependency in comments-sk.html.
       var p = new Promise(function(resolve, reject) {
         sk.get('/loginstatus/').then(JSON.parse).then(resolve).catch(function(reason){
-            reject("Problem reaching /loginstatus/ "+reason);
+          reject("Problem reaching /loginstatus/ "+reason);
         });
-       });
-       this._handleStatusCheck(p);
+      });
+      this._handleStatusCheck(p);
     },
 
     _handleStatusCheck: function(promise) {

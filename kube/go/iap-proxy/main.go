@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/iap"
@@ -59,11 +60,11 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		allowed, err := iap.NewAllowedFromChromeInfraAuth(client, *authGroup)
+		allow, err := allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		h = iap.New(h, *aud, allowed)
+		h = iap.New(h, *aud, allow)
 	}
 	http.Handle("/", h)
 	sklog.Fatal(http.ListenAndServe(*port, nil))

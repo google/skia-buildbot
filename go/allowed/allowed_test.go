@@ -1,4 +1,4 @@
-package iap
+package allowed
 
 import (
 	"io/ioutil"
