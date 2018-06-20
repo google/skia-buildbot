@@ -138,6 +138,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	cp := *defaultFiddle
 	cp.Sources = src.ListAsJSON()
+	cp.Version = run.Version()
 	if err := templates.ExecuteTemplate(w, "index.html", cp); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
@@ -211,6 +212,7 @@ func loadContext(w http.ResponseWriter, r *http.Request) (*types.FiddleContext, 
 		return nil, fmt.Errorf("Fiddle not found.")
 	}
 	return &types.FiddleContext{
+		Version: run.Version(),
 		Sources: src.ListAsJSON(),
 		Hash:    id,
 		Code:    code,

@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/httputils"
@@ -63,6 +64,9 @@ type Runner struct {
 	fastClient *http.Client
 	localUrl   string
 	clientset  *kubernetes.Clientset
+
+	mutex       sync.Mutex
+	skiaGitHash string
 }
 
 func New(local bool, sourceDir string) (*Runner, error) {
@@ -253,6 +257,8 @@ func (r *Runner) metricsSingleStep() {
 		return
 	}
 	idleCount := 0
+	// What versions of skia are all the fiddlers running.
+	versions := map[string]int{}
 	for _, p := range pods.Items {
 		rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
 		resp, err := r.client.Get(rootURL)
@@ -261,13 +267,36 @@ func (r *Runner) metricsSingleStep() {
 			continue
 		}
 		defer util.Close(resp.Body)
-		state, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			sklog.Warningf("Failed to read status: %s", err)
-			continue
+		if resp.Header.Get("Content-Type") == "application/json" {
+			var fiddlerResp types.FiddlerMainResponse
+			if err := json.NewDecoder(resp.Body).Decode(&fiddlerResp); err != nil {
+				sklog.Warningf("Failed to read status: %s", err)
+				continue
+			}
+			if fiddlerResp.State == types.IDLE {
+				idleCount += 1
+			}
+			versions[fiddlerResp.Version] += 1
+		} else {
+			state, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				sklog.Warningf("Failed to read status: %s", err)
+				continue
+			}
+			if types.State(state) == types.IDLE {
+				idleCount += 1
+			}
 		}
-		if types.State(state) == types.IDLE {
-			idleCount += 1
+	}
+	// Report the version that appears the most. Usually there will only be one
+	// hash, but we might run this in the middle of a fiddler rollout.
+	max := 0
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	for k, v := range versions {
+		if v > max {
+			max = v
+			r.skiaGitHash = k
 		}
 	}
 	podsIdle.Update(int64(idleCount))
@@ -282,4 +311,10 @@ func (r *Runner) Metrics(local bool) {
 	for _ = range time.Tick(15 * time.Second) {
 		r.metricsSingleStep()
 	}
+}
+
+func (r *Runner) Version() string {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return r.skiaGitHash
 }

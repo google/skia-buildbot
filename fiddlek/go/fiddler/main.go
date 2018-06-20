@@ -45,6 +45,7 @@ var (
 var (
 	mutex        sync.Mutex
 	currentState types.State = types.IDLE
+	version      string
 )
 
 func setStateStart() error {
@@ -77,9 +78,13 @@ func serializeOutput(w io.Writer, res *types.Result) {
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
-	_, err := w.Write([]byte(getState()))
-	if err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	resp := &types.FiddlerMainResponse{
+		State:   getState(),
+		Version: version,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Warningf("Failed to write response: %s", err)
 	}
 }
@@ -324,6 +329,12 @@ func main() {
 	if *checkout == "" {
 		sklog.Fatalf("The --checkout flag is required.")
 	}
+
+	b, err := ioutil.ReadFile(filepath.Join(*checkout, "VERSION"))
+	if err != nil {
+		sklog.Fatalf("Failed to read Skia version: %s", err)
+	}
+	version = string(b)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
