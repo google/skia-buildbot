@@ -599,6 +599,27 @@ server {
     return 301 https://chromite-chromium-roll.skia.org$request_uri;
 }
 
+#####   chromium-skia-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name chromium-skia-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/chromium-skia-roll.access.log;
+    error_log /var/log/nginx/chromium-skia-roll.error.log error;
+
+    location / {
+        proxy_pass http://chromium-skia-autoroll:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name chromium-skia-roll.skia.org;
+    return 301 https://chromium-skia-roll.skia.org$request_uri;
+}
+
 #####   depot-tools-chromium-roll.skia.org   ###########################
 server {
     listen      443;

@@ -88,6 +88,15 @@ func Chromite_Chromium() *gce.Instance {
 	return vm
 }
 
+func Chromium_Skia() *gce.Instance {
+	vm := AutoRollBase("chromium-skia-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"borenet@google.com",
+	}
+	vm.ServiceAccount = "chromium-skia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func DepotTools_Chromium() *gce.Instance {
 	vm := AutoRollBase("depot-tools-chromium-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -263,6 +272,7 @@ func main() {
 		"angle-skia":            AngleSkia(),
 		"catapult":              Catapult(),
 		"chromite-chromium":     Chromite_Chromium(),
+		"chromium-skia":         Chromium_Skia(),
 		"depot-tools-chromium":  DepotTools_Chromium(),
 		"fuchsia":               Fuchsia(),
 		"fuchsia-sdk-chromium":  FuchsiaSDK_Chromium(),
