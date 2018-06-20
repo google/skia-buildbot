@@ -424,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "849b11fe_31bf3323",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-20T15:11:29Z",
+      "side": 1,
+      "message": "https://github.com/gorilla/csrf/issues/90",
+      "parentUuid": "d3095cbd_5e5c87c2",
+      "range": {
+        "startLine": 255,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 43
+      },
+      "revId": "88b817c8e2f53007f7a9f2b4dc5f5d8f8d4677c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "df86c74c_44e87f5b",
         "filename": "named-fiddles/modules/named-edit-sk/named-edit-sk.js",
         "patchSetId": 37
