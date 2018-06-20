@@ -33,7 +33,10 @@ the datastore [here](https://goto.google.com/skia-android-framework-compile-bot-
 infra_failure
 -------------
 
-Atleast one compile task failed due to an infra failure. Look at task logs in
-the datastore [here](https://goto.google.com/skia-android-framework-compile-bot-datastore) and
-look for errors in the
-[cloud logs](https://goto.google.com/skia-android-framework-compile-bot-cloud-logs).
+Atleast one compile task failed due to an infra failure. Look for errors in the
+[cloud logs](https://goto.google.com/skia-android-framework-compile-bot-cloud-logs-errors).
+
+If the error appears to be an Android infrastructure issue (eg: sync problems because
+repository is down) and it does not resolve soon, then make the bot an experimental bot
+in [cq.cfg](https://skia.googlesource.com/skia/+/master/infra/branch-config/cq.cfg).
+Add it back to the regular CQ after the infrastructure problem eventually resolves.
