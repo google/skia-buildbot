@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5136db2_b9c13918",
+        "filename": "res/imp/comments-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-20T14:52:17Z",
+      "side": 1,
+      "message": "This is a temporary measure until login has been updated for all servers which use comments-sk.",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 279,
+        "endChar": 13
+      },
+      "revId": "245cf6e7e89e24394ff5a7dc45bb283687e0446d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
