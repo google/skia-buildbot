@@ -17,15 +17,21 @@ import (
 const SVG_SRC = "./node_modules/material-design-icons/%s/svg/production/"
 const SVG_DEST = "./elements-sk/icon/%s-icon-sk.js"
 
-const DEMO_HTML_PATH = "./pages/icon-sk.html"
-const DEMO_JS_PATH = "./pages/icon-sk.js"
-
 var SVG_FOLDERS = []string{"action", "alert", "av", "communication", "content",
 	"device", "editor", "file", "hardware", "image", "maps", "navigation",
 	"notification", "places", "social", "toggle"}
 
 var SVG_24PX_FILE = regexp.MustCompile(`(ic_)?(?P<name>.+)_24px.svg`)
 var SVG_CONTENT = regexp.MustCompile(`<svg .+?>(?P<content>.+)</svg>`)
+
+// Directory in which manually contributed icons is located. Can be the same
+// as the output directory for generating.
+const OTHER_SVG_DIR = "./elements-sk/icon/"
+
+var OTHER_SVG_NAME = regexp.MustCompile(`(?P<name>.+)-icon-sk.js`)
+
+const DEMO_HTML_PATH = "./pages/icon-sk.html"
+const DEMO_JS_PATH = "./pages/icon-sk.js"
 
 func main() {
 	generatedMap := map[string][]string{}
@@ -62,9 +68,27 @@ Did you run 'npm install' first?
 		fmt.Println()
 	}
 
-	// TODO(kjlubick) Maybe search the output folder for non-generated icons
-	// (i.e. custom ones not given to us by Material Design) and also include
-	// those in the demos.
+	// search for custom-made SVGs and include them in the demo page.
+	otherSVGs, err := ioutil.ReadDir(OTHER_SVG_DIR)
+	if err != nil && err != os.ErrNotExist {
+		fmt.Printf("Could not read from contributed svg path %s: %s", OTHER_SVG_DIR, err)
+		return
+	}
+	miscSVGs := []string{}
+	for _, s := range otherSVGs {
+		if match := OTHER_SVG_NAME.FindStringSubmatch(s.Name()); match != nil {
+			name := match[1]
+			// Don't duplicate icons if generated and non-generated
+			// share the same space.
+			if !generated[name] {
+				miscSVGs = append(miscSVGs, name)
+				generated[name] = true
+			}
+		}
+	}
+	if len(miscSVGs) > 0 {
+		generatedMap["misc"] = miscSVGs
+	}
 
 	h, err := os.Create(DEMO_HTML_PATH)
 	if err != nil {
@@ -162,16 +186,21 @@ var DEMO_PAGE_HTML_TEMPLATE = template.Must(template.New("icon-demo-html").Parse
 <style>
   .icon-label {
     display: inline-block;
-    border: 1px solid #DDD;
-    padding: 2px;
+    padding: 1em;
     text-align: center;
     margin: 2px 0;
   }
 
+  figure {
+    fill: #777;
+  }
+
   .icon-label > * {
-    margin: auto;
+    margin-top: 0.6em;
     display: block;
     text-align: center;
+    color: #040;
+    font-size: 90%;
   }
 
   .icon-label > :first-child {
