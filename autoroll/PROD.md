@@ -47,3 +47,24 @@ we may be in an undefined state. This requires manual investigation, after which
 you should remove the /mnt/pd0/autoroll_workdir/state_machine_transitioning
 file. This error may also prevent the roller from starting up, which is by
 design.
+
+The Skia->Flutter roller may throw errors from Flutter's license script:
+"Failed to transition from "idle" to "active": Error when running pre-upload step: Error when running dart license script: Command exited with exit status 1: /mnt/pd0/autoroll_workdir/engine/src/third_party/dart/tools/sdks/linux/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /mnt/pd0/autoroll_workdir/engine/src/out/licenses"
+This alert means that the licence script is failing possibly due to a recent
+Skia change. Ask brianosman@ to run the script manually, or follow these steps
+on the roller to see what failed:
+* cd /mnt/pd0/autoroll_workdir/engine/src/flutter/
+* Check to see if DEPS has the latest Skia rev. If not update it and run "~/depot_tools/gclient sync"
+* cd /mnt/pd0/autoroll_workdir/engine/src/flutter/tools/licenses/
+* /mnt/pd0/autoroll_workdir/engine/src/third_party/dart/tools/sdks/linux/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /mnt/pd0/autoroll_workdir/engine/src/out/licenses
+
+Known Issues
+============
+
+Skia->Flutter roller gets stuck
+-------------------------------
+
+Sometimes (rarely) the TravisCI build fails due to flakiness and instead of
+marking the Github PR as failed, it stays open and the roller gets stuck.
+The right way to fix this is still being investigated.
+Manual Fix: Stop the roller, so that the PR gets closed, and start it again.
