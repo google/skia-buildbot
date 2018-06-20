@@ -56,6 +56,13 @@
         "pulld",
       ],
     },
+    "chromium-skia-autoroll": {
+      "AppNames": [
+        "chromium-skia-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "depot-tools-chromium-autoroll": {
       "AppNames": [
         "depot-tools-chromium-autorolld",
