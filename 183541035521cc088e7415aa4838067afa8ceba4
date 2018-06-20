@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eedbc02e_f9a754c4",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-20T17:45:25Z",
+      "side": 1,
+      "message": "Should we construct this URL using *port from fiddle/main.go?",
+      "range": {
+        "startLine": 40,
+        "startChar": 33,
+        "endLine": 40,
+        "endChar": 38
+      },
+      "revId": "183541035521cc088e7415aa4838067afa8ceba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f97b40eb_00f5d3ae",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-06-20T17:45:25Z",
+      "side": 1,
+      "message": "Same question about using *port from fiddle/main.go",
+      "range": {
+        "startLine": 277,
+        "startChar": 36,
+        "endLine": 277,
+        "endChar": 40
+      },
+      "revId": "183541035521cc088e7415aa4838067afa8ceba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
