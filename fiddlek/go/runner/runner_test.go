@@ -130,7 +130,7 @@ func TestRun(t *testing.T) {
 
 	r, err := New(true, "/etc/fiddle/source")
 	assert.NoError(t, err)
-	r.localUrl = ts.URL
+	LOCALRUN_URL = ts.URL
 	req := &types.FiddleContext{}
 	res, err := r.Run(true, req)
 	assert.NoError(t, err)

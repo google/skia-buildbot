@@ -18,12 +18,14 @@ build: elements_html core_js
 .PHONY: image
 image: build
 	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/fiddle
+	docker pull gcr.io/skia-public/skia-release:prod
 	SKIP_UPLOAD=1 ./build_fiddle_release
 	SKIP_UPLOAD=1 ./build_fiddler_release
 
 .PHONY: release
 release: build
 	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/fiddle
+	docker pull gcr.io/skia-public/skia-release:prod
 	./build_fiddle_release
 	./build_fiddler_release
 
@@ -38,6 +40,15 @@ cli:
 .PHONY: testgo
 testgo:
 	go test -v ./...
+
+.PHONY: run_local_fiddle
+run_local_fiddle:
+	fiddle --local --logtostderr --port=:8080
+
+.PHONY: run_local_fiddler
+run_local_fiddler:
+	docker run -ti -p8000:8000  fiddler
+
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug

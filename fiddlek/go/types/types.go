@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/fiddlek/go/linenumbers"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -125,14 +124,14 @@ func (o *Options) ComputeHash(code string) (string, error) {
 //
 // It is also used (without the Hash) as the incoming JSON request to /_/run.
 type FiddleContext struct {
-	Build     *vcsinfo.LongCommit `json:"build"`      // The version of Skia this was run on.
-	Sources   string              `json:"sources"`    // All the source image ids serialized as a JSON array.
-	Hash      string              `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
-	Code      string              `json:"code"`
-	Name      string              `json:"name"`      // In a request can be the name to create for this fiddle.
-	Overwrite bool                `json:"overwrite"` // In a request, should a name be overwritten if it already exists.
-	Fast      bool                `json:"fast"`      // Fast, don't compile and run if a fiddle with this hash has already been compiled and run.
-	Options   Options             `json:"options"`
+	Version   string  `json:"version"`    // The version of Skia that fiddle is running.
+	Sources   string  `json:"sources"`    // All the source image ids serialized as a JSON array.
+	Hash      string  `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
+	Code      string  `json:"code"`
+	Name      string  `json:"name"`      // In a request can be the name to create for this fiddle.
+	Overwrite bool    `json:"overwrite"` // In a request, should a name be overwritten if it already exists.
+	Fast      bool    `json:"fast"`      // Fast, don't compile and run if a fiddle with this hash has already been compiled and run.
+	Options   Options `json:"options"`
 }
 
 // CompileError is a single line of compiler error output, along with the line
@@ -163,3 +162,9 @@ const (
 	COMPILING State = "compiling"
 	RUNNING   State = "running"
 )
+
+// FiddlerMainResponse is the JSON that fiddler responds with for a request to "/".
+type FiddlerMainResponse struct {
+	State   State  `json:"state"`
+	Version string `json:"version"` // Skia Git Hash
+}
