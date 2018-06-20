@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/fiddlek/go/store"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -263,11 +264,11 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		allowed, err := iap.NewAllowedFromChromeInfraAuth(client, *authGroup)
+		allow, err := allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		h = iap.New(h, *aud, allowed)
+		h = iap.New(h, *aud, allow)
 	}
 	h = httputils.LoggingGzipRequestResponse(h)
 	http.Handle("/", h)
