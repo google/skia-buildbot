@@ -825,6 +825,7 @@ import 'elements-sk/icon/stop-screen-share-icon-sk';
 import 'elements-sk/icon/storage-icon-sk';
 import 'elements-sk/icon/store-icon-sk';
 import 'elements-sk/icon/store-mall-directory-icon-sk';
+import 'elements-sk/icon/storm-trooper-icon-sk';
 import 'elements-sk/icon/straighten-icon-sk';
 import 'elements-sk/icon/streetview-icon-sk';
 import 'elements-sk/icon/strikethrough-s-icon-sk';
