@@ -12,6 +12,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
@@ -227,13 +228,13 @@ lMgnmZhQXYTaxTcUmaV2zxD/U3fSoPyzliWdVHK6Zc5wW6kYVYuT5e9/Kg==
 
 	// User is allowed.
 	w = httptest.NewRecorder()
-	ih.allow = NewAllowedFromList([]string{"test@example.org"})
+	ih.allow = allowed.NewAllowedFromList([]string{"test@example.org"})
 	ih.ServeHTTP(w, r)
 	assert.Equal(t, 200, w.Result().StatusCode)
 
 	// Access has been revoked.
 	w = httptest.NewRecorder()
-	ih.allow = NewAllowedFromList([]string{"chromium.org"})
+	ih.allow = allowed.NewAllowedFromList([]string{"chromium.org"})
 	ih.ServeHTTP(w, r)
 	assert.Equal(t, 401, w.Result().StatusCode)
 
@@ -244,7 +245,7 @@ lMgnmZhQXYTaxTcUmaV2zxD/U3fSoPyzliWdVHK6Zc5wW6kYVYuT5e9/Kg==
 	r = httptest.NewRequest("GET", "http://example.com/foo", nil)
 	r.Header.Set("x-goog-iap-jwt-assertion", tokenString)
 	w = httptest.NewRecorder()
-	ih.allow = NewAllowedFromList([]string{"chromium.org"})
+	ih.allow = allowed.NewAllowedFromList([]string{"chromium.org"})
 	ih.ServeHTTP(w, r)
 	assert.Equal(t, 401, w.Result().StatusCode)
 }

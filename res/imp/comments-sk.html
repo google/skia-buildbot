@@ -271,9 +271,12 @@
 
       ready: function() {
         sk.Login.then(function (status) {
-          var email = status["Email"];
-          if (sk.isGoogler(email)) {
+          if (status.IsEditor) {
             this._editRights = true;
+          } else {
+            if (status["Email"] && status["Email"].endsWith("@google.com")) {
+              this._editRights = true;
+            }
           }
         }.bind(this));
       },

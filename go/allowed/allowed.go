@@ -1,4 +1,4 @@
-package iap
+package allowed
 
 import (
 	"fmt"
@@ -10,6 +10,13 @@ import (
 	"go.skia.org/infra/go/util"
 	fsnotify "gopkg.in/fsnotify.v1"
 )
+
+// Allow is used to enforce additional restrictions on who has access to a site,
+// eg. members of a group.
+type Allow interface {
+	// Member returns true if the given email address has access.
+	Member(email string) bool
+}
 
 // AllowedFromList controls access by checking an email address
 // against a list of approved domain names and email addresses.

@@ -38,6 +38,7 @@ import (
 	"time"
 
 	"github.com/gorilla/securecookie"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
@@ -96,6 +97,13 @@ var (
 
 	// DEFAULT_SCOPE is the scope we request when logging in.
 	DEFAULT_SCOPE = []string{"email"}
+
+	// Auth groups which determine whether a given user has particular types
+	// of access. If nil, fall back on domain and individual email
+	// whitelist.
+	adminAllow allowed.Allow
+	editAllow  allowed.Allow
+	viewAllow  allowed.Allow
 )
 
 // Session is encrypted and serialized and stored in a user's cookie.
@@ -119,6 +127,18 @@ func SimpleInitMust(port string, local bool) {
 	if err := Init(redirectURL, DEFAULT_DOMAIN_WHITELIST); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
+}
+
+// InitWithAllow initializes the login system for the default case (see docs for
+// SimpleInitMust) and sets the admin, editor, and viewer lists. These may be
+// nil, in which case we fall back on the default whitelists. For editors we
+// default to denying access to everyone, and for viewers we default to allowing
+// access to everyone.
+func InitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
+	adminAllow = admin
+	editAllow = edit
+	viewAllow = view
+	SimpleInitMust(port, local)
 }
 
 // Init must be called before any other login methods.
@@ -287,7 +307,32 @@ func IsGoogler(r *http.Request) bool {
 // IsAdmin determines whether the user is logged in with an account on the admin
 // whitelist. If true, user is allowed to perform admin tasks.
 func IsAdmin(r *http.Request) bool {
-	return activeAdminEmailWhiteList[LoggedInAs(r)]
+	email := LoggedInAs(r)
+	if adminAllow != nil {
+		return adminAllow.Member(email)
+	}
+	return activeAdminEmailWhiteList[email]
+}
+
+// IsEditor determines whether the user is logged in with an account on the
+// editor whitelist. If true, user is allowed to perform edits. Defaults to
+// false if no editor whitelist is provided.
+func IsEditor(r *http.Request) bool {
+	email := LoggedInAs(r)
+	if editAllow != nil {
+		return editAllow.Member(email)
+	}
+	return false
+}
+
+// IsViewer determines whether the user is allowed to view this server. Defaults
+// to true if no viewer whitelist is provided.
+func IsViewer(r *http.Request) bool {
+	email := LoggedInAs(r)
+	if viewAllow != nil {
+		return viewAllow.Member(email)
+	}
+	return true
 }
 
 // A JSON Web Token can contain much info, such as 'iss' and 'sub'. We don't care about
@@ -459,7 +504,9 @@ func inWhitelist(email string) bool {
 	if len(parts) != 2 {
 		return false
 	}
-
+	if viewAllow != nil {
+		return viewAllow.Member(email)
+	}
 	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
 		return false
 	}
@@ -473,6 +520,9 @@ func inWhitelist(email string) bool {
 //   "ID":        "12342...34324",
 //   "LoginURL":  "https://..."
 //   "IsAGoogler": false,
+//   "IsViewer":   true,
+//   "IsEditor":   true,
+//   "IsAdmin:     false
 // }
 //
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
@@ -485,11 +535,17 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		ID         string
 		LoginURL   string
 		IsAGoogler bool
+		IsAdmin    bool
+		IsEditor   bool
+		IsViewer   bool
 	}{
 		Email:      email,
 		ID:         id,
 		LoginURL:   LoginURL(w, r),
 		IsAGoogler: IsGoogler(r),
+		IsAdmin:    IsAdmin(r),
+		IsEditor:   IsEditor(r),
+		IsViewer:   IsViewer(r),
 	}
 	if err := enc.Encode(body); err != nil {
 		sklog.Errorf("Failed to encode Login status to JSON: %s", err)
@@ -525,6 +581,45 @@ func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 				http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
 				return
 			}
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+// RestrictAdmin is middleware which enforces that the user is logged in as an
+// admin before the wrapped handler is called.
+func RestrictAdmin(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !IsAdmin(r) {
+			sklog.Warning("User is not an admin: %s", LoggedInAs(r))
+			http.Error(w, "User is not an admin.", 403)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+// RestrictEditor is middleware which enforces that the user is logged in as an
+// editor before the wrapped handler is called.
+func RestrictEditor(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !IsEditor(r) {
+			sklog.Warning("User is not an editor: %s", LoggedInAs(r))
+			http.Error(w, "User is not an editor.", 403)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+// RestrictViewer is middleware which enforces that the user is logged in as an
+// admin before the wrapped handler is called.
+func RestrictViewer(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !IsViewer(r) {
+			sklog.Warning("User is not an viewer: %s", LoggedInAs(r))
+			http.Error(w, "User is not an viewer.", 403)
+			return
 		}
 		h.ServeHTTP(w, r)
 	})

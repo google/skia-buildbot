@@ -450,10 +450,6 @@ this.sk = this.sk || {};
     return s;
   }
 
-  sk.isGoogler = function(email) {
-    return email && email.endsWith("@google.com");
-  };
-
   // Namespace for utilities for working with URL query strings.
   sk.query = {};
 

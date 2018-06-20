@@ -110,7 +110,7 @@
             <div class="th">Codereview Link</div>
             <div class="th">Status</div>
             <div class="th">Manually Triggered</div>
-            <template is="dom-if" if="[[_isGoogler]]">
+            <template is="dom-if" if="[[_editRights]]">
               <div class="th">
                 <paper-button raised class="cancelButton bg-purple" on-tap="_cancelAll">Cancel All</paper-button>
               </div>
@@ -129,7 +129,7 @@
               </div>
               <div class="td" style$="background-color:[[_statusColor(job)]]">[[_statusText(job)]]</div>
               <div class="td">[[job.isForce]]</div>
-              <template is="dom-if" if="[[_isGoogler]]">
+              <template is="dom-if" if="[[_editRights]]">
                 <div class="td">
                   <template is="dom-if" if="[[_showCancel(job)]]">
                     <paper-button raised class="cancelButton bg-purple" on-tap="_cancelJob" data-id$="[[job.id]]">Cancel</paper-button>
@@ -175,7 +175,7 @@
         },
 
         // Private.
-        _isGoogler: {
+        _editRights: {
           type: Boolean,
         },
         _results: {
@@ -192,11 +192,12 @@
 
       ready: function() {
         sk.Login.then(function(status) {
-          this.set("_isGoogler", false);
+          var editRights = false;
           var email = status["Email"];
-          if (sk.isGoogler(email)) {
-            this.set("_isGoogler", true);
+          if (email && email.endsWith("@google.com")) {
+            editRights = true;
           }
+          this.set("_editRights", editRights)
         }.bind(this));
 
         // Only perform the initial search if URL params were specified for at
