@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0631dd34_3f10538a",
+        "filename": "golden/go/dsutil/blob.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-20T19:40:38Z",
+      "side": 1,
+      "message": "nit: unused?",
+      "range": {
+        "startLine": 190,
+        "startChar": 0,
+        "endLine": 206,
+        "endChar": 1
+      },
+      "revId": "16075190712b5596fc92e24351b87ccd9ca4df7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56127bf9_a879ce49",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-20T19:40:38Z",
+      "side": 1,
+      "message": "nit: I think it will be confusing to return this in one case but not another. If you need this return value, you can\u0027t use PutFn, because you need to do different things depending on whether it\u0027s a transaction or not.",
+      "range": {
+        "startLine": 289,
+        "startChar": 99,
+        "endLine": 289,
+        "endChar": 113
+      },
+      "revId": "16075190712b5596fc92e24351b87ccd9ca4df7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6abd698e_f65e0fe5",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-20T19:40:38Z",
+      "side": 1,
+      "message": "This does not seem correct. You are using this value for TimeSortableKey, so it\u0027s pretty important that it\u0027s an actual timestamp. Ditto for UndoChange.",
+      "range": {
+        "startLine": 154,
+        "startChar": 41,
+        "endLine": 154,
+        "endChar": 42
+      },
+      "revId": "16075190712b5596fc92e24351b87ccd9ca4df7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a59afe1_3d0e9ae4",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-20T19:40:38Z",
+      "side": 1,
+      "message": "nit: delete",
+      "range": {
+        "startLine": 199,
+        "startChar": 45,
+        "endLine": 199,
+        "endChar": 67
+      },
+      "revId": "16075190712b5596fc92e24351b87ccd9ca4df7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d14f4238_f7d608e9",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-20T19:40:38Z",
+      "side": 1,
+      "message": "nit: doc new params timeStampMs and transactional",
+      "revId": "16075190712b5596fc92e24351b87ccd9ca4df7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee2b5304_047aef65",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-20T19:40:38Z",
+      "side": 1,
+      "message": "nit: should probably just log error and return nil, since at this point the operation succeeded.",
+      "range": {
+        "startLine": 516,
+        "startChar": 2,
+        "endLine": 516,
+        "endChar": 21
+      },
+      "revId": "16075190712b5596fc92e24351b87ccd9ca4df7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b25e6e3_d736a7a7",
+        "filename": "golden/go/expstorage/expstorage_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-20T19:40:38Z",
+      "side": 1,
+      "message": "I think this should be ds.EXPECTATIONS_BLOB",
+      "range": {
+        "startLine": 91,
+        "startChar": 2,
+        "endLine": 91,
+        "endChar": 27
+      },
+      "revId": "16075190712b5596fc92e24351b87ccd9ca4df7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
