@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
@@ -17,15 +18,6 @@ import (
 var (
 	errNotFound = errors.New("Not Found")
 )
-
-// Allow is used by IAPHandler to enforce additional restrictions on who has
-// access to a site. That is, IAP may restrict access to a domain, i.e.
-// google.com, but Allow may further restrict it to an even smaller subset,
-// such as members of a group.
-type Allow interface {
-	// Member returns true if the given email address has access.
-	Member(email string) bool
-}
 
 const (
 	// IAP_PUBLIC_KEY_URL is the URL of the public keys that verify a JWT signed by IAP.
@@ -49,7 +41,7 @@ const (
 // A successfully validated request will contain an EMAIL_HEADER with the user's
 // email address.
 type IAPHandler struct {
-	allow      Allow
+	allow      allowed.Allow
 	aud        string
 	client     *http.Client
 	handler    http.Handler
@@ -70,7 +62,7 @@ type IAPHandler struct {
 //   the Load Balancer resource, and then select Signed Header JWT Audience.
 //   The Signed Header JWT dialog that appears displays the aud claim for the
 //   selected resource.
-func New(h http.Handler, aud string, allow Allow) *IAPHandler {
+func New(h http.Handler, aud string, allow allowed.Allow) *IAPHandler {
 	return &IAPHandler{
 		allow:      allow,
 		jwtToEmail: map[string]string{},
@@ -115,9 +107,7 @@ func None(h http.Handler) http.Handler {
 	return http.HandlerFunc(s)
 }
 
-// Validate identity for the given request. Returns true if it's okay to
-// continue processing the request.
-func (i *IAPHandler) handle(w http.ResponseWriter, r *http.Request) bool {
+func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Only this func is allowed to set x-user-email.
 	r.Header.Set(EMAIL_HEADER, "")
 	jwtAssertion := r.Header.Get("x-goog-iap-jwt-assertion")
@@ -128,18 +118,18 @@ func (i *IAPHandler) handle(w http.ResponseWriter, r *http.Request) bool {
 	// header and respond with a bodyless 200 OK.
 	if r.URL.Path == "/" && jwtAssertion == "" {
 		w.WriteHeader(http.StatusOK)
-		return false
+		return
 	}
 	if jwtAssertion == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Missing jwt assertion for non-'/' path."), "Identity Aware Proxy has been disabled, all access is denied.")
-		return false
+		return
 	}
 	email, err := i.getEmail(jwtAssertion)
 	// A user may have been previously allowed, but has since been removed from
 	// the list, so check here.
 	if err == nil && i.allow != nil && !i.allow.Member(email) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return false
+		return
 	}
 	if err != nil {
 		// Validate jwtAsssertion
@@ -185,66 +175,26 @@ func (i *IAPHandler) handle(w http.ResponseWriter, r *http.Request) bool {
 		})
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to validate JWT.")
-			return false
+			return
 		}
 		email_b, ok := token.Claims.(jwt.MapClaims)["email"]
 		if !ok {
 			httputils.ReportError(w, r, nil, "Failed to find email in validated JWT.")
-			return false
+			return
 		}
 		email, ok = email_b.(string)
 		if !ok {
 			httputils.ReportError(w, r, nil, "Failed to find email string in validated JWT.")
-			return false
+			return
 		}
 		if i.allow != nil && !i.allow.Member(email) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return false
+			return
 		}
 		i.setEmail(jwtAssertion, email)
 	}
 	r.Header.Set(EMAIL_HEADER, email)
-	return true
-}
-
-// Middleware function, which can be enabled for particular handlers, rather
-// than using the IAPHandler for all requests.
-func (i *IAPHandler) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !i.handle(w, r) {
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (i *IAPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !i.handle(w, r) {
-		return
-	}
 	i.handler.ServeHTTP(w, r)
-}
-
-type LoginInfo struct {
-	Email string                 `json:"Email"`
-	Data  map[string]interface{} `json:"Data"`
-}
-
-// LoginInfoHandler can only be used when wrapped in an IAPHandler. The provided
-// function can modify the provided LoginInfo with extra information in the Data
-// field.
-func LoginInfoHandler(fn func(http.ResponseWriter, *http.Request, *LoginInfo)) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		info := LoginInfo{
-			Email: r.Header.Get(EMAIL_HEADER),
-			Data:  map[string]interface{}{},
-		}
-		fn(w, r, &info)
-		if err := json.NewEncoder(w).Encode(info); err != nil {
-			httputils.ReportError(w, r, err, "Failed to encode response.")
-			return
-		}
-	})
 }
 
 func (i *IAPHandler) setEmail(jwtAssertion, email string) {

@@ -21,11 +21,13 @@ import (
 	"unicode"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/iap"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -40,6 +42,8 @@ import (
 )
 
 const (
+	// The chrome infra auth group to use for restricting admin rights.
+	AUTH_GROUP_ADMIN_RIGHTS = "google/skia-root@google.com"
 	// The chrome infra auth group to use for restricting edit rights.
 	AUTH_GROUP_EDIT_RIGHTS = "google/skia-staff@google.com"
 
@@ -65,11 +69,11 @@ var (
 
 // flags
 var (
-	aud                         = flag.String("aud", "", "The aud value, from the Identity-Aware Proxy JWT Audience for the given backend.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	recipesCfgFile              = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	chromeInfraAuthJWT          = flag.String("service_account_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
@@ -271,7 +275,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Name:      task.Name,
 		Timestamp: time.Now().UTC(),
 		TaskId:    task.Id,
-		User:      r.Header.Get(iap.EMAIL_HEADER),
+		User:      login.LoggedInAs(r),
 		Message:   comment.Comment,
 	}
 	if err := taskDb.PutTaskComment(&c); err != nil {
@@ -350,7 +354,7 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Repo:          repoUrl,
 		Name:          taskSpec,
 		Timestamp:     time.Now().UTC(),
-		User:          r.Header.Get(iap.EMAIL_HEADER),
+		User:          login.LoggedInAs(r),
 		Flaky:         comment.Flaky,
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
@@ -421,7 +425,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Repo:          repoUrl,
 		Revision:      commit,
 		Timestamp:     time.Now().UTC(),
-		User:          r.Header.Get(iap.EMAIL_HEADER),
+		User:          login.LoggedInAs(r),
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
 	}
@@ -601,22 +605,6 @@ func lkgrHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runServer(serverURL string) {
-	var client *http.Client
-	var editAllowed iap.Allow
-	var editHandler *iap.IAPHandler
-	var err error
-	if !*testing {
-		client, err = auth.NewJWTServiceAccountClient("", *chromeInfraAuthJWT, nil, auth.SCOPE_USERINFO_EMAIL)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		editAllowed, err = iap.NewAllowedFromChromeInfraAuth(client, AUTH_GROUP_EDIT_RIGHTS)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		editHandler = iap.New(nil, *aud, editAllowed)
-	}
-
 	r := mux.NewRouter()
 	// TODO(borenet): "/" is used to determine readiness. Remove the redirect.
 	r.HandleFunc("/", defaultRedirectHandler)
@@ -628,37 +616,26 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
-	r.Handle("/loginstatus/", iap.LoginInfoHandler(func(_ http.ResponseWriter, _ *http.Request, info *iap.LoginInfo) {
-		info.Data["editRights"] = editAllowed.Member(info.Email)
-	}))
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-
-	// These endpoints are restricted.
 	taskComments := r.PathPrefix("/json/tasks/{id}").Subrouter()
 	taskComments.HandleFunc("/comments", addTaskCommentHandler).Methods("POST")
 	taskComments.HandleFunc("/comments/{timestamp:[0-9]+}", deleteTaskCommentHandler).Methods("DELETE")
-	if editHandler != nil {
-		taskComments.Use(editHandler.Middleware)
-	}
-
+	taskComments.Use(login.RestrictEditor)
 	taskSpecs := r.PathPrefix("/json/{repo}/taskSpecs/{taskSpec}").Subrouter()
 	taskSpecs.HandleFunc("/comments", addTaskSpecCommentHandler).Methods("POST")
 	taskSpecs.HandleFunc("/comments/{timestamp:[0-9]+}", deleteTaskSpecCommentHandler).Methods("DELETE")
-	if editHandler != nil {
-		taskSpecs.Use(editHandler.Middleware)
-	}
-
+	taskSpecs.Use(login.RestrictEditor)
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
-	if editHandler != nil {
-		commits.Use(editHandler.Middleware)
-	}
-
+	commits.Use(login.RestrictEditor)
 	sklog.AddLogsRedirect(r)
-	h := httputils.LoggingGzipRequestResponse(r)
+	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
 	if !*testing {
-		h = iap.New(h, *aud, nil)
+		h = iap.None(h)
 	}
 	http.Handle("/", h)
 	sklog.Infof("Ready to serve on %s", serverURL)
@@ -711,6 +688,20 @@ func main() {
 		}
 	}
 
+	criaClient, err := auth.NewJWTServiceAccountClient("", *chromeInfraAuthJWT, nil, auth.SCOPE_USERINFO_EMAIL)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	adminAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, AUTH_GROUP_ADMIN_RIGHTS)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	editAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, AUTH_GROUP_EDIT_RIGHTS)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	login.InitWithAllow(*port, *testing, adminAllowed, editAllowed, nil)
+
 	// Check out source code.
 	reposDir := path.Join(*workdir, "repos")
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
@@ -729,7 +720,7 @@ func main() {
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour)
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *recipesCfgFile, repos, 14*24*time.Hour)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
