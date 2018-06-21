@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -8,8 +9,10 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/99designs/goodies/http/secure_headers/csp"
 	"github.com/gorilla/csrf"
@@ -23,6 +26,7 @@ import (
 	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/html"
 )
 
 // flags
@@ -96,9 +100,40 @@ func New() (*Server, error) {
 }
 
 func (srv *Server) loadTemplates() {
-	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+	fh, err := os.Open(
 		filepath.Join(*resourcesDir, "index.html"),
-	))
+	)
+	if err != nil {
+		return
+	}
+	defer util.Close(fh)
+	doc, err := html.Parse(fh)
+
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && (n.Data == "link" || n.Data == "script") {
+			n.Attr = append(n.Attr, html.Attribute{
+				Key: "nonce",
+				Val: "{%.nonce%}",
+			})
+			for _, a := range n.Attr {
+				if a.Key == "href" || a.Key == "src" {
+					fmt.Println(a.Val)
+					break
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
+	var w strings.Builder
+	if err := html.Render(&w, doc); err != nil {
+		return
+	}
+
+	srv.templates = template.Must(template.New("index.html").Delims("{%", "%}").Parse(w.String()))
 }
 
 func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,9 +141,16 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		srv.loadTemplates()
 	}
+	c := 16
+	b := make([]byte, c)
+	_, err := rand.Read(b)
+	if err != nil {
+		sklog.Errorf("Failed to get nonce: %s", err)
+	}
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
 		// base64 encode the csrf to avoid golang templating escaping.
-		"csrf": base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
+		"nonce": base64.StdEncoding.EncodeToString(b),
+		"csrf":  base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
