@@ -46,6 +46,30 @@
       "revId": "aeca4510d5ae34bedea0be3947a2630f03145e4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26ab836e_d6dda8d9",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-21T13:48:26Z",
+      "side": 0,
+      "message": "I don\u0027t think it\u0027s a big deal, since it only affects the case where we\u0027re building *for* Windows, right?  We\u0027re never going to run our servers on Windows.  IMO it makes more sense to avoid a possible compilation failure which could be a hassle for developers using Windows.",
+      "parentUuid": "0d67070f_ee50b5b9",
+      "range": {
+        "startLine": 298,
+        "startChar": 0,
+        "endLine": 301,
+        "endChar": 62
+      },
+      "revId": "aeca4510d5ae34bedea0be3947a2630f03145e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
