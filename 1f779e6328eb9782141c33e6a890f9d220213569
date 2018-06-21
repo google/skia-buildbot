@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "00277d58_80cc78e0",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 623,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-21T17:12:32Z",
+      "side": 1,
+      "message": "Needs to be \u003c\u003d in order to handle 3 requests within 1ms (or clock weirdness).",
+      "range": {
+        "startLine": 623,
+        "startChar": 7,
+        "endLine": 623,
+        "endChar": 9
+      },
+      "revId": "1f779e6328eb9782141c33e6a890f9d220213569",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
