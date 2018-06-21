@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -84,8 +85,11 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	year, week := time.Now().ISOWeek()
+	threadId := fmt.Sprintf("%d-%d", week, year)
+
 	// Send the message to the chat room.
-	if err := chatbot.SendUsingConfig(body, to, "", chatBotConfigReader); err != nil {
+	if err := chatbot.SendUsingConfig(body, to, threadId, chatBotConfigReader); err != nil {
 		httputils.ReportError(w, r, err, "Failed to send outgoing chat.")
 		return
 	}
