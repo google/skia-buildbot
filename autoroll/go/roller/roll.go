@@ -3,6 +3,7 @@ package roller
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	github_api "github.com/google/go-github/github"
@@ -358,6 +359,19 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
 		a.Result = autoroll.ROLL_RESULT_FAILURE
+	} else if len(a.TryResults) > 0 && a.AllTrybotsFinished() && !a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE {
+		// TravisCI failed. Close the roll.
+		linkToTryjobs := []string{}
+		for _, tryJob := range a.TryResults {
+			linkToTryjobs = append(linkToTryjobs, tryJob.Url)
+		}
+		failureComment := fmt.Sprintf("TravisCI builds failed. These were the builds: %s", strings.Join(linkToTryjobs, " "))
+		if err := g.AddComment(int(issueNum), failureComment); err != nil {
+			return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+		}
+		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
+			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
+		}
 	} else if len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.

@@ -57,14 +57,3 @@ on the roller to see what failed:
 * Check to see if DEPS has the latest Skia rev. If not update it and run "~/depot_tools/gclient sync"
 * cd /mnt/pd0/autoroll_workdir/engine/src/flutter/tools/licenses/
 * /mnt/pd0/autoroll_workdir/engine/src/third_party/dart/tools/sdks/linux/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /mnt/pd0/autoroll_workdir/engine/src/out/licenses
-
-Known Issues
-============
-
-Skia->Flutter roller gets stuck
--------------------------------
-
-Sometimes (rarely) the TravisCI build fails due to flakiness and instead of
-marking the Github PR as failed, it stays open and the roller gets stuck.
-The right way to fix this is still being investigated.
-Manual Fix: Stop the roller, so that the PR gets closed, and start it again.
