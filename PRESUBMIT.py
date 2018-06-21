@@ -132,6 +132,9 @@ def CheckChange(input_api, output_api):
   """
   results = []
 
+  pylint_disabled_files = (
+      'infra/bots/recipes.py',
+  )
   pylint_disabled_warnings = (
       'F0401',  # Unable to import.
       'E0611',  # No name in module.
@@ -145,8 +148,9 @@ def CheckChange(input_api, output_api):
   # Run Pylint on only the modified python files. Unfortunately it still runs
   # Pylint on the whole file instead of just the modified lines.
   file_filter = _MakeFileFilter(input_api, ['py'])
-  affected_python_files = (f.LocalPath()
-                           for f in input_api.AffectedSourceFiles(file_filter))
+  affected_python_files = (
+    f.LocalPath() for f in input_api.AffectedSourceFiles(file_filter)
+    if f.LocalPath() not in pylint_disabled_files)
   results += input_api.canned_checks.RunPylint(
       input_api, output_api,
       disabled_warnings=pylint_disabled_warnings,
