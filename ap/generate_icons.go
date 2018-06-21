@@ -62,10 +62,6 @@ Did you run 'npm install' first?
 		fmt.Println()
 	}
 
-	// TODO(kjlubick) Maybe search the output folder for non-generated icons
-	// (i.e. custom ones not given to us by Material Design) and also include
-	// those in the demos.
-
 	h, err := os.Create(DEMO_HTML_PATH)
 	if err != nil {
 		fmt.Printf("cannot make demo html: %s\n", err)
@@ -162,16 +158,21 @@ var DEMO_PAGE_HTML_TEMPLATE = template.Must(template.New("icon-demo-html").Parse
 <style>
   .icon-label {
     display: inline-block;
-    border: 1px solid #DDD;
-    padding: 2px;
+    padding: 1em;
     text-align: center;
     margin: 2px 0;
   }
 
+  figure {
+    fill: #777;
+  }
+
   .icon-label > * {
-    margin: auto;
+    margin-top: 0.6em;
     display: block;
     text-align: center;
+    color: #040;
+    font-size: 90%;
   }
 
   .icon-label > :first-child {
