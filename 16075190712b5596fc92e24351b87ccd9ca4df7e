@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "68639288_f9b53ccc",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-21T18:30:17Z",
+      "side": 1,
+      "message": "Oh! Ok, sorry for the confusion.",
+      "parentUuid": "64ef737e_619f2ad4",
+      "range": {
+        "startLine": 154,
+        "startChar": 41,
+        "endLine": 154,
+        "endChar": 42
+      },
+      "revId": "16075190712b5596fc92e24351b87ccd9ca4df7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6a59afe1_3d0e9ae4",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 37
