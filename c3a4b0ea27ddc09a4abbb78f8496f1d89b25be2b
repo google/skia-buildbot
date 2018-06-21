@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd055302_d1e491d5",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-21T20:41:14Z",
+      "side": 1,
+      "message": "an",
+      "range": {
+        "startLine": 115,
+        "startChar": 73,
+        "endLine": 115,
+        "endChar": 75
+      },
+      "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e030219_3ddf6dce",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-21T20:41:14Z",
+      "side": 1,
+      "message": "not",
+      "range": {
+        "startLine": 116,
+        "startChar": 17,
+        "endLine": 116,
+        "endChar": 19
+      },
+      "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f762b23_20f7639b",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-21T20:41:14Z",
+      "side": 1,
+      "message": "Extra whitespace needed?",
+      "range": {
+        "startLine": 194,
+        "startChar": 16,
+        "endLine": 194,
+        "endChar": 22
+      },
+      "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c73fcc6_21fd58e0",
+        "filename": "go/ds/ds_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-21T20:41:14Z",
+      "side": 1,
+      "message": "No cleanup call?",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 5
+      },
+      "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
