@@ -240,6 +240,34 @@ func NewQuery(kind Kind) *datastore.Query {
 	return datastore.NewQuery(string(kind)).Namespace(Namespace)
 }
 
+// IterKeys iterates all keys of the specified kind in slices of pageSize length.
+func IterKeys(client *datastore.Client, kind Kind, pageSize int) (<-chan []*datastore.Key, error) {
+	sliceIter := newKeySliceIterator(client, kind, pageSize)
+	keySlice, done, err := sliceIter.next()
+	if err != nil {
+		return nil, err
+	}
+
+	retCh := make(chan []*datastore.Key)
+	go func() {
+		defer close(retCh)
+
+		keyCount := 0
+		for !done {
+			keyCount += len(keySlice)
+			retCh <- keySlice
+
+			// Get the next slice of keys.
+			keySlice, done, err = sliceIter.next()
+			if err != nil {
+				sklog.Errorf("Error retrieving next key slice: %s", err)
+				return
+			}
+		}
+	}()
+	return retCh, nil
+}
+
 // keySliceIterator allows to iterate over the keys of a specific entity
 // in slices of fixed size.
 type keySliceIterator struct {
