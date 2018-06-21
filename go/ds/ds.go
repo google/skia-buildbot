@@ -4,12 +4,16 @@ package ds
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/datastore"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 type Kind string
@@ -38,9 +42,10 @@ const (
 	TEST_DIGEST_EXP        Kind = "TryjobTestDigestExp" // TODO(stephana): Remove after migration to consolidated expectations store
 	TRYJOB_TEST_DIGEST_EXP Kind = "TryjobTestDigestExp"
 	MASTER_EXP_CHANGE      Kind = "MasterExpChange"
-	MASTER_TEST_DIGEST_EXP Kind = "MasterTestDigestExp"
 	IGNORE_RULE            Kind = "IgnoreRule"
 	HELPER_RECENT_KEYS     Kind = "HelperRecentKeys"
+	EXPECTATIONS_BLOB      Kind = "ExpectationsBlob"
+	EXPECTATIONS_BLOB_ROOT Kind = "ExpectationsBlobRoot"
 
 	// Android Compile
 	COMPILE_TASK Kind = "CompileTask"
@@ -88,21 +93,10 @@ var (
 		PERF_NS:                []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		PERF_ANDROID_NS:        []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		PERF_ANDROID_MASTER_NS: []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
-		GOLD_SKIA_PROD_NS: []Kind{
-			HELPER_RECENT_KEYS,
-			IGNORE_RULE,
-			ISSUE,
-			TRYJOB,
-			TRYJOB_RESULT,
-			TRYJOB_EXP_CHANGE,
-			TEST_DIGEST_EXP,
-			TRYJOB_TEST_DIGEST_EXP,
-			MASTER_EXP_CHANGE,
-			MASTER_TEST_DIGEST_EXP,
-		},
-		ANDROID_COMPILE_NS: []Kind{COMPILE_TASK},
-		LEASING_SERVER_NS:  []Kind{TASK},
-		CT_NS:              []Kind{CAPTURE_SKPS_TASKS, CHROMIUM_ANALYSIS_TASKS, CHROMIUM_BUILD_TASKS, CHROMIUM_PERF_TASKS, LUA_SCRIPT_TASKS, METRICS_ANALYSIS_TASKS, PIXEL_DIFF_TASKS, RECREATE_PAGESETS_TASKS, RECREATE_WEBPAGE_ARCHIVES_TASKS, CLUSTER_TELEMETRY_IDS},
+		GOLD_SKIA_PROD_NS:      []Kind{ISSUE, TRYJOB, TRYJOB_RESULT, TRYJOB_EXP_CHANGE, TEST_DIGEST_EXP, TRYJOB_TEST_DIGEST_EXP, MASTER_EXP_CHANGE, IGNORE_RULE, HELPER_RECENT_KEYS, EXPECTATIONS_BLOB, EXPECTATIONS_BLOB_ROOT},
+		ANDROID_COMPILE_NS:     []Kind{COMPILE_TASK},
+		LEASING_SERVER_NS:      []Kind{TASK},
+		CT_NS:                  []Kind{CAPTURE_SKPS_TASKS, CHROMIUM_ANALYSIS_TASKS, CHROMIUM_BUILD_TASKS, CHROMIUM_PERF_TASKS, LUA_SCRIPT_TASKS, METRICS_ANALYSIS_TASKS, PIXEL_DIFF_TASKS, RECREATE_PAGESETS_TASKS, RECREATE_WEBPAGE_ARCHIVES_TASKS, CLUSTER_TELEMETRY_IDS},
 	}
 )
 
@@ -151,7 +145,7 @@ func Init(project string, ns string) error {
 //
 // project - The project name, i.e. "google.com:skia-buildbots".
 // ns      - The datastore namespace to store data into.
-func InitForTesting(project string, ns string) error {
+func InitForTesting(project string, ns string, kinds ...Kind) error {
 	Namespace = ns
 	var err error
 	DS, err = datastore.NewClient(context.Background(), project)
@@ -159,6 +153,72 @@ func InitForTesting(project string, ns string) error {
 		return fmt.Errorf("Failed to initialize Cloud Datastore: %s", err)
 	}
 	return nil
+}
+
+// DeleteAll removes all entities of the given kind. If wait is true it waits
+// until an eventually consistent query of the Kind returns a count of 0.
+// Upon success the number of deleted entities is returned.
+//
+// Note: This is a very expensive operation if there are many entities of this
+// kind and should be run as an 'offline' task.
+func DeleteAll(client *datastore.Client, kind Kind, wait bool) (int, error) {
+	const (
+		// keyPageSize is the number of keys we retrieve at once
+		keyPageSize = 10000
+
+		// At most 500 keys can be deleted at once (Cloud Datastore limitation)
+		deletePageSize = 500
+	)
+
+	sliceIter := newKeySliceIterator(client, kind, keyPageSize)
+	slice, done, err := sliceIter.next()
+	ctx := context.TODO()
+	keySlices := [][]*datastore.Key{}
+
+	totalKeyCount := 0
+	for !done && (err == nil) {
+		keySlices = append(keySlices, slice)
+		totalKeyCount += len(slice)
+		slice, done, err = sliceIter.next()
+		sklog.Infof("Loaded %s %d keys %d", kind, len(slice), totalKeyCount)
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	// Delete all slices in parallel.
+	var egroup errgroup.Group
+	for _, slice := range keySlices {
+		func(slice []*datastore.Key) {
+			egroup.Go(func() error {
+				for len(slice) > 0 {
+					targetSlice := slice[:util.MinInt(deletePageSize, len(slice))]
+					if err := client.DeleteMulti(ctx, targetSlice); err != nil {
+						return err
+					}
+					slice = slice[len(targetSlice):]
+				}
+				return nil
+			})
+		}(slice)
+	}
+	if err := egroup.Wait(); err != nil {
+		return 0, sklog.FmtErrorf("Error deleting entities: %s", err)
+	}
+
+	// If we need to wait loop until the entity count goes to zero.
+	if wait {
+		found := 1
+		for found > 0 {
+			if found, err = client.Count(context.TODO(), NewQuery(kind)); err != nil {
+				return 0, err
+			}
+			// Sleep proportional to the number of found keys, but no more than 10 seconds.
+			sleepTimeMs := util.MinInt64(int64(found)*10, 10000)
+			time.Sleep(time.Duration(sleepTimeMs) * time.Millisecond)
+		}
+	}
+	return totalKeyCount, nil
 }
 
 // Creates a new indeterminate key of the given kind.
@@ -178,4 +238,80 @@ func NewKeyWithParent(kind Kind, parent *datastore.Key) *datastore.Key {
 // Creates a new query of the given kind with the right namespace.
 func NewQuery(kind Kind) *datastore.Query {
 	return datastore.NewQuery(string(kind)).Namespace(Namespace)
+}
+
+// keySliceIterator allows to iterate over the keys of a specific entity
+// in slices of fixed size.
+type keySliceIterator struct {
+	client    *datastore.Client
+	kind      Kind
+	pageSize  int
+	orderedBy []string
+	cursorStr string
+	done      bool
+}
+
+// newKeySliceIterator returns a new keySliceIterator instance for the given kind.
+// 'pageSize' defines the size of slices that are returned by the next method.
+// 'orderedBy' allows to sort the slices with the same operators as datastore.Query.
+func newKeySliceIterator(client *datastore.Client, kind Kind, pageSize int, orderedBy ...string) *keySliceIterator {
+	return &keySliceIterator{
+		client:    client,
+		kind:      kind,
+		pageSize:  pageSize,
+		orderedBy: orderedBy,
+		cursorStr: "",
+	}
+}
+
+// next returns the next slice of keys of the iterator. If the returned bool is
+// true no more keys are available.
+func (k *keySliceIterator) next() ([]*datastore.Key, bool, error) {
+	// Once we have reached the end, don't run the query again.
+	if k.done {
+		return []*datastore.Key{}, true, nil
+	}
+
+	query := NewQuery(k.kind).KeysOnly().Limit(k.pageSize)
+	for _, ob := range k.orderedBy {
+		query = query.Order(ob)
+	}
+
+	if k.cursorStr != "" {
+		cursor, err := datastore.DecodeCursor(k.cursorStr)
+		if err != nil {
+			return nil, false, sklog.FmtErrorf("Bad cursor %s: %s", k.cursorStr, err)
+		}
+		query = query.Start(cursor)
+	}
+
+	it := k.client.Run(context.TODO(), query)
+	var err error
+	var key *datastore.Key
+	retKeys := make([]*datastore.Key, 0, k.pageSize)
+
+	for {
+		if key, err = it.Next(nil); err != nil {
+			break
+		}
+		retKeys = append(retKeys, key)
+	}
+
+	if err != iterator.Done {
+		return nil, false, sklog.FmtErrorf("Error retrieving keys: %s", err)
+	}
+
+	// Get the string for the next page.
+	cursor, err := it.Cursor()
+	if err != nil {
+		return nil, false, sklog.FmtErrorf("Error retrieving next cursor: %s", err)
+	}
+
+	// Check if the string representation of the cursor has changed.
+	newCursorStr := cursor.String()
+	k.done = (k.cursorStr == newCursorStr)
+	k.cursorStr = newCursorStr
+
+	// We are not officially done while we have results to return.
+	return retKeys, !(len(retKeys) > 0), nil
 }

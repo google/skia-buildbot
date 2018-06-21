@@ -81,13 +81,16 @@ func TestIssueCloudExpectationsStore(t *testing.T) {
 }
 
 // initDS initializes the datastore for testing.
-func initDS(t *testing.T) func() {
-	return ds_testutil.InitDatastore(t,
+func initDS(t *testing.T, kinds ...ds.Kind) func() {
+	kinds = append([]ds.Kind{
 		ds.MASTER_EXP_CHANGE,
-		ds.MASTER_TEST_DIGEST_EXP,
 		ds.TRYJOB_EXP_CHANGE,
 		ds.TRYJOB_TEST_DIGEST_EXP,
-		ds.HELPER_RECENT_KEYS)
+		ds.HELPER_RECENT_KEYS,
+		ds.EXPECTATIONS_BLOB_ROOT,
+		ds.EXPECTATIONS_BLOB,
+	}, kinds...)
+	return ds_testutil.InitDatastore(t, kinds...)
 }
 
 const hexLetters = "0123456789abcdef"
@@ -112,24 +115,29 @@ func TestBigSQLChange(t *testing.T) {
 	vdb, err := conf.NewVersionedDB()
 	assert.NoError(t, err)
 
-	// Test the MySQL backed store
+	// Test the MySQL backed store with a large number of changes
+	// 25313 is chosen at random to be large enough to be realistic and low enough
+	// to not unnecessarily slow down testing.
 	sqlStore := NewSQLExpectationStore(vdb)
-
-	nDigests := 25313
-	labels := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
-	digests := make(types.TestClassification, nDigests)
-	for i := 0; i < nDigests; i++ {
-		digests[randomDigest()] = labels[rand.Intn(len(labels))]
-	}
-
-	bigChange := map[string]types.TestClassification{
-		"mytest": digests,
-	}
+	bigChange := getRandomChange(1, 25313)
 
 	assert.NoError(t, sqlStore.AddChange(bigChange, "user-99"))
 	exp, err := sqlStore.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, bigChange, exp.Tests)
+}
+
+func getRandomChange(nTests, nDigests int) map[string]types.TestClassification {
+	labels := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
+	ret := make(map[string]types.TestClassification, nTests)
+	for i := 0; i < nTests; i++ {
+		digests := make(types.TestClassification, nDigests)
+		for j := 0; j < nDigests; j++ {
+			digests[randomDigest()] = labels[rand.Intn(len(labels))]
+		}
+		ret[util.RandomName()] = digests
+	}
+	return ret
 }
 
 // Test against the expectation store interface.
