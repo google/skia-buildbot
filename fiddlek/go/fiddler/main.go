@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -37,6 +38,7 @@ const (
 
 // flags
 var (
+	apoptosis  = flag.Duration("apoptosis", 5*time.Minute, "How long a pod should live after starting a run.")
 	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	fiddleRoot = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 	checkout   = flag.String("checkout", "", "Directory where Skia is checked out.")
@@ -97,6 +99,11 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Currently running a fiddle.", http.StatusTooManyRequests)
 		return
 	}
+	go func() {
+		// Fail out of the container after a single run.
+		<-time.Tick(*apoptosis)
+		os.Exit(1)
+	}()
 	var request types.FiddleContext
 
 	res := &types.Result{

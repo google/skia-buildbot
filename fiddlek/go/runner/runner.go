@@ -231,7 +231,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				if fiddlerResp.State == types.IDLE {
 					// Run the fiddle in the open pod.
 					ret, err := r.singleRun(rootURL+"/run", body)
-					if err == alreadyRunningFiddleErr || err == failedToSendErr {
+					if err == alreadyRunningFiddleErr {
 						continue
 					} else {
 						// Kill the pod once we have a result.
