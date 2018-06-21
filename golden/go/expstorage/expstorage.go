@@ -51,7 +51,16 @@ func (e *Expectations) AddDigests(testDigests map[string]types.TestClassificatio
 			e.Tests[testName] = map[string]types.Label{}
 		}
 		for digest, label := range digests {
-			e.Tests[testName][digest] = label
+			// UNTRIAGED is the default value and we don't need to store it
+			if label == types.UNTRIAGED {
+				delete(e.Tests[testName], digest)
+			} else {
+				e.Tests[testName][digest] = label
+			}
+		}
+		// In case we had only assigned UNTRIAGED values
+		if len(e.Tests[testName]) == 0 {
+			delete(e.Tests, testName)
 		}
 	}
 }
@@ -172,6 +181,19 @@ type TriageLogEntry struct {
 	ChangeCount  int              `json:"changeCount"`
 	Details      []*TriageDetail  `json:"details"`
 	UndoChangeID int64            `json:"undoChangeId"`
+}
+
+func (t *TriageLogEntry) GetChanges() map[string]types.TestClassification {
+	ret := map[string]types.TestClassification{}
+	for _, d := range t.Details {
+		label := types.LabelFromString(d.Label)
+		if found, ok := ret[d.TestName]; !ok {
+			ret[d.TestName] = types.TestClassification{d.Digest: label}
+		} else {
+			found[d.Digest] = label
+		}
+	}
+	return ret
 }
 
 // Implements ExpectationsStore in memory for prototyping and testing.
