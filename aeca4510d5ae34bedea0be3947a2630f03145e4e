@@ -22,6 +22,30 @@
       "revId": "aeca4510d5ae34bedea0be3947a2630f03145e4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d67070f_ee50b5b9",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-21T13:45:31Z",
+      "side": 0,
+      "message": "I would rather have it not compile than silently change behavior.",
+      "parentUuid": "5f915dab_81f4bead",
+      "range": {
+        "startLine": 298,
+        "startChar": 0,
+        "endLine": 301,
+        "endChar": 62
+      },
+      "revId": "aeca4510d5ae34bedea0be3947a2630f03145e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
