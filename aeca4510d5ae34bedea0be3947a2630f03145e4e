@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f915dab_81f4bead",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-21T13:43:31Z",
+      "side": 0,
+      "message": "So compilation will fail if we ever try to build any caller of this function on Windows?  Just to keep things compiling, can we add this to a new exec_win file:\n\n// This is a no-op on Windows.\nfunc NoInterruptContext(ctx context.Context) context.Context {\n    return getCtx(ctx)\n}",
+      "range": {
+        "startLine": 298,
+        "startChar": 0,
+        "endLine": 301,
+        "endChar": 62
+      },
+      "revId": "aeca4510d5ae34bedea0be3947a2630f03145e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
