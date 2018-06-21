@@ -22,6 +22,30 @@
       "revId": "1f779e6328eb9782141c33e6a890f9d220213569",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9040c36_71434e64",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 39
+      },
+      "lineNbr": 623,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-21T17:43:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00277d58_80cc78e0",
+      "range": {
+        "startLine": 623,
+        "startChar": 7,
+        "endLine": 623,
+        "endChar": 9
+      },
+      "revId": "1f779e6328eb9782141c33e6a890f9d220213569",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
