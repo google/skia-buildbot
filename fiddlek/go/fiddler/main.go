@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -97,6 +98,11 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Currently running a fiddle.", http.StatusTooManyRequests)
 		return
 	}
+	go func() {
+		// Fail out of the container after a single run.
+		<-time.Tick(5 * time.Minute)
+		os.Exit(1)
+	}()
 	var request types.FiddleContext
 
 	res := &types.Result{
