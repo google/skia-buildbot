@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8bb2cced_e89abf31",
+        "filename": "golden/cmd/ds_gold_migration/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-21T17:06:42Z",
+      "side": 1,
+      "message": "Done\nRemoved",
+      "parentUuid": "0a4e8f5d_6bf1f589",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 22
+      },
+      "revId": "8c29b397e72ee54b8ccf6de535c9067d63e17201",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc036705_d016d521",
         "filename": "golden/cmd/ds_gold_migration/main.go",
         "patchSetId": 38
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "224da492_d734d123",
+        "filename": "golden/cmd/ds_gold_migration/main.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-21T17:06:42Z",
+      "side": 1,
+      "message": "Yes, I am not going to do anything fancy codewise, I\u0027ll just turn off Gold briefly and do the migration. I\u0027ll do a testrun on staging first to see if performance holds up after the migration.",
+      "parentUuid": "bc036705_d016d521",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 43
+      },
+      "revId": "8c29b397e72ee54b8ccf6de535c9067d63e17201",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bdb1a289_47782b45",
         "filename": "golden/go/expstorage/cloudexpstore.go",
         "patchSetId": 38
@@ -59,6 +107,30 @@
       "writtenOn": "2018-06-20T19:40:38Z",
       "side": 1,
       "message": "Sorry, didn\u0027t think about this on the previous review.\n\nSuppose there are two concurrent requests (they get the same timeStampMs) that both triage the same digest differently. One will win, and we don\u0027t care too much which one.\n\nHowever, it\u0027s possible that the \"winner\" (the request that was processed second) will end up with a TimeSortableKey that sorts before the \"loser,\" due to the random component. Then, when we call CalcExpectations, the \"loser\" will become the \"winner\" because it will appear that the loser\u0027s change came second.\n\nWe probably still don\u0027t care too much, but it\u0027s a little unfortunate that we can \"change history\" like this.",
+      "range": {
+        "startLine": 288,
+        "startChar": 33,
+        "endLine": 288,
+        "endChar": 47
+      },
+      "revId": "8c29b397e72ee54b8ccf6de535c9067d63e17201",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "41399eac_75fcbbe3",
+        "filename": "golden/go/expstorage/cloudexpstore.go",
+        "patchSetId": 38
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-21T17:06:42Z",
+      "side": 1,
+      "message": "I added a method to produce unique timestamps that are at least 1ms appart. That\u0027s a totally acceptable restriction for this use case.",
+      "parentUuid": "bdb1a289_47782b45",
       "range": {
         "startLine": 288,
         "startChar": 33,
