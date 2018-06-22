@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7215b08d_95fdb1f7",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T20:06:22Z",
+      "side": 1,
+      "message": "Maybe check for zero values before overwriting. Also, RHS should be spec, not t.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 36
+      },
+      "revId": "8499d1df35a9aab5f158b13343fac2736a47219b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
