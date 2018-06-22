@@ -121,7 +121,7 @@ def _get_kv_pairs(output):
 
       k,v = [x.strip() for x in split_line]
       if line.startswith(' '):
-        if type(nested) == dict:
+        if isinstance(nested, dict):
           nested[k] = v
         else:
           nested.append(v)
@@ -163,7 +163,7 @@ def _run_cmd(cmd):
   retry = 0
   while True:
     try:
-      args = cmd if type(cmd) is list else cmd.strip().split()
+      args = cmd if isinstance(cmd, list) else cmd.strip().split()
       output = subprocess.check_output(args, stderr=sys.stderr)
       return output
     except subprocess.CalledProcessError:

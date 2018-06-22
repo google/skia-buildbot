@@ -28,12 +28,15 @@ class IOSDeviceCase(unittest.TestCase):
     time.sleep(30)
 
   def test_get_kv_pairs(self):
-    val = """ImageSignature[1]:
- 0: GD1suZo7maW9nMiDMb+wGAHbug59mPHeMJn/e1BWfjjCDnATA9jWCFg5goyl961sxwhQQttJ8Qj6OuXATQwurfPjQH/zqscAiRzDsk/UQ22/2gtUgVfUGuILtyLeIBvs1u4oF0HJFxb3keV2dqYhK6ATSufLrzZe97k/WSBZPuA="""
+    sig = ('GD1suZo7maW9nMiDMb+wGAHbug59mPHeMJn/e1BWfjjCDnATA9jWCFg5goyl961sxw'
+           'hQQttJ8Qj6OuXATQwurfPjQH/zqscAiRzDsk/UQ22/2gtUgVfUGuILtyLeIBvs1u4o'
+           'F0HJFxb3keV2dqYhK6ATSufLrzZe97k/WSBZPuA=')
+    val = '''ImageSignature[1]:
+ 0: %s''' % sig
     out = ios._get_kv_pairs(val)
     self.assertEqual(1, len(out))
-    self.assert_(type(out["ImageSignature"]) is list)
-    self.assert_(1, len(out["ImageSignature"]))
+    self.assert_(isinstance(out["ImageSignature"], list))
+    self.assertEqual(1, len(out["ImageSignature"]))
 
     val = """ActivationState: Activated
 ActivationStateAcknowledged: true
