@@ -68,6 +68,7 @@ func TestCopyTaskSpec(t *testing.T) {
 		Outputs:        []string{"out"},
 		Priority:       19.0,
 		ServiceAccount: "fake-account@gmail.com",
+		Template:       "tmpl",
 	}
 	deepequal.AssertCopy(t, v, v.Copy())
 }
@@ -142,6 +143,47 @@ func TestTaskSpecs(t *testing.T) {
 	assert.Equal(t, 2, countTest)
 	assert.Equal(t, 1, countPerf)
 	assert.Equal(t, 5, total)
+}
+
+func TestTaskSpecTemplates(t *testing.T) {
+	testutils.SmallTest(t)
+
+	cfg, err := ParseTasksCfg(`{
+  "tasks": {
+    "Build-Ubuntu-GCC-Arm7-Release-Android": {
+      "template": "build_android",
+      "command": ["skia"]
+    }
+  },
+  "jobs": {
+    "Build-Ubuntu-GCC-Arm7-Release-Android": {
+      "priority": 0.8,
+      "tasks": ["Build-Ubuntu-GCC-Arm7-Release-Android"]
+    }
+  },
+  "templates": {
+    "build": {
+      "command": ["ninja"],
+      "dimensions": ["pool:Skia", "os:Ubuntu"],
+      "extra_tags": {"is_build_task": "true"},
+      "isolate": "compile_skia.isolate",
+      "max_attempts": 5,
+      "priority": 0.8
+    },
+    "build_android": {
+      "template": "build",
+      "cipd_packages": [{
+        "name": "android_sdk",
+        "path": "android_sdk",
+        "version": "version:0"
+      }]
+    }
+  }
+}`)
+	assert.NoError(t, err)
+	task := cfg.Tasks["Build-Ubuntu-GCC-Arm7-Release-Android"]
+	deepequal.AssertDeepEqual(t, task.Command, []string{"ninja", "skia"})
+	assert.Equal(t, 1, len(task.CipdPackages))
 }
 
 func TestAddedTaskSpecs(t *testing.T) {

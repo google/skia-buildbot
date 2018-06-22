@@ -83,11 +83,66 @@ var (
 	PERIODIC_TRIGGERS = []string{TRIGGER_NIGHTLY, TRIGGER_WEEKLY}
 )
 
+// resolveTaskSpec fills in details of the TaskSpec.
+func resolveTaskSpec(cfg *TasksCfg, spec *TaskSpec) (*TaskSpec, error) {
+	if spec.Template == "" {
+		return spec.Copy(), nil
+	}
+	tmpl := cfg.Templates[spec.Template]
+	if tmpl == nil {
+		return nil, fmt.Errorf("No such template: %s", spec.Template)
+	}
+	// TODO(borenet): Protection from infinite recursion.
+	t, err := resolveTaskSpec(cfg, tmpl)
+	if err != nil {
+		return nil, err
+	}
+	// For each property of spec, merge dicts, overwriting duplicate keys,
+	// concatentate lists, and overwrite scalar properties.
+
+	// TODO(borenet): For lists which contain named things, eg. CIPD
+	// packages, should we replace the template version with the spec's
+	// version if they differ?
+	t.Caches = append(t.Caches, spec.Caches...)
+	t.CipdPackages = append(t.CipdPackages, spec.CipdPackages...)
+	t.Command = append(t.Command, spec.Command...)
+	t.Dependencies = append(t.Dependencies, spec.Dependencies...)
+	t.Dimensions = append(t.Dimensions, spec.Dimensions...)
+	for k, v := range spec.Environment {
+		t.Environment[k] = v
+	}
+	for k, v := range spec.EnvPrefixes {
+		t.EnvPrefixes[k] = append(t.EnvPrefixes[k], v...)
+	}
+	t.ExtraArgs = append(t.ExtraArgs, spec.ExtraArgs...)
+	for k, v := range spec.ExtraTags {
+		t.ExtraTags[k] = v
+	}
+	t.Outputs = append(t.Outputs, spec.Outputs...)
+	t.ExecutionTimeout = t.ExecutionTimeout
+	t.Expiration = t.Expiration
+	t.IoTimeout = t.IoTimeout
+	t.Isolate = t.Isolate
+	t.MaxAttempts = t.MaxAttempts
+	t.Priority = t.Priority
+	t.ServiceAccount = t.ServiceAccount
+	t.Template = ""
+
+	return t, nil
+}
+
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
 func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	var rv TasksCfg
 	if err := json.Unmarshal([]byte(contents), &rv); err != nil {
 		return nil, fmt.Errorf("Failed to read tasks cfg: could not parse file: %s\nContents:\n%s", err, string(contents))
+	}
+	for name, spec := range rv.Tasks {
+		resolved, err := resolveTaskSpec(&rv, spec)
+		if err != nil {
+			return nil, err
+		}
+		rv.Tasks[name] = resolved
 	}
 	if err := rv.Validate(); err != nil {
 		return nil, err
@@ -143,6 +198,10 @@ type TasksCfg struct {
 	// Tasks is a map whose keys are TaskSpec names and values are TaskSpecs
 	// detailing the Swarming tasks which may be run.
 	Tasks map[string]*TaskSpec `json:"tasks"`
+
+	// Templates is a map whose keys are template names and values are
+	// TaskSpecs which other TaskSpecs may inherit from.
+	Templates map[string]*TaskSpec `json:"templates"`
 }
 
 // Validate returns an error if the TasksCfg is not valid.
@@ -225,6 +284,12 @@ type TaskSpec struct {
 	// ServiceAccount indicates the Swarming service account to use for the
 	// task. If not specified, we will attempt to choose a suitable default.
 	ServiceAccount string `json:"service_account,omitempty"`
+
+	// Template refers to another TaskSpec which is used to fill in this
+	// TaskSpec. It is only used when parsing from a file; all fields are
+	// fully filled in during parsing at which point this field is set
+	// empty.
+	Template string `json:"template,omitempty"`
 }
 
 // Validate ensures that the TaskSpec is defined properly.
@@ -304,6 +369,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		Outputs:          outputs,
 		Priority:         t.Priority,
 		ServiceAccount:   t.ServiceAccount,
+		Template:         t.Template,
 	}
 }
 
