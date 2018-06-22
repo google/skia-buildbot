@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "094bab79_a9f3c248",
+        "filename": "fiddlek/fiddler/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T20:45:16Z",
+      "side": 1,
+      "message": "This can eventually be removed, right?",
+      "revId": "714175cb2dd6864772d9512e7abcb8501af73178",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
