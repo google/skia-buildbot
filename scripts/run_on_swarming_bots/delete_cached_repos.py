@@ -14,6 +14,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 
 
 def RemoveDirectory(*path):

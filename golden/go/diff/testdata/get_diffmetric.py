@@ -42,7 +42,9 @@ for x in xrange(xMin):
         else:
             num_diff_pixel -= 1
 
-image_sizes_differ = (img1.size[0] != img2.size[0]) or (img1.size[1] != img2.size[1])
+image_sizes_differ = (
+    (img1.size[0] != img2.size[0]) or
+    (img1.size[1] != img2.size[1]))
 total_px = xMax * yMax
 pixel_diff_percent = (num_diff_pixel / float(total_px)) * 100
 if pixel_diff_percent > 100.0:
