@@ -134,6 +134,7 @@ def CheckChange(input_api, output_api):
 
   pylint_blacklist = [
       r'infra[\\\/]bots[\\\/]recipes.py',
+      r'.*\b\.recipe_deps[\\\/].*',
   ]
   pylint_blacklist.extend(input_api.DEFAULT_BLACK_LIST)
   pylint_disabled_warnings = (
