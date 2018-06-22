@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8db2856_85a29b3a",
+        "filename": "kube/go/continuous-deploy/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-22T19:36:59Z",
+      "side": 1,
+      "message": "Just FYI, the service account needs special permission to do this initially, but not to actually receive messages for the subscription.",
+      "range": {
+        "startLine": 60,
+        "startChar": 20,
+        "endLine": 60,
+        "endChar": 38
+      },
+      "revId": "a53a7a827aca86279313002cae8a83715d7ecedf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
