@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# Keep this in sync with fiddler_ci/Dockerfile.
 APPNAME=fiddler
 
 set -x -e
