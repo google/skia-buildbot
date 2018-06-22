@@ -93,7 +93,6 @@ export class CheckOrRadio extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    console.log(name, oldValue, newValue);
     if (!this._input) {
       return
     }

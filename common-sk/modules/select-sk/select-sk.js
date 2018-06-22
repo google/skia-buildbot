@@ -22,7 +22,7 @@
  *     <div></div>
  *   </select-sk>
  *
- * @evt selection-change - Sent when an item is clicked and the selection is changed.
+ * @evt selection-changed - Sent when an item is clicked and the selection is changed.
  *   The detail of the event contains the child element index:
  *
  *   <pre>
