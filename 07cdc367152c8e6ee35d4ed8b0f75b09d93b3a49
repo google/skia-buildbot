@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "457dc1ef_0e3ede91",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T13:57:44Z",
+      "side": 1,
+      "message": "typo namespace",
+      "range": {
+        "startLine": 70,
+        "startChar": 14,
+        "endLine": 70,
+        "endChar": 23
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "928eab19_c9c9f944",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T13:57:44Z",
+      "side": 1,
+      "message": "nit: ctx",
+      "range": {
+        "startLine": 133,
+        "startChar": 28,
+        "endLine": 133,
+        "endChar": 42
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "540585c7_93fe2cf2",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T13:57:44Z",
+      "side": 1,
+      "message": "Either this should run in a transaction or you should add a clear warning (and maybe confirmation prompt) that this can\u0027t be run concurrent with other writes.",
+      "range": {
+        "startLine": 130,
+        "startChar": 0,
+        "endLine": 136,
+        "endChar": 3
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e583493f_8f7a4cb0",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T13:57:44Z",
+      "side": 1,
+      "message": "Are we assuming no grand-parents or more distant ancestors?",
+      "range": {
+        "startLine": 202,
+        "startChar": 38,
+        "endLine": 202,
+        "endChar": 51
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "612935b4_735df167",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T13:57:44Z",
+      "side": 1,
+      "message": "This potentially overwrites a non-empty procSlice if we have one or more with-parent keys followed by a no-parent key that causes byParent[0] to reach maxSliceSize.",
+      "range": {
+        "startLine": 231,
+        "startChar": 0,
+        "endLine": 232,
+        "endChar": 21
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d42a9c0_caeb1141",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T13:57:44Z",
+      "side": 1,
+      "message": "nit: consider using \u003c-chan KeysOrError where \ntype KeysOrError struct {\n  Keys []*datastore.Key\n  Err error\n}",
+      "range": {
+        "startLine": 263,
+        "startChar": 4,
+        "endLine": 263,
+        "endChar": 60
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9958e8f1_b4f1c744",
+        "filename": "go/ds/ds_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-22T13:57:44Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 65,
+        "startChar": 5,
+        "endLine": 65,
+        "endChar": 20
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
