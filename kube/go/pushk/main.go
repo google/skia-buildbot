@@ -27,12 +27,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-)
-
-const (
-	repoUrlTemplate = "https://skia.googlesource.com/%s-config"
-	repoBaseDir     = "/tmp"
-	repoDirTemplate = "/tmp/%s-config"
+	kucommon "go.skia.org/infra/kube/go/common"
 )
 
 func init() {
@@ -76,23 +71,13 @@ Examples:
 	}
 }
 
-// toFullRepoURL converts the project name into a git repo URL.
-func toFullRepoURL(s string) string {
-	return fmt.Sprintf(repoUrlTemplate, s)
-
-}
-
-// toRepoDir converts the project name into a git repo directory name.
-func toRepoDir(s string) string {
-	return fmt.Sprintf(repoDirTemplate, s)
-}
-
 // flags
 var (
 	dryRun   = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
 	message  = flag.String("message", "Push", "Message to go along with the change.")
 	project  = flag.String("project", "skia-public", "The GCE project name.")
 	rollback = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
+	anyTag   = flag.Bool("any_tag", false, "If true then skip tag validation.")
 )
 
 var (
@@ -143,8 +128,8 @@ func main() {
 	common.Init()
 
 	ctx := context.Background()
-	repoDir := toRepoDir(*project)
-	checkout, err := git.NewCheckout(ctx, toFullRepoURL(*project), repoBaseDir)
+	repoDir := kucommon.ToRepoDir(*project)
+	checkout, err := git.NewCheckout(ctx, kucommon.ToFullRepoURL(*project), kucommon.REPO_BASE_DIR)
 	if err != nil {
 		sklog.Fatalf("Failed to check out config repo: %s", err)
 	}
@@ -190,9 +175,11 @@ func main() {
 		}
 
 		// Filter the tags
-		tags, err = filter(tags)
-		if err != nil {
-			sklog.Fatal(err)
+		if !*anyTag {
+			tags, err = filter(tags)
+			if err != nil {
+				sklog.Fatal(err)
+			}
 		}
 
 		// Pick the target tag we want to move to.
