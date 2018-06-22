@@ -14,6 +14,7 @@ build: elements_html core_js
 	go install -v ./go/fiddle
 	go install -v ./go/fiddler
 	go install -v ./go/fiddlecli
+	go install -v ./go/smoketest
 
 .PHONY: image
 image: build

@@ -1,8 +1,10 @@
 # Keep this in sync with ../fiddler/Dockerfile and ../build_fiddler_release.
 FROM golang:1.10.3-stretch as build
 
-RUN go get go.skia.org/infra/fiddlek/go/fiddler
-
+RUN go get go.skia.org/infra/fiddlek/go/fiddler go.skia.org/infra/fiddlek/go/smoketest \
+    && /go/bin/fiddler --logtostderr --checkout=/tmp/skia/skia/ --fiddle_root=/tmp --port=:8000 & \
+    && sleep 2  \
+    && /go/bin/smoketest
 
 FROM gcr.io/skia-public/skia-release:prod
 

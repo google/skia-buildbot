@@ -28,3 +28,19 @@ Configuration
 
 The kubernetes configuration files are kept in a separate repo that will
 automaticaly be checked out under /tmp by the pushk command.
+
+Continuous Deployment
+=====================
+
+To set up continuous deployment create a Dockerfile that builds the image you
+want, and then add a trigger to build that image on commits to the repo in the
+[GCP Container Builder](https://cloud.google.com/container-builder/).
+
+The continuous-deploy pod listens for pubsub messages of success from
+container builder and when it receives them it runs pushk for a set of images.
+
+Update the continuous-deploy yaml file to add the image you want to get
+deployed.
+
+See https://cloud.google.com/container-builder/docs/send-build-notifications
+for more details.
