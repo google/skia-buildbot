@@ -93,6 +93,7 @@ var (
 	message  = flag.String("message", "Push", "Message to go along with the change.")
 	project  = flag.String("project", "skia-public", "The GCE project name.")
 	rollback = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
+	anyTag   = flag.Bool("any_tag", false, "Push the latest tag even if it doesn't conform to our regex.")
 )
 
 var (
@@ -189,10 +190,12 @@ func main() {
 			sklog.Fatal(err)
 		}
 
-		// Filter the tags
-		tags, err = filter(tags)
-		if err != nil {
-			sklog.Fatal(err)
+		if !*anyTag {
+			// Filter the tags
+			tags, err = filter(tags)
+			if err != nil {
+				sklog.Fatal(err)
+			}
 		}
 
 		// Pick the target tag we want to move to.
