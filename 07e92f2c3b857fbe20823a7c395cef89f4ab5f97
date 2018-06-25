@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c912aec_939ab82a",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-25T22:14:32Z",
+      "side": 1,
+      "message": "Doc is out of date.",
+      "range": {
+        "startLine": 225,
+        "startChar": 0,
+        "endLine": 233,
+        "endChar": 15
+      },
+      "revId": "07e92f2c3b857fbe20823a7c395cef89f4ab5f97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abf5ad71_6ec25913",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-25T22:14:32Z",
+      "side": 1,
+      "message": "nit: maybe include image in the error message also",
+      "range": {
+        "startLine": 236,
+        "startChar": 43,
+        "endLine": 236,
+        "endChar": 44
+      },
+      "revId": "07e92f2c3b857fbe20823a7c395cef89f4ab5f97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d460621_dd7710f5",
+        "filename": "kube/go/pushk/main_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-25T22:14:32Z",
+      "side": 1,
+      "message": "nit: also test rollback",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 131,
+        "endChar": 4
+      },
+      "revId": "07e92f2c3b857fbe20823a7c395cef89f4ab5f97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
